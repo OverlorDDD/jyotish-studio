@@ -25,9 +25,19 @@ export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en
 }
 
 import {generateOpenAiInterpretation} from './ai.ts';
+import {generateFreeInterpretation} from './free-ai.ts';
 export async function interpretChart(chart:CalculatedChart,lang:'uk'|'en',preferred:'auto'|'local'='auto'){
- const key=process.env.OPENAI_API_KEY;
- // An API key alone cannot trigger paid calls. Explicit local opt-in is required.
- if(preferred==='local'||process.env.OPENAI_ENABLED!=='1'||!key)return {provider:'local' as const,text:localInterpretation(chart,lang)};
- return generateOpenAiInterpretation(chart,lang,{key,model:process.env.OPENAI_MODEL});
+ const local=()=>({provider:'local' as const,text:localInterpretation(chart,lang)});
+ if(preferred==='local')return local();
+ const mode=process.env.AI_MODE||'free';
+ if(mode==='local')return local();
+ if(mode==='free'){
+  const free=await generateFreeInterpretation(chart,lang);
+  return free||local();
+ }
+ // Legacy paid OpenAI path requires TWO deliberate switches. It is NEVER a free fallback.
+ if(mode==='paid_openai'&&process.env.OPENAI_ENABLED==='1'&&process.env.OPENAI_API_KEY){
+  return generateOpenAiInterpretation(chart,lang,{key:process.env.OPENAI_API_KEY,model:process.env.OPENAI_MODEL});
+ }
+ return local();
 }
