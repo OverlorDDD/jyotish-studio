@@ -11,6 +11,7 @@ export function middleware(request:NextRequest){
   }
   const response=NextResponse.next();
   response.headers.set('Cache-Control','no-store');
+  response.headers.set('X-Robots-Tag','noindex, nofollow');
   return response;
  }
  const user=process.env.DEMO_ACCESS_USER||'';
