@@ -10,9 +10,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install dependencies
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Node dependencies
         run: npm install --no-audit --no-fund
-      - name: Core unit tests
+      - name: Install backup astronomical adapter
+        run: python -m pip install pyswisseph
+      - name: Unit tests
         run: npm test
       - name: TypeScript core
         run: npm run build -w @jyotish/core
+      - name: Browser JavaScript syntax
+        run: node --check apps/web/public/demo.js
+      - name: Start standalone API and smoke test
+        run: |
+          ALLOW_PYTHON_SWISSEPH=1 npm run dev > /tmp/jyotish.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          node tools/smoke-test.mjs
