@@ -5,13 +5,12 @@
 ## Fastest launch — standalone preview, with no npm install
 
 Requirements: Node.js **22+** and one astronomical adapter:
-- Preferred: `npm install` installs native `@swisseph/node`, **or**
-- Python 3 plus `pip install pyswisseph` (fallback for the standalone preview; can require `PYTHON_BIN=python` on Windows).
+- Optional native backend: install `@swisseph/node` in the API workspace (`npm install @swisseph/node -w @jyotish/api`), **or**
+- Recommended quick-start fallback: Python 3 plus `py -m pip install pyswisseph` on Windows (`python3 -m pip install pyswisseph` on Linux/macOS).
 
 ```powershell
 # Windows PowerShell, from repository root:
-py -m pip install pyswisseph  # only needed if npm install is unavailable
-$env:PYTHON_BIN = 'python'    # adjust if `python` command is not available
+py -m pip install pyswisseph  # unless the native @swisseph/node adapter is installed
 npm run dev
 ```
 
@@ -76,18 +75,30 @@ Never upload real birth profiles to a public repository. Saved DB contains poten
 
 **License**: AGPL-3.0-only (respect Swiss Ephemeris upstream license).
 
-## Publish to your GitHub repository (PowerShell)
+## GitHub repository and Windows setup
 
-The connected GitHub app in the authoring session cannot create a repository. First open https://github.com/new, set owner `OverlorDDD`, name `jyotish-studio`, visibility **Public**, and create an **empty** repository (do not initialize README/license).
+The public GitHub repository is now available: https://github.com/OverlorDDD/jyotish-studio
 
-Then unzip this project, open PowerShell **inside** the `jyotish-studio` folder and run:
+**Recommended clean setup (PowerShell):**
 
 ```powershell
-git init -b main
-git add .
-git commit -m "Initial Jyotish Studio MVP"
-git remote add origin https://github.com/OverlorDDD/jyotish-studio.git
-git push -u origin main
+cd C:\Users\Note
+git clone https://github.com/OverlorDDD/jyotish-studio.git
+cd jyotish-studio
+npm install
+py -m pip install pyswisseph
+npm run dev
 ```
 
-Note: read files before pushing; `.env` is excluded by `.gitignore`. Do not commit profiles, credentials, or generated database dumps. You can also tell ChatGPT once you create the empty repository; the connected GitHub app supports adding files to existing repositories.
+Open http://localhost:4000. If `py` is not installed but `python` works, run `python -m pip install pyswisseph` and set `$env:PYTHON_BIN = 'python'` before `npm run dev`.
+
+**Troubleshooting `ENOENT package.json` after ZIP extraction:** the ZIP contains a top-level `jyotish-studio` folder. If you extracted into a folder of the same name, navigate one level deeper:
+
+```powershell
+cd .\jyotish-studio
+Get-Item package.json
+npm install
+npm run dev
+```
+
+Do not commit `.env`, API keys, real birth data or database dumps. The connected GitHub integration can maintain this repository directly.
