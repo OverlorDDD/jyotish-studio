@@ -20,7 +20,8 @@
     "test:all": "npm test && npm run test:ui && npm run test:reference",
     "test:full": "node tools/smoke-test.mjs",
     "test:ui": "node --test tools/chart-labels.test.mjs",
-    "preflight:full": "node tools/fullstack-preflight.mjs"
+    "preflight:full": "node tools/fullstack-preflight.mjs",
+    "test:swagger": "node --import tsx --test tools/swagger-startup.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
