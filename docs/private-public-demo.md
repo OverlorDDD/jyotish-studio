@@ -7,12 +7,12 @@
 - Next.js now calls `/api/...` on the **same origin** instead of hardcoding `localhost:4000` in browser JavaScript. A Next.js rewrite proxies `/api/:path*` to NestJS bound to `127.0.0.1:4000` on the hosting PC. An external visitor does not need local port 4000.
 - Next.js middleware prompts for HTTP Basic authentication when `DEMO_ACCESS_USER` and `DEMO_ACCESS_PASSWORD` are present. For non-local hostnames without credentials, it returns 503 (fail closed). The password protects a *shared private demo*, not production multi-user data. Use HTTPS ngrok only. Do not set `--host-header=localhost` to disguise incoming hostnames.
 - `npm run demo:check` checks an unauthenticated page returns **401** and an authenticated `/api/health` through the Next proxy returns **200, database connected**. It refuses to recommend a tunnel until these checks pass.
-- OpenAI is OFF by default; for a preview **`demo:check` now blocks publishing when `OPENAI_ENABLED=1`**. Test paid AI locally, then set `OPENAI_ENABLED=0` and restart before opening ngrok.
+- The default AI_MODE=free uses only $0 OpenRouter free routing, optional localhost Ollama and a deterministic local fallback. `demo:check` blocks AI_MODE=paid_openai. See docs/free-ai.md; free provider quotas may still be exhausted.
 
 ## Steps
 
 1. In PowerShell: `cd C:\Users\Note\jyotish-studio-git`, `git pull --ff-only origin main`, `npm install`.
-2. Open the private **root `.env`** in VS Code. Set `DEMO_ACCESS_USER=viewer` and a **unique, random 14+ character ASCII** password in `DEMO_ACCESS_PASSWORD`. Set `OPENAI_ENABLED=0`. Keep existing `DATABASE_URL` pointing at `localhost:5433`. Do not send the password or `.env` to ChatGPT or GitHub.
+2. Open the private **root `.env`** in VS Code. Set `DEMO_ACCESS_USER=viewer` and a **unique, random 14+ character ASCII** password in `DEMO_ACCESS_PASSWORD`. Set `AI_MODE=free` (or `AI_MODE=local` for an entirely offline demo) and `OPENAI_ENABLED=0`. Keep existing `DATABASE_URL` pointing at `localhost:5433`. Do not send the password or `.env` to ChatGPT or GitHub.
 3. Ensure Docker Desktop is running and `docker compose up -d --wait db` completes.
 4. Build and launch **production-preview mode** (not a development server):
 
