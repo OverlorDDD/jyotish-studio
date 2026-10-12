@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createHourlyLimiter,astrologicalFacts,generateOpenAiInterpretation,AiProviderError} from '../apps/api/src/ai.ts';
+import {createHourlyLimiter,astrologicalFacts,generateOpenAiInterpretation,AiProviderError,explainAiFailure} from '../apps/api/src/ai.ts';
 import {localInterpretation} from '../apps/api/src/logic.ts';
 
 const p=(name,signName,house)=>({name,signName,house,nakshatra:'Swati',pada:4});
@@ -76,4 +76,32 @@ test('local readings are inviting, Ukrainian terminology is fully localized, and
  assert.match(en,/Jyotish chart reading/);
  assert.match(en,/Pisces/);
  assert.ok(!en.includes('scientific prediction'));
+});
+
+test('safe error messages identify upstream issues without exposing provider text',()=>{
+ const cases=[
+  ['OpenAI HTTP 401','API key rejected'],
+  ['OpenAI HTTP 403','permissions denied'],
+  ['OpenAI HTTP 404','model not available'],
+  ['OpenAI HTTP 429 insufficient_quota','no available credits'],
+  ['OpenAI HTTP 429','request limit'],
+  ['OpenAI HTTP 400','structured output settings'],
+  ['OpenAI HTTP 503','service error']
+ ];
+ for(const [err,want] of cases){
+  const msg=explainAiFailure(new AiProviderError('upstream',err));
+  assert.ok(msg.includes(want),`${err}: ${msg}`);
+ }
+ assert.match(explainAiFailure(new AiProviderError('format','OpenAI returned a malformed JSON response')),/structured interpretation/);
+ assert.match(explainAiFailure(new AiProviderError('timeout','OpenAI request timed out')),/15 seconds/);
+ assert.ok(!explainAiFailure(new AiProviderError('upstream','secret token abc')).includes('secret'));
+});
+
+test('recognized OpenAI error code is kept, raw provider error text is discarded',async()=>{
+ await assert.rejects(
+  generateOpenAiInterpretation(chart,'uk',{key:'fake',limit:()=>true,fetcher:async()=>new Response(JSON.stringify({
+    error:{code:'insufficient_quota',message:'Private account metadata MUST NOT LEAK'}
+  }),{status:429,headers:{'Content-Type':'application/json'}})}),
+  e=>e instanceof AiProviderError&&e.message==='OpenAI HTTP 429 insufficient_quota'
+ );
 });
