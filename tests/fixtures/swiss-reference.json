@@ -1,0 +1,70 @@
+{
+  "source": "Swiss Ephemeris / PySwissEph, Lahiri, mean node; FIXTURES generated locally, NOT independently signed by Jagannatha Hora",
+  "method": "direct FLG_SIDEREAL + PySwissEph houses_ex, compared with tropical-minus-ayansha and application Node API",
+  "toleranceDegrees": 0.0001,
+  "cases": [
+    {
+      "date": "2000-01-01",
+      "time": "12:00",
+      "timeZone": "Asia/Kolkata",
+      "latitude": 28.6139,
+      "longitude": 77.209,
+      "utc": "2000-01-01T06:30:00Z",
+      "ayanamsa": 23.857083589,
+      "ascendant": 343.189124024,
+      "positions": {
+        "Sun": 256.282088628,
+        "Moon": 196.71168769,
+        "Mars": 303.932341978,
+        "Mercury": 247.679558167,
+        "Jupiter": 1.390564366,
+        "Venus": 217.435542761,
+        "Saturn": 16.547044078,
+        "Rahu": 101.199567573,
+        "Ketu": 281.199567573
+      }
+    },
+    {
+      "date": "2012-06-15",
+      "time": "09:30",
+      "timeZone": "Europe/London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utc": "2012-06-15T08:30:00Z",
+      "ayanamsa": 24.031066715,
+      "ascendant": 114.858921693,
+      "positions": {
+        "Sun": 60.606941924,
+        "Moon": 13.902425163,
+        "Mars": 146.939193321,
+        "Mercury": 80.435010354,
+        "Jupiter": 36.788497423,
+        "Venus": 46.384621037,
+        "Saturn": 178.810518548,
+        "Rahu": 220.1345189,
+        "Ketu": 40.1345189
+      }
+    },
+    {
+      "date": "2024-02-29",
+      "time": "16:45",
+      "timeZone": "Europe/Kyiv",
+      "latitude": 50.4501,
+      "longitude": 30.5234,
+      "utc": "2024-02-29T14:45:00Z",
+      "ayanamsa": 24.19462421,
+      "ascendant": 127.80407021,
+      "positions": {
+        "Sun": 316.309261666,
+        "Moon": 191.62119524,
+        "Mars": 288.425342436,
+        "Mercury": 317.402901642,
+        "Jupiter": 17.055224541,
+        "Venus": 291.822568,
+        "Saturn": 315.672746146,
+        "Rahu": 353.526953871,
+        "Ketu": 173.526953871
+      }
+    }
+  ]
+}
