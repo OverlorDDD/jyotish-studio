@@ -6,6 +6,7 @@ import config from '../apps/web/next.config.mjs';
 
 test('one-domain API rewrite routes to local-only NestJS listener',async()=>{
  const rewrites=await config.rewrites();
+ assert.ok(config.experimental?.proxyTimeout>=75_000,'Slow free AI responses must outlast the Next.js proxy timeout');
  assert.deepEqual(rewrites,[{source:'/api/:path*',destination:'http://127.0.0.1:4000/api/:path*'}]);
  const page=readFileSync(new URL('../apps/web/app/page.tsx',import.meta.url),'utf8');
  assert.ok(page.includes("const api='';"),'Browser must use same origin for API requests');
