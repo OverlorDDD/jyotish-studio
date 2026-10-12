@@ -26,6 +26,9 @@ const server=createServer(async(req,res)=>{
   }
   const idMatch=url.pathname.match(/^\/api\/v1\/charts\/([a-f0-9-]+)$/);
   if(idMatch&&req.method==='GET'){const chart=charts.get(idMatch[1]);return send(res,chart?200:404,chart||{error:'Not found'});}
+  const dashaMatch=url.pathname.match(/^\/api\/v1\/charts\/([a-f0-9-]+)\/dashas$/);
+  if(dashaMatch&&req.method==='GET'){const chart=charts.get(dashaMatch[1]);return send(res,chart?200:404,chart?{id:dashaMatch[1],dasha:chart.dasha}:{error:'Not found'});}
+
   if(url.pathname==='/api/v1/interpretations'&&req.method==='POST'){
    const {id,lang}=await readBody(req);const chart=charts.get(id);if(!chart)return send(res,404,{error:'Chart not found / restart cleared temporary history'});
    return send(res,200,await interpretChart(chart,lang==='uk'?'uk':'en'));
