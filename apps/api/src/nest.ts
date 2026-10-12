@@ -1,4 +1,4 @@
-import {Body,Controller,Get,Post,Param,Module,Inject,Injectable,BadRequestException,NotFoundException,ServiceUnavailableException,TooManyRequestsException,OnModuleInit,OnModuleDestroy} from '@nestjs/common';
+import {Body,Controller,Get,Post,Param,Module,Inject,Injectable,BadRequestException,NotFoundException,ServiceUnavailableException,HttpException,HttpStatus,OnModuleInit,OnModuleDestroy} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsISO8601,IsNumber,IsOptional,IsString,Matches,Max,Min,MaxLength} from 'class-validator';
 import {PrismaClient} from '@prisma/client';
@@ -43,7 +43,7 @@ export class JyotishController {
   try {answer=await interpretChart(row.result as unknown as CalculatedChart,body.lang,body.preferred||'auto');}
   catch(error){
    if(error instanceof AiProviderError){
-    if(error.reason==='limit')throw new TooManyRequestsException(error.message);
+    if(error.reason==='limit')throw new HttpException(error.message,HttpStatus.TOO_MANY_REQUESTS);
     throw new ServiceUnavailableException('AI interpretation temporarily unavailable. Check your server-side OpenAI configuration.');
    }
    throw error;
