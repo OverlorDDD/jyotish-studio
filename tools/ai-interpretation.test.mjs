@@ -74,7 +74,7 @@ test('local readings are inviting, Ukrainian terminology is fully localized, and
  for(const word of ['Риби','Стрілець','Терези','Сваті','D9','D10'])assert.ok(uk.includes(word),'Missing '+word);
  for(const word of ['Pisces','Sagittarius','Libra','Swati','науковий прогноз'])assert.ok(!uk.includes(word),'Unexpected '+word);
  const en=localInterpretation(demo,'en');
- assert.match(en,/Jyotish chart reading/);
+ assert.match(en,/ASCENDANT — PERSONAL THEMES/);
  assert.match(en,/Pisces/);
  assert.ok(!en.includes('scientific prediction'));
 });
