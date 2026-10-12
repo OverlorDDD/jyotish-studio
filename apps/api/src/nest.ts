@@ -4,7 +4,9 @@ import {IsISO8601,IsNumber,IsOptional,IsString,Matches,Max,Min,MaxLength} from '
 import {PrismaClient} from '@prisma/client';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
-import {AiProviderError,explainAiFailure} from './ai.ts';
+import {AiProviderError,createHourlyLimiter,explainAiFailure} from './ai.ts';
+// Short-lived, per-process protection for a passwordless portfolio preview.
+const allowPublicCalculation=createHourlyLimiter(60);
 class BirthDto {
  @ApiProperty({type:String,example:'2000-01-01'}) @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
  @ApiProperty({type:String,example:'12:00'}) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) time!:string;
@@ -30,6 +32,7 @@ export class JyotishController {
  @Get('health') async health(){try{await this.prisma.$queryRaw`SELECT 1`;return {status:'ok',service:'jyotish-nestjs',database:'connected'};}catch{throw new ServiceUnavailableException('Database not connected');}}
  @Post('v1/charts/calculate')
  async calculate(@Body() birth:BirthDto){
+  if(process.env.PUBLIC_DEMO==='1'&&!allowPublicCalculation())throw new HttpException('Public demo hourly chart limit reached. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   let chart:CalculatedChart;
   try{chart=await runCalculation(birth);}catch(e){throw new BadRequestException(e instanceof Error?e.message:'Invalid birth data');}
   try {const row=await this.prisma.chart.create({data:{input:JSON.parse(JSON.stringify(chart.input)),result:JSON.parse(JSON.stringify(chart))}});return {id:row.id,...chart};}
