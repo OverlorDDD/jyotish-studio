@@ -67,7 +67,7 @@ export async function generateFreeInterpretationDetailed(
      // Free routers may choose endpoints that ignore strict schemas.
      // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.
      const rejected=error instanceof AiProviderError&&
-      (error.reason==='format'||(error.reason==='upstream'&&/^OpenAI HTTP (400|422)\\b/.test(error.message)));
+      (error.reason==='format'||(error.reason==='upstream'&&/^OpenAI HTTP (400|422)\b/.test(error.message)));
      if(!rejected)throw error;
      if(!permit()){reason='hourly_limit';continue;}
      console.warn('Free AI: strict schema unavailable; retrying with a simpler JSON prompt');
