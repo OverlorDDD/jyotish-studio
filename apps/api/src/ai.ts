@@ -99,7 +99,9 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    }catch{}
    throw new AiProviderError('upstream',`OpenAI HTTP ${response.status}${code?' '+code:''}`);
   }
-  const result=await response.json() as {model?:string;choices?:{message?:{content?:string;refusal?:string}}[]};
+  let result:{model?:string;choices?:{message?:{content?:string;refusal?:string}}[]};
+  try{result=await response.json() as typeof result;}
+  catch{throw new AiProviderError('format','AI provider returned invalid JSON');}
   const content=result.choices?.[0]?.message?.content;
   if(!content||result.choices?.[0]?.message?.refusal)throw new AiProviderError('format','OpenAI returned no interpretation');
   let decoded:unknown;
