@@ -20,4 +20,5 @@ model Interpretation {
  provider   String
  language   String
  text       String @db.Text
+ @@index([chartId])
 }
