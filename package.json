@@ -18,10 +18,14 @@
     "db:migrate": "node --env-file=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
     "test:all": "npm test && npm run test:ui && npm run test:reference",
-    "test:full": "node tools/smoke-test.mjs",
+    "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
-    "test:swagger": "npm run test:swagger -w @jyotish/api"
+    "test:swagger": "npm run test:swagger -w @jyotish/api",
+    "test:ai": "node --experimental-strip-types --test tools/ai-interpretation.test.mjs",
+    "test:demo": "node --test tools/public-demo.test.mjs",
+    "demo:check": "node --env-file=.env tools/demo-preflight.mjs",
+    "start:full": "npx concurrently -k \"npm run start -w @jyotish/api\" \"npm run start -w @jyotish/web\""
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
