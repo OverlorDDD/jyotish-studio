@@ -7,6 +7,7 @@ import {runCalculation,interpretChart} from './logic.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure} from './ai.ts';
 // Short-lived, per-process protection for a passwordless portfolio preview.
 const allowPublicCalculation=createHourlyLimiter(60);
+const allowPublicInterpretation=createHourlyLimiter(30);
 class BirthDto {
  @ApiProperty({type:String,example:'2000-01-01'}) @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
  @ApiProperty({type:String,example:'12:00'}) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) time!:string;
@@ -41,6 +42,7 @@ export class JyotishController {
  @Get('v1/charts/:id')async get(@Param('id') id:string){const row=await this.prisma.chart.findUnique({where:{id}});if(!row)throw new NotFoundException();return {id,...(row.result as object)};}
  @Get('v1/charts/:id/dashas')async dashas(@Param('id') id:string){const row=await this.prisma.chart.findUnique({where:{id}});if(!row)throw new NotFoundException();return {id,dasha:(row.result as unknown as CalculatedChart).dasha};}
  @Post('v1/interpretations')async interpret(@Body() body:InterpretDto){
+  if(process.env.PUBLIC_DEMO==='1'&&!allowPublicInterpretation())throw new HttpException('Public demo hourly interpretation limit reached. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   const row=await this.prisma.chart.findUnique({where:{id:body.id}});if(!row)throw new NotFoundException('Chart does not exist');
   let answer:Awaited<ReturnType<typeof interpretChart>>;
   try {answer=await interpretChart(row.result as unknown as CalculatedChart,body.lang,body.preferred||'auto');}
