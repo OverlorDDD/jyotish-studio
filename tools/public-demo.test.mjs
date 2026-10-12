@@ -24,8 +24,8 @@ test('demo preflight refuses paid AI before any public network probe',()=>{
  const result=spawnSync(process.execPath,['tools/demo-preflight.mjs'],{
   cwd:new URL('..',import.meta.url),
   encoding:'utf8',
-  env:{...process.env,DEMO_ACCESS_USER:'demo',DEMO_ACCESS_PASSWORD:'test_only_password_123456',OPENAI_ENABLED:'1'}
+  env:{...process.env,DEMO_ACCESS_USER:'demo',DEMO_ACCESS_PASSWORD:'test_only_password_123456',AI_MODE:'paid_openai',OPENAI_ENABLED:'1'}
  });
  assert.equal(result.status,1);
- assert.match(result.stderr,/BLOCKED: Paid OpenAI/);
+ assert.match(result.stderr,/BLOCKED: AI_MODE=paid_openai/);
 });
