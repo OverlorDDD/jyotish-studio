@@ -8,6 +8,7 @@ const chart={
  input:{date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude:28.6139,longitude:77.209},
  ascendant:p('Ascendant','Pisces',1),lagnaD9:p('Ascendant','Libra',1),lagnaD10:p('Ascendant','Pisces',1),
  d1:[p('Sun','Sagittarius',10),p('Moon','Libra',8)],
+ d9:[{...p('Venus','Libra',2),sign:7}],d10:[{...p('Saturn','Pisces',1),sign:12}],
  dasha:[{lord:'Saturn',start:'2020-01-01T00:00:00.000Z',end:'2030-01-01T00:00:00.000Z',antardashas:[{lord:'Mercury',start:'2025-01-01T00:00:00.000Z',end:'2027-01-01T00:00:00.000Z'}]}]
 };
 const successfulBody={sections:[{factId:'lagna',text:'This is a symbolic interpretation of the ascendant under the stated tradition.'},{factId:'moon',text:'This is a symbolic interpretation of the Moon under the stated tradition.'},{factId:'dasha',text:'The period can be considered within the traditional framework, not as a prediction.'}]};
