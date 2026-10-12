@@ -29,11 +29,11 @@ npm run db:migrate
 ```
 
 What each command does:
-- `docker compose up -d db` creates/runs PostgreSQL bound to `127.0.0.1:5432` and persists data in the `jyotish-postgres` volume.
+- `docker compose up -d db` creates/runs PostgreSQL bound to `127.0.0.1:5433` and persists data in the `jyotish-postgres` volume.
 - `db:generate` generates a typed Prisma Client from `apps/api/prisma/schema.prisma`.
 - `db:migrate` applies the committed initial SQL migration **non-interactively** (`prisma migrate deploy`), creating `Chart` and `Interpretation` tables.
 
-If `prisma generate` reports a missing engine, review npm install-script approval warnings on your machine. Never execute arbitrary build scripts from unknown packages. See `npm help install` and the relevant npm version documentation. If Docker cannot bind port 5432, check for another local PostgreSQL process before changing any port.
+If `prisma generate` reports a missing engine, review npm install-script approval warnings on your machine. Never execute arbitrary build scripts from unknown packages. See `npm help install` and the relevant npm version documentation. Jyotish uses host port **5433**, deliberately separate from OpsPilot or other local PostgreSQL instances on 5432. PostgreSQL still listens on port 5432 **inside** its own container.
 
 ## 3. Compile checks and start full mode
 
@@ -95,3 +95,27 @@ npm run dev:full
 ```
 
 Keep `.env` private and never paste its contents into chat or GitHub. If the database is not reachable, run `docker compose ps` and wait for the DB service to become healthy before rerunning migration. If local edits prevent a fast-forward pull, stop and check `git status --short` rather than overwriting files.
+
+
+## Two local Postgres projects: Docker port collision / Prisma P1000
+
+If you also run OpsPilot, **do not stop or delete** its PostgreSQL container or volume. The Jyotish Compose configuration now binds PostgreSQL to `127.0.0.1:5433` on Windows, while keeping internal Docker port `5432`.
+
+After `git pull --ff-only origin main`, update your *existing local* root `.env` (do not overwrite it or share its contents):
+
+```powershell
+# In C:\Users\Note\jyotish-studio-git
+(Get-Content .env -Raw).Replace('localhost:5432','localhost:5433') | Set-Content .env
+docker compose up -d db
+docker compose ps -a
+npm run db:migrate
+```
+
+Expected data source: `localhost:5433` and a healthy Jyotish DB. If the container stops, inspect `docker compose logs --tail=50 db` to identify the cause. If P1000 persists after confirming `localhost:5433`, the Jyotish Docker **volume** may contain a prior initialization with different credentials. Preserve the volume and ask for diagnostics before changing database credentials or resetting data.
+
+To check port ownership without changing any data:
+```powershell
+docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
+```
+
+Do not run `docker compose down -v`, `docker volume prune`, `docker system prune`, or `npm audit fix --force` to solve P1000.
