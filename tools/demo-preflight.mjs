@@ -5,7 +5,10 @@ if(user.length<3||password.length<14||user.includes(':')){
  console.error('BLOCKED: Configure DEMO_ACCESS_USER (3+ chars) and unique DEMO_ACCESS_PASSWORD (14+ chars) in root .env first.');
  process.exit(1);
 }
-if(process.env.OPENAI_ENABLED==='1')console.warn('WARNING: Paid OpenAI calls are enabled. Each visitor may use your limited AI budget. Consider OPENAI_ENABLED=0 for public demos.');
+if(process.env.OPENAI_ENABLED==='1'){
+ console.error('BLOCKED: Paid OpenAI is enabled. Set OPENAI_ENABLED=0 in root .env for the temporary internet demo, then restart the servers. Test paid AI locally before publishing.');
+ process.exit(1);
+}
 try{
  const r=await fetch('http://127.0.0.1:3000/',{redirect:'manual',signal:AbortSignal.timeout(5000)});
  if(r.status!==401)throw Error(`Frontend authentication expected 401; received ${r.status}. Restart Next.js after editing .env.`);
