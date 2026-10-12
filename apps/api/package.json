@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
-    "test:swagger": "tsx --tsconfig tsconfig.json --test ../../tools/swagger-startup.test.mjs"
+    "test:swagger": "tsx --tsconfig tsconfig.json --test ../../tools/swagger-startup.test.mjs",
+    "start": "tsx --tsconfig tsconfig.json src/main.ts"
   },
   "dependencies": {
     "@jyotish/core": "*",
