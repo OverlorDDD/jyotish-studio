@@ -5,16 +5,16 @@ import {PrismaClient} from '@prisma/client';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
 class BirthDto {
- @ApiProperty({example:'2000-01-01'}) @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
- @ApiProperty({example:'12:00'}) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) time!:string;
- @ApiProperty({example:'Asia/Kolkata'}) @IsString() @MaxLength(80) timeZone!:string;
- @ApiProperty({example:28.6139}) @IsNumber() @Min(-90) @Max(90) latitude!:number;
- @ApiProperty({example:77.209}) @IsNumber() @Min(-180) @Max(180) longitude!:number;
+ @ApiProperty({type:String,example:'2000-01-01'}) @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
+ @ApiProperty({type:String,example:'12:00'}) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) time!:string;
+ @ApiProperty({type:String,example:'Asia/Kolkata'}) @IsString() @MaxLength(80) timeZone!:string;
+ @ApiProperty({type:Number,example:28.6139}) @IsNumber() @Min(-90) @Max(90) latitude!:number;
+ @ApiProperty({type:Number,example:77.209}) @IsNumber() @Min(-180) @Max(180) longitude!:number;
  @IsOptional() @IsString() @MaxLength(120) place?:string;
 }
 class InterpretDto {
- @ApiProperty() @IsString() id!:string;
- @ApiProperty({example:'uk'}) @Matches(/^(uk|en)$/) lang!:'uk'|'en';
+ @ApiProperty({type:String}) @IsString() id!:string;
+ @ApiProperty({type:String,example:'uk'}) @Matches(/^(uk|en)$/) lang!:'uk'|'en';
 }
 @Injectable()
 class PrismaService extends PrismaClient implements OnModuleInit,OnModuleDestroy {
@@ -23,7 +23,7 @@ class PrismaService extends PrismaClient implements OnModuleInit,OnModuleDestroy
 }
 @ApiTags('Jyotish')
 @Controller('api')
-class JyotishController {
+export class JyotishController {
  constructor(@Inject(PrismaService) private readonly prisma:PrismaService){}
  @Get('health') async health(){try{await this.prisma.$queryRaw`SELECT 1`;return {status:'ok',service:'jyotish-nestjs',database:'connected'};}catch{throw new ServiceUnavailableException('Database not connected');}}
  @Post('v1/charts/calculate')
@@ -42,4 +42,20 @@ class JyotishController {
   return answer;
  }
 }
+/**
+ * tsx uses esbuild, which doesn't emit TypeScript's legacy design:paramtypes metadata
+ * even when emitDecoratorMetadata is enabled in tsconfig. Nest's route decorators
+ * still work, but @nestjs/swagger and ValidationPipe require these runtime types.
+ * Define the parameter types explicitly for each decorated handler so Swagger
+ * bootstrap and DTO validation work in development and compiled deployments.
+ */
+for(const [method,types] of [
+ ['calculate',[BirthDto]],
+ ['get',[String]],
+ ['dashas',[String]],
+ ['interpret',[InterpretDto]]
+] as const){
+ Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
+}
+
 @Module({controllers:[JyotishController],providers:[PrismaService]})export class AppModule{}
