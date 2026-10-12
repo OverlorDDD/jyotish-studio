@@ -44,6 +44,7 @@ test('public preview preflight and API rate limiter are explicitly guarded',()=>
  assert.ok(preflight.includes("swagger.status!==404"));
  assert.ok(preflight.includes("['free','local'].includes(mode)"));
  assert.ok(nest.includes("process.env.PUBLIC_DEMO==='1'&&!allowPublicCalculation()"));
+ assert.ok(nest.includes("process.env.PUBLIC_DEMO==='1'&&!allowPublicInterpretation()"));
 });
 test('public mode cannot bypass ban on paid OpenAI even without Basic credentials',()=>{
  const result=spawnSync(process.execPath,['tools/demo-preflight.mjs'],{
