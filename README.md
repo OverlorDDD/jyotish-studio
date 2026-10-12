@@ -18,6 +18,9 @@ Open **http://localhost:4000**. This runs a working static UI and Node HTTP API 
 
 ## Full stack — Next.js + NestJS + PostgreSQL
 
+**Windows setup/checklist:** [`docs/fullstack-windows.md`](docs/fullstack-windows.md). Start with `npm run preflight:full`. The initial SQL migration is committed and `db:migrate` now uses noninteractive `prisma migrate deploy`.
+
+
 Requires Docker Desktop, Node.js 22+, npm and internet to download dependencies:
 
 ```powershell
