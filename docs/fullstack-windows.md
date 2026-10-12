@@ -140,3 +140,25 @@ npm run dev:full
 Then verify `http://localhost:4000/api/health` returns database connected, `http://localhost:4000/api/docs` shows Swagger, and `http://localhost:3000` displays the chart. While servers remain running, in a **second PowerShell** run `npm run test:full`. Never run standalone `npm run dev` simultaneously on port 4000.
 
 Do not use `npm audit fix --force` to solve metadata errors.
+
+### Swagger regression test: esbuild parameter decorators
+
+If `npm run test:swagger` previously failed with
+`Parameter decorators only work when experimental decorators are enabled`,
+the original **test command** was running the TSX loader from the repository
+root instead of the API workspace. There is no root TypeScript compiler
+configuration with legacy decorator support. The corrected root test delegates
+to `@jyotish/api`; its test runs with `tsx --tsconfig tsconfig.json`
+under `apps/api`. The existing `tsconfig.json` already enables
+`experimentalDecorators` and `emitDecoratorMetadata`.
+
+```powershell
+cd C:\Users\Note\jyotish-studio-git
+git pull --ff-only origin main
+npm run test:swagger
+```
+
+If the Swagger test passes, run `npm run dev:full` and check
+`http://localhost:4000/api/health` and `http://localhost:4000/api/docs`.
+If it fails, share its first error before continuing; do not touch the
+PostgreSQL volume.
