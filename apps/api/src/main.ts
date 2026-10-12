@@ -1,5 +1,10 @@
 import {existsSync} from 'node:fs';
-if(existsSync('.env'))process.loadEnvFile('.env');
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+// npm workspaces launches NestJS with cwd=apps/api. Resolve the shared root .env
+// relative to this source file, so it works from any terminal directory.
+const rootEnv=resolve(dirname(fileURLToPath(import.meta.url)),'../../../.env');
+if(existsSync(rootEnv))process.loadEnvFile(rootEnv);
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {ValidationPipe} from '@nestjs/common';
