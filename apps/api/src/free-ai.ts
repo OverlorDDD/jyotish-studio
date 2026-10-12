@@ -45,7 +45,7 @@ export type FreeAiOutcome={
 export async function generateFreeInterpretationDetailed(
  chart:CalculatedChart,lang:'uk'|'en',opts:FreeAiOptions={}
 ):Promise<FreeAiOutcome>{
- if(!(opts.limit||allowFreeRequest)())return {result:null,reason:'hourly_limit'};
+ const permit=opts.limit||allowFreeRequest; // Count every free cloud attempt, including a JSON retry.
  const providers=opts.order||order();
  const openrouterKey=opts.key??process.env.OPENROUTER_API_KEY?.trim()??'';
  const ollamaEnabled=opts.ollamaEnabled??process.env.OLLAMA_ENABLED==='1';
@@ -56,11 +56,23 @@ export async function generateFreeInterpretationDetailed(
   if(provider==='ollama'&&!ollamaEnabled)continue;
   try{
    if(provider==='openrouter'){
-    const result=await generateOpenAiInterpretation(chart,lang,{
+    if(!permit()){reason='hourly_limit';continue;}
+    const request=(formatMode:'strict'|'prompt')=>generateOpenAiInterpretation(chart,lang,{
      provider:'openrouter',key:openrouterKey,model:'openrouter/free',
-     fetcher:opts.fetcher,limit:()=>true
+     formatMode,fetcher:opts.fetcher,limit:()=>true
     });
-    return {result};
+    try{
+     return {result:await request('strict')};
+    }catch(error){
+     // Free routers may choose endpoints that ignore strict schemas.
+     // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.
+     const rejected=error instanceof AiProviderError&&
+      (error.reason==='format'||(error.reason==='upstream'&&/^OpenAI HTTP (400|422)\\b/.test(error.message)));
+     if(!rejected)throw error;
+     if(!permit()){reason='hourly_limit';continue;}
+     console.warn('Free AI: strict schema unavailable; retrying with a simpler JSON prompt');
+     return {result:await request('prompt')};
+    }
    }
    if(provider==='ollama'){
     const result=await generateOpenAiInterpretation(chart,lang,{
