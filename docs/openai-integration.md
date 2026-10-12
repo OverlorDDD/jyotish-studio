@@ -45,3 +45,20 @@ With NestJS and PostgreSQL running, `npm run test:full` creates/fetches a fictio
 `OPENAI_MAX_CALLS_PER_HOUR` is now loaded lazily on the **first paid request after root `.env` is loaded** (not at module import time). It remains a per-process demo budget, not a billing guarantee; set project limits in OpenAI Platform.
 
 Before running `ngrok http 3000`, set `OPENAI_ENABLED=0`, restart the API and Next.js, and run `npm run demo:check`. The check now **blocks** a public demo if paid AI is enabled; use local-only test sessions for paid OpenAI integration.
+
+## Diagnose real OpenAI failures without revealing the API key
+
+If `OPENAI_ENABLED=1` and the key is set but the site shows an AI provider error:
+
+```powershell
+cd C:\Users\Note\jyotish-studio-git
+git pull --ff-only origin main
+npm run test:ai
+npm run test:swagger
+npm run build
+npm run openai:check
+```
+
+The `openai:check` command fetches **only model metadata** from OpenAI. It makes no paid chat generation request; it prints only the configured model, HTTP status, a machine-readable provider error code, and safe guidance. It never prints the key or upstream response text. HTTP 200 on this check **does not prove credits or successful chat generation**. The site now displays a sanitized diagnosis with the upstream HTTP status on a failed interpretation, including `429 insufficient_quota` when returned by OpenAI.
+
+Keep the web/API running on localhost for diagnosis and share only the safe status text, not your key or `.env`.
