@@ -14,26 +14,63 @@ export async function runCalculation(body:unknown):Promise<CalculatedChart>{
 const SIGN_NAMES_UK=["Овен","Телець","Близнюки","Рак","Лев","Діва","Терези","Скорпіон","Стрілець","Козоріг","Водолій","Риби"];
 const NAKSHATRA_NAMES_UK:Record<string,string>={"Ashwini":"Ашвіні","Bharani":"Бхарані","Krittika":"Кріттіка","Rohini":"Рохіні","Mrigashira":"Мрігашіра","Ardra":"Ардра","Punarvasu":"Пунарвасу","Pushya":"Пушʼя","Ashlesha":"Ашлеша","Magha":"Магха","Purva Phalguni":"Пурва Пхалгуні","Uttara Phalguni":"Уттара Пхалгуні","Hasta":"Хаста","Chitra":"Чітра","Swati":"Сваті","Vishakha":"Вішакха","Anuradha":"Анурадха","Jyeshtha":"Джʼєштха","Mula":"Мула","Purva Ashadha":"Пурва Ашадха","Uttara Ashadha":"Уттара Ашадха","Shravana":"Шравана","Dhanishta":"Дханіштха","Shatabhisha":"Шатабхіша","Purva Bhadrapada":"Пурва Бхадрапада","Uttara Bhadrapada":"Уттара Бхадрапада","Revati":"Реваті"};
 /** Chart coordinates are deterministic; these concise texts describe Jyotish traditions. */
+const SIGN_THEMES_UK=[
+ 'ініціатива та сміливість','послідовність і опора на цінності','допитливість і спілкування',
+ 'турбота й почуття належності','творчість і самовираження','уважність до деталей і служіння',
+ 'пошук рівноваги й партнерства','глибина почуттів і перетворення','пошук сенсу й відкриття горизонтів',
+ 'відповідальність і тривала праця','незалежність і нові ідеї','уявлення, співпереживання та інтуїція'
+];
+const HOUSE_THEMES_UK=[
+ 'особистість і самосприйняття','ресурси й особисті цінності','спілкування та навички',
+ 'дім і внутрішня опора','творчість і самовираження','повсякденні справи та служіння',
+ 'стосунки й співпраця','зміни та спільні ресурси','світогляд і навчання',
+ 'покликання та суспільна роль','спільноти й прагнення','усамітнення та внутрішній світ'
+];
+const GRAHAS_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',
+ Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
+/** Rich offline report built from actual chart facts; never pretends to be a language model. */
 export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en'){
  const moon=chart.d1.find(x=>x.name==='Moon')!,sun=chart.d1.find(x=>x.name==='Sun')!;
+ const active=chart.dasha.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
+ const sub=active?.antardashas.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
  if(language==='uk'){
   const sign=(number:number)=>SIGN_NAMES_UK[number-1]||'—';
+  const name=(english:string)=>GRAHAS_UK[english]||english;
+  const display=(positions:typeof chart.d1)=>positions.map(g=>`${name(g.name)} — ${sign(g.sign)}, ${g.house}-й дім`).join('; ');
   const nakshatra=NAKSHATRA_NAMES_UK[moon.nakshatra]||moon.nakshatra;
-  return `Трактування за Джйотіш. Лагна — ${sign(chart.ascendant.sign)}. Сонце — ${sign(sun.sign)} (${sun.house}-й дім), Місяць — ${sign(moon.sign)} (${moon.house}-й дім). Накшатра Місяця — ${nakshatra}, пада ${moon.pada}. Карта D9 (Навамша) відкриває теми стосунків і внутрішніх цінностей, а D10 (Дашамша) — професійного шляху.`;
+  const signTheme=SIGN_THEMES_UK[chart.ascendant.sign-1]||'особистий шлях';
+  const sunHouse=HOUSE_THEMES_UK[sun.house-1]||'самовираження';
+  const moonHouse=HOUSE_THEMES_UK[moon.house-1]||'емоційне життя';
+  return [
+   `ЛАГНА — ОСОБИСТИЙ ВЕКТОР\n${sign(chart.ascendant.sign)} — знак Лагни. У символіці Джйотіш він пов'язаний із такими темами, як ${signTheme}. Лагна задає основу, від якої рахуються дванадцять домів карти.`,
+   `СОНЦЕ ТА МІСЯЦЬ\nСонце: ${sign(sun.sign)}, ${sun.house}-й дім (тема дому — ${sunHouse}). Місяць: ${sign(moon.sign)}, ${moon.house}-й дім (тема дому — ${moonHouse}). Накшатра Місяця — ${nakshatra}, пада ${moon.pada}. У традиційному читанні Сонце пов'язують із волею та самовираженням, а Місяць — із внутрішнім сприйняттям.`,
+   `РАШІ (D1) — УСІ ПОЛОЖЕННЯ\n${display(chart.d1)}. Це обчислені положення планет і вузлів за цілознаковими домами, а не згенеровані AI-припущення.`,
+   `НАВАМША (D9) — ВНУТРІШНІ ЦІННОСТІ\nЛагна D9 — ${sign(chart.lagnaD9.sign)}. Положення: ${display(chart.d9)}. У Джйотіш Навамшу використовують для розгляду тем партнерства, зрілості та цінностей.`,
+   `ДАШАМША (D10) — ПРОФЕСІЙНИЙ НАПРЯМ\nЛагна D10 — ${sign(chart.lagnaD10.sign)}. Положення: ${display(chart.d10)}. Дашамша традиційно пов'язана з професійною реалізацією та суспільною роллю.`,
+   `ВІМШОТТАРІ ДАША — ЧАСОВІ ПЕРІОДИ\n${active?`Поточна махадаша: ${name(active.lord)} (${active.start.slice(0,10)} — ${active.end.slice(0,10)}). ${sub?`Антардаша: ${name(sub.lord)} (${sub.start.slice(0,10)} — ${sub.end.slice(0,10)}).`:'Активна антардаша не визначена.'}`:'Поточний період поза збереженим діапазоном даш.'} У традиції ці періоди використовують як послідовність тем для роздумів.`
+  ].join('\n\n');
  }
- return `Jyotish chart reading. Ascendant — ${chart.ascendant.signName}; Sun — ${sun.signName} (house ${sun.house}); Moon — ${moon.signName} (house ${moon.house}). Lunar nakshatra: ${moon.nakshatra}, pada ${moon.pada}. D9 (Navamsa) explores relationships and personal values; D10 (Dashamsa) explores vocation and professional direction in the Jyotish tradition.`;
+ const display=(positions:typeof chart.d1)=>positions.map(g=>`${g.name} — ${g.signName}, house ${g.house}`).join('; ');
+ return [
+  `ASCENDANT — PERSONAL THEMES\nAscendant: ${chart.ascendant.signName}. The ascendant anchors the twelve whole-sign houses in the Jyotish tradition.`,
+  `SUN AND MOON\nSun: ${sun.signName}, house ${sun.house}. Moon: ${moon.signName}, house ${moon.house}; nakshatra ${moon.nakshatra}, pada ${moon.pada}. These positions traditionally inform themes of self-expression and inner experience.`,
+  `RASHI (D1) — PLANETARY PLACEMENTS\n${display(chart.d1)}.`,
+  `NAVAMSA (D9) — RELATIONSHIPS AND VALUES\nD9 ascendant: ${chart.lagnaD9.signName}. Placements: ${display(chart.d9)}.`,
+  `DASHAMSA (D10) — VOCATION\nD10 ascendant: ${chart.lagnaD10.signName}. Placements: ${display(chart.d10)}.`,
+  `VIMSHOTTARI DASHA\n${active?`Current Mahadasha: ${active.lord} (${active.start.slice(0,10)} — ${active.end.slice(0,10)}).${sub?` Antardasha: ${sub.lord} (${sub.start.slice(0,10)} — ${sub.end.slice(0,10)}).`:''}`:'The current period falls outside the calculated timeline.'}`
+ ].join('\n\n');
 }
 
 import {generateOpenAiInterpretation} from './ai.ts';
-import {generateFreeInterpretation} from './free-ai.ts';
+import {generateFreeInterpretationDetailed} from './free-ai.ts';
 export async function interpretChart(chart:CalculatedChart,lang:'uk'|'en',preferred:'auto'|'local'='auto'){
  const local=()=>({provider:'local' as const,text:localInterpretation(chart,lang)});
  if(preferred==='local')return local();
  const mode=process.env.AI_MODE||'free';
  if(mode==='local')return local();
  if(mode==='free'){
-  const free=await generateFreeInterpretation(chart,lang);
-  return free||local();
+  const free=await generateFreeInterpretationDetailed(chart,lang);
+  return free.result||{...local(),fallbackReason:free.reason};
  }
  // Legacy paid OpenAI path requires TWO deliberate switches. It is NEVER a free fallback.
  if(mode==='paid_openai'&&process.env.OPENAI_ENABLED==='1'&&process.env.OPENAI_API_KEY){
