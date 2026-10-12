@@ -25,7 +25,8 @@
     "test:ai": "node --experimental-strip-types --test tools/ai-interpretation.test.mjs",
     "test:demo": "node --test tools/public-demo.test.mjs",
     "demo:check": "node --env-file=.env tools/demo-preflight.mjs",
-    "start:full": "npx concurrently -k \"npm run start -w @jyotish/api\" \"npm run start -w @jyotish/web\""
+    "start:full": "npx concurrently -k \"npm run start -w @jyotish/api\" \"npm run start -w @jyotish/web\"",
+    "openai:check": "node --env-file=.env tools/openai-diagnose.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
