@@ -32,7 +32,7 @@ const GRAHAS_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars
 export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en'){
  const moon=chart.d1.find(x=>x.name==='Moon')!,sun=chart.d1.find(x=>x.name==='Sun')!;
  const active=chart.dasha.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
- const sub=active?.antardashas.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
+ const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
  if(language==='uk'){
   const sign=(number:number)=>SIGN_NAMES_UK[number-1]||'—';
   const name=(english:string)=>GRAHAS_UK[english]||english;
