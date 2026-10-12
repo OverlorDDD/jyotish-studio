@@ -33,7 +33,7 @@ $('#preset').addEventListener('change', e => { const city=cities[e.target.value]
 $$('.chart-tab').forEach(button => button.addEventListener('click',()=>{chartType=button.dataset.chart;$$('.chart-tab').forEach(x=>x.classList.toggle('selected',x===button));if(chart)render();}));
 const xml = v=>String(v).replace(/[&<>"']/g, x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[x]));
 // Conventional North Indian fixed-house layout: house 1 top, then anti-clockwise.
-const houseCenters = [[180,79],[88,43],[43,88],[81,180],[43,272],[88,317],[180,280],[272,317],[317,272],[279,180],[317,88],[272,43]];
+const houseCenters = [[180,90],[90,30],[30,90],[90,180],[30,270],[90,330],[180,270],[270,330],[330,270],[270,180],[330,90],[270,30]];
 function svgChart(planets,lagna){
   const signs=language==='uk'?ukSigns:enSigns;
   let content=`<svg xmlns="http://www.w3.org/2000/svg" class="chart-svg" width="520" height="520" viewBox="0 0 360 360" role="img" aria-label="${xml(tr('natalChart'))}: ${chartType.toUpperCase()}, 12 ${xml(tr('houses'))}"><rect x="1" y="1" width="358" height="358" rx="4" fill="#101b2b" stroke="#c6a66d" stroke-width="2"/><path d="M0 0 L360 360 M360 0 L0 360 M180 0 L360 180 L180 360 L0 180 Z" fill="none" stroke="#7d725d" stroke-width="1.4"/>`;
@@ -41,18 +41,22 @@ function svgChart(planets,lagna){
     const [x,y]=houseCenters[i], items=planets.filter(p=>p.house===i+1);
     const rashi=(lagna.sign-1+i)%12;
     const names=items.map(g=>grahaName(g.name)+(g.retrograde?' ℞':''));
-    const crowded=names.length>3;
-    const visible=names.slice(0,crowded?2:3);
-    // Each full name is on its own line. An additional full-name index below the
-    // diagram lists *every* placement even for rare 4+ graha conjunctions.
+    // Triangle sectors fit at most two grahas; central diamonds can fit three.
+    // Vertically centre the *entire* stack (sign label + each name + overflow).
+    const isTriangle=[1,2,4,5,7,8,10,11].includes(i);
+    const maxVisible=isTriangle?2:3;
+    const crowded=names.length>maxVisible;
+    const visible=names.slice(0,maxVisible);
     const label=`${i+1} · ${signs[rashi]}`;
-    content+=`<g class="vedic-house" data-house="${i+1}"><title>${xml(`${label}: ${names.join(', ') || (language==='uk'?'немає планет':'no planets')}`)}</title><text x="${x}" y="${y-18}" text-anchor="middle" font-size="${label.length>13?9:10}" fill="#d8b875" font-weight="700">${xml(label)}</text>`;
+    const lines=1+visible.length+(crowded?1:0);
+    const firstBaseline=y-(lines-1)*7+3;
+    content+=`<g class="vedic-house" data-house="${i+1}"><title>${xml(`${label}: ${names.join(', ') || (language==='uk'?'немає планет':'no planets')}`)}</title><text x="${x}" y="${firstBaseline}" text-anchor="middle" font-size="${label.length>13?9:10}" fill="#d8b875" font-weight="700">${xml(label)}</text>`;
     visible.forEach((word,row)=>{
       const size=word.length>11?9:word.length>9?10:11;
       const color=items[row]?.name==='Sun'||items[row]?.name==='Moon'?'#f4d493':'#e2e8f2';
-      content+=`<text x="${x}" y="${y+row*13-1}" text-anchor="middle" font-size="${size}" fill="${color}" font-weight="600">${xml(word)}</text>`;
+      content+=`<text x="${x}" y="${firstBaseline+(row+1)*14}" text-anchor="middle" font-size="${size}" fill="${color}" font-weight="600">${xml(word)}</text>`;
     });
-    if(crowded) content+=`<text x="${x}" y="${y+visible.length*13-1}" text-anchor="middle" font-size="9" fill="#d8b875">${xml(language==='uk'?`ще ${names.length-visible.length} ↓`:`+${names.length-visible.length} below`)}</text>`;
+    if(crowded) content+=`<text x="${x}" y="${firstBaseline+(visible.length+1)*14}" text-anchor="middle" font-size="9" fill="#d8b875">${xml(language==='uk'?`ще ${names.length-visible.length} ↓`:`+${names.length-visible.length} below`)}</text>`;
     content+='</g>';
   }
   return content+'</svg>';
