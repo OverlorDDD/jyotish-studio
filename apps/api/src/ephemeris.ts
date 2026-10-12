@@ -9,16 +9,21 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
  const utc=localToUTC(input.date,input.time,input.timeZone);
  try {
   const sw=await import('@swisseph/node');
-  const jd=sw.dateToJulianDay(new Date(utc));
+  const date=new Date(utc);
+  const hour=date.getUTCHours()+date.getUTCMinutes()/60+date.getUTCSeconds()/3600+date.getUTCMilliseconds()/3600000;
+  const jd=sw.julianDay(date.getUTCFullYear(),date.getUTCMonth()+1,date.getUTCDate(),hour);
   sw.setSiderealMode(sw.SiderealMode.Lahiri);
-  const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536; // SEFLG_SIDEREAL
+  const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536; // SEFLG_SIDEREAL, upstream numeric flag
   const ayanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris);
   const houses=sw.calculateHouses(jd,input.latitude,input.longitude,sw.HouseSystem.Placidus);
+  // The Node wrapper exposes tropical houses; applying Lahiri yields a traditional
+  // sidereal ascendant accurate to a few arcseconds (vs houses_ex sidereal mode).
   const ascendant=mod(houses.ascendant-ayanamsa);
   const bodies:[string,number][]=[['Sun',sw.Planet.Sun],['Moon',sw.Planet.Moon],['Mars',sw.Planet.Mars],['Mercury',sw.Planet.Mercury],['Jupiter',sw.Planet.Jupiter],['Venus',sw.Planet.Venus],['Saturn',sw.Planet.Saturn],['Rahu',sw.LunarPoint.MeanNode]];
   const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);return {name,longitude:mod(p.longitude),speed:p.longitudeSpeed};});
   const rahu=positions.find(p=>p.name==='Rahu')!;
   positions.push({name:'Ketu',longitude:mod(rahu.longitude+180),speed:rahu.speed});
+  if(!Number.isFinite(ascendant)||positions.some(p=>!Number.isFinite(p.longitude)||!Number.isFinite(p.speed)))throw Error('Invalid native ephemeris result');
   return {ayanamsa,ascendant,positions,julianDay:jd,backend:'Swiss Ephemeris / @swisseph/node'};
  } catch(err){
   if(process.env.ALLOW_PYTHON_SWISSEPH==='0')throw new Error(`Native Swiss Ephemeris unavailable: ${String(err)}`);
