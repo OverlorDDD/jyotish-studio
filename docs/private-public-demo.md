@@ -7,7 +7,7 @@
 - Next.js now calls `/api/...` on the **same origin** instead of hardcoding `localhost:4000` in browser JavaScript. A Next.js rewrite proxies `/api/:path*` to NestJS bound to `127.0.0.1:4000` on the hosting PC. An external visitor does not need local port 4000.
 - Next.js middleware prompts for HTTP Basic authentication when `DEMO_ACCESS_USER` and `DEMO_ACCESS_PASSWORD` are present. For non-local hostnames without credentials, it returns 503 (fail closed). The password protects a *shared private demo*, not production multi-user data. Use HTTPS ngrok only. Do not set `--host-header=localhost` to disguise incoming hostnames.
 - `npm run demo:check` checks an unauthenticated page returns **401** and an authenticated `/api/health` through the Next proxy returns **200, database connected**. It refuses to recommend a tunnel until these checks pass.
-- OpenAI is OFF by default; for a preview keep `OPENAI_ENABLED=0` to prevent visitors from using paid tokens.
+- OpenAI is OFF by default; for a preview **`demo:check` now blocks publishing when `OPENAI_ENABLED=1`**. Test paid AI locally, then set `OPENAI_ENABLED=0` and restart before opening ngrok.
 
 ## Steps
 
