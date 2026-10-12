@@ -4,7 +4,7 @@ import {IsISO8601,IsNumber,IsOptional,IsString,Matches,Max,Min,MaxLength} from '
 import {PrismaClient} from '@prisma/client';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
-import {AiProviderError} from './ai.ts';
+import {AiProviderError,explainAiFailure} from './ai.ts';
 class BirthDto {
  @ApiProperty({type:String,example:'2000-01-01'}) @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
  @ApiProperty({type:String,example:'12:00'}) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) time!:string;
@@ -44,7 +44,7 @@ export class JyotishController {
   catch(error){
    if(error instanceof AiProviderError){
     if(error.reason==='limit')throw new HttpException(error.message,HttpStatus.TOO_MANY_REQUESTS);
-    throw new ServiceUnavailableException('AI interpretation temporarily unavailable. Check your server-side OpenAI configuration.');
+    throw new ServiceUnavailableException(explainAiFailure(error));
    }
    throw error;
   }
