@@ -168,3 +168,14 @@ offline test environment.
 private personal information; the database endpoints currently have no login.
 Do not expose full-stack port 4000 to the public internet until authentication,
 authorization, retention controls and rate limits are implemented.
+
+
+## Stage 5 — guarded OpenAI & temporary private demo
+
+For Windows instructions, see [OpenAI integration](docs/openai-integration.md) and [temporary private ngrok preview](docs/private-public-demo.md).
+
+In the existing Git checkout, update with `git pull --ff-only origin main`, run `npm install`, then `npm run test:all`, `npm run test:swagger` and `npm run build`. Use `npm run dev:full` for local development on 3000/4000.
+
+OpenAI is **opt-in only**: with `OPENAI_ENABLED=0` (default), interpretations are local and do not consume paid tokens. To try real AI, set `OPENAI_API_KEY` in private root `.env` and `OPENAI_ENABLED=1`, then restart. OpenAI structured output is schema-checked and linked to deterministic calculation facts; symbolic explanations are not scientific predictions.
+
+A *temporary* externally accessible demo uses a **single Next.js domain** and proxies API calls to loopback NestJS. Before exposing **only port 3000** through `ngrok http 3000`, configure a strong unique `DEMO_ACCESS_USER` / `DEMO_ACCESS_PASSWORD`, use `npm run build` followed by `npm run start:full`, and check `npm run demo:check` reports PASS. Use fictional birth data and disable paid OpenAI for the shared preview. This is not production multi-user authentication or always-on hosting.
