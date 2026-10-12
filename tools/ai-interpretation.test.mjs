@@ -106,3 +106,11 @@ test('recognized OpenAI error code is kept, raw provider error text is discarded
   e=>e instanceof AiProviderError&&e.message==='OpenAI HTTP 429 insufficient_quota'
  );
 });
+
+test('offline report includes actual D1 D9 D10 and dasha period details',()=>{
+ const full={...chart,ascendant:{...chart.ascendant,sign:12},d1:[{...chart.d1[0],sign:9},{...chart.d1[1],sign:7}]};
+ const ua=localInterpretation(full,'uk');
+ for(const term of ['ЛАГНА','РАШІ (D1)','НАВАМША (D9)','ДАШАМША (D10)','ВІМШОТТАРІ ДАША','Сатурн'])assert.ok(ua.includes(term),term);
+ const en=localInterpretation(full,'en');
+ for(const term of ['RASHI (D1)','NAVAMSA (D9)','DASHAMSA (D10)','VIMSHOTTARI DASHA'])assert.ok(en.includes(term),term);
+});
