@@ -1,0 +1,13 @@
+{
+  "name": "jyotish-studio", "private": true, "type": "module", "license": "AGPL-3.0-only", "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "node --experimental-strip-types apps/api/src/standalone.ts",
+    "dev:api": "npm run start:dev -w @jyotish/api",
+    "dev:web": "npm run dev -w @jyotish/web",
+    "dev:full": "npx concurrently -k \"npm run dev:api\" \"npm run dev:web\"",
+    "test": "node --experimental-strip-types --test packages/jyotish-core/src/*.test.ts",
+    "build": "npm run build -w @jyotish/core && npm run build -w @jyotish/api && npm run build -w @jyotish/web",
+    "db:generate": "npm run prisma:generate -w @jyotish/api", "db:migrate": "npm run prisma:migrate -w @jyotish/api"
+  },
+  "devDependencies": {"concurrently": "^9.2.0", "typescript": "^5.9.3"}
+}

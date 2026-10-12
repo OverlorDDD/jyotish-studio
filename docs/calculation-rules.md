@@ -1,0 +1,12 @@
+# Calculation conventions (prototype v0.1)
+
+1. **Time**: Accept a civil date and time plus an IANA time zone. Reject nonexistent and ambiguous times around daylight-saving transitions; convert to UTC using the runtime time-zone database. No guess based on current offset.
+2. **Ephemeris**: Swiss Ephemeris with Lahiri / Chitrapaksha ayanamsha, geocentric ecliptic longitudes, mean lunar node (Rahu); Ketu exactly opposite Rahu. Native Node binding preferred. A PySwissEph adapter is available for offline workshops.
+3. **Ascendant**: Native Node adapter obtains tropical ascendant from `calculateHouses` and subtracts Lahiri ayanamsha (conventional approximation); Python fallback calls `houses_ex(..., FLG_SIDEREAL)` for the Swiss sidereal ascendant. Compare both adapters against independent reference charts before production use; small differences at boundaries are possible.
+4. **D1**: 12 rashis, each 30 degrees. Whole sign houses based on Lagna's rashi. Ascendant position is *not* itself a graha.
+5. **D9**: Divide 30 degrees into 9 equal parts. Start in the same rashi for movable, ninth from fixed, fifth from dual; compact zero-based formula `((rashiIndex * 9) + segmentIndex) % 12`.
+6. **D10**: Divide 30 degrees into 10 equal parts; odd signs count from themselves, even from ninth. Both use zero-based indices internally.
+7. **Nakshatra**: 27 equal spans of 13°20′ from 0° Aries. Each has 4 padas of 3°20′. Nakshatra/pada are displayed only for D1, since D9/D10 longitudes are symbolic derived divisions, not physical sky coordinates.
+8. **Vimshottari**: 120-years cycle Ketu(7), Venus(20), Sun(6), Moon(10), Mars(7), Rahu(18), Jupiter(16), Saturn(19), Mercury(17). Birth nakshatra determines first dasha; elapsed Moon fraction gives elapsed first period. Each antardasha is proportional to parent years, subdivided by its lord's years over 120. Year convention: 365.2425 days, **a configurable convention in a future release**; some traditional tools use 360 days.
+9. **LLM**: Separate from calculations. The model receives only verified placements/periods, never raw birth timestamps/coordinates. Interpretations are tradition-based, not scientifically proven predictions.
+10. **Known limits**: No yogas, transits, remedies, degrees of Bhava cusps, custom ayanamsha or robust ephemeris cross-validation yet. No user authentication. Do not put API/database online without auth, privacy/consent safeguards, rate limiting and licensing review.

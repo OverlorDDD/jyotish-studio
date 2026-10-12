@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: jyotish-db
+    environment:
+      POSTGRES_DB: jyotish
+      POSTGRES_USER: jyotish
+      POSTGRES_PASSWORD: jyotish_dev
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - jyotish-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jyotish -d jyotish"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  jyotish-postgres:

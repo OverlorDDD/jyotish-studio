@@ -1,0 +1,23 @@
+generator client {
+ provider = "prisma-client-js"
+}
+datasource db {
+ provider = "postgresql"
+ url = env("DATABASE_URL")
+}
+model Chart {
+ id         String   @id @default(uuid())
+ createdAt  DateTime @default(now())
+ input      Json
+ result     Json
+ readings   Interpretation[]
+}
+model Interpretation {
+ id         String @id @default(uuid())
+ createdAt  DateTime @default(now())
+ chartId    String
+ chart      Chart @relation(fields: [chartId],references: [id],onDelete:Cascade)
+ provider   String
+ language   String
+ text       String @db.Text
+}

@@ -1,0 +1,1 @@
+{"compilerOptions":{"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext","strict":true,"noEmit":true,"experimentalDecorators":true,"emitDecoratorMetadata":true,"skipLibCheck":true,"allowImportingTsExtensions":true,"esModuleInterop":true},"include":["src/**/*.ts","../../packages/jyotish-core/src/index.ts"]}
