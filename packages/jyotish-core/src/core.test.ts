@@ -56,3 +56,44 @@ test('divisional maps remain in 0..360 and repeat after a full circle',()=>{
   assert.ok(Math.abs(next-divisionalLongitude(lon+360,div))<1e-9);
  }
 });
+
+test('all 27 nakshatras map to the documented first Vimshottari lord',()=>{
+ for(let i=0;i<27;i++){
+  const lon=(i+0.375)*360/27;
+  const ds=vimshottari(lon,'2004-01-01T00:00:00.000Z');
+  assert.equal(ds[0].lord,['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'][i%9]);
+  assert.equal(ds[0].antardashas?.[0].lord,ds[0].lord);
+ }
+});
+test('birth occurs within the initial Mahadasha, and 9 Antardasha periods connect with no gaps',()=>{
+ const birth='2004-01-01T00:00:00Z';const ds=vimshottari(109.375,birth);
+ assert.ok(Date.parse(ds[0].start)<=Date.parse(birth));
+ assert.ok(Date.parse(ds[0].end)>Date.parse(birth));
+ for(let i=0;i<ds.length;i++){
+  const subs=ds[i].antardashas!;
+  assert.equal(subs[0].start,ds[i].start);
+  assert.equal(subs[8].end,ds[i].end);
+  if(i>0)assert.equal(ds[i-1].end,ds[i].start);
+  for(let j=1;j<subs.length;j++)assert.equal(subs[j-1].end,subs[j].start);
+ }
+});
+test('reference odd-even Dashamsa and Navamsa examples',()=>{
+ // Published Parashari D10 examples: 10° Gemini -> Virgo, 19° Scorpio -> Capricorn.
+ assert.equal(signIndex(divisionalLongitude(70,10)),5);
+ assert.equal(signIndex(divisionalLongitude(229,10)),9);
+ // D9 of 10° Aries begins in Cancer (fourth navamsa).
+ assert.equal(signIndex(divisionalLongitude(10,9)),3);
+});
+test('no shared input may place Rahu and Ketu in the same sign through 180° nodes',()=>{
+ for(let lon=0;lon<360;lon+=0.1){
+  const rahu=graha('Rahu',lon,123),ketu=graha('Ketu',lon+180,123);
+  assert.equal((rahu.sign-1+6)%12,ketu.sign-1);
+  assert.ok(Math.abs(((ketu.longitude-rahu.longitude+360)%360)-180)<1e-6);
+ }
+});
+test('reject impossible dates and invalid geographic coordinates',()=>{
+ assert.throws(()=>localToUTC('2025-02-29','10:00','Europe/Kyiv'),/Invalid/);
+ assert.throws(()=>localToUTC('2025-03-01','25:00','Europe/Kyiv'),/Invalid/);
+ assert.throws(()=>localToUTC('2025-03-01','10:00','Invalid/Unknown'),/time zone/);
+ assert.throws(()=>calculateChart({date:'2004-01-01',time:'12:00',timeZone:'UTC',latitude:98,longitude:34},{ayanamsa:24,ascendant:160,julianDay:2453000,backend:'test',positions:[]}),/Latitude/);
+});
