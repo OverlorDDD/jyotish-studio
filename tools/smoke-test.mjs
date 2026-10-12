@@ -7,6 +7,7 @@ const health=await healthResponse.json();
 assert.equal(health.status,'ok');
 assert.ok(['jyotish-nestjs','jyotish-standalone'].includes(health.service),'Unknown API service');
 const isNest=health.service==='jyotish-nestjs';
+if(process.argv.includes('--require-nest'))assert.ok(isNest,'Full-stack smoke test must target NestJS, not standalone');
 if(isNest)assert.equal(health.database,'connected','Nest API must have an active PostgreSQL connection');
 const expectedCreatedStatus=isNest?201:200;
 const errorHint=(response,body)=>`HTTP ${response.status}; ${JSON.stringify(body).slice(0,500)}`;
@@ -22,7 +23,7 @@ const periods=await fetch(`${base}/api/v1/charts/${chart.id}/dashas`);
 const dashaData=await periods.json();assert.equal(periods.status,200);assert.equal(dashaData.dasha.length,9);
 
 assert.ok(chart.ayanamsa>20&&chart.ayanamsa<27);assert.ok(chart.ascendant.longitude>=0&&chart.ascendant.longitude<360);
-const ai=await fetch(`${base}/api/v1/interpretations`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:chart.id,lang:'uk'})});
+const ai=await fetch(`${base}/api/v1/interpretations`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:chart.id,lang:'uk',preferred:'local'})});
 const reading=await ai.json();
 assert.equal(ai.status,expectedCreatedStatus,`Create interpretation: ${errorHint(ai,reading)}`);
 assert.ok(typeof reading.text==='string'&&reading.text.length>60,'Interpretation text missing');
