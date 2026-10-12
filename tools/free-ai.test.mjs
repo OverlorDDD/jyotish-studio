@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {generateFreeInterpretation} from '../apps/api/src/free-ai.ts';
+import {generateFreeInterpretation,generateFreeInterpretationDetailed} from '../apps/api/src/free-ai.ts';
 import {interpretChart} from '../apps/api/src/logic.ts';
 import {readFileSync} from 'node:fs';
 
@@ -9,6 +9,7 @@ const chart={
  input:{date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude:28.6139,longitude:77.209},
  ascendant:p('Ascendant','Pisces',12,1),lagnaD9:p('Ascendant','Libra',7,1),lagnaD10:p('Ascendant','Pisces',12,1),
  d1:[p('Sun','Sagittarius',9,10),p('Moon','Libra',7,8)],
+ d9:[p('Venus','Libra',7,2)],d10:[p('Saturn','Pisces',12,1)],
  dasha:[{lord:'Saturn',start:'2020-01-01',end:'2030-01-01',antardashas:[{lord:'Ketu',start:'2026-01-01',end:'2027-01-01'}]}]
 };
 const valid={sections:[
