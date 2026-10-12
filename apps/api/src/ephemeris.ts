@@ -22,9 +22,9 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   return {ayanamsa,ascendant,positions,julianDay:jd,backend:'Swiss Ephemeris / @swisseph/node'};
  } catch(err){
   if(process.env.ALLOW_PYTHON_SWISSEPH==='0')throw new Error(`Native Swiss Ephemeris unavailable: ${String(err)}`);
-  const pythonExe=process.env.PYTHON_BIN|| (process.platform==='win32'?'python':'python3');
+  const pythonExe=process.env.PYTHON_BIN|| (process.platform==='win32'?'py':'python3');
   const script=resolve(thisDir,'../../../tools/swiss_ephemeris.py');
-  const result=spawnSync(pythonExe,[script],{input:JSON.stringify({utc,latitude:input.latitude,longitude:input.longitude}),encoding:'utf8',timeout:12000,maxBuffer:1024*1024});
+  const result=spawnSync(pythonExe,[...(pythonExe==='py'?['-3']:[]),script],{input:JSON.stringify({utc,latitude:input.latitude,longitude:input.longitude}),encoding:'utf8',timeout:12000,maxBuffer:1024*1024});
   if(result.status!==0)throw new Error(`Install @swisseph/node with npm install, or Python pyswisseph: ${(result.stderr||result.error?.message||'ephemeris backend unavailable').slice(0,300)}`);
   return JSON.parse(result.stdout) as EphemerisData;
  }
