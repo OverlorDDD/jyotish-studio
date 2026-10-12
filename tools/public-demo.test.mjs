@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
 import config from '../apps/web/next.config.mjs';
 
 test('one-domain API rewrite routes to local-only NestJS listener',async()=>{
@@ -17,4 +18,14 @@ test('demo middleware covers API and requires credentials on remote host',()=>{
  assert.ok(source.includes('status:503'));
  assert.ok(source.includes('DEMO_ACCESS_PASSWORD'));
  assert.ok(source.includes("matcher:['/((?!_next/static|_next/image|favicon.ico).*)']"));
+});
+
+test('demo preflight refuses paid AI before any public network probe',()=>{
+ const result=spawnSync(process.execPath,['tools/demo-preflight.mjs'],{
+  cwd:new URL('..',import.meta.url),
+  encoding:'utf8',
+  env:{...process.env,DEMO_ACCESS_USER:'demo',DEMO_ACCESS_PASSWORD:'test_only_password_123456',OPENAI_ENABLED:'1'}
+ });
+ assert.equal(result.status,1);
+ assert.match(result.stderr,/BLOCKED: Paid OpenAI/);
 });
