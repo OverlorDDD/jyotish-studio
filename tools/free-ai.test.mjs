@@ -82,3 +82,30 @@ test('explicit local mode always uses deterministic reading without network',asy
   assert.match(r.text,/Риби/);
  }finally{if(previous===undefined)delete process.env.AI_MODE;else process.env.AI_MODE=previous;}
 });
+
+test('free router 429 is reported without exposing credential data',async()=>{
+ const response=await generateFreeInterpretationDetailed(chart,'uk',{
+  key:'synthetic_key',ollamaEnabled:false,limit:()=>true,
+  fetcher:async()=>new Response('{}',{status:429})
+ });
+ assert.equal(response.result,null);
+ assert.equal(response.reason,'rate_limited');
+ assert.ok(!JSON.stringify(response).includes('synthetic_key'));
+});
+test('invalid provider output falls back with a clear reason',async()=>{
+ const result=await generateFreeInterpretationDetailed(chart,'en',{
+  key:'synthetic_key',ollamaEnabled:false,limit:()=>true,
+  fetcher:async()=>new Response('not json',{status:200})
+ });
+ assert.equal(result.result,null);
+ assert.equal(result.reason,'invalid_response');
+});
+test('no free providers configured does not attempt cloud inference',async()=>{
+ let calls=0;
+ const result=await generateFreeInterpretationDetailed(chart,'en',{
+  key:'',ollamaEnabled:false,limit:()=>true,
+  fetcher:async()=>{calls++;return new Response('',{status:200})}
+ });
+ assert.equal(calls,0);
+ assert.equal(result.reason,'no_provider');
+});
