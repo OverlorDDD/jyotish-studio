@@ -7,7 +7,7 @@ type Chart={id:string;utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;l
 type Form={date:string;time:string;latitude:string;longitude:string;timeZone:string};
 const CITY:Record<string,Form>={delhi:{date:'2000-01-01',time:'12:00',latitude:'28.6139',longitude:'77.209',timeZone:'Asia/Kolkata'},kryvyi:{date:'2000-01-01',time:'12:00',latitude:'47.9105',longitude:'33.3918',timeZone:'Europe/Kyiv'},kyiv:{date:'2000-01-01',time:'12:00',latitude:'50.4501',longitude:'30.5234',timeZone:'Europe/Kyiv'},london:{date:'2000-01-01',time:'12:00',latitude:'51.5074',longitude:'-0.1278',timeZone:'Europe/London'}};
 const t={en:{title:'Your cosmic blueprint',subtitle:'Precision Vedic calculations. From planetary positions to symbolic interpretations — all in one place.',details:'Birth details',detail:'Enter date, exact local time and geographic coordinates.',date:'Date of birth',time:'Local time of birth',place:'Location preset',calculate:'Calculate birth chart',asc:'ASCENDANT',moon:'MOON SIGN',chart:'Natal chart',grahas:'Planetary positions',dasha:'Vimshottari Dasha',dashadesc:'Nine planetary periods with nested Antardashas.',ai:'AI Interpretation',aidesc:'Interpret verified chart facts with OpenAI, without inventing planetary positions.',aiButton:'Generate interpretation',note:'Tradition, not prediction',noteDesc:'Astrological interpretations are cultural traditions, not scientifically verified predictions.',waiting:'Calculate a chart to begin.',working:'Calculating Swiss Ephemeris...',completed:'Calculated successfully.'},uk:{title:'Твоя космічна карта',subtitle:'Точні ведичні обчислення: від положень планет до символічних інтерпретацій.',details:'Дані народження',detail:'Введи дату, точний місцевий час і географічні координати.',date:'Дата народження',time:'Місцевий час',place:'Місце народження',calculate:'Розрахувати карту',asc:'АСЦЕНДЕНТ',moon:'ЗНАК МІСЯЦЯ',chart:'Натальна карта',grahas:'Положення планет',dasha:'Вімшоттарі Даша',dashadesc:'Девʼять планетарних періодів та вкладені Антардаші.',ai:'AI-інтерпретація',aidesc:'Традиційне пояснення обчислених фактів без вигаданих позицій.',aiButton:'Створити інтерпретацію',note:'Традиція, не прогноз',noteDesc:'Астрологічні трактування не є науково перевіреними передбаченнями.',waiting:'Спочатку розрахуй карту.',working:'Обчислюємо ефемериди...',completed:'Карту обчислено.'}};
-const HOUSE_CENTERS:[[number,number],...(number[])[]]=[[180,79],[88,43],[43,88],[81,180],[43,272],[88,317],[180,280],[272,317],[317,272],[279,180],[317,88],[272,43]];
+const HOUSE_CENTERS:[number,number][]=[[180,90],[90,30],[30,90],[90,180],[30,270],[90,330],[180,270],[270,330],[330,270],[270,180],[330,90],[270,30]];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const GRAHA_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету',Ascendant:'Лагна'};
@@ -28,13 +28,17 @@ function Wheel({grahas,which,lang,lagna}:{grahas:Graha[],which:string,lang:'en'|
   {HOUSE_CENTERS.map(([x,y],i)=>{
    const sign=(lagna.sign-1+i)%12+1,bodies=grahas.filter(p=>p.house===i+1);
    const names=bodies.map(p=>grahaFull(p.name,lang)+(p.retrograde?' ℞':''));
-   const crowded=names.length>3, shown=names.slice(0,crowded?2:3);
+   const isTriangle=[1,2,4,5,7,8,10,11].includes(i);
+   const maxVisible=isTriangle?2:3;
+   const crowded=names.length>maxVisible, shown=names.slice(0,maxVisible);
    const label=`${i+1} · ${signFull(sign,lang)}`;
+   const lines=1+shown.length+(crowded?1:0);
+   const firstBaseline=y-(lines-1)*7+3;
    return <g key={i} className="vedic-house" data-house={i+1}>
     <title>{label}: {names.join(', ')||(lang==='uk'?'немає планет':'no planets')}</title>
-    <text x={x} y={y-18} textAnchor="middle" fill="#d8b875" fontSize={label.length>13?9:10} fontWeight="700">{label}</text>
-    {shown.map((word,j)=><text key={j} x={x} y={y+j*13-1} textAnchor="middle" fill={bodies[j]?.name==='Sun'||bodies[j]?.name==='Moon'?'#f4d493':'#e2e8f2'} fontSize={word.length>11?9:word.length>9?10:11} fontWeight="600">{word}</text>)}
-    {crowded&&<text x={x} y={y+shown.length*13-1} textAnchor="middle" fill="#d8b875" fontSize="9">{lang==='uk'?`ще ${names.length-shown.length} ↓`:`+${names.length-shown.length} below`}</text>}
+    <text x={x} y={firstBaseline} textAnchor="middle" fill="#d8b875" fontSize={label.length>13?9:10} fontWeight="700">{label}</text>
+    {shown.map((word,j)=><text key={j} x={x} y={firstBaseline+(j+1)*14} textAnchor="middle" fill={bodies[j]?.name==='Sun'||bodies[j]?.name==='Moon'?'#f4d493':'#e2e8f2'} fontSize={word.length>11?9:word.length>9?10:11} fontWeight="600">{word}</text>)}
+    {crowded&&<text x={x} y={firstBaseline+(shown.length+1)*14} textAnchor="middle" fill="#d8b875" fontSize="9">{lang==='uk'?`ще ${names.length-shown.length} ↓`:`+${names.length-shown.length} below`}</text>}
    </g>;
   })}
  </svg>;
