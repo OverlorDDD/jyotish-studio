@@ -74,7 +74,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
  if(!(options.limit||defaultHourlyLimit)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
  const facts=astrologicalFacts(chart,lang,options.now);
  const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?60000:15000);
+ const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?60000:provider==='openrouter'?45000:15000);
  const onAbort=()=>controller.abort();
  options.signal?.addEventListener('abort',onAbort,{once:true});
  try{
