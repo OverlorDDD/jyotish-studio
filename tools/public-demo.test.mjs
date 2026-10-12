@@ -10,6 +10,8 @@ test('one-domain API rewrite routes to local-only NestJS listener',async()=>{
  assert.deepEqual(rewrites,[{source:'/api/:path*',destination:'http://127.0.0.1:4000/api/:path*'}]);
  const page=readFileSync(new URL('../apps/web/app/page.tsx',import.meta.url),'utf8');
  assert.ok(page.includes("const api='';"),'Browser must use same origin for API requests');
+ assert.ok(page.includes('readApiJson<Chart>(response)'), 'Calculate route must handle non-JSON errors');
+ assert.ok(page.includes('readApiJson<{provider:string'), 'Interpretation route must handle non-JSON errors');
  assert.ok(!page.includes('NEXT_PUBLIC_API_URL'),'Browser must not embed localhost:4000');
 });
 test('demo middleware covers API and requires credentials on remote host',()=>{
