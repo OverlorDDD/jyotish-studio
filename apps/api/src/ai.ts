@@ -107,7 +107,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   let decoded:unknown;
   // Some free endpoints wrap valid JSON inside a Markdown code fence.
   // Strip ONLY a whole-response JSON fence; reject unrelated prose and unknown fact IDs.
-  const normalized=content.trim().replace(/^\`\`\`(?:json)?\\s*([\\s\\S]*?)\\s*\`\`\`$/i,'$1');
+  const normalized=content.trim().replace(/^`{3}(?:json)?\s*([\s\S]*?)\s*`{3}$/i,'$1');
   try{decoded=JSON.parse(normalized);}catch{throw new AiProviderError('format','AI output is not valid JSON');}
   if(!decoded||typeof decoded!=='object'||!Array.isArray((decoded as {sections?:unknown}).sections))throw new AiProviderError('format','OpenAI output is missing sections');
   const sections=(decoded as {sections:unknown[]}).sections;
