@@ -76,3 +76,18 @@ With the updated free AI flow:
 When you see local fallback: stop production preview, run `git pull --ff-only origin main`, `npm run test:all`, `npm run build`, and `npm run start:full`. Then click Interpret on a fictional chart **once**, wait for the response, and report the shown fallback reason. Do not repeatedly refresh if a provider has exhausted its free limit.
 
 You can check key metadata without generating text via `npm run free-ai:check`; a PASS does **not** guarantee free inference quota. `demo:check` must still pass before opening ngrok.
+
+## Compatibility fix: strict JSON does not work on every free endpoint
+
+The `openrouter/free` router can select different underlying free models between requests. OpenRouter's structured-output support is **endpoint-dependent**, and even `strict: true` cannot guarantee all endpoints produce valid JSON.
+
+The server therefore:
+1. Requests schema-validated `sections: [{factId, text}]` with up to 1,800 completion tokens for OpenRouter.
+2. Accepts a valid JSON object with or without an enclosing `\`\`\`json` code fence, but still rejects unknown/duplicate `factId` values.
+3. If the first response is malformed or the endpoint rejects the JSON-schema request (HTTP 400/422), retries **once** through the same `openrouter/free` router, this time with an explicit JSON-only prompt instead of a mandatory schema parameter.
+4. Validates the fallback model's output against the same six calculated facts. If it fails again, tries locally enabled Ollama and finally the factual offline report.
+5. Never retries cloud errors such as HTTP 401/403/429/5xx, which would waste free quota. The retry counts as another request against `FREE_AI_MAX_CALLS_PER_HOUR` and the provider's free daily cap.
+
+Next.js reverse-proxy timeout is now 180 seconds to cover a slower retry and optional Ollama. The browser still uses a same-origin API and the paid OpenAI endpoint is never used in `AI_MODE=free`.
+
+Run `npm run test:free-ai-retry`, `npm run test:all` and `npm run build` after `git pull`. Then restart the preview with `npm run start:full` and test one fictional chart. A successful model response should display `Безкоштовна AI-модель (OpenRouter)`; otherwise note the reported fallback reason.
