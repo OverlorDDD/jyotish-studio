@@ -106,3 +106,62 @@ npm run dev
 ```
 
 Do not commit `.env`, API keys, real birth data or database dumps. The connected GitHub integration can maintain this repository directly.
+
+
+## v0.3 — readable chart + Stage 3 verification (2026-10-12)
+
+**Chart labels:** All graha and sign names now appear in full in North Indian SVG
+for both standalone and Next.js modes. The diagram grows to 520 px, with one
+graha per line. When a rare conjunction contains more than 3 entries in a tiny
+house, the diagram shows "more below"; the full-name **Planets by house**
+index immediately below the chart always includes every placement. Switch D1,
+D9 and D10 to update both areas.
+
+**Astronomy evidence:** `npm run test:all` runs the unit suite, 3 frozen
+fictional Swiss-Ephemeris fixtures, and an additional tropical-minus-Lahiri
+cross-method check. This does NOT constitute an independent JHora numerical
+sign-off; see `docs/stage-3-validation.md`.
+
+**Update directly from GitHub** (after cloning once; no more ZIP archives):
+
+```powershell
+cd C:\\Users\\Note\\jyotish-studio-v2
+git status --short
+git pull --ff-only origin main
+npm install
+npm run test:all
+npm run dev
+```
+
+If you cloned to `C:\\Users\\Note\\jyotish-studio-github` instead, use that
+folder in the first line. Never run `git reset --hard` to resolve an update
+without first backing up your work. `git pull --ff-only` safely refuses to
+overwrite divergent local commits.
+
+**Full NestJS + PostgreSQL** (separate terminal, on Windows):
+
+```powershell
+Copy-Item .env.example .env      # once; never commit .env
+docker compose up -d db
+npm run db:generate
+npm run db:migrate
+npm run dev:full
+```
+
+Open http://localhost:3000 (Next.js) and http://localhost:4000/api/docs
+(Swagger). In another PowerShell window within the repo run
+`npm run test:full` to exercise a real API, database persistence, Dasha lookup
+and the no-key fallback interpretation. Native `@swisseph/node` is now an
+explicit backend dependency; if unavailable, set `PYTHON_BIN=py` after
+installing `pyswisseph`.
+
+**OpenAI:** Put `OPENAI_API_KEY` in `.env` locally and start the full stack to
+activate the provider; without a key, educational local explanation is used.
+Actual paid OpenAI API calls, native Windows bindings and full Next.js/NestJS
+build must be checked on your machine; they have not been confirmed in this
+offline test environment.
+
+**Security:** local-only prototype. Birth details and stored charts are
+private personal information; the database endpoints currently have no login.
+Do not expose full-stack port 4000 to the public internet until authentication,
+authorization, retention controls and rate limits are implemented.
