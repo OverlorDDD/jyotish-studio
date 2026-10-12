@@ -21,7 +21,7 @@
     "test:full": "node tools/smoke-test.mjs",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
-    "test:swagger": "node --import tsx --test tools/swagger-startup.test.mjs"
+    "test:swagger": "npm run test:swagger -w @jyotish/api"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
