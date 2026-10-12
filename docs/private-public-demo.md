@@ -33,3 +33,18 @@ npm run start:full
 HTTP Basic over ngrok is acceptable for a **short private demo**, but **not** full user authentication. Public launch requires a real account system, server-side per-record authorization, request throttling at the edge, HTTPS on the deployed origin, policy/retention for birth data, paid-provider quotas, operational monitoring and a permanent backend/database host. There is no guarantee of a permanent ngrok URL or that a PC-hosted preview will be up after the PC sleeps.
 
 If `npm run demo:check` fails, **do not start ngrok**. Send the exact error for diagnosis without including passwords.
+
+## Slow free AI interpretation may outlast the original Next.js rewrite timeout
+
+In Next.js 15, rewrites to the local NestJS API normally time out around 30 seconds. The free OpenRouter model can take up to 45 seconds. This project now sets `experimental.proxyTimeout=90000` in `apps/web/next.config.mjs`, so Next.js waits longer than the OpenRouter request. **Restart and rebuild Next.js** after updating it.
+
+The client now checks whether an API response is valid JSON. An HTTP 500 with a plaintext `Internal Server Error` body displays a safe `API HTTP 500` hint instead of the unhelpful `Unexpected token 'I'` message.
+
+Diagnosis on Windows:
+1. Stop the previous `npm run start:full` with Ctrl+C.
+2. `git pull --ff-only origin main`, `npm run test:all`, `npm run build`, `npm run start:full`.
+3. On a second PowerShell: `npm run test:full` to verify NestJS + PostgreSQL interpretation directly without any paid provider.
+4. Click Interpret once on a fictional chart and wait for an OpenRouter response (or a clear fallback reason).
+5. If `API HTTP 500` persists, inspect the *first terminal* for the NestJS or Next.js error and report only the sanitized status and stack **without passwords, API keys or personal birth data**.
+
+The `demo:check` preflight checks auth, proxy health and database; it cannot guarantee the remote AI provider is responding.
