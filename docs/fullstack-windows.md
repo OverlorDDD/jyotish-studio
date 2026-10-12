@@ -79,3 +79,19 @@ Keep `OPENAI_API_KEY` **only in local `.env`**, do not share it in a chat or com
 - The full-stack build/test is **not verified** until it succeeds on a machine with installed dependencies and PostgreSQL. Keep logs and send the first failing command/error for targeted fixes.
 
 **Privacy:** API has no authentication yet; keep it bound to localhost and do not publish birth profiles through an open tunnel.
+
+## Prisma P1012: `DATABASE_URL` not found
+
+The project uses **one root `.env`** (`jyotish-studio-git/.env`), not `apps/api/.env`. With npm workspaces, commands invoked from `apps/api` normally don't load the root `.env` automatically. Root `db:generate` and `db:migrate` now load the root file explicitly through Node `--env-file` and pass an absolute-from-root schema path. NestJS resolves the same root `.env` relative to `main.ts`.
+
+In PowerShell from the Git checkout:
+
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+git pull --ff-only origin main
+npm run db:migrate
+npm run build
+npm run dev:full
+```
+
+Keep `.env` private and never paste its contents into chat or GitHub. If the database is not reachable, run `docker compose ps` and wait for the DB service to become healthy before rerunning migration. If local edits prevent a fast-forward pull, stop and check `git status --short` rather than overwriting files.
