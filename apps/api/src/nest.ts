@@ -1,9 +1,10 @@
-import {Body,Controller,Get,Post,Param,Module,Inject,Injectable,BadRequestException,NotFoundException,ServiceUnavailableException,OnModuleInit,OnModuleDestroy} from '@nestjs/common';
+import {Body,Controller,Get,Post,Param,Module,Inject,Injectable,BadRequestException,NotFoundException,ServiceUnavailableException,TooManyRequestsException,OnModuleInit,OnModuleDestroy} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsISO8601,IsNumber,IsOptional,IsString,Matches,Max,Min,MaxLength} from 'class-validator';
 import {PrismaClient} from '@prisma/client';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
+import {AiProviderError} from './ai.ts';
 class BirthDto {
  @ApiProperty({type:String,example:'2000-01-01'}) @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
  @ApiProperty({type:String,example:'12:00'}) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) time!:string;
@@ -15,6 +16,7 @@ class BirthDto {
 class InterpretDto {
  @ApiProperty({type:String}) @IsString() id!:string;
  @ApiProperty({type:String,example:'uk'}) @Matches(/^(uk|en)$/) lang!:'uk'|'en';
+ @ApiProperty({type:String,required:false,enum:['auto','local']}) @IsOptional() @Matches(/^(auto|local)$/) preferred?:'auto'|'local';
 }
 @Injectable()
 class PrismaService extends PrismaClient implements OnModuleInit,OnModuleDestroy {
@@ -37,7 +39,15 @@ export class JyotishController {
  @Get('v1/charts/:id/dashas')async dashas(@Param('id') id:string){const row=await this.prisma.chart.findUnique({where:{id}});if(!row)throw new NotFoundException();return {id,dasha:(row.result as unknown as CalculatedChart).dasha};}
  @Post('v1/interpretations')async interpret(@Body() body:InterpretDto){
   const row=await this.prisma.chart.findUnique({where:{id:body.id}});if(!row)throw new NotFoundException('Chart does not exist');
-  const answer=await interpretChart(row.result as unknown as CalculatedChart,body.lang);
+  let answer:Awaited<ReturnType<typeof interpretChart>>;
+  try {answer=await interpretChart(row.result as unknown as CalculatedChart,body.lang,body.preferred||'auto');}
+  catch(error){
+   if(error instanceof AiProviderError){
+    if(error.reason==='limit')throw new TooManyRequestsException(error.message);
+    throw new ServiceUnavailableException('AI interpretation temporarily unavailable. Check your server-side OpenAI configuration.');
+   }
+   throw error;
+  }
   await this.prisma.interpretation.create({data:{chartId:row.id,provider:answer.provider,language:body.lang,text:answer.text}});
   return answer;
  }
