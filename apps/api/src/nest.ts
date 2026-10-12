@@ -1,4 +1,4 @@
-import {Body,Controller,Get,Post,Param,Module,Inject,Injectable,BadRequestException,NotFoundException,ServiceUnavailableException} from '@nestjs/common';
+import {Body,Controller,Get,Post,Param,Module,Inject,Injectable,BadRequestException,NotFoundException,ServiceUnavailableException,OnModuleInit,OnModuleDestroy} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsISO8601,IsNumber,IsOptional,IsString,Matches,Max,Min,MaxLength} from 'class-validator';
 import {PrismaClient} from '@prisma/client';
@@ -17,12 +17,15 @@ class InterpretDto {
  @ApiProperty({example:'uk'}) @Matches(/^(uk|en)$/) lang!:'uk'|'en';
 }
 @Injectable()
-class PrismaService extends PrismaClient{}
+class PrismaService extends PrismaClient implements OnModuleInit,OnModuleDestroy {
+ async onModuleInit(){await this.$connect();}
+ async onModuleDestroy(){await this.$disconnect();}
+}
 @ApiTags('Jyotish')
 @Controller('api')
 class JyotishController {
  constructor(@Inject(PrismaService) private readonly prisma:PrismaService){}
- @Get('health') health(){return {status:'ok',service:'jyotish-nestjs'};}
+ @Get('health') async health(){try{await this.prisma.$queryRaw`SELECT 1`;return {status:'ok',service:'jyotish-nestjs',database:'connected'};}catch{throw new ServiceUnavailableException('Database not connected');}}
  @Post('v1/charts/calculate')
  async calculate(@Body() birth:BirthDto){
   let chart:CalculatedChart;
