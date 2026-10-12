@@ -2,6 +2,17 @@ import {NextResponse} from 'next/server';
 import type {NextRequest} from 'next/server';
 
 export function middleware(request:NextRequest){
+ // Deliberate password-free showcase. This is NOT production authentication.
+ // Keep the original private-demo auth as the default for every other mode.
+ if(process.env.PUBLIC_DEMO==='1'){
+  // Do not expose the developer's Swagger console on the public tunnel.
+  if(request.nextUrl.pathname.startsWith('/api/docs')){
+   return new NextResponse('Not available in public demo',{status:404,headers:{'Cache-Control':'no-store'}});
+  }
+  const response=NextResponse.next();
+  response.headers.set('Cache-Control','no-store');
+  return response;
+ }
  const user=process.env.DEMO_ACCESS_USER||'';
  const password=process.env.DEMO_ACCESS_PASSWORD||'';
  const forwarded=request.headers.get('x-forwarded-host')||request.headers.get('host')||'';
