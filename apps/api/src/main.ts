@@ -7,6 +7,7 @@ import {SwaggerModule,DocumentBuilder} from '@nestjs/swagger';
 import {AppModule} from './nest.ts';
 async function bootstrap(){
  const app=await NestFactory.create(AppModule,{cors:{origin:['http://localhost:3000']}});
+ app.enableShutdownHooks();
  app.useGlobalPipes(new ValidationPipe({transform:true,whitelist:true,forbidNonWhitelisted:true}));
  const config=new DocumentBuilder().setTitle('Jyotish Studio API').setDescription('Sidereal natal charts, divisional charts, Vimshottari and AI readings. Local-only prototype; authentication required before public exposure.').setVersion('0.1').build();
  SwaggerModule.setup('/api/docs',app,SwaggerModule.createDocument(app,config));
