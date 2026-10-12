@@ -62,3 +62,17 @@ Save, restart the backend, rerun `npm run free-ai:check`. To prioritize your own
 Default `AI_MODE=free` is permitted through password-protected demo checks, and `AI_MODE=local` is a more robust no-network option. Keep the private username/password, `docker compose up -d --wait db`, `npm run build`, `npm run start:full`, and `npm run demo:check`. The preflight blocks `AI_MODE=paid_openai`. **Only then** run `ngrok http 3000`.
 
 Free tier limits can be consumed by visitors; never claim the preview is an always-on public product. Do not expose the PostgreSQL database or NestJS port directly to the internet.
+
+## Why might the preview display “Локальне пояснення”?
+
+`npm run demo:check` verifies authentication, Next.js proxy and NestJS/PostgreSQL health, **not** cloud AI generation. A remote AI provider can still fail even when this check passes.
+
+With the updated free AI flow:
+- The web panel shows a short, non-sensitive reason when OpenRouter and other enabled free models are unavailable: `rate_limited`, `invalid_response`, `timeout`, `provider_rejected`, `provider_unavailable`, `network`, `no_provider`, or `hourly_limit`.
+- OpenRouter has **45 seconds**, not 15, to respond. Ollama still has 60 seconds.
+- The built-in offline reading includes the complete calculated D1, D9 and D10 planetary placements plus current Mahadasha/Antardasha, with separate sections in Ukrainian or English. These deterministic summaries are not a substitute for a generated AI interpretation.
+- The NestJS terminal reports a sanitized line `Free AI fallback: openrouter <reason>; trying next provider`; it does not print API keys, prompt bodies, or provider response text.
+
+When you see local fallback: stop production preview, run `git pull --ff-only origin main`, `npm run test:all`, `npm run build`, and `npm run start:full`. Then click Interpret on a fictional chart **once**, wait for the response, and report the shown fallback reason. Do not repeatedly refresh if a provider has exhausted its free limit.
+
+You can check key metadata without generating text via `npm run free-ai:check`; a PASS does **not** guarantee free inference quota. `demo:check` must still pass before opening ngrok.
