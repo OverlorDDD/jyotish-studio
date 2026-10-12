@@ -119,3 +119,24 @@ docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
 ```
 
 Do not run `docker compose down -v`, `docker volume prune`, `docker system prune`, or `npm audit fix --force` to solve P1000.
+
+## NestJS Swagger startup crash under `tsx`
+
+**Symptom:** `TypeError: Cannot read properties of undefined (reading '0')` inside `@nestjs/swagger/dist/services/parameter-metadata-accessor.js`; Next.js starts, but NestJS API never listens on port 4000.
+
+**Cause:** The `tsx` runner uses esbuild, which does not implement `emitDecoratorMetadata` even when TypeScript type checking succeeds. Swagger and NestJS validation need `design:paramtypes` runtime metadata for `@Body()` and `@Param()`.
+
+**Fix:** `apps/api/src/nest.ts` now attaches explicit `design:paramtypes` to the four controller methods and declares request-property types in `@ApiProperty`. A regression test exercises real Swagger document creation without connecting to PostgreSQL.
+
+After updating GitHub, stop both current development processes with `Ctrl+C`, then run in PowerShell:
+
+```powershell
+cd C:\Users\Note\jyotish-studio-git
+git pull --ff-only origin main
+npm run test:swagger
+npm run dev:full
+```
+
+Then verify `http://localhost:4000/api/health` returns database connected, `http://localhost:4000/api/docs` shows Swagger, and `http://localhost:3000` displays the chart. While servers remain running, in a **second PowerShell** run `npm run test:full`. Never run standalone `npm run dev` simultaneously on port 4000.
+
+Do not use `npm audit fix --force` to solve metadata errors.
