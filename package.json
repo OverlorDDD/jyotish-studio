@@ -17,7 +17,7 @@
     "db:generate": "node --env-file=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
-    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:demo",
+    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:demo && npm run test:free-ai",
     "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
@@ -26,7 +26,9 @@
     "test:demo": "node --test tools/public-demo.test.mjs",
     "demo:check": "node --env-file=.env tools/demo-preflight.mjs",
     "start:full": "npx concurrently -k \"npm run start -w @jyotish/api\" \"npm run start -w @jyotish/web\"",
-    "openai:check": "node --env-file=.env tools/openai-diagnose.mjs"
+    "openai:check": "node --env-file=.env tools/openai-diagnose.mjs",
+    "test:free-ai": "node --experimental-strip-types --test tools/free-ai.test.mjs",
+    "free-ai:check": "node --env-file=.env tools/free-ai-check.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
