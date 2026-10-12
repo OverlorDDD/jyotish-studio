@@ -11,11 +11,19 @@ export async function runCalculation(body:unknown):Promise<CalculatedChart>{
  const eph=await getEphemeris(input);
  return calculateChart(input,eph);
 }
+const SIGN_NAMES_UK=["Овен","Телець","Близнюки","Рак","Лев","Діва","Терези","Скорпіон","Стрілець","Козоріг","Водолій","Риби"];
+const NAKSHATRA_NAMES_UK:Record<string,string>={"Ashwini":"Ашвіні","Bharani":"Бхарані","Krittika":"Кріттіка","Rohini":"Рохіні","Mrigashira":"Мрігашіра","Ardra":"Ардра","Punarvasu":"Пунарвасу","Pushya":"Пушʼя","Ashlesha":"Ашлеша","Magha":"Магха","Purva Phalguni":"Пурва Пхалгуні","Uttara Phalguni":"Уттара Пхалгуні","Hasta":"Хаста","Chitra":"Чітра","Swati":"Сваті","Vishakha":"Вішакха","Anuradha":"Анурадха","Jyeshtha":"Джʼєштха","Mula":"Мула","Purva Ashadha":"Пурва Ашадха","Uttara Ashadha":"Уттара Ашадха","Shravana":"Шравана","Dhanishta":"Дханіштха","Shatabhisha":"Шатабхіша","Purva Bhadrapada":"Пурва Бхадрапада","Uttara Bhadrapada":"Уттара Бхадрапада","Revati":"Реваті"};
+/** Chart coordinates are deterministic; these concise texts describe Jyotish traditions. */
 export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en'){
  const moon=chart.d1.find(x=>x.name==='Moon')!,sun=chart.d1.find(x=>x.name==='Sun')!;
- if(language==='uk')return `Навчальне трактування Джйотіш: Лагна у знаку ${chart.ascendant.signName}, Сонце у ${sun.signName} (дім ${sun.house}), Місяць у ${moon.signName} (дім ${moon.house}), накшатра ${moon.nakshatra}, пада ${moon.pada}. Це традиційні астрологічні категорії, а не науковий прогноз. Подивіться D9 для додаткової символічної інтерпретації тем стосунків і D10 — професійної діяльності.`;
- return `Educational Jyotish reading: Ascendant in ${chart.ascendant.signName}, Sun in ${sun.signName} (house ${sun.house}), Moon in ${moon.signName} (house ${moon.house}), nakshatra ${moon.nakshatra}, pada ${moon.pada}. These are traditional astrological categories, not scientific predictions. D9 is used for additional symbolic relationship analysis; D10 traditionally concerns professional activity.`;
+ if(language==='uk'){
+  const sign=(number:number)=>SIGN_NAMES_UK[number-1]||'—';
+  const nakshatra=NAKSHATRA_NAMES_UK[moon.nakshatra]||moon.nakshatra;
+  return `Трактування за Джйотіш. Лагна — ${sign(chart.ascendant.sign)}. Сонце — ${sign(sun.sign)} (${sun.house}-й дім), Місяць — ${sign(moon.sign)} (${moon.house}-й дім). Накшатра Місяця — ${nakshatra}, пада ${moon.pada}. Карта D9 (Навамша) відкриває теми стосунків і внутрішніх цінностей, а D10 (Дашамша) — професійного шляху.`;
+ }
+ return `Jyotish chart reading. Ascendant — ${chart.ascendant.signName}; Sun — ${sun.signName} (house ${sun.house}); Moon — ${moon.signName} (house ${moon.house}). Lunar nakshatra: ${moon.nakshatra}, pada ${moon.pada}. D9 (Navamsa) explores relationships and personal values; D10 (Dashamsa) explores vocation and professional direction in the Jyotish tradition.`;
 }
+
 import {generateOpenAiInterpretation} from './ai.ts';
 export async function interpretChart(chart:CalculatedChart,lang:'uk'|'en',preferred:'auto'|'local'='auto'){
  const key=process.env.OPENAI_API_KEY;
