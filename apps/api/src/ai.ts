@@ -64,8 +64,13 @@ export function astrologicalFacts(chart:CalculatedChart,lang:'uk'|'en',now=Date.
  ] as const;
 }
 
-export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number}){
- if(!options.key.trim())throw new AiProviderError('upstream','OpenAI API key is not configured');
+export type ChatProvider='openai'|'openrouter'|'ollama';
+/** A shared, schema-validated chat adapter. Provider URLs are hard-coded, never user supplied. */
+export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number}){
+ const provider=options.provider||'openai';
+ const endpoint=provider==='openrouter'?'https://openrouter.ai/api/v1/chat/completions':
+  provider==='ollama'?'http://127.0.0.1:11434/v1/chat/completions':'https://api.openai.com/v1/chat/completions';
+ if(provider!=='ollama'&&!options.key.trim())throw new AiProviderError('upstream','API key is not configured');
  if(!(options.limit||defaultHourlyLimit)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
  const facts=astrologicalFacts(chart,lang,options.now);
  const controller=new AbortController();
@@ -73,10 +78,10 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
  const onAbort=()=>controller.abort();
  options.signal?.addEventListener('abort',onAbort,{once:true});
  try{
-  const response=await (options.fetcher||fetch)('https://api.openai.com/v1/chat/completions',{
+  const response=await (options.fetcher||fetch)(endpoint,{
    method:'POST',signal:controller.signal,
-   headers:{'Authorization':`Bearer ${options.key}`,'Content-Type':'application/json'},
-   body:JSON.stringify({model:options.model||'gpt-4.1-mini',temperature:0.2,max_tokens:1000,
+   headers:{'Content-Type':'application/json',...(provider==='ollama'?{}:{'Authorization':`Bearer ${options.key}`})},
+   body:JSON.stringify({model:options.model||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),temperature:0.2,max_tokens:1000,
     response_format:{type:'json_schema',json_schema:{name:'jyotish_interpretation',strict:true,schema:{
       type:'object',additionalProperties:false,required:['sections'],properties:{sections:{type:'array',items:{type:'object',additionalProperties:false,required:['factId','text'],properties:{factId:{type:'string',enum:facts.map(f=>f.id)},text:{type:'string'}}}}}
     }}},
@@ -113,7 +118,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    lines.push(`${fact.fact}\n${e.text.trim()}`);
   }
   const disclaimer=lang==='uk'?'Трактування в традиції Джйотіш.':'Interpretation in the Jyotish tradition.';
-  return {provider:'openai' as const,text:lines.join('\n\n')+'\n\n'+disclaimer};
+  return {provider,model:options.model||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),text:lines.join('\n\n')+'\n\n'+disclaimer};
  }catch(e){
   if(e instanceof AiProviderError)throw e;
   if(controller.signal.aborted)throw new AiProviderError('timeout','OpenAI request timed out');
