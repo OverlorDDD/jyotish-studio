@@ -5,8 +5,8 @@ if(user.length<3||password.length<14||user.includes(':')){
  console.error('BLOCKED: Configure DEMO_ACCESS_USER (3+ chars) and unique DEMO_ACCESS_PASSWORD (14+ chars) in root .env first.');
  process.exit(1);
 }
-if(process.env.OPENAI_ENABLED==='1'){
- console.error('BLOCKED: Paid OpenAI is enabled. Set OPENAI_ENABLED=0 in root .env for the temporary internet demo, then restart the servers. Test paid AI locally before publishing.');
+if(process.env.AI_MODE==='paid_openai'){
+ console.error('BLOCKED: AI_MODE=paid_openai is not permitted in a zero-cost internet demo. Set AI_MODE=free or AI_MODE=local and restart.');
  process.exit(1);
 }
 try{
