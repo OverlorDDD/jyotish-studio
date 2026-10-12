@@ -1,3 +1,36 @@
+# Stage 6: Passwordless public showcase through ngrok (Windows)
+
+The site now supports two explicitly chosen preview modes:
+
+- `PUBLIC_DEMO=0` or omitted: **private**, Basic username/password, suitable for a small invited group.
+- `PUBLIC_DEMO=1`: **public showcase**, no username/password at all. Share the ngrok HTTPS URL with interviewers. Any person with the URL can access the site and APIs, without user accounts.
+
+## Start a passwordless showcase
+
+1. In `C:\Users\Note\jyotish-studio-git`, stop any existing `npm run start:full` with Ctrl+C.
+2. Run `git pull --ff-only origin main` and `notepad .env`. Add/set these existing-root values exactly once:
+
+```dotenv
+PUBLIC_DEMO=1
+AI_MODE=free
+OPENAI_ENABLED=0
+FREE_AI_MAX_CALLS_PER_HOUR=10
+```
+
+Keep `OPENROUTER_API_KEY` configured. You can leave `DEMO_ACCESS_USER` and `DEMO_ACCESS_PASSWORD` populated: public mode **ignores** them. Never share your `.env` or keys.
+
+3. Run `npm run test:demo`, `npm run build`, then `npm run start:full` (leave terminal running).
+4. In a **second** PowerShell run `npm run demo:check`. Expect `PASS: Public demo needs NO username/password; Next.js proxy reaches NestJS + PostgreSQL; Swagger hidden.`.
+5. In a **third** PowerShell run `ngrok http 3000`. Copy **the actual HTTPS URL** from ngrok and open it on a phone over cellular data or in an incognito window. There should be **no browser Basic Auth dialog**. If your browser cached a previous Basic Auth login, test in incognito.
+6. Use **fictional** New Delhi test data to calculate D1/D9/D10 and request an OpenRouter interpretation. The free cloud model may be rate-limited, in which case the expanded offline report appears.
+7. Turn off the public tunnel with Ctrl+C when the showcase ends. Revert to private mode by setting `PUBLIC_DEMO=0`, rebuilding Next and restarting. Your previously configured demo credentials will work again.
+
+**Important security / privacy limitations:** This is a short-lived portfolio demonstration, **not** a fully secure public service. The backend currently persists chart and interpretation data in PostgreSQL, has no user accounts or per-record access controls, and uses free cloud providers subject to quotas and their data policies. Never upload real people's birth details to the public showcase. Existing stored charts are not automatically deleted or migrated when public mode is enabled. Public demo adds a global 60-chart-calculations/hour process-local throttle, hides `/api/docs` on the Next.js tunnel and sets no-index headers, but these are basic safeguards only and do not replace user authentication, database isolation, request-level permissions, abuse protection, or a permanent deployment.
+
+**ngrok is temporary** and requires your PC, Next.js, NestJS, Docker PostgreSQL, and ngrok to stay online. Only tunnel **port 3000**; never expose ports 4000 or 5433.
+
+---
+
 # Stage 5: Private internet demo over ngrok (Windows)
 
 **This is a temporary preview running on your computer, not always-on hosting.** Keep your computer, Docker, both app processes and ngrok running. No new ZIP files; use `git pull` in your existing checkout. Do not publish real birth profiles; the API has no per-user accounts or record-level access control.
