@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHourlyLimiter,astrologicalFacts,generateOpenAiInterpretation,AiProviderError} from '../apps/api/src/ai.ts';
+import {localInterpretation} from '../apps/api/src/logic.ts';
 
 const p=(name,signName,house)=>({name,signName,house,nakshatra:'Swati',pada:4});
 const chart={
@@ -64,4 +65,15 @@ test('hourly limit is loaded from environment on first live-style request',async
   if(previous===undefined)delete process.env.OPENAI_MAX_CALLS_PER_HOUR;
   else process.env.OPENAI_MAX_CALLS_PER_HOUR=previous;
  }
+});
+
+test('local readings are inviting, Ukrainian terminology is fully localized, and source facts remain intact',()=>{
+ const demo={...chart,ascendant:{...chart.ascendant,sign:12},d1:[{...chart.d1[0],sign:9},{...chart.d1[1],sign:7}]};
+ const uk=localInterpretation(demo,'uk');
+ for(const word of ['Риби','Стрілець','Терези','Сваті','D9','D10'])assert.ok(uk.includes(word),'Missing '+word);
+ for(const word of ['Pisces','Sagittarius','Libra','Swati','науковий прогноз'])assert.ok(!uk.includes(word),'Unexpected '+word);
+ const en=localInterpretation(demo,'en');
+ assert.match(en,/Jyotish chart reading/);
+ assert.match(en,/Pisces/);
+ assert.ok(!en.includes('scientific prediction'));
 });
