@@ -48,3 +48,20 @@ test('provider failures and rate limits never masquerade as a successful OpenAI 
  await assert.rejects(generateOpenAiInterpretation(chart,'en',{key:'fake',limit:()=>false,fetcher:async()=>{throw Error('Should never call provider');}}),e=>e.reason==='limit');
  await assert.rejects(generateOpenAiInterpretation(chart,'en',{key:'fake',limit:()=>true,fetcher:async()=>new Response('{}',{status:429})}),e=>e.reason==='upstream');
 });
+
+test('hourly limit is loaded from environment on first live-style request',async()=>{
+ const previous=process.env.OPENAI_MAX_CALLS_PER_HOUR;
+ process.env.OPENAI_MAX_CALLS_PER_HOUR='1';
+ try{
+  const send=()=>generateOpenAiInterpretation(chart,'en',{
+   key:'fake_local_test',now:Date.parse('2026-10-12'),
+   fetcher:async()=>apiReply(successfulBody)
+  });
+  const result=await send();
+  assert.equal(result.provider,'openai');
+  await assert.rejects(send(),e=>e instanceof AiProviderError&&e.reason==='limit');
+ }finally{
+  if(previous===undefined)delete process.env.OPENAI_MAX_CALLS_PER_HOUR;
+  else process.env.OPENAI_MAX_CALLS_PER_HOUR=previous;
+ }
+});
