@@ -1,3 +1,5 @@
+> **Update, October 2026:** Jyotish Studio now defaults to `AI_MODE=free` and free OpenRouter routing. Follow [Free AI setup](./free-ai.md). Existing OPENAI_ENABLED alone NEVER enables paid OpenAI requests.
+
 # Stage 5: OpenAI interpretation, intentionally opt-in
 
 This prototype separates **astronomical calculation** from **language-model interpretation**.
