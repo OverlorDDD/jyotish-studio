@@ -51,3 +51,38 @@ test('retry is blocked when free hourly cap is exhausted',async()=>{
  assert.equal(calls,1);
  assert.equal(r.reason,'hourly_limit');
 });
+
+test('Markdown fenced JSON from a free model is accepted without retry',async()=>{
+ let count=0;
+ const fenced=['```json',JSON.stringify(good),'```'].join('\n');
+ const r=await generateFreeInterpretationDetailed(chart,'en',{
+  key:'example',ollamaEnabled:false,limit:()=>true,
+  fetcher:async()=>{count++;return reply(fenced);}
+ });
+ assert.equal(count,1);
+ assert.equal(r.result?.provider,'openrouter');
+});
+test('HTTP 400 schema rejection triggers one prompt-only retry',async()=>{
+ let count=0;
+ const r=await generateFreeInterpretationDetailed(chart,'uk',{
+  key:'example',ollamaEnabled:false,limit:()=>true,
+  fetcher:async(_url,init)=>{
+   count++;
+   return count===1?new Response('{}',{status:400}):reply(JSON.stringify(good));
+  }
+ });
+ assert.equal(count,2);
+ assert.equal(r.result?.provider,'openrouter');
+});
+test('unknown fact IDs are rejected after both formats',async()=>{
+ let count=0;
+ const invalid={sections:[...good.sections.slice(0,2),{
+  factId:'invented_event',text:'An unsupported prediction without an input fact identifier.'
+ }]};
+ const r=await generateFreeInterpretationDetailed(chart,'en',{
+  key:'example',ollamaEnabled:false,limit:()=>true,
+  fetcher:async()=>{count++;return reply(JSON.stringify(invalid));}
+ });
+ assert.equal(count,2);
+ assert.equal(r.reason,'invalid_response');
+});
