@@ -39,3 +39,9 @@ npm run build
 `test:ai` uses a fake provider response and makes **zero** real OpenAI requests; it checks omitted birth metadata, provider credentials, schema, rate limiting and failure cases.
 
 With NestJS and PostgreSQL running, `npm run test:full` creates/fetches a fictional chart, checks D1/D9/D10, requests *local* interpretation, verifies invalid coordinates, and confirms the database connection. Real OpenAI success requires your local key; it cannot be certified by mock tests.
+
+## Paid budget initialization and internet demo
+
+`OPENAI_MAX_CALLS_PER_HOUR` is now loaded lazily on the **first paid request after root `.env` is loaded** (not at module import time). It remains a per-process demo budget, not a billing guarantee; set project limits in OpenAI Platform.
+
+Before running `ngrok http 3000`, set `OPENAI_ENABLED=0`, restart the API and Next.js, and run `npm run demo:check`. The check now **blocks** a public demo if paid AI is enabled; use local-only test sessions for paid OpenAI integration.
