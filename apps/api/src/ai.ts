@@ -74,7 +74,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
  if(!(options.limit||defaultHourlyLimit)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
  const facts=astrologicalFacts(chart,lang,options.now);
  const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),15000);
+ const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?60000:15000);
  const onAbort=()=>controller.abort();
  options.signal?.addEventListener('abort',onAbort,{once:true});
  try{
@@ -99,7 +99,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    }catch{}
    throw new AiProviderError('upstream',`OpenAI HTTP ${response.status}${code?' '+code:''}`);
   }
-  const result=await response.json() as {choices?:{message?:{content?:string;refusal?:string}}[]};
+  const result=await response.json() as {model?:string;choices?:{message?:{content?:string;refusal?:string}}[]};
   const content=result.choices?.[0]?.message?.content;
   if(!content||result.choices?.[0]?.message?.refusal)throw new AiProviderError('format','OpenAI returned no interpretation');
   let decoded:unknown;
@@ -118,7 +118,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    lines.push(`${fact.fact}\n${e.text.trim()}`);
   }
   const disclaimer=lang==='uk'?'Трактування в традиції Джйотіш.':'Interpretation in the Jyotish tradition.';
-  return {provider,model:options.model||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),text:lines.join('\n\n')+'\n\n'+disclaimer};
+  return {provider,model:(typeof result.model==='string'&&result.model.length<=120?result.model:options.model)||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),text:lines.join('\n\n')+'\n\n'+disclaimer};
  }catch(e){
   if(e instanceof AiProviderError)throw e;
   if(controller.signal.aborted)throw new AiProviderError('timeout','OpenAI request timed out');
