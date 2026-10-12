@@ -14,7 +14,18 @@ export function createHourlyLimiter(maxRequests:number){
   count++;return true;
  };
 }
-const limiter=createHourlyLimiter(Math.min(20,Math.max(1,Number(process.env.OPENAI_MAX_CALLS_PER_HOUR)||5)));
+// Evaluate .env when the first paid request arrives, not at ES module import time.
+// main.ts loads the root .env before bootstrapping NestJS, but ESM static imports
+// are evaluated earlier than its top-level process.loadEnvFile() call.
+let processLimiter:(()=>boolean)|undefined;
+function defaultHourlyLimit(){
+ if(!processLimiter){
+  const configured=Number(process.env.OPENAI_MAX_CALLS_PER_HOUR);
+  const max=Number.isFinite(configured)&&configured>=1?Math.min(20,Math.floor(configured)):5;
+  processLimiter=createHourlyLimiter(max);
+ }
+ return processLimiter();
+}
 
 export function astrologicalFacts(chart:CalculatedChart,lang:'uk'|'en',now=Date.now()){
  const sun=chart.d1.find(p=>p.name==='Sun');
@@ -35,7 +46,7 @@ export function astrologicalFacts(chart:CalculatedChart,lang:'uk'|'en',now=Date.
 
 export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number}){
  if(!options.key.trim())throw new AiProviderError('upstream','OpenAI API key is not configured');
- if(!(options.limit||limiter)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
+ if(!(options.limit||defaultHourlyLimit)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
  const facts=astrologicalFacts(chart,lang,options.now);
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),15000);
