@@ -1,0 +1,81 @@
+# Jyotish Studio: Windows Full Stack launch (interview prototype)
+
+## 1. Preparation
+
+Run these commands **from the Git clone**, not an extracted ZIP. In PowerShell:
+
+```powershell
+cd C:\Users\Note\jyotish-studio-git
+# Stop the old standalone process with Ctrl+C before starting the full API on 4000.
+git status --short
+git pull --ff-only origin main
+npm install
+npm run preflight:full
+```
+
+The standalone site (`npm run dev`) is NOT NestJS. The full mode has two servers and a database.
+
+## 2. PostgreSQL and Prisma
+
+Start Docker Desktop and wait for Engine Running. Then:
+
+```powershell
+# Only create .env once; don't overwrite an existing local key/config.
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+docker compose up -d db
+docker compose ps
+npm run db:generate
+npm run db:migrate
+```
+
+What each command does:
+- `docker compose up -d db` creates/runs PostgreSQL bound to `127.0.0.1:5432` and persists data in the `jyotish-postgres` volume.
+- `db:generate` generates a typed Prisma Client from `apps/api/prisma/schema.prisma`.
+- `db:migrate` applies the committed initial SQL migration **non-interactively** (`prisma migrate deploy`), creating `Chart` and `Interpretation` tables.
+
+If `prisma generate` reports a missing engine, review npm install-script approval warnings on your machine. Never execute arbitrary build scripts from unknown packages. See `npm help install` and the relevant npm version documentation. If Docker cannot bind port 5432, check for another local PostgreSQL process before changing any port.
+
+## 3. Compile checks and start full mode
+
+```powershell
+npm run build
+npm run dev:full
+```
+
+Expected services:
+- Next.js: http://localhost:3000
+- NestJS Swagger: http://localhost:4000/api/docs
+- API + PostgreSQL readiness: http://localhost:4000/api/health — returns `status: ok` and `database: connected`
+
+Do not run `npm run dev` concurrently; it is the older standalone on port 4000.
+
+## 4. Smoke test from a *second* terminal
+
+```powershell
+cd C:\Users\Note\jyotish-studio-git
+npm run test:full
+```
+
+Manual checks:
+1. Open Next.js on 3000, choose the fictional demo profile, calculate D1 and confirm all nine grahas.
+2. Switch to D9/D10 and compare the signs and 12 house labels.
+3. Open Swagger; test `GET /api/health` (database must show connected).
+4. Run `test:full`: create chart, retrieve chart by id, check dashas, obtain a **local** (no OpenAI key) reading, reject invalid coordinates.
+5. Restart NestJS and retrieve the saved chart id again in Swagger: if it exists, PostgreSQL persistence works.
+6. Stop PostgreSQL, then confirm API health does not claim database readiness. Restart with `docker compose up -d db`.
+7. Check the browser's console; no failed API requests or JavaScript errors are expected.
+
+## 5. OpenAI validation (after Full Stack passes)
+
+Keep `OPENAI_API_KEY` **only in local `.env`**, do not share it in a chat or commit it. Use a real OpenAI API key with model access/billing, then restart the API and call `POST /api/v1/interpretations` for a saved chart. Verify provider is `openai`, language matches, and placements agree with the deterministic chart. Test a missing/invalid key (must not silently claim OpenAI success). API usage may incur charges.
+
+## Troubleshooting
+
+- `Missing script` or `not a git repository`: make sure `pwd` points to the Git clone, with `.git` and root `package.json`.
+- `EADDRINUSE 4000`: stop the previous `npm run dev` using Ctrl+C; `Get-NetTCPConnection -LocalPort 4000` helps locate conflicting listeners.
+- `P1001` / can't reach DB: ensure Docker Desktop is running and `docker compose ps` shows a healthy Postgres instance.
+- `@prisma/client did not initialize`: run `npm run db:generate` again and inspect install-script approval.
+- Swiss Ephemeris native installation errors: use the Python `pyswisseph` adapter supported by `getEphemeris` (`py -m pip install pyswisseph`) and set `ALLOW_PYTHON_SWISSEPH=1` in local `.env`.
+- The full-stack build/test is **not verified** until it succeeds on a machine with installed dependencies and PostgreSQL. Keep logs and send the first failing command/error for targeted fixes.
+
+**Privacy:** API has no authentication yet; keep it bound to localhost and do not publish birth profiles through an open tunnel.
