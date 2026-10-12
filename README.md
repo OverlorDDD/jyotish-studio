@@ -47,7 +47,7 @@ Example POST body:
 {"date":"2000-01-01","time":"12:00","timeZone":"Asia/Kolkata","latitude":28.6139,"longitude":77.209}
 ```
 
-`npm test` checks divisional rules, nakshatras, whole-sign houses, DST ambiguity, 120-year dasha durations and normalized chart composition. These checks are not substitutes for independent golden-chart comparisons.
+`npm test` (14 tests) checks divisional rules, nakshatras, whole-sign houses, DST ambiguity, 120-year dasha durations and normalized chart composition. These checks are not substitutes for independent golden-chart comparisons.
 
 ## Manual QA checklist
 
@@ -60,6 +60,10 @@ Example POST body:
 7. No `OPENAI_API_KEY`: Generate interpretation reports local rule-based response, clearly tagged. With a valid key: provider is `openai`; invalid key returns an error instead of silent fake success.
 8. For full stack: stop PostgreSQL and calculate — explicit DB unavailable error; restart and migrate. Swagger lists documented API endpoints.
 9. Check source `.gitignore`: `.env` never committed. Inspect browser Network tab: OpenAI key is never sent to client; chart-only summaries are sent to AI **only after clicking** Generate.
+
+## Audit and reference manuals
+
+See [October 12 calculation and UX audit](docs/audit-2026-10-12.md) for the defects fixed, external technical manuals, competitor comparison, reproducibility settings and outstanding reference-chart verification. The v0.2 UI renders a North Indian-style 12-house SVG with localized Ukrainian/English labels. The verified browser preview used an anonymous fictional profile, not any private birth data.
 
 ## Privacy and correctness
 
@@ -79,7 +83,7 @@ Never upload real birth profiles to a public repository. Saved DB contains poten
 
 The public GitHub repository is now available: https://github.com/OverlorDDD/jyotish-studio
 
-**Recommended clean setup (PowerShell):**
+Recommended clean setup (PowerShell):
 
 ```powershell
 cd C:\Users\Note
@@ -92,7 +96,7 @@ npm run dev
 
 Open http://localhost:4000. If `py` is not installed but `python` works, run `python -m pip install pyswisseph` and set `$env:PYTHON_BIN = 'python'` before `npm run dev`.
 
-**Troubleshooting `ENOENT package.json` after ZIP extraction:** the ZIP contains a top-level `jyotish-studio` folder. If you extracted into a folder of the same name, navigate one level deeper:
+**Troubleshooting `ENOENT package.json` after ZIP extraction:** the original ZIP contains a top-level `jyotish-studio` folder. If you extracted into a folder of the same name, navigate one level deeper:
 
 ```powershell
 cd .\jyotish-studio
