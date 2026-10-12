@@ -5,3 +5,18 @@
 .wheel-ready .chart-svg,.wheel-ready svg{display:block;width:100%;height:auto;aspect-ratio:1;overflow:visible}
 .wheel-wrap{min-width:0;overflow:visible}
 @media(max-width:550px){.wheel-ready{max-width:310px}}
+
+
+/* v0.3 — readable classical chart. Full graha names rather than cryptic two-letter abbreviations. */
+.wheel-ready {max-width:520px!important;width:100%;margin-inline:auto;}
+.wheel-ready svg, .chart-svg{display:block;width:100%;height:auto;aspect-ratio:1;overflow:visible}
+.chart-layout{grid-template-columns:minmax(0,1.5fr) minmax(220px,0.85fr);align-items:center}
+.house-index{margin-top:18px;border-top:1px solid #29384c;padding-top:14px}
+.house-index-title{font-size:13px;font-weight:700;letter-spacing:.02em;margin:0 0 12px;color:#d8b875}
+.house-index-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.house-item{border:1px solid #2c3c52;border-radius:9px;background:#111e30;padding:9px 12px;min-width:0}
+.house-item strong{display:block;color:#d8b875;font-size:12px;margin-bottom:5px}
+.house-item span{display:block;color:#e2e8f2;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.vedic-house text{pointer-events:none}
+@media(max-width:1200px){.chart-layout{grid-template-columns:1fr}.house-index-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.house-index-grid{grid-template-columns:1fr 1fr}.wheel-ready{max-width:450px!important}}
