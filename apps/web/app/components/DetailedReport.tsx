@@ -130,9 +130,9 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
  return <section className="reading-root" id="full-reading" aria-label={uk?'Детальне трактування карти':'Detailed chart interpretation'}>
   <div className="reading-kicker">{uk?'✧ ПЕРСОНАЛЬНЕ ТРАКТУВАННЯ':'✧ PERSONAL READING'}</div>
   <h2>{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
-  <p className="reading-version">{report.rulesVersion?(uk?'Перевірені правила · Engine ':'Verified rules · Engine ')+report.rulesVersion:''}{report.asOf?' · '+(uk?'Станом на ':'As of ')+report.asOf:''}{report.rulesDigest?' · SHA-256 '+report.rulesDigest.slice(0,12):''}</p>
+  
   <p className="reading-intro">{uk?
-   'Спочатку — коротке пояснення звичайною мовою. Нижче — детальні розділи для тих, хто хоче розібратися глибше.' :
+   'Дізнайтеся про ваші можливості, стосунки, професійні орієнтири та ідеї для щоденних рішень.' :
    'Start with a plain-language summary. Detailed chapters follow for anyone who wants to explore further.'}</p>
   {report.practicalTips?.length?<section className="reading-practical" aria-label={uk?'Поради на основі карти':'Chart-inspired practical ideas'}>
     <div className="reading-chapter-kicker">{uk?'✦ ПРАКТИЧНІ ІДЕЇ':'✦ PRACTICAL IDEAS'}</div>
@@ -177,36 +177,42 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     </>}
    <p className="reading-ai-disclaimer">{uk?'Це символічне прочитання традиції Джйотіш, а не гарантований прогноз. Використовуйте його як привід для роздумів, а не як єдину основу важливих рішень.':'This is a symbolic reading from the Jyotish tradition, not a guaranteed prediction. Use it for reflection, not as the sole basis for important decisions.'}</p>
   </section>
-  <PlainLanguageGlossary lang={lang}/>
-  <nav className="reading-toc" aria-label={uk?'Зміст трактування':'Report contents'}>
-   {NAV.map(([id,ua,en],index)=><a key={id} href={'#reading-'+id}><span>{String(index+1).padStart(2,'0')}</span> {uk?ua:en}</a>)}
-  </nav>
-  <div className="reading-content">
-   {report.sections.map((section,index)=><div key={section.id}>
-    <article id={'reading-'+section.id} className={'reading-chapter '+(section.id==='portrait'?'reading-chapter-hero':'')+(section.id.startsWith('planet-')||section.id.startsWith('house-')?' reading-chapter-small':'')}>
+  <section className="reading-weekly-roadmap">
+   <div className="reading-chapter-kicker">{uk?'✦ ВАШ ПЛАН ДІЙ':'✦ YOUR ACTION PLAN'}</div>
+   <h3>{uk?'З чого почати':'Where to begin'}</h3>
+   <p>{uk?'Оберіть не більше трьох ідей і перевірте, чи вони справді корисні саме вам. Не потрібно робити все одразу.':'Choose no more than three ideas and see if they are genuinely useful for you. There is no need to do everything at once.'}</p>
+   <ol>{(report.lifePortrait?.chapters||[]).slice(0,3).map(ch=><li key={ch.id}><strong>{ch.title}</strong><span>{ch.action}</span></li>)}</ol>
+  </section>
+  <details className="reading-technical" id="reading-details">
+   <summary><span>{uk?'Астрологічні розрахунки та джерела':'Astrological calculations and sources'}</span>
+    <small>{uk?'Необов’язково · для тих, хто хоче розібратися глибше':'Optional · for readers who want to explore the calculations'}</small></summary>
+   <div className="reading-technical-inner">
+    <p>{uk?'Ці дані пояснюють, на яких положеннях і правилах засновано трактування. Вони потрібні для перевірки точності, але не для розуміння основного тексту.':'These placements and rules explain how the interpretation was derived. You do not need them to understand the main reading.'}</p>
+    <p className="reading-version">{report.rulesVersion?(uk?'Версія правил: ':'Rules version: ')+report.rulesVersion:''}{report.asOf?' · '+report.asOf:''}{report.rulesDigest?' · SHA-256 '+report.rulesDigest.slice(0,12):''}</p>
+    <PlainLanguageGlossary lang={lang}/>
+    <nav className="reading-toc" aria-label={uk?'Зміст розрахунків':'Calculation contents'}>
+     {NAV.map(([id,ua,en],index)=><a key={id} href={'#reading-'+id}><span>{String(index+1).padStart(2,'0')}</span> {uk?ua:en}</a>)}
+    </nav>
+    <div className="reading-content">
+     {report.sections.map(section=><article key={section.id} id={'reading-'+section.id} className={'reading-chapter '+(section.id==='portrait'?'reading-chapter-hero':'')+(section.id.startsWith('planet-')||section.id.startsWith('house-')?' reading-chapter-small':'')}>
       {section.image?<ReportPhoto kind={section.image} uk={uk}/>:null}
       <div className="reading-chapter-copy">
        <div className="reading-chapter-kicker">{section.eyebrow}</div>
        <h3>{section.heading}</h3>
        <p className="reading-chapter-lead">{section.lead}</p>
        {section.paragraphs.map((paragraph,i)=><p key={i} className="reading-paragraph">{paragraph}</p>)}
-       {section.facts?.length?<div className="reading-facts">
-        <div className="reading-facts-label">{uk?'Перевірені дані карти':'Verified chart facts'}</div>
-        <ul>{section.facts.map((fact,i)=><li key={i}>{fact}</li>)}</ul>
-       </div>:null}
+       {section.facts?.length?<details className="reading-facts"><summary>{uk?'Показати точні дані карти':'Show precise chart data'}</summary><ul>{section.facts.map((fact,i)=><li key={i}>{fact}</li>)}</ul></details>:null}
       </div>
-    </article>
-
-   </div>)}
-  </div>
-  {report.ruleFacts?.length?<details className="reading-provenance">
-   <summary>{uk?'Перевірити правила й вихідні дані':'Inspect rule IDs and source evidence'}</summary>
-   <p>{uk?'Кожен факт сформовано алгоритмом, не мовною моделлю. Хеш і дата дозволяють перевіряти відтворюваність розрахованого звіту.':'Every fact comes from deterministic rules, not an LLM. The digest and reference date identify the reproducible calculated report.'}</p>
-   <div className="reading-provenance-list">{report.ruleFacts.map(f=><div key={f.id}>
-    <strong>{f.id}</strong> <span>{f.rule}</span>
-    <small>{f.evidence.join(' · ')}</small>
-   </div>)}</div>
-  </details>:null}
+     </article>)}
+    </div>
+    {report.ruleFacts?.length?<details className="reading-provenance">
+     <summary>{uk?'Перевірити правила та вихідні дані':'Inspect rules and source evidence'}</summary>
+     <div className="reading-provenance-list">{report.ruleFacts.map(f=><div key={f.id}>
+      <strong>{f.id}</strong> <span>{f.rule}</span><small>{f.evidence.join(' · ')}</small>
+     </div>)}</div>
+    </details>:null}
+   </div>
+  </details>
   <div className="reading-end">
    <span>✧</span>
    <p>{uk?'Від зоряних положень — до цілісного прочитання карти.':'From stellar positions to a coherent view of the chart.'}</p>
