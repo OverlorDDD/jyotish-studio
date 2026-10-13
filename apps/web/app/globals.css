@@ -18,3 +18,49 @@
 .vedic-house text{pointer-events:none}
 @media(max-width:1200px){.chart-layout{grid-template-columns:1fr}.house-index-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:580px){.house-index-grid{grid-template-columns:1fr 1fr}.wheel-ready{max-width:450px!important}}
+
+
+/* Full Jyotish editorial report — based on calculated facts + optional free AI. */
+.reading-root{margin-top:35px;padding:32px 0 20px;scroll-margin-top:25px;border-top:1px solid #334154}
+.reading-kicker,.reading-chapter-kicker{font-size:10px;letter-spacing:2.5px;color:#d7ba7c;font-weight:700}
+.reading-root>h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(30px,4vw,49px);font-weight:500;line-height:1.13;letter-spacing:-1px;margin:16px 0 16px;color:#f1e5cb}
+.reading-intro{font-size:14px;max-width:740px;color:#aab8c8;line-height:1.8}
+.reading-toc{display:flex;flex-wrap:wrap;gap:9px;margin:28px 0 30px}
+.reading-toc a{display:inline-flex;align-items:center;gap:8px;border:1px solid #354257;background:#152033;padding:12px 15px;border-radius:9px;text-decoration:none;color:#d1dbe8;font-size:12px;transition:background .15s,border-color .15s}
+.reading-toc a:hover,.reading-toc a:focus-visible{border-color:#d6b67a;background:#243149}
+.reading-toc span{color:#d3b77a;font-size:10px;letter-spacing:1px}
+.reading-content{display:flex;flex-direction:column;gap:22px}
+.reading-chapter{display:flex;gap:24px;flex-direction:column;overflow:hidden;border:1px solid #2d3d50;background:linear-gradient(145deg,#172435,#101b2a);border-radius:15px;scroll-margin-top:25px}
+.reading-chapter-hero{border-color:#725c37;background:linear-gradient(125deg,#222536,#111c2d)}
+.reading-figure{margin:0;position:relative;min-height:210px;background:#1a2b3c}
+.reading-figure-photo{width:100%;height:245px;background-color:#243850;background-position:center;background-size:cover}
+.reading-figure figcaption{position:absolute;bottom:0;right:0;left:0;padding:14px 24px 11px;font-size:10px;letter-spacing:.2px;color:#e5ebf1;background:linear-gradient(transparent,rgba(5,11,19,.84))}
+.reading-figure a{color:#f2d9ab;text-underline-offset:3px}
+.reading-chapter-copy{padding:27px 30px 32px}
+.reading-chapter-hero .reading-chapter-copy{padding-top:34px}
+.reading-chapter h3,.reading-llm h3{font-family:'Playfair Display',Georgia,serif;color:#f3e4c8;font-size:clamp(22px,2.7vw,30px);font-weight:500;line-height:1.25;margin:10px 0 12px}
+.reading-chapter-lead{font-size:15px;line-height:1.8;color:#f0dcaf;margin:0 0 18px}
+.reading-paragraph{font-size:14px;line-height:1.9;color:#bdcbdc;margin:0 0 12px;max-width:1000px}
+.reading-facts{margin-top:24px;padding:16px 20px;border:1px solid #374557;border-radius:10px;background:rgba(5,14,26,.35)}
+.reading-facts-label{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:#d6b779;font-weight:700}
+.reading-facts ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 22px;padding:0;margin:12px 0 0}
+.reading-facts li{color:#ccd8e8;font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+.reading-facts li:before{content:'✧';color:#b99d6b;padding-right:9px}
+.reading-chapter-small{margin:0 0 0 18px;border-radius:11px;border-left:3px solid #88714d}
+.reading-chapter-small .reading-chapter-copy{padding:22px 25px}
+.reading-chapter-small h3{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:600}
+.reading-chapter-small .reading-chapter-lead{font-size:13px;margin-bottom:12px;color:#ddc79a}
+.reading-chapter-small .reading-paragraph{font-size:13px}
+.reading-chapter-small .reading-facts{padding:10px 15px;margin-top:15px}
+.reading-chapter-small .reading-facts ul{margin-top:8px}
+.reading-llm{margin:22px 0;border:1px solid #957a4f;border-radius:16px;background:linear-gradient(145deg,#2a2838,#18293a 65%,#142130);padding:32px 34px;box-shadow:0 15px 70px #060d1b54;scroll-margin-top:20px}
+.reading-provider{font-size:11px;color:#d6c399;letter-spacing:.4px;margin:0 0 18px}
+.reading-ai-text{display:grid;gap:10px}
+.reading-ai-text p{white-space:pre-line;font-size:14px;line-height:1.95;color:#e2e6ef;margin:0;padding:14px 18px;border-left:2px solid #b49969;background:#111c2c70;border-radius:0 8px 8px 0}
+.reading-end{text-align:center;padding:48px 20px 30px;color:#9daec3}
+.reading-end span{font-size:35px;color:#d4b679}
+.reading-end p{font-family:'Playfair Display',Georgia,serif;font-size:18px}
+.reading-end a{font-size:12px;color:#e3c486;text-underline-offset:4px}
+@media(min-width:1030px){.reading-chapter:has(.reading-figure){flex-direction:row;min-height:280px;align-items:stretch}.reading-figure{width:36%;flex:0 0 36%;min-height:100%}.reading-figure-photo{height:100%;min-height:280px}.reading-chapter:has(.reading-figure) .reading-chapter-copy{flex:1;min-width:0}}
+@media(max-width:690px){.reading-root{padding-top:25px}.reading-chapter-copy{padding:22px 18px 24px}.reading-llm{padding:24px 20px}.reading-chapter-small{margin-left:0}.reading-chapter-small .reading-chapter-copy{padding:18px}.reading-chapter-small .reading-paragraph{font-size:12px}.reading-facts ul{grid-template-columns:1fr}.reading-toc a{padding:10px;font-size:11px}.reading-figure-photo{height:190px}.reading-figure{min-height:190px}}
+@media print{.sidebar,.reading-toc,.reading-end a{display:none!important}.reading-root{color:#101520;background:white}.reading-chapter,.reading-llm{page-break-inside:avoid;box-shadow:none}.reading-chapter-small{page-break-inside:avoid}}
