@@ -60,7 +60,7 @@ test('Parashari drishti includes Jupiter fifth and ninth, Saturn third/tenth, Ma
 });
 test('complete LLM fact clusters include D1 D9 D10 and aspects, never raw birth input',()=>{
  const facts=detailedReportFacts(chart,'uk');
- assert.deepEqual(facts.map(x=>x.id),['identity','planets','houses','aspects','navamsa','dashamsa','dasha']);
+ assert.deepEqual(facts.map(x=>x.id),['identity','planets','houses','aspects','navamsa','dashamsa','rules','dasha']);
  const payload=JSON.stringify(facts);
  for(const forbidden of ['2000-01-01','Asia/Kolkata','28.6139','77.209'])
   assert.ok(!payload.includes(forbidden),'Raw birth field transmitted: '+forbidden);
@@ -75,4 +75,22 @@ test('illustrations are identified as fixed editorial source IDs, not LLM suppli
  assert.ok(images.includes('earth'));
  assert.ok(images.includes('nebula'));
  assert.ok(images.every(x=>['cosmos','earth','nebula'].includes(x)));
+});
+
+test('Engine 2.0 report includes formal rulers, dignities and detected yoga facts with traceable evidence',()=>{
+ const report=buildDetailedReport(chart,'uk','2026-10-13');
+ for(const name of ['house-lords','dignities','yogas'])assert.ok(byId(report,name),name);
+ assert.equal(report.rulesVersion,'2.0.0');
+ assert.equal(report.asOf,'2026-10-13');
+ assert.equal(report.rulesDigest.length,64);
+ assert.equal(report.ruleFacts.filter(f=>f.id.startsWith('house-lord:')).length,12);
+ assert.equal(report.ruleFacts.filter(f=>f.id.startsWith('dignity:')).length,9);
+ assert.ok(report.ruleFacts.every(f=>f.evidence.length));
+});
+test('same calculated chart + language + asOf produces bit-for-bit identical canonical report',()=>{
+ const first=JSON.stringify(buildDetailedReport(chart,'uk','2026-10-13'));
+ const second=JSON.stringify(buildDetailedReport(chart,'uk','2026-10-13'));
+ assert.equal(first,second);
+ const tomorrow=buildDetailedReport(chart,'uk','2026-10-14');
+ assert.notEqual(tomorrow.rulesDigest,buildDetailedReport(chart,'uk','2026-10-13').rulesDigest);
 });
