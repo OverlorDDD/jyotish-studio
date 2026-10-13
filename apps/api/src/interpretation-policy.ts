@@ -9,7 +9,7 @@ const yogaWords=/(?:ruchaka|badra|bhadra|hamsa|malavya|shasha|ручак[а-я]*
 const signNames='(?:Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces|Овен|Овні|Телець|Тельці|Близнюки|Близнюках|Рак|Раку|Лев|Леві|Діва|Діві|Терези|Терезах|Скорпіон|Скорпіоні|Стрілець|Стрільці|Козоріг|Козорозі|Водолій|Водолії|Риби|Рибах)';
 const planetNames='(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Сонце|Сонця|Місяць|Місяця|Марс|Меркурій|Юпітер|Венера|Венери|Сатурн|Раху|Кету)';
 const precisePlacements=new RegExp(planetNames+'[^.!?;]{0,70}?(?:\\s+у\\s+|\\s+в\\s+|\\s+in\\s+|\\s+is\\s+in\\s+)'+signNames,'iu');
-const yogaGeneric=/\\b(?:yoga|yogas)\\b|йог[а-яіїєґ]*/iu;
+const yogaGeneric=/\b(?:yoga|yogas)\b|йог[а-яіїєґ]*/iu;
 const yogaNames=['ruchaka','bhadra','hamsa','malavya','shasha'] as const;
 function listedYoga(token:string):typeof yogaNames[number]|null{
  const word=token.toLowerCase();
