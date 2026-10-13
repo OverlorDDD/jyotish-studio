@@ -1,3 +1,5 @@
+> HISTORICAL DOCUMENT (Stages 5-6). This password-protected demo design was replaced by Stage 8: one public guest-first site, optional accounts and private saved chart history. Do not follow the commands below; follow [the current account setup](./guest-accounts-history.md) instead.
+
 # Stage 6: Passwordless public showcase through ngrok (Windows)
 
 The site now supports two explicitly chosen preview modes:
