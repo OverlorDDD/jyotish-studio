@@ -17,14 +17,14 @@
     "db:generate": "node --env-file=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
-    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:demo && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology",
+    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology",
     "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
     "test:swagger": "npm run test:swagger -w @jyotish/api",
     "test:ai": "node --experimental-strip-types --test tools/ai-interpretation.test.mjs",
-    "test:demo": "node --test tools/public-demo.test.mjs",
-    "demo:check": "node --env-file=.env tools/demo-preflight.mjs",
+    "test:demo": "npm run test:access",
+    "demo:check": "npm run site:check",
     "start:full": "npx concurrently -k \"npm run start -w @jyotish/api\" \"npm run start -w @jyotish/web\"",
     "openai:check": "node --env-file=.env tools/openai-diagnose.mjs",
     "test:free-ai": "node --experimental-strip-types --test tools/free-ai.test.mjs",
@@ -32,7 +32,9 @@
     "test:api-response": "node --experimental-strip-types --test tools/api-response.test.mjs",
     "test:free-ai-retry": "node --experimental-strip-types --test tools/free-ai-retry.test.mjs",
     "test:report": "node --experimental-strip-types --test tools/detailed-report.test.mjs",
-    "test:terminology": "node --experimental-strip-types --test tools/terminology.test.mjs"
+    "test:terminology": "node --experimental-strip-types --test tools/terminology.test.mjs",
+    "test:access": "node --experimental-strip-types --test tools/account-access.test.mjs",
+    "site:check": "node --env-file=.env tools/site-preflight.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
