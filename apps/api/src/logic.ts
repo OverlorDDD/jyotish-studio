@@ -26,6 +26,12 @@ const HOUSE_THEMES_UK=[
  'стосунки й співпраця','зміни та спільні ресурси','світогляд і навчання',
  'покликання та суспільна роль','спільноти й прагнення','усамітнення та внутрішній світ'
 ];
+const HOUSE_THEMES_EN=[
+ 'identity and self-image','resources and personal values','communication and skills',
+ 'home and inner foundations','creativity and self-expression','daily routines and service',
+ 'relationships and cooperation','change and shared resources','worldview and learning',
+ 'vocation and public role','communities and aspirations','solitude and inner life'
+];
 const GRAHAS_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',
  Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
 /** Rich offline report built from actual chart facts; never pretends to be a language model. */
