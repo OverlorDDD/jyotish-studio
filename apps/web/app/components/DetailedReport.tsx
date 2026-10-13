@@ -6,6 +6,7 @@ export type ReadingSection={
 };
 export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
+ asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string};
 };
 const PHOTOS={
@@ -29,7 +30,8 @@ const NAV=[
  ['portrait','Портрет','Portrait'],['sun-moon','Сонце та Місяць','Sun & Moon'],
  ['planets-intro','9 ґрах','9 grahas'],['houses-intro','12 домів','12 houses'],
  ['drishti','Дрішті','Drishti'],['conjunctions','Сполучення','Conjunctions'],['navamsa','Навамша D9','Navamsa D9'],
- ['dashamsa','Дашамша D10','Dashamsa D10'],['cross-varga','D1 / D9 / D10','D1 / D9 / D10'],['dasha','Даші','Dashas']
+ ['dashamsa','Дашамша D10','Dashamsa D10'],['cross-varga','D1 / D9 / D10','D1 / D9 / D10'],['dasha','Даші','Dashas'],
+ ['house-lords','Управителі','House lords'],['dignities','Гідність ґрах','Dignities'],['yogas','П’ять йог','Five yogas']
 ] as const;
 const FALLBACK_UK:Record<string,string>={
  hourly_limit:'Вичерпано локальний ліміт безкоштовних запитів.',
@@ -71,6 +73,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
  return <section className="reading-root" id="full-reading" aria-label={uk?'Детальне трактування карти':'Detailed chart interpretation'}>
   <div className="reading-kicker">{uk?'✧ ПЕРСОНАЛЬНЕ ТРАКТУВАННЯ':'✧ PERSONAL READING'}</div>
   <h2>{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
+  <p className="reading-version">{report.rulesVersion?(uk?'Перевірені правила · Engine ':'Verified rules · Engine ')+report.rulesVersion:''}{report.asOf?' · '+(uk?'Станом на ':'As of ')+report.asOf:''}{report.rulesDigest?' · SHA-256 '+report.rulesDigest.slice(0,12):''}</p>
   <p className="reading-intro">{uk?
    'Повний путівник по вашій карті: планетні положення, дванадцять домів, класичні аспекти, D9, D10 та планетні періоди.' :
    'A complete guide to your chart: planetary placements, twelve houses, classical aspects, D9, D10 and time periods.'}</p>
@@ -108,6 +111,14 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     </aside>:null}
    </div>)}
   </div>
+  {report.ruleFacts?.length?<details className="reading-provenance">
+   <summary>{uk?'Перевірити правила й вихідні дані':'Inspect rule IDs and source evidence'}</summary>
+   <p>{uk?'Кожен факт сформовано алгоритмом, не мовною моделлю. Хеш і дата дозволяють перевіряти відтворюваність розрахованого звіту.':'Every fact comes from deterministic rules, not an LLM. The digest and reference date identify the reproducible calculated report.'}</p>
+   <div className="reading-provenance-list">{report.ruleFacts.map(f=><div key={f.id}>
+    <strong>{f.id}</strong> <span>{f.rule}</span>
+    <small>{f.evidence.join(' · ')}</small>
+   </div>)}</div>
+  </details>:null}
   <div className="reading-end">
    <span>✧</span>
    <p>{uk?'Від зоряних положень — до цілісного прочитання карти.':'From stellar positions to a coherent view of the chart.'}</p>
