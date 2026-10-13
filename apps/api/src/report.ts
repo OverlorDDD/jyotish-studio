@@ -57,7 +57,7 @@ const sign=(n:number,uk:boolean)=>uk?SIGNS_UK[n-1]||"?":
 const planet=(name:string,uk:boolean)=>uk?GRAHA_UK[name]||name:name;
 const header=(id:string,heading:string,eyebrow:string,lead:string,paragraphs:string[],facts?:string[],image?:ReportSection['image']):ReportSection=>
  ({id,heading,eyebrow,lead,paragraphs,facts,image});
-const line=(g:Graha,uk:boolean)=>planet(g.name,uk)+" — "+sign(g.sign,uk)+", "+(uk?"дім ":"house ")+g.house;
+const line=(g:Graha,uk:boolean)=>planet(g.name,uk)+" — "+sign(g.sign,uk)+", "+(uk?"сфера життя ":"life area ")+g.house;
 const joinPlanets=(grahas:Graha[],uk:boolean)=>grahas.map(g=>line(g,uk)).join("; ");
 
 /** Whole-sign Parashari graha drishti for seven classical planets only.
@@ -106,17 +106,17 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  const asc=chart.ascendant,sun=chart.d1.find(x=>x.name==='Sun'),moon=chart.d1.find(x=>x.name==='Moon');
  sections.push(header("portrait",uk?"Ваш астрологічний портрет":"Your astrological portrait",uk?"I · ОСНОВА КАРТИ":"I · CHART FOUNDATION",
   uk?"Цілісне прочитання натальної карти, побудоване на перевірених планетних положеннях.":"A guided reading grounded in verified planetary positions.",
-  [uk?"В основі аналізу — сидеричний зодіак Лахірі та система цілознакових домів. Лагна у знаку "+sign(asc.sign,true)+" задає відлік усіх дванадцяти домів і їхніх тем.":"The report uses the Lahiri sidereal zodiac and whole-sign houses. "+sign(asc.sign,false)+" rises as the first house.",
+  [uk?"Карта обчислена за системою Лахірі. Висхідний знак — "+sign(asc.sign,true)+"; у цій традиції він задає порядок дванадцяти сфер життя.":"The chart uses the Lahiri system. The rising sign is "+sign(asc.sign,false)+"; in this tradition, it sets the order of twelve life areas.",
    uk?"Наведені нижче тематичні інтерпретації розділяють обчислені факти, традиційні правила Джйотіш і додатковий AI-коментар.":"Below, calculated facts, classical Jyotish rules and optional AI commentary are kept separate."],
   [(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),(uk?"Ефемериди: ":"Ephemeris: ")+chart.ephemeris], "cosmos"));
  sections.push(header("sun-moon",uk?"Сонце, почуття та звичні реакції":"Sun, feelings and familiar reactions",uk?"II · ОСОБИСТІСНА ВІСЬ":"II · CORE INDICATORS",
   uk?"Два головні символічні орієнтири для самовираження й внутрішнього життя.":"Two core symbolic reference points for expression and inner life.",
   [(sun?line(sun,uk)+". ":"")+(uk?"Сонце традиційно пов’язують з волею, роллю та образом себе.":"The Sun is associated with purpose, identity and expression."),
-   (moon?line(moon,uk)+". ":"")+(uk?"Місяць у накшатрі ":"The Moon is in nakshatra ")+(uk?ukTerm(moon?.nakshatra||"—"):(moon?.nakshatra||"—"))+", "+(uk?"пада ":"pada ")+(moon?.pada||"—")+". "+(uk?"Це деталізує місячне положення всередині зодіакального знака.":"This refines the lunar position within the zodiac sign.")],
+   (moon?line(moon,uk)+". ":"")+(uk?"Додатковий зоряний сектор Місяця — ":"The Moon’s additional lunar sector is ")+(uk?ukTerm(moon?.nakshatra||"—"):(moon?.nakshatra||"—"))+", "+(uk?"частина ":"part ")+(moon?.pada||"—")+". "+(uk?"Це уточнення розрахунку; для основного прочитання його можна пропустити.":"This is an additional calculation detail; you can skip it on a first reading.")],
   [],"earth"));
  sections.push(header("planets-intro",uk?"Планети та їхні символічні теми":"Planets and their symbolic themes",uk?"III · ПЛАНЕТИ D1":"III · PLANETS D1",
   uk?"Кожне положення поєднує символічну тему, знак зодіаку й сферу життя.":"Each placement connects a symbolic theme with a zodiac sign and an area of life.",
-  [uk?"Нижче всі положення взяті безпосередньо з розрахунку D1. Ретроградність показується лише там, де вона є у вхідних ефемеридах.":"Every placement below comes directly from D1. Retrograde motion is shown only when present in the ephemeris."],
+  [uk?"Усі положення нижче взято з розрахунку. Позначка ℞ означає ретроградний рух у вихідних астрономічних даних.":"All placements below come from the calculation. The ℞ mark indicates retrograde motion in the astronomical data."],
   [joinPlanets(chart.d1,uk)]));
  for(const p of chart.d1){
   const planetName=planet(p.name,uk);
@@ -124,11 +124,11 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   const houseTheme=uk?HOUSE_UK[p.house-1]:HOUSE_EN[p.house-1];
   const paragraphs=uk?[
    planetName+" у знаку "+sign(p.sign,true)+" традиційно розглядають через теми: "+topic+". Знак додає спосіб прояву — "+SIGN_THEMES_UK[p.sign-1]+".",
-   "Положення в "+p.house+"-му домі пов’язує ці символічні теми зі сферою: "+houseTheme.toLowerCase()+". Це контекст для читання карти, а не висновок про конкретну подію.",
+   "Ці символічні теми пов’язують зі сферою життя «"+houseTheme.toLowerCase()+"». Це привід для роздумів, а не висновок про конкретну подію.",
    "Точне положення: "+p.degreesInSign.toFixed(2)+"° знака; накшатра "+ukTerm(p.nakshatra)+", пада "+p.pada+". "+(p.retrograde?"Рух ретроградний за ефемеридами.":"")
   ]:[
    planetName+" in "+sign(p.sign,false)+" is traditionally associated with "+topic+".",
-   "House "+p.house+" brings these themes into "+houseTheme.toLowerCase()+". This is a framework for reading the chart rather than a concrete event claim.",
+   "These symbolic themes are associated with the life area of "+houseTheme.toLowerCase()+". This is a prompt for reflection, not a concrete event claim.",
    "Calculated degree: "+p.degreesInSign.toFixed(2)+"°; nakshatra "+p.nakshatra+", pada "+p.pada+". "+(p.retrograde?"Retrograde motion is indicated.":"")
   ];
   sections.push(header("planet-"+p.name.toLowerCase(),planetName+" · "+sign(p.sign,uk),uk?"ПОЛОЖЕННЯ ПЛАНЕТИ":"PLANET PLACEMENT",
@@ -153,7 +153,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   uk?"У традиції Джйотіш певним планетам приписують зв’язок з окремими сферами життя. Тут показані лише зв’язки, для яких визначено чітке правило.":"In Jyotish, planets are traditionally linked with particular areas of life. This section shows only connections defined by explicit rules.",
   [uk?"За обраною традицією різні планети пов’язують із різними напрямками уваги. Марс, Юпітер і Сатурн мають додаткові зв’язки; правила для Раху й Кету різняться між школами, тому тут вони не враховані.":"In the selected tradition, planets are associated with different directions of attention. Mars, Jupiter and Saturn have additional connections; rules for Rahu and Ketu vary by school, so they are omitted here.",
    uk?"Нижче показано, з якими сферами життя пов’язують кожну планету за обраними правилами. Це традиційна схема тлумачення, а не фізичний вплив чи гарантована подія.":"Below are the life areas associated with each planet under the selected rules. This is a traditional interpretive framework, not a physical effect or guaranteed event."],
-  aspects.map(a=>planet(a.source,uk)+" → "+(uk?"дім ":"house ")+a.targetHouse+" ("+(a.occupants.length?a.occupants.map(p=>planet(p,uk)).join(", "):(uk?"без планет":"empty"))+")")));
+  aspects.map(a=>planet(a.source,uk)+" → "+(uk?"сфера ":"life area ")+a.targetHouse+" ("+(a.occupants.length?a.occupants.map(p=>planet(p,uk)).join(", "):(uk?"без планет":"empty"))+")")));
  const conjunctions=Array.from({length:12},(_,index)=>({
   house:index+1,grahas:chart.d1.filter(p=>p.house===index+1)
  })).filter(x=>x.grahas.length>1);
@@ -162,7 +162,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   uk?"Коли кілька планет опиняються в одній сфері життя, традиція розглядає їхні теми разом.":"When several planets occupy the same life area, the tradition interprets their themes together.",
   [uk?"Тут зафіксовано спільне розташування в одній сфері, а не точну близькість за градусами.":"This identifies planets in the same area, not exact closeness measured in degrees.",
    uk?"Навіть якщо планети не стоять разом, традиція розглядає їхні зв’язки з іншими сферами карти.":"Even when planets do not share an area, the tradition considers their connections with other areas."],
-  conjunctions.length?conjunctions.map(x=>(uk?"Сфера ":"Life area ")+x.house+": "+x.grahas.map(p=>planet(p.name,uk)).join(", ")):[uk?"Спільних положень кількох ґрах в одному домі немає.":"No house contains multiple grahas."]));
+  conjunctions.length?conjunctions.map(x=>(uk?"Сфера ":"Life area ")+x.house+": "+x.grahas.map(p=>planet(p.name,uk)).join(", ")):[uk?"У жодній сфері життя немає кількох планет, розташованих разом.":"No life area contains multiple planets together."]));
  sections.push(header("navamsa",uk?"Стосунки й цінності (D9)":"Relationships and values (D9)",uk?"VI · ПАРТНЕРСТВО ТА ЦІННОСТІ":"VI · RELATIONSHIPS & VALUES",
   uk?"Допоміжна карта, яку традиція використовує для роздумів про партнерство, внутрішню зрілість і цінності.":"A supplementary chart traditionally used to reflect on partnership, inner maturity and values.",
   [uk?"У допоміжній карті D9 висхідний знак — "+sign(chart.lagnaD9.sign,true)+". Її традиційно використовують як додаткову перспективу для тем стосунків, цінностей і зрілості.":"The rising sign in supplementary chart D9 is "+sign(chart.lagnaD9.sign,false)+". Traditionally, this chart offers another perspective on relationships, values and maturity.",
@@ -186,8 +186,8 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
  sections.push(header("dasha",uk?"Життєві цикли в традиції Джйотіш":"Life cycles in the Jyotish tradition",uk?"VIII · РИТМ ПЕРІОДІВ":"VIII · PERIOD RHYTHM",
   uk?"Ця система поділяє час на символічні періоди, пов’язані з планетами.":"This system divides time into symbolic periods associated with planets.",
-  [active?(uk?"Основний період — "+planet(active.lord,true)+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+").":"Main period: "+active.lord+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+")."):(uk?"Активної махадаші у збереженому діапазоні немає.":"No active Mahadasha within the calculated range."),
-   sub?(uk?"Вкладений підперіод — "+planet(sub.lord,true)+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+").":"Nested sub-period: "+sub.lord+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+")."):(uk?"Антардаша не визначена для цього періоду.":"Antardasha is not specified for this time."),
+  [active?(uk?"Основний період — "+planet(active.lord,true)+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+").":"Main period: "+active.lord+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+")."):(uk?"Активного періоду в розрахованому діапазоні немає.":"No active period is available in the calculated range."),
+   sub?(uk?"Вкладений підперіод — "+planet(sub.lord,true)+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+").":"Nested sub-period: "+sub.lord+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+")."):(uk?"Вкладений підперіод не визначено.":"No nested sub-period is available."),
    uk?"Ці дати — обчислені межі циклів; самі собою вони не передбачають конкретних подій.":"These dates are calculated cycle boundaries, not predictions of particular events."],
   chart.dasha.map(d=>planet(d.lord,uk)+": "+d.start.slice(0,10)+" — "+d.end.slice(0,10))));
  const findings=ruleFindings(chart);
@@ -265,7 +265,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  sections.push(header("yogas",uk?"Особливі комбінації планет":"Special planetary combinations",
   uk?"XI · ПЕРЕВІРЕНІ КОМБІНАЦІЇ":"XI · VERIFIED COMBINATIONS",
   uk?"Перевірка п’яти традиційних комбінацій за чіткими правилами розташування планет.":"Five traditional combinations checked against explicit planetary-position rules.",
-  [uk?"Правило: Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в домі 1, 4, 7 або 10 від Лагни та у власному знаку або знаку екзальтації. Йоги від Місяця, скасування та загальна сила потребують окремих правил і наразі не визначаються.":"Rule: Mars, Mercury, Jupiter, Venus or Saturn must be in house 1, 4, 7 or 10 from Lagna and in own or exaltation sign. Moon-relative variants and strength modifiers are deliberately excluded.",yogaStory()],
+  [uk?"Одна з п’яти комбінацій рахується, коли Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в одній із ключових сфер життя (1, 4, 7 або 10) і в традиційно сильному для нього знаку. Інші варіанти та додаткові умови тут не оцінюються.":"One of the five combinations is counted when Mars, Mercury, Jupiter, Venus or Saturn occupies one of four key life areas (1, 4, 7 or 10) and a traditionally strong sign. Other variants and modifiers are not assessed here.",yogaStory()],
   findings.yogas.length?findings.yogas.map(y=>
    y.name+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'дім ':'house ')+y.house+
    ' ('+(uk?(y.reason==='exalted'?'екзальтація':'власний знак'):y.reason)+') ['+y.id+']'
