@@ -21,3 +21,10 @@ test('successful JSON response remains a typed object',async()=>{
 test('malformed success response has a useful error',async()=>{
  await assert.rejects(readApiJson(new Response('<html>proxy error</html>',{status:200})),/API HTTP 200: expected JSON/);
 });
+
+test('authenticated history array is valid JSON, including an empty history',async()=>{
+ const list=await readApiJson(new Response(JSON.stringify([{id:'chart1',date:'2000-01-01'}]),{status:200}));
+ assert.deepEqual(list,[{id:'chart1',date:'2000-01-01'}]);
+ const empty=await readApiJson(new Response('[]',{status:200}));
+ assert.deepEqual(empty,[]);
+});
