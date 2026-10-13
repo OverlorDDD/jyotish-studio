@@ -94,3 +94,15 @@ test('same calculated chart + language + asOf produces bit-for-bit identical can
  const tomorrow=buildDetailedReport(chart,'uk','2026-10-14');
  assert.notEqual(tomorrow.rulesDigest,buildDetailedReport(chart,'uk','2026-10-13').rulesDigest);
 });
+
+test('usable evidence-based weekly actions exist even without an LLM',()=>{
+ const a=buildDetailedReport(chart,'uk','2026-10-13');
+ const b=buildDetailedReport(chart,'uk','2026-10-13');
+ assert.ok(a.practicalTips.length>=2);
+ assert.deepEqual(a.practicalTips,b.practicalTips);
+ assert.ok(a.practicalTips.every(t=>t.action.length>=40&&t.evidence.some(e=>e.startsWith('D1.'))));
+ assert.ok(a.practicalTips.some(t=>t.title.includes('Кар')||t.title.includes('Ресурс')||t.title.includes('Стосунк')||t.title.includes('Довіра')));
+ const english=buildDetailedReport(chart,'en','2026-10-13');
+ assert.equal(english.practicalTips.length,a.practicalTips.length);
+ assert.notEqual(english.practicalTips[0].action,a.practicalTips[0].action);
+});
