@@ -106,3 +106,27 @@ test('usable evidence-based weekly actions exist even without an LLM',()=>{
  assert.equal(english.practicalTips.length,a.practicalTips.length);
  assert.notEqual(english.practicalTips[0].action,a.practicalTips[0].action);
 });
+
+test('life portrait has five practical narrative themes, each linked to actual chart positions',()=>{
+ const a=buildDetailedReport(chart,'uk','2026-10-13');
+ const b=buildDetailedReport(chart,'uk','2026-10-13');
+ assert.deepEqual(a.lifePortrait,b.lifePortrait);
+ assert.deepEqual(a.lifePortrait.chapters.map(c=>c.id),['strengths','challenges','relationships','career','growth']);
+ for(const section of a.lifePortrait.chapters){
+  assert.ok(section.overview.length>110);
+  assert.ok(section.example.length>35);
+  assert.ok(section.action.length>25);
+  assert.ok(section.evidence.length>0);
+  for(const evidence of section.evidence){
+   if(!evidence.startsWith('D1.'))continue;
+   const match=evidence.match(/^D1\.(\w+)\.(sign|house)=(\d+)$/);
+   assert.ok(match,'Evidence format is grounded: '+evidence);
+   assert.equal(chart.d1.find(x=>x.name===match[1])[match[2]],Number(match[3]));
+  }
+ }
+ const changed=structuredClone(chart);
+ changed.d1.find(x=>x.name==='Venus').sign=7;
+ changed.d1.find(x=>x.name==='Venus').house=8;
+ changed.d1.find(x=>x.name==='Venus').longitude=180+13.25;
+ assert.notDeepEqual(a.lifePortrait,buildDetailedReport(changed,'uk','2026-10-13').lifePortrait);
+});
