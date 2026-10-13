@@ -5,6 +5,8 @@ import {PrismaClient} from '@prisma/client';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure} from './ai.ts';
+import {buildDetailedReport,detailedReportFacts} from './report.ts';
+import {generateFreeInterpretationDetailed} from './free-ai.ts';
 // Short-lived, per-process protection for a passwordless portfolio preview.
 const allowPublicCalculation=createHourlyLimiter(60);
 const allowPublicInterpretation=createHourlyLimiter(30);
@@ -41,6 +43,26 @@ export class JyotishController {
  }
  @Get('v1/charts/:id')async get(@Param('id') id:string){const row=await this.prisma.chart.findUnique({where:{id}});if(!row)throw new NotFoundException();return {id,...(row.result as object)};}
  @Get('v1/charts/:id/dashas')async dashas(@Param('id') id:string){const row=await this.prisma.chart.findUnique({where:{id}});if(!row)throw new NotFoundException();return {id,dasha:(row.result as unknown as CalculatedChart).dasha};}
+ @Post('v1/reports')async detailedReport(@Body() body:InterpretDto){
+  if(process.env.PUBLIC_DEMO==='1'&&!allowPublicInterpretation())
+   throw new HttpException('Public demo hourly report limit reached. Try later.',HttpStatus.TOO_MANY_REQUESTS);
+  const row=await this.prisma.chart.findUnique({where:{id:body.id}});
+  if(!row)throw new NotFoundException('Chart does not exist');
+  const chart=row.result as unknown as CalculatedChart;
+  const report=buildDetailedReport(chart,body.lang);
+  if(body.preferred==='local'||process.env.AI_MODE==='local'){
+   return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
+  }
+  // Deliberately refuse paid OpenAI on this report endpoint, even when legacy
+  // settings are enabled. Detailed reports have zero-cost/free inference only.
+  if((process.env.AI_MODE||'free')!=='free'){
+   return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
+  }
+  const free=await generateFreeInterpretationDetailed(chart,body.lang,{
+   factsOverride:detailedReportFacts(chart,body.lang),reportMode:true
+  });
+  return {...report,ai:free.result||{provider:'local' as const,text:'',fallbackReason:free.reason}};
+ }
  @Post('v1/interpretations')async interpret(@Body() body:InterpretDto){
   if(process.env.PUBLIC_DEMO==='1'&&!allowPublicInterpretation())throw new HttpException('Public demo hourly interpretation limit reached. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   const row=await this.prisma.chart.findUnique({where:{id:body.id}});if(!row)throw new NotFoundException('Chart does not exist');
@@ -68,6 +90,7 @@ for(const [method,types] of [
  ['calculate',[BirthDto]],
  ['get',[String]],
  ['dashas',[String]],
+ ['detailedReport',[InterpretDto]],
  ['interpret',[InterpretDto]]
 ] as const){
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
