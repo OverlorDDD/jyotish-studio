@@ -36,7 +36,7 @@ test('OpenAI receives no raw date, coordinates or timezone; output is fact-linke
   assert.equal(init.headers.Authorization,'Bearer fake_test_key');
   return apiReply(successfulBody);
  }});
- assert.equal(calls,1);assert.equal(result.provider,'openai');assert.ok(result.text.includes('Ascendant: Pisces'));
+ assert.equal(calls,1);assert.equal(result.provider,'openai');assert.ok(result.text.includes('The big picture'));assert.ok(!result.text.includes('Ascendant: Pisces'));
 });
 test('reject unknown fact IDs and duplicate sections',async()=>{
  for(const body of [
