@@ -129,3 +129,14 @@
 .reading-glossary dt{font-size:12px;font-weight:700;color:#e4e9f0;margin-bottom:4px}
 .reading-glossary dd{font-size:12px;line-height:1.7;color:#aab8c8;margin:0}
 @media(max-width:650px){.reading-ai-text,.reading-glossary dl{grid-template-columns:1fr}.logo small{letter-spacing:.8px}.reading-llm-summary{padding:22px 17px}}
+
+.reading-practical{border:1px solid #6f6248;border-radius:13px;padding:24px;background:linear-gradient(140deg,#172638,#121d2b);margin:25px 0}
+.reading-practical h3{font-size:23px;color:#efdfbd;margin:8px 0}
+.reading-practical-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.reading-practical-card{padding:18px;border-radius:10px;border:1px solid #415267;background:#152233}
+.reading-practical-card h4{font-size:16px;color:#ebd2a3;margin:0 0 10px}
+.reading-practical-card p{font-size:13px;color:#c0ccdc;line-height:1.75;margin:10px 0}
+.reading-practical-action{border-top:1px solid #45556a;padding-top:13px;margin-top:12px}
+.reading-practical-action strong{color:#e9c781;font-size:13px}
+.reading-practical-action p{color:#f1f3f7;font-weight:500}
+@media(max-width:700px){.reading-practical{padding:17px}.reading-practical-grid{grid-template-columns:1fr}}
