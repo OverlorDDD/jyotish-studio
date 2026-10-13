@@ -27,6 +27,19 @@ const ai=await fetch(`${base}/api/v1/interpretations`,{method:'POST',headers:{'C
 const reading=await ai.json();
 assert.equal(ai.status,expectedCreatedStatus,`Create interpretation: ${errorHint(ai,reading)}`);
 assert.ok(typeof reading.text==='string'&&reading.text.length>60,'Interpretation text missing');
+if(isNest){
+ const response=await fetch(`${base}/api/v1/reports`,{
+  method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({id:chart.id,lang:'uk',preferred:'local'})
+ });
+ const report=await response.json();
+ assert.equal(response.status,201,`Report endpoint: ${errorHint(response,report)}`);
+ assert.equal(report.ai.provider,'local');
+ assert.ok(report.sections.length>=29,'Report must contain complete planet and house chapters');
+ for(const id of ['portrait','sun-moon','navamsa','dashamsa','drishti','dasha'])
+  assert.ok(report.sections.some(x=>x.id===id),`Missing report chapter ${id}`);
+}
+
 const invalid=await fetch(`${base}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...fictional,latitude:99})});assert.ok(invalid.status>=400);
 console.log(`PASS: ${health.service}, health, D1/D9/D10, Vimshottari, interpretation, invalid coordinates`);
 console.log(`HTTP creation status ${expectedCreatedStatus}; ${isNest?'PostgreSQL connected':'standalone in-memory storage'}`);
