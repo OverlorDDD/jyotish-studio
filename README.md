@@ -183,3 +183,9 @@ A *temporary* externally accessible demo uses a **single Next.js domain** and pr
 ## Free AI interpretation
 
 The default `AI_MODE=free` uses only the `openrouter/free` zero-priced router (with an OpenRouter API key), optionally falls back to locally running Ollama, and otherwise returns the built-in Ukrainian/English Jyotish text. **OpenAI billing is never invoked automatically.** See [docs/free-ai.md](docs/free-ai.md).
+
+## Stage 7 — illustrated full Jyotish reading
+
+The chart page now offers **Створити повне трактування / Generate full reading**, building a 29+ section report below the charts. It covers nine D1 grahas, twelve houses, whole-sign Parashari drishti, D9, D10, and Vimshottari cycles. Free AI provides optional verified-fact synthesis; the full calculated report works offline. NASA/Wikimedia public-domain imagery is credited. See [research, design and Windows tests](docs/competitive-analysis-and-full-report.md).
+
+Quick verification after git pull: `npm run test:report`, `npm run test:terminology`, `npm run test:all`, `npm run test:swagger`, `npm run build`, then `npm run start:full`. Public demo remains optional via `PUBLIC_DEMO=1` and must pass `npm run demo:check` before ngrok.
