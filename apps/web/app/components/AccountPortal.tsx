@@ -62,7 +62,7 @@ export default function AccountPortal({birth,report,lang,onOpenSaved}:{
   try{
    const ai=report?.ai;
    const r=await fetch('/api/v1/account/charts',{...json,method:'POST',body:JSON.stringify({
-    ...birth,language:lang,
+    ...birth,language:lang,asOf:report?.asOf||new Date().toISOString().slice(0,10),
     aiProvider:ai?.provider==='openrouter'||ai?.provider==='ollama'?ai.provider:'local',
     aiModel:ai?.model||'',
     aiText:ai?.text?.slice(0,12000)||''
