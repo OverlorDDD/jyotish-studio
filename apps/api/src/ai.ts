@@ -141,18 +141,27 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   try{decoded=JSON.parse(normalized);}catch{throw new AiProviderError('format','AI output is not valid JSON');}
   if(!decoded||typeof decoded!=='object'||!Array.isArray((decoded as {sections?:unknown}).sections))throw new AiProviderError('format','OpenAI output is missing sections');
   const sections=(decoded as {sections:unknown[]}).sections;
-  if(sections.length<3||sections.length>6)throw new AiProviderError('format','Unexpected number of interpretation sections');
+  if(sections.length<1||sections.length>12)throw new AiProviderError('format','Unexpected number of interpretation sections');
   const ids=new Set<string>();const lines:string[]=[];
   for(const entry of sections){
-   if(!entry||typeof entry!=='object')throw new AiProviderError('format','Malformed interpretation section');
+   if(!entry||typeof entry!=='object'){
+    if(options.reportMode)continue;
+    throw new AiProviderError('format','Malformed interpretation section');
+   }
    const e=entry as {factId?:unknown;text?:unknown};
-   if(typeof e.factId!=='string'||typeof e.text!=='string'||ids.has(e.factId)||e.text.trim().length<20||e.text.length>800)throw new AiProviderError('format','Invalid or duplicate interpretation section');
-   if(!verifyFreeProse(e.text,options.approvedYogas).ok)throw new AiProviderError('format','AI prose contains an unverified factual claim');
-   const fact=facts.find(f=>f.id===e.factId);
-   if(!fact)throw new AiProviderError('format','Interpretation cited an unknown fact');
-   ids.add(e.factId);
-   lines.push(`${reportHeading(e.factId,lang)}\n${e.text.trim()}`);
+   const fact=typeof e.factId==='string'?facts.find(f=>f.id===e.factId):undefined;
+   const valid=Boolean(fact&&typeof e.text==='string'&&!ids.has(e.factId as string)&&e.text.trim().length>=20&&e.text.length<=800&&verifyFreeProse(e.text,options.approvedYogas).ok);
+   if(!valid){
+    // For long readings, preserve useful verified paragraphs; never display rejected text.
+    // The legacy short interpretation endpoint retains strict all-or-nothing behavior.
+    if(options.reportMode)continue;
+    throw new AiProviderError('format','Invalid, duplicate or unverified interpretation section');
+   }
+   ids.add(e.factId as string);
+   lines.push(reportHeading(e.factId as string,lang)+'\n'+(e.text as string).trim());
   }
+  if(lines.length<(options.reportMode?2:3))
+   throw new AiProviderError('format','Too few verified interpretation sections');
   const disclaimer=lang==='uk'?'Трактування в традиції Джйотіш.':'Interpretation in the Jyotish tradition.';
   const narrative=lines.join('\n\n')+(options.reportMode?'':'\n\n'+disclaimer);
   return {provider,model:(typeof result.model==='string'&&result.model.length<=120?result.model:options.model)||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),text:lang==='uk'?normalizeUkrainianAstroTerms(narrative):narrative};
