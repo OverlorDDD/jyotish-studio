@@ -114,7 +114,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   [(sun?line(sun,uk)+". ":"")+(uk?"Сонце традиційно пов’язують з волею, роллю та образом себе.":"The Sun is associated with purpose, identity and expression."),
    (moon?line(moon,uk)+". ":"")+(uk?"Додатковий зоряний сектор Місяця — ":"The Moon’s additional lunar sector is ")+(uk?ukTerm(moon?.nakshatra||"—"):(moon?.nakshatra||"—"))+", "+(uk?"частина ":"part ")+(moon?.pada||"—")+". "+(uk?"Це уточнення розрахунку; для основного прочитання його можна пропустити.":"This is an additional calculation detail; you can skip it on a first reading.")],
   [],"earth"));
- sections.push(header("planets-intro",uk?"Планети та їхні символічні теми":"Planets and their symbolic themes",uk?"III · ПЛАНЕТИ D1":"III · PLANETS D1",
+ sections.push(header("planets-intro",uk?"Планети та їхні символічні теми":"Planets and their symbolic themes",uk?"III · ПЛАНЕТИ ОСНОВНОЇ КАРТИ":"III · PLANETS IN THE MAIN CHART",
   uk?"Кожне положення поєднує символічну тему, знак зодіаку й сферу життя.":"Each placement connects a symbolic theme with a zodiac sign and an area of life.",
   [uk?"Усі положення нижче взято з розрахунку. Позначка ℞ означає ретроградний рух у вихідних астрономічних даних.":"All placements below come from the calculation. The ℞ mark indicates retrograde motion in the astronomical data."],
   [joinPlanets(chart.d1,uk)]));
@@ -125,11 +125,11 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   const paragraphs=uk?[
    planetName+" у знаку "+sign(p.sign,true)+" традиційно розглядають через теми: "+topic+". Знак додає спосіб прояву — "+SIGN_THEMES_UK[p.sign-1]+".",
    "Ці символічні теми пов’язують зі сферою життя «"+houseTheme.toLowerCase()+"». Це привід для роздумів, а не висновок про конкретну подію.",
-   "Точне положення: "+p.degreesInSign.toFixed(2)+"° знака; накшатра "+ukTerm(p.nakshatra)+", пада "+p.pada+". "+(p.retrograde?"Рух ретроградний за ефемеридами.":"")
+   "Додаткові розрахункові дані: "+p.degreesInSign.toFixed(2)+"° у знаку; зірковий сектор "+ukTerm(p.nakshatra)+", частина "+p.pada+". "+(p.retrograde?"Рух ретроградний за ефемеридами.":"")
   ]:[
    planetName+" in "+sign(p.sign,false)+" is traditionally associated with "+topic+".",
    "These symbolic themes are associated with the life area of "+houseTheme.toLowerCase()+". This is a prompt for reflection, not a concrete event claim.",
-   "Calculated degree: "+p.degreesInSign.toFixed(2)+"°; nakshatra "+p.nakshatra+", pada "+p.pada+". "+(p.retrograde?"Retrograde motion is indicated.":"")
+   "Additional calculated details: "+p.degreesInSign.toFixed(2)+"° in sign; lunar sector "+p.nakshatra+", part "+p.pada+". "+(p.retrograde?"Retrograde motion is indicated.":"")
   ];
   sections.push(header("planet-"+p.name.toLowerCase(),planetName+" · "+sign(p.sign,uk),uk?"ПОЛОЖЕННЯ ПЛАНЕТИ":"PLANET PLACEMENT",
     uk?"Сфера "+p.house+" · "+topic:"Life area "+p.house+" · "+topic,paragraphs,[line(p,uk)]));
