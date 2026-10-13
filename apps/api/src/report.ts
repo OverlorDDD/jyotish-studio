@@ -225,8 +225,8 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  };
  const yogaLabel=(name:string)=>({
   Ruchaka:uk?'Ручака':'Ruchaka',
-  Bhadra:uk?'Бгадра':'Bhadra',
-  Hamsa:uk?'Гамса':'Hamsa',
+  Bhadra:uk?'Бхадра':'Bhadra',
+  Hamsa:uk?'Хамса':'Hamsa',
   Malavya:uk?'Малав’я':'Malavya',
   Shasha:uk?'Шаша':'Shasha'
  } as Record<string,string>)[name]||name;
@@ -242,7 +242,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
    'За заданими критеріями ці п’ять комбінацій не виявлено. Це не виключає інших традиційних поєднань.':
    'None of these five combinations met the specified criteria. Other traditional combinations are not assessed here.';
   return findings.yogas.map(y=>(uk?'Для комбінації «':'For the combination “')+yogaLabel(y.name)+
-   (uk?' » традиційні символічні теми — ':'”, the traditional symbolic themes are ')+
+   (uk?'» традиційні символічні теми — ':'”, the traditional symbolic themes are ')+
    yogaThemes[y.name][uk?0:1]+'. ['+y.id+']').join(' ');
  };
  const houseLordDetails=findings.lords.map(f=>{
