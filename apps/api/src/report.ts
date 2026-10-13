@@ -108,7 +108,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   uk?"Цілісне прочитання натальної карти, побудоване на перевірених планетних положеннях.":"A guided reading grounded in verified planetary positions.",
   [uk?"Карта обчислена за системою Лахірі. Висхідний знак — "+sign(asc.sign,true)+"; у цій традиції він задає порядок дванадцяти сфер життя.":"The chart uses the Lahiri system. The rising sign is "+sign(asc.sign,false)+"; in this tradition, it sets the order of twelve life areas.",
    uk?"Наведені нижче тематичні інтерпретації розділяють обчислені факти, традиційні правила Джйотіш і додатковий AI-коментар.":"Below, calculated facts, classical Jyotish rules and optional AI commentary are kept separate."],
-  [(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),(uk?"Ефемериди: ":"Ephemeris: ")+chart.ephemeris], "cosmos"));
+  [(uk?"Висхідний знак: ":"Rising sign: ")+sign(asc.sign,uk),(uk?"Астрономічне джерело: ":"Astronomical source: ")+chart.ephemeris], "cosmos"));
  sections.push(header("sun-moon",uk?"Сонце, почуття та звичні реакції":"Sun, feelings and familiar reactions",uk?"II · ОСОБИСТІСНА ВІСЬ":"II · CORE INDICATORS",
   uk?"Два головні символічні орієнтири для самовираження й внутрішнього життя.":"Two core symbolic reference points for expression and inner life.",
   [(sun?line(sun,uk)+". ":"")+(uk?"Сонце традиційно пов’язують з волею, роллю та образом себе.":"The Sun is associated with purpose, identity and expression."),
@@ -203,12 +203,8 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  const lordStory=(house:number)=>{
   const f=anchorLord(house),v=f.values,source=Number(v.house)-1,target=Number(v.locatedHouse)-1;
   return uk?
-   'Управитель '+house+'-го дому ('+label(String(v.ruler))+') міститься у '+v.locatedHouse+
-   '-му домі. Традиційно це символічно поєднує теми «'+HOUSE_UK[source].toLowerCase()+
-   '» і «'+HOUSE_UK[target].toLowerCase()+'». ['+f.id+']':
-   'Lord of house '+house+' ('+label(String(v.ruler))+') is in house '+v.locatedHouse+
-   '. Traditionally this connects the themes of '+HOUSE_EN[source].toLowerCase()+
-   ' and '+HOUSE_EN[target].toLowerCase()+'. ['+f.id+']';
+   'Планета, яку традиція пов’язує зі сферою '+house+' ('+sign(Number(v.sign),true)+'), — '+label(String(v.ruler))+'. Її розташування у сфері '+v.locatedHouse+' ('+sign(Number(v.locatedSign),true)+') символічно поєднує теми «'+HOUSE_UK[source].toLowerCase()+'» і «'+HOUSE_UK[target].toLowerCase()+'». ['+f.id+']':
+   'The planet traditionally associated with life area '+house+' ('+sign(Number(v.sign),false)+') is '+label(String(v.ruler))+'. Its placement in life area '+v.locatedHouse+' ('+sign(Number(v.locatedSign),false)+') symbolically connects '+HOUSE_EN[source].toLowerCase()+' with '+HOUSE_EN[target].toLowerCase()+'. ['+f.id+']';
  };
  const dignityStory=()=>{
   const highlighted=findings.dignities.filter(f=>['own','exalted','debilitated'].includes(String(f.values.dignity)));
@@ -244,8 +240,8 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  };
  const houseLordDetails=findings.lords.map(f=>{
   const v=f.values;
-  return (uk?'Дім ':'House ')+v.house+' ('+sign(Number(v.sign),uk)+') → '+
-   label(String(v.ruler))+' → '+(uk?'дім ':'house ')+v.locatedHouse+
+  return (uk?'Сфера життя ':'Life area ')+v.house+' ('+sign(Number(v.sign),uk)+') → '+
+   label(String(v.ruler))+' → '+(uk?'сфера життя ':'life area ')+v.locatedHouse+
    ' ('+sign(Number(v.locatedSign),uk)+') ['+f.id+']';
  });
  sections.push(header("house-lords",uk?"Зв’язки між сферами життя":"Connections between life areas",
@@ -256,10 +252,10 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  sections.push(header("dignities",uk?"Особливі положення планет":"Special planetary positions",
   uk?"X · КЛАСИЧНІ ПОЛОЖЕННЯ":"X · CLASSICAL PLACEMENTS",
   uk?"Традиція вважає одні знаки більш природними, а інші — складнішими для певних планет. Це умовна класифікація, а не оцінка людини.":"The tradition considers some signs more natural and others more challenging for particular planets. This is a symbolic classification, not a judgement of a person.",
-  [uk?"Це лише класифікація положення за знаком. Повна сила ґрахи (Шадбала), дружба, спалення, градусна точність, ретроградність і скасування дебілітації тут не обчислюються.":"This is a sign-only classification, not Shadbala, combustion, degrees, friendships or debilitation cancellation.",dignityStory()],
+  [uk?"Цей розділ класифікує положення лише за знаком. Повна сила планет, їхні взаємні стосунки, близькість до Сонця та інші уточнення тут не розраховуються.":"This section classifies sign placements only. Full planetary strength, relationships, proximity to the Sun and other modifiers are not calculated.",dignityStory()],
   findings.dignities.map(f=>{
    const v=f.values,term=dignityLabel[String(v.dignity)]||dignityLabel.other;
-   return label(f.subject)+' — '+sign(Number(v.sign),uk)+', '+(uk?'дім ':'house ')+v.house+
+   return label(f.subject)+' — '+sign(Number(v.sign),uk)+', '+(uk?'сфера життя ':'life area ')+v.house+
     ': '+term[uk?0:1]+' ['+f.id+']';
   })));
  sections.push(header("yogas",uk?"Особливі комбінації планет":"Special planetary combinations",
@@ -267,11 +263,11 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   uk?"Перевірка п’яти традиційних комбінацій за чіткими правилами розташування планет.":"Five traditional combinations checked against explicit planetary-position rules.",
   [uk?"Одна з п’яти комбінацій рахується, коли Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в одній із ключових сфер життя (1, 4, 7 або 10) і в традиційно сильному для нього знаку. Інші варіанти та додаткові умови тут не оцінюються.":"One of the five combinations is counted when Mars, Mercury, Jupiter, Venus or Saturn occupies one of four key life areas (1, 4, 7 or 10) and a traditionally strong sign. Other variants and modifiers are not assessed here.",yogaStory()],
   findings.yogas.length?findings.yogas.map(y=>
-   y.name+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'дім ':'house ')+y.house+
+   y.name+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'сфера життя ':'life area ')+y.house+
    ' ('+(uk?(y.reason==='exalted'?'екзальтація':'власний знак'):y.reason)+') ['+y.id+']'
   ):[uk?"За цими конкретними критеріями жодна з п’яти йог не сформувалася. Це не висновок про інші йоги чи життєві події.":"None of the five yogas meets these exact rules; this says nothing about other yoga families or events."]));
  sections.push(header("rule-synthesis",uk?"Що підкреслюють правила карти":"What the chart rules highlight",
-  uk?"XII · ДЕТЕРМІНОВАНЕ ТРАКТУВАННЯ":"XII · DETERMINISTIC INTERPRETATION",
+  uk?"XII · ПІДСУМОК ПЕРЕВІРЕНИХ ПРАВИЛ":"XII · SUMMARY OF VERIFIED RULES",
   uk?"Пояснення складається алгоритмом з конкретних правил і завжди повторюється для тих самих даних.":"Algorithm-written interpretation based on specific rules; repeatable for identical inputs.",
   [lordStory(1),lordStory(7),lordStory(10),dignityStory(),yogaStory(),
    uk?"Цей синтез є викладом традиційних символічних відповідностей, а не доказом подій чи науковим прогнозом. Його фактичні дані не змінюються генеративною моделлю.":
