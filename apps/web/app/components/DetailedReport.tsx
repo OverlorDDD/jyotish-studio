@@ -27,11 +27,13 @@ const PHOTOS={
  }
 } as const;
 const NAV=[
- ['portrait','Портрет','Portrait'],['sun-moon','Сонце та Місяць','Sun & Moon'],
- ['planets-intro','9 ґрах','9 grahas'],['houses-intro','12 домів','12 houses'],
- ['drishti','Дрішті','Drishti'],['conjunctions','Сполучення','Conjunctions'],['navamsa','Навамша D9','Navamsa D9'],
- ['dashamsa','Дашамша D10','Dashamsa D10'],['cross-varga','D1 / D9 / D10','D1 / D9 / D10'],['dasha','Даші','Dashas'],
- ['house-lords','Управителі','House lords'],['dignities','Гідність ґрах','Dignities'],['yogas','П’ять йог','Five yogas']
+ ['portrait','Загальний портрет','Overview'],['sun-moon','Воля та емоції','Purpose & feelings'],
+ ['planets-intro','Планети й теми','Planets & themes'],['houses-intro','Сфери життя','Life areas'],
+ ['drishti','Взаємний вплив','Interactions'],['conjunctions','Поєднання планет','Planet combinations'],
+ ['navamsa','Стосунки й цінності','Relationships & values'],
+ ['dashamsa','Робота й покликання','Work & purpose'],['cross-varga','Різні зрізи карти','Chart perspectives'],
+ ['dasha','Життєві цикли','Life cycles'],['house-lords','Зв’язок сфер життя','Life-area connections'],
+ ['dignities','Особливі положення','Planetary conditions'],['yogas','Особливі комбінації','Special combinations']
 ] as const;
 const FALLBACK_UK:Record<string,string>={
  hourly_limit:'Вичерпано локальний ліміт безкоштовних запитів.',
@@ -68,6 +70,53 @@ function ReportPhoto({kind,uk}:{kind:keyof typeof PHOTOS;uk:boolean}){
  </figure>;
 }
 
+
+type AiCard={heading:string;body:string};
+function friendlyAiCards(text:string,lang:'uk'|'en'):AiCard[]{
+ const headings:Record<string,{uk:string;en:string}>={
+  identity:{uk:'Загальна картина',en:'The big picture'},
+  planets:{uk:'Що символізують планети',en:'What the planets represent'},
+  houses:{uk:'Важливі сфери життя',en:'Important areas of life'},
+  aspects:{uk:'Як різні теми взаємодіють',en:'How different themes interact'},
+  navamsa:{uk:'Стосунки та особисті цінності',en:'Relationships and personal values'},
+  dashamsa:{uk:'Робота й самореалізація',en:'Work and fulfilment'},
+  rules:{uk:'Додаткові символічні акценти',en:'Additional symbolic themes'},
+  dasha:{uk:'Поточний життєвий період',en:'The current life period'}
+ };
+ const legacy:[RegExp,string][]=[
+  [/^(?:Лагна:|Ascendant:)/i,'identity'],
+  [/^(?:Повна D1:|Full D1:|Сонце:|Sun:)/i,'planets'],
+  [/^(?:Дванадцять домів|Twelve houses)/i,'houses'],
+  [/^(?:Класичні Парашарі|Classical Parashari)/i,'aspects'],
+  [/^(?:D9, Лагна|D9 ascendant|Лагна Навамша)/i,'navamsa'],
+  [/^(?:D10, Лагна|D10 ascendant|Лагна Дашамша)/i,'dashamsa'],
+  [/^(?:Верифіковані правила|Verified Engine)/i,'rules'],
+  [/^(?:Махадаша|Вімшоттарі|Current Mahadasha|Mahadasha)/i,'dasha']
+ ];
+ return text.split(/\n{2,}/).map(part=>{
+  const split=part.indexOf('\n');
+  if(split<0)return null;
+  let heading=part.slice(0,split).trim(),body=part.slice(split+1).trim();
+  if(!body)return null;
+  const key=legacy.find(([pattern])=>pattern.test(heading))?.[1];
+  if(key)heading=headings[key][lang];
+  return {heading,body};
+ }).filter((item):item is AiCard=>!!item);
+}
+function PlainLanguageGlossary({lang}:{lang:'uk'|'en'}){
+ const uk=lang==='uk';
+ return <details className="reading-glossary">
+  <summary>{uk?'Пояснення термінів простими словами':'Astrology terms in plain language'}</summary>
+  <dl>
+   <div><dt>{uk?'Дім':'House'}</dt><dd>{uk?'Одна зі сфер життя, яку розглядають у карті, наприклад робота, стосунки чи дім.':'One area of life discussed in the chart, such as work, relationships or home.'}</dd></div>
+   <div><dt>{uk?'Ґраха':'Graha'}</dt><dd>{uk?'Традиційна назва небесного тіла в цій системі. Для простоти далі називатимемо їх планетами та вузлами.':'A traditional term for a celestial body in this system. For simplicity, we call them planets and nodes.'}</dd></div>
+   <div><dt>{uk?'Накшатра й пада':'Nakshatra and pada'}</dt><dd>{uk?'Додаткові поділи зодіакального кола, які уточнюють положення Місяця та інших тіл.':'Smaller divisions of the zodiac used to describe a more specific position, especially the Moon.'}</dd></div>
+   <div><dt>{uk?'D1, D9 та D10':'D1, D9 and D10'}</dt><dd>{uk?'Основна карта та дві допоміжні карти, які в традиції використовують для різних тем, зокрема стосунків і роботи.':'The main chart and two supplementary charts traditionally used to explore themes including relationships and work.'}</dd></div>
+   <div><dt>{uk?'Даша':'Dasha'}</dt><dd>{uk?'Традиційний символічний часовий цикл. Він не гарантує подій і не замінює власних рішень.':'A symbolic timing cycle in the tradition. It does not guarantee events or replace your own decisions.'}</dd></div>
+  </dl>
+ </details>;
+}
+
 export default function DetailedReport({report,lang}:{report:ReadingReport;lang:'uk'|'en'}){
  const uk=lang==='uk',ai=report.ai;
  return <section className="reading-root" id="full-reading" aria-label={uk?'Детальне трактування карти':'Detailed chart interpretation'}>
@@ -75,8 +124,29 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
   <h2>{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
   <p className="reading-version">{report.rulesVersion?(uk?'Перевірені правила · Engine ':'Verified rules · Engine ')+report.rulesVersion:''}{report.asOf?' · '+(uk?'Станом на ':'As of ')+report.asOf:''}{report.rulesDigest?' · SHA-256 '+report.rulesDigest.slice(0,12):''}</p>
   <p className="reading-intro">{uk?
-   'Повний путівник по вашій карті: планетні положення, дванадцять домів, класичні аспекти, D9, D10 та планетні періоди.' :
-   'A complete guide to your chart: planetary placements, twelve houses, classical aspects, D9, D10 and time periods.'}</p>
+   'Спочатку — коротке пояснення звичайною мовою. Нижче — детальні розділи для тих, хто хоче розібратися глибше.' :
+   'Start with a plain-language summary. Detailed chapters follow for anyone who wants to explore further.'}</p>
+  <section className="reading-llm reading-llm-summary" id="reading-ai">
+   <div className="reading-chapter-kicker">{uk?'✧ ГОЛОВНЕ — ПРОСТИМИ СЛОВАМИ':'✧ THE BIG PICTURE — IN PLAIN LANGUAGE'}</div>
+   <h3>{uk?'Що це може означати у повсякденному житті':'What this may mean in everyday life'}</h3>
+   <p className="reading-chapter-lead">{uk?'Без складних термінів і категоричних прогнозів — лише символічні теми для роздумів.':'No complicated terminology or absolute predictions — just symbolic themes to reflect on.'}</p>
+   {ai.provider==='openrouter'||ai.provider==='ollama'?
+    <>
+     <p className="reading-provider">{(ai.provider==='openrouter'?'OpenRouter':'Ollama')+(ai.model?' · '+ai.model:'')} · {uk?'без платного OpenAI':'no paid OpenAI'}</p>
+     <div className="reading-ai-text">
+      {friendlyAiCards(ai.text,lang).map((card,index)=><article className="reading-ai-card" key={index}>
+       <h4>{card.heading}</h4><p>{card.body}</p>
+      </article>)}
+     </div>
+     {!friendlyAiCards(ai.text,lang).length?<p className="reading-paragraph">{uk?'Не вдалося розібрати короткий AI-підсумок. Детальний розрахований звіт доступний нижче.':'The AI summary could not be displayed. The detailed calculated report is available below.'}</p>:null}
+    </>:
+    <>
+     <p className="reading-paragraph">{uk?'AI-підсумок зараз недоступний, але детальний звіт нижче сформовано з розрахованих даних.':'The AI summary is unavailable right now, but the detailed report below is built from calculated data.'}</p>
+     <p className="reading-provider">{uk?(FALLBACK_UK[ai.fallbackReason||'']||'Показано детальний звіт без AI'): (FALLBACK_EN[ai.fallbackReason||'']||'Showing the detailed report without AI')}</p>
+    </>}
+   <p className="reading-ai-disclaimer">{uk?'Це символічне прочитання традиції Джйотіш, а не гарантований прогноз. Використовуйте його як привід для роздумів, а не як єдину основу важливих рішень.':'This is a symbolic reading from the Jyotish tradition, not a guaranteed prediction. Use it for reflection, not as the sole basis for important decisions.'}</p>
+  </section>
+  <PlainLanguageGlossary lang={lang}/>
   <nav className="reading-toc" aria-label={uk?'Зміст трактування':'Report contents'}>
    {NAV.map(([id,ua,en],index)=><a key={id} href={'#reading-'+id}><span>{String(index+1).padStart(2,'0')}</span> {uk?ua:en}</a>)}
   </nav>
@@ -95,20 +165,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
        </div>:null}
       </div>
     </article>
-    {section.id==='sun-moon'?<aside className="reading-llm" id="reading-ai">
-      <div className="reading-chapter-kicker">{uk?'✧ ПОГЛИБЛЕНЕ AI-ТРАКТУВАННЯ':'✧ EXTENDED AI INSIGHT'}</div>
-      <h3>{uk?'Синтез основних тем карти':'Synthesis of the chart’s main themes'}</h3>
-      {ai.provider==='openrouter'||ai.provider==='ollama'?
-        <>
-         <p className="reading-provider">{(ai.provider==='openrouter'?'OpenRouter': 'Ollama')+(ai.model?' · '+ai.model:'')} · {uk?'без платного OpenAI':'no paid OpenAI'}</p>
-         <div className="reading-ai-text">{ai.text.split(/\n{2,}/).filter(Boolean).map((part,i)=><p key={i}>{part}</p>)}</div>
-        </>:
-        <>
-         <p className="reading-paragraph">{uk?'Безкоштовна LLM зараз не надала прийнятної відповіді. Повний структурований звіт нижче доступний незалежно від AI.':'The free language model did not return an accepted answer. The complete calculated report remains available below.'}</p>
-         <p className="reading-provider">{uk?(FALLBACK_UK[ai.fallbackReason||'']||'Режим локального звіту'):(FALLBACK_EN[ai.fallbackReason||'']||'Offline report mode')}</p>
-        </>
-      }
-    </aside>:null}
+
    </div>)}
   </div>
   {report.ruleFacts?.length?<details className="reading-provenance">
