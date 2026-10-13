@@ -6,6 +6,7 @@ export type ReadingSection={
 };
 export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
+ practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string};
 };
@@ -132,6 +133,17 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
   <p className="reading-intro">{uk?
    'Спочатку — коротке пояснення звичайною мовою. Нижче — детальні розділи для тих, хто хоче розібратися глибше.' :
    'Start with a plain-language summary. Detailed chapters follow for anyone who wants to explore further.'}</p>
+  {report.practicalTips?.length?<section className="reading-practical" aria-label={uk?'Поради на основі карти':'Chart-inspired practical ideas'}>
+    <div className="reading-chapter-kicker">{uk?'✦ ПРАКТИЧНІ ІДЕЇ':'✦ PRACTICAL IDEAS'}</div>
+    <h3>{uk?'Що можна спробувати вже цього тижня':'What you can try this week'}</h3>
+    <p className="reading-chapter-lead">{uk?'Це невеликі безпечні експерименти для саморефлексії, підібрані за розрахованими положеннями карти. Вони не є прогнозами або обов’язковими правилами життя.':'Small, low-risk experiments for reflection, selected from calculated chart placements. These are not predictions or required life choices.'}</p>
+    <div className="reading-practical-grid">{report.practicalTips.map(t=><article className="reading-practical-card" key={t.id}>
+      <h4>{t.title}</h4>
+      <p>{t.meaning}</p>
+      <p>{t.example}</p>
+      <div className="reading-practical-action"><strong>{uk?'Спробуйте':'Try this'}</strong><p>{t.action}</p></div>
+    </article>)}</div>
+   </section>:null}
   <section className="reading-llm reading-llm-summary" id="reading-ai">
    <div className="reading-chapter-kicker">{uk?'✧ ГОЛОВНЕ — ПРОСТИМИ СЛОВАМИ':'✧ THE BIG PICTURE — IN PLAIN LANGUAGE'}</div>
    <h3>{uk?'Що це може означати у повсякденному житті':'What this may mean in everyday life'}</h3>
@@ -147,7 +159,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
      {!friendlyAiCards(ai.text,lang).length?<p className="reading-paragraph">{uk?'Не вдалося розібрати короткий AI-підсумок. Детальний розрахований звіт доступний нижче.':'The AI summary could not be displayed. The detailed calculated report is available below.'}</p>:null}
     </>:
     <>
-     <p className="reading-paragraph">{uk?'AI-підсумок зараз недоступний, але детальний звіт нижче сформовано з розрахованих даних.':'The AI summary is unavailable right now, but the detailed report below is built from calculated data.'}</p>
+     <p className="reading-paragraph">{uk?'Безкоштовна AI-модель зараз не змогла надати перевірену відповідь. Конкретні ідеї вище та детальний звіт нижче сформовані за перевіреними розрахунками.':'The AI summary is unavailable right now, but the detailed report below is built from calculated data.'}</p>
      <p className="reading-provider">{uk?(FALLBACK_UK[ai.fallbackReason||'']||'Показано детальний звіт без AI'): (FALLBACK_EN[ai.fallbackReason||'']||'Showing the detailed report without AI')}</p>
     </>}
    <p className="reading-ai-disclaimer">{uk?'Це символічне прочитання традиції Джйотіш, а не гарантований прогноз. Використовуйте його як привід для роздумів, а не як єдину основу важливих рішень.':'This is a symbolic reading from the Jyotish tradition, not a guaranteed prediction. Use it for reflection, not as the sole basis for important decisions.'}</p>
