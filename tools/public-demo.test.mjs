@@ -11,7 +11,7 @@ test('one-domain API rewrite routes to local-only NestJS listener',async()=>{
  const page=readFileSync(new URL('../apps/web/app/page.tsx',import.meta.url),'utf8');
  assert.ok(page.includes("const api='';"),'Browser must use same origin for API requests');
  assert.ok(page.includes('readApiJson<Chart>(response)'), 'Calculate route must handle non-JSON errors');
- assert.ok(page.includes('readApiJson<{provider:string'), 'Interpretation route must handle non-JSON errors');
+ assert.ok(page.includes('readApiJson<ReadingReport>(response)'), 'Detailed report route must handle non-JSON errors');
  assert.ok(!page.includes('NEXT_PUBLIC_API_URL'),'Browser must not embed localhost:4000');
 });
 test('demo middleware covers API and requires credentials on remote host',()=>{
@@ -54,4 +54,15 @@ test('public mode cannot bypass ban on paid OpenAI even without Basic credential
  });
  assert.equal(result.status,1);
  assert.match(result.stderr,/BLOCKED: Only AI_MODE=free or AI_MODE=local/);
+});
+
+test('long reading stays below the chart workspace with the correct public endpoint',()=>{
+ const page=readFileSync(new URL('../apps/web/app/page.tsx',import.meta.url),'utf8');
+ const report=readFileSync(new URL('../apps/web/app/components/DetailedReport.tsx',import.meta.url),'utf8');
+ assert.ok(page.includes("api+'/api/v1/reports'"));
+ assert.ok(page.includes('<DetailedReport report={report} lang={lang}/>'));
+ assert.ok(report.includes('reading-toc'));
+ assert.ok(report.includes('reading-llm'));
+ assert.ok(report.includes('NASA / Hubble'));
+ assert.ok(report.includes('Wikimedia Commons'));
 });
