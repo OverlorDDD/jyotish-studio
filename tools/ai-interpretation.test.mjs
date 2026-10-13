@@ -114,3 +114,34 @@ test('offline report includes actual D1 D9 D10 and dasha period details',()=>{
  const en=localInterpretation(full,'en');
  for(const term of ['RASHI (D1)','NAVAMSA (D9)','DASHAMSA (D10)','VIMSHOTTARI DASHA'])assert.ok(en.includes(term),term);
 });
+
+
+test('long-form AI uses beginner-friendly language and shows friendly headings instead of raw astrology facts',async()=>{
+ const factsOverride=[
+  {id:'identity',fact:'Лагна: Риби, дім 1.'},
+  {id:'houses',fact:'Дванадцять домів, зайняті планетами: technical facts'},
+  {id:'dasha',fact:'Махадаша Сатурн; антардаша Кету.'}
+ ];
+ const result=await generateOpenAiInterpretation(chart,'uk',{
+  key:'fake',provider:'openrouter',model:'openrouter/free',limit:()=>true,
+  reportMode:true,formatMode:'prompt',factsOverride,
+  fetcher:async(_url,init)=>{
+   const request=JSON.parse(init.body);
+   const instructions=request.messages[0].content;
+   assert.match(instructions,/complete beginner/);
+   assert.match(instructions,/plain, everyday language/);
+   assert.match(instructions,/Avoid technical words entirely/);
+   return apiReply({sections:[
+    {factId:'identity',text:'У символічній традиції це може нагадувати про те, як ви починаєте нові справи. Корисно поміркувати, що допомагає вам почуватися впевнено.'},
+    {factId:'houses',text:'Різні сфери життя не існують окремо одна від одної. Зверніть увагу, де ваші звички підтримують одне одного, а де потребують балансу.'},
+    {factId:'dasha',text:'Цей символічний період можна використати для спокійного перегляду пріоритетів. Обирайте рішення за реальними обставинами, а не лише за астрологічним описом.'}
+   ]});
+  }
+ });
+ assert.match(result.text,/Загальна картина/);
+ assert.match(result.text,/Важливі сфери життя/);
+ assert.match(result.text,/Поточний життєвий період/);
+ assert.doesNotMatch(result.text,/Лагна: Риби, дім 1/);
+ assert.doesNotMatch(result.text,/Махадаша Сатурн/);
+ assert.doesNotMatch(result.text,/Трактування в традиції Джйотіш/);
+});
