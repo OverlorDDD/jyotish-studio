@@ -130,3 +130,22 @@ test('life portrait has five practical narrative themes, each linked to actual c
  changed.d1.find(x=>x.name==='Venus').longitude=180+13.25;
  assert.notDeepEqual(a.lifePortrait,buildDetailedReport(changed,'uk','2026-10-13').lifePortrait);
 });
+
+test('reader-first editorial report has chart-specific chapters and accurately counted elements',()=>{
+ const uk=buildDetailedReport(chart,'uk','2026-10-13');
+ const en=buildDetailedReport(chart,'en','2026-10-13');
+ assert.equal(uk.editorial.version,'1.0');
+ assert.deepEqual(uk.editorial.chapters.map(c=>c.id),['core','elements','themes','strengths','relationships','career','resources','challenges','growth','conclusion']);
+ assert.equal(uk.editorial.elements.reduce((s,v)=>s+v.count,0),7);
+ assert.ok(uk.editorial.elements.every(v=>v.percentage===Math.round(v.count/7*100)));
+ assert.ok(uk.editorial.highlights.length===3);
+ assert.ok(uk.editorial.chapters.every(c=>c.paragraphs.length>=2&&c.insights.length&&c.evidence.length));
+ assert.match(uk.editorial.chapters.find(c=>c.id==='career').paragraphs.join(' '),/Сонце|Меркурій/);
+ assert.ok(!uk.editorial.chapters.some(c=>c.paragraphs.some(p=>p.includes('Placidus')||p.includes('Уран'))));
+ assert.equal(en.editorial.elements.map(v=>v.count).join(','),uk.editorial.elements.map(v=>v.count).join(','));
+ assert.deepEqual(uk.editorial,buildDetailedReport(chart,'uk','2026-10-13').editorial);
+ const changed=structuredClone(chart);
+ const sun=changed.d1.find(p=>p.name==='Sun');
+ sun.sign=10;sun.signName='Capricorn';sun.house=11;sun.longitude=283.25;
+ assert.notDeepEqual(uk.editorial,buildDetailedReport(changed,'uk','2026-10-13').editorial);
+});
