@@ -85,7 +85,7 @@ function reportHeading(factId:string,lang:'uk'|'en'){
 }
 export type ChatProvider='openai'|'openrouter'|'ollama';
 /** A shared, schema-validated chat adapter. Provider URLs are hard-coded, never user supplied. */
-export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt';factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>}){
+export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose';factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>}){
  const provider=options.provider||'openai';
  const endpoint=provider==='openrouter'?'https://openrouter.ai/api/v1/chat/completions':
   provider==='ollama'?'http://127.0.0.1:11434/v1/chat/completions':'https://api.openai.com/v1/chat/completions';
@@ -101,7 +101,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    method:'POST',signal:controller.signal,
    headers:{'Content-Type':'application/json',...(provider==='ollama'?{}:{'Authorization':`Bearer ${options.key}`})},
    body:JSON.stringify({model:options.model||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),temperature:options.reportMode?0:0.2,max_tokens:options.reportMode?2800:provider==='openrouter'?1800:1000,
-    ...(options.formatMode==='prompt'?{}:{response_format:{type:'json_schema',json_schema:{name:'jyotish_interpretation',strict:true,schema:{
+    ...(options.formatMode==='prompt'||options.formatMode==='prose'?{}:{response_format:{type:'json_schema',json_schema:{name:'jyotish_interpretation',strict:true,schema:{
       type:'object',additionalProperties:false,required:['sections'],properties:{sections:{type:'array',items:{type:'object',additionalProperties:false,required:['factId','text'],properties:{factId:{type:'string',enum:facts.map(f=>f.id)},text:{type:'string'}}}}}
     }}}}),
     messages:[
@@ -113,6 +113,8 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
        options.reportMode?
         'Write for a complete beginner who knows nothing about astrology. Use plain, everyday language and short, clear sentences. Each section MUST explain a chart theme in everyday life, give ONE realistic example, and suggest ONE concrete low-risk action (such as writing a goal, discussing an expectation, or planning a small habit). The action must be feasible this week; avoid vague motivational slogans. Be specific to the supplied themes rather than using vague mystical filler. Use 3-4 short sentences per section. Do not repeat the raw facts or planetary placements. Avoid technical words entirely in the narrative, including Lagna, graha, nakshatra, pada, house/bhava, drishti, dasha/antardasha, yoga, Rashi, Navamsa, Dashamsa, D1/D9/D10, sidereal, exalted or debilitated. The application adds a friendly section title separately. Never print numeric houses, degrees, dates, zodiac placements, classifications of strength/dignity or yoga names. Those factual claims are printed only by the deterministic rule engine. Describe traditional symbolism as a possibility for reflection, never a certainty or a guaranteed prediction. Do not make medical, financial or legal predictions.':
         'Write for a complete beginner in plain everyday language. Use 3 short sentences per section: personal-life meaning, relatable example, one safe specific action that can be tried this week. Avoid technical terms such as Lagna, graha, nakshatra, pada, house/bhava, drishti, dasha, yoga, Rashi, Navamsa, Dashamsa or D1/D9/D10. Do not repeat raw placements, dates, numeric houses or degrees. The application adds a friendly section title. Explain traditional symbolism as a possibility for reflection, not as a certainty or prediction. No medical, financial or legal predictions.',
+       options.formatMode==='prose'?
+        'Write plain prose, not JSON or markdown. Output four short paragraphs separated by one blank line. Each paragraph should give one real-life example and one specific safe action the reader could try this week. Never add facts about planetary placements or numbers; never claim certain events.':
        options.formatMode==='prompt'?
         'Output only a JSON object with a sections array of objects containing factId and text. Allowed factIds: '+facts.map(f=>f.id).join(', ')+'. Each factId must be unique; every text must be at least 20 characters. No markdown fences or other text.':
         'Output only the required JSON schema.'
@@ -134,6 +136,15 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   catch{throw new AiProviderError('format','AI provider returned invalid JSON');}
   const content=result.choices?.[0]?.message?.content;
   if(!content||result.choices?.[0]?.message?.refusal)throw new AiProviderError('format','OpenAI returned no interpretation');
+  if(options.formatMode==='prose'){
+   const parts=content.trim().split(/\n\s*\n/).map(p=>p.replace(/^\s*(?:[#*>\-]|\d+[.)])+\s*/gm,'').trim()).filter(Boolean);
+   const accepted=parts.filter(p=>p.length>=55&&p.length<=900&&verifyFreeProse(p,options.approvedYogas).ok).slice(0,6);
+   if(accepted.length<2)throw new AiProviderError('format','Insufficient safe plain-language paragraphs');
+   const headings=lang==='uk'?['Загальна картина','Сильні сторони та можливості','Стосунки та взаємність','Робота та цілі','Особистий розвиток','Щоденні звички']:
+    ['The big picture','Strengths and opportunities','Relationships','Work and goals','Personal growth','Daily habits'];
+   return {provider,model:(typeof result.model==='string'&&result.model.length<=120?result.model:options.model)||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),
+    text:accepted.map((p,i)=>headings[i]+'\n'+(lang==='uk'?normalizeUkrainianAstroTerms(p):p)).join('\n\n')};
+  }
   let decoded:unknown;
   // Some free endpoints wrap valid JSON inside a Markdown code fence.
   // Strip ONLY a whole-response JSON fence; reject unrelated prose and unknown fact IDs.
