@@ -32,7 +32,7 @@ test('English SVG uses full signs and planet names',()=>{
 
 test('all 12 house labels are geometrically centered, and stacks grow symmetrically',()=>{
  const sample=renderFixture({language:'en',planets:[lagna,{name:'Jupiter',house:2,sign:2},{name:'Saturn',house:2,sign:2},{name:'Mercury',house:2,sign:2}],lagna}).svg;
- const expected=[[180,90],[90,30],[30,90],[90,180],[30,270],[90,330],[180,270],[270,330],[330,270],[270,180],[330,90],[270,30]];
+ const expected=[[180,90],[90,40],[45,90],[90,180],[45,270],[90,315],[180,270],[270,315],[315,270],[270,180],[315,90],[270,40]];
  for(let house=1;house<=12;house++){
   const [x,y]=expected[house-1];
   const body=sample.match(new RegExp(`<g class="vedic-house" data-house="${house}">([\\s\\S]*?)<\/g>`));
@@ -43,4 +43,24 @@ test('all 12 house labels are geometrically centered, and stacks grow symmetrica
   assert.ok(Math.abs((texts[0].y+texts[texts.length-1].y)/2-y)<=4,`House ${house} y centered around ${y}`);
  }
  assert.match(sample,/\+1 below/); // Third planet in a triangular house has an index fallback.
+
+ const crowded=renderFixture({language:'uk',planets:[
+  lagna,
+  {name:'Mercury',house:6,sign:6},{name:'Jupiter',house:6,sign:6},
+  {name:'Saturn',house:6,sign:6},{name:'Venus',house:6,sign:6},
+  {name:'Mars',house:8,sign:8},{name:'Moon',house:8,sign:8},
+  {name:'Rahu',house:8,sign:8},{name:'Ketu',house:8,sign:8}
+ ],lagna}).svg;
+ const tags=[...crowded.matchAll(/<text x="(\d+)" y="(\d+)"([^>]*)>([\s\S]*?)<\/text>/g)];
+ assert.ok(tags.length>=20);
+ for(const [,rawX,rawY,attrs,rawText] of tags){
+  const x=Number(rawX),y=Number(rawY),font=Number(attrs.match(/font-size="([\d.]+)"/)?.[1]||10);
+  assert.ok(y>=10&&y<=350,'Text baseline stays inside frame: '+y);
+  if(x<=50||x>=310){
+   const maxWidth=76,explicit=Number(attrs.match(/textLength="([\d.]+)"/)?.[1]||0);
+   const estimate=rawText.replace(/<[^>]+>/g,'').length*font*0.58;
+   assert.ok((explicit||estimate)<=maxWidth+1,'Edge label fits inside house: '+rawText);
+  }
+ }
+
 });
