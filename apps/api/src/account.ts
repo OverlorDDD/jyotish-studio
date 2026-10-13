@@ -1,6 +1,6 @@
 import {BadRequestException,ConflictException,Controller,Delete,Get,Post,Param,Body,Req,Res,Inject,HttpException,HttpStatus,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
-import {IsEmail,IsIn,IsOptional,IsString,Length,MaxLength} from 'class-validator';
+import {IsEmail,IsIn,IsOptional,IsString,Length,MaxLength,Matches} from 'class-validator';
 import type {IncomingMessage,ServerResponse} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {BirthDto} from './dto.ts';
@@ -14,6 +14,7 @@ export class CredentialsDto{
  @ApiProperty({type:String,minLength:12}) @IsString() @Length(12,128) password!:string;
 }
 export class SaveChartDto extends BirthDto{
+ @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) asOf?:string;
  @IsOptional() @IsIn(['uk','en']) language?:'uk'|'en';
  @IsOptional() @IsIn(['local','openrouter','ollama']) aiProvider?:'local'|'openrouter'|'ollama';
  @IsOptional() @IsString() @MaxLength(12000) aiText?:string;
@@ -105,7 +106,7 @@ export class AccountController{
   try{chart=await runCalculation(body);}
   catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth data');}
   const language=body.language||'uk';
-  const snapshot=buildDetailedReport(chart,language);
+  const snapshot=buildDetailedReport(chart,language,body.asOf||new Date().toISOString().slice(0,10));
   const ai=body.aiProvider&&body.aiProvider!=='local'&&body.aiText?
    {provider:body.aiProvider,model:body.aiModel||'',text:body.aiText}:
    {provider:'local',text:'',fallbackReason:'local_only'};
