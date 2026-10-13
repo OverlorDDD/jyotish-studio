@@ -4,6 +4,9 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const source=readFileSync(new URL('../apps/web/public/demo.js',import.meta.url),'utf8');
+const demoCss=readFileSync(new URL('../apps/web/public/demo.css',import.meta.url),'utf8');
+const appCss=readFileSync(new URL('../apps/web/app/globals.css',import.meta.url),'utf8');
+const appPage=readFileSync(new URL('../apps/web/app/page.tsx',import.meta.url),'utf8');
 const start=source.indexOf('const xml =');
 const end=source.indexOf('\nfunction render()',start);
 assert.ok(start>0&&end>start,'Locate actual standalone chart renderer');
@@ -63,4 +66,15 @@ test('all 12 house labels are geometrically centered, and stacks grow symmetrica
   }
  }
 
+});
+
+test('both web interfaces wrap the Ukrainian brand tag and constrain chart text',()=>{
+ for(const css of [demoCss,appCss]){
+  assert.ok(css.includes('.logo{white-space:normal;min-width:0;align-items:flex-start}'),'Logo may not wrap');
+  assert.ok(css.includes('.logo small{white-space:normal;'),'Brand tag may overflow');
+  assert.ok(css.includes('.chart-svg{overflow:hidden}'),'SVG overflow must be clipped as a safety net');
+ }
+ assert.match(appPage,/const HOUSE_CENTERS:\[number,number\]\[\]=\[\[180,90\],\[90,40\],\[45,90\]/);
+ assert.match(appPage,/maxVisible=\(y<=42\|\|y>=300\)\?2/);
+ assert.match(appPage,/fitText\(word,x/);
 });
