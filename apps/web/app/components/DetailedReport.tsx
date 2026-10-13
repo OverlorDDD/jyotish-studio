@@ -147,7 +147,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    </section>:null}
   {report.lifePortrait?.chapters?.length?<section className="reading-portrait" aria-label={uk?'Цілісний життєвий портрет':'Whole-life profile'}>
     <div className="reading-chapter-kicker">{uk?'✦ ЦІЛІСНИЙ ПОРТРЕТ':'✦ WHOLE-LIFE PROFILE'}</div>
-    <h3>{uk?'Сильні сторони, труднощі, стосунки, робота і розвиток':'Strengths, challenges, relationships, work and growth'}</h3>
+    <h3>{uk?'Таланти, стосунки, фінанси, робота і ваш розвиток':'Strengths, relationships, resources, work and growth'}</h3>
     <p className="reading-chapter-lead">{uk?'Ці розділи складає перевірений алгоритм з конкретних положень карти. Вони показують теми для саморефлексії, а не факти про вашу особистість чи передбачення майбутнього.':'These sections are generated from verified chart placements, as themes for reflection rather than facts about your personality or future predictions.'}</p>
     <div className="reading-portrait-grid">{report.lifePortrait.chapters.map(chapter=><article key={chapter.id} className="reading-portrait-card">
      <h4>{chapter.title}</h4>
@@ -157,7 +157,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
      <details className="reading-portrait-evidence"><summary>{uk?'На чому ґрунтується':'Verified source facts'}</summary><code>{chapter.evidence.join(' · ')}</code></details>
     </article>)}</div>
    </section>:null}
-  <section className="reading-llm reading-llm-summary" id="reading-ai">
+  {(ai.provider==='openrouter'||ai.provider==='ollama')&&friendlyAiCards(ai.text,lang).length>0?<section className="reading-llm reading-llm-summary" id="reading-ai">
    <div className="reading-chapter-kicker">{uk?'✧ ГОЛОВНЕ — ПРОСТИМИ СЛОВАМИ':'✧ THE BIG PICTURE — IN PLAIN LANGUAGE'}</div>
    <h3>{uk?'Що це може означати у повсякденному житті':'What this may mean in everyday life'}</h3>
    <p className="reading-chapter-lead">{uk?'Без складних термінів і категоричних прогнозів — лише символічні теми для роздумів.':'No complicated terminology or absolute predictions — just symbolic themes to reflect on.'}</p>
@@ -176,7 +176,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
      <p className="reading-provider">{uk?(FALLBACK_UK[ai.fallbackReason||'']||'Показано детальний звіт без AI'): (FALLBACK_EN[ai.fallbackReason||'']||'Showing the detailed report without AI')}</p>
     </>}
    <p className="reading-ai-disclaimer">{uk?'Це символічне прочитання традиції Джйотіш, а не гарантований прогноз. Використовуйте його як привід для роздумів, а не як єдину основу важливих рішень.':'This is a symbolic reading from the Jyotish tradition, not a guaranteed prediction. Use it for reflection, not as the sole basis for important decisions.'}</p>
-  </section>
+  </section>:null}
   <section className="reading-weekly-roadmap">
    <div className="reading-chapter-kicker">{uk?'✦ ВАШ ПЛАН ДІЙ':'✦ YOUR ACTION PLAN'}</div>
    <h3>{uk?'З чого почати':'Where to begin'}</h3>
