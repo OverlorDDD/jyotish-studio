@@ -21,7 +21,7 @@ test('per-process hourly limiter resets and enforces budget',()=>{
 test('facts include only calculated placements and no birth metadata',()=>{
  const facts=astrologicalFacts(chart,'uk',Date.parse('2026-10-12'));
  assert.equal(facts.length,6);
- assert.ok(facts.find(f=>f.id==='dasha').fact.includes('Saturn'));
+ assert.ok(facts.find(f=>f.id==='dasha').fact.includes('Сатурн'));
  assert.ok(!JSON.stringify(facts).includes('2000-01-01'));
 });
 test('OpenAI receives no raw date, coordinates or timezone; output is fact-linked',async()=>{
