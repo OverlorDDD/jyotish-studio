@@ -16,13 +16,13 @@ We adopted design patterns, not copyrighted text or unverified predictive claims
 ## Functionality in Jyotish Studio
 
 - POST /api/v1/reports accepts chart ID, language and optional local preference.
-- apps/api/src/report.ts builds 29+ structured sections: portrait, Sun/Moon, nine grahas, twelve houses, classical Parashari drishti, D9/Navamsa, D10/Dashamsa, Vimshottari dasha.
+- apps/api/src/report.ts builds 31 structured sections: portrait, Sun/Moon, nine grahas, twelve houses, classical Parashari drishti and graha conjunctions, D9/Navamsa, D10/Dashamsa, nine cross-varga comparisons, Vimshottari dasha.
 - Drishti: Sun/Moon/Mercury/Venus aspect seventh; Mars aspects fourth, seventh, eighth; Jupiter fifth, seventh, ninth; Saturn third, seventh, tenth. Rahu/Ketu aspects omitted because traditions disagree. All aspects use whole signs, not Western orbs.
 - AI receives seven verified clusters (identity, D1, houses, drishti, D9, D10, dasha), instead of only the older six fact snippets. It writes 3–6 thematic paragraphs anchored to known fact IDs; server rejects unknown IDs, duplicates and malformed responses.
 - New endpoint will NEVER invoke paid OpenAI, even when older paid mode remains configured. Free OpenRouter router and optional localhost Ollama are used only when explicitly enabled; the entire computed report works without a language model.
 - The original /api/v1/interpretations endpoint stays available for comparison or legacy users.
 - Ukrainian terminology normalization prevents mistaken phonetic labels such as Піссіс, Сагітарий, Ліба, Сватьі.
-- Frontend shows a long, sectioned, editorial interpretation UNDER the calculation panels with 8 table-of-contents links, illustrations, accessible heading structure and mobile styles.
+- Frontend shows a long, sectioned, editorial interpretation UNDER the calculation panels with 10 table-of-contents links, illustrations, accessible heading structure and mobile styles.
 
 ## Illustrations: source and rights
 
@@ -51,7 +51,7 @@ There is no implementation of shadbala, planetary strength, verified yogas, prec
 7. Run npm run demo:check before opening the public ngrok tunnel.
 8. Enter fictional New Delhi chart data, calculate and click Створити повне трактування.
 9. Confirm the report scrolls into view BELOW the chart, with all nine planets, twelve houses, D1, D9, D10, drishti, current dashas and free model commentary where available.
-10. Check eight table-of-contents links, mobile phone layout, source credit links and photos.
+10. Check ten table-of-contents links, mobile phone layout, source credit links and photos.
 11. Switch to English, recalculate/regenerate; ensure labels and paragraphs switch languages.
 12. Simulate LLM-unavailable state using AI_MODE=local and a server restart; report chapters must still render, with no costly API call. Return to AI_MODE=free afterward.
 13. Try an unknown chart ID against the new endpoint and verify HTTP 404. In public mode confirm endpoints remain limited and private stored charts are not exposed without explicit IDs.
