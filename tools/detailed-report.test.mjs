@@ -30,7 +30,10 @@ test('full report includes nine planet readings and twelve individually navigabl
  assert.equal(r.sections.filter(x=>x.id.startsWith('house-')).length,12);
  for(const id of ['portrait','sun-moon','planets-intro','houses-intro','drishti','navamsa','dashamsa','dasha'])
   assert.ok(byId(r,id),id);
- assert.ok(r.sections.length>=29);
+ assert.ok(r.sections.length>=30);
+ assert.ok(byId(r,'conjunctions'));
+ assert.ok(byId(r,'conjunctions').facts.some(x=>x.includes('Сонце')&&x.includes('Меркурій')));
+ assert.ok(byId(r,'drishti').facts.length>=10);
  assert.match(byId(r,'planet-mars').paragraphs.join(' '),/Марс/);
  assert.match(byId(r,'house-10').heading,/Дім 10/);
  assert.match(byId(r,'navamsa').paragraphs.join(' '),/Терези/);
