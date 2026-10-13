@@ -18,11 +18,11 @@ model Chart {
  ownerId    String?
  owner      User? @relation(fields:[ownerId],references:[id],onDelete:Cascade)
  savedReport Json?
- @@index([ownerId])
  createdAt  DateTime @default(now())
  input      Json
  result     Json
  readings   Interpretation[]
+ @@index([ownerId])
 }
 model Interpretation {
  id         String @id @default(uuid())
