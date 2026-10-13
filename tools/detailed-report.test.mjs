@@ -32,6 +32,9 @@ test('full report includes nine planet readings and twelve individually navigabl
   assert.ok(byId(r,id),id);
  assert.ok(r.sections.length>=30);
  assert.ok(byId(r,'conjunctions'));
+ assert.ok(byId(r,'cross-varga'));
+ assert.equal(byId(r,'cross-varga').facts.length,9);
+ assert.ok(byId(r,'cross-varga').facts.some(x=>x.includes('D1')&&x.includes('D9')&&x.includes('D10')));
  assert.ok(byId(r,'conjunctions').facts.some(x=>x.includes('Сонце')&&x.includes('Меркурій')));
  assert.ok(byId(r,'drishti').facts.length>=10);
  assert.match(byId(r,'planet-mars').paragraphs.join(' '),/Марс/);
