@@ -27,7 +27,7 @@ const byId=(r,id)=>r.sections.find(x=>x.id===id);
 test('full report includes nine planet readings and twelve individually navigable houses',()=>{
  const r=buildDetailedReport(chart,'uk');
  assert.equal(r.sections.filter(x=>x.id.startsWith('planet-')).length,9);
- assert.equal(r.sections.filter(x=>x.id.startsWith('house-')).length,12);
+ assert.equal(r.sections.filter(x=>/^house-\d+$/.test(x.id)).length,12);
  for(const id of ['portrait','sun-moon','planets-intro','houses-intro','drishti','navamsa','dashamsa','dasha'])
   assert.ok(byId(r,id),id);
  assert.ok(r.sections.length>=30);
