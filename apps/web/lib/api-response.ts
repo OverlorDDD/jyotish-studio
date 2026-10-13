@@ -16,6 +16,7 @@ export async function readApiJson<T>(response:Response):Promise<T>{
    :'The request was rejected. Check your input or demo login.';
   throw new Error(`API HTTP ${response.status}: ${(generic||fallback).slice(0,250)}`);
  }
- if(!body)throw new Error(`API HTTP ${response.status}: expected JSON but received an invalid response. Check server logs.`);
- return body as T;
+ if(parsed===null||typeof parsed!=='object')throw new Error(`API HTTP ${response.status}: expected JSON but received an invalid response. Check server logs.`);
+ // Success responses may be either a JSON object or a list (saved chart history).
+ return parsed as T;
 }
