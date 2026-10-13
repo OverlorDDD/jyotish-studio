@@ -5,6 +5,7 @@ import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts'
 import {runCalculation,interpretChart} from './logic.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure} from './ai.ts';
 import {buildDetailedReport,detailedReportFacts} from './report.ts';
+import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
@@ -13,6 +14,27 @@ import {cookieUser} from './auth.ts';
 
 const allowCalculation=createHourlyLimiter(120);
 const allowInterpretation=createHourlyLimiter(50);
+/** Ephemeral, bounded replay cache: guests are NEVER stored in PostgreSQL.
+ * Successful free-model prose is identical for repeated chart/lang/asOf in this process.
+ * A restart drops the cache; the deterministic report remains identical. */
+type FreeReportAi=Awaited<ReturnType<typeof generateFreeInterpretationDetailed>>;
+const interpretationReplay=new Map<string,{expires:number;pending:Promise<FreeReportAi>}>();
+function replayFreeNarrative(key:string,generate:()=>Promise<FreeReportAi>){
+ const now=Date.now(),existing=interpretationReplay.get(key);
+ if(existing&&existing.expires>now)return existing.pending;
+ if(interpretationReplay.size>=60){
+  const first=interpretationReplay.keys().next().value;
+  if(first)interpretationReplay.delete(first);
+ }
+ const pending=generate().then(result=>{
+  // Do not cache failures or quota exhaustion.
+  if(!result.result)interpretationReplay.delete(key);
+  return result;
+ }).catch(error=>{interpretationReplay.delete(key);throw error;});
+ interpretationReplay.set(key,{expires:now+30*60*1000,pending});
+ return pending;
+}
+
 function owner(req:IncomingMessage){
  const id=cookieUser(req);
  if(!id)throw new UnauthorizedException('Sign in to access saved charts.');
@@ -67,9 +89,11 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
-  const free=await generateFreeInterpretationDetailed(chart,birth.lang,{
-   factsOverride:detailedReportFacts(chart,birth.lang,asOf),reportMode:true
-  });
+  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':freeai-v2',
+   ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
+    factsOverride:detailedReportFacts(chart,birth.lang,asOf),reportMode:true,
+    approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
+   }));
   return {...report,ai:free.result||{provider:'local' as const,text:'',fallbackReason:free.reason}};
  }
 
