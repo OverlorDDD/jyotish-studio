@@ -168,6 +168,14 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en'):Detail
   [uk?"Лагна D10 — "+sign(chart.lagnaD10.sign,true)+". Дашамшу традиційно застосовують для аналізу професійного самовираження, ролі у колективі та прагнень.":"D10 ascendant: "+sign(chart.lagnaD10.sign,false)+". Dashamsa is used traditionally to explore vocation, contribution and public roles.",
    uk?"Усі дев’ять положень відображають ту саму вихідну карту, перетворену за правилами D10.":"All nine positions are mathematically derived from the same birth chart using D10 rules."],
   chart.d10.map(p=>line(p,uk)),"nebula"));
+ sections.push(header("cross-varga",uk?"Одна ґраха — три рівні читання":"One graha across three charts",uk?"VII · ЗВ’ЯЗКИ D1 / D9 / D10":"VII · CROSS-CHART CONNECTIONS",
+  uk?"Порівняння реальних положень однієї ґрахи у трьох розрахованих картах.":"Compare the same calculated graha across three complementary charts.",
+  [uk?"D1 описує основні положення народження, D9 деталізує один із шарів внутрішніх цінностей та партнерства, а D10 — професійний контекст. Вони не є трьома незалежними прогнозами.":"D1 provides natal placements; D9 and D10 offer complementary traditional lenses on values, partnership and vocation. They are not three independent predictions.",
+   uk?"Зміна знака при переході між варгами визначається математичними правилами поділу зодіаку, а не рішенням мовної моделі.":"Changes in sign across Vargas follow mathematical divisional rules, not AI guesses."],
+  chart.d1.map(p=>{
+   const d9=chart.d9.find(g=>g.name===p.name),d10=chart.d10.find(g=>g.name===p.name);
+   return planet(p.name,uk)+": D1 "+sign(p.sign,uk)+" → D9 "+(d9?sign(d9.sign,uk):"—")+" → D10 "+(d10?sign(d10.sign,uk):"—");
+  })));
  const active=chart.dasha.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
  const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
  sections.push(header("dasha",uk?"Вімшоттарі-даша: часові цикли":"Vimshottari Dasha: time cycles",uk?"VIII · РИТМ ПЕРІОДІВ":"VIII · PERIOD RHYTHM",
