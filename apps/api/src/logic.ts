@@ -44,7 +44,7 @@ export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en
   const name=(english:string)=>GRAHAS_UK[english]||english;
   const display=(positions:typeof chart.d1)=>positions.map(g=>
    '• '+name(g.name)+' — '+sign(g.sign)+'; життєва сфера: '+(HOUSE_THEMES_UK[g.house-1]||'особисті теми')
-  ).join('\\n');
+  ).join('\n');
   const nakshatra=NAKSHATRA_NAMES_UK[moon.nakshatra]||moon.nakshatra;
   const signTheme=SIGN_THEMES_UK[chart.ascendant.sign-1]||'особистий шлях';
   const sunHouse=HOUSE_THEMES_UK[sun.house-1]||'самовираження';
@@ -69,7 +69,7 @@ export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en
  ];
  const display=(positions:typeof chart.d1)=>positions.map(g=>
   '• '+g.name+' — '+g.signName+'; life theme: '+(HOUSE_THEMES_EN[g.house-1]||'personal themes')
- ).join('\\n');
+ ).join('\n');
  const activeText=active?
   'The traditional system places you in a symbolic '+active.lord+' period ('+active.start.slice(0,10)+' — '+active.end.slice(0,10)+'). '+(sub?'Its sub-period is '+sub.lord+' ('+sub.start.slice(0,10)+' — '+sub.end.slice(0,10)+').':'No smaller sub-period is available.'):
   'The current date falls outside the available calculated timeline.';
