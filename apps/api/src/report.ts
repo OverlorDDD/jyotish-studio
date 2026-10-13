@@ -1,6 +1,7 @@
 import type {CalculatedChart,Graha} from '../../../packages/jyotish-core/src/index.ts';
 import {ukTerm} from './terminology.ts';
 import {practicalGuidance,type PracticalTip} from './practical-guidance.ts';
+import {createLifePortrait,type LifePortrait} from './life-portrait.ts';
 import {ruleFindings,ruleFingerprint,RULESET_VERSION,SIGN_NAMES} from '../../../packages/jyotish-core/src/rules.ts';
 
 /** Report data is compiled from Swiss Ephemeris output, not invented by the LLM. */
@@ -11,7 +12,7 @@ export type ReportSection={
 export type DetailedReport={
  sections:ReportSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
  asOf:string;rulesVersion:string;rulesDigest:string;ruleFacts:ReturnType<typeof ruleFindings>['facts'];
- practicalTips:PracticalTip[];
+ practicalTips:PracticalTip[];lifePortrait:LifePortrait;
 };
 const SIGNS_UK=["Овен","Телець","Близнюки","Рак","Лев","Діва","Терези","Скорпіон","Стрілець","Козоріг","Водолій","Риби"];
 const SIGN_THEMES_UK=[
@@ -284,5 +285,5 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   [(uk?"Версія правил: ":"Ruleset: ")+RULESET_VERSION,(uk?"Перевірені факти: ":"Verified facts: ")+findings.facts.length]));
  return {sections,generatedAt:asOf+'T00:00:00.000Z',asOf,
   rulesVersion:RULESET_VERSION,rulesDigest:ruleFingerprint(chart,asOf),
-  ruleFacts:findings.facts,practicalTips:practicalGuidance(chart,lang),chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
+  ruleFacts:findings.facts,practicalTips:practicalGuidance(chart,lang),lifePortrait:createLifePortrait(chart,lang),chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
 }
