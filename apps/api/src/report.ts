@@ -109,13 +109,13 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   [uk?"В основі аналізу — сидеричний зодіак Лахірі та система цілознакових домів. Лагна у знаку "+sign(asc.sign,true)+" задає відлік усіх дванадцяти домів і їхніх тем.":"The report uses the Lahiri sidereal zodiac and whole-sign houses. "+sign(asc.sign,false)+" rises as the first house.",
    uk?"Наведені нижче тематичні інтерпретації розділяють обчислені факти, традиційні правила Джйотіш і додатковий AI-коментар.":"Below, calculated facts, classical Jyotish rules and optional AI commentary are kept separate."],
   [(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),(uk?"Ефемериди: ":"Ephemeris: ")+chart.ephemeris], "cosmos"));
- sections.push(header("sun-moon",uk?"Сонце, Місяць і накшатра":"Sun, Moon and lunar mansion",uk?"II · ОСОБИСТІСНА ВІСЬ":"II · CORE INDICATORS",
+ sections.push(header("sun-moon",uk?"Сонце, почуття та звичні реакції":"Sun, feelings and familiar reactions",uk?"II · ОСОБИСТІСНА ВІСЬ":"II · CORE INDICATORS",
   uk?"Два головні символічні орієнтири для самовираження й внутрішнього життя.":"Two core symbolic reference points for expression and inner life.",
   [(sun?line(sun,uk)+". ":"")+(uk?"Сонце традиційно пов’язують з волею, роллю та образом себе.":"The Sun is associated with purpose, identity and expression."),
    (moon?line(moon,uk)+". ":"")+(uk?"Місяць у накшатрі ":"The Moon is in nakshatra ")+(uk?ukTerm(moon?.nakshatra||"—"):(moon?.nakshatra||"—"))+", "+(uk?"пада ":"pada ")+(moon?.pada||"—")+". "+(uk?"Це деталізує місячне положення всередині зодіакального знака.":"This refines the lunar position within the zodiac sign.")],
   [],"earth"));
- sections.push(header("planets-intro",uk?"Дев’ять ґрах натальної карти":"Nine grahas of the birth chart",uk?"III · ПЛАНЕТИ D1":"III · PLANETS D1",
-  uk?"Кожна ґраха поєднує тему планети, знак і дім.":"Each graha combines planetary themes with its sign and house.",
+ sections.push(header("planets-intro",uk?"Планети та їхні символічні теми":"Planets and their symbolic themes",uk?"III · ПЛАНЕТИ D1":"III · PLANETS D1",
+  uk?"Кожне положення поєднує символічну тему, знак зодіаку й сферу життя.":"Each placement connects a symbolic theme with a zodiac sign and an area of life.",
   [uk?"Нижче всі положення взяті безпосередньо з розрахунку D1. Ретроградність показується лише там, де вона є у вхідних ефемеридах.":"Every placement below comes directly from D1. Retrograde motion is shown only when present in the ephemeris."],
   [joinPlanets(chart.d1,uk)]));
  for(const p of chart.d1){
@@ -132,49 +132,49 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
    "Calculated degree: "+p.degreesInSign.toFixed(2)+"°; nakshatra "+p.nakshatra+", pada "+p.pada+". "+(p.retrograde?"Retrograde motion is indicated.":"")
   ];
   sections.push(header("planet-"+p.name.toLowerCase(),planetName+" · "+sign(p.sign,uk),uk?"ПОЛОЖЕННЯ ПЛАНЕТИ":"PLANET PLACEMENT",
-    uk?p.house+"-й дім · "+topic:"House "+p.house+" · "+topic,paragraphs,[line(p,uk)]));
+    uk?"Сфера "+p.house+" · "+topic:"Life area "+p.house+" · "+topic,paragraphs,[line(p,uk)]));
  }
- sections.push(header("houses-intro",uk?"Усі 12 домів":"All twelve houses",uk?"IV · СФЕРИ ЖИТТЯ":"IV · LIFE DOMAINS",
-  uk?"Розміщення домів визначає Лагна; порожній дім не означає відсутності теми.":"Houses are counted from the ascendant; an empty house does not mean that area of life is absent.",
-  [uk?"У цілознаковій системі кожен дім відповідає окремому знаку. Далі наведено сферу кожного дому та фактичні планети в ньому.":"In whole-sign houses, each house corresponds to one zodiac sign. The entries show each house theme and its actual occupants."],
+ sections.push(header("houses-intro",uk?"12 сфер життя":"12 areas of life",uk?"IV · СФЕРИ ЖИТТЯ":"IV · LIFE DOMAINS",
+  uk?"Висхідний знак задає порядок дванадцяти сфер життя. Якщо в якійсь сфері немає планет, це не означає, що тема відсутня.":"The rising sign sets the order of twelve life areas. An area without planets is not considered absent.",
+  [uk?"У цій системі кожна сфера життя відповідає одному знаку зодіаку. Нижче вказано тему сфери та планети, які з нею пов’язують.":"In this system, each life area corresponds to one zodiac sign. The entries show its theme and associated planets."],
   [],"nebula"));
  for(let h=1;h<=12;h++){
   const occupants=chart.d1.filter(p=>p.house===h),houseSign=(asc.sign+h-2)%12+1;
   const label=occupants.map(p=>planet(p.name,uk)).join(", ");
-  sections.push(header("house-"+h,(uk?"Дім ":"House ")+h+" · "+sign(houseSign,uk),uk?"XII ДОМІВ":"TWELVE HOUSES",
+  sections.push(header("house-"+h,(uk?"Сфера життя ":"Life area ")+h+" · "+sign(houseSign,uk),uk?"XII СФЕР ЖИТТЯ":"TWELVE LIFE AREAS",
    uk?HOUSE_UK[h-1]:HOUSE_EN[h-1],
-   [uk?"У цьому домі знак "+sign(houseSign,true)+" задає символічний тон: "+SIGN_THEMES_UK[houseSign-1]+".":"The sign "+sign(houseSign,false)+" gives this house its tonal context.",
-    occupants.length?(uk?"Планети у домі: ":"Occupants: ")+label+".":(uk?"Планет у домі немає. Це не робить його неактивним: традиційний аналіз також враховує управителя знака.":"No grahas occupy this house. This does not imply inactivity; house rulers are also considered in traditional readings.")],
+   [uk?"Знак "+sign(houseSign,true)+" додає цій сфері символічні теми: "+SIGN_THEMES_UK[houseSign-1]+".":"The sign "+sign(houseSign,false)+" adds symbolic themes to this area.",
+    occupants.length?(uk?"Планети, пов’язані з цією сферою: ":"Planets associated with this area: ")+label+".":(uk?"У цій сфері немає планет, але це не означає, що тема неважлива. Традиція також враховує інші зв’язки карти.":"No planets occupy this area, but that does not mean it is unimportant. The tradition also considers other chart connections.")],
    occupants.map(p=>line(p,uk))));
  }
  const aspects=calculateParashariDrishti(chart);
- sections.push(header("drishti",uk?"Дрішті: як ґрахи впливають на доми":"Drishti: traditional planetary aspects",
+ sections.push(header("drishti",uk?"Як планети символічно впливають одна на одну":"How planets symbolically influence one another",
   uk?"V · КЛАСИЧНІ АСПЕКТИ":"V · CLASSICAL ASPECTS",
-  uk?"Обчислені цілознакові аспекти за правилами Парашарі.":"Calculated whole-sign graha aspects using Parashari conventions.",
-  [uk?"Усі сім класичних планет аспектують сьомий дім від себе. Марс додатково аспектує четвертий і восьмий, Юпітер — п’ятий і дев’ятий, Сатурн — третій і десятий.":"All seven classical planets aspect their seventh house; Mars adds fourth and eighth, Jupiter fifth and ninth, and Saturn third and tenth.",
-   uk?"Нижче показані всі цілознакові дрішті до домів, а також планети в цільовому домі, якщо вони є. Це не західні кутові аспекти з орбісами. Трактування аспектів Раху й Кету різниться між школами, тому їх тут не обчислюємо.":"The list includes every whole-sign drishti and the occupants of its target house, if present. These are not Western degree-orb aspects. Rahu/Ketu rules vary across traditions and are omitted."],
+  uk?"У традиції Джйотіш певним планетам приписують зв’язок з окремими сферами життя. Тут показані лише зв’язки, для яких визначено чітке правило.":"In Jyotish, planets are traditionally linked with particular areas of life. This section shows only connections defined by explicit rules.",
+  [uk?"За обраною традицією різні планети пов’язують із різними напрямками уваги. Марс, Юпітер і Сатурн мають додаткові зв’язки; правила для Раху й Кету різняться між школами, тому тут вони не враховані.":"In the selected tradition, planets are associated with different directions of attention. Mars, Jupiter and Saturn have additional connections; rules for Rahu and Ketu vary by school, so they are omitted here.",
+   uk?"Нижче показано, з якими сферами життя пов’язують кожну планету за обраними правилами. Це традиційна схема тлумачення, а не фізичний вплив чи гарантована подія.":"Below are the life areas associated with each planet under the selected rules. This is a traditional interpretive framework, not a physical effect or guaranteed event."],
   aspects.map(a=>planet(a.source,uk)+" → "+(uk?"дім ":"house ")+a.targetHouse+" ("+(a.occupants.length?a.occupants.map(p=>planet(p,uk)).join(", "):(uk?"без планет":"empty"))+")")));
  const conjunctions=Array.from({length:12},(_,index)=>({
   house:index+1,grahas:chart.d1.filter(p=>p.house===index+1)
  })).filter(x=>x.grahas.length>1);
- sections.push(header("conjunctions",uk?"Сполучення ґрах у домах":"Graha conjunctions within houses",
+ sections.push(header("conjunctions",uk?"Планети, розташовані разом":"Planets sharing a life area",
   uk?"V · СПІЛЬНІ ПОЛОЖЕННЯ":"V · SHARED PLACEMENTS",
-  uk?"Кілька ґрах в одному цілознаковому домі створюють додаткові теми для спільного читання.":"Multiple grahas in the same whole-sign house add another layer of context.",
-  [uk?"Тут зафіксовано лише спільне перебування в домі, а не точне з’єднання за градусами, яке потребувало б окремого правила орбісу.":"The list identifies planets sharing a house, not degree-perfect conjunctions or orb-based proximity.",
-   uk?"Відсутність сполучення у списку не означає відсутності впливів: окремі ґрахи можуть проявлятися через доми та дрішті.":"Not appearing here does not imply an absence of influence; individual grahas still inform house and drishti readings."],
-  conjunctions.length?conjunctions.map(x=>(uk?"Дім ":"House ")+x.house+": "+x.grahas.map(p=>planet(p.name,uk)).join(", ")):[uk?"Спільних положень кількох ґрах в одному домі немає.":"No house contains multiple grahas."]));
- sections.push(header("navamsa",uk?"Навамша · D9":"Navamsa · D9",uk?"VI · ПАРТНЕРСТВО ТА ЦІННОСТІ":"VI · RELATIONSHIPS & VALUES",
-  uk?"Дробова карта з окремими обчисленими положеннями.":"A divisional chart with separately computed positions.",
-  [uk?"Лагна D9 — "+sign(chart.lagnaD9.sign,true)+". У традиції Навамшу розглядають як додатковий шар аналізу стосунків, узгодженості цінностей та внутрішньої зрілості.":"D9 ascendant: "+sign(chart.lagnaD9.sign,false)+". Navamsa is used traditionally as an additional layer for partnerships, values and maturation.",
+  uk?"Коли кілька планет опиняються в одній сфері життя, традиція розглядає їхні теми разом.":"When several planets occupy the same life area, the tradition interprets their themes together.",
+  [uk?"Тут зафіксовано спільне розташування в одній сфері, а не точну близькість за градусами.":"This identifies planets in the same area, not exact closeness measured in degrees.",
+   uk?"Навіть якщо планети не стоять разом, традиція розглядає їхні зв’язки з іншими сферами карти.":"Even when planets do not share an area, the tradition considers their connections with other areas."],
+  conjunctions.length?conjunctions.map(x=>(uk?"Сфера ":"Life area ")+x.house+": "+x.grahas.map(p=>planet(p.name,uk)).join(", ")):[uk?"Спільних положень кількох ґрах в одному домі немає.":"No house contains multiple grahas."]));
+ sections.push(header("navamsa",uk?"Стосунки й цінності (D9)":"Relationships and values (D9)",uk?"VI · ПАРТНЕРСТВО ТА ЦІННОСТІ":"VI · RELATIONSHIPS & VALUES",
+  uk?"Допоміжна карта, яку традиція використовує для роздумів про партнерство, внутрішню зрілість і цінності.":"A supplementary chart traditionally used to reflect on partnership, inner maturity and values.",
+  [uk?"У допоміжній карті D9 висхідний знак — "+sign(chart.lagnaD9.sign,true)+". Її традиційно використовують як додаткову перспективу для тем стосунків, цінностей і зрілості.":"The rising sign in supplementary chart D9 is "+sign(chart.lagnaD9.sign,false)+". Traditionally, this chart offers another perspective on relationships, values and maturity.",
    uk?"Список положень D9 нижче сформовано з обчислень, а не з припущень LLM.":"The following D9 positions come from calculation rather than model guesses."],
   chart.d9.map(p=>line(p,uk)),"earth"));
- sections.push(header("dashamsa",uk?"Дашамша · D10":"Dashamsa · D10",uk?"VII · ПРОФЕСІЙНИЙ ШЛЯХ":"VII · WORK & VOCATION",
-  uk?"Окремий погляд на професійні теми, а не заміна D1.":"A complementary view of vocation, not a replacement for D1.",
-  [uk?"Лагна D10 — "+sign(chart.lagnaD10.sign,true)+". Дашамшу традиційно застосовують для аналізу професійного самовираження, ролі у колективі та прагнень.":"D10 ascendant: "+sign(chart.lagnaD10.sign,false)+". Dashamsa is used traditionally to explore vocation, contribution and public roles.",
+ sections.push(header("dashamsa",uk?"Робота й суспільна роль (D10)":"Work and public role (D10)",uk?"VII · ПРОФЕСІЙНИЙ ШЛЯХ":"VII · WORK & VOCATION",
+  uk?"Допоміжна карта для символічного розгляду роботи, внеску та суспільної ролі. Вона доповнює, а не замінює основну карту.":"A supplementary chart for reflecting on work, contribution and public role. It complements rather than replaces the main chart.",
+  [uk?"У допоміжній карті D10 висхідний знак — "+sign(chart.lagnaD10.sign,true)+". Традиція використовує її для роздумів про професійний шлях і внесок у суспільство.":"The rising sign in supplementary chart D10 is "+sign(chart.lagnaD10.sign,false)+". The tradition uses it to reflect on vocation and contribution.",
    uk?"Усі дев’ять положень відображають ту саму вихідну карту, перетворену за правилами D10.":"All nine positions are mathematically derived from the same birth chart using D10 rules."],
   chart.d10.map(p=>line(p,uk)),"nebula"));
- sections.push(header("cross-varga",uk?"Одна ґраха — три рівні читання":"One graha across three charts",uk?"VII · ЗВ’ЯЗКИ D1 / D9 / D10":"VII · CROSS-CHART CONNECTIONS",
-  uk?"Порівняння реальних положень однієї ґрахи у трьох розрахованих картах.":"Compare the same calculated graha across three complementary charts.",
+ sections.push(header("cross-varga",uk?"Одна планета в трьох картах":"One planet across three charts",uk?"VII · ЗВ’ЯЗКИ D1 / D9 / D10":"VII · CROSS-CHART CONNECTIONS",
+  uk?"Порівняння положення тієї самої планети в основній і двох допоміжних картах.":"Compare the same planet in the main chart and two supplementary charts.",
   [uk?"D1 описує основні положення народження, D9 деталізує один із шарів внутрішніх цінностей та партнерства, а D10 — професійний контекст. Вони не є трьома незалежними прогнозами.":"D1 provides natal placements; D9 and D10 offer complementary traditional lenses on values, partnership and vocation. They are not three independent predictions.",
    uk?"Зміна знака при переході між варгами визначається математичними правилами поділу зодіаку, а не рішенням мовної моделі.":"Changes in sign across Vargas follow mathematical divisional rules, not AI guesses."],
   chart.d1.map(p=>{
@@ -184,10 +184,10 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  const reference=Date.parse(asOf+'T12:00:00.000Z');
  const active=chart.dasha.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
  const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
- sections.push(header("dasha",uk?"Вімшоттарі-даша: часові цикли":"Vimshottari Dasha: time cycles",uk?"VIII · РИТМ ПЕРІОДІВ":"VIII · PERIOD RHYTHM",
-  uk?"Періоди обчислені з накшатри Місяця.":"Dasha periods are computed from the lunar nakshatra.",
-  [active?(uk?"Активна махадаша — "+planet(active.lord,true)+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+").":"Current Mahadasha: "+active.lord+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+")."):(uk?"Активної махадаші у збереженому діапазоні немає.":"No active Mahadasha within the calculated range."),
-   sub?(uk?"Поточна антардаша — "+planet(sub.lord,true)+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+").":"Current Antardasha: "+sub.lord+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+")."):(uk?"Антардаша не визначена для цього періоду.":"Antardasha is not specified for this time."),
+ sections.push(header("dasha",uk?"Життєві цикли в традиції Джйотіш":"Life cycles in the Jyotish tradition",uk?"VIII · РИТМ ПЕРІОДІВ":"VIII · PERIOD RHYTHM",
+  uk?"Ця система поділяє час на символічні періоди, пов’язані з планетами.":"This system divides time into symbolic periods associated with planets.",
+  [active?(uk?"Основний період — "+planet(active.lord,true)+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+").":"Main period: "+active.lord+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+")."):(uk?"Активної махадаші у збереженому діапазоні немає.":"No active Mahadasha within the calculated range."),
+   sub?(uk?"Вкладений підперіод — "+planet(sub.lord,true)+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+").":"Nested sub-period: "+sub.lord+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+")."):(uk?"Антардаша не визначена для цього періоду.":"Antardasha is not specified for this time."),
    uk?"Ці дати — обчислені межі циклів; самі собою вони не передбачають конкретних подій.":"These dates are calculated cycle boundaries, not predictions of particular events."],
   chart.dasha.map(d=>planet(d.lord,uk)+": "+d.start.slice(0,10)+" — "+d.end.slice(0,10))));
  const findings=ruleFindings(chart);
@@ -248,29 +248,29 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
    label(String(v.ruler))+' → '+(uk?'дім ':'house ')+v.locatedHouse+
    ' ('+sign(Number(v.locatedSign),uk)+') ['+f.id+']';
  });
- sections.push(header("house-lords",uk?"Управителі 12 домів":"Lords of all 12 houses",
+ sections.push(header("house-lords",uk?"Зв’язки між сферами життя":"Connections between life areas",
   uk?"IX · ВЕРИФІКОВАНІ ПРАВИЛА":"IX · VERIFIED RULES",
-  uk?"Управитель кожного знака визначається за Парашарі, а його дім — безпосередньо з D1.":"Classical sign lordships and their actual D1 placements.",
-  [uk?"Управитель показує, через який дім традиційно пов’язують теми відповідного дому. Це тільки структурна прив’язка, не гарантія подій. Раху й Кету не отримують управління знаками у цій конфігурації.":"House lordship connects the theme of each house to the actual house of its sign ruler; this does not predict specific outcomes. Nodes receive no rulership in this ruleset.",lordStory(1),lordStory(7),lordStory(10)],
+  uk?"За традиційними правилами кожному знаку відповідає планета-управитель. Її положення створює символічний зв’язок між двома сферами життя.":"In this tradition, each sign has a ruling planet. Its position creates a symbolic connection between two life areas.",
+  [uk?"Планета-управитель допомагає пов’язати теми однієї сфери з іншою. Це структурне правило традиції, а не гарантія подій. Раху й Кету в цій системі не призначаються управителями знаків.":"The ruling planet connects the themes of one area with another. This is a traditional structural rule, not a guarantee of events. This ruleset does not assign sign rulership to Rahu or Ketu.",lordStory(1),lordStory(7),lordStory(10)],
   houseLordDetails));
- sections.push(header("dignities",uk?"Гідність ґрах у D1":"Sign dignity of the D1 grahas",
+ sections.push(header("dignities",uk?"Особливі положення планет":"Special planetary positions",
   uk?"X · КЛАСИЧНІ ПОЛОЖЕННЯ":"X · CLASSICAL PLACEMENTS",
-  uk?"Власний знак, екзальтація, дебілітація або нейтрально класифіковане положення.":"Own sign, exaltation, debilitation and other placements.",
+  uk?"Традиція вважає одні знаки більш природними, а інші — складнішими для певних планет. Це умовна класифікація, а не оцінка людини.":"The tradition considers some signs more natural and others more challenging for particular planets. This is a symbolic classification, not a judgement of a person.",
   [uk?"Це лише класифікація положення за знаком. Повна сила ґрахи (Шадбала), дружба, спалення, градусна точність, ретроградність і скасування дебілітації тут не обчислюються.":"This is a sign-only classification, not Shadbala, combustion, degrees, friendships or debilitation cancellation.",dignityStory()],
   findings.dignities.map(f=>{
    const v=f.values,term=dignityLabel[String(v.dignity)]||dignityLabel.other;
    return label(f.subject)+' — '+sign(Number(v.sign),uk)+', '+(uk?'дім ':'house ')+v.house+
     ': '+term[uk?0:1]+' ['+f.id+']';
   })));
- sections.push(header("yogas",uk?"Панча Махапуруша йоги":"Pancha Mahapurusha yogas",
+ sections.push(header("yogas",uk?"Особливі комбінації планет":"Special planetary combinations",
   uk?"XI · ПЕРЕВІРЕНІ КОМБІНАЦІЇ":"XI · VERIFIED COMBINATIONS",
-  uk?"П’ять класичних типів йог, визначених за Кендрою від Лагни та гідністю ґрахи.":"Five possible yoga types evaluated from Lagna kendra and graha dignity.",
+  uk?"Перевірка п’яти традиційних комбінацій за чіткими правилами розташування планет.":"Five traditional combinations checked against explicit planetary-position rules.",
   [uk?"Правило: Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в домі 1, 4, 7 або 10 від Лагни та у власному знаку або знаку екзальтації. Йоги від Місяця, скасування та загальна сила потребують окремих правил і наразі не визначаються.":"Rule: Mars, Mercury, Jupiter, Venus or Saturn must be in house 1, 4, 7 or 10 from Lagna and in own or exaltation sign. Moon-relative variants and strength modifiers are deliberately excluded.",yogaStory()],
   findings.yogas.length?findings.yogas.map(y=>
    y.name+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'дім ':'house ')+y.house+
    ' ('+(uk?(y.reason==='exalted'?'екзальтація':'власний знак'):y.reason)+') ['+y.id+']'
   ):[uk?"За цими конкретними критеріями жодна з п’яти йог не сформувалася. Це не висновок про інші йоги чи життєві події.":"None of the five yogas meets these exact rules; this says nothing about other yoga families or events."]));
- sections.push(header("rule-synthesis",uk?"Синтез за перевіреними правилами":"Synthesis from verified rules",
+ sections.push(header("rule-synthesis",uk?"Що підкреслюють правила карти":"What the chart rules highlight",
   uk?"XII · ДЕТЕРМІНОВАНЕ ТРАКТУВАННЯ":"XII · DETERMINISTIC INTERPRETATION",
   uk?"Пояснення складається алгоритмом з конкретних правил і завжди повторюється для тих самих даних.":"Algorithm-written interpretation based on specific rules; repeatable for identical inputs.",
   [lordStory(1),lordStory(7),lordStory(10),dignityStory(),yogaStory(),
