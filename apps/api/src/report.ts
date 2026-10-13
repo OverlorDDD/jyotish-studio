@@ -143,7 +143,6 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en'):Detail
    occupants.map(p=>line(p,uk))));
  }
  const aspects=calculateParashariDrishti(chart);
- const hits=aspects.filter(a=>a.occupants.length>0);
  sections.push(header("drishti",uk?"Дрішті: як ґрахи впливають на доми":"Drishti: traditional planetary aspects",
   uk?"V · КЛАСИЧНІ АСПЕКТИ":"V · CLASSICAL ASPECTS",
   uk?"Обчислені цілознакові аспекти за правилами Парашарі.":"Calculated whole-sign graha aspects using Parashari conventions.",
