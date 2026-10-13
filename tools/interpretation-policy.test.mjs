@@ -25,3 +25,12 @@ test('yoga references must occur on the approved engine yoga list',()=>{
  assert.equal(verifyFreeProse('Ruchaka yoga encourages initiative in the tradition.',['Ruchaka']).ok,true);
  assert.equal(verifyFreeProse('Shasha yoga influences discipline and responsibility.',['Ruchaka']).ok,false);
 });
+
+test('free LLM cannot independently invent sign placements or unnamed yoga families',()=>{
+ for(const candidate of [
+  'Sun in Pisces changes every aspect of your experience.',
+  'Сонце у Скорпіоні нібито визначає життєвий шлях.',
+  'Raja yoga is present and promises guaranteed wealth.',
+  'Гаджакесарі йога показує матеріальний успіх.'
+ ])assert.equal(verifyFreeProse(candidate).ok,false,candidate);
+});
