@@ -5,8 +5,20 @@ datasource db {
  provider = "postgresql"
  url = env("DATABASE_URL")
 }
+model User {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ email String @unique
+ passwordHash String
+ charts Chart[]
+}
+
 model Chart {
  id         String   @id @default(uuid())
+ ownerId    String?
+ owner      User? @relation(fields:[ownerId],references:[id],onDelete:Cascade)
+ savedReport Json?
+ @@index([ownerId])
  createdAt  DateTime @default(now())
  input      Json
  result     Json
