@@ -223,6 +223,13 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
    return label(f.subject)+' '+description+'. ['+f.id+']';
   }).join(' ');
  };
+ const yogaLabel=(name:string)=>({
+  Ruchaka:uk?'Ручака':'Ruchaka',
+  Bhadra:uk?'Бгадра':'Bhadra',
+  Hamsa:uk?'Гамса':'Hamsa',
+  Malavya:uk?'Малав’я':'Malavya',
+  Shasha:uk?'Шаша':'Shasha'
+ } as Record<string,string>)[name]||name;
  const yogaThemes:Record<string,[string,string]>={
   Ruchaka:['ініціатива та дисципліна дії','initiative and disciplined action'],
   Bhadra:['інтелект, комунікація та навчання','intellect, communication and learning'],
@@ -232,10 +239,10 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  };
  const yogaStory=()=>{
   if(!findings.yogas.length)return uk?
-   'Відсутність однієї з п’яти Махапуруша йог не виключає інших традиційних комбінацій.':
-   'No detected Pancha Mahapurusha yoga does not rule out other traditional combinations.';
-  return findings.yogas.map(y=>(uk?'Для ':'For ')+y.name+
-   (uk?' традиційні символічні теми — ':' the classical symbolic topics are ')+
+   'За заданими критеріями ці п’ять комбінацій не виявлено. Це не виключає інших традиційних поєднань.':
+   'None of these five combinations met the specified criteria. Other traditional combinations are not assessed here.';
+  return findings.yogas.map(y=>(uk?'Для комбінації «':'For the combination “')+yogaLabel(y.name)+
+   (uk?' » традиційні символічні теми — ':'”, the traditional symbolic themes are ')+
    yogaThemes[y.name][uk?0:1]+'. ['+y.id+']').join(' ');
  };
  const houseLordDetails=findings.lords.map(f=>{
@@ -263,7 +270,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   uk?"Перевірка п’яти традиційних комбінацій за чіткими правилами розташування планет.":"Five traditional combinations checked against explicit planetary-position rules.",
   [uk?"Одна з п’яти комбінацій рахується, коли Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в одній із ключових сфер життя (1, 4, 7 або 10) і в традиційно сильному для нього знаку. Інші варіанти та додаткові умови тут не оцінюються.":"One of the five combinations is counted when Mars, Mercury, Jupiter, Venus or Saturn occupies one of four key life areas (1, 4, 7 or 10) and a traditionally strong sign. Other variants and modifiers are not assessed here.",yogaStory()],
   findings.yogas.length?findings.yogas.map(y=>
-   y.name+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'сфера життя ':'life area ')+y.house+
+   yogaLabel(y.name)+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'сфера життя ':'life area ')+y.house+
    ' ('+(uk?(y.reason==='exalted'?'екзальтація':'власний знак'):y.reason)+') ['+y.id+']'
   ):[uk?"За цими конкретними критеріями жодна з п’яти йог не сформувалася. Це не висновок про інші йоги чи життєві події.":"None of the five yogas meets these exact rules; this says nothing about other yoga families or events."]));
  sections.push(header("rule-synthesis",uk?"Що підкреслюють правила карти":"What the chart rules highlight",
