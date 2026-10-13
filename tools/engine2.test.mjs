@@ -63,6 +63,8 @@ test('missing, duplicate, or inconsistent astronomical facts fail closed',()=>{
  assert.throws(()=>ruleFindings(duplicate),/Duplicate/);
  const changed=chart();changed.d1[0].house=4;
  assert.throws(()=>ruleFindings(changed),/mismatch/);
+ const longitudeMismatch=chart();longitudeMismatch.d1[0].longitude+=30;
+ assert.throws(()=>ruleFindings(longitudeMismatch),/longitude\/sign mismatch/);
  const missing=chart();missing.d1=missing.d1.slice(1);
  assert.throws(()=>ruleFindings(missing));
 });
@@ -74,7 +76,7 @@ test('fingerprint is stable across repeated calculations and shuffles but reacts
  // Rule facts retain D1 order; astronomy arrays are semantically sets, digest normalizes in patch later.
  assert.equal(h1.length,64);
  assert.notEqual(h1,ruleFingerprint(a,'2026-10-14'));
- const moved=chart();moved.d1.find(g=>g.name==='Sun').longitude+=0.125;
+ const moved=chart();moved.d1.find(g=>g.name==='Sun').longitude+=0.125;moved.d1.find(g=>g.name==='Sun').degreesInSign+=0.125;
  assert.notEqual(h1,ruleFingerprint(moved,'2026-10-13'));
  assert.throws(()=>ruleFingerprint(a,'bad'));
 });
