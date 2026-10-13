@@ -100,6 +100,6 @@ export function ruleFingerprint(chart:CalculatedChart,asOf:string){
  return createHash('sha256').update(JSON.stringify({
   rules:RULESET_VERSION,asOf,lagna:chart.ascendant.sign,
   d1:sorted(chart.d1),d9:sorted(chart.d9),d10:sorted(chart.d10),
-  dasha:chart.dasha,ruleFacts:details.facts
+  dasha:chart.dasha,ruleFacts:[...details.facts].sort((a,b)=>a.id.localeCompare(b.id,'en'))
  })).digest('hex');
 }
