@@ -28,8 +28,8 @@ const PHOTOS={
 const NAV=[
  ['portrait','Портрет','Portrait'],['sun-moon','Сонце та Місяць','Sun & Moon'],
  ['planets-intro','9 ґрах','9 grahas'],['houses-intro','12 домів','12 houses'],
- ['drishti','Дрішті','Drishti'],['navamsa','Навамша D9','Navamsa D9'],
- ['dashamsa','Дашамша D10','Dashamsa D10'],['dasha','Даші','Dashas']
+ ['drishti','Дрішті','Drishti'],['conjunctions','Сполучення','Conjunctions'],['navamsa','Навамша D9','Navamsa D9'],
+ ['dashamsa','Дашамша D10','Dashamsa D10'],['cross-varga','D1 / D9 / D10','D1 / D9 / D10'],['dasha','Даші','Dashas']
 ] as const;
 const FALLBACK_UK:Record<string,string>={
  hourly_limit:'Вичерпано локальний ліміт безкоштовних запитів.',
