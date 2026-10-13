@@ -276,7 +276,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   [lordStory(1),lordStory(7),lordStory(10),dignityStory(),yogaStory(),
    uk?"Цей синтез є викладом традиційних символічних відповідностей, а не доказом подій чи науковим прогнозом. Його фактичні дані не змінюються генеративною моделлю.":
    "This is an interpretation of traditional symbolic correspondences, not evidence of events or a scientific forecast. The generative model cannot alter its data."],
-  [uk?"Версія правил: ":"Ruleset: "+RULESET_VERSION,uk?"Перевірені факти: "+findings.facts.length:"Verified facts: "+findings.facts.length]));
+  [(uk?"Версія правил: ":"Ruleset: ")+RULESET_VERSION,(uk?"Перевірені факти: ":"Verified facts: ")+findings.facts.length]));
  return {sections,generatedAt:asOf+'T00:00:00.000Z',asOf,
   rulesVersion:RULESET_VERSION,rulesDigest:ruleFingerprint(chart,asOf),
   ruleFacts:findings.facts,chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
