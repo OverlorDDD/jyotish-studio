@@ -69,6 +69,9 @@ export function astrologicalFacts(chart:CalculatedChart,lang:'uk'|'en',now=Date.
 
 const REPORT_HEADINGS:Record<string,{uk:string;en:string}>={
  identity:{uk:'Загальна картина',en:'The big picture'},
+ lagna:{uk:'Загальна картина',en:'The big picture'},
+ sun:{uk:'Самовираження та цілі',en:'Self-expression and purpose'},
+ moon:{uk:'Почуття та внутрішній комфорт',en:'Feelings and inner comfort'},
  planets:{uk:'Що символізують планети',en:'What the planets represent'},
  houses:{uk:'Важливі сфери життя',en:'Important areas of life'},
  aspects:{uk:'Як різні теми взаємодіють',en:'How different themes interact'},
@@ -109,7 +112,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
        'Return 3-6 unique fact-linked sections in the requested language ('+lang+').',
        options.reportMode?
         'Write for a complete beginner who knows nothing about astrology. Use plain, everyday language and short, clear sentences. Explain what a theme might look like in ordinary life, and include a gentle practical reflection or question where useful. Be specific to the supplied themes rather than using vague mystical filler. Use 2-3 short sentences per section. Do not repeat the raw facts or planetary placements. Avoid technical words entirely in the narrative, including Lagna, graha, nakshatra, pada, house/bhava, drishti, dasha/antardasha, yoga, Rashi, Navamsa, Dashamsa, D1/D9/D10, sidereal, exalted or debilitated. The application adds a friendly section title separately. Never print numeric houses, degrees, dates, zodiac placements, classifications of strength/dignity or yoga names. Those factual claims are printed only by the deterministic rule engine. Describe traditional symbolism as a possibility for reflection, never a certainty or a guaranteed prediction. Do not make medical, financial or legal predictions.':
-        'Keep sections concise.',
+        'Write for a complete beginner in plain everyday language. Use 1-2 short sentences per section. Avoid technical terms such as Lagna, graha, nakshatra, pada, house/bhava, drishti, dasha, yoga, Rashi, Navamsa, Dashamsa or D1/D9/D10. Do not repeat raw placements, dates, numeric houses or degrees. The application adds a friendly section title. Explain traditional symbolism as a possibility for reflection, not as a certainty or prediction. No medical, financial or legal predictions.',
        options.formatMode==='prompt'?
         'Output only a JSON object with a sections array of objects containing factId and text. Allowed factIds: '+facts.map(f=>f.id).join(', ')+'. Each factId must be unique; every text must be at least 20 characters. No markdown fences or other text.':
         'Output only the required JSON schema.'
@@ -144,11 +147,11 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    if(!entry||typeof entry!=='object')throw new AiProviderError('format','Malformed interpretation section');
    const e=entry as {factId?:unknown;text?:unknown};
    if(typeof e.factId!=='string'||typeof e.text!=='string'||ids.has(e.factId)||e.text.trim().length<20||e.text.length>800)throw new AiProviderError('format','Invalid or duplicate interpretation section');
-   if(options.reportMode&&!verifyFreeProse(e.text,options.approvedYogas).ok)throw new AiProviderError('format','AI prose contains an unverified factual claim');
+   if(!verifyFreeProse(e.text,options.approvedYogas).ok)throw new AiProviderError('format','AI prose contains an unverified factual claim');
    const fact=facts.find(f=>f.id===e.factId);
    if(!fact)throw new AiProviderError('format','Interpretation cited an unknown fact');
    ids.add(e.factId);
-   lines.push(`${options.reportMode?reportHeading(e.factId,lang):fact.fact}\n${e.text.trim()}`);
+   lines.push(`${reportHeading(e.factId,lang)}\n${e.text.trim()}`);
   }
   const disclaimer=lang==='uk'?'Трактування в традиції Джйотіш.':'Interpretation in the Jyotish tradition.';
   const narrative=lines.join('\n\n')+(options.reportMode?'':'\n\n'+disclaimer);
