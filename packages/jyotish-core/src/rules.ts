@@ -42,6 +42,11 @@ export function validateRuleInput(chart:CalculatedChart){
   const house=houseFrom(position.sign,chart.ascendant.sign);
   if(position.house!==house)throw new Error('D1 whole-sign house mismatch: '+position.name);
   if(!Number.isFinite(position.longitude)||!Number.isFinite(position.degreesInSign))throw new Error('Invalid graha longitude');
+  const lon=((position.longitude%360)+360)%360;
+  const actualSign=Math.floor(lon/30)+1;
+  if(actualSign!==position.sign)throw new Error('D1 longitude/sign mismatch: '+position.name);
+  if(Math.abs((lon%30)-position.degreesInSign)>0.00001)
+   throw new Error('D1 longitude/degree mismatch: '+position.name);
  }
  for(const name of [...CLASSICAL_GRAHAS,'Rahu','Ketu'])if(!found.has(name))throw new Error('Missing D1 graha '+name);
 }
