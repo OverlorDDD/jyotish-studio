@@ -7,6 +7,7 @@ export type ReadingSection={
 export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
+ lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string};
 };
@@ -142,6 +143,18 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
       <p>{t.meaning}</p>
       <p>{t.example}</p>
       <div className="reading-practical-action"><strong>{uk?'Спробуйте':'Try this'}</strong><p>{t.action}</p></div>
+    </article>)}</div>
+   </section>:null}
+  {report.lifePortrait?.chapters?.length?<section className="reading-portrait" aria-label={uk?'Цілісний життєвий портрет':'Whole-life profile'}>
+    <div className="reading-chapter-kicker">{uk?'✦ ЦІЛІСНИЙ ПОРТРЕТ':'✦ WHOLE-LIFE PROFILE'}</div>
+    <h3>{uk?'Сильні сторони, труднощі, стосунки, робота і розвиток':'Strengths, challenges, relationships, work and growth'}</h3>
+    <p className="reading-chapter-lead">{uk?'Ці розділи складає перевірений алгоритм з конкретних положень карти. Вони показують теми для саморефлексії, а не факти про вашу особистість чи передбачення майбутнього.':'These sections are generated from verified chart placements, as themes for reflection rather than facts about your personality or future predictions.'}</p>
+    <div className="reading-portrait-grid">{report.lifePortrait.chapters.map(chapter=><article key={chapter.id} className="reading-portrait-card">
+     <h4>{chapter.title}</h4>
+     <p>{chapter.overview}</p>
+     <p>{chapter.example}</p>
+     <div className="reading-practical-action"><strong>{uk?'Що зробити на практиці':'Try in real life'}</strong><p>{chapter.action}</p></div>
+     <details className="reading-portrait-evidence"><summary>{uk?'На чому ґрунтується':'Verified source facts'}</summary><code>{chapter.evidence.join(' · ')}</code></details>
     </article>)}</div>
    </section>:null}
   <section className="reading-llm reading-llm-summary" id="reading-ai">
