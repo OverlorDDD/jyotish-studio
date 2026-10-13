@@ -64,3 +64,31 @@
 @media(min-width:1030px){.reading-chapter:has(.reading-figure){flex-direction:row;min-height:280px;align-items:stretch}.reading-figure{width:36%;flex:0 0 36%;min-height:100%}.reading-figure-photo{height:100%;min-height:280px}.reading-chapter:has(.reading-figure) .reading-chapter-copy{flex:1;min-width:0}}
 @media(max-width:690px){.reading-root{padding-top:25px}.reading-chapter-copy{padding:22px 18px 24px}.reading-llm{padding:24px 20px}.reading-chapter-small{margin-left:0}.reading-chapter-small .reading-chapter-copy{padding:18px}.reading-chapter-small .reading-paragraph{font-size:12px}.reading-facts ul{grid-template-columns:1fr}.reading-toc a{padding:10px;font-size:11px}.reading-figure-photo{height:190px}.reading-figure{min-height:190px}}
 @media print{.sidebar,.reading-toc,.reading-end a{display:none!important}.reading-root{color:#101520;background:white}.reading-chapter,.reading-llm{page-break-inside:avoid;box-shadow:none}.reading-chapter-small{page-break-inside:avoid}}
+
+/* Optional account panel: full guest access, registration only for saving history. */
+.account-widget{position:relative;z-index:30}
+.account-trigger,.account-close,.account-link,.account-history-item button{border:0;cursor:pointer}
+.account-trigger{display:flex;gap:8px;align-items:center;background:#26344a;color:#f4dbab;border:1px solid #64563f;padding:10px 12px;border-radius:9px;font-size:12px;white-space:nowrap}
+.account-trigger:hover{border-color:#b89a64;background:#34435a}
+.account-popover{position:absolute;right:0;top:calc(100% + 12px);width:min(380px,calc(100vw - 28px));max-height:75vh;overflow:auto;padding:22px;background:#142032;border:1px solid #65583e;border-radius:13px;box-shadow:0 24px 80px #070d17dd;color:#e4e8ef;text-align:left}
+.account-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:19px;color:#f1dfb7}
+.account-close{color:#bec7d6;font-size:24px;background:transparent}
+.account-muted{color:#a6b2c3;font-size:13px;line-height:1.75;margin:12px 0}
+.account-email{font-size:12px;color:#d2bd91;overflow-wrap:anywhere}
+.account-primary{display:flex;justify-content:center;gap:9px;align-items:center;width:100%;border:0;border-radius:8px;padding:13px;color:#122033;background:#e4c789;font-size:13px;font-weight:700;margin:12px 0;cursor:pointer}
+.account-primary:disabled{opacity:.45;cursor:not-allowed}
+.account-form{display:grid;gap:8px;margin-top:14px}
+.account-form label{margin:5px 0 0;color:#cbd6e2;font-size:11px;text-transform:none;letter-spacing:.2px}
+.account-form input{display:block;margin-top:8px}
+.account-history-title{font-size:12px;font-weight:600;color:#e3c992;border-top:1px solid #344456;padding-top:16px;margin:20px 0 12px}
+.account-history{display:grid;gap:8px}
+.account-history-item{display:flex;gap:7px;align-items:center;padding:11px 8px;background:#1d2a3c;border:1px solid #314057;border-radius:8px}
+.account-history-item>div{flex:1;min-width:0}
+.account-history-item strong{display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-history-item small{display:block;font-size:10px;color:#91a3b8;margin-top:6px}
+.account-history-item button{background:#26374c;border-radius:6px;color:#e3c99a;display:grid;place-items:center;padding:8px}
+.account-history-item button:hover{background:#3c5068}
+.account-link{background:none;color:#d9c294;margin:14px 0 5px 0;font-size:12px;display:flex;align-items:center;gap:7px}
+.account-message{padding:10px;background:#28364c;border-left:2px solid #cbb280;color:#ebdda5;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.account-privacy{display:flex;align-items:center;gap:8px;color:#8391a4;font-size:10px;margin-top:16px;line-height:1.6}
+@media(max-width:690px){.account-trigger{padding:8px 9px;font-size:11px}.top-actions{gap:7px}.account-popover{position:fixed;left:12px;right:12px;top:75px;width:auto;max-height:calc(100vh - 88px)}}
