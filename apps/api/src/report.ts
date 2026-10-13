@@ -148,8 +148,17 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en'):Detail
   uk?"V · КЛАСИЧНІ АСПЕКТИ":"V · CLASSICAL ASPECTS",
   uk?"Обчислені цілознакові аспекти за правилами Парашарі.":"Calculated whole-sign graha aspects using Parashari conventions.",
   [uk?"Усі сім класичних планет аспектують сьомий дім від себе. Марс додатково аспектує четвертий і восьмий, Юпітер — п’ятий і дев’ятий, Сатурн — третій і десятий.":"All seven classical planets aspect their seventh house; Mars adds fourth and eighth, Jupiter fifth and ninth, and Saturn third and tenth.",
-   uk?"Нижче лише аспекти на доми, де вже є інша планета. Це не західні кутові аспекти з орбісами. Трактування аспектів Раху й Кету відрізняється між школами, тому їх тут не обчислюємо.":"Below are drishtis on houses occupied by another planet. These are not Western degree-orb aspects. Rahu/Ketu rules differ between traditions and are excluded."],
-  hits.map(a=>planet(a.source,uk)+" → "+(uk?"дім ":"house ")+a.targetHouse+" ("+a.occupants.map(p=>planet(p,uk)).join(", ")+")")));
+   uk?"Нижче показані всі цілознакові дрішті до домів, а також планети в цільовому домі, якщо вони є. Це не західні кутові аспекти з орбісами. Трактування аспектів Раху й Кету різниться між школами, тому їх тут не обчислюємо.":"The list includes every whole-sign drishti and the occupants of its target house, if present. These are not Western degree-orb aspects. Rahu/Ketu rules vary across traditions and are omitted."],
+  aspects.map(a=>planet(a.source,uk)+" → "+(uk?"дім ":"house ")+a.targetHouse+" ("+(a.occupants.length?a.occupants.map(p=>planet(p,uk)).join(", "):(uk?"без планет":"empty"))+")")));
+ const conjunctions=Array.from({length:12},(_,index)=>({
+  house:index+1,grahas:chart.d1.filter(p=>p.house===index+1)
+ })).filter(x=>x.grahas.length>1);
+ sections.push(header("conjunctions",uk?"Сполучення ґрах у домах":"Graha conjunctions within houses",
+  uk?"V · СПІЛЬНІ ПОЛОЖЕННЯ":"V · SHARED PLACEMENTS",
+  uk?"Кілька ґрах в одному цілознаковому домі створюють додаткові теми для спільного читання.":"Multiple grahas in the same whole-sign house add another layer of context.",
+  [uk?"Тут зафіксовано лише спільне перебування в домі, а не точне з’єднання за градусами, яке потребувало б окремого правила орбісу.":"The list identifies planets sharing a house, not degree-perfect conjunctions or orb-based proximity.",
+   uk?"Відсутність сполучення у списку не означає відсутності впливів: окремі ґрахи можуть проявлятися через доми та дрішті.":"Not appearing here does not imply an absence of influence; individual grahas still inform house and drishti readings."],
+  conjunctions.length?conjunctions.map(x=>(uk?"Дім ":"House ")+x.house+": "+x.grahas.map(p=>planet(p.name,uk)).join(", ")):[uk?"Спільних положень кількох ґрах в одному домі немає.":"No house contains multiple grahas."]));
  sections.push(header("navamsa",uk?"Навамша · D9":"Navamsa · D9",uk?"VI · ПАРТНЕРСТВО ТА ЦІННОСТІ":"VI · RELATIONSHIPS & VALUES",
   uk?"Дробова карта з окремими обчисленими положеннями.":"A divisional chart with separately computed positions.",
   [uk?"Лагна D9 — "+sign(chart.lagnaD9.sign,true)+". У традиції Навамшу розглядають як додатковий шар аналізу стосунків, узгодженості цінностей та внутрішньої зрілості.":"D9 ascendant: "+sign(chart.lagnaD9.sign,false)+". Navamsa is used traditionally as an additional layer for partnerships, values and maturation.",
