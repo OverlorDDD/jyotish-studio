@@ -78,7 +78,7 @@ const REPORT_HEADINGS:Record<string,{uk:string;en:string}>={
  navamsa:{uk:'Стосунки та особисті цінності',en:'Relationships and personal values'},
  dashamsa:{uk:'Робота й самореалізація',en:'Work and fulfilment'},
  rules:{uk:'Додаткові символічні акценти',en:'Additional symbolic themes'},
- dasha:{uk:'Період, у якому ви зараз перебуваєте',en:'The period you are currently in'}
+ dasha:{uk:'Поточний життєвий період',en:'The current life period'}
 };
 function reportHeading(factId:string,lang:'uk'|'en'){
  return REPORT_HEADINGS[factId]?.[lang]||(lang==='uk'?'Пояснення до карти':'Chart insight');
