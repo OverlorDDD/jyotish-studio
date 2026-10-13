@@ -113,6 +113,7 @@ function PlainLanguageGlossary({lang}:{lang:'uk'|'en'}){
    <div><dt>{uk?'Накшатра й пада':'Nakshatra and pada'}</dt><dd>{uk?'Додаткові поділи зодіакального кола, які уточнюють положення Місяця та інших тіл.':'Smaller divisions of the zodiac used to describe a more specific position, especially the Moon.'}</dd></div>
    <div><dt>{uk?'D1, D9 та D10':'D1, D9 and D10'}</dt><dd>{uk?'Основна карта та дві допоміжні карти, які в традиції використовують для різних тем, зокрема стосунків і роботи.':'The main chart and two supplementary charts traditionally used to explore themes including relationships and work.'}</dd></div>
    <div><dt>{uk?'Даша':'Dasha'}</dt><dd>{uk?'Традиційний символічний часовий цикл. Він не гарантує подій і не замінює власних рішень.':'A symbolic timing cycle in the tradition. It does not guarantee events or replace your own decisions.'}</dd></div>
+   <div><dt>{uk?'Айанамша':'Ayanamsha'}</dt><dd>{uk?'Математичне зміщення, яке враховує різницю між тропічним і сидеричним зодіаком. Для читання основного пояснення його можна не запам’ятовувати.':'A mathematical offset used to account for the difference between tropical and sidereal zodiac systems. You do not need to memorize it to understand the reading.'}</dd></div>
   </dl>
  </details>;
 }
