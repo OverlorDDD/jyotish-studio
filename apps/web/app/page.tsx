@@ -90,7 +90,7 @@ export default function Page(){
   try{
    const response=await fetch(api+'/api/v1/reports',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...chart.input,lang})
+    body:JSON.stringify({...chart.input,lang,asOf:new Date().toISOString().slice(0,10)})
    });
    const data=await readApiJson<ReadingReport>(response);
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
