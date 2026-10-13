@@ -142,3 +142,24 @@
 @media(max-width:700px){.reading-practical{padding:17px}.reading-practical-grid{grid-template-columns:1fr}}
 
 .reading-portrait{margin:30px 0;padding:23px;border:1px solid #6b6172;border-radius:14px;background:linear-gradient(140deg,#191f35,#121d2b)}.reading-portrait h3{font-size:23px;color:#edd7b7}.reading-portrait-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:18px}.reading-portrait-card{padding:20px;border-radius:10px;border:1px solid #3b4e67;background:#131f30}.reading-portrait-card h4{color:#eacb97;font-size:17px;margin:0 0 12px}.reading-portrait-card p{font-size:13px;line-height:1.8;color:#ced6e2}.reading-portrait-evidence{font-size:11px;margin-top:12px;color:#92a8c1}.reading-portrait-evidence summary{cursor:pointer}.reading-portrait-evidence code{display:block;overflow-wrap:anywhere;line-height:1.6;margin-top:7px}@media(max-width:720px){.reading-portrait{padding:17px}.reading-portrait-grid{grid-template-columns:1fr}}
+
+/* Reader-first report: numerical engine is opt-in rather than interrupting the interpretation. */
+.reading-technical{margin:38px 0 18px;border:1px solid #384558;border-radius:14px;background:#111c2a;overflow:hidden}
+.reading-technical>summary{cursor:pointer;list-style:none;padding:22px 25px;display:flex;flex-direction:column;gap:6px;color:#e5cb9f;font-size:16px;font-weight:650}
+.reading-technical>summary::-webkit-details-marker{display:none}
+.reading-technical>summary small{color:#91a1b7;font-size:12px;font-weight:400}
+.reading-technical[open]>summary{border-bottom:1px solid #354457}
+.reading-technical-inner{padding:18px 20px}
+.reading-technical-inner>p{font-size:13px;color:#aeb9ca;line-height:1.75}
+.reading-facts{margin:17px 0;border:1px solid #354357;border-radius:8px;padding:10px 14px}
+.reading-facts summary{cursor:pointer;font-size:12px;color:#d7bd89}
+.reading-facts ul{margin-top:12px}
+.reading-weekly-roadmap{margin:25px 0;padding:23px;border-radius:13px;border:1px solid #5c655a;background:linear-gradient(145deg,#172b2e,#14202d)}
+.reading-weekly-roadmap h3{font-size:23px;color:#f1e0be;margin:9px 0}
+.reading-weekly-roadmap>p{color:#c1ccd3;line-height:1.8;font-size:14px}
+.reading-weekly-roadmap ol{display:grid;gap:11px;padding-left:22px}
+.reading-weekly-roadmap li{padding:10px 10px 12px 5px;color:#d9bd88}
+.reading-weekly-roadmap li strong,.reading-weekly-roadmap li span{display:block}
+.reading-weekly-roadmap li strong{color:#eed7ad;margin-bottom:6px;font-size:14px}
+.reading-weekly-roadmap li span{color:#d7e1ec;font-size:13px;line-height:1.75}
+@media(max-width:700px){.reading-technical>summary,.reading-weekly-roadmap{padding:17px}.reading-technical-inner{padding:11px}}
