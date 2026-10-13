@@ -32,7 +32,7 @@ test('guest calculation and reports have no Prisma writes; old saved chart reads
  assert.ok(!code.includes('prisma.chart.create'));
  assert.ok(code.includes('const ownerId=owner(req)'));
  assert.ok(code.includes('findFirst({where:{id,ownerId}})'));
- assert.ok(code.includes('buildDetailedReport(chart,birth.lang)'));
+ assert.ok(code.includes('buildDetailedReport(chart,birth.lang,asOf)'));
  const account=source('apps/api/src/account.ts');
  assert.ok(account.includes('ownerId:id'));
  assert.ok(account.includes('where:{id:chartId,ownerId}'));
