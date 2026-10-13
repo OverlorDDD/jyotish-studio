@@ -68,6 +68,13 @@ export function sameOrigin(req:IncomingMessage){
   if(!['http:','https:'].includes(parsed.protocol))return false;
   const forwards=req.headers['x-forwarded-host'];
   const host=String(Array.isArray(forwards)?forwards[0]:forwards||req.headers.host||'').split(',')[0].trim().toLowerCase();
-  return parsed.host.toLowerCase()===host;
+  if(parsed.host.toLowerCase()===host)return true;
+  // Next.js rewrites to a loopback-only NestJS listener. Some Next versions
+  // preserve only the backend Host header instead of forwarding the browser Host.
+  const backendHost=String(req.headers.host||'').toLowerCase();
+  if(['127.0.0.1:4000','localhost:4000'].includes(backendHost)&&
+     ['localhost:3000','127.0.0.1:3000'].includes(parsed.host.toLowerCase())&&
+     parsed.protocol==='http:')return true;
+  return false;
  }catch{return false;}
 }
