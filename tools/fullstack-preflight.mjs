@@ -17,7 +17,7 @@ for(const model of ['Chart','Interpretation']){
  assert.ok(prisma.includes(`model ${model} {`));
  assert.ok(migration.includes(`CREATE TABLE "${model}"`));
 }
-assert.match(prisma,/model User \\{/);
+assert.ok(prisma.includes('model User {'));
 assert.match(prisma,/ownerId/);
 assert.match(prisma,/savedReport/);
 assert.match(accountsMigration,/CREATE TABLE "User"/);
