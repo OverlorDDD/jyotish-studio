@@ -1,3 +1,10 @@
+## Jyotish Engine 2.0 — rule-based and traceable readings
+
+Rule calculations now precede LLM inference: 12 classical house lords; sign-level dignity of the seven classical grahas; five possible Pancha Mahapurusha yogas from Lagna; deterministic interpretation templates; and a validated, versioned SHA-256 rules digest. The website includes separate chapters for these rules and an expandable evidence audit. The free language model cannot alter the calculated facts; its unverified numeric assertions are rejected. Identical chart + language + asOf yields identical canonical report content. In-process LLM results are replayed for 30 minutes; text across server restarts is not guaranteed identical.
+
+See [Jyotish Engine 2.0 implementation, source rules and testing](docs/jyotish-engine-2.md). Quick checks: npm run test:engine2, npm run test:report, npm run test:all, npm run test:swagger, npm run build. No new database migration is required.
+
+---
 ## Current product model: Guest access + personal history (Stage 8)
 
 Jyotish Studio is now ONE site. Visitors can calculate D1/D9/D10 and generate complete readings without registration; their guest data is never written into PostgreSQL. Registration adds private saved history, with login/logout, save, reopen and delete. Existing anonymous saved records remain unassigned and cannot be fetched publicly.
