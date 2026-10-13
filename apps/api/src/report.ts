@@ -1,5 +1,6 @@
 import type {CalculatedChart,Graha} from '../../../packages/jyotish-core/src/index.ts';
 import {ukTerm} from './terminology.ts';
+import {ruleFindings,ruleFingerprint,RULESET_VERSION,SIGN_NAMES} from '../../../packages/jyotish-core/src/rules.ts';
 
 /** Report data is compiled from Swiss Ephemeris output, not invented by the LLM. */
 export type ReportSection={
@@ -8,6 +9,7 @@ export type ReportSection={
 };
 export type DetailedReport={
  sections:ReportSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
+ asOf:string;rulesVersion:string;rulesDigest:string;ruleFacts:ReturnType<typeof ruleFindings>['facts'];
 };
 const SIGNS_UK=["Овен","Телець","Близнюки","Рак","Лев","Діва","Терези","Скорпіон","Стрілець","Козоріг","Водолій","Риби"];
 const SIGN_THEMES_UK=[
@@ -75,10 +77,11 @@ export function calculateParashariDrishti(chart:CalculatedChart){
 }
 
 /** Thematic facts for AI, excluding date/time/location/name and other identifying birth input. */
-export function detailedReportFacts(chart:CalculatedChart,lang:'uk'|'en'){
+export function detailedReportFacts(chart:CalculatedChart,lang:'uk'|'en',asOf=new Date().toISOString().slice(0,10)){
  const uk=lang==='uk',sun=chart.d1.find(p=>p.name==='Sun'),moon=chart.d1.find(p=>p.name==='Moon');
- const active=chart.dasha.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
- const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
+ const reference=Date.parse(asOf+'T12:00:00.000Z');
+ const active=chart.dasha.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
+ const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
  const houses=Array.from({length:12},(_,i)=>{
   const occupants=chart.d1.filter(p=>p.house===i+1);
   return (i+1)+":"+(occupants.length?occupants.map(p=>planet(p.name,uk)).join(","):"—");
@@ -92,11 +95,13 @@ export function detailedReportFacts(chart:CalculatedChart,lang:'uk'|'en'){
   {id:"aspects",fact:(uk?"Класичні Парашарі дрішті, без вузлів: ":"Classical Parashari drishti, excluding nodes: ")+(aspectText||"—")},
   {id:"navamsa",fact:(uk?"D9, Лагна ":"D9 ascendant ")+sign(chart.lagnaD9.sign,uk)+": "+joinPlanets(chart.d9,uk)},
   {id:"dashamsa",fact:(uk?"D10, Лагна ":"D10 ascendant ")+sign(chart.lagnaD10.sign,uk)+": "+joinPlanets(chart.d10,uk)},
+  {id:"rules",fact:(uk?"Верифіковані правила Engine 2.0: ":"Verified Engine 2.0 rules: ")+
+   ruleFindings(chart).facts.map(f=>f.id+"="+Object.entries(f.values).map(([key,value])=>key+":"+value).join(",")).join("; ").slice(0,3000)},
   {id:"dasha",fact:active?(uk?"Махадаша ":"Mahadasha ")+planet(active.lord,uk)+", "+active.start.slice(0,10)+"—"+active.end.slice(0,10)+(sub?"; "+(uk?"антардаша ":"Antardasha ")+planet(sub.lord,uk)+", "+sub.start.slice(0,10)+"—"+sub.end.slice(0,10):""):(uk?"Немає активної даші в межах карти.":"No active dasha within chart data.")}
  ];
 }
 
-export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en'):DetailedReport{
+export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=new Date().toISOString().slice(0,10)):DetailedReport{
  const uk=lang==='uk',sections:ReportSection[]=[];
  const asc=chart.ascendant,sun=chart.d1.find(x=>x.name==='Sun'),moon=chart.d1.find(x=>x.name==='Moon');
  sections.push(header("portrait",uk?"Ваш астрологічний портрет":"Your astrological portrait",uk?"I · ОСНОВА КАРТИ":"I · CHART FOUNDATION",
@@ -176,13 +181,51 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en'):Detail
    const d9=chart.d9.find(g=>g.name===p.name),d10=chart.d10.find(g=>g.name===p.name);
    return planet(p.name,uk)+": D1 "+sign(p.sign,uk)+" → D9 "+(d9?sign(d9.sign,uk):"—")+" → D10 "+(d10?sign(d10.sign,uk):"—");
   })));
- const active=chart.dasha.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
- const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end));
+ const reference=Date.parse(asOf+'T12:00:00.000Z');
+ const active=chart.dasha.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
+ const sub=active?.antardashas?.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
  sections.push(header("dasha",uk?"Вімшоттарі-даша: часові цикли":"Vimshottari Dasha: time cycles",uk?"VIII · РИТМ ПЕРІОДІВ":"VIII · PERIOD RHYTHM",
   uk?"Періоди обчислені з накшатри Місяця.":"Dasha periods are computed from the lunar nakshatra.",
   [active?(uk?"Активна махадаша — "+planet(active.lord,true)+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+").":"Current Mahadasha: "+active.lord+" ("+active.start.slice(0,10)+" — "+active.end.slice(0,10)+")."):(uk?"Активної махадаші у збереженому діапазоні немає.":"No active Mahadasha within the calculated range."),
    sub?(uk?"Поточна антардаша — "+planet(sub.lord,true)+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+").":"Current Antardasha: "+sub.lord+" ("+sub.start.slice(0,10)+" — "+sub.end.slice(0,10)+")."):(uk?"Антардаша не визначена для цього періоду.":"Antardasha is not specified for this time."),
    uk?"Ці дати — обчислені межі циклів; самі собою вони не передбачають конкретних подій.":"These dates are calculated cycle boundaries, not predictions of particular events."],
   chart.dasha.map(d=>planet(d.lord,uk)+": "+d.start.slice(0,10)+" — "+d.end.slice(0,10))));
- return {sections,generatedAt:new Date().toISOString(),chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
+ const findings=ruleFindings(chart);
+ const label=(name:string)=>planet(name,uk);
+ const dignityLabel:Record<string,[string,string]>={
+  exalted:['екзальтація','exaltation'],debilitated:['дебілітація','debilitation'],
+  own:['власний знак','own sign'],other:['інший знак (не оцінка сили)','other sign (not a strength rating)'],
+  unassigned:['не визначено за цими правилами','unassigned by this ruleset']
+ };
+ const houseLordDetails=findings.lords.map(f=>{
+  const v=f.values;
+  return (uk?'Дім ':'House ')+v.house+' ('+sign(Number(v.sign),uk)+') → '+
+   label(String(v.ruler))+' → '+(uk?'дім ':'house ')+v.locatedHouse+
+   ' ('+sign(Number(v.locatedSign),uk)+') ['+f.id+']';
+ });
+ sections.push(header("house-lords",uk?"Управителі 12 домів":"Lords of all 12 houses",
+  uk?"IX · ВЕРИФІКОВАНІ ПРАВИЛА":"IX · VERIFIED RULES",
+  uk?"Управитель кожного знака визначається за Парашарі, а його дім — безпосередньо з D1.":"Classical sign lordships and their actual D1 placements.",
+  [uk?"Управитель показує, через який дім традиційно пов’язують теми відповідного дому. Це тільки структурна прив’язка, не гарантія подій. Раху й Кету не отримують управління знаками у цій конфігурації.":"House lordship connects the theme of each house to the actual house of its sign ruler; this does not predict specific outcomes. Nodes receive no rulership in this ruleset."],
+  houseLordDetails));
+ sections.push(header("dignities",uk?"Гідність ґрах у D1":"Sign dignity of the D1 grahas",
+  uk?"X · КЛАСИЧНІ ПОЛОЖЕННЯ":"X · CLASSICAL PLACEMENTS",
+  uk?"Власний знак, екзальтація, дебілітація або нейтрально класифіковане положення.":"Own sign, exaltation, debilitation and other placements.",
+  [uk?"Це лише класифікація положення за знаком. Повна сила ґрахи (Шадбала), дружба, спалення, градусна точність, ретроградність і скасування дебілітації тут не обчислюються.":"This is a sign-only classification, not Shadbala, combustion, degrees, friendships or debilitation cancellation."],
+  findings.dignities.map(f=>{
+   const v=f.values,term=dignityLabel[String(v.dignity)]||dignityLabel.other;
+   return label(f.subject)+' — '+sign(Number(v.sign),uk)+', '+(uk?'дім ':'house ')+v.house+
+    ': '+term[uk?0:1]+' ['+f.id+']';
+  })));
+ sections.push(header("yogas",uk?"Панча Махапуруша йоги":"Pancha Mahapurusha yogas",
+  uk?"XI · ПЕРЕВІРЕНІ КОМБІНАЦІЇ":"XI · VERIFIED COMBINATIONS",
+  uk?"П’ять класичних типів йог, визначених за Кендрою від Лагни та гідністю ґрахи.":"Five possible yoga types evaluated from Lagna kendra and graha dignity.",
+  [uk?"Правило: Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в домі 1, 4, 7 або 10 від Лагни та у власному знаку або знаку екзальтації. Йоги від Місяця, скасування та загальна сила потребують окремих правил і наразі не визначаються.":"Rule: Mars, Mercury, Jupiter, Venus or Saturn must be in house 1, 4, 7 or 10 from Lagna and in own or exaltation sign. Moon-relative variants and strength modifiers are deliberately excluded."],
+  findings.yogas.length?findings.yogas.map(y=>
+   y.name+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'дім ':'house ')+y.house+
+   ' ('+(uk?(y.reason==='exalted'?'екзальтація':'власний знак'):y.reason)+') ['+y.id+']'
+  ):[uk?"За цими конкретними критеріями жодна з п’яти йог не сформувалася. Це не висновок про інші йоги чи життєві події.":"None of the five yogas meets these exact rules; this says nothing about other yoga families or events."]));
+ return {sections,generatedAt:asOf+'T00:00:00.000Z',asOf,
+  rulesVersion:RULESET_VERSION,rulesDigest:ruleFingerprint(chart,asOf),
+  ruleFacts:findings.facts,chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
 }
