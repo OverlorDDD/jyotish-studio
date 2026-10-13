@@ -146,3 +146,19 @@ test('long-form AI uses beginner-friendly language and shows friendly headings i
  assert.doesNotMatch(result.text,/Махадаша Сатурн/);
  assert.doesNotMatch(result.text,/Трактування в традиції Джйотіш/);
 });
+
+test('long reading keeps good actionable paragraphs and drops a hallucinated placement',async()=>{
+ const valid=[
+  {factId:'identity',text:'Ви можете подивитися на свої цілі через щоденні рішення. Наприклад, оберіть одну невелику задачу. Спробуйте завершити її сьогодні.'},
+  {factId:'houses',text:'Корисно обговорювати важливі очікування з близькими людьми. Наприклад, непорозуміння часто починається з мовчання. Обговоріть одне очікування цього тижня.'}
+ ];
+ const bad={factId:'planets',text:'Сонце у Скорпіоні неодмінно приносить славу. Це безумовна гарантія успіху.'};
+ const result=await generateOpenAiInterpretation(chart,'uk',{
+  key:'fake',limit:()=>true,provider:'openrouter',reportMode:true,formatMode:'prompt',
+  factsOverride:['identity','planets','houses'].map(id=>({id,fact:'Only a calculated reference'})),
+  fetcher:async()=>apiReply({sections:[valid[0],bad,valid[1]]})
+ });
+ assert.match(result.text,/Загальна картина/);
+ assert.match(result.text,/Важливі сфери життя/);
+ assert.doesNotMatch(result.text,/Скорпіоні/);
+});
