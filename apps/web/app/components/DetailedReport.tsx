@@ -162,6 +162,13 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
      </article>)}
    </div>
   </div>:null}
+  {report.editorial?.chapters?.length&&(ai.provider==='openrouter'||ai.provider==='ollama')&&friendlyAiCards(ai.text,lang).length>0?<details className="reading-editorial-ai">
+   <summary>{uk?'✧ Додаткове прочитання від AI-асистента':'✧ Additional AI interpretation'}</summary>
+   <p>{uk?'AI пояснює вже розраховані теми іншими словами. Він не встановлює факти про вашу особистість і не змінює положень планет.':'AI rephrases the calculated themes without altering placements or establishing personal facts.'}</p>
+   <div className="reading-ai-text">{friendlyAiCards(ai.text,lang).map((item,i)=><article key={i} className="reading-ai-card">
+    <h4>{item.heading}</h4><p>{item.body}</p>
+   </article>)}</div>
+  </details>:null}
   {!report.editorial?.chapters?.length?<>
   {report.practicalTips?.length?<section className="reading-practical" aria-label={uk?'Поради на основі карти':'Chart-inspired practical ideas'}>
     <div className="reading-chapter-kicker">{uk?'✦ ПРАКТИЧНІ ІДЕЇ':'✦ PRACTICAL IDEAS'}</div>
