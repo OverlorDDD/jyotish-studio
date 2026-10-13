@@ -1,4 +1,5 @@
 import type {CalculatedChart,Graha} from '../../../packages/jyotish-core/src/index.ts';
+import {ukTerm} from './terminology.ts';
 
 /** Report data is compiled from Swiss Ephemeris output, not invented by the LLM. */
 export type ReportSection={
@@ -85,7 +86,7 @@ export function detailedReportFacts(chart:CalculatedChart,lang:'uk'|'en'){
  const aspects=calculateParashariDrishti(chart).filter(x=>x.occupants.length>0).slice(0,14);
  const aspectText=aspects.map(a=>planet(a.source,uk)+"→"+a.targetHouse+":" +a.occupants.map(p=>planet(p,uk)).join(",")).join("; ");
  return [
-  {id:"identity",fact:(uk?"Лагна: ":"Ascendant: ")+sign(chart.ascendant.sign,uk)+". "+(sun?line(sun,uk):"")+". "+(moon?line(moon,uk):"") + (moon?", "+moon.nakshatra+" pada "+moon.pada:"")},
+  {id:"identity",fact:(uk?"Лагна: ":"Ascendant: ")+sign(chart.ascendant.sign,uk)+". "+(sun?line(sun,uk):"")+". "+(moon?line(moon,uk):"") + (moon?", "+(uk?ukTerm(moon.nakshatra):moon.nakshatra)+" pada "+moon.pada:"")},
   {id:"planets",fact:(uk?"Повна D1: ":"Full D1: ")+joinPlanets(chart.d1,uk)},
   {id:"houses",fact:(uk?"Дванадцять домів, зайняті планетами: ":"Twelve houses and occupants: ")+houses},
   {id:"aspects",fact:(uk?"Класичні Парашарі дрішті, без вузлів: ":"Classical Parashari drishti, excluding nodes: ")+(aspectText||"—")},
@@ -106,7 +107,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en'):Detail
  sections.push(header("sun-moon",uk?"Сонце, Місяць і накшатра":"Sun, Moon and lunar mansion",uk?"II · ОСОБИСТІСНА ВІСЬ":"II · CORE INDICATORS",
   uk?"Два головні символічні орієнтири для самовираження й внутрішнього життя.":"Two core symbolic reference points for expression and inner life.",
   [(sun?line(sun,uk)+". ":"")+(uk?"Сонце традиційно пов’язують з волею, роллю та образом себе.":"The Sun is associated with purpose, identity and expression."),
-   (moon?line(moon,uk)+". ":"")+(uk?"Місяць у накшатрі ":"The Moon is in nakshatra ")+(moon?.nakshatra||"—")+", "+(uk?"пада ":"pada ")+(moon?.pada||"—")+". "+(uk?"Це деталізує місячне положення всередині зодіакального знака.":"This refines the lunar position within the zodiac sign.")],
+   (moon?line(moon,uk)+". ":"")+(uk?"Місяць у накшатрі ":"The Moon is in nakshatra ")+(uk?ukTerm(moon?.nakshatra||"—"):(moon?.nakshatra||"—"))+", "+(uk?"пада ":"pada ")+(moon?.pada||"—")+". "+(uk?"Це деталізує місячне положення всередині зодіакального знака.":"This refines the lunar position within the zodiac sign.")],
   [],"earth"));
  sections.push(header("planets-intro",uk?"Дев’ять ґрах натальної карти":"Nine grahas of the birth chart",uk?"III · ПЛАНЕТИ D1":"III · PLANETS D1",
   uk?"Кожна ґраха поєднує тему планети, знак і дім.":"Each graha combines planetary themes with its sign and house.",
@@ -119,7 +120,7 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en'):Detail
   const paragraphs=uk?[
    planetName+" у знаку "+sign(p.sign,true)+" традиційно розглядають через теми: "+topic+". Знак додає спосіб прояву — "+SIGN_THEMES_UK[p.sign-1]+".",
    "Положення в "+p.house+"-му домі пов’язує ці символічні теми зі сферою: "+houseTheme.toLowerCase()+". Це контекст для читання карти, а не висновок про конкретну подію.",
-   "Точне положення: "+p.degreesInSign.toFixed(2)+"° знака; накшатра "+p.nakshatra+", пада "+p.pada+". "+(p.retrograde?"Рух ретроградний за ефемеридами.":"")
+   "Точне положення: "+p.degreesInSign.toFixed(2)+"° знака; накшатра "+ukTerm(p.nakshatra)+", пада "+p.pada+". "+(p.retrograde?"Рух ретроградний за ефемеридами.":"")
   ]:[
    planetName+" in "+sign(p.sign,false)+" is traditionally associated with "+topic+".",
    "House "+p.house+" brings these themes into "+houseTheme.toLowerCase()+". This is a framework for reading the chart rather than a concrete event claim.",
