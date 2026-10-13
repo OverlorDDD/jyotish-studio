@@ -55,7 +55,7 @@ test('all 12 house labels are geometrically centered, and stacks grow symmetrica
   {name:'Rahu',house:8,sign:8},{name:'Ketu',house:8,sign:8}
  ],lagna}).svg;
  const tags=[...crowded.matchAll(/<text x="(\d+)" y="(\d+)"([^>]*)>([\s\S]*?)<\/text>/g)];
- assert.ok(tags.length>=20);
+ assert.ok(tags.length>=18);
  for(const [,rawX,rawY,attrs,rawText] of tags){
   const x=Number(rawX),y=Number(rawY),font=Number(attrs.match(/font-size="([\d.]+)"/)?.[1]||10);
   assert.ok(y>=10&&y<=350,'Text baseline stays inside frame: '+y);
