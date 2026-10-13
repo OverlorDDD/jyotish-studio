@@ -34,6 +34,7 @@ function failureReason(error:unknown):FreeFallbackReason{
 export type FreeAiOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;
+ factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;
 };
 export type FreeAiOutcome={
  result:Awaited<ReturnType<typeof generateOpenAiInterpretation>>|null;
@@ -59,7 +60,7 @@ export async function generateFreeInterpretationDetailed(
     if(!permit()){reason='hourly_limit';continue;}
     const request=(formatMode:'strict'|'prompt')=>generateOpenAiInterpretation(chart,lang,{
      provider:'openrouter',key:openrouterKey,model:'openrouter/free',
-     formatMode,fetcher:opts.fetcher,limit:()=>true
+     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode
     });
     try{
      return {result:await request('strict')};
@@ -77,7 +78,7 @@ export async function generateFreeInterpretationDetailed(
    if(provider==='ollama'){
     const result=await generateOpenAiInterpretation(chart,lang,{
      provider:'ollama',key:'',model:ollamaModel,
-     fetcher:opts.fetcher,limit:()=>true
+     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode
     });
     return {result};
    }
