@@ -8,6 +8,7 @@ export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
+ editorial?:{version:string;chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string};
 };
@@ -134,6 +135,34 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
   <p className="reading-intro">{uk?
    'Дізнайтеся про ваші можливості, стосунки, професійні орієнтири та ідеї для щоденних рішень.' :
    'Start with a plain-language summary. Detailed chapters follow for anyone who wants to explore further.'}</p>
+  {report.editorial?.chapters?.length?<div className="reading-editorial">
+   <div className="reading-editorial-opening">
+    <div className="reading-chapter-kicker">{uk?'✦ ПЕРСОНАЛЬНЕ ПРОЧИТАННЯ':'✦ YOUR PERSONAL READING'}</div>
+    <h3>{uk?'Про вашу особистість, стосунки, кар’єру та життєві орієнтири':'Personality, relationships, work and life direction'}</h3>
+    <p>{uk?'Тут поєднано конкретні положення вашої натальної карти в цілісне символічне прочитання. Це не науковий тест особистості і не гарантований прогноз, а привід перевірити ідеї на власному досвіді.':'A coherent traditional reading based on the positions of your birth chart. It is not a scientific personality test or a guaranteed prediction.'}</p>
+   </div>
+   <section className="reading-editorial-highlights" aria-label={uk?'Основні акценти карти':'Chart highlights'}>
+    {report.editorial.highlights.map((h,i)=><div key={i}><span>{String(i+1).padStart(2,'0')}</span><strong>{h}</strong></div>)}
+   </section>
+   <div className="reading-editorial-chapters">
+    {report.editorial.chapters.map((chapter,i)=><article className="reading-editorial-chapter" key={chapter.id} id={'reading-story-'+chapter.id}>
+      <div className="reading-editorial-chapter-header"><span>{String(i+1).padStart(2,'0')}</span><h3>{chapter.title}</h3></div>
+      {chapter.paragraphs.map((p,j)=><p key={j}>{p}</p>)}
+      {chapter.id==='elements'?<div className="reading-elements" aria-label={uk?'Підрахунок стихій':'Element count'}>
+       {report.editorial!.elements.map(e=><div className="reading-element" key={e.name}>
+        <div><strong>{e.name}</strong><span>{e.count} / 7 · {e.percentage}%</span></div>
+        <div className="reading-element-track"><div style={{width:e.percentage+'%'}}/></div>
+       </div>)}
+       <small>{uk?'Частки семи класичних планет за знаками, не психологічний рейтинг.':'Share of seven classical grahas by sign; not a psychological score.'}</small>
+      </div>:null}
+      {chapter.insights?.length?<aside className="reading-editorial-advice">
+       <strong>{uk?'Що спробувати на практиці':'A practical idea'}</strong>
+       {chapter.insights.map((ad,j)=><p key={j}>{ad}</p>)}
+      </aside>:null}
+     </article>)}
+   </div>
+  </div>:null}
+  {!report.editorial?.chapters?.length?<>
   {report.practicalTips?.length?<section className="reading-practical" aria-label={uk?'Поради на основі карти':'Chart-inspired practical ideas'}>
     <div className="reading-chapter-kicker">{uk?'✦ ПРАКТИЧНІ ІДЕЇ':'✦ PRACTICAL IDEAS'}</div>
     <h3>{uk?'Що можна спробувати вже цього тижня':'What you can try this week'}</h3>
@@ -177,6 +206,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     </>}
    <p className="reading-ai-disclaimer">{uk?'Це символічне прочитання традиції Джйотіш, а не гарантований прогноз. Використовуйте його як привід для роздумів, а не як єдину основу важливих рішень.':'This is a symbolic reading from the Jyotish tradition, not a guaranteed prediction. Use it for reflection, not as the sole basis for important decisions.'}</p>
   </section>:null}
+  </>:null}
   <section className="reading-weekly-roadmap">
    <div className="reading-chapter-kicker">{uk?'✦ ВАШ ПЛАН ДІЙ':'✦ YOUR ACTION PLAN'}</div>
    <h3>{uk?'З чого почати':'Where to begin'}</h3>
