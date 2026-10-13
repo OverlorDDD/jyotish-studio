@@ -91,7 +91,9 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
   const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':freeai-v2',
    ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
-    factsOverride:detailedReportFacts(chart,birth.lang,asOf),reportMode:true,
+    factsOverride:detailedReportFacts(chart,birth.lang,asOf)
+     .filter(f=>['identity','planets','houses','navamsa','dashamsa','dasha'].includes(f.id))
+     .map(f=>({id:f.id,fact:f.fact.slice(0,550)+(f.id==='houses'?'; '+(birth.lang==='uk'?'Перевірені приклади практичних дій: ':'Verified examples of safe actions: ')+report.practicalTips.slice(0,3).map(t=>t.action).join(' '):'')})),reportMode:true,
     approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
    }));
   return {...report,ai:free.result||{provider:'local' as const,text:'',fallbackReason:free.reason}};
