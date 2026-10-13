@@ -2,7 +2,7 @@
  * Never treat AI prose as authority for factual measurements or formal yoga names.
  * Fact-linked prose can still be subjectively wrong: preserve "AI commentary" label. */
 const measured=/(?:\d+(?:[.,]\d+)?)\s*(?:°|градус(?:ів|и|а)?|degrees?|°C)/iu;
-const numericHouse=/(?:^|[^\p{L}\p{N}])(?:\d{1,2})(?:-?(?:й|ий|му|го))?\s*(?:дім|домі|дому|house)(?![\p{L}])/iu;
+const numericHouse=/(?:^|[^\p{L}\p{N}])(?:(?:\d{1,2})(?:-?(?:й|ий|му|го))?\s*(?:дім|домі|дому|house)|(?:house|дім|домі)\s*\d{1,2})(?![\p{L}])/iu;
 const date=/\b(?:19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}\b/u;
 const prohibitedClaims=/(?:екзальт[а-яіїєґ]*|дебіліт[а-яіїєґ]*|exalt(?:ed|ation)|debilitat(?:ed|ion)|мулатрикона|moolatrikona|шадбал[а-яіїєґ]*|shadbala)/iu;
 const yogaWords=/(?:ruchaka|badra|bhadra|hamsa|malavya|shasha|ручак[а-я]*|бхадр[а-я]*|хамс[а-я]*|малав[а-я]*|шаш[а-я]*)/giu;
