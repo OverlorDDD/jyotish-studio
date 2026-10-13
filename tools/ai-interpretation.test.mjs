@@ -71,10 +71,11 @@ test('hourly limit is loaded from environment on first live-style request',async
 test('local readings are inviting, Ukrainian terminology is fully localized, and source facts remain intact',()=>{
  const demo={...chart,ascendant:{...chart.ascendant,sign:12},d1:[{...chart.d1[0],sign:9},{...chart.d1[1],sign:7}]};
  const uk=localInterpretation(demo,'uk');
- for(const word of ['Риби','Стрілець','Терези','Сваті','D9','D10'])assert.ok(uk.includes(word),'Missing '+word);
- for(const word of ['Pisces','Sagittarius','Libra','Swati','науковий прогноз'])assert.ok(!uk.includes(word),'Unexpected '+word);
+ for(const word of ['Риби','Стрілець','Терези','Сваті','D9','D10','ЗАГАЛЬНИЙ ПОРТРЕТ','ПЛАНЕТИ ТА СФЕРИ ЖИТТЯ','СТОСУНКИ Й ОСОБИСТІ ЦІННОСТІ','РОБОТА Й САМОРЕАЛІЗАЦІЯ'])assert.ok(uk.includes(word),'Missing '+word);
+ for(const word of ['Pisces','Sagittarius','Libra','Swati','науковий прогноз','РАШІ (D1)','ВІМШОТТАРІ ДАША'])assert.ok(!uk.includes(word),'Unexpected '+word);
  const en=localInterpretation(demo,'en');
- assert.match(en,/ASCENDANT — PERSONAL THEMES/);
+ assert.match(en,/THE BIG PICTURE/);
+ assert.match(en,/PLANETS AND LIFE AREAS/);
  assert.match(en,/Pisces/);
  assert.ok(!en.includes('scientific prediction'));
 });
@@ -110,9 +111,9 @@ test('recognized OpenAI error code is kept, raw provider error text is discarded
 test('offline report includes actual D1 D9 D10 and dasha period details',()=>{
  const full={...chart,ascendant:{...chart.ascendant,sign:12},d1:[{...chart.d1[0],sign:9},{...chart.d1[1],sign:7}]};
  const ua=localInterpretation(full,'uk');
- for(const term of ['ЛАГНА','РАШІ (D1)','НАВАМША (D9)','ДАШАМША (D10)','ВІМШОТТАРІ ДАША','Сатурн'])assert.ok(ua.includes(term),term);
+ for(const term of ['ЗАГАЛЬНИЙ ПОРТРЕТ','ЦІЛІ ТА САМОВИРАЖЕННЯ','ПЛАНЕТИ ТА СФЕРИ ЖИТТЯ','СТОСУНКИ Й ОСОБИСТІ ЦІННОСТІ','РОБОТА Й САМОРЕАЛІЗАЦІЯ','ПОТОЧНИЙ СИМВОЛІЧНИЙ ПЕРІОД','Сатурн'])assert.ok(ua.includes(term),term);
  const en=localInterpretation(full,'en');
- for(const term of ['RASHI (D1)','NAVAMSA (D9)','DASHAMSA (D10)','VIMSHOTTARI DASHA'])assert.ok(en.includes(term),term);
+ for(const term of ['THE BIG PICTURE','PLANETS AND LIFE AREAS','RELATIONSHIPS AND PERSONAL VALUES','WORK AND FULFILMENT','CURRENT SYMBOLIC PERIOD'])assert.ok(en.includes(term),term);
 });
 
 
