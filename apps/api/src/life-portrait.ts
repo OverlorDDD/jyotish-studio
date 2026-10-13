@@ -4,7 +4,7 @@ import {practicalGuidance} from './practical-guidance.ts';
 
 /** Canonical, replayable narrative synthesis: all planetary claims come from validated D1. */
 export type LifeChapter={id:string;title:string;overview:string;example:string;action:string;evidence:string[]};
-export type LifePortrait={version:'1.0';chapters:LifeChapter[]};
+export type LifePortrait={version:'1.1';chapters:LifeChapter[]};
 const themes=[
  ['починання та особисті орієнтири','beginnings and personal direction'],
  ['ресурси, звички витрат і цінності','resources and personal values'],
@@ -36,6 +36,8 @@ export function createLifePortrait(chart:CalculatedChart,lang:'uk'|'en'):LifePor
  const rules=ruleFindings(chart);
  const get=(name:string)=>{const p=chart.d1.find(g=>g.name===name);if(!p)throw new Error('Missing '+name);return p;};
  const sun=get('Sun'),moon=get('Moon'),saturn=get('Saturn'),venus=get('Venus'),jupiter=get('Jupiter');
+ const lord2=rules.lords.find(x=>x.values.house===2)!;
+ const lord4=rules.lords.find(x=>x.values.house===4)!;
  const lord7=rules.lords.find(x=>x.values.house===7)!;
  const lord10=rules.lords.find(x=>x.values.house===10)!;
  const area=(house:number)=>themes[house-1][idx];
@@ -70,11 +72,22 @@ export function createLifePortrait(chart:CalculatedChart,lang:'uk'|'en'):LifePor
    example:uk?'Наприклад, коли хочеться менше розпорошуватися між задачами.':'For example, when you want to avoid spreading effort across too many tasks.',
    action:practical(10)||(uk?'Оберіть один вимірюваний робочий результат на сім днів.':'Choose one measurable work outcome for the next seven days.'),
    evidence:['D1.Sun.house='+sun.house,lord10.id]},
+  {id:'money',title:uk?'Гроші, ресурси й особисті цінності':'Money, resources and values',
+   overview:(uk?'За традиційною схемою тема ресурсів пов’язана з ':'Under the traditional framework, the resource area is associated with ')+graha(String(lord2.subject))+(uk?' у сфері «':' in the area of “')+area(Number(lord2.values.locatedHouse))+'». '+(uk?'Це привід поміркувати про свій спосіб керувати ресурсами, а не прогноз доходів чи прибутку.':'This invites reflection on managing resources, not a prediction of earnings or returns.'),
+   example:uk?'Наприклад, коли хочеться відкладати на важливу мету, але витрати не завжди відповідають пріоритетам.':'For example, when saving for something important while spending does not always match priorities.',
+   action:uk?'Запишіть три фінансові пріоритети та перевірте одну необов’язкову витрату цього тижня.':'List three financial priorities and review one nonessential expense this week.',
+   evidence:[lord2.id]},
+  {id:'inner-life',title:uk?'Внутрішній комфорт і відновлення':'Inner balance and recovery',
+   overview:descriptor('Moon')+' '+(uk?'Сфера внутрішньої опори додатково пов’язана з '+graha(String(lord4.subject))+' у сфері «'+area(Number(lord4.values.locatedHouse))+'». Це не психологічний діагноз, а запрошення придивитися до звичок відновлення.':
+    'The inner-foundations area is also associated with '+graha(String(lord4.subject))+' in '+area(Number(lord4.values.locatedHouse))+'. This is not a psychological diagnosis.'),
+   example:uk?'Наприклад, коли після насиченого дня важливо знайти час на спокій і побути без сповіщень.':'For example, when a busy day makes a quiet moment valuable.',
+   action:uk?'Виділіть десять хвилин щодня без сповіщень і наприкінці тижня оцініть, чи стало легше відпочивати.':'Try a ten-minute notification-free break daily and reflect on how it felt at the end of the week.',
+   evidence:['D1.Moon.sign='+moon.sign,'D1.Moon.house='+moon.house,lord4.id]},
   {id:'growth',title:uk?'Особистий розвиток і наступні кроки':'Personal growth and next steps',
    overview:descriptor('Jupiter')+' '+descriptor('Moon')+' '+(uk?'Ці дві теми можна зіставити з реальними інтересами та відчуттям комфорту — без тверджень, що карта визначає призначення.':'Compare these themes with your actual interests and sense of comfort, without claiming the chart fixes your purpose.'),
    example:uk?'Наприклад, під час вибору між новою навичкою та потребою у відпочинку.':'For example, while balancing a new skill with a need for rest.',
    action:practical(jupiter.house)||(uk?'Спробуйте нове заняття двічі на тиждень та запишіть, що сподобалося.':'Try a new activity twice this week and note what you enjoyed.'),
    evidence:['D1.Jupiter.sign='+jupiter.sign,'D1.Jupiter.house='+jupiter.house,'D1.Moon.house='+moon.house]}
  ];
- return {version:'1.0',chapters};
+ return {version:'1.1',chapters};
 }
