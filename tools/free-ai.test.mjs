@@ -34,7 +34,7 @@ test('free router always uses zero-priced openrouter/free; payload excludes birt
   }
  });
  assert.equal(calls,1);assert.equal(result.provider,'openrouter');assert.equal(result.model,'openrouter/free');
- assert.match(result.text,/Лагна/);
+ assert.match(result.text,/Загальна картина/);assert.doesNotMatch(result.text,/Лагна: Pisces/);
 });
 test('429 from OpenRouter switches to local Ollama without forwarding API keys',async()=>{
  const endpoints=[];
