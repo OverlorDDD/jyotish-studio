@@ -58,12 +58,12 @@ export async function generateFreeInterpretationDetailed(
   try{
    if(provider==='openrouter'){
     if(!permit()){reason='hourly_limit';continue;}
-    const request=(formatMode:'strict'|'prompt')=>generateOpenAiInterpretation(chart,lang,{
+    const request=(formatMode:'strict'|'prompt'|'prose')=>generateOpenAiInterpretation(chart,lang,{
      provider:'openrouter',key:openrouterKey,model:'openrouter/free',
      formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas
     });
     try{
-     return {result:await request('strict')};
+     return {result:await request(opts.reportMode?'prose':'strict')};
     }catch(error){
      // Free routers may choose endpoints that ignore strict schemas.
      // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.
@@ -71,7 +71,7 @@ export async function generateFreeInterpretationDetailed(
       (error.reason==='format'||(error.reason==='upstream'&&/^OpenAI HTTP (400|422)\b/.test(error.message)));
      if(!rejected)throw error;
      if(!permit()){reason='hourly_limit';continue;}
-     console.warn('Free AI: strict schema unavailable; retrying with a simpler JSON prompt');
+     console.warn('Free AI: first response rejected; retrying with a simpler fact-linked JSON prompt');
      return {result:await request('prompt')};
     }
    }
