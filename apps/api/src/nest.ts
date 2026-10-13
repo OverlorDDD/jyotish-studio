@@ -43,7 +43,7 @@ export class JyotishController{
   const ownerId=owner(req);
   const row=await this.prisma.chart.findFirst({where:{id,ownerId}});
   if(!row)throw new UnauthorizedException('This chart is not in your account.');
-  return {id,...row.result as object};
+  return {id,...(row.result as object)};
  }
  @Get('v1/charts/:id/dashas')
  async dashas(@Param('id')id:string,@Req()req:IncomingMessage){
