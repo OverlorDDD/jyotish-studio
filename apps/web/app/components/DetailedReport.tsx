@@ -54,6 +54,18 @@ const FALLBACK_EN:Record<string,string>={
  local_only:'Offline report was requested.'
 };
 
+function ReportPhoto({kind,uk}:{kind:keyof typeof PHOTOS;uk:boolean}){
+ const photo=PHOTOS[kind];
+ return <figure className="reading-figure">
+  <div className="reading-figure-photo" role="img"
+   aria-label={uk?'Космічна фотографія NASA':'NASA space photograph'}
+   style={{backgroundImage:'linear-gradient(100deg,rgba(10,17,27,.25),rgba(13,22,33,.08)),url("'+photo.url+'")'}}/>
+  <figcaption>{uk?'Зображення: ':'Image: '}
+   <a href={photo.page} target="_blank" rel="noopener noreferrer">{photo.credit} · Wikimedia Commons</a>
+  </figcaption>
+ </figure>;
+}
+
 export default function DetailedReport({report,lang}:{report:ReadingReport;lang:'uk'|'en'}){
  const uk=lang==='uk',ai=report.ai;
  return <section className="reading-root" id="full-reading" aria-label={uk?'Детальне трактування карти':'Detailed chart interpretation'}>
@@ -68,12 +80,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
   <div className="reading-content">
    {report.sections.map((section,index)=><div key={section.id}>
     <article id={'reading-'+section.id} className={'reading-chapter '+(section.id==='portrait'?'reading-chapter-hero':'')+(section.id.startsWith('planet-')||section.id.startsWith('house-')?' reading-chapter-small':'')}>
-      {section.image?<figure className="reading-figure">
-       <div className="reading-figure-photo" role="img"
-        aria-label={uk?'Космічна фотографія NASA':'NASA space photograph'}
-        style={{backgroundImage:'linear-gradient(100deg,rgba(10,17,27,.25),rgba(13,22,33,.08)),url("'+PHOTOS[section.image].url+'")'}}/>
-       <figcaption>{uk?'Зображення: ':'Image: '}<a href={PHOTOS[section.image].page} target="_blank" rel="noopener noreferrer">{PHOTOS[section.image].credit} · Wikimedia Commons</a></figcaption>
-      </figure>:null}
+      {section.image?<ReportPhoto kind={section.image} uk={uk}/>:null}
       <div className="reading-chapter-copy">
        <div className="reading-chapter-kicker">{section.eyebrow}</div>
        <h3>{section.heading}</h3>
