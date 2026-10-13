@@ -36,28 +36,45 @@ export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en
  if(language==='uk'){
   const sign=(number:number)=>SIGN_NAMES_UK[number-1]||'—';
   const name=(english:string)=>GRAHAS_UK[english]||english;
-  const display=(positions:typeof chart.d1)=>positions.map(g=>`${name(g.name)} — ${sign(g.sign)}, ${g.house}-й дім`).join('; ');
+  const display=(positions:typeof chart.d1)=>positions.map(g=>
+   name(g.name)+' — '+sign(g.sign)+'; життєва сфера: '+(HOUSE_THEMES_UK[g.house-1]||'особисті теми')
+  ).join('; ');
   const nakshatra=NAKSHATRA_NAMES_UK[moon.nakshatra]||moon.nakshatra;
   const signTheme=SIGN_THEMES_UK[chart.ascendant.sign-1]||'особистий шлях';
   const sunHouse=HOUSE_THEMES_UK[sun.house-1]||'самовираження';
   const moonHouse=HOUSE_THEMES_UK[moon.house-1]||'емоційне життя';
   return [
-   `ЛАГНА — ОСОБИСТИЙ ВЕКТОР\n${sign(chart.ascendant.sign)} — знак Лагни. У символіці Джйотіш він пов'язаний із такими темами, як ${signTheme}. Лагна задає основу, від якої рахуються дванадцять домів карти.`,
-   `СОНЦЕ ТА МІСЯЦЬ\nСонце: ${sign(sun.sign)}, ${sun.house}-й дім (тема дому — ${sunHouse}). Місяць: ${sign(moon.sign)}, ${moon.house}-й дім (тема дому — ${moonHouse}). Накшатра Місяця — ${nakshatra}, пада ${moon.pada}. У традиційному читанні Сонце пов'язують із волею та самовираженням, а Місяць — із внутрішнім сприйняттям.`,
-   `РАШІ (D1) — УСІ ПОЛОЖЕННЯ\n${display(chart.d1)}. Це обчислені положення планет і вузлів за цілознаковими домами, а не згенеровані AI-припущення.`,
-   `НАВАМША (D9) — ВНУТРІШНІ ЦІННОСТІ\nЛагна D9 — ${sign(chart.lagnaD9.sign)}. Положення: ${display(chart.d9)}. У Джйотіш Навамшу використовують для розгляду тем партнерства, зрілості та цінностей.`,
-   `ДАШАМША (D10) — ПРОФЕСІЙНИЙ НАПРЯМ\nЛагна D10 — ${sign(chart.lagnaD10.sign)}. Положення: ${display(chart.d10)}. Дашамша традиційно пов'язана з професійною реалізацією та суспільною роллю.`,
-   `ВІМШОТТАРІ ДАША — ЧАСОВІ ПЕРІОДИ\n${active?`Поточна махадаша: ${name(active.lord)} (${active.start.slice(0,10)} — ${active.end.slice(0,10)}). ${sub?`Антардаша: ${name(sub.lord)} (${sub.start.slice(0,10)} — ${sub.end.slice(0,10)}).`:'Активна антардаша не визначена.'}`:'Поточний період поза збереженим діапазоном даш.'} У традиції ці періоди використовують як послідовність тем для роздумів.`
+   'ЗАГАЛЬНИЙ ПОРТРЕТ\nУ традиції Джйотіш висхідний знак '+sign(chart.ascendant.sign)+' символічно пов’язують із темами '+signTheme+'. Це не остаточний опис характеру, а одна з тем для самоспостереження.',
+   'ЦІЛІ ТА САМОВИРАЖЕННЯ\nСонце у знаку '+sign(sun.sign)+' традиційно пов’язують із волею та способом проявляти себе. У цій карті окрема увага приділяється темі «'+sunHouse+'».',
+   'ПОЧУТТЯ ТА ВНУТРІШНІЙ КОМФОРТ\nМісяць у знаку '+sign(moon.sign)+' пов’язують із внутрішніми реакціями та звичками. Додатковий символічний сектор — '+nakshatra+'; ця традиція пропонує поміркувати про сферу «'+moonHouse+'» і про те, що допомагає відновлювати рівновагу.',
+   'ПЛАНЕТИ ТА СФЕРИ ЖИТТЯ\n'+display(chart.d1)+'. Це символічні теми традиції, а не твердження про те, що неодмінно станеться.',
+   'СТОСУНКИ Й ОСОБИСТІ ЦІННОСТІ\nДопоміжна карта D9, яку традиція використовує для роздумів про партнерство та зрілість, має висхідний знак '+sign(chart.lagnaD9.sign)+'. Сприймай її як додаткову перспективу, а не як гарантію певних стосунків.',
+   'РОБОТА Й САМОРЕАЛІЗАЦІЯ\nДопоміжна карта D10 традиційно пов’язана з роботою, внеском і суспільною роллю; її висхідний знак — '+sign(chart.lagnaD10.sign)+'. Це один із поглядів на професійну тему, а не готовий вирок чи обіцянка успіху.',
+   'ПОТОЧНИЙ СИМВОЛІЧНИЙ ПЕРІОД\n'+(active?
+    'Традиційна система вказує на період '+name(active.lord)+' ('+active.start.slice(0,10)+' — '+active.end.slice(0,10)+'). '+(sub?'Додатковий підперіод — '+name(sub.lord)+' ('+sub.start.slice(0,10)+' — '+sub.end.slice(0,10)+').':'Детальніший підперіод не визначений.'):
+    'Поточний період не входить до наявного розрахункового діапазону.')+' Використовуй це як привід спокійно переглянути пріоритети, а не як прогноз подій.'
   ].join('\n\n');
  }
- const display=(positions:typeof chart.d1)=>positions.map(g=>`${g.name} — ${g.signName}, house ${g.house}`).join('; ');
+ const signThemesEn=[
+  'initiative and courage','consistency and values','curiosity and communication','care and belonging',
+  'creativity and self-expression','attention to detail and useful work','balance and partnership',
+  'emotional depth and change','learning and wider horizons','responsibility and sustained effort',
+  'independence and new ideas','imagination, empathy and intuition'
+ ];
+ const display=(positions:typeof chart.d1)=>positions.map(g=>
+  g.name+' — '+g.signName+'; life theme: '+(HOUSE_THEMES_EN[g.house-1]||'personal themes')
+ ).join('; ');
+ const activeText=active?
+  'The traditional system places you in a symbolic '+active.lord+' period ('+active.start.slice(0,10)+' — '+active.end.slice(0,10)+'). '+(sub?'Its sub-period is '+sub.lord+' ('+sub.start.slice(0,10)+' — '+sub.end.slice(0,10)+').':'No smaller sub-period is available.'):
+  'The current date falls outside the available calculated timeline.';
  return [
-  `ASCENDANT — PERSONAL THEMES\nAscendant: ${chart.ascendant.signName}. The ascendant anchors the twelve whole-sign houses in the Jyotish tradition.`,
-  `SUN AND MOON\nSun: ${sun.signName}, house ${sun.house}. Moon: ${moon.signName}, house ${moon.house}; nakshatra ${moon.nakshatra}, pada ${moon.pada}. These positions traditionally inform themes of self-expression and inner experience.`,
-  `RASHI (D1) — PLANETARY PLACEMENTS\n${display(chart.d1)}.`,
-  `NAVAMSA (D9) — RELATIONSHIPS AND VALUES\nD9 ascendant: ${chart.lagnaD9.signName}. Placements: ${display(chart.d9)}.`,
-  `DASHAMSA (D10) — VOCATION\nD10 ascendant: ${chart.lagnaD10.signName}. Placements: ${display(chart.d10)}.`,
-  `VIMSHOTTARI DASHA\n${active?`Current Mahadasha: ${active.lord} (${active.start.slice(0,10)} — ${active.end.slice(0,10)}).${sub?` Antardasha: ${sub.lord} (${sub.start.slice(0,10)} — ${sub.end.slice(0,10)}).`:''}`:'The current period falls outside the calculated timeline.'}`
+  'THE BIG PICTURE\nIn the Jyotish tradition, the rising sign '+chart.ascendant.signName+' is symbolically linked with '+(signThemesEn[chart.ascendant.sign-1]||'personal direction')+'. Treat this as a theme for reflection, not a complete description of your personality.',
+  'SELF-EXPRESSION AND PURPOSE\nThe Sun in '+sun.signName+' is traditionally associated with willpower and the way a person expresses themselves. This chart also invites reflection on '+(HOUSE_THEMES_EN[sun.house-1]||'personal purpose')+'.',
+  'FEELINGS AND INNER COMFORT\nThe Moon in '+moon.signName+' is linked with emotional responses and habits. The tradition also considers the lunar sector '+moon.nakshatra+'; you might reflect on '+(HOUSE_THEMES_EN[moon.house-1]||'inner life')+' and what helps you regain balance.',
+  'PLANETS AND LIFE AREAS\n'+display(chart.d1)+'. These are symbolic themes within a tradition, not statements about what must happen.',
+  'RELATIONSHIPS AND PERSONAL VALUES\nThe supplementary D9 chart, traditionally used to reflect on partnership and maturity, has '+chart.lagnaD9.signName+' as its rising sign. It is an additional perspective, not a guarantee about relationships.',
+  'WORK AND FULFILMENT\nThe supplementary D10 chart is traditionally linked with work, contribution and public role; its rising sign is '+chart.lagnaD10.signName+'. This is one perspective on vocation, not a verdict or a promise of success.',
+  'CURRENT SYMBOLIC PERIOD\n'+activeText+' Use it as a prompt to review priorities calmly, not as a prediction of events.'
  ].join('\n\n');
 }
 
