@@ -4,7 +4,7 @@
 const measured=/(?:\d+(?:[.,]\d+)?)\s*(?:°|градус(?:ів|и|а)?|degrees?|°C)/iu;
 const numericHouse=/(?:^|[^\p{L}\p{N}])(?:\d{1,2})(?:-?(?:й|ий|му|го))?\s*(?:дім|домі|дому|house)(?![\p{L}])/iu;
 const date=/\b(?:19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}\b/u;
-const prohibitedClaims=/(?:екзальт(?:ація|ований|оване|ується)|дебіліт(?:ація|ований|овано)|exalt(?:ed|ation)|debilitat(?:ed|ion)|мулатрикона|moolatrikona|шадбал(?:а|и)|shadbala)/iu;
+const prohibitedClaims=/(?:екзальт[а-яіїєґ]*|дебіліт[а-яіїєґ]*|exalt(?:ed|ation)|debilitat(?:ed|ion)|мулатрикона|moolatrikona|шадбал[а-яіїєґ]*|shadbala)/iu;
 const yogaWords=/(?:ruchaka|badra|bhadra|hamsa|malavya|shasha|ручак[а-я]*|бхадр[а-я]*|хамс[а-я]*|малав[а-я]*|шаш[а-я]*)/giu;
 const signNames='(?:Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces|Овен|Овні|Телець|Тельці|Близнюки|Близнюках|Рак|Раку|Лев|Леві|Діва|Діві|Терези|Терезах|Скорпіон|Скорпіоні|Стрілець|Стрільці|Козоріг|Козорозі|Водолій|Водолії|Риби|Рибах)';
 const planetNames='(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Сонце|Сонця|Місяць|Місяця|Марс|Меркурій|Юпітер|Венера|Венери|Сатурн|Раху|Кету)';
