@@ -123,7 +123,7 @@ export class AccountController{
   const ownerId=currentUser(req);
   const row=await this.prisma.chart.findFirst({where:{id:chartId,ownerId},select:{id:true,createdAt:true,result:true,savedReport:true}});
   if(!row)throw new UnauthorizedException('This chart is not available in your account.');
-  return {id:row.id,createdAt:row.createdAt,chart:{id:row.id,...row.result as object},report:row.savedReport};
+  return {id:row.id,createdAt:row.createdAt,chart:{id:row.id,...(row.result as object)},report:row.savedReport};
  }
 
  @Delete('charts/:id')
