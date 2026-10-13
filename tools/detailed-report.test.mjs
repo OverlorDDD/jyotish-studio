@@ -111,7 +111,7 @@ test('life portrait has five practical narrative themes, each linked to actual c
  const a=buildDetailedReport(chart,'uk','2026-10-13');
  const b=buildDetailedReport(chart,'uk','2026-10-13');
  assert.deepEqual(a.lifePortrait,b.lifePortrait);
- assert.deepEqual(a.lifePortrait.chapters.map(c=>c.id),['strengths','challenges','relationships','career','growth']);
+ assert.deepEqual(a.lifePortrait.chapters.map(c=>c.id),['strengths','challenges','relationships','career','money','inner-life','growth']);
  for(const section of a.lifePortrait.chapters){
   assert.ok(section.overview.length>110);
   assert.ok(section.example.length>35);
