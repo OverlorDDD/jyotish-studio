@@ -1,4 +1,5 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
+import {ukTerm,normalizeUkrainianAstroTerms} from './terminology.ts';
 
 export class AiProviderError extends Error {
  readonly reason:'limit'|'upstream'|'format'|'timeout';
@@ -54,13 +55,14 @@ export function astrologicalFacts(chart:CalculatedChart,lang:'uk'|'en',now=Date.
  const active=chart.dasha.find(p=>Date.parse(p.start)<=now&&now<Date.parse(p.end));
  const activeSub=active?.antardashas?.find(p=>Date.parse(p.start)<=now&&now<Date.parse(p.end));
  const uk=lang==='uk';
+ const term=(name:string)=>uk?ukTerm(name):name;
  return [
-  {id:'lagna',fact:uk?`Лагна: ${chart.ascendant.signName}, дім 1.`:`Ascendant: ${chart.ascendant.signName}, house 1.`},
-  {id:'sun',fact:uk?`Сонце: ${sun.signName}, дім ${sun.house}.`:`Sun: ${sun.signName}, house ${sun.house}.`},
-  {id:'moon',fact:uk?`Місяць: ${moon.signName}, дім ${moon.house}, накшатра ${moon.nakshatra}, пада ${moon.pada}.`:`Moon: ${moon.signName}, house ${moon.house}, nakshatra ${moon.nakshatra}, pada ${moon.pada}.`},
-  {id:'navamsa',fact:uk?`Лагна Навамша D9: ${chart.lagnaD9.signName}.`:`Navamsa D9 ascendant: ${chart.lagnaD9.signName}.`},
-  {id:'dashamsa',fact:uk?`Лагна Дашамша D10: ${chart.lagnaD10.signName}.`:`Dashamsa D10 ascendant: ${chart.lagnaD10.signName}.`},
-  {id:'dasha',fact:active?(uk?`Поточна Вімшоттарі махадаша: ${active.lord}; антардаша: ${activeSub?.lord||'невизначена'}.`:`Current Vimshottari Mahadasha: ${active.lord}; Antardasha: ${activeSub?.lord||'unknown'}.`):(uk?'Поточний період поза розрахованим діапазоном.':'Current period outside calculated timeline.')}
+  {id:'lagna',fact:uk?`Лагна: ${term(chart.ascendant.signName)}, дім 1.`:`Ascendant: ${term(chart.ascendant.signName)}, house 1.`},
+  {id:'sun',fact:uk?`Сонце: ${term(sun.signName)}, дім ${sun.house}.`:`Sun: ${term(sun.signName)}, house ${sun.house}.`},
+  {id:'moon',fact:uk?`Місяць: ${term(moon.signName)}, дім ${moon.house}, накшатра ${term(moon.nakshatra)}, пада ${moon.pada}.`:`Moon: ${term(moon.signName)}, house ${moon.house}, nakshatra ${term(moon.nakshatra)}, pada ${moon.pada}.`},
+  {id:'navamsa',fact:uk?`Лагна Навамша D9: ${term(chart.lagnaD9.signName)}.`:`Navamsa D9 ascendant: ${term(chart.lagnaD9.signName)}.`},
+  {id:'dashamsa',fact:uk?`Лагна Дашамша D10: ${term(chart.lagnaD10.signName)}.`:`Dashamsa D10 ascendant: ${term(chart.lagnaD10.signName)}.`},
+  {id:'dasha',fact:active?(uk?`Поточна Вімшоттарі махадаша: ${term(active.lord)}; антардаша: ${activeSub?.lord?term(activeSub.lord):'невизначена'}.`:`Current Vimshottari Mahadasha: ${term(active.lord)}; Antardasha: ${activeSub?.lord?term(activeSub.lord):'unknown'}.`):(uk?'Поточний період поза розрахованим діапазоном.':'Current period outside calculated timeline.')}
  ] as const;
 }
 
@@ -123,7 +125,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    lines.push(`${fact.fact}\n${e.text.trim()}`);
   }
   const disclaimer=lang==='uk'?'Трактування в традиції Джйотіш.':'Interpretation in the Jyotish tradition.';
-  return {provider,model:(typeof result.model==='string'&&result.model.length<=120?result.model:options.model)||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),text:lines.join('\n\n')+'\n\n'+disclaimer};
+  return {provider,model:(typeof result.model==='string'&&result.model.length<=120?result.model:options.model)||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),text:lang==='uk'?normalizeUkrainianAstroTerms(lines.join('\n\n')+'\n\n'+disclaimer):lines.join('\n\n')+'\n\n'+disclaimer};
  }catch(e){
   if(e instanceof AiProviderError)throw e;
   if(controller.signal.aborted)throw new AiProviderError('timeout','OpenAI request timed out');
