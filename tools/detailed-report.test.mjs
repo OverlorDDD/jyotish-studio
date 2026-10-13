@@ -38,7 +38,7 @@ test('full report includes nine planet readings and twelve individually navigabl
  assert.ok(byId(r,'conjunctions').facts.some(x=>x.includes('Сонце')&&x.includes('Меркурій')));
  assert.ok(byId(r,'drishti').facts.length>=10);
  assert.match(byId(r,'planet-mars').paragraphs.join(' '),/Марс/);
- assert.match(byId(r,'house-10').heading,/Дім 10/);
+ assert.match(byId(r,'house-10').heading,/Сфера 10/);
  assert.match(byId(r,'navamsa').paragraphs.join(' '),/Терези/);
 });
 test('English report is in English and preserves the same computed positions',()=>{
@@ -46,7 +46,7 @@ test('English report is in English and preserves the same computed positions',()
  assert.match(byId(r,'portrait').heading,/Your astrological portrait/);
  assert.match(byId(r,'planet-sun').facts[0],/Sun.*Sagittarius/);
  assert.equal(r.language,'en');
- assert.match(byId(r,'dasha').heading,/Vimshottari/);
+ assert.match(byId(r,'dasha').heading,/Life cycles/);
 });
 test('Parashari drishti includes Jupiter fifth and ninth, Saturn third/tenth, Mars fourth/eighth',()=>{
  const aspects=calculateParashariDrishti(chart);
