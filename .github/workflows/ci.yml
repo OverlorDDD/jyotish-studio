@@ -15,6 +15,10 @@ jobs:
           python-version: '3.12'
       - name: Install Node dependencies
         run: npm install --no-audit --no-fund
+      - name: Generate Prisma Client
+        env:
+          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+        run: npx prisma generate --schema apps/api/prisma/schema.prisma
       - name: Install backup astronomical adapter
         run: python -m pip install pyswisseph
       - name: Unit tests
