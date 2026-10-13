@@ -162,3 +162,22 @@ test('long reading keeps good actionable paragraphs and drops a hallucinated pla
  assert.match(result.text,/Важливі сфери життя/);
  assert.doesNotMatch(result.text,/Скорпіоні/);
 });
+
+test('free prose report accepts useful paragraphs without demanding JSON; rejects invented positions individually',async()=>{
+ const paragraph1='У традиції ці теми можна використати як привід упорядкувати пріоритети. Наприклад, коли справ стає забагато, допомагає список. Запишіть одну головну задачу на завтра.';
+ const paragraph2='Стосунки стають простішими, коли говорити про очікування відкрито. Наприклад, люди можуть по-різному бачити спільний час. Спробуйте обговорити одну домовленість цього тижня.';
+ const invalid='Сонце у Скорпіоні гарантовано принесе багатство. Цей прогноз точний і не потребує ваших зусиль.';
+ const result=await generateOpenAiInterpretation(chart,'uk',{
+  key:'test',provider:'openrouter',limit:()=>true,reportMode:true,formatMode:'prose',
+  factsOverride:[{id:'identity',fact:'Calculated sign 12'}],
+  fetcher:async(_url,opts)=>{
+   const sent=JSON.parse(opts.body);
+   assert.ok(!sent.response_format);
+   assert.match(sent.messages[0].content,/plain prose/);
+   return new Response(JSON.stringify({choices:[{message:{content:[paragraph1,invalid,paragraph2].join('\n\n')}}]}),{status:200});
+  }
+ });
+ assert.match(result.text,/Загальна картина/);
+ assert.match(result.text,/Стосунки стають простішими/);
+ assert.doesNotMatch(result.text,/Скорпіоні/);
+});
