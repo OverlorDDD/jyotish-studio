@@ -17,6 +17,7 @@ test('tsx emits usable controller metadata for Swagger and DTO validation',async
     get:'String',
     dashas:'String',
     interpret:'InterpretDto',
+    detailedReport:'InterpretDto',
   };
   for(const [method,type] of Object.entries(expected)){
     const types=Reflect.getMetadata('design:paramtypes',JyotishController.prototype,method);
@@ -35,11 +36,12 @@ test('tsx emits usable controller metadata for Swagger and DTO validation',async
       '/api/v1/charts/calculate',
       '/api/v1/charts/{id}',
       '/api/v1/charts/{id}/dashas',
-      '/api/v1/interpretations'
+      '/api/v1/interpretations',
+      '/api/v1/reports'
     ])assert.ok(document.paths[path],`Swagger route missing: ${path}`);
     assert.ok(document.paths['/api/v1/charts/calculate'].post?.requestBody,
       'Swagger must document birth input request body');
-    console.log('PASS: Nest Swagger document generated with all five routes.');
+    console.log('PASS: Nest Swagger document generated with all six routes.');
   } finally {
     await app.close();
   }
