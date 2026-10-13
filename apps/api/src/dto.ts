@@ -9,6 +9,7 @@ export class BirthDto{
  @IsOptional() @IsString() @MaxLength(120) place?:string;
 }
 export class ReportDto extends BirthDto{
+ @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) asOf?:string;
  @ApiProperty({type:String,example:'uk'}) @Matches(/^(uk|en)$/) lang!:'uk'|'en';
  @IsOptional() @Matches(/^(auto|local)$/) preferred?:'auto'|'local';
 }
