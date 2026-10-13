@@ -197,6 +197,51 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   own:['власний знак','own sign'],other:['інший знак (не оцінка сили)','other sign (not a strength rating)'],
   unassigned:['не визначено за цими правилами','unassigned by this ruleset']
  };
+ // Deterministic interpretive templates: only validated house lordships and
+ // computed dignity/yoga rule IDs may drive these paragraphs.
+ const anchorLord=(house:number)=>findings.lords.find(x=>x.values.house===house)!;
+ const lordStory=(house:number)=>{
+  const f=anchorLord(house),v=f.values,source=Number(v.house)-1,target=Number(v.locatedHouse)-1;
+  return uk?
+   'Управитель '+house+'-го дому ('+label(String(v.ruler))+') міститься у '+v.locatedHouse+
+   '-му домі. Традиційно це символічно поєднує теми «'+HOUSE_UK[source].toLowerCase()+
+   '» і «'+HOUSE_UK[target].toLowerCase()+'». ['+f.id+']':
+   'Lord of house '+house+' ('+label(String(v.ruler))+') is in house '+v.locatedHouse+
+   '. Traditionally this connects the themes of '+HOUSE_EN[source].toLowerCase()+
+   ' and '+HOUSE_EN[target].toLowerCase()+'. ['+f.id+']';
+ };
+ const dignityStory=()=>{
+  const highlighted=findings.dignities.filter(f=>['own','exalted','debilitated'].includes(String(f.values.dignity)));
+  if(!highlighted.length)return uk?
+   'За трьома спеціальними класами гідності додаткових акцентів немає; це не оцінка загальної сили карти.':
+   'No special sign-level dignity categories are present; this is not a global strength assessment.';
+  return highlighted.map(f=>{
+   const status=String(f.values.dignity);
+   const description=uk?
+    status==='debilitated'?'класифікується як дебілітація; це не означає гарантованої невдачі':
+    status==='exalted'?'класифікується як екзальтація; це не гарантує конкретних результатів':
+    'перебуває у власному знаку; це лише символічна узгодженість':
+    status==='debilitated'?'is in a debilitation sign, not a guaranteed setback':
+    status==='exalted'?'is in an exaltation sign, not a guaranteed outcome':
+    'occupies an own sign, indicating symbolic affinity';
+   return label(f.subject)+' '+description+'. ['+f.id+']';
+  }).join(' ');
+ };
+ const yogaThemes:Record<string,[string,string]>={
+  Ruchaka:['ініціатива та дисципліна дії','initiative and disciplined action'],
+  Bhadra:['інтелект, комунікація та навчання','intellect, communication and learning'],
+  Hamsa:['світогляд, мудрість та наставництво','perspective, wisdom and teaching'],
+  Malavya:['естетика, партнерство та відчуття гармонії','aesthetics, partnership and harmony'],
+  Shasha:['структура, витримка та відповідальність','structure, endurance and responsibility']
+ };
+ const yogaStory=()=>{
+  if(!findings.yogas.length)return uk?
+   'Відсутність однієї з п’яти Махапуруша йог не виключає інших традиційних комбінацій.':
+   'No detected Pancha Mahapurusha yoga does not rule out other traditional combinations.';
+  return findings.yogas.map(y=>(uk?'Для ':'For ')+y.name+
+   (uk?' традиційні символічні теми — ':' the classical symbolic topics are ')+
+   yogaThemes[y.name][uk?0:1]+'. ['+y.id+']').join(' ');
+ };
  const houseLordDetails=findings.lords.map(f=>{
   const v=f.values;
   return (uk?'Дім ':'House ')+v.house+' ('+sign(Number(v.sign),uk)+') → '+
@@ -206,12 +251,12 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  sections.push(header("house-lords",uk?"Управителі 12 домів":"Lords of all 12 houses",
   uk?"IX · ВЕРИФІКОВАНІ ПРАВИЛА":"IX · VERIFIED RULES",
   uk?"Управитель кожного знака визначається за Парашарі, а його дім — безпосередньо з D1.":"Classical sign lordships and their actual D1 placements.",
-  [uk?"Управитель показує, через який дім традиційно пов’язують теми відповідного дому. Це тільки структурна прив’язка, не гарантія подій. Раху й Кету не отримують управління знаками у цій конфігурації.":"House lordship connects the theme of each house to the actual house of its sign ruler; this does not predict specific outcomes. Nodes receive no rulership in this ruleset."],
+  [uk?"Управитель показує, через який дім традиційно пов’язують теми відповідного дому. Це тільки структурна прив’язка, не гарантія подій. Раху й Кету не отримують управління знаками у цій конфігурації.":"House lordship connects the theme of each house to the actual house of its sign ruler; this does not predict specific outcomes. Nodes receive no rulership in this ruleset.",lordStory(1),lordStory(7),lordStory(10)],
   houseLordDetails));
  sections.push(header("dignities",uk?"Гідність ґрах у D1":"Sign dignity of the D1 grahas",
   uk?"X · КЛАСИЧНІ ПОЛОЖЕННЯ":"X · CLASSICAL PLACEMENTS",
   uk?"Власний знак, екзальтація, дебілітація або нейтрально класифіковане положення.":"Own sign, exaltation, debilitation and other placements.",
-  [uk?"Це лише класифікація положення за знаком. Повна сила ґрахи (Шадбала), дружба, спалення, градусна точність, ретроградність і скасування дебілітації тут не обчислюються.":"This is a sign-only classification, not Shadbala, combustion, degrees, friendships or debilitation cancellation."],
+  [uk?"Це лише класифікація положення за знаком. Повна сила ґрахи (Шадбала), дружба, спалення, градусна точність, ретроградність і скасування дебілітації тут не обчислюються.":"This is a sign-only classification, not Shadbala, combustion, degrees, friendships or debilitation cancellation.",dignityStory()],
   findings.dignities.map(f=>{
    const v=f.values,term=dignityLabel[String(v.dignity)]||dignityLabel.other;
    return label(f.subject)+' — '+sign(Number(v.sign),uk)+', '+(uk?'дім ':'house ')+v.house+
@@ -220,11 +265,18 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  sections.push(header("yogas",uk?"Панча Махапуруша йоги":"Pancha Mahapurusha yogas",
   uk?"XI · ПЕРЕВІРЕНІ КОМБІНАЦІЇ":"XI · VERIFIED COMBINATIONS",
   uk?"П’ять класичних типів йог, визначених за Кендрою від Лагни та гідністю ґрахи.":"Five possible yoga types evaluated from Lagna kendra and graha dignity.",
-  [uk?"Правило: Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в домі 1, 4, 7 або 10 від Лагни та у власному знаку або знаку екзальтації. Йоги від Місяця, скасування та загальна сила потребують окремих правил і наразі не визначаються.":"Rule: Mars, Mercury, Jupiter, Venus or Saturn must be in house 1, 4, 7 or 10 from Lagna and in own or exaltation sign. Moon-relative variants and strength modifiers are deliberately excluded."],
+  [uk?"Правило: Марс, Меркурій, Юпітер, Венера або Сатурн перебуває в домі 1, 4, 7 або 10 від Лагни та у власному знаку або знаку екзальтації. Йоги від Місяця, скасування та загальна сила потребують окремих правил і наразі не визначаються.":"Rule: Mars, Mercury, Jupiter, Venus or Saturn must be in house 1, 4, 7 or 10 from Lagna and in own or exaltation sign. Moon-relative variants and strength modifiers are deliberately excluded.",yogaStory()],
   findings.yogas.length?findings.yogas.map(y=>
    y.name+' — '+label(y.planet)+', '+sign(y.sign,uk)+', '+(uk?'дім ':'house ')+y.house+
    ' ('+(uk?(y.reason==='exalted'?'екзальтація':'власний знак'):y.reason)+') ['+y.id+']'
   ):[uk?"За цими конкретними критеріями жодна з п’яти йог не сформувалася. Це не висновок про інші йоги чи життєві події.":"None of the five yogas meets these exact rules; this says nothing about other yoga families or events."]));
+ sections.push(header("rule-synthesis",uk?"Синтез за перевіреними правилами":"Synthesis from verified rules",
+  uk?"XII · ДЕТЕРМІНОВАНЕ ТРАКТУВАННЯ":"XII · DETERMINISTIC INTERPRETATION",
+  uk?"Пояснення складається алгоритмом з конкретних правил і завжди повторюється для тих самих даних.":"Algorithm-written interpretation based on specific rules; repeatable for identical inputs.",
+  [lordStory(1),lordStory(7),lordStory(10),dignityStory(),yogaStory(),
+   uk?"Цей синтез є викладом традиційних символічних відповідностей, а не доказом подій чи науковим прогнозом. Його фактичні дані не змінюються генеративною моделлю.":
+   "This is an interpretation of traditional symbolic correspondences, not evidence of events or a scientific forecast. The generative model cannot alter its data."],
+  [uk?"Версія правил: ":"Ruleset: "+RULESET_VERSION,uk?"Перевірені факти: "+findings.facts.length:"Verified facts: "+findings.facts.length]));
  return {sections,generatedAt:asOf+'T00:00:00.000Z',asOf,
   rulesVersion:RULESET_VERSION,rulesDigest:ruleFingerprint(chart,asOf),
   ruleFacts:findings.facts,chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
