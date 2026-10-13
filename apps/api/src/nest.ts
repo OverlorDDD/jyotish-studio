@@ -61,13 +61,14 @@ export class JyotishController{
   let chart:CalculatedChart;
   try{chart=await runCalculation(birth);}
   catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
-  const report=buildDetailedReport(chart,birth.lang);
+  const asOf=birth.asOf||new Date().toISOString().slice(0,10);
+  const report=buildDetailedReport(chart,birth.lang,asOf);
   if(birth.preferred==='local'||process.env.AI_MODE==='local')
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
   const free=await generateFreeInterpretationDetailed(chart,birth.lang,{
-   factsOverride:detailedReportFacts(chart,birth.lang),reportMode:true
+   factsOverride:detailedReportFacts(chart,birth.lang,asOf),reportMode:true
   });
   return {...report,ai:free.result||{provider:'local' as const,text:'',fallbackReason:free.reason}};
  }
