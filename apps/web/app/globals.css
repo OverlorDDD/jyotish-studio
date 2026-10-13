@@ -140,3 +140,5 @@
 .reading-practical-action strong{color:#e9c781;font-size:13px}
 .reading-practical-action p{color:#f1f3f7;font-weight:500}
 @media(max-width:700px){.reading-practical{padding:17px}.reading-practical-grid{grid-template-columns:1fr}}
+
+.reading-portrait{margin:30px 0;padding:23px;border:1px solid #6b6172;border-radius:14px;background:linear-gradient(140deg,#191f35,#121d2b)}.reading-portrait h3{font-size:23px;color:#edd7b7}.reading-portrait-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:18px}.reading-portrait-card{padding:20px;border-radius:10px;border:1px solid #3b4e67;background:#131f30}.reading-portrait-card h4{color:#eacb97;font-size:17px;margin:0 0 12px}.reading-portrait-card p{font-size:13px;line-height:1.8;color:#ced6e2}.reading-portrait-evidence{font-size:11px;margin-top:12px;color:#92a8c1}.reading-portrait-evidence summary{cursor:pointer}.reading-portrait-evidence code{display:block;overflow-wrap:anywhere;line-height:1.6;margin-top:7px}@media(max-width:720px){.reading-portrait{padding:17px}.reading-portrait-grid{grid-template-columns:1fr}}
