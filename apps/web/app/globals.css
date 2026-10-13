@@ -92,3 +92,13 @@
 .account-message{padding:10px;background:#28364c;border-left:2px solid #cbb280;color:#ebdda5;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 .account-privacy{display:flex;align-items:center;gap:8px;color:#8391a4;font-size:10px;margin-top:16px;line-height:1.6}
 @media(max-width:690px){.account-trigger{padding:8px 9px;font-size:11px}.top-actions{gap:7px}.account-popover{position:fixed;left:12px;right:12px;top:75px;width:auto;max-height:calc(100vh - 88px)}}
+
+.reading-version{font-size:11px;color:#bcad8a;margin:8px 0 16px;font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere}
+.reading-provenance{margin:25px 0;border:1px solid #485675;border-radius:12px;padding:20px;color:#c4d0dd;background:#101d30}
+.reading-provenance summary{cursor:pointer;font-weight:600;color:#e3cc9b;font-size:13px}
+.reading-provenance p{font-size:12px;line-height:1.7;color:#aab5c5}
+.reading-provenance-list{max-height:300px;overflow:auto;display:grid;gap:10px;padding:10px 0}
+.reading-provenance-list div{border-bottom:1px solid #314155;padding-bottom:10px}
+.reading-provenance-list strong{color:#efddbc;font-size:11px}
+.reading-provenance-list span{font-size:10px;margin-left:7px;color:#99aac0}
+.reading-provenance-list small{display:block;color:#899cb5;font-size:11px;line-height:1.5;margin-top:5px;overflow-wrap:anywhere}
