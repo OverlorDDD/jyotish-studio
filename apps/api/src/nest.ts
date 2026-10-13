@@ -89,11 +89,11 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
-  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':freeai-v2',
+  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':editorial-v1',
    ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
-    factsOverride:detailedReportFacts(chart,birth.lang,asOf)
-     .filter(f=>['identity','planets','houses','navamsa','dashamsa','dasha'].includes(f.id))
-     .map(f=>({id:f.id,fact:f.fact.slice(0,550)+(f.id==='houses'?'; '+(birth.lang==='uk'?'Перевірені приклади практичних дій: ':'Verified examples of safe actions: ')+report.practicalTips.slice(0,3).map(t=>t.action).join(' '):'')})),reportMode:true,
+    factsOverride:report.editorial.chapters.filter(ch=>['core','elements','strengths','relationships','career','challenges','growth'].includes(ch.id))
+     .map(ch=>({id:({core:'identity',elements:'planets',strengths:'houses',relationships:'navamsa',career:'dashamsa',challenges:'aspects',growth:'dasha'} as Record<string,string>)[ch.id],
+      fact:ch.title+' — '+ch.paragraphs.join(' ').slice(0,1050)+' '+(birth.lang==='uk'?'Практична ідея: ':'Practical idea: ')+ch.insights.join(' ')})),reportMode:true,
     approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
    }));
   return {...report,ai:free.result||{provider:'local' as const,text:'',fallbackReason:free.reason}};
