@@ -15,22 +15,29 @@ const fictional={date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude
 const res=await fetch(`${base}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(fictional)});
 const chart=await res.json();
 assert.equal(res.status,expectedCreatedStatus,`Create chart: ${errorHint(res,chart)}`);
-assert.ok(typeof chart.id==='string'&&chart.id.length>0,'A created chart needs a persistent identifier');
+if(isNest)assert.equal(chart.id,undefined,'Guests must not receive persisted database IDs');
+else assert.ok(typeof chart.id==='string'&&chart.id.length>0,'A created chart needs a persistent identifier');
 assert.equal(chart.d1.length,9);assert.equal(chart.d9.length,9);assert.equal(chart.d10.length,9);assert.equal(chart.dasha.length,9);
+if(!isNest){
 const saved=await fetch(`${base}/api/v1/charts/${chart.id}`);
 const stored=await saved.json();assert.equal(saved.status,200);assert.equal(stored.utc,chart.utc);
 const periods=await fetch(`${base}/api/v1/charts/${chart.id}/dashas`);
 const dashaData=await periods.json();assert.equal(periods.status,200);assert.equal(dashaData.dasha.length,9);
 
+}
 assert.ok(chart.ayanamsa>20&&chart.ayanamsa<27);assert.ok(chart.ascendant.longitude>=0&&chart.ascendant.longitude<360);
-const ai=await fetch(`${base}/api/v1/interpretations`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:chart.id,lang:'uk',preferred:'local'})});
+const ai=await fetch(`${base}/api/v1/interpretations`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(isNest?{...fictional,lang:'uk',preferred:'local'}:{id:chart.id,lang:'uk',preferred:'local'})});
 const reading=await ai.json();
 assert.equal(ai.status,expectedCreatedStatus,`Create interpretation: ${errorHint(ai,reading)}`);
 assert.ok(typeof reading.text==='string'&&reading.text.length>60,'Interpretation text missing');
 if(isNest){
+ const history=await fetch(base+'/api/v1/account/charts');
+ assert.equal(history.status,401,'Guests cannot read saved history');
+ const oldId=await fetch(base+'/api/v1/charts/legacy-id');
+ assert.equal(oldId.status,401,'Saved charts require account ownership');
  const response=await fetch(`${base}/api/v1/reports`,{
   method:'POST',headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({id:chart.id,lang:'uk',preferred:'local'})
+  body:JSON.stringify({...fictional,lang:'uk',preferred:'local'})
  });
  const report=await response.json();
  assert.equal(response.status,201,`Report endpoint: ${errorHint(response,report)}`);
