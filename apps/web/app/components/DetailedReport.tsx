@@ -211,7 +211,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <div className="reading-chapter-kicker">{uk?'✦ ВАШ ПЛАН ДІЙ':'✦ YOUR ACTION PLAN'}</div>
    <h3>{uk?'З чого почати':'Where to begin'}</h3>
    <p>{uk?'Оберіть не більше трьох ідей і перевірте, чи вони справді корисні саме вам. Не потрібно робити все одразу.':'Choose no more than three ideas and see if they are genuinely useful for you. There is no need to do everything at once.'}</p>
-   <ol>{(report.lifePortrait?.chapters||[]).slice(0,3).map(ch=><li key={ch.id}><strong>{ch.title}</strong><span>{ch.action}</span></li>)}</ol>
+   <ol>{(report.editorial?.chapters?.length?report.editorial.chapters.filter(ch=>['core','relationships','career','growth'].includes(ch.id)).slice(0,3).map(ch=>({id:ch.id,title:ch.title,action:ch.insights[0]||''})):(report.lifePortrait?.chapters||[]).slice(0,3)).map(ch=><li key={ch.id}><strong>{ch.title}</strong><span>{ch.action}</span></li>)}</ol>
   </section>
   <details className="reading-technical" id="reading-details">
    <summary><span>{uk?'Астрологічні розрахунки та джерела':'Astrological calculations and sources'}</span>
