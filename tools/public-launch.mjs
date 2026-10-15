@@ -79,7 +79,7 @@ async function main(){
  const overrides={PORT:String(api),WEB_PORT:String(port),INTERNAL_API_ORIGIN:'http://127.0.0.1:'+api};
  info('Production build for public use');
  run('npm',['run','build'],root,overrides);
- launch('api','npm',['run','dev:api'],overrides);
+ launch('api','npm',['run','start','-w','@jyotish/api'],overrides);
  launch('web','npm',['run','start','-w','@jyotish/web'],overrides);
  await until('Nest API',()=>http('http://127.0.0.1:'+api+'/api/health'));
  await until('Next web',()=>http('http://127.0.0.1:'+port+'/'));
