@@ -203,3 +203,31 @@ The default `AI_MODE=free` uses only the `openrouter/free` zero-priced router (w
 The chart page now offers **Створити повне трактування / Generate full reading**, building a 29+ section report below the charts. It covers nine D1 grahas, twelve houses, whole-sign Parashari drishti, D9, D10, and Vimshottari cycles. Free AI provides optional verified-fact synthesis; the full calculated report works offline. NASA/Wikimedia public-domain imagery is credited. See [research, design and Windows tests](docs/competitive-analysis-and-full-report.md).
 
 Quick verification after git pull: `npm run test:report`, `npm run test:terminology`, `npm run test:all`, `npm run test:swagger`, `npm run build`, then `npm run start:full`. Public demo remains optional via `PUBLIC_DEMO=1` and must pass `npm run demo:check` before ngrok.
+
+---
+
+## Temporary public access and simultaneous OpsPilot launch
+
+The original `npm run dev:full` keeps its **solo** defaults (Next 3000, Nest 4000). An independent public mode is also available:
+```powershell
+npm run dev:public
+```
+This starts the existing PostgreSQL Docker service on 5433 without deleting its named volume, runs Prisma generate and committed migrations, builds Next.js, starts frontend on 3001 and API on 4001, then attempts `cloudflared tunnel --url http://localhost:3001`. Find the temporary HTTPS `*.trycloudflare.com` link in the terminal. If cloudflared is missing or exits, localhost:3001 stays available. Stop with Ctrl+C; the database volume remains.
+
+For **both** sites, use a single PowerShell window in the sibling [OpsPilot Admin](https://github.com/OverlorDDD/opspilot-admin) clone:
+```powershell
+cd C:\path\to\opspilot-admin
+npm run dev:both
+```
+The OpsPilot orchestrator starts local services and both tunnels. The default sibling path for Jyotish is `jyotish-studio-git`; if different, set `$env:JYOTISH_PATH="C:\your\path\jyotish-studio-git"` before starting.
+
+| Mode | OpsPilot web / API | Jyotish web / API | Databases |
+|---|---|---|---|
+| Solo Jyotish | — | 3000 / 4000 | PostgreSQL 5433 |
+| Both sites | 3000 / 4000 | 3001 / 4001 | Ops PostgreSQL 5432, Redis 6379, Jyotish PostgreSQL 5433 |
+
+Prerequisites: Node/npm, Docker Desktop, existing `node_modules` (`npm install` manually if absent), and for public tunnels `cloudflared` and `ngrok` respectively. Keep a unique 32+ character `AUTH_SECRET` in the **local** root `.env`, use `AI_MODE=free` or `local` for free demo, and do not share keys. The website sends requests to its own `/api`; Next.js forwards them privately to `INTERNAL_API_ORIGIN` (4000 solo / 4001 both). Neither browser nor tunnel needs direct API/DB access.
+
+If the API fails with Prisma P1001, check `docker compose ps -a` and `docker compose logs db --tail 50`. If localhost:3001 or :4001 is busy, stop old processes. If no Cloudflare URL appears, verify `cloudflared --version` and network access. A temporary Quick Tunnel URL changes on restart. Stop with Ctrl+C; never use `docker compose down -v`. User accounts, saved charts, calculation and LLM rules remain unchanged.
+
+Smoke checklist: guest D1/D9/D10 + Vimshottari + interpretation, Ukrainian/English, sign-in and save/reopen, guest history denied, other users' chart history denied, free model failure fallback, both local frontends and unique public links. Full production internet safety additionally requires hosting/network hardening; temporary tunnels are intended for supervised demos.
