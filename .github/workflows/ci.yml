@@ -27,6 +27,11 @@ jobs:
         run: npm run build
       - name: Swagger metadata and controller routes
         run: npm run test:swagger
+      - name: Validate public launchers
+        run: |
+          node --check tools/public-launch.mjs
+          node --check tools/next-launch.mjs
+
       - name: Browser JavaScript syntax
         run: node --check apps/web/public/demo.js
       - name: Start standalone API and smoke test
