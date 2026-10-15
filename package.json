@@ -35,7 +35,8 @@
     "test:terminology": "node --experimental-strip-types --test tools/terminology.test.mjs",
     "test:access": "node --experimental-strip-types --test tools/account-access.test.mjs",
     "site:check": "node --env-file=.env tools/site-preflight.mjs",
-    "test:engine2": "node --experimental-strip-types --test tools/engine2.test.mjs tools/interpretation-policy.test.mjs"
+    "test:engine2": "node --experimental-strip-types --test tools/engine2.test.mjs tools/interpretation-policy.test.mjs",
+    "dev:public": "node tools/public-launch.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
