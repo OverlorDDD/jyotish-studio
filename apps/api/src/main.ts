@@ -11,12 +11,13 @@ import {ValidationPipe} from '@nestjs/common';
 import {SwaggerModule,DocumentBuilder} from '@nestjs/swagger';
 import {AppModule} from './nest.ts';
 async function bootstrap(){
- const app=await NestFactory.create(AppModule,{cors:{origin:['http://localhost:3000']}});
+ const app=await NestFactory.create(AppModule,{cors:{origin:[`http://localhost:${process.env.WEB_PORT||3000}`]}});
  app.enableShutdownHooks();
  app.useGlobalPipes(new ValidationPipe({transform:true,whitelist:true,forbidNonWhitelisted:true}));
  const config=new DocumentBuilder().setTitle('Jyotish Studio API').setDescription('Sidereal natal charts, divisional charts, Vimshottari and AI readings. Guest calculations require no account; signed-in owners alone can save and retrieve their private chart history.').setVersion('0.1').build();
  SwaggerModule.setup('/api/docs',app,SwaggerModule.createDocument(app,config));
- await app.listen(Number(process.env.PORT||4000),'127.0.0.1');
- console.log('NestJS API ready at http://localhost:4000/api/docs');
+ const port=Number(process.env.PORT||4000);
+ await app.listen(port,'127.0.0.1');
+ console.log(`NestJS API ready at http://localhost:${port}/api/docs`);
 }
 bootstrap();
