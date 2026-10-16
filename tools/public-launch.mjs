@@ -52,7 +52,7 @@ async function until(label,check,limit=90000){
   await wait(800);}
  throw Error(label+' not ready; inspect previous logs.');
 }
-async function http(url){try{const r=await fetch(url,{signal:AbortSignal.timeout(2200)});return r.status>=200&&r.status<500;}catch{return false;}}
+async function http(url){try{const r=await fetch(url,{signal:AbortSignal.timeout(2200)});return r.status>=200&&r.status<400;}catch{return false;}}
 function dbReady(){
  const r=spawnSync(win?'cmd.exe':'docker',win?['/d','/s','/c','docker inspect --format {{.State.Health.Status}} jyotish-db']:['inspect','--format','{{.State.Health.Status}}','jyotish-db'],{encoding:'utf8',timeout:4500});
  return r.status===0&&r.stdout.trim()==='healthy';
