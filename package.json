@@ -45,7 +45,8 @@
     "admin:setup": "node --env-file=.env tools/setup-owner.mjs",
     "test:tarot": "node --experimental-strip-types --test tools/tarot-roles.test.mjs",
     "test:brand": "node --test tools/galaxiora-branding.test.mjs",
-    "test:tarot:depth": "node --experimental-strip-types --test tools/tarot-depth-nav.test.mjs"
+    "test:tarot:depth": "node --experimental-strip-types --test tools/tarot-depth-nav.test.mjs",
+    "tarot:assets": "node tools/tarot-assets.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
