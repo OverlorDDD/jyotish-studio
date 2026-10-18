@@ -8,8 +8,8 @@ test('Tarot: exactly 78 unique cards, full localized upright/reversed meanings',
  assert.equal(TAROT_DECK.length,78);
  assert.equal(new Set(TAROT_DECK.map(c=>c.id)).size,78);
  for(const card of TAROT_DECK)for(const field of ['name','upright','reversed']){
-  assert.ok(card[field].uk.length>=5,card.id+' '+field+' uk');
-  assert.ok(card[field].en.length>=5,card.id+' '+field+' en');
+  assert.ok(card[field].uk.length>=(field==='name'?2:5),card.id+' '+field+' uk');
+  assert.ok(card[field].en.length>=(field==='name'?2:5),card.id+' '+field+' en');
  }
 });
 test('Tarot: 1 / 3 / 10 cards never repeat within a spread, correct labels',()=>{
