@@ -407,3 +407,6 @@
 @media(max-width:860px){.as-tarot-celtic{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:530px){.as-spread-options{grid-template-columns:1fr}.as-tarot-card-grid,.as-tarot-celtic{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.as-tarot-card{min-height:185px}.as-tarot-history>button{flex-wrap:wrap}.as-role-panel .as-table-wrap{overflow:auto}}
 @media(prefers-reduced-motion:reduce){.as-tarot-card{transition:none}.as-tarot-card:hover{transform:none}}
+
+/* Galaxiora module subtitle below the shared product title. */
+.as-module-descriptor{font-family:'Playfair Display',Georgia,serif;color:#d6bd94;font-size:clamp(17px,1.9vw,22px);margin:-5px 0 16px!important}
