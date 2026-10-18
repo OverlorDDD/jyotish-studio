@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,MoonStar,Orbit,Sparkles} from 'lucide-react';
 import PortalShell from './PortalShell';
-import {portalPath,type PortalLocale} from '../../lib/brand';
+import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
 const COPY={
  en:{
-  eyebrow:'YOUR SPACE FOR DISCOVERY',headline:'Follow your curiosity.',emphasis:'Find your meaning.',
+  eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Explore the unseen.',emphasis:'Connect with your universe.',
   intro:'Explore astrology, tarot, mindfulness and the wisdom of living traditions. Start with free tools, learn at your own pace, and connect with real practitioners when you want a personal perspective.',
   explore:'Explore the space',jyotish:'Open Vedic birth chart',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
   status:'Coming next',ready:'Available now',
@@ -20,7 +20,7 @@ const COPY={
   disclaimer:'Our readings are reflective and educational, not medical, legal or financial advice.'
  },
  uk:{
-  eyebrow:'ПРОСТІР ДЛЯ ПІЗНАННЯ',headline:'Слідуй за цікавістю.',emphasis:'Знайди свої сенси.',
+  eyebrow:'GALAXIORA · ПРОСТІР КОСМІЧНОГО ПІЗНАННЯ',headline:'Досліджуй невидиме.',emphasis:'Відчуй зв’язок зі Всесвітом.',
   intro:'Досліджуй астрологію, Таро, медитацію та духовні традиції. Починай із безкоштовних інструментів, навчайся у своєму ритмі й звертайся до реальних практиків за персональним поглядом.',
   explore:'Дослідити платформу',jyotish:'Відкрити натальну карту Джйотіш',choose:'З чого почнеться твій шлях?',sectionSub:'Одна платформа, багато шляхів для навчання та рефлексії.',
   status:'Незабаром',ready:'Уже працює',
@@ -63,7 +63,7 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
     {t.cards.map(card=><Link href={portalPath(locale,card.slug)} className="as-category-card" key={card.slug}>
      <span className="as-category-icon"><IconFor name={card.icon}/></span>
      <span className="as-availability">{card.live?t.ready:t.status}</span>
-     <h3>{card.title}</h3><p>{card.description}</p>
+     <h3>{moduleTitle(card.slug as 'astrology'|'tarot'|'experts'|'yoga'|'learn')}</h3><p>{card.description}</p>
      <span className="as-category-next"><ArrowUpRight size={18}/></span>
     </Link>)}
    </div>
