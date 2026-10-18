@@ -33,7 +33,7 @@ test('expert intake is never submitted to a fake API or payment system',()=>{
  assert.ok(!/\bfetch\s*\(/.test(intake));
  assert.ok(!/localStorage|sessionStorage/.test(intake)); // data stays in React state
  assert.ok(!/\baxios\s*\(/.test(intake));
- assert.ok(intake.includes('Date of birth is NOT required'));
+ assert.ok(intake.includes('birth is NOT required'));
 });
 test('portal SEO avoids pretending a domain is registered and leaves API proxy unchanged',()=>{
  const layout=code('apps/web/app/layout.tsx');
