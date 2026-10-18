@@ -1,9 +1,9 @@
-# Cosmic platform — delivery map (18 October 2026)
+# Galaxiora — delivery map (18 October 2026)
 
 | Stage | Deliverable | Status |
 |---|---|---|
 | 0 | Existing Jyotish core, Swiss ephemeris, D1/D9/D10, interpretation rules | Implemented; Swiss license clearance before commercial release |
-| 1 | International EN/UK portal, modular categories, CSS art | Implemented; public brand/domain not approved |
+| 1 | International EN/UK portal, modular categories, CSS art | Implemented; Galaxiora chosen; domain/trademark not yet formally cleared |
 | 2 | Shared registration and accounts; default MEMBER + FREE/PREMIUM entitlement | Implemented; premium billing not connected |
 | 3 | Admin metrics and usage-based AI token accounting | Implemented; verify external provider cost data and add budget caps later |
 | 4 | Admin user directory, role assignment, audit, first-owner setup | Implemented in this PR; manual local first-owner bootstrap still required |
@@ -41,7 +41,7 @@ Private question-before-checkout drafts remain available only to their owners wi
 Do not convert a draft to a paid order until a properly authenticated payment-provider webhook verifies settlement and conditions. Future work: expert profiles, price/terms, order reconciliation, admin workflow, video upload/access, notifications, refunds, background retention/cleanup and contractor payouts.
 
 ## SEO and naming
-Keep brand configurable via `apps/web/lib/brand.ts` until name and domain are cleared. The product naming hierarchy will be e.g. [Brand] Tarot / Astro / Yoga / Academy / Experts / Journal. Search titles need descriptive words; no promise that a proposed name has a free .com or trademark clearance.
+Brand Galaxiora is centralized in `apps/web/lib/brand.ts` ; domain and trademark verification remains required. The product naming hierarchy will be e.g. [Brand] Tarot / Astro / Yoga / Academy / Experts / Journal. Search titles need descriptive words; no promise that a proposed name has a free .com or trademark clearance.
 
 ## Regression checklist
 - `npm run test:all`, `npm run test:swagger`, `npm run build`, `npm run db:migrate` (requires running local DB).
