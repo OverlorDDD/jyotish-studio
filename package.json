@@ -39,7 +39,9 @@
     "dev:public": "node tools/public-launch.mjs",
     "test:portal": "node --test tools/portal-stage1.test.mjs",
     "test:platform": "node --test tools/platform-stage2.test.mjs",
-    "test:stage3": "node --test tools/platform-stage3.test.mjs"
+    "test:stage3": "node --test tools/platform-stage3.test.mjs",
+    "db:doctor": "node tools/db-doctor.mjs",
+    "db:prune-drafts": "node --env-file=.env tools/prune-expired-reading-drafts.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
