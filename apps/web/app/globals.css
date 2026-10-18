@@ -336,3 +336,23 @@
 .as-payment-lock p{font-size:12px;line-height:1.7;color:#cfccbd;margin:7px 0 0}
 @media(max-width:900px){.as-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}.as-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.as-benefits,.as-admin-grid{grid-template-columns:1fr}.as-header-inner{justify-content:flex-start}.as-account{margin-left:auto}.as-header-inner>.as-language{order:2}.as-main-nav{order:5}}
+
+
+/* Tarot question -> checkout preview; no external images or live payment claims. */
+.as-consent{display:flex!important;align-items:flex-start;gap:12px;margin:22px 0!important;font-size:12px!important;letter-spacing:0!important;line-height:1.75}
+.as-consent input{width:18px!important;min-height:18px!important;height:18px!important;flex-shrink:0;margin-top:2px}
+.as-consent span{color:#dce3ed}
+.as-account-error svg{vertical-align:middle;margin-right:5px}
+.as-modal-overlay{position:fixed;inset:0;z-index:100;background:#090e19d9;display:grid;place-items:center;padding:20px}
+.as-payment-modal{position:relative;max-width:520px;width:100%;background:#19263a;border:1px solid #aa916b;border-radius:17px;padding:clamp(24px,4vw,38px);box-shadow:0 25px 95px #03050dbb}
+.as-payment-modal h2{font-family:'Playfair Display',Georgia,serif;font-size:29px;font-weight:500;margin:14px 0}
+.as-payment-modal>p{color:#bac7d8;font-size:14px;line-height:1.8}
+.as-payment-modal .as-button{width:100%;margin:7px 0}
+.as-modal-success{color:#abd5b8}
+.as-modal-close{position:absolute;top:15px;right:15px;display:grid;place-items:center;background:transparent;border:0;color:#e9d4b0}
+.as-checkout-summary{display:flex;align-items:flex-start;gap:13px;border:1px solid #75684e;border-radius:10px;background:#2c2b30;padding:16px;margin:20px 0;color:#e4d6c1;font-size:12px;line-height:1.7}
+.as-checkout-summary svg{flex-shrink:0}
+.as-draft-row{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;width:100%;padding:20px;border:1px solid #404f64;border-radius:11px;background:#122034}
+.as-draft-row p{overflow-wrap:anywhere}
+.as-draft-row small{color:#ccb58e}
+.as-draft-row button{background:transparent;border:1px solid #6e6170;color:#f0c9b0;padding:9px;border-radius:8px}
