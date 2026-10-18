@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,MoonStar,Orbit,Sparkles} from 'lucide-react';
+import {ArrowUpRight,BookOpen,Flower2,MoonStar,Orbit,Sparkles,Newspaper,MessagesSquare} from 'lucide-react';
 import PortalShell from './PortalShell';
 import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
@@ -11,10 +11,11 @@ const COPY={
   status:'Coming next',ready:'Available now',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Astrology',description:'Your birth chart and traditional Jyotish calculations, with more chart tools to come.',live:true},
-   {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 cards with reversals, three free daily spreads and a private journal.',live:true},
-   {slug:'experts',icon:'heart',title:'Human readers',description:'Learn how to prepare a personal question for a video reading by a real tarot practitioner.',live:false},
+   {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 cards, detailed interpretations, three daily spreads and human video-reading requests.',live:true},
    {slug:'yoga',icon:'flower',title:'Yoga & mindfulness',description:'A future home for accessible practices and reflective rituals.',live:false},
-   {slug:'learn',icon:'book',title:'Learning library',description:'Guides to traditions, symbolism and thoughtful self-discovery.',live:false}
+   {slug:'learn',icon:'book',title:'Learning library',description:'Guides to traditions, symbolism and thoughtful self-discovery.',live:false},
+   {slug:'news',icon:'news',title:'Daily cosmic news',description:'A future sourced editorial feed about astronomy, traditions and platform discoveries.',live:false},
+   {slug:'community',icon:'community',title:'Community forum',description:'A future home for respectful discussion, experience sharing and questions.',live:false}
   ],
   quote:'Grounded calculations. Human perspectives. Room for your own interpretation.',
   disclaimer:'Our readings are reflective and educational, not medical, legal or financial advice.'
@@ -26,10 +27,11 @@ const COPY={
   status:'Незабаром',ready:'Уже працює',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Натальна карта та розрахунки Джйотіш. Згодом додамо більше інструментів.',live:true},
-   {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 карт, перевернуті значення, три безкоштовні розклади щодня та приватна історія.',live:true},
-   {slug:'experts',icon:'heart',title:'Живі експерти',description:'Як підготувати особисте запитання для відеорозкладу від реальної людини.',live:false},
+   {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 карт, детальні трактування, три розклади щодня та персональні розклади від експерток.',live:true},
    {slug:'yoga',icon:'flower',title:'Йога та медитація',description:'Майбутній простір доступних практик і корисних ритуалів.',live:false},
-   {slug:'learn',icon:'book',title:'Бібліотека знань',description:'Пізнавай традиції, символіку й практики усвідомленості.',live:false}
+   {slug:'learn',icon:'book',title:'Бібліотека знань',description:'Пізнавай традиції, символіку й практики усвідомленості.',live:false},
+   {slug:'news',icon:'news',title:'Космічні новини',description:'Майбутня щоденна стрічка з достовірними джерелами та редакційними матеріалами.',live:false},
+   {slug:'community',icon:'community',title:'Спільнота та форум',description:'Майбутній простір обговорень, досвіду, запитань та підтримки.',live:false}
   ],
   quote:'Точні розрахунки. Людські погляди. Простір для власного розуміння.',
   disclaimer:'Трактування призначені для рефлексії та навчання, не замінюють медичних, юридичних чи фінансових консультацій.'
@@ -38,7 +40,8 @@ const COPY={
 function IconFor({name}:{name:string}){
  if(name==='orbit')return <Orbit size={26}/>;
  if(name==='sparkles')return <Sparkles size={26}/>;
- if(name==='heart')return <HeartHandshake size={26}/>;
+ if(name==='news')return <Newspaper size={26}/>;
+ if(name==='community')return <MessagesSquare size={26}/>;
  if(name==='flower')return <Flower2 size={26}/>;
  return <BookOpen size={26}/>;
 }
@@ -63,7 +66,7 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
     {t.cards.map(card=><Link href={portalPath(locale,card.slug)} className="as-category-card" key={card.slug}>
      <span className="as-category-icon"><IconFor name={card.icon}/></span>
      <span className="as-availability">{card.live?t.ready:t.status}</span>
-     <h3>{moduleTitle(card.slug as 'astrology'|'tarot'|'experts'|'yoga'|'learn')}</h3><p>{card.description}</p>
+     <h3>{moduleTitle(card.slug as 'astrology'|'tarot'|'yoga'|'learn'|'news'|'community')}</h3><p>{card.description}</p>
      <span className="as-category-next"><ArrowUpRight size={18}/></span>
     </Link>)}
    </div>
