@@ -84,9 +84,32 @@ function reportHeading(factId:string,lang:'uk'|'en'){
  return REPORT_HEADINGS[factId]?.[lang]||(lang==='uk'?'Пояснення до карти':'Chart insight');
 }
 export type ChatProvider='openai'|'openrouter'|'ollama';
+/** Provider-reported metadata only; no prompt, response text, account or birth details. */
+export type AiUsageEvent={
+ provider:ChatProvider;model:string;outcome:'returned'|'provider_error'|'request_error';
+ promptTokens?:number;completionTokens?:number;totalTokens?:number;costUsd?:number;
+};
+
 /** A shared, schema-validated chat adapter. Provider URLs are hard-coded, never user supplied. */
-export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose';factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>}){
+export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose';factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;onUsage?:(event:AiUsageEvent)=>Promise<void>|void}){
  const provider=options.provider||'openai';
+ const configuredModel=options.model||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
+ let usageReported=false;
+ async function reportUsage(outcome:AiUsageEvent['outcome'],body?:{model?:string;usage?:{prompt_tokens?:unknown;completion_tokens?:unknown;total_tokens?:unknown;cost?:unknown}}){
+  if(usageReported)return;
+  usageReported=true;
+  const nonNegativeInt=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value:undefined;
+  const cost=body?.usage?.cost;
+  const event:AiUsageEvent={
+   provider,model:typeof body?.model==='string'&&body.model.length<=120?body.model:configuredModel,
+   outcome,promptTokens:nonNegativeInt(body?.usage?.prompt_tokens),
+   completionTokens:nonNegativeInt(body?.usage?.completion_tokens),
+   totalTokens:nonNegativeInt(body?.usage?.total_tokens),
+   costUsd:typeof cost==='number'&&Number.isFinite(cost)&&cost>=0?cost:undefined
+  };
+  try{await options.onUsage?.(event);}catch{console.warn('AI usage telemetry unavailable; response continues');}
+ }
+
  const endpoint=provider==='openrouter'?'https://openrouter.ai/api/v1/chat/completions':
   provider==='ollama'?'http://127.0.0.1:11434/v1/chat/completions':'https://api.openai.com/v1/chat/completions';
  if(provider!=='ollama'&&!options.key.trim())throw new AiProviderError('upstream','API key is not configured');
@@ -122,6 +145,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
       {role:'user',content:JSON.stringify({facts,conventions:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu'}})}
     ]})});
   if(!response.ok){
+   await reportUsage('provider_error');
    // Only recognized machine-readable codes can leave this module; never echo raw API errors.
    let code='';
    try{
@@ -131,9 +155,10 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    }catch{}
    throw new AiProviderError('upstream',`OpenAI HTTP ${response.status}${code?' '+code:''}`);
   }
-  let result:{model?:string;choices?:{message?:{content?:string;refusal?:string}}[]};
+  let result:{model?:string;usage?:{prompt_tokens?:number;completion_tokens?:number;total_tokens?:number;cost?:number};choices?:{message?:{content?:string;refusal?:string}}[]};
   try{result=await response.json() as typeof result;}
-  catch{throw new AiProviderError('format','AI provider returned invalid JSON');}
+  catch{await reportUsage('returned');throw new AiProviderError('format','AI provider returned invalid JSON');}
+  await reportUsage('returned',result);
   const content=result.choices?.[0]?.message?.content;
   if(!content||result.choices?.[0]?.message?.refusal)throw new AiProviderError('format','OpenAI returned no interpretation');
   if(options.formatMode==='prose'){
@@ -177,6 +202,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   const narrative=lines.join('\n\n')+(options.reportMode?'':'\n\n'+disclaimer);
   return {provider,model:(typeof result.model==='string'&&result.model.length<=120?result.model:options.model)||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),text:lang==='uk'?normalizeUkrainianAstroTerms(narrative):narrative};
  }catch(e){
+  if(!usageReported)await reportUsage('request_error');
   if(e instanceof AiProviderError)throw e;
   if(controller.signal.aborted)throw new AiProviderError('timeout','OpenAI request timed out');
   throw new AiProviderError('upstream','OpenAI connection unavailable');
