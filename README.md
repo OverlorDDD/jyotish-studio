@@ -7,12 +7,12 @@ See [Jyotish Engine 2.0 implementation, source rules and testing](docs/jyotish-e
 ---
 ## Current product model: Guest access + personal history (Stage 8)
 
-Jyotish Studio is now ONE site. Visitors can calculate D1/D9/D10 and generate complete readings without registration; their guest data is never written into PostgreSQL. Registration adds private saved history, with login/logout, save, reopen and delete. Existing anonymous saved records remain unassigned and cannot be fetched publicly.
+Galaxiora is now ONE site. Visitors can calculate D1/D9/D10 and generate complete readings without registration; their guest data is never written into PostgreSQL. Registration adds private saved history, with login/logout, save, reopen and delete. Existing anonymous saved records remain unassigned and cannot be fetched publicly.
 
 Set AUTH_SECRET in the root local .env, run Prisma client generation and migrations, then start the app. See [Stage 8 Windows instructions and permission tests](docs/guest-accounts-history.md). Use npm run site:check (older demo:check remains an alias). PUBLIC_DEMO and Basic access credentials are no longer used.
 
 ---
-# Jyotish Studio ✧
+# Galaxiora — Astrology, Tarot & Cosmic Wisdom
 
 **Interview demo / навчальний Full Stack проєкт**: Vedic astrology engine with real Swiss Ephemeris, Lahiri sidereal coordinates, 9 grahas, whole-sign D1, Navamsa D9, Dashamsa D10, Vimshottari Mahadasha/Antardasha, React/Next.js UI, NestJS REST API, Prisma/PostgreSQL, optional OpenAI explanations.
 
