@@ -5,6 +5,7 @@ import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {drawCards,describeDraws,TAROT_DECK,SPREADS,type Spread} from './tarot-deck.ts';
+import {synthesizeTarot} from './tarot-synthesis.ts';
 
 export class TarotDrawDto {
  @ApiProperty({type:String,enum:['one','three','celtic']})
@@ -40,7 +41,7 @@ export class TarotController {
   const entries=readings.map(row=>{
    const spread=row.spread as Spread;
    if(!['one','three','celtic'].includes(spread))return null;
-   try{return {id:row.id,createdAt:row.createdAt,spread,question:row.question,cards:describeDraws(row.cards as {id:string;position:number;reversed:boolean}[],spread)}}
+   try{return {id:row.id,createdAt:row.createdAt,spread,question:row.question,cards:describeDraws(row.cards as {id:string;position:number;reversed:boolean}[],spread),synthesis:synthesizeTarot(row.cards as {id:string;position:number;reversed:boolean}[],spread,row.question)}}
    catch{return null;}
   }).filter(Boolean);
   return {remaining:Math.max(0,FREE_LIMIT-used),limit:FREE_LIMIT,reset:'UTC midnight',readings:entries};
@@ -63,7 +64,7 @@ export class TarotController {
    const row=await tx.tarotReading.create({data:{userId,spread:body.spread,question,cards:drawn},
     select:{id:true,createdAt:true}});
    return {...row,spread:body.spread,question,cards:describeDraws(drawn,body.spread),
-    remaining:FREE_LIMIT-used-1,limit:FREE_LIMIT,reset:'UTC midnight'};
+    synthesis:synthesizeTarot(drawn,body.spread,question),remaining:FREE_LIMIT-used-1,limit:FREE_LIMIT,reset:'UTC midnight'};
   });
  }
 }
