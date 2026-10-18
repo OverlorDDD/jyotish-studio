@@ -1,4 +1,4 @@
-import {BadRequestException,Body,Controller,ForbiddenException,Inject,Param,Post,Get,Delete,Req,UnauthorizedException,TooManyRequestsException} from '@nestjs/common';
+import {BadRequestException,Body,Controller,ForbiddenException,Inject,Param,Post,Get,Delete,Req,UnauthorizedException,HttpException,HttpStatus} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsOptional,IsString,Length,MaxLength,IsBoolean,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
@@ -41,12 +41,12 @@ export class ReadingOrdersController{
   const customerId=cookieUser(req);
   if(!customerId)throw new UnauthorizedException('Sign in to save a reading request');
   if(body.privacyConsent!==true)throw new BadRequestException('Consent required to save a private draft');
-  if(!allowDraft())throw new TooManyRequestsException('Too many reading drafts');
+  if(!allowDraft())throw new HttpException('Too many reading drafts',HttpStatus.TOO_MANY_REQUESTS);
   const question=body.question.trim(),context=body.context.trim();
   if(question.length<12||context.length<20)throw new BadRequestException('Please provide a question and context');
   const now=new Date(),dayAgo=new Date(now.getTime()-24*60*60*1000);
   const recent=await this.prisma.readingDraft.count({where:{customerId,createdAt:{gte:dayAgo}}});
-  if(recent>=5)throw new TooManyRequestsException('Daily limit for reading drafts reached');
+  if(recent>=5)throw new HttpException('Daily limit for reading drafts reached',HttpStatus.TOO_MANY_REQUESTS);
   const draft=await this.prisma.readingDraft.create({data:{
    customerId,topic:body.topic,question,context,timeframe:body.timeframe?.trim()||null,
    consentAt:now,expiresAt:new Date(now.getTime()+7*24*60*60*1000)
