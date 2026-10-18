@@ -5,8 +5,9 @@ import {readApiJson} from '../../lib/api-response';
 import type {PortalLocale} from '../../lib/brand';
 
 type Localized={en:string;uk:string};
-type Draw={id:string;position:number;reversed:boolean;name:Localized;meaning:Localized;positionName:Localized};
-type Reading={id:string;createdAt:string;spread:'one'|'three'|'celtic';question:string|null;cards:Draw[]};
+type Draw={id:string;position:number;reversed:boolean;name:Localized;meaning:Localized;detail:Localized;positionInsight:Localized;positionName:Localized};
+type Synthesis={answer:Localized;connections:Localized;reflection:Localized;steps:{en:string[];uk:string[]}};
+type Reading={id:string;createdAt:string;spread:'one'|'three'|'celtic';question:string|null;cards:Draw[];synthesis:Synthesis};
 type HistoryReply={readings:Reading[];remaining:number;limit:number;reset:string};
 type DrawReply=Reading&{remaining:number;limit:number;reset:string};
 const spreads=[{id:'one',en:'One card',uk:'Одна карта',count:1},{id:'three',en:'Three cards',uk:'Три карти',count:3},{id:'celtic',en:'Celtic Cross',uk:'Кельтський хрест',count:10}] as const;
@@ -75,10 +76,23 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
        {!open?<span className="as-card-back"><span>✺</span><small>✦ TAROT ✦</small></span>:
         <span className={'as-card-front '+(card.reversed?'is-reversed':'')}><span className="as-card-ornament">☾ ✦ ☽</span><strong>{card.name[locale]}</strong><span>✧</span></span>}
       </button>
-      {open&&<div className="as-card-interpret"><strong>{card.reversed?(uk?'Перевернута':'Reversed'):(uk?'Пряма':'Upright')}</strong><p>{card.meaning[locale]}</p></div>}
+      {open&&<div className="as-card-interpret"><strong>{card.reversed?(uk?'Перевернута':'Reversed'):(uk?'Пряма':'Upright')}</strong><p>{card.meaning[locale]}</p><p className="as-card-depth">{card.detail[locale]}</p><p className="as-card-position-meaning">{card.positionInsight[locale]}</p></div>}
      </div>
     })}
    </div>
+   {revealed.length===reading.cards.length&&<article className="as-tarot-synthesis" aria-labelledby="tarot-answer-heading">
+    <span className="as-overline">{uk?'ЗАГАЛЬНА ІНТЕРПРЕТАЦІЯ':'READING SYNTHESIS'}</span>
+    <h3 id="tarot-answer-heading">{uk?'Відповідь на твоє запитання':'An answer to your question'}</h3>
+    <p>{reading.synthesis.answer[locale]}</p>
+    <h4>{uk?'Як карти пов’язані між собою':'How the cards connect'}</h4>
+    <p>{reading.synthesis.connections[locale]}</p>
+    <h4>{uk?'Що варто усвідомити':'What deserves reflection'}</h4>
+    <p>{reading.synthesis.reflection[locale]}</p>
+    <h4>{uk?'Три можливі кроки':'Three practical steps'}</h4>
+    <ol>{reading.synthesis.steps[locale].map((step,i)=><li key={i}>{step}</li>)}</ol>
+    <p className="as-muted">{uk?'Це структурована інтерпретація символів, не факт про майбутнє і не AI-відповідь.':'This is structured symbolism, not a factual forecast or an AI-generated answer.'}</p>
+   </article>}
+   {revealed.length!==reading.cards.length&&<p className="as-tarot-hint">{uk?'Відкрий усі карти, щоб побачити їхній спільний підсумок і відповідь на запитання.':'Reveal all cards to see their combined narrative and answer.'}</p>}
    <p className="as-muted">{uk?'Важлива інформація: Таро не замінює медичних, юридичних або фінансових рішень.':'Tarot cannot replace medical, legal or financial advice.'}</p>
   </section>}
   <section className="as-tarot-history">
