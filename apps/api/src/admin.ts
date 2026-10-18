@@ -84,7 +84,7 @@ export class AdminController {
  async overview(@Req()req:IncomingMessage){
   await this.requireAdmin(req);
   const start=new Date(Date.now()-30*24*60*60*1000);
-  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts]=await Promise.all([
+  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts,tarotReadings]=await Promise.all([
    this.prisma.user.count(),
    this.prisma.chart.count(),
    this.prisma.readingOrder.groupBy({by:['status'],_count:{_all:true}}),
@@ -98,10 +98,11 @@ export class AdminController {
     _count:{_all:true,totalTokens:true},_sum:{promptTokens:true,completionTokens:true,totalTokens:true,costUsd:true}
    }),
    this.prisma.user.count({where:{subscriptionTier:'PREMIUM',subscriptionEndsAt:{gt:new Date()}}}),
-   this.prisma.readingDraft.count({where:{expiresAt:{gt:new Date()}}})
+   this.prisma.readingDraft.count({where:{expiresAt:{gt:new Date()}}}),
+   this.prisma.tarotReading.count()
   ]);
   return {
-   windowDays:30,users,charts,subscribers,freeMembers:users-subscribers,unpaidDrafts,
+   windowDays:30,users,charts,subscribers,freeMembers:users-subscribers,unpaidDrafts,tarotReadings,
    orders:orders.map(row=>({status:row.status,count:row._count._all})),
    ai:{
     requests:usage._count._all,
