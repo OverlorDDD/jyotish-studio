@@ -3,7 +3,7 @@ import {ApiTags} from '@nestjs/swagger';
 import type {IncomingMessage} from 'node:http';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
-import {AiProviderError,createHourlyLimiter,explainAiFailure} from './ai.ts';
+import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
 import {buildDetailedReport,detailedReportFacts} from './report.ts';
 import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
@@ -46,6 +46,14 @@ function owner(req:IncomingMessage){
 @Controller('api')
 export class JyotishController{
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
+ private async recordAiUsage(event:AiUsageEvent,operation:string){
+  // Use only provider-returned usage; unknown tokens/cost remain NULL, never guess.
+  await this.prisma.aiUsage.create({data:{
+   provider:event.provider,model:event.model,operation,outcome:event.outcome,
+   promptTokens:event.promptTokens,completionTokens:event.completionTokens,
+   totalTokens:event.totalTokens,costUsd:event.costUsd
+  }});
+ }
  @Get('health')
  async health(){
   try{await this.prisma.$queryRaw`SELECT 1`;return {status:'ok',service:'jyotish-nestjs',database:'connected'};}
@@ -95,6 +103,7 @@ export class JyotishController{
     factsOverride:report.editorial.chapters.filter(ch=>['core','elements','strengths','relationships','career','challenges','growth'].includes(ch.id))
      .map(ch=>({id:({core:'identity',elements:'planets',strengths:'houses',relationships:'navamsa',career:'dashamsa',challenges:'aspects',growth:'dasha'} as Record<string,string>)[ch.id],
       fact:ch.title+' — '+ch.paragraphs.join(' ').slice(0,1050)+' '+(birth.lang==='uk'?'Практична ідея: ':'Practical idea: ')+ch.insights.join(' ')})),reportMode:true,
+    onUsage:event=>this.recordAiUsage(event,'detailed_report'),
     approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
    }));
   return {...report,ai:free.result||{provider:'local' as const,text:'',fallbackReason:free.reason}};
@@ -107,7 +116,7 @@ export class JyotishController{
   let chart:CalculatedChart;
   try{chart=await runCalculation(birth);}
   catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
-  try{return await interpretChart(chart,birth.lang,birth.preferred||'auto');}
+  try{return await interpretChart(chart,birth.lang,birth.preferred||'auto',event=>this.recordAiUsage(event,'short_reading'));}
   catch(error){
    if(error instanceof AiProviderError){
     if(error.reason==='limit')throw new HttpException(error.message,HttpStatus.TOO_MANY_REQUESTS);
