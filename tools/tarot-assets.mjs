@@ -1,6 +1,6 @@
 /** Download the exact 78 pinned RWS scans into this app's static public directory.
  * Optional for online preview (remote fallback), recommended for stable and private hosting. */
-import {mkdir,writeFile,stat} from 'node:fs/promises';
+import {mkdir,writeFile,stat,open,rename,unlink} from 'node:fs/promises';
 import {join} from 'node:path';
 const BASE='https://raw.githubusercontent.com/mixvlad/TarotCards/840b84d012c6b74dc1634fa2d00d1b21f5b28093/tarot/rider-waite/720px/';
 const out=join(process.cwd(),'apps','web','public','tarot','rws');
@@ -10,19 +10,30 @@ const files=[...majors,...suits];
 if(files.length!==78||new Set(files).size!==78)throw new Error('Expected exactly 78 unique cards');
 await mkdir(out,{recursive:true});
 let updated=0,skipped=0,failed=[];
+const validJpeg=data=>data.length>4000&&data[0]===0xff&&data[1]===0xd8&&data.at(-2)===0xff&&data.at(-1)===0xd9;
+async function validExisting(path){
+ let fd;
+ try{
+  const {size}=await stat(path);
+  if(size<=4000)return false;
+  fd=await open(path,'r');
+  const front=Buffer.alloc(2),end=Buffer.alloc(2);
+  await fd.read(front,0,2,0);await fd.read(end,0,2,size-2);
+  return front[0]===0xff&&front[1]===0xd8&&end[0]===0xff&&end[1]===0xd9;
+ }catch{return false}finally{await fd?.close()}
+}
 async function get(file){
  const destination=join(out,file);
- try{
-  const old=await stat(destination);
-  if(old.size>4000){skipped++;return;}
- }catch{}
+ if(await validExisting(destination)){skipped++;return;}
  for(let attempt=0;attempt<3;attempt++){
   try{
    const response=await fetch(BASE+file,{signal:AbortSignal.timeout(18000)});
    if(!response.ok)throw new Error('HTTP '+response.status);
    const data=Buffer.from(await response.arrayBuffer());
-   if(data.length<4000||data[0]!==0xff||data[1]!==0xd8||data.at(-2)!==0xff||data.at(-1)!==0xd9)throw new Error('Not valid JPEG');
-   await writeFile(destination,data);updated++;return;
+   if(!validJpeg(data))throw new Error('Not valid JPEG');
+   const temp=destination+'.'+process.pid+'.partial';
+   try{await writeFile(temp,data);await rename(temp,destination);}finally{await unlink(temp).catch(()=>{});}
+   updated++;return;
   }catch(e){
    if(attempt===2){failed.push(file+': '+String(e));return;}
   }

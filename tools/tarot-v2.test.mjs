@@ -116,3 +116,17 @@ test('New Tarot schema upgrade is additive and artwork setup downloads a complet
  assert.ok(downloader.includes('Buffer.from(await response.arrayBuffer())'));
  assert.ok(downloader.includes('0xff'));
 });
+
+test('Tarot classic illustrations are automatically prepared on full local startup',()=>{
+ const packageJson=JSON.parse(file('package.json'));
+ assert.equal(packageJson.scripts['predev:full'],'node --experimental-strip-types tools/tarot-assets-prepare.mjs');
+ const preparation=file('tools/tarot-assets-prepare.mjs');
+ const installer=file('tools/tarot-assets.mjs');
+ assert.ok(preparation.includes('TAROT_DECK.map(c=>tarotArtFilename(c.id))'));
+ assert.ok(preparation.includes('count===78'));
+ assert.ok(preparation.includes("spawnSync(process.execPath,['tools/tarot-assets.mjs']"));
+ assert.ok(preparation.includes('TAROT_ART_REQUIRE_LOCAL'));
+ assert.ok(installer.includes('validExisting(destination)'));
+ assert.ok(installer.includes('rename(temp,destination)'));
+ assert.ok(installer.includes('validJpeg(data)'));
+});

@@ -3,7 +3,7 @@ October 18, 2026
 
 ## Delivered
 - **Classic Rider–Waite–Smith pictures:** exact mapping for all 22 Major + 56 Minor Arcana. Each revealed card uses a genuine illustrated image (not a typographic placeholder), with the artwork rotated 180° for reversed cards. Images are attempted locally first (`/tarot/rws/<file>`), and fall back to a pinned remote archive URL if not downloaded.
-- **Locally cached artwork:** `npm run tarot:assets` downloads and verifies 78 JPEG files under `apps/web/public/tarot/rws/`. These optional binary files are intentionally not committed into the repo and are .gitignored. This is the preferred approach for reliability and hosting; external hotlink fallback is only for preview. Re-run the script after an interrupted download. Do not use vague image-search placeholders.
+- **Locally cached artwork:** `npm run dev:full` now runs an automatic pre-start preparation step: checks all 78 JPEG files for complete JPEG headers/trailers, downloads missing or corrupted images to `apps/web/public/tarot/rws/`, and reports verified counts. `npm run tarot:assets` can be run manually if needed. The binary images are .gitignored and not distributed through Git; the pinned remote URL remains a fallback when offline. Images are written atomically and verified before the full app launches. Do not use vague image-search placeholders.
 - **Reader-style interpretation:** hand-authored specific scenario cues for 78 distinct cards, in both direct and reversed position and both EN/UK. The offline synthesis responds immediately to the question with a potential sequence of concrete events, explains each card in its spread position, offers cautions and advice. For example a short-term evening question gets a short-term reading about plausible invitations, conversations, news, changes of plan — not the old "symbolic reflection" preamble.
 - **Optional generative AI:** explicit user checkbox consent. Server-side flag `TAROT_AI_ENABLED=true` plus provider/key required. Model receives ONLY the question and verified drawn card details, no raw birth data, no session secrets. Separate strict JSON response fields: directAnswer, development, cardExplanations (exact count), caution, advice. Failed provider or invalid result falls back to the vivid offline version without losing the saved draw.
 - **Usage metering:** provider/model, result and provider-reported tokens/cost (if any) in AiUsage, operation `tarot_reading`. Raw prompts and personal questions never enter AiUsage.
@@ -22,7 +22,6 @@ cd C:\Users\Note\jyotish-studio-git
 git status --short
 git pull --ff-only origin main
 npm install
-npm run tarot:assets
 docker compose up -d db
 npm run db:generate
 npm run db:migrate
@@ -31,7 +30,9 @@ npm run test:swagger
 npm run build
 npm run dev:full
 ```
-This release includes a new additive DB migration, unlike the previous no-migration Tarot stage.
+Tarot v2 originally added an additive database migration. The latest automatic-image-preparation patch adds **no further database migration**.
+
+On first `npm run dev:full` the terminal may print `Tarot art preparation` and attempt the one-time download of the 78 classic JPGs. Subsequent starts reuse valid copies. To explicitly prepare offline-deploy assets ahead of build, run `npm run tarot:verify-art`. Set `TAROT_ART_REQUIRE_LOCAL=true` when running this in a deployment pipeline to fail if any local assets are unavailable. If offline, the normal developer launcher shows a warning but continues, using the remote fallback.
 If already running `dev:full`, restart the servers after migration.
 
 ### If you decide to test an AI provider
@@ -52,8 +53,9 @@ If you see 3, you are not signed in with an effective ADMIN role in that databas
 The backend checks role inside transaction; manually changing account role in client cannot bypass cap.
 
 ## Manual acceptance
-1. `/uk/tarot`: sign in, ask "Що мене чекає сьогодні ввечері?", draw 3 cards, verify 3 real classical illustrations; open cards, including any reversed card (180°).
-2. Reveal all: direct question-specific narrative, imagined event progression, 3 individual card explanations, warning and advice. It should no longer begin with "Сприймай ці образи..." or list abstract journaling steps.
+1. On initial `npm run dev:full` startup, check for `Tarot art verified: 78/78 classic cards.` If not complete, run `npm run tarot:assets` when internet access is available.
+2. `/uk/tarot`: sign in, ask "Що мене чекає сьогодні ввечері?", draw 3 cards, verify 3 real classical illustrations; open cards, including any reversed card (180°).
+3. Reveal all: direct question-specific narrative, imagined event progression, 3 individual card explanations, warning and advice. It should no longer begin with "Сприймай ці образи..." or list abstract journaling steps.
 3. Repeat for one card and 10-card Celtic Cross; verify card name matches picture and no duplicates in one draw.
 4. Switch between EN/UK and inspect saved history; new offline text is in correct language.
 5. Check ADMIN shows **100** initially (minus already-used readings today); MEMBER still **3**, fourth normal-user draw 429.
