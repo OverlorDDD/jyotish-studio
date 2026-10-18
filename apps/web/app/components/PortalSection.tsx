@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles} from 'lucide-react';
+import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles,Newspaper,MessagesSquare} from 'lucide-react';
 import PortalShell from './PortalShell';
 import ExpertOffer from './ExpertOffer';
 import TarotStudio from './TarotStudio';
 import {moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
-export const SECTIONS=['astrology','tarot','experts','yoga','learn'] as const;
+export const SECTIONS=['astrology','tarot','experts','yoga','learn','news','community'] as const;
 export type PortalSectionSlug=typeof SECTIONS[number];
 export const isPortalSection=(v:string):v is PortalSectionSlug=>SECTIONS.includes(v as PortalSectionSlug);
 export const SECTION_COPY={
@@ -14,21 +14,25 @@ export const SECTION_COPY={
   tarot:{title:'Free online tarot readings',lead:'Explore your questions with 78 symbolic cards, reversals and a personal journal. Three free readings per UTC day for signed-in members.',cta:'Explore personal video readings',sub:'Now live: one card, three cards and the ten-card Celtic Cross. Local card meanings are provided without paid AI.'},
   experts:{title:'Readings with real people',lead:'A personal reading should have a clear question, relevant context and boundaries. Build a draft brief here before our expert booking service opens.',cta:'Prepare your question',sub:'Video consultations, verified practitioner profiles and secure checkout are being developed. No bookings are accepted yet.'},
   yoga:{title:'Yoga & mindfulness',lead:'A future library of guided breathing, meditation and yoga practices for your day-to-day routine.',cta:'Explore astrology',sub:'Educational guides and practices are being prepared; no classes or health outcomes are promised.'},
-  learn:{title:'A living library',lead:'Accessible guides to astrology, tarot, yogic traditions and mindful self-reflection.',cta:'Explore astrology',sub:'Original multilingual articles and structured topic hubs are being prepared.'}
+  learn:{title:'A living library',lead:'Accessible guides to astrology, tarot, yogic traditions and mindful self-reflection.',cta:'Explore astrology',sub:'Original multilingual articles and structured topic hubs are being prepared.'},
+  news:{title:'Cosmic news and daily discoveries',lead:'A future daily editorial feed covering astronomy, cultural traditions, spirituality and platform updates, with clear source links.',cta:'Explore our live Tarot Studio',sub:'Editorial publishing, verification, author attribution, categories and archives are planned. No live news feed yet.'},
+  community:{title:'A community for thoughtful discussion',lead:'A planned forum for exchanging experiences, asking questions and discussing astrology, tarot and mindful practices respectfully.',cta:'Explore our live Tarot Studio',sub:'Forum accounts, roles, threads, moderation, reporting, privacy and anti-spam tools are planned. User posting is not enabled yet.'}
  },
  uk:{
   astrology:{title:'Інструменти астрології',lead:'Досліджуй натальну карту з готовим ведичним рушієм Джйотіш. Західна астрологія, транзити й місячний календар — у планах.',cta:'Розрахувати карту Джйотіш',sub:'Уже працює: Swiss Ephemeris, сидерична система Лахірі, D1, D9, D10 і життєві періоди.'},
   tarot:{title:'Безкоштовні розклади Таро',lead:'Досліджуй запитання із 78 символічними картами, перевернутими значеннями та власним журналом. Три безкоштовні розклади за UTC-добу після входу.',cta:'Персональний відеорозклад',sub:'Уже працює: 1 карта, 3 карти та Кельтський хрест на 10 карт. Локальні трактування не витрачають платні AI-токени.'},
   experts:{title:'Розклади від реальних людей',lead:'Персональний розклад потребує чіткого запитання, контексту й розуміння меж. Підготуй чернетку для експертки до запуску замовлень.',cta:'Підготувати запитання',sub:'Профілі консультантів, відеорозклади й безпечна оплата в розробці. Замовлення поки не приймаються.'},
   yoga:{title:'Йога та медитація',lead:'Майбутня бібліотека дихальних вправ, медитацій та йогічних практик для щоденного життя.',cta:'Дослідити астрологію',sub:'Матеріали й практики готуються, без обіцянок лікувального ефекту.'},
-  learn:{title:'Бібліотека знань',lead:'Доступні матеріали про астрологію, Таро, йогічні традиції та усвідомленість.',cta:'Дослідити астрологію',sub:'Авторські багатомовні статті й тематичні довідники готуються.'}
+  learn:{title:'Бібліотека знань',lead:'Доступні матеріали про астрологію, Таро, йогічні традиції та усвідомленість.',cta:'Дослідити астрологію',sub:'Авторські багатомовні статті й тематичні довідники готуються.'},
+  news:{title:'Щоденні новини та відкриття',lead:'Майбутня стрічка щоденних матеріалів про космос, духовні традиції, культуру та розвиток платформи з перевіреними джерелами.',cta:'Відкрити наш Tarot Studio',sub:'Плануються редактори, перевірка фактів, авторство, категорії й архів. Жива новинна стрічка ще не працює.'},
+  community:{title:'Спільнота та форум',lead:'Майбутній простір для обміну досвідом і поважних дискусій про астрологію, Таро й духовні практики.',cta:'Відкрити наш Tarot Studio',sub:'Плануються теми, відповіді, модерація, скарги, захист приватності й антиспам. Дописи поки не приймаються.'}
  }
 } as const;
-const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower2,learn:BookOpen};
+const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower2,learn:BookOpen,news:Newspaper,community:MessagesSquare};
 export default function PortalSection({locale,section}:{locale:PortalLocale;section:PortalSectionSlug}){
  const t=SECTION_COPY[locale][section];
  const Icon=iconMap[section];
- const href=section==='astrology'?portalPath(locale,'astrology/jyotish'):section==='tarot'?portalPath(locale,'experts'):portalPath(locale,'astrology/jyotish');
+ const href=section==='astrology'?portalPath(locale,'astrology/jyotish'):section==='tarot'?'#human-readings':portalPath(locale,'tarot');
  const working=section==='astrology'||section==='tarot';
  return <PortalShell locale={locale} active={section}>
   <div className="as-subpage">
@@ -42,8 +46,8 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
     <h2>{locale==='uk'?'Що доступно':'What to expect'}</h2>
     <p>{t.sub}</p>
    </section>
-   {section==='experts'&&<ExpertOffer locale={locale}/>}
    {section==='tarot'&&<TarotStudio locale={locale}/>}
+   {section==='tarot'&&<section id="human-readings" className="as-human-readings"><ExpertOffer locale={locale}/></section>}
   </div>
  </PortalShell>;
 }

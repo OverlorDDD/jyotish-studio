@@ -410,3 +410,17 @@
 
 /* Galaxiora module subtitle below the shared product title. */
 .as-module-descriptor{font-family:'Playfair Display',Georgia,serif;color:#d6bd94;font-size:clamp(17px,1.9vw,22px);margin:-5px 0 16px!important}
+
+
+/* Expanded Galaxiora Tarot narrative and anchored human consultation */
+.as-human-readings{scroll-margin-top:125px;border-top:1px solid #766180;padding-top:18px}
+.as-tarot-synthesis{border:1px solid #b69a6b;border-radius:16px;background:linear-gradient(150deg,#30283e,#17273a);padding:clamp(20px,3vw,36px);margin:24px 0 32px}
+.as-tarot-synthesis h3{font:500 clamp(25px,2.5vw,34px)/1.4 'Playfair Display',Georgia,serif;color:#f2d9af;margin:15px 0 18px}
+.as-tarot-synthesis h4{color:#ecd0ab;font-size:16px;margin:25px 0 10px}
+.as-tarot-synthesis p,.as-tarot-synthesis li{color:#dae4ef;font-size:14px;line-height:1.9;overflow-wrap:anywhere}
+.as-tarot-synthesis ol{padding-left:22px}
+.as-tarot-synthesis li{padding:4px 0}
+.as-card-interpret .as-card-depth{color:#e4e8f2;font-size:13px;line-height:1.85}
+.as-card-interpret .as-card-position-meaning{border-left:2px solid #c9a674;padding-left:12px;color:#cfb9a4;font-size:12px;line-height:1.75}
+.as-tarot-hint{padding:16px 18px;border:1px dashed #8a765c;border-radius:9px;color:#e3cca6}
+.as-human-readings:target{outline:1px solid #c4a272;outline-offset:8px;border-radius:8px}

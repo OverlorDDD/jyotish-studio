@@ -9,7 +9,7 @@ test('public homepage supports bilingual Galaxiora portal and retains root HTTP 
  const shell=code('apps/web/app/components/PortalShell.tsx');
  assert.match(root,/PortalHome locale="en"/);
  assert.match(localePage,/generateStaticParams/);
- for(const slug of ['astrology','tarot','experts','yoga','learn']){
+ for(const slug of ['astrology','tarot','yoga','learn','news','community']){
    assert.ok(home.includes("slug:'"+slug+"'"),slug);
    assert.ok(shell.includes("'"+slug+"'"),slug);
  }

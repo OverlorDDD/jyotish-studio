@@ -51,7 +51,7 @@ export default function AccountDashboard({locale}:{locale:PortalLocale}){
      </div>
      <button type="button" disabled={busy} onClick={()=>removeDraft(d.id)} aria-label={uk?'Видалити чернетку':'Delete draft'}><Trash2 size={18}/></button>
     </article>):<p className="as-muted">{uk?'Чернеток поки немає.':'No drafts yet.'}</p>}
-    <Link className="as-button as-button-secondary" href={portalPath(locale,'experts')}>{uk?'Створити питання для експертки':'Ask a human reader'}</Link>
+    <Link className="as-button as-button-secondary" href={portalPath(locale,'tarot')+'#human-readings'}>{uk?'Створити питання для експертки':'Ask a human reader'}</Link>
     {error&&<p role="alert" className="as-account-error">{error}</p>}
    </div>}
  </section>;
