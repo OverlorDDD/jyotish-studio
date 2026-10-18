@@ -9,3 +9,6 @@ dist/
 .DS_Store
 coverage/
 .local-data/
+
+# Downloaded, pinned public-domain Tarot card art; see npm run tarot:assets.
+/apps/web/public/tarot/rws/*.jpg
