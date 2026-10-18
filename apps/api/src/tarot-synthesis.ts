@@ -23,6 +23,23 @@ export function synthesizeTarot(raw:ReadonlyArray<RawCard>,spread:Spread,questio
   swords:{uk:'мислення, розмови та рішення',en:'thinking, communication and decisions'},
   pentacles:{uk:'роботу, ресурси й щоденну відповідальність',en:'work, resources and practical responsibility'}
  };
+ const topic=question||'';
+ const personalFocus:Both=/\b(pregnan|fertil|medical|health|illness|children|baby)\b|вагітн|здоров|діт|дитин|зачат|хвороб/i.test(topic)?{
+  uk:'Таро не може встановити вагітність, стан здоров’я чи факт майбутнього народження дитини. Для таких фактів потрібні відповідні реальні дані та фахівці; символи можуть допомогти лише дослідити власні почуття й рішення. ',
+  en:'Tarot cannot determine pregnancy, health status or whether a child will be born. Real-world evidence and qualified professionals are needed for those facts; symbols can only support reflection on feelings and choices. '
+ }:/стосунк|кохан|дівчин|хлопц|шлюб|любов|любить|relationship|marri|romance|partner|love/i.test(topic)?{
+  uk:'У стосунках карти не можуть підтвердити чужі приховані почуття. Відповідь варто шукати у взаємних діях, чесній розмові та твоїх межах. ',
+  en:'In relationships the cards cannot verify someone else’s private feelings. Look to mutual actions, honest communication and your own boundaries. '
+ }:/робот|кар'єр|профес|грош|бізнес|доход|прац|career|job|business|money|work|income/i.test(topic)?{
+  uk:'Якщо питання про роботу чи гроші, розклад не може гарантувати прибуток. Зістав його теми з навичками, ризиками, бюджетом і конкретними варіантами дій. ',
+  en:'For career or money questions, the spread cannot guarantee a financial outcome. Compare its themes with skills, risks, budget and practical alternatives. '
+ }:/виріш|вибір|обрати|рішення|перехід|переїх|decide|choice|decision|move|change/i.test(topic)?{
+  uk:'Коли йдеться про рішення, карти не обирають за тебе. Корисно порівняти альтернативи, ціну бездіяльності та те, що відповідає твоїм цінностям. ',
+  en:'For a decision, the cards cannot choose on your behalf. Compare alternatives, the cost of inaction and alignment with your values. '
+ }:{
+  uk:'Сприймай ці образи як запрошення поставити собі точніші запитання, а не як відповідь із надприродного джерела. ',
+  en:'Treat these images as an invitation to ask clearer questions, not a supernatural source of facts. '
+ };
  const opening=question?.trim()?{
   uk:'Щодо питання «'+question.trim()+'» розклад пропонує символічну, умовну відповідь: ',
   en:'For your question “'+question.trim()+'”, the spread offers a symbolic, conditional answer: '
@@ -31,11 +48,11 @@ export function synthesizeTarot(raw:ReadonlyArray<RawCard>,spread:Spread,questio
   en:'This spread suggests a direction for reflection: '
  };
  const answer:Both=cards.length===1?{
-  uk:opening.uk+'Центральна тема — «'+first.name.uk+'»'+(first.reversed?' у перевернутому положенні. ':'. ')+first.detail.uk+' Це не дозволяє передбачити точну подію або дату.',
-  en:opening.en+'The focus is '+first.name.en+(first.reversed?' reversed. ':'. ')+first.detail.en+' This cannot predict a precise event or date.'
+  uk:opening.uk+personalFocus.uk+'Центральна тема — «'+first.name.uk+'»'+(first.reversed?' у перевернутому положенні. ':'. ')+first.detail.uk+' Це не дозволяє передбачити точну подію або дату.',
+  en:opening.en+personalFocus.en+'The focus is '+first.name.en+(first.reversed?' reversed. ':'. ')+first.detail.en+' This cannot predict a precise event or date.'
  }:{
-  uk:opening.uk+'Початкова позиція «'+first.name.uk+'» окреслює контекст, а фінальна «'+last.name.uk+'» — один із можливих напрямів. '+last.detail.uk+' Висновок залежить від реальних обставин та твоїх дій.',
-  en:opening.en+'The opening '+first.name.en+' frames the situation, while the final '+last.name.en+' suggests one possible direction. '+last.detail.en+' Your circumstances and actions still matter.'
+  uk:opening.uk+personalFocus.uk+'Початкова позиція «'+first.name.uk+'» окреслює контекст, а фінальна «'+last.name.uk+'» — один із можливих напрямів. '+last.detail.uk+' Висновок залежить від реальних обставин та твоїх дій.',
+  en:opening.en+personalFocus.en+'The opening '+first.name.en+' frames the situation, while the final '+last.name.en+' suggests one possible direction. '+last.detail.en+' Your circumstances and actions still matter.'
  };
  const caveat:Both=rev>cards.length/2?{
   uk:'Більшість карт перевернуті: важливо помітити вагання, внутрішні потреби й затримки, а не трактувати це як вирок.',
