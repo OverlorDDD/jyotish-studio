@@ -6,9 +6,9 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 
 export class ReadingBriefDto{
- @ApiProperty({minLength:12,maxLength:600})
+ @ApiProperty({type:String,minLength:12,maxLength:600})
  @IsString() @Length(12,600) question!:string;
- @ApiProperty({minLength:20,maxLength:2000})
+ @ApiProperty({type:String,minLength:20,maxLength:2000})
  @IsString() @Length(20,2000) context!:string;
  @IsOptional() @IsString() @MaxLength(140) timeframe?:string;
 }
