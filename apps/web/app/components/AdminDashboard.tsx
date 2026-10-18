@@ -2,8 +2,9 @@
 import {useEffect,useState} from 'react';
 import {readApiJson} from '../../lib/api-response';
 import type {PortalLocale} from '../../lib/brand';
+import RoleManagement from './RoleManagement';
 
-type Dashboard={windowDays:number;users:number;charts:number;subscribers:number;freeMembers:number;unpaidDrafts:number;orders:{status:string;count:number}[];ai:{
+type Dashboard={windowDays:number;users:number;charts:number;subscribers:number;freeMembers:number;unpaidDrafts:number;tarotReadings:number;orders:{status:string;count:number}[];ai:{
  requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;
  costUsdReported:number|null;byProvider:{provider:string;model:string;requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;costUsdReported:number|null}[]
 }};
@@ -24,6 +25,7 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
   {label:uk?'Без підписки':'Free accounts',value:count(data.freeMembers)},
   {label:uk?'Платні підписники':'Premium accounts',value:count(data.subscribers)},
   {label:uk?'Чернетки до оплати':'Pending drafts',value:count(data.unpaidDrafts)},
+  {label:uk?'Розклади Таро':'Tarot readings',value:count(data.tarotReadings)},
   {label:uk?'Натальні карти':'Saved charts',value:count(data.charts)},
   {label:uk?'Запити AI / 30 днів':'AI calls / 30 days',value:count(data.ai.requests)},
   {label:uk?'Токени (підтверджені провайдером)':'Provider-reported tokens',value:count(data.ai.totalTokensReported)}
@@ -45,6 +47,7 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
    <p className="as-muted">{uk?'Нуль у токенах може означати, що провайдер не передав usage. Пропущені значення та витрати не оцінюються вигаданими числами.':'Some providers omit usage. Missing token figures and expenses must not be mistaken for confirmed zero cost.'}</p>
    <h2>{uk?'Цикл відеозамовлень':'Video order pipeline'}</h2>
    <div className="as-admin-grid">{data.orders.length?data.orders.map(o=><div className="as-admin-metric" key={o.status}><span>{o.status}</span><strong>{count(o.count)}</strong></div>):<p>{uk?'Оплачені замовлення ще не підключені.':'Payment and order intake are not enabled yet.'}</p>}</div>
+   <RoleManagement locale={locale}/>
   </>}
  </section>;
 }

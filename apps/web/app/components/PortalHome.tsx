@@ -11,7 +11,7 @@ const COPY={
   status:'Coming next',ready:'Available now',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Astrology',description:'Your birth chart and traditional Jyotish calculations, with more chart tools to come.',live:true},
-   {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Discover spread formats, better questions and our upcoming interactive tarot experience.',live:false},
+   {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 cards with reversals, three free daily spreads and a private journal.',live:true},
    {slug:'experts',icon:'heart',title:'Human readers',description:'Learn how to prepare a personal question for a video reading by a real tarot practitioner.',live:false},
    {slug:'yoga',icon:'flower',title:'Yoga & mindfulness',description:'A future home for accessible practices and reflective rituals.',live:false},
    {slug:'learn',icon:'book',title:'Learning library',description:'Guides to traditions, symbolism and thoughtful self-discovery.',live:false}
@@ -26,7 +26,7 @@ const COPY={
   status:'Незабаром',ready:'Уже працює',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Натальна карта та розрахунки Джйотіш. Згодом додамо більше інструментів.',live:true},
-   {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'Види розкладів, мистецтво формулювання питань і майбутнє інтерактивне Таро.',live:false},
+   {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 карт, перевернуті значення, три безкоштовні розклади щодня та приватна історія.',live:true},
    {slug:'experts',icon:'heart',title:'Живі експерти',description:'Як підготувати особисте запитання для відеорозкладу від реальної людини.',live:false},
    {slug:'yoga',icon:'flower',title:'Йога та медитація',description:'Майбутній простір доступних практик і корисних ритуалів.',live:false},
    {slug:'learn',icon:'book',title:'Бібліотека знань',description:'Пізнавай традиції, символіку й практики усвідомленості.',live:false}
