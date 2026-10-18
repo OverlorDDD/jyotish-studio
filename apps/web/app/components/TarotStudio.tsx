@@ -43,16 +43,18 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
     method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({spread,question:question.trim()||undefined})
    }));
-   setReading(r);setAiNotice('');setAiConsent(false);setRemaining(r.remaining);setHistory(prev=>[r,...prev].slice(0,20));setRevealed([]);
+   setReading(r);setAiNotice('');setRemaining(r.remaining);setHistory(prev=>[r,...prev].slice(0,20));setRevealed([]);
+   if(aiConsent)void interpretWithAi(r);
   }catch(e){setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false)}
  }
  function showSaved(value:Reading){setReading(value);setAiNotice('');setAiConsent(false);setRevealed(value.cards.map(x=>x.position));}
- async function interpretWithAi(){
-  if(!reading||!aiConsent)return;
+ async function interpretWithAi(selected?:Reading){
+  const target=selected||reading;
+  if(!target||!aiConsent)return;
   setAiBusy(true);setAiNotice('');
   try{
-   const answer=await readApiJson<{text:string|null;reason?:string;provider:string}>(await fetch('/api/v1/tarot/readings/'+encodeURIComponent(reading.id)+'/interpret',{
+   const answer=await readApiJson<{text:string|null;reason?:string;provider:string}>(await fetch('/api/v1/tarot/readings/'+encodeURIComponent(target.id)+'/interpret',{
     method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({lang:locale,consent:true})
    }));
@@ -60,8 +62,9 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
     setAiNotice(uk?'Безкоштовний AI-провайдер зараз недоступний або не налаштований. Прогноз за картами вище залишається доступним.':'The free AI provider is unavailable or not configured. Your symbolic forecast remains available above.');
     return;
    }
-   const merged:Reading={...reading,aiText:{...reading.aiText,uk:locale==='uk'?answer.text:reading.aiText?.uk||null,en:locale==='en'?answer.text:reading.aiText?.en||null}};
-   setReading(merged);setHistory(history.map(x=>x.id===merged.id?merged:x));
+   const merged:Reading={...target,aiText:{uk:locale==='uk'?answer.text:target.aiText?.uk||null,en:locale==='en'?answer.text:target.aiText?.en||null}};
+   setReading(prev=>prev?.id===merged.id?merged:prev);
+   setHistory(prev=>prev.map(x=>x.id===merged.id?merged:x));
   }catch(e){setAiNotice(e instanceof Error?e.message:String(e))}
   finally{setAiBusy(false)}
  }
@@ -85,7 +88,9 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
      <button className="as-button as-button-primary" type="submit" disabled={busy||remaining===0||loading}><Sparkles size={17}/>{busy?(uk?'Перемішуємо…':'Shuffling…'):(uk?'Розкласти карти':'Draw the cards')}</button>
      <span className="as-tarot-counter">{remaining===null?(uk?'Для розкладів потрібен акаунт':'Account required'):(uk?'Безкоштовних розкладів сьогодні: ':'Free draws left today: ')+remaining+' / 3'}</span>
     </div>
-    <p className="as-muted">{uk?'Ліміт оновлюється о 00:00 UTC. Платна AI-генерація тут не використовується.':'Your 3 free readings reset at 00:00 UTC. No paid AI generation is used here.'}</p>
+    <label className="as-consent"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/>
+     {uk?'Хочу одразу отримати розгорнуте AI-трактування й погоджуюся передати своє питання та випалі карти безкоштовному провайдеру OpenRouter.':'Generate a detailed AI reading automatically. I agree to share my question and drawn cards with the free OpenRouter provider.'}</label>
+    <p className="as-muted">{uk?'Ліміт оновлюється о 00:00 UTC. Платний OpenAI для Таро не використовується.':'Three draws reset at 00:00 UTC. Paid OpenAI is never used for Tarot.'}</p>
    </form>
    {error&&<p className="as-account-error" role="alert"><LockKeyhole size={16}/>{error}</p>}
   </section>
@@ -111,8 +116,9 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
    {revealed.length===reading.cards.length&&<article className="as-tarot-synthesis" aria-labelledby="tarot-answer-heading">
     <span className="as-overline">{uk?'ЗАГАЛЬНА ІНТЕРПРЕТАЦІЯ':'READING SYNTHESIS'}</span>
     <h3 id="tarot-answer-heading">{uk?'Що можуть принести карти — прогноз':'What the cards suggest — forecast'}</h3>
-    <p>{reading.synthesis.answer[locale]}</p>
-    <h4>{uk?'Як карти пов’язані між собою':'How the cards connect'}</h4>
+    {reading.aiText?.[locale]&&<div className="as-tarot-ai-output"><p>{reading.aiText[locale]}</p></div>}
+    {!reading.aiText?.[locale]&&<p>{reading.synthesis.answer[locale]}</p>}
+    <h4>{uk?'Розбір символів і позицій':'How the cards connect'}</h4>
     <p>{reading.synthesis.connections[locale]}</p>
     <h4>{uk?'На що звернути увагу у фіналі':'What matters about the outcome'}</h4>
     <p>{reading.synthesis.reflection[locale]}</p>
@@ -127,7 +133,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
        <>
         <label className="as-consent"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/>
           {uk?'Даю згоду передати це запитання і дані випалих карт безкоштовному AI-провайдеру.':'I agree to share this question and drawn card details with the free AI provider.'}</label>
-        <button type="button" className="as-button as-button-secondary" disabled={aiBusy||!aiConsent} onClick={interpretWithAi}>{aiBusy?(uk?'Готуємо трактування…':'Preparing your reading…'):(uk?'Отримати розгорнуту AI-відповідь':'Generate detailed AI reading')}</button>
+        <button type="button" className="as-button as-button-secondary" disabled={aiBusy||!aiConsent} onClick={()=>interpretWithAi()}>{aiBusy?(uk?'Готуємо трактування…':'Preparing your reading…'):(uk?'Отримати розгорнуту AI-відповідь':'Generate detailed AI reading')}</button>
        </>}
      {aiNotice&&<p className="as-muted" role="status">{aiNotice}</p>}
     </div>
