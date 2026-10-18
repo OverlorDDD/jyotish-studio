@@ -4,7 +4,7 @@ import './globals.css';
 
 const siteUrl=process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/,'');
 export const metadata:Metadata={
- title:{default:'Astrology, Tarot & Cosmic Wisdom | '+BRAND.name,template:'%s | '+BRAND.name},
+ title:{default:'Astrology, Tarot & Cosmic Wisdom | '+BRAND.name,template:'%s'},
  description:BRAND.name+' connects astrology, tarot, Vedic wisdom, mindfulness, and personal readings in one cosmic space.',
  applicationName:BRAND.name,
  openGraph:{siteName:BRAND.name,type:'website'},
