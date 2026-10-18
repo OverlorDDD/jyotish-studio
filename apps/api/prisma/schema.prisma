@@ -41,6 +41,7 @@ model User {
  subscriptionEndsAt DateTime?
  readingDrafts ReadingDraft[]
  tarotReadings TarotReading[]
+ expertProfile ExpertProfile?
  roleChangesAsTarget RoleChange[] @relation("RoleChangeTarget")
  roleChangesAsActor RoleChange[] @relation("RoleChangeActor")
  charts Chart[]
@@ -154,5 +155,39 @@ model TarotReading {
  question String? @db.VarChar(600)
  cards Json
  deckVersion String @default("rws-v1")
+ aiTextUk String? @db.Text
+ aiTextEn String? @db.Text
  @@index([userId,createdAt])
+}
+
+
+/// Real practitioners only. An ADMIN verifies actual EXPERT role and chooses when to publish.
+model ExpertProfile {
+ id String @id @default(uuid())
+ userId String @unique
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ displayName String @db.VarChar(90)
+ bioUk String @db.Text
+ bioEn String @db.Text
+ isPublished Boolean @default(false)
+ createdAt DateTime @default(now())
+ offers ExpertOffering[]
+ @@index([isPublished])
+}
+
+/// An advertised service, not an order or a charge. Checkout is disabled.
+model ExpertOffering {
+ id String @id @default(uuid())
+ expertId String
+ expert ExpertProfile @relation(fields:[expertId],references:[id],onDelete:Cascade)
+ titleUk String @db.VarChar(130)
+ titleEn String @db.VarChar(130)
+ descriptionUk String @db.Text
+ descriptionEn String @db.Text
+ priceMinor Int
+ currency String @default("USD") @db.VarChar(3)
+ deliveryDays Int @default(5)
+ isPublished Boolean @default(false)
+ createdAt DateTime @default(now())
+ @@index([expertId,isPublished])
 }
