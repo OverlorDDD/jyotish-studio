@@ -41,7 +41,8 @@
     "test:platform": "node --test tools/platform-stage2.test.mjs",
     "test:stage3": "node --test tools/platform-stage3.test.mjs",
     "db:doctor": "node tools/db-doctor.mjs",
-    "db:prune-drafts": "node --env-file=.env tools/prune-expired-reading-drafts.mjs"
+    "db:prune-drafts": "node --env-file=.env tools/prune-expired-reading-drafts.mjs",
+    "admin:setup": "node --env-file=.env tools/setup-owner.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
