@@ -10,6 +10,8 @@ export const BRAND = {
     experts: 'Experts',
     yoga: 'Yoga',
     learn: 'Academy',
+    news: 'News',
+    community: 'Community',
     jyotish: 'Jyotish',
     account: 'Account',
     admin: 'Admin',
