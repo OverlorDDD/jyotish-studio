@@ -12,12 +12,12 @@ type Reading={id:string;createdAt:string;spread:'one'|'three'|'celtic';question:
 type HistoryReply={readings:Reading[];remaining:number;limit:number;reset:string};
 type DrawReply=Reading&{remaining:number;limit:number;reset:string};
 function IllustratedTarotCard({id,name,reversed}:{id:string;name:string;reversed:boolean}){
- const [failed,setFailed]=useState(false);
+ const [imageSource,setImageSource]=useState(0);
  const art=tarotCardArt(id);
- if(!art||failed)return <span className="as-card-front as-card-art-fallback"><span>☾ ✦ ☽</span><strong>{name}</strong><span>✧</span></span>;
+ if(!art||imageSource>1)return <span className="as-card-front as-card-art-fallback"><span>☾ ✦ ☽</span><strong>{name}</strong><span>✧</span></span>;
  return <span className="as-card-art-holder">
-  <img className={'as-tarot-art '+(reversed?'is-reversed':'')} src={art} alt={name} loading="lazy"
-   onError={()=>setFailed(true)} />
+  <img className={'as-tarot-art '+(reversed?'is-reversed':'')} src={imageSource===0?art:art.replace('https://petaloverflow.github.io/tarot-api/cards/','https://raw.githubusercontent.com/sixseeds/tarot-api/main/cards/')} alt={name+(reversed?' — reversed':'')} loading="lazy"
+   onError={()=>setImageSource(n=>n+1)} />
  </span>;
 }
 const spreads=[{id:'one',en:'One card',uk:'Одна карта',count:1},{id:'three',en:'Three cards',uk:'Три карти',count:3},{id:'celtic',en:'Celtic Cross',uk:'Кельтський хрест',count:10}] as const;
