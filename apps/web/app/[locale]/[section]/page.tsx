@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
-import {notFound} from 'next/navigation';
+import {notFound,redirect} from 'next/navigation';
 import PortalSection,{isPortalSection,SECTIONS,SECTION_COPY} from '../../components/PortalSection';
-import {BRAND,moduleTitle,isPortalLocale,type PortalLocale} from '../../../lib/brand';
+import {BRAND,moduleTitle,isPortalLocale,portalPath,type PortalLocale} from '../../../lib/brand';
 
 export const dynamicParams=false;
 export function generateStaticParams(){return BRAND.locales.flatMap(locale=>SECTIONS.map(section=>({locale,section})));}
@@ -9,6 +9,7 @@ export async function generateMetadata({params}:{params:Promise<{locale:string;s
  const {locale,section}=await params;
  if(!isPortalLocale(locale)||!isPortalSection(section))return {};
  const data=SECTION_COPY[locale][section];
+ if(section==='experts')return {title:data.title,robots:{index:false,follow:true},alternates:{canonical:'/'+locale+'/tarot'}};
  return {
   title:data.title+' — '+moduleTitle(section),description:data.lead,
   alternates:{canonical:'/'+locale+'/'+section,languages:{en:'/en/'+section,uk:'/uk/'+section}}
@@ -17,5 +18,6 @@ export async function generateMetadata({params}:{params:Promise<{locale:string;s
 export default async function SectionPage({params}:{params:Promise<{locale:string;section:string}>}){
  const {locale,section}=await params;
  if(!isPortalLocale(locale)||!isPortalSection(section))notFound();
+ if(section==='experts')redirect(portalPath(locale,'tarot')+'#human-readings');
  return <PortalSection locale={locale as PortalLocale} section={section}/>;
 }
