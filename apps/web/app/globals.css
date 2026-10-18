@@ -424,3 +424,19 @@
 .as-card-interpret .as-card-position-meaning{border-left:2px solid #c9a674;padding-left:12px;color:#cfb9a4;font-size:12px;line-height:1.75}
 .as-tarot-hint{padding:16px 18px;border:1px dashed #8a765c;border-radius:9px;color:#e3cca6}
 .as-human-readings:target{outline:1px solid #c4a272;outline-offset:8px;border-radius:8px}
+
+
+/* Tarot v2: classic artwork, direct event-oriented interpretations and consent. */
+.as-tarot-card{padding:4px;overflow:hidden;border-radius:12px}
+.as-rws-art-wrap{display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#16152a;border-radius:7px;overflow:hidden}
+.as-rws-art{max-width:100%;width:100%;height:100%;object-fit:contain;display:block;transition:transform .25s ease}
+.as-rws-art.is-reversed{transform:rotate(180deg)}
+.as-rws-missing{font-family:'Playfair Display',Georgia,serif;font-size:18px;padding:14px;color:#edd4ac;text-align:center}
+.as-tarot-ai-consent{display:flex!important;align-items:flex-start;gap:11px;border:1px solid #756181;border-radius:10px;padding:14px!important;font-size:12px!important;line-height:1.65;max-width:860px}
+.as-tarot-ai-consent input{width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:#e4b77f}
+.as-reader-direct{font-family:'Playfair Display',Georgia,serif;font-size:clamp(18px,2vw,22px)!important;color:#ffe1b4!important;line-height:1.8!important;border-left:3px solid #d9b87e;padding-left:18px}
+.as-reader-card-detail{padding:14px 16px;border:1px solid #675875;background:#1d253d;border-radius:9px}
+.as-reader-card-detail strong{color:#e6c28c}
+.as-tarot-synthesis>a.as-button{display:inline-flex;margin:15px 0 8px;align-items:center;text-decoration:none}
+@media (max-width:530px){.as-rws-art{object-fit:contain}.as-tarot-card{min-height:185px}.as-tarot-synthesis{padding:22px}}
+@media (prefers-reduced-motion:reduce){.as-rws-art{transition:none}}
