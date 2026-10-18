@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const source=readFileSync(new URL('../apps/web/public/demo.js',import.meta.url),'utf8');
 const demoCss=readFileSync(new URL('../apps/web/public/demo.css',import.meta.url),'utf8');
 const appCss=readFileSync(new URL('../apps/web/app/globals.css',import.meta.url),'utf8');
-const appPage=readFileSync(new URL('../apps/web/app/page.tsx',import.meta.url),'utf8');
+const appPage=readFileSync(new URL('../apps/web/app/astrology/jyotish/page.tsx',import.meta.url),'utf8');
 const start=source.indexOf('const xml =');
 const end=source.indexOf('\nfunction render()',start);
 assert.ok(start>0&&end>start,'Locate actual standalone chart renderer');
