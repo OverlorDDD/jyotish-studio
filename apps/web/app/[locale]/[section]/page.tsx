@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 import PortalSection,{isPortalSection,SECTIONS,SECTION_COPY} from '../../components/PortalSection';
-import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
+import {BRAND,moduleTitle,isPortalLocale,type PortalLocale} from '../../../lib/brand';
 
 export const dynamicParams=false;
 export function generateStaticParams(){return BRAND.locales.flatMap(locale=>SECTIONS.map(section=>({locale,section})));}
@@ -10,7 +10,7 @@ export async function generateMetadata({params}:{params:Promise<{locale:string;s
  if(!isPortalLocale(locale)||!isPortalSection(section))return {};
  const data=SECTION_COPY[locale][section];
  return {
-  title:data.title,description:data.lead,
+  title:data.title+' — '+moduleTitle(section),description:data.lead,
   alternates:{canonical:'/'+locale+'/'+section,languages:{en:'/en/'+section,uk:'/uk/'+section}}
  };
 }
