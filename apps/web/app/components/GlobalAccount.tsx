@@ -5,7 +5,7 @@ import {LogIn,LogOut,UserRound,Eye,EyeOff,Shield} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../lib/brand';
 
-type User={id:string;email:string;role:'MEMBER'|'EXPERT'|'SUPPORT'|'ADMIN'};
+type User={id:string;email:string;role:'MEMBER'|'EXPERT'|'SUPPORT'|'ADMIN';subscription?:{tier:'FREE'|'PREMIUM';currentPeriodEnd:string|null}};
 export default function GlobalAccount({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
  const [user,setUser]=useState<User|null>(null),[loaded,setLoaded]=useState(false),[open,setOpen]=useState(false);
@@ -44,7 +44,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
   {open&&<div className="as-account-popover" role="region" aria-label={uk?'Обліковий запис':'Account'}>
    {!loaded?<p>{uk?'Завантаження…':'Loading…'}</p>:user?<div className="as-account-signed">
     <strong>{user.email}</strong>
-    <small>{user.role}</small>
+    <small>{user.role} · {user.subscription?.tier==='PREMIUM'?'Premium':'Free'}</small>
     <Link href={portalPath(locale,'account')} onClick={()=>setOpen(false)}>{uk?'Мій кабінет':'My account'}</Link>
     {user.role==='ADMIN'&&<Link href={portalPath(locale,'admin')} onClick={()=>setOpen(false)}><Shield size={15}/>{uk?'Панель адміністратора':'Admin overview'}</Link>}
     <button type="button" onClick={logout} disabled={busy}><LogOut size={15}/>{uk?'Вийти':'Sign out'}</button>

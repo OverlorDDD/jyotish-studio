@@ -28,7 +28,9 @@ test('post-payment private brief endpoint is fail-closed and ownership-checked',
  assert.ok(orders.includes("question:null,context:null"));
  assert.ok(orders.includes('updateMany'));
  const offer=source('apps/web/app/components/ExpertOffer.tsx');
- assert.ok(offer.includes('disabled aria-disabled="true"'));
+ const checkout=source('apps/web/app/components/DraftCheckout.tsx');
+ assert.ok(offer.includes('<DraftCheckout locale={locale}/>'));
+ assert.ok(checkout.includes('disabled aria-disabled="true"'));
  assert.ok(!offer.includes('fetch('));
  const section=source('apps/web/app/components/PortalSection.tsx');
  assert.ok(section.includes('<ExpertOffer locale={locale}/>'));

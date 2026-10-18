@@ -17,7 +17,7 @@
     "db:generate": "node --env-file=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
-    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform",
+    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3",
     "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
@@ -38,7 +38,10 @@
     "test:engine2": "node --experimental-strip-types --test tools/engine2.test.mjs tools/interpretation-policy.test.mjs",
     "dev:public": "node tools/public-launch.mjs",
     "test:portal": "node --test tools/portal-stage1.test.mjs",
-    "test:platform": "node --test tools/platform-stage2.test.mjs"
+    "test:platform": "node --test tools/platform-stage2.test.mjs",
+    "test:stage3": "node --test tools/platform-stage3.test.mjs",
+    "db:doctor": "node tools/db-doctor.mjs",
+    "db:prune-drafts": "node --env-file=.env tools/prune-expired-reading-drafts.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

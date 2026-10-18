@@ -1,9 +1,10 @@
-import {BadRequestException,Body,Controller,ForbiddenException,Inject,Param,Post,Req,UnauthorizedException} from '@nestjs/common';
+import {BadRequestException,Body,Controller,ForbiddenException,Inject,Param,Post,Get,Delete,Req,UnauthorizedException,HttpException,HttpStatus} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
-import {IsOptional,IsString,Length,MaxLength} from 'class-validator';
+import {IsOptional,IsString,Length,MaxLength,IsBoolean,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
+import {createHourlyLimiter} from './ai.ts';
 
 export class ReadingBriefDto{
  @ApiProperty({type:String,minLength:12,maxLength:600})
@@ -13,12 +14,63 @@ export class ReadingBriefDto{
  @IsOptional() @IsString() @MaxLength(140) timeframe?:string;
 }
 
-/** No unauthenticated and no pre-payment brief intake.
- * Checkout must be integrated separately with signed, verified server webhooks. */
+export class NewReadingDraftDto {
+ @ApiProperty({type:String,enum:['relationships','career','growth','decision','other']})
+ @IsString() @IsIn(['relationships','career','growth','decision','other']) topic!:string;
+ @ApiProperty({type:String,minLength:12,maxLength:600})
+ @IsString() @Length(12,600) question!:string;
+ @ApiProperty({type:String,minLength:20,maxLength:2000})
+ @IsString() @Length(20,2000) context!:string;
+ @ApiProperty({type:String,required:false})
+ @IsOptional() @IsString() @MaxLength(140) timeframe?:string;
+ @ApiProperty({type:Boolean,description:'Explicit consent to temporarily store personal precheckout draft'})
+ @IsBoolean() privacyConsent!:boolean;
+}
+const allowDraft=createHourlyLimiter(80);
+
+/** Drafts may be submitted before checkout but are NEVER work orders.
+ * The expert never receives a draft until a separate verified payment workflow.
+ * No checkout integration is enabled yet. */
 @ApiTags('Paid readings')
 @Controller('api/v1/reading-orders')
 export class ReadingOrdersController{
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
+ @Post('drafts')
+ async saveDraft(@Body()body:NewReadingDraftDto,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
+  const customerId=cookieUser(req);
+  if(!customerId)throw new UnauthorizedException('Sign in to save a reading request');
+  if(body.privacyConsent!==true)throw new BadRequestException('Consent required to save a private draft');
+  if(!allowDraft())throw new HttpException('Too many reading drafts',HttpStatus.TOO_MANY_REQUESTS);
+  const question=body.question.trim(),context=body.context.trim();
+  if(question.length<12||context.length<20)throw new BadRequestException('Please provide a question and context');
+  const now=new Date(),dayAgo=new Date(now.getTime()-24*60*60*1000);
+  const recent=await this.prisma.readingDraft.count({where:{customerId,createdAt:{gte:dayAgo}}});
+  if(recent>=5)throw new HttpException('Daily limit for reading drafts reached',HttpStatus.TOO_MANY_REQUESTS);
+  const draft=await this.prisma.readingDraft.create({data:{
+   customerId,topic:body.topic,question,context,timeframe:body.timeframe?.trim()||null,
+   consentAt:now,expiresAt:new Date(now.getTime()+7*24*60*60*1000)
+  },select:{id:true,createdAt:true,expiresAt:true}});
+  return {...draft,status:'AWAITING_CHECKOUT',checkoutAvailable:false};
+ }
+ @Get('drafts')
+ async myDrafts(@Req()req:IncomingMessage){
+  const customerId=cookieUser(req);
+  if(!customerId)throw new UnauthorizedException('Sign in required');
+  return this.prisma.readingDraft.findMany({
+   where:{customerId,expiresAt:{gt:new Date()}},orderBy:{createdAt:'desc'},take:10,
+   select:{id:true,createdAt:true,expiresAt:true,topic:true,question:true,context:true,timeframe:true}
+  });
+ }
+ @Delete('drafts/:id')
+ async deleteDraft(@Param('id')id:string,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
+  const customerId=cookieUser(req);
+  if(!customerId)throw new UnauthorizedException('Sign in required');
+  const result=await this.prisma.readingDraft.deleteMany({where:{id,customerId}});
+  return {deleted:result.count===1};
+ }
+
  @Post(':id/brief')
  async submitBrief(@Param('id')id:string,@Body()body:ReadingBriefDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
@@ -36,3 +88,7 @@ export class ReadingOrdersController{
  }
 }
 Reflect.defineMetadata('design:paramtypes',[String,ReadingBriefDto,Object],ReadingOrdersController.prototype,'submitBrief');
+
+Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'saveDraft');
+Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'myDrafts');
+Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteDraft');

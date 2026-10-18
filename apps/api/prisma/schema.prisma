@@ -6,6 +6,12 @@ datasource db {
  url = env("DATABASE_URL")
 }
 
+/** Staff permissions are independent from paid membership. */
+enum SubscriptionTier {
+ FREE
+ PREMIUM
+}
+
 enum UserRole {
  MEMBER
  EXPERT
@@ -31,6 +37,9 @@ model User {
  email String @unique
  passwordHash String
  role UserRole @default(MEMBER)
+ subscriptionTier SubscriptionTier @default(FREE)
+ subscriptionEndsAt DateTime?
+ readingDrafts ReadingDraft[]
  charts Chart[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
@@ -59,7 +68,7 @@ model Interpretation {
 }
 
 /// Only server-side verified payment webhooks may transition AWAITING_PAYMENT to PAID.
-/// Private questions cannot be stored before verified payment. No public order API in this stage.
+/// Reader access to orders and fulfilment must be gated on verified payment.
 model ReadingOrder {
  id String @id @default(uuid())
  createdAt DateTime @default(now())
@@ -97,4 +106,23 @@ model AiUsage {
  costUsd Float?
  @@index([createdAt])
  @@index([provider,model,createdAt])
+}
+
+/** Private pre-checkout brief. Visible to its author only; not an expert order.
+ * Payment provider integration will create a real order in a verified server flow.
+ * Drafts can be deleted by author, expire after 7 days and require scheduled pruning.
+ */
+model ReadingDraft {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ expiresAt DateTime
+ customerId String
+ customer User @relation(fields:[customerId],references:[id],onDelete:Cascade)
+ topic String
+ question String @db.Text
+ context String @db.Text
+ timeframe String? @db.VarChar(140)
+ consentAt DateTime
+ @@index([customerId,createdAt])
+ @@index([expiresAt])
 }
