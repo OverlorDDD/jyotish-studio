@@ -11,7 +11,7 @@ export async function generateTarotNarrative(
  onUsage?:(event:AiUsageEvent)=>Promise<void>|void,
  fetcher:typeof fetch=fetch
 ):Promise<TarotAiAttempt>{
- if(process.env.TAROT_AI_ENABLED!=='1')return {result:null,reason:'disabled'};
+ if(process.env.TAROT_AI_ENABLED==='0')return {result:null,reason:'disabled'};
  const key=process.env.OPENROUTER_API_KEY?.trim();
  if(!key)return {result:null,reason:'not_configured'};
  if(!canRequest())return {result:null,reason:'rate_limited'};
