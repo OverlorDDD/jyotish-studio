@@ -424,3 +424,15 @@
 .as-card-interpret .as-card-position-meaning{border-left:2px solid #c9a674;padding-left:12px;color:#cfb9a4;font-size:12px;line-height:1.75}
 .as-tarot-hint{padding:16px 18px;border:1px dashed #8a765c;border-radius:9px;color:#e3cca6}
 .as-human-readings:target{outline:1px solid #c4a272;outline-offset:8px;border-radius:8px}
+
+
+/* Original 1909 Smith–Waite illustrations; falling back to accessible CSS cards offline. */
+.as-card-art-holder{display:block;width:100%;height:100%;overflow:hidden;border-radius:6px;background:#dfcaa5}
+.as-tarot-art{display:block;width:100%;height:100%;object-fit:fill;transition:transform .3s ease}
+.as-tarot-art.is-reversed{transform:rotate(180deg)}
+.as-card-art-fallback{width:100%;height:100%;font-size:14px}
+.as-tarot-card.is-open{padding:4px;overflow:hidden}
+.as-tarot-ai{border-top:1px solid #6c6282;margin-top:30px;padding-top:20px}
+.as-tarot-ai-output{background:#16253a;border:1px solid #aa886b;border-radius:12px;padding:20px}
+.as-tarot-ai-output p{white-space:pre-wrap;line-height:1.9}
+.as-tarot-ai-output strong{color:#f4d6a2}
