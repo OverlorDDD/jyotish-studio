@@ -8,8 +8,8 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  const {locale}=await params;
  if(!isPortalLocale(locale))return {};
  return {
-  title: locale==='uk'?'Астрологія, Таро, йога та духовні практики':'Astrology, Tarot & Mindful Living',
-  description:locale==='uk'?'Досліджуй натальні карти Джйотіш, Таро, медитацію та духовні практики в одному просторі.':'Explore Vedic astrology, tarot readings, mindfulness and personal growth in one place.',
+  title: (locale==='uk'?'Астрологія, Таро, йога та духовні практики':'Astrology, Tarot & Cosmic Wisdom')+' | '+BRAND.name,
+  description:locale==='uk'?'Galaxiora — космічний простір астрології Джйотіш, Таро, медитацій і духовних практик.':'Galaxiora is a cosmic space for Vedic astrology, tarot, mindful living and personal discovery.',
   alternates:{canonical:'/'+locale,languages:{en:'/en',uk:'/uk','x-default':'/en'}}
  };
 }
