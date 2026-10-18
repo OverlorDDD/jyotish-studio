@@ -11,6 +11,7 @@ import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
 import {AdminController} from './admin.ts';
 import {ReadingOrdersController} from './reading-orders.ts';
+import {TarotController} from './tarot.ts';
 import {BirthDto,ReportDto} from './dto.ts';
 import {cookieUser} from './auth.ts';
 
@@ -138,5 +139,5 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,ReadingOrdersController],providers:[PrismaService]})
+@Module({controllers:[JyotishController,AccountController,AdminController,ReadingOrdersController,TarotController],providers:[PrismaService]})
 export class AppModule{}
