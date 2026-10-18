@@ -5,12 +5,35 @@ datasource db {
  provider = "postgresql"
  url = env("DATABASE_URL")
 }
+
+enum UserRole {
+ MEMBER
+ EXPERT
+ SUPPORT
+ ADMIN
+}
+
+enum ReadingOrderStatus {
+ AWAITING_PAYMENT
+ PAID
+ BRIEF_SUBMITTED
+ ASSIGNED
+ IN_PROGRESS
+ VIDEO_READY
+ COMPLETED
+ CANCELLED
+ REFUNDED
+}
+
 model User {
  id String @id @default(uuid())
  createdAt DateTime @default(now())
  email String @unique
  passwordHash String
+ role UserRole @default(MEMBER)
  charts Chart[]
+ readingOrders ReadingOrder[] @relation("OrderCustomer")
+ expertOrders ReadingOrder[] @relation("OrderExpert")
 }
 
 model Chart {
@@ -33,4 +56,45 @@ model Interpretation {
  language   String
  text       String @db.Text
  @@index([chartId])
+}
+
+/// Only server-side verified payment webhooks may transition AWAITING_PAYMENT to PAID.
+/// Private questions cannot be stored before verified payment. No public order API in this stage.
+model ReadingOrder {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ customerId String
+ customer User @relation("OrderCustomer",fields:[customerId],references:[id])
+ expertId String?
+ expert User? @relation("OrderExpert",fields:[expertId],references:[id])
+ status ReadingOrderStatus @default(AWAITING_PAYMENT)
+ offerCode String
+ currency String
+ amountMinor Int
+ paymentProvider String?
+ providerPaymentId String? @unique
+ paymentVerifiedAt DateTime?
+ question String? @db.Text
+ context String? @db.Text
+ deliveryFileKey String?
+ completedAt DateTime?
+ @@index([customerId,createdAt])
+ @@index([expertId,status])
+ @@index([status,createdAt])
+}
+
+model AiUsage {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ provider String
+ model String
+ operation String
+ outcome String
+ promptTokens Int?
+ completionTokens Int?
+ totalTokens Int?
+ costUsd Float?
+ @@index([createdAt])
+ @@index([provider,model,createdAt])
 }

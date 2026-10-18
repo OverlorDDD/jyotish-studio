@@ -17,7 +17,7 @@
     "db:generate": "node --env-file=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
-    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal",
+    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform",
     "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
@@ -37,7 +37,8 @@
     "site:check": "node --env-file=.env tools/site-preflight.mjs",
     "test:engine2": "node --experimental-strip-types --test tools/engine2.test.mjs tools/interpretation-policy.test.mjs",
     "dev:public": "node tools/public-launch.mjs",
-    "test:portal": "node --test tools/portal-stage1.test.mjs"
+    "test:portal": "node --test tools/portal-stage1.test.mjs",
+    "test:platform": "node --test tools/platform-stage2.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

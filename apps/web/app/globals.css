@@ -283,3 +283,56 @@
 @media(prefers-reduced-motion:reduce){.as-category-card{transition:none}.as-category-card:hover{transform:none}}
 
 .as-back-link{font-size:12px;color:#dec08e;text-decoration:none;padding:14px 12px 0;display:block}.as-back-link:hover{text-decoration:underline}
+
+
+/* Platform-wide account and operator surfaces. */
+.as-account{position:relative;flex-shrink:0}
+.as-account-trigger{border:1px solid #6c6071;background:#202a3c;color:#efd8b5;border-radius:9px;min-height:37px;display:flex;align-items:center;gap:7px;padding:8px 12px;font:inherit;font-size:12px}
+.as-account-trigger:hover{background:#31364b}
+.as-account-popover{position:absolute;z-index:60;right:0;top:calc(100% + 15px);width:min(340px,calc(100vw - 40px));border:1px solid #65586a;border-radius:12px;background:#172234;box-shadow:0 16px 48px #060a15b9;padding:20px}
+.as-account-form{display:flex;flex-direction:column;gap:10px}
+.as-account-form h3{font-size:19px;margin:0 0 5px}
+.as-account-form label{margin:6px 0 0;font-size:12px;letter-spacing:0;color:#d6deeb}
+.as-account-form input{height:42px;background:#0e1727;border:1px solid #43516a;border-radius:7px;padding:8px 10px;color:#f7f0e7;font:inherit;font-size:13px}
+.as-account-form .as-button{margin-top:8px}
+.as-password{display:flex;position:relative}
+.as-password input{width:100%;padding-right:44px}
+.as-password button{position:absolute;right:4px;top:4px;height:34px;width:34px;display:grid;place-items:center;border:0;color:#e0caab;background:transparent}
+.as-mode-toggle{padding:10px;color:#e6c598;background:transparent;border:0;text-decoration:underline;font:inherit;font-size:12px}
+.as-account-error{color:#f0b9b9;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.as-account-signed{display:flex;flex-direction:column;gap:12px;font-size:13px}
+.as-account-signed strong{overflow-wrap:anywhere}
+.as-account-signed small{color:#d6b47b;font-size:10px}
+.as-account-signed>a,.as-account-signed>button{display:flex;align-items:center;gap:8px;background:#22314a;color:#e5d7c0;border:1px solid #43506c;border-radius:8px;padding:12px;text-decoration:none;text-align:left;font:inherit;font-size:12px}
+.as-account-signed>a:hover,.as-account-signed>button:hover{border-color:#bea67e}
+.as-profile{max-width:1180px;margin:0 auto;padding:75px clamp(20px,4vw,58px) 110px}
+.as-profile h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(36px,4vw,52px);font-weight:500}
+.as-profile h2{font-size:22px;font-weight:550;margin-top:42px}
+.as-profile-card{padding:27px;border:1px solid #3c4a5f;border-radius:12px;background:#192638;display:flex;align-items:flex-start;flex-direction:column;gap:13px}
+.as-profile-card p{line-height:1.7;margin:0}
+.as-profile-card .as-button{margin-top:6px}
+.as-muted{color:#adbdce;font-size:13px;line-height:1.8}
+.as-admin-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:22px 0}
+.as-admin-metric{min-width:0;display:flex;flex-direction:column;gap:18px;background:#1c293c;border:1px solid #455063;border-radius:13px;padding:24px 18px}
+.as-admin-metric span{font-size:11px;color:#bcc7d6}
+.as-admin-metric strong{font-size:clamp(19px,2vw,30px);color:#e6ca9e;overflow-wrap:anywhere}
+.as-table-wrap{overflow:auto;background:#1a2638;border:1px solid #435066;border-radius:12px}
+.as-table-wrap table{min-width:730px;width:100%;border-collapse:collapse}
+.as-table-wrap th,.as-table-wrap td{text-align:left;padding:13px;border-bottom:1px solid #354357;font-size:12px;white-space:nowrap}
+.as-table-wrap th{color:#e7c99b}.as-table-wrap td{color:#c4d0de}
+.as-expert-offer{margin:48px 0}
+.as-expert-offer>h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(30px,3vw,42px);font-weight:500;margin:15px 0 26px}
+.as-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.as-benefit{background:#192638;border:1px solid #3c485e;border-radius:13px;padding:24px}
+.as-benefit svg{color:#e4c18d}
+.as-benefit h3{font-size:16px;margin:18px 0 9px}
+.as-benefit p{font-size:12px;line-height:1.8;color:#afc0cf}
+.as-offer-process{margin:28px 0;background:#1a2739;border:1px solid #596078;padding:30px;border-radius:14px}
+.as-offer-process h3{font-size:22px}
+.as-offer-process li{padding:7px 0 7px 5px;color:#d4dfea;font-size:14px;line-height:1.65}
+.as-payment-lock{display:flex;gap:14px;align-items:flex-start;padding:18px 20px;border:1px solid #78694e;border-radius:10px;background:#2e2b28;margin:24px 0}
+.as-payment-lock svg{flex-shrink:0;color:#dfbf85;margin-top:2px}
+.as-payment-lock strong{font-size:14px}
+.as-payment-lock p{font-size:12px;line-height:1.7;color:#cfccbd;margin:7px 0 0}
+@media(max-width:900px){.as-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}.as-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.as-benefits,.as-admin-grid{grid-template-columns:1fr}.as-header-inner{justify-content:flex-start}.as-account{margin-left:auto}.as-header-inner>.as-language{order:2}.as-main-nav{order:5}}

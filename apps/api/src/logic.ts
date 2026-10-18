@@ -84,20 +84,20 @@ export function localInterpretation(chart:CalculatedChart,language:'uk'|'en'='en
  ].join('\n\n');
 }
 
-import {generateOpenAiInterpretation} from './ai.ts';
+import {generateOpenAiInterpretation,type AiUsageEvent} from './ai.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
-export async function interpretChart(chart:CalculatedChart,lang:'uk'|'en',preferred:'auto'|'local'='auto'){
+export async function interpretChart(chart:CalculatedChart,lang:'uk'|'en',preferred:'auto'|'local'='auto',onUsage?:(event:AiUsageEvent)=>Promise<void>|void){
  const local=()=>({provider:'local' as const,text:localInterpretation(chart,lang)});
  if(preferred==='local')return local();
  const mode=process.env.AI_MODE||'free';
  if(mode==='local')return local();
  if(mode==='free'){
-  const free=await generateFreeInterpretationDetailed(chart,lang);
+  const free=await generateFreeInterpretationDetailed(chart,lang,{onUsage});
   return free.result||{...local(),fallbackReason:free.reason};
  }
  // Legacy paid OpenAI path requires TWO deliberate switches. It is NEVER a free fallback.
  if(mode==='paid_openai'&&process.env.OPENAI_ENABLED==='1'&&process.env.OPENAI_API_KEY){
-  return generateOpenAiInterpretation(chart,lang,{key:process.env.OPENAI_API_KEY,model:process.env.OPENAI_MODEL});
+  return generateOpenAiInterpretation(chart,lang,{key:process.env.OPENAI_API_KEY,model:process.env.OPENAI_MODEL,onUsage});
  }
  return local();
 }

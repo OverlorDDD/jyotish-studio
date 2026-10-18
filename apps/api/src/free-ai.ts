@@ -1,5 +1,5 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {createHourlyLimiter,generateOpenAiInterpretation,AiProviderError} from './ai.ts';
+import {createHourlyLimiter,generateOpenAiInterpretation,AiProviderError,type AiUsageEvent} from './ai.ts';
 
 /** Every cloud inference request uses the strictly free OpenRouter model router. */
 type FreeProvider='openrouter'|'ollama';
@@ -35,6 +35,7 @@ export type FreeAiOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;
  factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;
+ onUsage?:(event:AiUsageEvent)=>Promise<void>|void;
 };
 export type FreeAiOutcome={
  result:Awaited<ReturnType<typeof generateOpenAiInterpretation>>|null;
@@ -60,7 +61,7 @@ export async function generateFreeInterpretationDetailed(
     if(!permit()){reason='hourly_limit';continue;}
     const request=(formatMode:'strict'|'prompt'|'prose')=>generateOpenAiInterpretation(chart,lang,{
      provider:'openrouter',key:openrouterKey,model:'openrouter/free',
-     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas
+     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     try{
      return {result:await request(opts.reportMode?'prose':'strict')};
@@ -78,7 +79,7 @@ export async function generateFreeInterpretationDetailed(
    if(provider==='ollama'){
     const result=await generateOpenAiInterpretation(chart,lang,{
      provider:'ollama',key:'',model:ollamaModel,
-     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas
+     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     return {result};
    }

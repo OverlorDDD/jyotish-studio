@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles} from 'lucide-react';
 import PortalShell from './PortalShell';
-import ReadingIntake from './ReadingIntake';
+import ExpertOffer from './ExpertOffer';
 import {portalPath,type PortalLocale} from '../../lib/brand';
 
 export const SECTIONS=['astrology','tarot','experts','yoga','learn'] as const;
@@ -41,7 +41,7 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
     <h2>{locale==='uk'?'Що доступно':'What to expect'}</h2>
     <p>{t.sub}</p>
    </section>
-   {section==='experts'&&<ReadingIntake locale={locale}/>}
+   {section==='experts'&&<ExpertOffer locale={locale}/>}
   </div>
  </PortalShell>;
 }
