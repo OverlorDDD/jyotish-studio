@@ -436,3 +436,26 @@
 .as-tarot-ai-output{background:#16253a;border:1px solid #aa886b;border-radius:12px;padding:20px}
 .as-tarot-ai-output p{white-space:pre-wrap;line-height:1.9}
 .as-tarot-ai-output strong{color:#f4d6a2}
+
+
+.as-expert-catalog{padding:26px;border:1px solid #554860;background:#14243a;border-radius:12px;margin:32px 0}
+.as-expert-catalog h3,.as-expert-management h2{font-family:'Playfair Display',Georgia,serif;font-size:25px}
+.as-expert-profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.as-expert-profile{padding:22px;border:1px solid #5b617d;background:#1f2a40;border-radius:12px}
+.as-expert-profile h4{font-size:19px;color:#f6ddb1;margin:0 0 14px}
+.as-expert-profile p{font-size:13px;color:#ccd7e4;line-height:1.75}
+.as-expert-service{padding:15px;border:1px solid #646478;border-radius:9px;margin:14px 0}
+.as-expert-service strong{display:block;color:#e9c99b;font-size:15px}
+.as-expert-service span{display:block;color:#f6ddb1;font-weight:600;margin-top:12px}
+.as-expert-service small{display:block;color:#b0bbca;margin-top:7px}
+.as-expert-management{margin-top:42px;padding-top:25px;border-top:1px solid #67627a}
+.as-expert-management h3{color:#eac99c;font-size:18px;margin:28px 0 14px}
+.as-expert-admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.as-expert-admin-form label{display:flex;flex-direction:column;gap:8px;color:#d1dde9;font-size:12px}
+.as-expert-admin-form input,.as-expert-admin-form textarea,.as-expert-admin-form select{background:#101d30;color:#ecdbbe;border:1px solid #57667b;padding:12px;border-radius:8px;width:100%}
+.as-expert-admin-form button{border:1px solid #b19b72;background:#324257;color:#e9ca9b;border-radius:8px;padding:13px 18px;align-self:end}
+.as-expert-admin-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.as-expert-admin-list article{background:#1b293d;border:1px solid #55627b;padding:18px;border-radius:10px}
+.as-expert-admin-list article p{font-size:12px;color:#adbaca;overflow-wrap:anywhere}
+.as-expert-admin-list label{display:flex;align-items:center;gap:8px;font-size:12px}
+.as-expert-admin-offer{border-top:1px solid #465268;padding-top:13px;margin-top:13px;display:grid;gap:9px}
