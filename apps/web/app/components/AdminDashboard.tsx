@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {readApiJson} from '../../lib/api-response';
 import type {PortalLocale} from '../../lib/brand';
 import RoleManagement from './RoleManagement';
+import ExpertManagement from './ExpertManagement';
 
 type Dashboard={windowDays:number;users:number;charts:number;subscribers:number;freeMembers:number;unpaidDrafts:number;tarotReadings:number;orders:{status:string;count:number}[];ai:{
  requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;
@@ -48,6 +49,7 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
    <h2>{uk?'Цикл відеозамовлень':'Video order pipeline'}</h2>
    <div className="as-admin-grid">{data.orders.length?data.orders.map(o=><div className="as-admin-metric" key={o.status}><span>{o.status}</span><strong>{count(o.count)}</strong></div>):<p>{uk?'Оплачені замовлення ще не підключені.':'Payment and order intake are not enabled yet.'}</p>}</div>
    <RoleManagement locale={locale}/>
+   <ExpertManagement locale={locale}/>
   </>}
  </section>;
 }
