@@ -1,9 +1,22 @@
-/** Working public brand. Replace only after domain and trademark clearance. */
+/** Public brand and module naming; workspace, API and repository names remain stable. */
 export const BRAND = {
-  name: 'AstraNira',
-  tagline: 'Astrology, Tarot & Mindful Living',
-  locales: ['en', 'uk'] as const,
+  name: 'Galaxiora',
+  tagline: 'Explore your connection to the cosmos',
+  taglineUk: 'Досліджуй свій зв’язок зі Всесвітом',
+  locales: ['en','uk'] as const,
+  moduleSuffixes: {
+    astrology: 'Astro',
+    tarot: 'Tarot',
+    experts: 'Experts',
+    yoga: 'Yoga',
+    learn: 'Academy',
+    jyotish: 'Jyotish',
+    account: 'Account',
+    admin: 'Admin',
+  } as const,
 } as const;
 export type PortalLocale = 'en' | 'uk';
+export type PortalModule = keyof typeof BRAND.moduleSuffixes;
+export const moduleTitle=(module:PortalModule)=>BRAND.name+' '+BRAND.moduleSuffixes[module];
 export const isPortalLocale = (value:string):value is PortalLocale => value==='en'||value==='uk';
-export const portalPath = (locale:PortalLocale,section='') => '/' + locale + (section ? '/' + section : '');
+export const portalPath=(locale:PortalLocale,section='')=>'/'+locale+(section?'/'+section:'');

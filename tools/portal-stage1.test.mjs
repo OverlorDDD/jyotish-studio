@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const code=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-test('public homepage supports bilingual AstraNira portal and retains root HTTP 200 entry',()=>{
+test('public homepage supports bilingual Galaxiora portal and retains root HTTP 200 entry',()=>{
  const root=code('apps/web/app/page.tsx');
  const localePage=code('apps/web/app/[locale]/page.tsx');
  const home=code('apps/web/app/components/PortalHome.tsx');

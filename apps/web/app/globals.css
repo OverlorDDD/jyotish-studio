@@ -193,7 +193,7 @@
 .reading-editorial-ai{margin:26px 0;border:1px solid #4b5670;border-radius:12px;padding:17px 21px;background:#141e31}.reading-editorial-ai>summary{cursor:pointer;color:#e5cca0;font-weight:650}.reading-editorial-ai>p{color:#a6b6cb;font-size:12px;line-height:1.8}.reading-editorial-ai .reading-ai-text{margin-top:13px}
 
 
-/* AstraNira portal — completely scoped so legacy Jyotish tools retain their styles. */
+/* Galaxiora portal — completely scoped so legacy Jyotish tools retain their styles. */
 .as-shell{min-height:100vh;background:radial-gradient(ellipse at 75% 1%,#2a2445 0%,#101827 40%,#0b1421 100%);color:#f5f0e8}
 .as-shell a{text-decoration:none;color:inherit}
 .as-shell h1,.as-shell h2,.as-shell h3,.as-shell p{margin-top:0}
@@ -407,3 +407,6 @@
 @media(max-width:860px){.as-tarot-celtic{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:530px){.as-spread-options{grid-template-columns:1fr}.as-tarot-card-grid,.as-tarot-celtic{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.as-tarot-card{min-height:185px}.as-tarot-history>button{flex-wrap:wrap}.as-role-panel .as-table-wrap{overflow:auto}}
 @media(prefers-reduced-motion:reduce){.as-tarot-card{transition:none}.as-tarot-card:hover{transform:none}}
+
+/* Galaxiora module subtitle below the shared product title. */
+.as-module-descriptor{font-family:'Playfair Display',Georgia,serif;color:#d6bd94;font-size:clamp(17px,1.9vw,22px);margin:-5px 0 16px!important}

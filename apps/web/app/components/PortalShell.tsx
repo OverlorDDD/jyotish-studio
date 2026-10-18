@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {ArrowUpRight, MoonStar} from 'lucide-react';
-import {BRAND,portalPath,type PortalLocale} from '../../lib/brand';
+import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 import GlobalAccount from './GlobalAccount';
 
 type Props={locale:PortalLocale;children:React.ReactNode;active?:string};
@@ -16,7 +16,7 @@ export default function PortalShell({locale,children,active=''}:Props){
    <div className="as-header-inner">
     <Link href={portalPath(locale)} className="as-brand" aria-label={BRAND.name+' — '+t.home}>
      <span className="as-brand-icon"><MoonStar size={26} strokeWidth={1.45}/></span>
-     <span><strong>{BRAND.name}</strong><small>ASTROLOGY · TAROT · MINDFUL LIVING</small></span>
+     <span><strong>{BRAND.name}</strong><small>ASTROLOGY · TAROT · COSMIC WISDOM</small></span>
     </Link>
     <nav className="as-main-nav" aria-label={t.home}>
      <Link href={portalPath(locale)} aria-current={!active?'page':undefined}>{t.home}</Link>
@@ -33,7 +33,7 @@ export default function PortalShell({locale,children,active=''}:Props){
   <footer className="as-footer">
     <div><Link className="as-footer-brand" href={portalPath(locale)}>{BRAND.name}</Link><p>{t.caption}</p></div>
     <p className="as-footer-note">{t.disclaimer}</p>
-    <Link href={portalPath(locale,'astrology/jyotish')}>{t.astrology} <ArrowUpRight size={15} aria-hidden="true"/></Link>
+    <Link href={portalPath(locale,'astrology/jyotish')}>{moduleTitle('jyotish')} <ArrowUpRight size={15} aria-hidden="true"/></Link>
   </footer>
  </div>;
 }
