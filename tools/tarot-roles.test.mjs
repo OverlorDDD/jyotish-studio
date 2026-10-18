@@ -42,7 +42,7 @@ test('Bootstrap admin only through local terminal and explicit account confirmat
 });
 test('Tarot quota requires authenticated user and locks row before count/create',()=>{
  const code=read('apps/api/src/tarot.ts');
- for(const needle of ["requireUser(req)","cookieUser(req)","FOR UPDATE","FREE_LIMIT=3","used>=limit","ADMIN_LIMIT=100","limitFor(user?.role","sameOrigin(req)","this.prisma.$transaction","describeDraws(drawn"]){
+ for(const needle of ["requireUser(req)","cookieUser(req)","FOR UPDATE","FREE_LIMIT=3","used>=limit","ADMIN_LIMIT=100","limitFor(user?.role","sameOrigin(req)","this.prisma.$transaction","describeDraws(base.drawn"]){
   assert.ok(code.includes(needle),needle);
  }
  assert.ok(code.includes("where:{userId}"));
