@@ -47,7 +47,9 @@
     "test:brand": "node --test tools/galaxiora-branding.test.mjs",
     "test:tarot:depth": "node --experimental-strip-types --test tools/tarot-depth-nav.test.mjs",
     "tarot:assets": "node tools/tarot-assets.mjs",
-    "test:tarot:v2": "node --experimental-strip-types --test tools/tarot-v2.test.mjs"
+    "test:tarot:v2": "node --experimental-strip-types --test tools/tarot-v2.test.mjs",
+    "predev:full": "node --experimental-strip-types tools/tarot-assets-prepare.mjs",
+    "tarot:verify-art": "node --experimental-strip-types tools/tarot-assets-prepare.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
