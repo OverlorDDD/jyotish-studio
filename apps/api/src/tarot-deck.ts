@@ -1,4 +1,5 @@
 import {randomInt} from 'node:crypto';
+import {TAROT_DEPTH} from './tarot-depth.ts';
 
 export type Lang='uk'|'en';
 export type TarotCard={
@@ -84,6 +85,16 @@ export function describeDraws(draws:ReadonlyArray<{id:string;position:number;rev
  return draws.map(draw=>{
   const card=TAROT_DECK.find(c=>c.id===draw.id);
   if(!card||!SPREADS[spread][draw.position])throw new Error('Invalid reading data');
-  return {...draw,name:card.name,positionName:SPREADS[spread][draw.position],meaning:draw.reversed?card.reversed:card.upright};
+  const depth=TAROT_DEPTH[draw.id];
+  if(!depth)throw new Error('No detailed tarot commentary for '+draw.id);
+  const positionName=SPREADS[spread][draw.position];
+  const meaning=draw.reversed?card.reversed:card.upright;
+  return {...draw,name:card.name,positionName,meaning,
+    detail:draw.reversed?depth.reversed:depth.upright,
+    positionInsight:{
+     en:'In the position “'+positionName.en+'”, '+(draw.reversed?'the challenging or inward side of this symbol deserves attention.':'the constructive side of this symbol offers a lens for your question.'),
+     uk:'У позиції «'+positionName.uk+'» '+(draw.reversed?'ця карта звертає увагу на внутрішні перешкоди або приховані потреби.':'ця карта підказує можливість свідомого та конструктивного кроку.')
+    }
+  };
  });
 }
