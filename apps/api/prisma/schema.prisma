@@ -153,6 +153,9 @@ model TarotReading {
  spread String
  question String? @db.VarChar(600)
  cards Json
+ narrative Json?
+ narrativeLang String?
+ narrativeModel String?
  deckVersion String @default("rws-v1")
  @@index([userId,createdAt])
 }
