@@ -17,5 +17,5 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
 export default async function JyotishPage({params}:{params:Promise<{locale:string}>}){
  const {locale}=await params;
  if(!isPortalLocale(locale))notFound();
- return <JyotishCalculator/>;
+ return <JyotishCalculator initialLang={locale as 'en'|'uk'}/>;
 }
