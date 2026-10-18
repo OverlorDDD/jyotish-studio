@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {ArrowUpRight, MoonStar} from 'lucide-react';
 import {BRAND,portalPath,type PortalLocale} from '../../lib/brand';
+import GlobalAccount from './GlobalAccount';
 
 type Props={locale:PortalLocale;children:React.ReactNode;active?:string};
 const LABELS={
@@ -21,6 +22,7 @@ export default function PortalShell({locale,children,active=''}:Props){
      <Link href={portalPath(locale)} aria-current={!active?'page':undefined}>{t.home}</Link>
      {SECTIONS.map(s=><Link key={s} href={portalPath(locale,s)} aria-current={active===s?'page':undefined}>{t[s]}</Link>)}
     </nav>
+    <GlobalAccount locale={locale}/>
     <div className="as-language" aria-label={t.language}>
       <Link href={portalPath('en',active)} aria-current={locale==='en'?'page':undefined} lang="en">EN</Link>
       <span>/</span><Link href={portalPath('uk',active)} aria-current={locale==='uk'?'page':undefined} lang="uk">UA</Link>
