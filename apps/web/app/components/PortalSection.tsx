@@ -3,7 +3,7 @@ import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles} from 'lucid
 import PortalShell from './PortalShell';
 import ExpertOffer from './ExpertOffer';
 import TarotStudio from './TarotStudio';
-import {portalPath,type PortalLocale} from '../../lib/brand';
+import {moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
 export const SECTIONS=['astrology','tarot','experts','yoga','learn'] as const;
 export type PortalSectionSlug=typeof SECTIONS[number];
@@ -35,7 +35,7 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
    <section className="as-subpage-intro">
     <span className="as-subpage-symbol"><Icon size={34}/></span>
     <span className="as-overline">{working?(locale==='uk'?'ДОСТУПНО ЗАРАЗ':'LIVE TOOL'):(locale==='uk'?'У РОЗРОБЦІ':'COMING SOON')}</span>
-    <h1>{t.title}</h1><p>{t.lead}</p>
+    <h1>{moduleTitle(section)}</h1><p className="as-module-descriptor">{t.title}</p><p>{t.lead}</p>
     <div className="as-subpage-cta"><Link href={href} className="as-button as-button-primary">{t.cta}<ArrowUpRight size={17}/></Link></div>
    </section>
    <section className="as-detail">
