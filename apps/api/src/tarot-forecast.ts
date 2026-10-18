@@ -85,18 +85,29 @@ export function tarotForecast(cards:Raw[],spread:Spread,question:string|null){
  const first=full[0],last=full[full.length-1];
  const mid=full[Math.floor(full.length/2)];
  const reversed=last.reversed;
- const answerUk=timeIntro(question||'','uk')+
-  (full.length===1?'Найпомітнішою темою стане ':'Спочатку може з’явитися ')+tarotEvent(first.id,'uk')+'. '+
-  (full.length>2?'Далі можливі '+tarotEvent(mid.id,'uk')+'. ':'')+
-  (full.length>1?'А ближче до завершення — '+tarotEvent(last.id,'uk')+'. ':'')+
-  (reversed?'Перевернута фінальна карта змінює цей сюжет: подія може затриматися, виявитися менш різкою, ніж здавалося, або пройти непрямим шляхом. ':'')+
-  'Це символічна версія розвитку подій, а не достовірна інформація про майбутнє.';
- const answerEn=timeIntro(question||'','en')+
-  (full.length===1?'The dominant theme is ':'The first development could involve ')+tarotEvent(first.id,'en')+'. '+
-  (full.length>2?'This may be followed by '+tarotEvent(mid.id,'en')+'. ':'')+
-  (full.length>1?'Toward the end, look for '+tarotEvent(last.id,'en')+'. ':'')+
-  (reversed?'The reversed final card changes the tone: the event may be delayed, softened or expressed indirectly. ':'')+
-  'This is a symbolic possible outcome, not verifiable knowledge of the future.';
+ const potential=(lang:'uk'|'en')=>{
+  const pref=timeIntro(question||'',lang);
+  const began=tarotEvent(first.id,lang);
+  const centre=tarotEvent(mid.id,lang);
+  const ending=tarotEvent(last.id,lang);
+  if(lang==='uk'){
+   const opener=pref+'спершу можна очікувати '+began+'. ';
+   const middleLine=full.length>2?'Посеред цього можуть з’явитися '+centre+'. ':'';
+   const endLine=full.length>1?'Ближче до завершення карти натякають на '+ending+'. ':'';
+   const reverseDetail=last.reversed&&last.id==='major-tower'?
+    'Перевернута Вежа — важливий нюанс: раптовий зрив або різка розмова можуть ледь не статися, але є шанс пом’якшити ситуацію чи змінити план до конфлікту. ':
+    last.reversed?'Фінальна карта перевернута: подія може затриматися, проявитися слабше, ніж ти очікував, або піти неочевидним шляхом. ':'';
+   return opener+middleLine+endLine+reverseDetail+'Так я прочитав би символічний сценарій цих карт; насправді події можуть скластися інакше.';
+  }
+  return pref+'you may first encounter '+began+'. '+
+   (full.length>2?'An intermediate development could involve '+centre+'. ':'')+
+   (full.length>1?'Toward the end, the cards point to '+ending+'. ':'')+
+   (last.reversed&&last.id==='major-tower'?'The reversed Tower changes the picture: a sudden disruption may nearly occur but could be softened or avoided before it escalates. ':
+    last.reversed?'The reversed final card suggests a delay, a weaker event, or something unfolding indirectly. ':'')+
+   'This is a symbolic tarot storyline rather than certain knowledge of the future.';
+ };
+ const answerUk=potential('uk');
+ const answerEn=potential('en');
  const connectionsUk='«'+first.name.uk+'» на початку задає тему '+tarotEvent(first.id,'uk')+
   (full.length>2?', середня карта «'+mid.name.uk+'» додає '+tarotEvent(mid.id,'uk'):'')+
   ', а фінальна «'+last.name.uk+'» приводить сюжет до '+tarotEvent(last.id,'uk')+'.';
