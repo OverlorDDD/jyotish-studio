@@ -33,7 +33,13 @@ function currentUser(req:IncomingMessage){
  if(!id)throw new UnauthorizedException('Sign in to save and view your personal chart history.');
  return id;
 }
-const publicUser=(user:{id:string;email:string;role:string})=>({id:user.id,email:user.email,role:user.role});
+const publicUser=(user:{id:string;email:string;role:string;subscriptionTier:'FREE'|'PREMIUM';subscriptionEndsAt:Date|null})=>({
+ id:user.id,email:user.email,role:user.role,
+ subscription:{
+  tier:user.subscriptionTier==='PREMIUM'&&user.subscriptionEndsAt&&user.subscriptionEndsAt.getTime()>Date.now()?'PREMIUM':'FREE',
+  currentPeriodEnd:user.subscriptionEndsAt?.toISOString()||null
+ }
+});
 
 @ApiTags('Accounts')
 @Controller('api/v1/account')
@@ -47,8 +53,8 @@ export class AccountController{
   const email=normalizedEmail(body.email);
   if(await this.prisma.user.findUnique({where:{email}}))throw new ConflictException('This email is already registered.');
   const hash=await passwordHash(body.password);
-  let user:{id:string;email:string;role:string};
-  try{user=await this.prisma.user.create({data:{email,passwordHash:hash},select:{id:true,email:true,role:true}});}
+  let user:{id:string;email:string;role:string;subscriptionTier:'FREE'|'PREMIUM';subscriptionEndsAt:Date|null};
+  try{user=await this.prisma.user.create({data:{email,passwordHash:hash},select:{id:true,email:true,role:true,subscriptionTier:true,subscriptionEndsAt:true}});}
   catch(error){
    if(typeof error==='object'&&error&&'code' in error&&error.code==='P2002')throw new ConflictException('This email is already registered.');
    throw error;
@@ -72,7 +78,7 @@ export class AccountController{
  async me(@Req()req:IncomingMessage){
   const id=cookieUser(req);
   if(!id)return {user:null};
-  const user=await this.prisma.user.findUnique({where:{id},select:{id:true,email:true,role:true}});
+  const user=await this.prisma.user.findUnique({where:{id},select:{id:true,email:true,role:true,subscriptionTier:true,subscriptionEndsAt:true}});
   return {user:user?publicUser(user):null};
  }
 
