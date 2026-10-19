@@ -11,13 +11,14 @@ test('A5 Yoga: four original nonempty safe bilingual practices, real durations a
   assert.equal(yogaBySlug(practice.slug),practice);
   assert.ok(practice.steps.length>=4);
   const total=practice.steps.reduce((sum,step)=>sum+step.seconds,0);
-  assert.ok(total>=240&&total<=900);
+  if(practice.category==='breathing')assert.equal(total,16,'editorial phase seconds, not continuous breathing holds');
+  else assert.ok(total>=240&&total<=900);
   for(const lang of ['uk','en']){
    for(const value of [practice.title,practice.subtitle,practice.purpose,practice.preparation,practice.safety]){
     assert.ok(value[lang].length>10,practice.slug+' '+lang);
    }
    for(const step of practice.steps){
-    assert.ok(step.name[lang].length>5&&step.guide[lang].length>25&&step.alternative[lang].length>10);
+    assert.ok(step.name[lang].length>=(practice.category==='breathing'?4:6)&&step.guide[lang].length>25&&step.alternative[lang].length>10);
     assert.ok(step.seconds>0&&step.seconds<300);
    }
   }

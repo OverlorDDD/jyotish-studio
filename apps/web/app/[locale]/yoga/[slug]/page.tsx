@@ -5,6 +5,7 @@ import {ArrowLeft,ArrowUpRight,ShieldCheck} from 'lucide-react';
 import PortalShell from '../../../components/PortalShell';
 import YogaSession from '../../../components/YogaSession';
 import {YOGA_PRACTICES,yogaBySlug,say} from '../../../../lib/yoga-content';
+import {BREATHING_PATTERNS,sessionMs} from '../../../../lib/breathing-patterns';
 import {isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
 export const dynamicParams=false;
@@ -28,7 +29,7 @@ export default async function YogaPracticePage({params}:Params){
     <span className="as-overline">GALAXIORA YOGA</span>
     <h1>{say(practice.title,locale)}</h1>
     <p>{say(practice.purpose,locale)}</p>
-    <div className="as-wellness-tags"><span>{practice.steps.reduce((sum,s)=>sum+s.seconds,0)/60} {uk?'хвилин':'minutes'}</span><span>{practice.steps.length} {uk?'кроків':'steps'}</span></div>
+    <div className="as-wellness-tags"><span>{practice.category==='breathing'?sessionMs(BREATHING_PATTERNS[0])/60000:practice.steps.reduce((sum,s)=>sum+s.seconds,0)/60} {uk?'хвилин':'minutes'}</span><span>{practice.category==='breathing'?BREATHING_PATTERNS[0].rounds:practice.steps.length} {practice.category==='breathing'?(uk?'циклів':'cycles'):(uk?'підказок':'guides')}</span></div>
    </header>
    <aside className="as-wellness-prep"><h2>{uk?'Перед початком':'Before you begin'}</h2><p>{say(practice.preparation,locale)}</p></aside>
    <YogaSession practice={practice} locale={locale}/>

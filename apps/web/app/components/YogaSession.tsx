@@ -1,57 +1,39 @@
 'use client';
-import {useEffect,useState} from 'react';
-import {ArrowLeft,ArrowRight,Pause,Play,RotateCcw,CheckCircle2} from 'lucide-react';
+import {useState} from 'react';
+import {ArrowLeft,ArrowRight,RotateCcw,CheckCircle2,MoveUpRight,Eye,Hand} from 'lucide-react';
 import Link from 'next/link';
 import type {ContentLocale,YogaPractice} from '../../lib/yoga-content';
-
+import YogaBreathSession from './YogaBreathSession';
 export default function YogaSession({practice,locale}:{practice:YogaPractice;locale:ContentLocale}){
+ const uk=locale==='uk';
+ if(practice.category==='breathing')return <YogaBreathSession locale={locale}/>;
+ return <ReflectionSteps practice={practice} locale={locale}/>;
+}
+function ReflectionSteps({practice,locale}:{practice:YogaPractice;locale:ContentLocale}){
  const uk=locale==='uk',total=practice.steps.length;
- const [index,setIndex]=useState(0),[seconds,setSeconds]=useState(practice.steps[0].seconds);
- const [running,setRunning]=useState(false),[untimed,setUntimed]=useState(false),[done,setDone]=useState(false);
- useEffect(()=>{
-  if(!running||untimed||done||seconds<=0)return;
-  const timer=setInterval(()=>setSeconds(s=>Math.max(0,s-1)),1000);
-  return ()=>clearInterval(timer);
- },[running,untimed,done,seconds]);
- useEffect(()=>{if(seconds===0)setRunning(false)},[seconds]);
- function go(next:number){
-  if(next>=total){setDone(true);setRunning(false);return;}
-  if(next<0)return;
-  setIndex(next);setSeconds(practice.steps[next].seconds);setRunning(false);
- }
- function restart(){setIndex(0);setSeconds(practice.steps[0].seconds);setRunning(false);setDone(false)}
+ const [index,setIndex]=useState(0),[viewed,setViewed]=useState(false);
  const step=practice.steps[index];
- const mins=String(Math.floor(seconds/60)).padStart(2,'0'),secs=String(seconds%60).padStart(2,'0');
- return <section className="as-session" aria-label={uk?'Інтерактивна практика':'Interactive practice'}>
-  {done?<div className="as-session-done" role="status">
-   <CheckCircle2 size={45} aria-hidden="true"/>
-   <h2>{uk?'Практику завершено':'Session complete'}</h2>
-   <p>{uk?'Дякуємо, що приділив(-ла) час собі. Це не тест на результат: можна повернутися будь-коли.':'Thanks for making time for yourself. This is not a performance test. Come back whenever you like.'}</p>
-   <div className="as-session-actions"><button type="button" className="as-button as-button-primary" onClick={restart}><RotateCcw size={17}/>{uk?'Повторити':'Repeat'}</button><Link className="as-button as-button-secondary" href={'/'+locale+'/yoga'}>{uk?'Інші практики':'All sessions'}</Link></div>
+ const mobility=practice.category==='mobility';
+ const Visual=mobility?MoveUpRight:index%2?Hand:Eye;
+ function go(next:number){if(next>=total){setViewed(true);return;}setIndex(Math.max(0,next));}
+ return <section className="as-session as-reflection-session" aria-label={uk?'Покрокові інструкції':'Step-by-step guidance'}>
+  {viewed?<div className="as-session-done" role="status">
+   <CheckCircle2 size={42} aria-hidden="true"/>
+   <h2>{uk?'Усі підказки переглянуто':'All guidance reviewed'}</h2>
+   <p>{uk?'Це не підтвердження виконання вправи. За бажанням повтори будь-який крок у комфортному темпі.':'This only means you have read the steps, not that you performed them. Repeat any step at your own pace.'}</p>
+   <div className="as-session-actions"><button className="as-button as-button-primary" type="button" onClick={()=>{setIndex(0);setViewed(false)}}><RotateCcw size={16}/>{uk?'Переглянути знову':'Review again'}</button><Link className="as-button as-button-secondary" href={'/'+locale+'/yoga'}>{uk?'Інші практики':'All practices'}</Link></div>
   </div>:<>
-   <div className="as-session-progress"><span>{uk?'Крок':'Step'} {index+1} / {total}</span>
-    <progress value={index} max={total} aria-label={uk?'Прогрес практики':'Session progress'}/></div>
-   <div className="as-session-step" key={index}>
-    <span className="as-overline">{uk?'ЗАРАЗ':'RIGHT NOW'}</span>
-    <h2>{step.name[locale]}</h2>
-    <p className="as-session-guide">{step.guide[locale]}</p>
+   <div className="as-session-progress"><span>{uk?'Підказка':'Guidance'} {index+1} / {total}</span>
+    <progress max={total} value={index+1} aria-label={uk?'Переглянуто підказок':'Steps reviewed'}/></div>
+   <div className="as-reflection-visual" aria-hidden="true"><div className="as-reflection-halo"><Visual size={58} strokeWidth={1.2}/></div>
+    <span>{mobility?(uk?'РУХАЙСЯ ПЛАВНО':'MOVE GENTLY'):(uk?'БЕЗ ПОСПІХУ':'AT YOUR OWN PACE')}</span></div>
+   <div className="as-session-step"><span className="as-overline">{uk?'ПРОЧИТАЙ І ВИКОНАЙ ЗА БАЖАННЯМ':'READ AND TRY IF COMFORTABLE'}</span>
+    <h2>{step.name[locale]}</h2><p className="as-session-guide">{step.guide[locale]}</p>
     <div className="as-session-option"><strong>{uk?'Можна інакше':'Another option'}</strong><p>{step.alternative[locale]}</p></div>
    </div>
-   <div className="as-session-controls">
-    <label className="as-session-untimed"><input type="checkbox" checked={untimed} onChange={e=>{setUntimed(e.target.checked);setRunning(false)}}/>{uk?'Без таймера':'Without timer'}</label>
-    {!untimed&&<div className="as-session-clock">
-     <span role="timer" aria-label={uk?'Залишилося часу':'Time remaining'}>{mins}:{secs}</span>
-     <button type="button" onClick={()=>setRunning(r=>!r)} disabled={seconds===0} className="as-button as-button-secondary">
-      {running?<Pause size={17}/>:<Play size={17}/>}
-      {seconds===0?(uk?'Час кроку минув':'Step time ended'):running?(uk?'Пауза':'Pause'):(uk?'Почати / продовжити':'Start / resume')}
-     </button>
-    </div>}
-    <div className="as-session-actions">
-     <button type="button" className="as-button as-button-secondary" disabled={index===0} onClick={()=>go(index-1)}><ArrowLeft size={17}/>{uk?'Назад':'Previous'}</button>
-     <button type="button" className="as-button as-button-primary" onClick={()=>go(index+1)}>{index===total-1?(uk?'Завершити':'Finish'):(uk?'Наступний крок':'Next step')} <ArrowRight size={17}/></button>
-    </div>
-    <p className="as-session-caption">{uk?'Таймер не перемикає кроки автоматично. Ти можеш рухатися у власному темпі.':'The timer never advances steps automatically. Move at your own pace.'}</p>
-   </div>
+   <p className="as-session-caption">{uk?'Тут немає таймера й автоматичної оцінки. Ти сам(-а) вирішуєш, скільки часу приділити кроку.':'There is no timer or automatic grading. You decide how much time to spend on each step.'}</p>
+   <div className="as-session-actions"><button className="as-button as-button-secondary" disabled={index===0} type="button" onClick={()=>go(index-1)}><ArrowLeft size={17}/>{uk?'Назад':'Previous'}</button>
+    <button className="as-button as-button-primary" type="button" onClick={()=>go(index+1)}>{index===total-1?(uk?'Усі підказки переглянуто':'Finish reviewing'):(uk?'Наступна підказка':'Next step')} <ArrowRight size={16}/></button></div>
   </>}
  </section>;
 }

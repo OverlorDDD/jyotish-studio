@@ -570,3 +570,45 @@
  .as-session{padding:22px}
 }
 @media(prefers-reduced-motion:reduce){.as-wellness-card{transition:none}.as-wellness-card:hover{transform:none}}
+
+/* A5 Yoga v2: phase pacer and untimed reflection step navigation. */
+.as-breath-player{border:1px solid #65728a;background:radial-gradient(ellipse at 20% 0%,#314056 0%,#152334 65%);border-radius:22px;padding:clamp(20px,4vw,40px);margin-top:24px}
+.as-breath-intro h2{font:500 clamp(27px,3.4vw,42px)/1.2 'Playfair Display',Georgia,serif;margin:12px 0}
+.as-breath-intro p{color:#c9d4e2;line-height:1.8;max-width:800px}
+.as-breath-selector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:24px 0}
+.as-breath-mode{min-height:95px;background:#1b2b3e;border:1px solid #57657a;border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-align:left;color:#dfe7ee;cursor:pointer}
+.as-breath-mode strong{font-size:14px;color:#f0d7a7}
+.as-breath-mode span{font-size:12px;line-height:1.5;color:#b6c6d9}
+.as-breath-mode.is-selected{border:2px solid #efce93;background:#303b4c;padding:14px}
+.as-breath-mode:disabled{cursor:default;opacity:.65}.as-breath-mode.is-selected:disabled{opacity:1}
+.as-breath-belly{border-left:3px solid #cbb58d;padding:15px 20px;background:#0a203150;border-radius:4px}
+.as-breath-belly strong{color:#f0d8a8}.as-breath-belly p{font-size:13px;line-height:1.9;color:#ccdae5;margin:6px 0}
+.as-breath-stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(14px,4vw,42px);align-items:center;margin:28px 0 8px}
+.as-breath-visual{max-width:420px;width:100%;margin:auto}
+.as-breath-svg{display:block;width:100%;height:auto;overflow:visible}
+.as-breath-readout{min-width:0}
+.as-breath-readout h3{font:500 clamp(26px,3vw,34px)/1.22 'Playfair Display',Georgia,serif;margin:10px 0 16px}
+.as-breath-readout>p{font-size:14px;color:#c8d5e2;line-height:1.8}
+.as-breath-countdown{display:block;font-size:40px;line-height:1.2;font-variant-numeric:tabular-nums;color:#f6d99d;margin:18px 0}
+.as-breath-stats{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:24px;font-size:12px;color:#b6c4d5}
+.as-breath-stats strong{font-size:18px;color:#efd29a;display:block;margin:5px 0;font-variant-numeric:tabular-nums}
+.as-breath-readout progress{width:100%;height:9px;accent-color:#e3c290;margin:16px 0}
+.as-breath-actions{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
+.as-breath-actions button{min-width:145px}
+.as-breath-safety{display:flex;align-items:flex-start;gap:9px;color:#c4d2df;font-size:12px!important;line-height:1.8!important}
+.as-breath-safety svg{flex-shrink:0;color:#e3c28a}
+.as-reflection-visual{display:flex;align-items:center;gap:17px;margin:28px 0 0;color:#d6c4a1;letter-spacing:.14em;font-size:11px}
+.as-reflection-halo{width:120px;height:120px;display:grid;place-items:center;border-radius:50%;border:1px solid #b4a07c;background:radial-gradient(circle,#bdac8255,transparent 68%);color:#decea8}
+.as-reflection-session .as-session-step{margin-top:18px}
+@media(max-width:830px){.as-breath-stage{grid-template-columns:minmax(0,1fr)}.as-breath-visual{max-width:330px}.as-breath-selector{grid-template-columns:minmax(0,1fr)}.as-breath-mode{min-height:0}}
+@media(prefers-reduced-motion:reduce){.as-breath-svg circle,.as-breath-svg path{transition:none}}
+
+/* Jyotish A5+ route loading feedback, no blocking spinner or extra external dependencies. */
+.as-jyotish-loading{min-height:70vh;max-width:1050px;margin:0 auto;padding:clamp(32px,8vw,100px) 24px;color:#e9d6b6}
+.as-loading-emblem{font-size:68px;line-height:1;color:#d4b477}
+.as-jyotish-loading p{font-size:14px;letter-spacing:.15em;text-transform:uppercase}
+.as-jyotish-loading h1{font:500 clamp(22px,4vw,42px)/1.4 'Playfair Display',Georgia,serif}
+.as-loading-skeleton{display:grid;gap:16px;margin-top:40px}
+.as-loading-skeleton span{display:block;height:55px;border-radius:12px;background:linear-gradient(110deg,#233146,#3a4556,#233146);opacity:.85}
+.as-loading-skeleton span:nth-child(2){height:170px}
+.as-loading-skeleton span:nth-child(3){height:84px}

@@ -12,7 +12,7 @@ const COPY={
   cards:[
    {slug:'astrology',icon:'orbit',title:'Astrology',description:'Your birth chart and traditional Jyotish calculations, with more chart tools to come.',live:true},
    {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 cards, detailed interpretations, three daily spreads and human video-reading requests.',live:true},
-   {slug:'yoga',icon:'flower',title:'Yoga & mindfulness',description:'Four step-by-step guided breathing, movement and mindfulness sessions, with pause and optional timer.',live:true},
+   {slug:'yoga',icon:'flower',title:'Yoga & mindfulness',description:'Visual box breathing with three rhythms, gentle movement and untimed mindful reflections.',live:true},
    {slug:'learn',icon:'book',title:'Learning library',description:'Seven original lessons on Jyotish, Tarot, yoga and mindful practice with knowledge checks.',live:true},
    {slug:'news',icon:'news',title:'Daily cosmic news',description:'A future sourced editorial feed about astronomy, traditions and platform discoveries.',live:false},
    {slug:'community',icon:'community',title:'Community forum',description:'A future home for respectful discussion, experience sharing and questions.',live:false}
@@ -28,7 +28,7 @@ const COPY={
   cards:[
    {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Натальна карта та розрахунки Джйотіш. Згодом додамо більше інструментів.',live:true},
    {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 карт, детальні трактування, три розклади щодня та персональні розклади від експерток.',live:true},
-   {slug:'yoga',icon:'flower',title:'Йога та медитація',description:'Чотири покрокові практики дихання, руху й уважності: таймер, пауза та вільний темп.',live:true},
+   {slug:'yoga',icon:'flower',title:'Йога та медитація',description:'Дихання по квадрату з анімацією, три ритми на вибір і вправи без зайвих таймерів.',live:true},
    {slug:'learn',icon:'book',title:'Бібліотека знань',description:'Сім авторських уроків про Джйотіш, Таро та йогу із запитаннями для самоперевірки.',live:true},
    {slug:'news',icon:'news',title:'Космічні новини',description:'Майбутня щоденна стрічка з достовірними джерелами та редакційними матеріалами.',live:false},
    {slug:'community',icon:'community',title:'Спільнота та форум',description:'Майбутній простір обговорень, досвіду, запитань та підтримки.',live:false}

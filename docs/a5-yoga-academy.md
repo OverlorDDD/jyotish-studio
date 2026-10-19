@@ -20,3 +20,9 @@ CMS/editor roles/approval workflow, user completion persistence, video/audio cla
 ## Windows acceptance
 Use `docs/galaxiora-windows-runbook.md`. Start Docker Desktop, `docker compose up -d db`, pull `main`, `npm install`, `npm run db:generate`, `npm run db:migrate`, `npm run test:all`, `npm run build`, `npm run dev:full`.
 Then explore both hubs, all detail routes, Yoga step/pause/untimed/finish, Academy answer/retry, language retention and mobile viewport. Existing accounts and history must remain intact.
+
+## A5 corrective Yoga v2 and Jyotish route responsiveness (19 October 2026)
+- Corrective release: box breathing 4-4-4-4 with animated square marker, expanding hold indicator, true timed cycles and explicit belly/diaphragm guidance. Optional equal 4-4 or longer-exhale 3-5 without holds.
+- Mindfulness/evening sessions remove the timer. Manual cards are explicitly **reviewed**, never auto-certified as performed.
+- Jyotish perceived loading gets a route fallback; DetailedReport bundled on demand and saved chart history delayed until account opens; check real device timings rather than promising a fixed speedup.
+- Test gates: `npm run test:breathing`, `npm run test:all`, Next/Nest build, Swagger, PostgreSQL and Chromium desktop/mobile E2E.
