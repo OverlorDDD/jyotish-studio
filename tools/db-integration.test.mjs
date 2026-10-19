@@ -101,6 +101,15 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
    assert.equal(state.data.limit,100);assert.equal(state.data.remaining,96);
    assert.equal(state.data.readings.length,4);
   });
+  await t.test('client-supplied userId cannot redirect a signed-in Tarot draw',async()=>{
+   const forged=await post('/api/v1/tarot/readings',{
+    userId:a.id,spread:'one',question:'Check server-authenticated owner'},admin.cookie);
+   assert.equal(forged.status,201,JSON.stringify(forged.data));
+   const own=await request('/api/v1/tarot/readings',{cookie:admin.cookie});
+   const other=await request('/api/v1/tarot/readings',{cookie:a.cookie});
+   assert.equal(own.data.readings.length,5);
+   assert.equal(other.data.readings.length,3);
+  });
   await t.test('only admin can change roles, audit persists',async()=>{
    const url='/api/v1/admin/users/'+b.id+'/role',payload={role:'SUPPORT'};
    assert.equal((await request(url,{method:'PATCH',cookie:a.cookie,origin:base,body:payload})).status,403);

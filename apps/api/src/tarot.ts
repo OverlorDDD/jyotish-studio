@@ -36,7 +36,7 @@ export class TarotController{
  async draw(@Body()body:TarotDrawDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new BadRequestException('Cross-origin tarot request blocked');
   const userId=requireUser(req);
-  try{return await this.tarot.draw({userId,...body});}
+  try{return await this.tarot.draw({userId,spread:body.spread,question:body.question,language:body.language,aiConsent:body.aiConsent});}
   catch(error){
    if(error instanceof TarotDomainError){
     if(error.code==='daily_limit')throw new HttpException(error.message,HttpStatus.TOO_MANY_REQUESTS);
