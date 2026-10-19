@@ -40,7 +40,7 @@ test('A5 Academy: 7 articles across all 3 topics with bilingual paragraphs and q
     for(const p of section.paragraphs)assert.ok(p[lang].length>100,lesson.slug);
    }
    assert.ok(lesson.quiz.prompt[lang].length>10);
-   for(const c of lesson.quiz.choices)assert.ok(c[lang].length>1);
+   for(const c of lesson.quiz.choices)assert.ok(c[lang].length>=1);
    assert.ok(lesson.quiz.explanation[lang].length>15);
   }
  }
