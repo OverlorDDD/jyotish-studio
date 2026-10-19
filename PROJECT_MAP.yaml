@@ -1,0 +1,129 @@
+# Galaxiora canonical code/navigation map. Update with structural changes only.
+schema_version: 1
+updated: "2026-10-19"
+verified_against:
+  branch: main
+  commit: "3d5bde312d1eb75df6e0dbad32a2f4d5b7db2502"
+product:
+  brand: Galaxiora
+  repo: "OverlorDDD/jyotish-studio"
+  former_name: "Jyotish Studio"
+  languages: [uk, en]
+  architecture_decision: "docs/adr/0001-modular-monolith.md"
+  target_design: "docs/architecture-target.md"
+  current_shape: "Next.js + NestJS + Prisma/PostgreSQL + pure TS Jyotish core"
+  strategy: "evolutionary modular monolith; no big-bang rewrite"
+runtimes:
+  full:
+    frontend: "apps/web; Next.js App Router; 3000"
+    backend: "apps/api; NestJS; 4000; binds 127.0.0.1"
+    database: "Docker PostgreSQL; host 5433; Prisma migrations"
+    proxy: "Next.js /api/* -> INTERNAL_API_ORIGIN -> NestJS /api/*"
+    launch: "npm run dev:full"
+  standalone:
+    entry: "apps/api/src/standalone.ts"
+    launch: "npm run dev"
+    warning: "in-memory preview, not production or DB-equivalent"
+modules:
+  jyotish:
+    status: "implemented; CI tested; independent JHora sign-off pending"
+    domain: "packages/jyotish-core/src/index.ts; packages/jyotish-core/src/rules.ts"
+    adapter: "apps/api/src/ephemeris.ts"
+    application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/free-ai.ts"
+    http: "apps/api/src/nest.ts"
+    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
+    notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
+  identity:
+    status: "implemented; production hardening pending"
+    http: "apps/api/src/account.ts"
+    session: "apps/api/src/auth.ts"
+    web: "apps/web/app/components/AccountPortal.tsx; apps/web/app/[locale]/account/page.tsx"
+    invariants: "guest chart calculations do not persist; saved chart owner required"
+  admin:
+    status: "implemented; manual local admin setup required"
+    http: "apps/api/src/admin.ts"
+    web: "apps/web/app/components/AdminDashboard.tsx; apps/web/app/components/RoleManagement.tsx"
+    bootstrap: "tools/setup-owner.mjs; npm run admin:setup"
+    roles: [MEMBER, EXPERT, SUPPORT, ADMIN]
+    entitlements: [FREE, PREMIUM]
+  tarot:
+    status: "v2 merged into main, CI tested; browser/provider/license QA pending"
+    http: "apps/api/src/tarot.ts"
+    draw: "apps/api/src/tarot-deck.ts"
+    interpretation: "apps/api/src/tarot-reader.ts; apps/api/src/tarot-synthesis.ts; apps/api/src/tarot-depth.ts"
+    ai: "apps/api/src/tarot-ai.ts"
+    web: "apps/web/app/components/TarotStudio.tsx; apps/web/app/components/TarotCardArt.tsx"
+    assets: "apps/web/lib/tarot-art.ts; tools/tarot-assets-prepare.mjs"
+    note: "78 RWS illustrations prepared at start, not committed binary; see docs/tarot-v2.md"
+    spreads: [one, three, celtic]
+    readings_per_utc_day:
+      normal: 3
+      admin: 100
+    successful_ai_per_utc_day:
+      normal: 2
+      admin: 10
+    privacy: "authenticated draw, user-private history, explicit AI consent"
+  experts:
+    status: "private pre-checkout drafts implemented; payments/expert video delivery NOT live"
+    http: "apps/api/src/reading-orders.ts"
+    web: "apps/web/app/components/ExpertOffer.tsx; apps/web/app/components/ReadingIntake.tsx"
+    warning: "ReadingOrder DB skeleton is not a working commerce flow"
+  portal:
+    status: "implemented bilingual shell; placeholder content in future categories"
+    web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
+    brand: "apps/web/lib/brand.ts"
+    future: [western_astrology, panchang, yoga, academy_cms, news, community, mobile]
+  ai_usage:
+    status: "usage storage implemented; distributed budgets/throttles pending"
+    http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
+    table: AiUsage
+persistence:
+  schema: "apps/api/prisma/schema.prisma"
+  migrations: "apps/api/prisma/migrations/"
+  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, RoleChange, TarotReading]
+routes:
+  web:
+    home: "/uk | /en"
+    jyotish: "/{locale}/astrology/jyotish"
+    tarot: "/{locale}/tarot"
+    account: "/{locale}/account"
+    admin: "/{locale}/admin"
+    experts: "/{locale}/experts -> tarot#human-readings"
+  api:
+    charts: "/api/v1/charts/*"
+    reports: "/api/v1/reports"
+    interpretations: "/api/v1/interpretations"
+    accounts: "/api/v1/account/*"
+    tarot: "/api/v1/tarot/*"
+    admin: "/api/v1/admin/*"
+    drafts: "/api/v1/reading-orders/drafts"
+    docs: "/api/docs"
+quality:
+  ci: ".github/workflows/ci.yml"
+  last_observed_main_ci: "success on 2026-10-19, run 39217508387"
+  focused_commands:
+    core: "npm test"
+    jyotish_rules: "npm run test:engine2"
+    tarot: "npm run test:tarot:v2"
+    tarot_session: "npm run test:tarot:session"
+    access: "npm run test:access"
+  wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
+  missing_gates: ["real Postgres integration in CI", "browser E2E", "commercial license clearance", "deployment readiness review"]
+active_risks:
+  - "Controllers mix orchestration, persistence and HTTP; extract use cases incrementally."
+  - "Some in-process AI / request limits are not multi-instance durable."
+  - "Legacy README and older roadmap sections include stale release/security language."
+  - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
+  - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
+priorities:
+  now: "architecture docs and canonical agent map"
+  next: "API/security/CI integration foundation; use-case extraction without behavioral change"
+  later: "content modules, verified paid workflows, permanent deployment, mobile"
+docs:
+  architecture: "docs/architecture-target.md"
+  adr: "docs/adr/0001-modular-monolith.md"
+  roadmap: "docs/implementation-roadmap.md"
+  references: "docs/engineering-references.md"
+  tarot: "docs/tarot-v2.md"
+  jyotish: "docs/jyotish-engine-2.md"
+  windows: "docs/galaxiora-windows-runbook.md"
