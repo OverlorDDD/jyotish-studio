@@ -50,7 +50,9 @@
     "test:tarot:v2": "node --experimental-strip-types --test tools/tarot-v2.test.mjs",
     "predev:full": "node --experimental-strip-types tools/tarot-assets-prepare.mjs",
     "tarot:verify-art": "node --experimental-strip-types tools/tarot-assets-prepare.mjs",
-    "test:tarot:session": "node --test tools/tarot-v2-session.test.mjs"
+    "test:tarot:session": "node --test tools/tarot-v2-session.test.mjs",
+    "test:integration": "node --test tools/db-integration.test.mjs",
+    "security:check": "node tools/security-preflight.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

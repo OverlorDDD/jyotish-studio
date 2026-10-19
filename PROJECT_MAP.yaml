@@ -108,7 +108,9 @@ quality:
     tarot_session: "npm run test:tarot:session"
     access: "npm run test:access"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
-  missing_gates: ["real Postgres integration in CI", "browser E2E", "commercial license clearance", "deployment readiness review"]
+  missing_gates: ["browser E2E", "commercial license clearance", "deployment readiness review", "distributed rate limits and session revocation"]
+  db_integration: "tools/db-integration.test.mjs; npm run test:integration; disposable CI PostgreSQL 16 only"
+  security_preflight: "tools/security-preflight.mjs; npm run security:check"
 active_risks:
   - "Controllers mix orchestration, persistence and HTTP; extract use cases incrementally."
   - "Some in-process AI / request limits are not multi-instance durable."
@@ -117,7 +119,7 @@ active_risks:
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
   now: "architecture docs and canonical agent map"
-  next: "API/security/CI integration foundation; use-case extraction without behavioral change"
+  next: "A2: Tarot use-case extraction, preserve contracts and quotas; A1 remaining risk review before public launch"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -127,3 +129,4 @@ docs:
   tarot: "docs/tarot-v2.md"
   jyotish: "docs/jyotish-engine-2.md"
   windows: "docs/galaxiora-windows-runbook.md"
+  a1: "docs/a1-security-and-testing.md"
