@@ -6,8 +6,8 @@ import {PrismaService} from './prisma.ts';
 import {BirthDto} from './dto.ts';
 import {authReady,passwordHash,passwordMatches,normalizedEmail,sessionToken,cookieUser,setSession,clearSession,sameOrigin} from './auth.ts';
 import {createHourlyLimiter,createKeyedHourlyLimiter} from './ai.ts';
-import {runCalculation} from './logic.ts';
-import {buildDetailedReport} from './report.ts';
+import {publicUser} from './account-policy.ts';
+import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
 
 export class CredentialsDto{
  @ApiProperty({type:String,example:'you@example.com'}) @IsEmail() @MaxLength(150) email!:string;
@@ -34,18 +34,12 @@ function currentUser(req:IncomingMessage){
  if(!id)throw new UnauthorizedException('Sign in to save and view your personal chart history.');
  return id;
 }
-const publicUser=(user:{id:string;email:string;role:string;subscriptionTier:'FREE'|'PREMIUM';subscriptionEndsAt:Date|null})=>({
- id:user.id,email:user.email,role:user.role,
- subscription:{
-  tier:user.subscriptionTier==='PREMIUM'&&user.subscriptionEndsAt&&user.subscriptionEndsAt.getTime()>Date.now()?'PREMIUM':'FREE',
-  currentPeriodEnd:user.subscriptionEndsAt?.toISOString()||null
- }
-});
 
 @ApiTags('Accounts')
 @Controller('api/v1/account')
 export class AccountController{
- constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
+ constructor(@Inject(PrismaService)private readonly prisma:PrismaService,
+  @Inject(CHART_USE_CASES)private readonly chartsService:SavedChartUseCases){}
 
  @Post('register')
  async register(@Body() body:CredentialsDto,@Req() req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
@@ -91,56 +85,27 @@ export class AccountController{
  }
 
  @Get('charts')
- async charts(@Req()req:IncomingMessage){
-  const id=currentUser(req);
-  const rows=await this.prisma.chart.findMany({where:{ownerId:id},orderBy:{createdAt:'desc'},select:{id:true,createdAt:true,input:true,result:true,savedReport:true},take:100});
-  return rows.map(row=>{
-   const result=row.result as {ascendant?:{signName?:string};d1?:unknown[]};
-   const input=row.input as {date?:string;place?:string};
-   const report=row.savedReport as {language?:string}|null;
-   return {id:row.id,createdAt:row.createdAt,place:input.place||'',date:input.date||'',ascendant:result.ascendant?.signName||'',hasReport:Boolean(report)};
-  });
+ charts(@Req()req:IncomingMessage){
+  return this.chartsService.list(currentUser(req));
  }
-
  @Post('charts')
  async saveChart(@Body()body:SaveChartDto,@Req()req:IncomingMessage){
   checkRequest(req);
-  const id=currentUser(req);
+  const ownerId=currentUser(req);
   if(!allowSaves())throw new HttpException('Too many saved charts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
-  const count=await this.prisma.chart.count({where:{ownerId:id}});
-  if(count>=100)throw new BadRequestException('Your account has reached its 100-chart limit. Delete an old chart first.');
-  let chart:Awaited<ReturnType<typeof runCalculation>>;
-  try{chart=await runCalculation(body);}
-  catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth data');}
-  const language=body.language||'uk';
-  const snapshot=buildDetailedReport(chart,language,body.asOf||new Date().toISOString().slice(0,10));
-  const ai=body.aiProvider&&body.aiProvider!=='local'&&body.aiText?
-   {provider:body.aiProvider,model:body.aiModel||'',text:body.aiText}:
-   {provider:'local',text:'',fallbackReason:'local_only'};
-  const row=await this.prisma.chart.create({data:{
-   ownerId:id,
-   input:JSON.parse(JSON.stringify(chart.input)),
-   result:JSON.parse(JSON.stringify(chart)),
-   savedReport:JSON.parse(JSON.stringify({...snapshot,ai}))
-  }});
-  return {id:row.id,createdAt:row.createdAt};
+  try{return await this.chartsService.save(ownerId,body);}
+  catch(error){if(error instanceof SavedChartError)throw new BadRequestException(error.message);throw error;}
  }
-
  @Get('charts/:id')
  async getChart(@Param('id')chartId:string,@Req()req:IncomingMessage){
-  const ownerId=currentUser(req);
-  const row=await this.prisma.chart.findFirst({where:{id:chartId,ownerId},select:{id:true,createdAt:true,result:true,savedReport:true}});
-  if(!row)throw new UnauthorizedException('This chart is not available in your account.');
-  return {id:row.id,createdAt:row.createdAt,chart:{id:row.id,...(row.result as object)},report:row.savedReport};
+  try{return await this.chartsService.detail(currentUser(req),chartId);}
+  catch(error){if(error instanceof SavedChartError)throw new UnauthorizedException(error.message);throw error;}
  }
-
  @Delete('charts/:id')
  async deleteChart(@Param('id')chartId:string,@Req()req:IncomingMessage){
   checkRequest(req);
-  const ownerId=currentUser(req);
-  const result=await this.prisma.chart.deleteMany({where:{id:chartId,ownerId}});
-  if(!result.count)throw new UnauthorizedException('This chart is not available in your account.');
-  return {deleted:true};
+  try{return await this.chartsService.remove(currentUser(req),chartId);}
+  catch(error){if(error instanceof SavedChartError)throw new UnauthorizedException(error.message);throw error;}
  }
 }
 for(const [method,types]of [

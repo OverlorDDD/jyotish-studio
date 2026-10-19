@@ -9,9 +9,11 @@ test('normal member gets FREE without staff permissions, premium is separate and
  assert.match(schema,/role UserRole @default\(MEMBER\)/);
  assert.match(schema,/subscriptionTier SubscriptionTier @default\(FREE\)/);
  assert.match(schema,/subscriptionEndsAt DateTime\?/);
- assert.ok(account.includes("subscriptionEndsAt.getTime()>Date.now()"));
- assert.ok(account.includes("tier:user.subscriptionTier==='PREMIUM'"));
- assert.ok(account.includes('role:user.role'));
+ const policy=source('apps/api/src/account-policy.ts');
+ assert.ok(account.includes('publicUser(user)'));
+ assert.ok(policy.includes("subscriptionEndsAt.getTime()>now.getTime()"));
+ assert.ok(policy.includes("tier:effectiveSubscription(user,now)"));
+ assert.ok(policy.includes('role:user.role'));
 });
 test('private draft requires account consent, daily limits and returns checkout unavailable',()=>{
  const api=source('apps/api/src/reading-orders.ts');

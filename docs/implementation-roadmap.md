@@ -7,7 +7,7 @@ Status values distinguish **already in main** from work requiring new engineerin
 | A0 Architecture foundation | Complete | `AGENTS.md`, `PROJECT_MAP.yaml`, DDD/ports-adapters ADR, risk register, reference index | **Merged to main as PR #10**, commit `9e0a4a9` |
 | A1 Secure engineering foundation | Highest next | Contract tests, disposable PostgreSQL CI, CSRF, per-account auth throttling and environment check | **Implemented; GitHub CI PostgreSQL integration (8/8), unit/build/Swagger/smoke all PASS for branch commit `4e09a86`.** See docs/a1-security-and-testing.md; server-side session revocation and distributed quotas are still future hardening |
 | A2 API module pilot | Implemented in A2 PR | Tarot application use cases, ports, Prisma and AI adapters; pure quota/date/question rules; transport-only controller, stable API | **Implemented; PR branch CI PASS (unit, full build, Swagger, smoke, live PostgreSQL integration); browser acceptance pending.** No schema or URL changes |
-| A3 Reusable domain boundaries | Later | Extract account/admin, Jyotish report application, expert draft use cases only when touched; explicit module contracts | **Planned**; no DB/HTTP dependency in domain/application tests |
+| A3 Reusable domain boundaries | Current | Extract account saved-chart, admin role, shared entitlement and Jyotish deterministic report preparation into explicit application ports/Prisma adapters | **Implemented; PR branch CI passed**, including tests, build, Swagger, smoke and real PostgreSQL (run 39249620186). Manual browser QA not performed. Expert drafts deferred. |
 | A4 Site quality and release readiness | Before public beta | UK/EN browser smoke/E2E, performance budget, SEO sitemap/robots, WCAG 2.2 AA checks, observability, backup/restore, privacy and licensing review | **Planned**; operational and legal checklist signed off |
 | A5 Publishing/content | After foundation | Real yoga/meditation and Academy content with editorial CMS, author/source workflow, SEO; news/community later with moderation | **Planned**; real multilingual content, moderation and no empty public promises |
 | A6 Services and monetization | After security | Expert verification, order/payment webhook, protected video, refunds; premium plans and AI costs | **Planned**; never claim a pre-checkout draft is paid |
@@ -21,7 +21,14 @@ Status values distinguish **already in main** from work requiring new engineerin
 - Expert **consented question drafts** only; no verified video orders or payment completion.
 - Main GitHub CI green on 19 Oct; browser/production acceptance not yet verified.
 
-## Next implementation task (A1, deliberately bounded)
+## A3 implementation scope
+1. Pure identity entitlement policy and public user projection; preserve roles separate from subscription.
+2. Extract account chart save/list/read/delete orchestration behind owner-scoped persistence port, and share it with legacy Jyotish saved-chart API.
+3. Extract admin role-change transaction behind policy/use-case and Prisma adapter, preserving Serializable audit and last-admin protection.
+4. Isolate deterministic Jyotish report calculation/preparation from HTTP controller; keep optional AI orchestration unchanged.
+5. Run focused application tests + existing unit/build/Swagger and disposable PostgreSQL CI before merging.
+
+## Previous implementation task (A1, completed)
 1. Inventory all HTTP endpoints and identify guest/member/admin permissions using existing controller/DTO files; write a focused permissions table.
 2. Add a reproducible PostgreSQL service in CI and a few real database integration tests for Tarot quota concurrency, user history isolation and role gating. Do not touch schema unless required.
 3. Review cookie/session and same-origin/proxy behavior including forwarded headers, logout, production HTTPS, and per-account rate limiting; implement changes only with regression tests.

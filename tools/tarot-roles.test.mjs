@@ -27,9 +27,14 @@ test('Tarot: 1 / 3 / 10 cards never repeat within a spread, correct labels',()=>
 });
 test('Admin: role updates require DB-backed ADMIN session and produce audit',()=>{
  const code=read('apps/api/src/admin.ts');
- for(const needle of ["user.role!=='ADMIN'","actor?.role!=='ADMIN'","sameOrigin(req)","actorId===targetId","admins<=1","tx.roleChange.create","isolationLevel:'Serializable'"]){
-  assert.ok(code.includes(needle),needle);
- }
+ const useCase=read('apps/api/src/admin-role-application.ts');
+ const adapter=read('apps/api/src/admin-role-prisma.ts');
+ assert.ok(code.includes("user.role!=='ADMIN'"));
+ assert.ok(code.includes('sameOrigin(req)'));
+ assert.ok(code.includes('this.roleChanges.execute(actorId,targetId,body.role)'));
+ for(const needle of ["actor?.role!=='ADMIN'","admins<=1","tx.roleChange.create","isolationLevel:'Serializable'"])
+  assert.ok(adapter.includes(needle),needle);
+ assert.ok(useCase.includes('actorId===targetId'));
  assert.ok(code.includes("select:{id:true,email:true,role:true,createdAt:true"));
  assert.ok(!code.includes('passwordHash'));
 });

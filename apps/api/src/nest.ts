@@ -9,6 +9,11 @@ import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
+import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
+import {PrismaSavedChartStore} from './chart-prisma.ts';
+import {JYOTISH_REPORT_USE_CASES,JyotishReportUseCases} from './jyotish-report-application.ts';
+import {ADMIN_ROLE_USE_CASE,ChangeRoleUseCase} from './admin-role-application.ts';
+import {PrismaRoleChangeStore} from './admin-role-prisma.ts';
 import {AdminController} from './admin.ts';
 import {ReadingOrdersController} from './reading-orders.ts';
 import {TarotController,TAROT_USE_CASES} from './tarot.ts';
@@ -50,7 +55,9 @@ function owner(req:IncomingMessage){
 @ApiTags('Jyotish')
 @Controller('api')
 export class JyotishController{
- constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
+ constructor(@Inject(PrismaService)private readonly prisma:PrismaService,
+  @Inject(CHART_USE_CASES)private readonly savedCharts:SavedChartUseCases,
+  @Inject(JYOTISH_REPORT_USE_CASES)private readonly reports:JyotishReportUseCases){}
  private async recordAiUsage(event:AiUsageEvent,operation:string){
   // Use only provider-returned usage; unknown tokens/cost remain NULL, never guess.
   await this.prisma.aiUsage.create({data:{
@@ -76,17 +83,13 @@ export class JyotishController{
  /** Old unauthenticated read-by-ID API is now restricted to chart owners. */
  @Get('v1/charts/:id')
  async get(@Param('id')id:string,@Req()req:IncomingMessage){
-  const ownerId=owner(req);
-  const row=await this.prisma.chart.findFirst({where:{id,ownerId}});
-  if(!row)throw new UnauthorizedException('This chart is not in your account.');
-  return {id,...(row.result as object)};
+  try{return await this.savedCharts.legacy(owner(req),id);}
+  catch(error){if(error instanceof SavedChartError)throw new UnauthorizedException('This chart is not in your account.');throw error;}
  }
  @Get('v1/charts/:id/dashas')
  async dashas(@Param('id')id:string,@Req()req:IncomingMessage){
-  const ownerId=owner(req);
-  const row=await this.prisma.chart.findFirst({where:{id,ownerId}});
-  if(!row)throw new UnauthorizedException('This chart is not in your account.');
-  return {id,dasha:(row.result as unknown as CalculatedChart).dasha};
+  try{return await this.savedCharts.dashas(owner(req),id);}
+  catch(error){if(error instanceof SavedChartError)throw new UnauthorizedException('This chart is not in your account.');throw error;}
  }
 
  /** Stateless generation from birth input: the server recomputes the astronomical facts.
@@ -95,10 +98,11 @@ export class JyotishController{
  async detailedReport(@Body()birth:ReportDto){
   if(!allowInterpretation())throw new HttpException('Hourly report limit reached.',HttpStatus.TOO_MANY_REQUESTS);
   let chart:CalculatedChart;
-  try{chart=await runCalculation(birth);}
-  catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
-  const asOf=birth.asOf||new Date().toISOString().slice(0,10);
-  const report=buildDetailedReport(chart,birth.lang,asOf);
+  let report:ReturnType<typeof buildDetailedReport>;
+  try{
+   const prepared=await this.reports.prepare(birth,birth.lang);
+   chart=prepared.chart;report=prepared.report as ReturnType<typeof buildDetailedReport>;
+  }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
   if(birth.preferred==='local'||process.env.AI_MODE==='local')
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
@@ -119,7 +123,7 @@ export class JyotishController{
  async interpret(@Body()birth:ReportDto){
   if(!allowInterpretation())throw new HttpException('Hourly interpretation limit reached.',HttpStatus.TOO_MANY_REQUESTS);
   let chart:CalculatedChart;
-  try{chart=await runCalculation(birth);}
+  try{chart=await this.reports.calculate(birth);}
   catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
   try{return await interpretChart(chart,birth.lang,birth.preferred||'auto',event=>this.recordAiUsage(event,'short_reading'));}
   catch(error){
@@ -143,7 +147,13 @@ for(const [method,types]of [
 }
 
 @Module({controllers:[JyotishController,AccountController,AdminController,ReadingOrdersController,TarotController],
- providers:[PrismaService,{provide:TAROT_USE_CASES,
+ providers:[PrismaService,
+  {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
+   new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},
+  {provide:JYOTISH_REPORT_USE_CASES,useFactory:()=>new JyotishReportUseCases(runCalculation,buildDetailedReport)},
+  {provide:ADMIN_ROLE_USE_CASE,useFactory:(prisma:PrismaService)=>
+   new ChangeRoleUseCase(new PrismaRoleChangeStore(prisma)),inject:[PrismaService]},
+  {provide:TAROT_USE_CASES,
   useFactory:(prisma:PrismaService)=>new TarotUseCases(new PrismaTarotReadingRepository(prisma),createTarotAiGateway()),
   inject:[PrismaService]}]})
 export class AppModule{}
