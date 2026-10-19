@@ -49,6 +49,11 @@ modules:
   tarot:
     status: "v2 merged into main, CI tested; browser/provider/license QA pending"
     http: "apps/api/src/tarot.ts"
+    use_cases: "apps/api/src/tarot-application.ts"
+    domain_policy: "apps/api/src/tarot-domain.ts"
+    ports: "apps/api/src/tarot-ports.ts"
+    persistence_adapter: "apps/api/src/tarot-prisma-repository.ts"
+    ai_adapter: "apps/api/src/tarot-ai-gateway.ts"
     draw: "apps/api/src/tarot-deck.ts"
     interpretation: "apps/api/src/tarot-reader.ts; apps/api/src/tarot-synthesis.ts; apps/api/src/tarot-depth.ts"
     ai: "apps/api/src/tarot-ai.ts"
@@ -107,6 +112,7 @@ quality:
     jyotish_rules: "npm run test:engine2"
     tarot: "npm run test:tarot:v2"
     tarot_session: "npm run test:tarot:session"
+    tarot_application: "npm run test:tarot:app"
     access: "npm run test:access"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["browser E2E", "commercial license clearance", "deployment readiness review", "distributed rate limits and session revocation"]
@@ -120,7 +126,7 @@ active_risks:
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
   now: "architecture docs and canonical agent map"
-  next: "A2: Tarot use-case extraction, preserve contracts and quotas; A1 remaining risk review before public launch"
+  next: "A3: additional module boundaries only when touching those features; A1 distributed-limit/session-risk review before public hosting"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"

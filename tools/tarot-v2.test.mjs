@@ -96,13 +96,18 @@ test('Tarot AI opt-in calls only a mocked endpoint and sends usage metadata, nev
 });
 test('Server enforces ADMIN 100 and MEMBER 3 with no ability to claim ADMIN in the POST',()=>{
  const api=file('apps/api/src/tarot.ts'),ui=file('apps/web/app/components/TarotStudio.tsx');
- assert.ok(api.includes('ADMIN_LIMIT=100'));
- assert.ok(api.includes('FREE_LIMIT=3'));
- assert.ok(api.includes("tx.user.findUnique({where:{id:userId},select:{role:true}})"));
- assert.ok(api.includes("if(used>=limit)"));
- assert.ok(api.includes("onUsage:async event"));
- assert.ok(api.includes("body.aiConsent===true"));
- assert.ok(api.includes('narrative:completion.reading'));
+ const domain=file('apps/api/src/tarot-domain.ts');
+ const application=file('apps/api/src/tarot-application.ts');
+ const adapter=file('apps/api/src/tarot-prisma-repository.ts');
+ assert.ok(domain.includes('ADMIN_LIMIT=100'));
+ assert.ok(domain.includes('FREE_LIMIT=3'));
+ assert.ok(adapter.includes("tx.user.findUnique({where:{id:input.userId},select:{role:true}})"));
+ assert.ok(adapter.includes("if(used>=limit)"));
+ assert.ok(application.includes("onUsage:async event"));
+ assert.ok(application.includes("input.aiConsent===true"));
+ assert.ok(adapter.includes('narrative:reading'));
+ assert.ok(api.includes('TAROT_USE_CASES'));
+ assert.ok(!api.includes('this.prisma'));
  assert.ok(ui.includes('TarotCardArt'));
  assert.ok(ui.includes('as-reader-direct'));
  assert.ok(ui.includes('aiConsent:aiAvailable&&aiConsent'));
