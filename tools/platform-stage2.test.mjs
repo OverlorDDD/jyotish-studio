@@ -8,7 +8,9 @@ test('global account UI connects to existing cookie session without client-side 
  const api=source('apps/api/src/account.ts');
  assert.match(shell,/<GlobalAccount locale=\{locale\}\/>/);
  for(const word of ["'/api/v1/account/me'","'/api/v1/account/logout'","'/api/v1/account/'+mode"])assert.ok(login.includes(word),word);
- assert.ok(api.includes("role:user.role"),'Roles are provided by server');
+ assert.ok(api.includes('publicUser(user)'));
+ const policy=source('apps/api/src/account-policy.ts');
+ assert.ok(policy.includes('role:user.role'),'Roles are provided by server');
  assert.ok(!login.includes('localStorage'),'Never store credentials in localStorage');
 });
 test('administrator endpoint checks the database role, never email, query or browser-controlled fields',()=>{
