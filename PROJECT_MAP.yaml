@@ -148,3 +148,7 @@ docs:
   jyotish: "docs/jyotish-engine-2.md"
   windows: "docs/galaxiora-windows-runbook.md"
   a1: "docs/a1-security-and-testing.md"
+
+# A4
+# Backup: tools/backup-db.ps1 (one-way, no automatic restore), docs/a4-launch-readiness.md.
+# API trace: apps/api/src/main.ts, X-Request-Id; optional HTTP_ACCESS_LOG=1 (no user paths/bodies).
