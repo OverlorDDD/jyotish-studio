@@ -121,9 +121,12 @@ quality:
     tarot_session: "npm run test:tarot:session"
     tarot_application: "npm run test:tarot:app"
     access: "npm run test:access"
+    seo: "npm run test:seo"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
-  missing_gates: ["browser E2E", "commercial license clearance", "deployment readiness review", "distributed rate limits and session revocation"]
+  missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
+  browser_e2e: "e2e/a4-portal.spec.mjs; playwright.config.mjs; npm run test:e2e (requires full site and isolated DB)"
+  seo_policy: "apps/web/lib/site-indexing.ts; robots.ts; sitemap.ts; require HTTPS origin and SITE_NOINDEX=0"
   db_integration: "tools/db-integration.test.mjs; npm run test:integration; disposable CI PostgreSQL 16 only"
   security_preflight: "tools/security-preflight.mjs; npm run security:check"
 active_risks:

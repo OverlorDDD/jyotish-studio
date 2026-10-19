@@ -86,3 +86,65 @@ jobs:
         run: npm run security:check
       - name: Real API / PostgreSQL integration tests
         run: npm run test:integration
+
+  browser:
+    name: Chromium accessibility, SEO and user smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
+      AUTH_SECRET: a4-only-ci-session-signing-secret-do-not-reuse
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+      WEB_PORT: '3000'
+      PORT: '4000'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and Python ephemeris fallback
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Prepare isolated database
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: Build production site
+        run: npm run build
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start production web and API
+        run: |
+          printf 'DATABASE_URL=%s\nAUTH_SECRET=%s\nAI_MODE=local\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' "$DATABASE_URL" "$AUTH_SECRET" > .env
+          npm run start:full > /tmp/galaxiora-a4.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/uk >/dev/null &&
+               curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -80 /tmp/galaxiora-a4.log
+          exit 1
+      - name: Real browser regression, accessibility and indexing
+        run: npm run test:e2e
