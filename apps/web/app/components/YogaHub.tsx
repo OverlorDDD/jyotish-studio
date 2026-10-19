@@ -10,7 +10,7 @@ export default function YogaHub({locale}:{locale:ContentLocale}){
   <section className="as-wellness-hero yoga-hero">
    <span className="as-overline">{uk?'GALAXIORA YOGA · ПРАКТИКИ':'GALAXIORA YOGA · PRACTICE LIBRARY'}</span>
    <h1>{uk?'Повернись у свій ритм.':'Find your own rhythm.'}</h1>
-   <p>{uk?'Чотири короткі практики уважності, дихання та м’якого руху. Обирай, що підходить саме сьогодні: без оцінок, змагання і поспіху.':'Four short sessions for breath awareness, mindful attention and gentle movement. Choose what feels useful today, at your own pace.'}</p>
+   <p>{uk?'Дихання по квадрату з анімованим провідником, два ритми без затримок та практики руху й уважності. Обирай, що підходить саме сьогодні: без оцінок, змагання і поспіху.':'Animated box breathing, two gentle hold-free patterns and accessible movement and mindfulness sessions. Choose what feels useful today, at your own pace.'}</p>
    <div className="as-wellness-tags"><span>{uk?'4 практики':'4 sessions'}</span><span>{uk?'4–7 хвилин':'4–7 minutes'}</span><span>{uk?'Без реєстрації':'No account needed'}</span></div>
    <a className="as-button as-button-primary" href="#practice-library">{uk?'Обрати практику':'Explore sessions'} <ArrowUpRight size={17}/></a>
   </section>

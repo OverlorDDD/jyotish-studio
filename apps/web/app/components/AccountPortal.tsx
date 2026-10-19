@@ -35,7 +35,8 @@ export default function AccountPortal({birth,report,lang,onOpenSaved}:{
    .catch(()=>{if(!canceled)setReady(true);});
   return()=>{canceled=true};
  },[]);
- useEffect(()=>{if(user)loadHistory().catch(()=>setMessage(uk?'Не вдалося завантажити історію.':'Could not load history.'));else setHistory([]);},[user?.id]);
+ // Deferred: only fetch saved charts after the user opens the account popover.
+ useEffect(()=>{if(user&&open)loadHistory().catch(()=>setMessage(uk?'Не вдалося завантажити історію.':'Could not load history.'));else if(!user)setHistory([]);},[user?.id,open]);
  const safeError=(error:unknown)=>error instanceof Error?error.message:String(error);
  async function authenticate(e:React.FormEvent){
   e.preventDefault();setWorking(true);setMessage('');
