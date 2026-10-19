@@ -10,7 +10,24 @@ const PHASE_COPY:Record<BreathingPhase,{uk:string;en:string;instruction:{uk:stri
  exhale:{uk:'Видих',en:'Exhale',instruction:{uk:'Спокійно видихай. Живіт природно повертається назад — не виштовхуй усе повітря силою.',en:'Exhale smoothly. Let your belly settle naturally; do not force all the air out.'}},
  holdOut:{uk:'Пауза після видиху',en:'Hold after exhaling',instruction:{uk:'М’яко зачекай перед наступним вдихом. Якщо пауза неприємна — припини або обери дихання без затримок.',en:'Pause gently before your next inhale. If it feels unpleasant, stop or choose a no-hold pattern.'}}
 };
-function SquarePacer({phase,ratio,uk}:{phase:BreathingPhase;ratio:number;uk:boolean}){
+function SquarePacer({phase,ratio,uk,noHold}:{phase:BreathingPhase;ratio:number;uk:boolean;noHold:boolean}){
+ if(noHold){
+  // For hold-free patterns a smooth expanding/contracting circle avoids teleports across missing square edges.
+  const inhale=phase==='inhale',radius=inhale?30+40*ratio:70-40*ratio;
+  return <div className="as-breath-visual">
+   <svg viewBox="0 0 300 300" role="img" data-testid="breathing-square" data-phase={phase}
+    aria-label={(uk?'Візуальний ритм: ':'Breathing visual: ')+PHASE_COPY[phase][uk?'uk':'en']} className="as-breath-svg">
+    <circle cx="150" cy="150" r="93" stroke="#8a9bb2" fill="none" strokeWidth="4"/>
+    <circle cx="150" cy="150" r="84" stroke="#e4c692" strokeWidth="3" fill="none"
+     strokeDasharray={528} strokeDashoffset={528*(1-ratio)} transform="rotate(-90 150 150)"/>
+    <circle cx="150" cy="150" r={radius} fill="#82c6d34b" stroke="#b3e0e7" strokeWidth="3" data-testid="breathing-orb"/>
+    <text x="150" y="155" textAnchor="middle" fill="#f6deae" fontSize="18" fontWeight="700">
+     {PHASE_COPY[phase][uk?'uk':'en']}
+    </text>
+    <text x="150" y="278" fill="#cdd9e5" textAnchor="middle" fontSize="13">{uk?'Без затримок':'No breath holds'}</text>
+   </svg>
+  </div>;
+ }
  const fromTo:Record<BreathingPhase,[[number,number],[number,number]]>={
   inhale:[[46,46],[254,46]],holdIn:[[254,46],[254,254]],
   exhale:[[254,254],[46,254]],holdOut:[[46,254],[46,46]]
@@ -67,8 +84,8 @@ export default function YogaBreathSession({locale}:{locale:ContentLocale}){
  return <section className="as-breath-player" aria-label={uk?'Візуальний тренажер дихання':'Visual breathing pacer'}>
   <div className="as-breath-intro">
    <span className="as-overline">{uk?'ДИХАЛЬНА ПРАКТИКА':'BREATHING PRACTICE'}</span>
-   <h2>{uk?'Слідкуй за квадратом':'Follow the breathing square'}</h2>
-   <p>{uk?'Один рух мітки — одна фаза. Повний оберт квадрата — один дихальний цикл. Короткі фази у секундах, а не хвилинах.':'Each moving edge marks one phase. One lap around the square is one breathing cycle. Phases last seconds, not minutes.'}</p>
+   <h2>{mode==='box'?(uk?'Слідкуй за квадратом':'Follow the breathing square'):(uk?'Дихай у ритмі кола':'Follow the breathing circle')}</h2>
+   <p>{mode==='box'?(uk?'Кожна сторона квадрата — одна фаза. Повний оберт — один дихальний цикл. Фази тривають секунди, а не хвилини.':'Each side of the square is one phase. One lap is one breathing cycle. Phases last seconds, not minutes.'):(uk?'Коло зростає на вдиху й зменшується на видиху. Жодних затримок дихання.':'The circle grows on the inhale and shrinks on the exhale, with no breath holds.')}</p>
   </div>
   <div className="as-breath-selector" role="group" aria-label={uk?'Техніка дихання':'Breathing technique'}>
    {BREATHING_PATTERNS.map(p=><button key={p.id} type="button" data-testid={'pattern-'+p.id}
@@ -81,7 +98,7 @@ export default function YogaBreathSession({locale}:{locale:ContentLocale}){
    <p>{uk?'Поклади одну руку на живіт нижче ребер, іншу — на верх грудей. На плавному вдиху живіт м’яко піднімається під рукою; на видиху опускається. Дихай комфортно, не намагайся «надути» живіт силою.':'Place one hand below your ribs and another on your chest. On a gentle inhale, the belly softly rises under your hand; it settles on exhale. Do not push or force a large breath.'}</p>
   </aside>
   <div className="as-breath-stage">
-   <SquarePacer phase={frame.phase} ratio={frame.ratio} uk={uk}/>
+   <SquarePacer phase={frame.phase} ratio={frame.ratio} uk={uk} noHold={mode!=='box'}/>
    <div className="as-breath-readout">
     {ready?<><span className="as-overline">{uk?'ПЕРЕД СТАРТОМ':'BEFORE STARTING'}</span>
       <h3>{pattern.title[locale]}</h3>
