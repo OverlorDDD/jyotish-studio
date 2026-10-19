@@ -3,6 +3,8 @@ import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles,Newspaper,Me
 import PortalShell from './PortalShell';
 import ExpertOffer from './ExpertOffer';
 import TarotStudio from './TarotStudio';
+import YogaHub from './YogaHub';
+import AcademyHub from './AcademyHub';
 import {moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
 export const SECTIONS=['astrology','tarot','experts','yoga','learn','news','community'] as const;
@@ -30,6 +32,8 @@ export const SECTION_COPY={
 } as const;
 const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower2,learn:BookOpen,news:Newspaper,community:MessagesSquare};
 export default function PortalSection({locale,section}:{locale:PortalLocale;section:PortalSectionSlug}){
+ if(section==='yoga')return <YogaHub locale={locale}/>;
+ if(section==='learn')return <AcademyHub locale={locale}/>;
  const t=SECTION_COPY[locale][section];
  const Icon=iconMap[section];
  const href=section==='astrology'?portalPath(locale,'astrology/jyotish'):section==='tarot'?'#human-readings':portalPath(locale,'tarot');
