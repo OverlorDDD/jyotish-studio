@@ -30,13 +30,14 @@ test('guest calculation and reports have no Prisma writes; old saved chart reads
  const code=source('apps/api/src/nest.ts');
  assert.ok(code.includes('return await runCalculation(birth)'));
  assert.ok(!code.includes('prisma.chart.create'));
- assert.ok(code.includes('const ownerId=owner(req)'));
- assert.ok(code.includes('findFirst({where:{id,ownerId}})'));
- assert.ok(code.includes('buildDetailedReport(chart,birth.lang,asOf)'));
+ assert.ok(code.includes('this.savedCharts.legacy(owner(req),id)'));
+ assert.ok(code.includes('this.reports.prepare(birth,birth.lang)'));
+ const adapter=source('apps/api/src/chart-prisma.ts');
+ assert.ok(adapter.includes('where:{id:chartId,ownerId}'));
+ assert.ok(adapter.includes('deleteMany({where:{id:chartId,ownerId}})'));
  const account=source('apps/api/src/account.ts');
- assert.ok(account.includes('ownerId:id'));
- assert.ok(account.includes('where:{id:chartId,ownerId}'));
- assert.ok(account.includes('deleteMany({where:{id:chartId,ownerId}})'));
+ assert.ok(account.includes('this.chartsService.save(ownerId,body)'));
+ assert.ok(account.includes('this.chartsService.remove(currentUser(req),chartId)'));
 });
 test('public site does not require Basic Auth, while history requires valid cookie',()=>{
  const middleware=source('apps/web/middleware.ts');

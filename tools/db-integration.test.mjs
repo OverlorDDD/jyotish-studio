@@ -72,6 +72,9 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
    assert.equal((await request(url,{cookie:b.cookie})).status,401);
    assert.equal((await request(url)).status,401);
    assert.equal((await request('/api/v1/charts/'+chart.id,{cookie:b.cookie})).status,401);
+   assert.equal((await request('/api/v1/charts/'+chart.id,{cookie:a.cookie})).status,200);
+   assert.equal((await request('/api/v1/charts/'+chart.id+'/dashas',{cookie:a.cookie})).status,200);
+   assert.equal((await request('/api/v1/charts/'+chart.id+'/dashas',{cookie:b.cookie})).status,401);
    assert.equal((await request(url,{method:'DELETE',cookie:b.cookie,origin:base})).status,401);
    assert.equal((await request(url,{cookie:a.cookie})).status,200);
   });

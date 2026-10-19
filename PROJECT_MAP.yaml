@@ -29,19 +29,25 @@ modules:
     status: "implemented; CI tested; independent JHora sign-off pending"
     domain: "packages/jyotish-core/src/index.ts; packages/jyotish-core/src/rules.ts"
     adapter: "apps/api/src/ephemeris.ts"
-    application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/free-ai.ts"
+    application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
+    shared_saved_charts: "apps/api/src/chart-application.ts; apps/api/src/chart-prisma.ts"
     http: "apps/api/src/nest.ts"
     web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
+    domain_policy: "apps/api/src/account-policy.ts"
+    saved_charts: "apps/api/src/chart-application.ts"
+    persistence_adapter: "apps/api/src/chart-prisma.ts"
     session: "apps/api/src/auth.ts"
     web: "apps/web/app/components/AccountPortal.tsx; apps/web/app/[locale]/account/page.tsx"
     invariants: "guest chart calculations do not persist; saved chart owner required"
   admin:
     status: "implemented; manual local admin setup required"
     http: "apps/api/src/admin.ts"
+    role_use_case: "apps/api/src/admin-role-application.ts"
+    role_adapter: "apps/api/src/admin-role-prisma.ts"
     web: "apps/web/app/components/AdminDashboard.tsx; apps/web/app/components/RoleManagement.tsx"
     bootstrap: "tools/setup-owner.mjs; npm run admin:setup"
     roles: [MEMBER, EXPERT, SUPPORT, ADMIN]
@@ -115,6 +121,7 @@ quality:
     tarot_session: "npm run test:tarot:session"
     tarot_application: "npm run test:tarot:app"
     access: "npm run test:access"
+    architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["browser E2E", "commercial license clearance", "deployment readiness review", "distributed rate limits and session revocation"]
   db_integration: "tools/db-integration.test.mjs; npm run test:integration; disposable CI PostgreSQL 16 only"
@@ -126,8 +133,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "architecture docs and canonical agent map"
-  next: "A3: additional module boundaries only when touching those features; A1 distributed-limit/session-risk review before public hosting"
+  now: "A3 module boundaries and CI validation"
+  next: "A4: visual/user-facing quality and public beta readiness; A1 distributed-limit/session-risk review before public hosting"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"
