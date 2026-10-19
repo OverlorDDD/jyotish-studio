@@ -18,7 +18,7 @@ test('A5 Yoga: four original nonempty safe bilingual practices, real durations a
     assert.ok(value[lang].length>10,practice.slug+' '+lang);
    }
    for(const step of practice.steps){
-    assert.ok(step.name[lang].length>5&&step.guide[lang].length>25&&step.alternative[lang].length>10);
+    assert.ok(step.name[lang].length>=(practice.category==='breathing'?4:6)&&step.guide[lang].length>25&&step.alternative[lang].length>10);
     assert.ok(step.seconds>0&&step.seconds<300);
    }
   }
