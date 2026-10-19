@@ -17,7 +17,7 @@
     "db:generate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
-    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3 && npm run test:tarot && npm run test:brand && npm run test:tarot:depth && npm run test:tarot:v2 && npm run test:tarot:session && npm run test:tarot:app && npm run test:architecture:a3 && npm run test:seo && npm run test:content:a5",
+    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3 && npm run test:tarot && npm run test:brand && npm run test:tarot:depth && npm run test:tarot:v2 && npm run test:tarot:session && npm run test:tarot:app && npm run test:architecture:a3 && npm run test:seo && npm run test:content:a5 && npm run test:breathing",
     "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
@@ -57,7 +57,8 @@
     "test:architecture:a3": "node --experimental-strip-types --test tools/a3-application.test.mjs",
     "test:e2e": "playwright test --config=playwright.config.mjs",
     "test:seo": "node --experimental-strip-types --test tools/a4-seo.test.mjs",
-    "test:content:a5": "node --experimental-strip-types --test tools/a5-content.test.mjs"
+    "test:content:a5": "node --experimental-strip-types --test tools/a5-content.test.mjs",
+    "test:breathing": "node --experimental-strip-types --test tools/breathing-engine.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

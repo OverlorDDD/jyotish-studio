@@ -46,3 +46,9 @@ Local PostgreSQL defaults to port 5433; Next 3000, Nest 4000. Check actual `.env
 - Academy: `apps/web/lib/academy-content.ts`, original 3-section lessons, key takeaways and exactly one self-check per lesson. Clearly distinguish astronomy/calculations, historical traditions and symbolic interpretation.
 - UI uses `YogaHub` / `YogaSession` and `AcademyHub` / `AcademyQuiz`; no DB, LLM, third-party visual assets or user tracking. Content completion lives in local component state only.
 - A new published practice/lesson requires both locale static routes, SEO sitemap inclusion and focused content/Chromium browser tests. Keep News and Community noindex until launched.
+
+## Yoga v2 paced breathing acceptance
+- Box breathing follows actual 4-second inhale, hold-after-inhale, exhale, hold-after-exhale; no 90-second breath phases. Use `breathing-patterns.ts` pure engine, not timer durations embedded in editorial steps.
+- Gentle no-hold patterns remain available; allow pause/resume and early stop without awarding completion. Avoid claiming therapy or forcing belly expansion.
+- Non-breath Yoga practices are manual read-and-try instructions; the completion state only says content was reviewed. Mindfulness/evening prompts have no timers.
+- Jyotish heavy full-report code is lazy-loaded and account history loads only when the popover opens. Track perceived route feedback and actual production navigation timing separately; dev cold-compilation is not the same as production performance.

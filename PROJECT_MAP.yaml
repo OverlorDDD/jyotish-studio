@@ -80,10 +80,11 @@ modules:
     web: "apps/web/app/components/ExpertOffer.tsx; apps/web/app/components/ReadingIntake.tsx"
     warning: "ReadingOrder DB skeleton is not a working commerce flow"
   yoga:
-    status: "A5: four original bilingual guided practices, timer + optional untimed mode; no login"
+    status: "Yoga v2: four guided practices; box visual 4-4-4-4 and two no-hold alternatives; reflection untimed"
     content: "apps/web/lib/yoga-content.ts"
     hub: "apps/web/app/components/YogaHub.tsx"
-    player: "apps/web/app/components/YogaSession.tsx"
+    player: "apps/web/app/components/YogaSession.tsx; apps/web/app/components/YogaBreathSession.tsx"
+    timing_domain: "apps/web/lib/breathing-patterns.ts (pure phases and cycle math)"
     detail: "apps/web/app/[locale]/yoga/[slug]/page.tsx"
     privacy: "session progress in React memory, no personal data or persistence"
   academy:
@@ -134,6 +135,7 @@ quality:
   focused_commands:
     core: "npm test"
     jyotish_rules: "npm run test:engine2"
+    breathing: "npm run test:breathing"
     tarot: "npm run test:tarot:v2"
     tarot_session: "npm run test:tarot:session"
     tarot_application: "npm run test:tarot:app"
@@ -155,7 +157,7 @@ active_risks:
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
   now: "A5 Yoga and Academy shipped behind CI; local browser acceptance required"
-  next: "A6 editorial content workflow, library expansion and production release gates (without opening payments)"
+  next: "A6 editorial content workflow; monitor Jyotish timing metrics and production readiness (no payments)"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"
