@@ -4,6 +4,8 @@ import {IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
+import {effectiveSubscription} from './account-policy.ts';
+import {ADMIN_ROLE_USE_CASE,ChangeRoleUseCase,RoleChangeError} from './admin-role-application.ts';
 
 export class ChangeUserRoleDto {
  @ApiProperty({type:String,enum:['MEMBER','EXPERT','SUPPORT','ADMIN']})
@@ -16,7 +18,8 @@ export class ChangeUserRoleDto {
 @ApiTags('Admin')
 @Controller('api/v1/admin')
 export class AdminController {
- constructor(@Inject(PrismaService) private readonly prisma:PrismaService){}
+ constructor(@Inject(PrismaService) private readonly prisma:PrismaService,
+  @Inject(ADMIN_ROLE_USE_CASE)private readonly roleChanges:ChangeRoleUseCase){}
  private async requireAdmin(req:IncomingMessage){
   const userId=cookieUser(req);
   if(!userId)throw new UnauthorizedException('Sign in required');
@@ -37,7 +40,7 @@ export class AdminController {
   ]);
   return {page,total,pageSize:50,users:rows.map(u=>({
    id:u.id,email:u.email,role:u.role,createdAt:u.createdAt,
-   subscription:u.subscriptionTier==='PREMIUM'&&u.subscriptionEndsAt&&u.subscriptionEndsAt.getTime()>Date.now()?'PREMIUM':'FREE'
+   subscription:effectiveSubscription(u)
   }))};
  }
  @Get('role-audit')
@@ -51,23 +54,14 @@ export class AdminController {
  async changeRole(@Param('id')targetId:string,@Body()body:ChangeUserRoleDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new ForbiddenException('Cross-origin role operation denied');
   const actorId=await this.requireAdmin(req);
-  if(actorId===targetId)throw new ForbiddenException('You cannot change your own role');
-  if(!/^[0-9a-f-]{36}$/i.test(targetId))throw new BadRequestException('Invalid user id');
-  // Revalidate ADMIN inside a serialized transaction, do not trust client role.
-  return this.prisma.$transaction(async tx=>{
-   const actor=await tx.user.findUnique({where:{id:actorId},select:{role:true}});
-   if(actor?.role!=='ADMIN')throw new ForbiddenException('Administrator role required');
-   const target=await tx.user.findUnique({where:{id:targetId},select:{role:true}});
-   if(!target)throw new BadRequestException('User not found');
-   if(target.role===body.role)return {changed:false,role:target.role};
-   if(target.role==='ADMIN'){
-    const admins=await tx.user.count({where:{role:'ADMIN'}});
-    if(admins<=1)throw new ForbiddenException('Cannot remove the last administrator');
+  try{return await this.roleChanges.execute(actorId,targetId,body.role);}
+  catch(error){
+   if(error instanceof RoleChangeError){
+    if(error.code==='invalid_id'||error.code==='target_missing')throw new BadRequestException(error.message);
+    throw new ForbiddenException(error.message);
    }
-   const result=await tx.user.update({where:{id:targetId},data:{role:body.role},select:{role:true}});
-   await tx.roleChange.create({data:{actorId,targetId,previousRole:target.role,newRole:body.role}});
-   return {changed:true,role:result.role};
-  },{isolationLevel:'Serializable'});
+   throw error;
+  }
  }
 
  @Get('orders')
