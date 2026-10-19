@@ -37,7 +37,7 @@ async function register(label){
  return {id:result.data.user.id,email:result.data.user.email,cookie:result.cookie};
 }
 async function start(){
- child=spawn(process.execPath,['--import','tsx','apps/api/src/main.ts'],{cwd:root,
+ child=spawn(process.execPath,['node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','apps/api/src/main.ts'],{cwd:root,
   env:{...process.env,PORT:String(port),WEB_PORT:'3000',AI_MODE:'local',TAROT_AI_ENABLED:'false',
    AUTH_SECRET:'a1-test-only-session-signing-secret-0123456789'},stdio:['ignore','pipe','pipe']});
  const onData=data=>{log=(log+String(data)).slice(-5000);};
