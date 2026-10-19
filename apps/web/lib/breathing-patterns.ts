@@ -4,15 +4,15 @@ export type BreathingPattern={id:'box'|'equal'|'extended';seconds:Record<Breathi
  title:{uk:string;en:string};summary:{uk:string;en:string};safety:{uk:string;en:string}};
 export const PHASE_ORDER:BreathingPhase[]=['inhale','holdIn','exhale','holdOut'];
 export const BREATHING_PATTERNS:BreathingPattern[]=[
- {id:'box',seconds:{inhale:4,holdIn:4,exhale:4,holdOut:4},rounds:12,
+ {id:'box',seconds:{inhale:4,holdIn:4,exhale:4,holdOut:4},rounds:15,
   title:{uk:'Дихання по квадрату',en:'Box breathing'},
   summary:{uk:'4 с вдих · 4 с пауза · 4 с видих · 4 с пауза',en:'4s inhale · 4s hold · 4s exhale · 4s hold'},
   safety:{uk:'Затримки — лише якщо комфортно. Якщо затримувати дихання неприємно, обери режим без пауз.',en:'Holds are optional. If holding your breath feels uncomfortable, choose a pattern without pauses.'}},
- {id:'equal',seconds:{inhale:4,holdIn:0,exhale:4,holdOut:0},rounds:24,
+ {id:'equal',seconds:{inhale:4,holdIn:0,exhale:4,holdOut:0},rounds:30,
   title:{uk:'Рівне дихання',en:'Equal breathing'},
   summary:{uk:'4 с вдих · 4 с видих · без затримок',en:'4s inhale · 4s exhale · no holds'},
   safety:{uk:'Не форсуй глибину чи темп дихання: за потреби повернись до природного ритму.',en:'Never force breath depth or pace; return to your natural rhythm whenever needed.'}},
- {id:'extended',seconds:{inhale:3,holdIn:0,exhale:5,holdOut:0},rounds:24,
+ {id:'extended',seconds:{inhale:3,holdIn:0,exhale:5,holdOut:0},rounds:30,
   title:{uk:'Подовжений видих',en:'Longer exhale'},
   summary:{uk:'3 с вдих · 5 с видих · без затримок',en:'3s inhale · 5s exhale · no holds'},
   safety:{uk:'Якщо довший видих незручний, повернись до звичайного дихання.',en:'If the longer exhale is uncomfortable, return to your usual breathing.'}}

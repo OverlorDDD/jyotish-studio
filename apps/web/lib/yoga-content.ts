@@ -9,15 +9,17 @@ export const say=(value:Bilingual,locale:ContentLocale)=>value[locale];
 export const YOGA_PRACTICES:YogaPractice[]=[
  {slug:'gentle-breath',category:'breathing',icon:'wind',
   title:{uk:'Дихання без поспіху',en:'Unhurried breathing'},
-  subtitle:{uk:'4 хв · м’яка увага до дихання',en:'4 min · gentle breath awareness'},
-  purpose:{uk:'Невелика пауза, щоб помітити свій природний ритм без затримок і напруження.',en:'A short pause to notice your natural rhythm without breath-holding or strain.'},
-  preparation:{uk:'Сядь з опорою для спини. Ноги можуть стояти на підлозі. Дихай звично: рахувати вдихи не обов’язково.',en:'Sit with your back supported and feet comfortable. Breathe normally; counting is optional.'},
-  safety:{uk:'Не затримуй дихання і не намагайся дихати глибше за комфорт. При запамороченні зупини вправу та повернись до звичайного дихання.',en:'Do not hold your breath or force deeper breaths. Stop if dizzy and return to normal breathing.'},
+  subtitle:{uk:'4 хв · дихання по квадрату 4–4–4–4',en:'4 min · box breathing 4–4–4–4'},
+  purpose:{uk:'Анімований квадрат веде через вдих, паузу після вдиху, видих і паузу після видиху. Є також техніки без затримок.',en:'A visual square guides inhale, hold after inhale, exhale and hold after exhale. No-hold alternatives are available.'},
+  preparation:{uk:'Сядь з опорою для спини. Поклади долоню нижче ребер: на м’якому вдиху живіт дещо розширюється, на видиху природно опускається. Починай лише коли готовий(-а).',en:'Sit with your back supported. Place a hand below your ribs: let your belly rise softly on inhale and settle on exhale. Begin only when ready.'},
+  safety:{uk:'Дихання по квадрату містить чотирисекундні паузи. Вони не обов’язкові: обери режим без затримок, якщо відчуваєш дискомфорт. Не форсуй дихання; при запамороченні чи задишці зупинись.',en:'Box breathing includes four-second holds, but holds are optional. Choose a no-hold pattern if uncomfortable. Do not force breath depth; stop for dizziness or breathlessness.'},
+  // The visual breathing pacer owns all phase durations; these are editorial phase cues only.
   steps:[
-   {seconds:30,name:{uk:'Влаштуйся зручно',en:'Settle comfortably'},guide:{uk:'Відчуй опору стільця або підлоги. Розслаб плечі й щелепу. Можна залишити очі відкритими.',en:'Notice the support of the chair or floor. Relax your shoulders and jaw. Eyes may stay open.'},alternative:{uk:'Можна стояти або лежати.',en:'Standing or lying down also works.'}},
-   {seconds:90,name:{uk:'Помічай вдих',en:'Notice each inhale'},guide:{uk:'Просто відмічай момент, коли повітря входить у ніс чи груди. Нічого не змінюй.',en:'Simply notice air arriving at the nose or chest. There is no need to change anything.'},alternative:{uk:'Якщо дихання неприємно відчувати — зверни увагу на звуки довкола.',en:'If focusing on the breath is uncomfortable, notice sounds around you.'}},
-   {seconds:90,name:{uk:'Помічай видих',en:'Notice each exhale'},guide:{uk:'Спостерігай, як тіло саме завершує видих. Коли думки відволікають, м’яко повертай увагу.',en:'Observe how your body finishes each exhale on its own. Gently return when distracted.'},alternative:{uk:'Відчуй контакт стоп із підлогою замість концентрації на видиху.',en:'Focus on your feet touching the floor instead.'}},
-   {seconds:30,name:{uk:'Заверши паузу',en:'Close the pause'},guide:{uk:'Відчуй усе тіло. Подивись навколо, назви одну річ, яку бачиш, і повертайся до справ.',en:'Notice your whole body. Look around, name one thing you can see, and return to your day.'},alternative:{uk:'Якщо хочеш, закінчи раніше.',en:'You may finish earlier whenever you wish.'}}
+   {seconds:4,name:{uk:'Вдих',en:'Inhale'},guide:{uk:'Живіт м’яко розширюється під долонею, без зусилля.',en:'Let the belly gently rise under your hand without forcing.'},alternative:{uk:'Обери інший комфортний ритм.',en:'Choose a comfortable breathing rhythm.'}},
+   {seconds:4,name:{uk:'Пауза після вдиху',en:'Hold after inhale'},guide:{uk:'Не набирай більше повітря; залишайся без напруження.',en:'Avoid taking in extra air or adding tension.'},alternative:{uk:'Якщо незручно — режим без затримок.',en:'Use a no-hold pattern if needed.'}},
+   {seconds:4,name:{uk:'Видих',en:'Exhale'},guide:{uk:'М’яко видихай, живіт повертається до нейтрального стану.',en:'Exhale gently as your belly settles.'},alternative:{uk:'Не видихай силою.',en:'Do not force the exhale.'}},
+   {seconds:4,name:{uk:'Пауза після видиху',en:'Hold after exhale'},guide:{uk:'Пауза коротка й лише за комфорту.',en:'Pause briefly only if comfortable.'},alternative:{uk:'Пропусти паузу в іншій техніці.',en:'Choose a no-hold technique.'}}
+
   ]},
  {slug:'desk-mobility',category:'mobility',icon:'sun',
   title:{uk:'Розминка за столом',en:'Desk-friendly mobility'},

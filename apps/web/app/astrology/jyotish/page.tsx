@@ -1,7 +1,10 @@
 'use client';
 import {useState,useEffect} from 'react';
+import dynamic from 'next/dynamic';
 import {readApiJson} from '../../../lib/api-response';
-import DetailedReport,{type ReadingReport} from '../../components/DetailedReport';
+import type {ReadingReport} from '../../components/DetailedReport';
+// A large report editor/render tree is not needed until the user requests a full reading.
+const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 import AccountPortal from '../../components/AccountPortal';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
 type Graha={name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
