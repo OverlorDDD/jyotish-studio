@@ -39,7 +39,8 @@ test('portal SEO avoids pretending a domain is registered and leaves API proxy u
  const layout=code('apps/web/app/layout.tsx');
  const config=code('apps/web/next.config.mjs');
  const css=code('apps/web/app/globals.css');
- assert.ok(layout.includes('NEXT_PUBLIC_SITE_URL'));
+ assert.ok(layout.includes('publicSiteOrigin'));
+ assert.ok(code('apps/web/lib/site-indexing.ts').includes('NEXT_PUBLIC_SITE_URL'));
  assert.ok(layout.includes('WebSite'));
  assert.ok(css.includes('.as-header')&&css.includes('.as-intake'));
  assert.ok(config.includes('INTERNAL_API_ORIGIN'));
