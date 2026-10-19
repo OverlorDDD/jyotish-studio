@@ -19,6 +19,9 @@ Refactor code structure, not product behavior. Keep old 78 RWS card deck, interp
 ## Architecture decision
 Ports live in the application layer and describe only what it requires. Adapters supply Prisma and external AI implementations. Detailed Rider–Waite descriptions and schema are reused instead of copied. A2 is a contained **hexagonal pilot**, not a speculative whole-repo rewrite.
 
+## Verification evidence
+GitHub Actions branch CI passed for commit `66ea0f1` on 19 October 2026: https://github.com/OverlorDDD/jyotish-studio/actions/runs/39234942474. This includes live PostgreSQL authorization/concurrency tests, full unit suites, Swagger, Nest/Next build and standalone smoke. Final main CI and local browser acceptance are distinct checks.
+
 ## Test gates
 1. `npm run test:tarot:app`, `npm run test:tarot:v2`, `npm run test:tarot`, `npm run test:tarot:session`.
 2. `npm run test:all`, `npm run test:swagger`, `npm run build`.

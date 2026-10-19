@@ -3,7 +3,7 @@ schema_version: 1
 updated: "2026-10-19"
 verified_against:
   branch: main
-  commit: "4e09a866ee819866c788236abd753d377444239d"
+  commit: "66ea0f18474d756d42e740e1242166cd861f256b"
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -47,7 +47,7 @@ modules:
     roles: [MEMBER, EXPERT, SUPPORT, ADMIN]
     entitlements: [FREE, PREMIUM]
   tarot:
-    status: "v2 merged into main, CI tested; browser/provider/license QA pending"
+    status: "v2 with A2 use-case extraction; branch CI passed, browser/provider/license QA pending"
     http: "apps/api/src/tarot.ts"
     use_cases: "apps/api/src/tarot-application.ts"
     domain_policy: "apps/api/src/tarot-domain.ts"
@@ -105,7 +105,8 @@ routes:
     docs: "/api/docs"
 quality:
   ci: ".github/workflows/ci.yml"
-  last_observed_main_ci: "success on 2026-10-19, run 39228886759"
+  last_observed_main_ci: "success on 2026-10-19, run 39234248979"
+  a2_branch_ci: "success 2026-10-19, run 39234942474 (including live PostgreSQL concurrency)"
   a1_branch_ci: "8/8 disposable PostgreSQL tests + unit/build/smoke success, run 39229698877"
   focused_commands:
     core: "npm test"
