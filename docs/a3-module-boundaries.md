@@ -28,3 +28,6 @@ Full: `npm run test:all`, `npm run test:swagger`, `npm run build`.
 GitHub Actions uses a disposable PostgreSQL service and a real Nest API to verify ownership, role audit, Tarot quotas and access. The test refuses to connect to normal `jyotish` DB.
 
 Unfinished security work: session revocation, distributed throttling, load tests, full browser E2E and licensing review.
+
+## GitHub Actions noise reduction
+A3 limits CI triggers to pull requests targeting `main` plus pushes to `main` after merge. New pushes to an open PR cancel obsolete in-progress checks for that PR. This avoids duplicate push/PR runs and reduces intermediary failure emails while preserving branch-merge gates. See official workflow concurrency documentation: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax

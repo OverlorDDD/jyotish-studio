@@ -82,7 +82,7 @@ test('A3 Jyotish report application: input passed server-side, UK/EN and asOf ke
  const outcome=await app.prepare({...birth,asOf:'2026-10-20'},'uk');
  assert.equal(outcome.report.lang,'uk');assert.equal(outcome.asOf,'2026-10-20');
  assert.deepEqual(outcome.chart.dasha,[]);
- assert.deepEqual(calls[0].input,birth===calls[0].input?birth:{...birth,asOf:'2026-10-20'});
+ assert.deepEqual(calls[0].input,{...birth,asOf:'2026-10-20'});
  await app.calculate(birth);
  assert.equal(calls.length,3);
 });
