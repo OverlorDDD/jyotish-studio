@@ -16,6 +16,14 @@ test('Account login and logout notify the mounted Tarot studio',()=>{
  assert.ok(studio.includes("Повторити перевірку акаунта"));
 });
 
+test('Offline Ukrainian tarot prose uses natural accusative event phrases',()=>{
+ const code=read('apps/api/src/tarot-reader.ts');
+ assert.ok(code.includes('початок може принести '));
+ assert.ok(code.includes('Далі розклад натякає на '));
+ assert.ok(code.includes('Якщо помітиш '));
+ assert.ok(!code.includes('спочатку може проявитися '));
+ assert.ok(!code.includes('У розвитку ситуації може втрутитися '));
+});
 test('Card artwork has 78 mapped classic images and is auto-cached before full launch',()=>{
  const api=read('apps/api/src/tarot.ts');
  const mapping=read('apps/web/lib/tarot-art.ts');
