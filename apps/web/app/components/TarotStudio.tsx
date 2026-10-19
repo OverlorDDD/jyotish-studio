@@ -23,13 +23,19 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
  const [revealed,setRevealed]=useState<number[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[loading,setLoading]=useState(true);
  const [limit,setLimit]=useState(3),[aiAvailable,setAiAvailable]=useState(false),[aiConsent,setAiConsent]=useState(false);
  async function load(){
+  setError('');setLoading(true);
   try{
    const r=await readApiJson<HistoryReply>(await fetch('/api/v1/tarot/readings',{credentials:'same-origin',cache:'no-store'}));
    setHistory(r.readings);setRemaining(r.remaining);setLimit(r.limit);setAiAvailable(r.aiAvailable);
   }catch(e){setError(uk?'Увійди або зареєструйся через кнопку у верхньому меню, щоб отримати безкоштовний розклад.':'Sign in using the header to save and draw your free readings.');}
   finally{setLoading(false)}
  }
- useEffect(()=>{load()},[]);
+ useEffect(()=>{
+  void load();
+  const reload=()=>{setReading(null);setRevealed([]);setRemaining(null);setHistory([]);void load();};
+  window.addEventListener('galaxiora:auth-changed',reload);
+  return ()=>window.removeEventListener('galaxiora:auth-changed',reload);
+ },[locale]);
  async function draw(event:React.FormEvent){
   event.preventDefault();setBusy(true);setError('');
   try{
@@ -70,7 +76,10 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
     </div>
     <p className="as-muted">{uk?'Ліміт оновлюється о 00:00 UTC. Для адміністратора — до 100 розкладів на добу. AI викликається тільки за згодою та якщо його налаштовано на сервері.':'Limits reset at midnight UTC. Administrators have up to 100 draws daily. AI runs only with consent and server configuration.'}</p>
    </form>
-   {error&&<p className="as-account-error" role="alert"><LockKeyhole size={16}/>{error}</p>}
+   {error&&<div className="as-tarot-session-error"><p className="as-account-error" role="alert"><LockKeyhole size={16}/>{error}</p>
+    <button type="button" className="as-button as-button-secondary" onClick={()=>void load()} disabled={loading}>
+     <RefreshCcw size={16}/>{uk?'Повторити перевірку акаунта':'Refresh account status'}
+    </button></div>}
   </section>
   {reading&&<section className="as-tarot-result" aria-label={uk?'Результат розкладу':'Tarot reading'}>
    <div className="as-tarot-result-head"><div><span className="as-overline">{uk?'ТВІЙ РОЗКЛАД':'YOUR READING'}</span>

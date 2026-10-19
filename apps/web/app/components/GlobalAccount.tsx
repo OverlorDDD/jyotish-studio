@@ -26,6 +26,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
    const response=await fetch('/api/v1/account/'+mode,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
    const data=await readApiJson<{user:User}>(response);
    setUser(data.user);setPassword('');setOpen(false);
+   window.dispatchEvent(new Event('galaxiora:auth-changed'));
   }catch(e){setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false)}
  }
@@ -34,6 +35,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
   try{
    await readApiJson(await fetch('/api/v1/account/logout',{method:'POST',credentials:'same-origin'}));
    setUser(null);setOpen(false);
+   window.dispatchEvent(new Event('galaxiora:auth-changed'));
   }catch(e){setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false)}
  }
