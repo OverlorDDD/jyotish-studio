@@ -19,5 +19,6 @@ export function utcDayBounds(now:Date){
 }
 export type TarotErrorCode='invalid_spread'|'question_too_long'|'account_missing'|'daily_limit';
 export class TarotDomainError extends Error{
- constructor(public readonly code:TarotErrorCode,message:string){super(message);this.name='TarotDomainError';}
+ readonly code:TarotErrorCode;
+ constructor(code:TarotErrorCode,message:string){super(message);this.code=code;this.name='TarotDomainError';}
 }

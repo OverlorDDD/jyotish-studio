@@ -6,9 +6,12 @@ import {aiLimitFor,isTarotSpread,limitFor,normalizeTarotQuestion,TarotDomainErro
 import type {DrawnCard,TarotReadingRepository,TarotNarrativeGateway} from './tarot-ports.ts';
 
 export class TarotUseCases{
- constructor(private readonly readings:TarotReadingRepository,
-  private readonly ai:TarotNarrativeGateway,
-  private readonly now:()=>Date=()=>new Date()){}
+ private readonly readings:TarotReadingRepository;
+ private readonly ai:TarotNarrativeGateway;
+ private readonly now:()=>Date;
+ constructor(readings:TarotReadingRepository,ai:TarotNarrativeGateway,now:()=>Date=()=>new Date()){
+  this.readings=readings;this.ai=ai;this.now=now;
+ }
  deck(){
   return {version:'rws-v1',aiAvailable:this.ai.enabled(),total:TAROT_DECK.length,
    spreads:Object.entries(SPREADS).map(([id,positions])=>({id,cards:positions.length}))};
