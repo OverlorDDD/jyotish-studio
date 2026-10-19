@@ -23,6 +23,9 @@ A1 preserves routes, visuals, Prisma schema and existing user data. It adds a se
 | GET,POST,DELETE /api/v1/reading-orders/drafts | 401 | owner-scoped | owner-scoped | Consent, owner-only temporary drafts |
 | POST /api/v1/reading-orders/:id/brief | 401 | 403 unless paid+verified+owner | same | No enabled checkout or fake paid orders |
 
+## CI evidence
+- A1 branch GitHub Actions run: https://github.com/OverlorDDD/jyotish-studio/actions/runs/39229698877 — separate live PostgreSQL/Nest integration passed 8/8; unit tests, production build, Swagger and smoke tests passed.
+
 ## What A1 does and does not prove
 - CI integration uses PostgreSQL 16 as GitHub Actions service and **applies real Prisma migrations**. Concurrent Tarot requests are actual HTTP requests over the server's locked transaction.
 - The integration test refuses any DB other than a local `/galaxiora_a1_test` and must be explicitly enabled with `GALAXIORA_INTEGRATION_TEST=1`. It never tests against user's existing `jyotish` DB.
