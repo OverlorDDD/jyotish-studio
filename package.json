@@ -14,8 +14,8 @@
     "dev:full": "npx concurrently -k \"npm run dev:api\" \"npm run dev:web\"",
     "test": "node --experimental-strip-types --test packages/jyotish-core/src/*.test.ts",
     "build": "npm run build -w @jyotish/core && npm run build -w @jyotish/api && npm run build -w @jyotish/web",
-    "db:generate": "node --env-file=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
-    "db:migrate": "node --env-file=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
+    "db:generate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
+    "db:migrate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
     "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3 && npm run test:tarot && npm run test:brand && npm run test:tarot:depth && npm run test:tarot:v2 && npm run test:tarot:session",
     "test:full": "node tools/smoke-test.mjs --require-nest",
@@ -50,7 +50,9 @@
     "test:tarot:v2": "node --experimental-strip-types --test tools/tarot-v2.test.mjs",
     "predev:full": "node --experimental-strip-types tools/tarot-assets-prepare.mjs",
     "tarot:verify-art": "node --experimental-strip-types tools/tarot-assets-prepare.mjs",
-    "test:tarot:session": "node --test tools/tarot-v2-session.test.mjs"
+    "test:tarot:session": "node --test tools/tarot-v2-session.test.mjs",
+    "test:integration": "node --test tools/db-integration.test.mjs",
+    "security:check": "node tools/security-preflight.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

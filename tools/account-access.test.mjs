@@ -46,3 +46,25 @@ test('public site does not require Basic Auth, while history requires valid cook
  assert.ok(account.includes('cookieUser(req)'));
  assert.ok(account.includes('UnauthorizedException'));
 });
+
+test('CSRF fetch metadata blocks missing-Origin cross-site browser writes',()=>{
+ assert.equal(sameOrigin({headers:{host:'localhost:4000','sec-fetch-site':'cross-site'}}),false);
+ assert.equal(sameOrigin({headers:{host:'localhost:4000','sec-fetch-site':'same-site'}}),false);
+ assert.equal(sameOrigin({headers:{host:'localhost:4000','sec-fetch-site':'same-origin'}}),true);
+ assert.equal(sameOrigin({headers:{host:'localhost:4000'}}),true);
+});
+test('production secure cookie override and bounded per-account limiter',async()=>{
+ const {createKeyedHourlyLimiter}=await import('../apps/api/src/ai.ts');
+ const previous=process.env.SESSION_COOKIE_SECURE;
+ try{
+  process.env.SESSION_COOKIE_SECURE='1';
+  const cookie=cookieHeader('test',{headers:{host:'localhost:4000'}});
+  assert.ok(cookie.includes('Secure'));
+ }finally{if(previous===undefined)delete process.env.SESSION_COOKIE_SECURE;else process.env.SESSION_COOKIE_SECURE=previous;}
+ const allow=createKeyedHourlyLimiter(2,3);
+ assert.equal(allow('user-a',1000),true);
+ assert.equal(allow('user-a',1001),true);
+ assert.equal(allow('user-a',1002),false);
+ assert.equal(allow('user-b',1002),true);
+ assert.equal(allow('user-a',3601000),true);
+});

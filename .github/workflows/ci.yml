@@ -42,3 +42,42 @@ jobs:
             sleep 1
           done
           node tools/smoke-test.mjs
+
+  integration:
+    name: PostgreSQL authorization and concurrency
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
+      GALAXIORA_INTEGRATION_TEST: '1'
+      AUTH_SECRET: a1-only-ci-session-signing-secret-change-in-production
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma client
+        run: npm run db:generate
+      - name: Apply migrations to disposable CI database
+        run: npm run db:migrate
+      - name: Validate environment readiness
+        run: npm run security:check
+      - name: Real API / PostgreSQL integration tests
+        run: npm run test:integration

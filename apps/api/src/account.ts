@@ -5,7 +5,7 @@ import type {IncomingMessage,ServerResponse} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {BirthDto} from './dto.ts';
 import {authReady,passwordHash,passwordMatches,normalizedEmail,sessionToken,cookieUser,setSession,clearSession,sameOrigin} from './auth.ts';
-import {createHourlyLimiter} from './ai.ts';
+import {createHourlyLimiter,createKeyedHourlyLimiter} from './ai.ts';
 import {runCalculation} from './logic.ts';
 import {buildDetailedReport} from './report.ts';
 
@@ -21,6 +21,7 @@ export class SaveChartDto extends BirthDto{
  @IsOptional() @IsString() @MaxLength(120) aiModel?:string;
 }
 const allowAuthAttempt=createHourlyLimiter(60);
+const allowAuthByEmail=createKeyedHourlyLimiter(12);
 const allowSaves=createHourlyLimiter(90);
 function checkRequest(req:IncomingMessage){
  if(!sameOrigin(req))throw new BadRequestException('Cross-origin account operation blocked');
@@ -49,7 +50,7 @@ export class AccountController{
  @Post('register')
  async register(@Body() body:CredentialsDto,@Req() req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
   checkRequest(req);requireSetup();
-  if(!allowAuthAttempt())throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
+  if(!allowAuthAttempt()||!allowAuthByEmail(normalizedEmail(body.email)))throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   const email=normalizedEmail(body.email);
   if(await this.prisma.user.findUnique({where:{email}}))throw new ConflictException('This email is already registered.');
   const hash=await passwordHash(body.password);
@@ -66,7 +67,7 @@ export class AccountController{
  @Post('login')
  async login(@Body() body:CredentialsDto,@Req()req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
   checkRequest(req);requireSetup();
-  if(!allowAuthAttempt())throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
+  if(!allowAuthAttempt()||!allowAuthByEmail(normalizedEmail(body.email)))throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   const user=await this.prisma.user.findUnique({where:{email:normalizedEmail(body.email)}});
   if(!user||!await passwordMatches(body.password,user.passwordHash))
    throw new UnauthorizedException('Invalid email or password.');

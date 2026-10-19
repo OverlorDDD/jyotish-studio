@@ -36,6 +36,24 @@ export function createHourlyLimiter(maxRequests:number){
   count++;return true;
  };
 }
+/** Process-local per-identity limiter for login abuse control.
+ * Bounded by maxKeys; NOT a distributed substitute for shared-store limits. */
+export function createKeyedHourlyLimiter(maxRequests:number,maxKeys=2000){
+ const buckets=new Map<string,{count:number;start:number}>();
+ return (key:string,now=Date.now())=>{
+  if(!key)return false;
+  let bucket=buckets.get(key);
+  if(!bucket||now-bucket.start>=3600000){
+   if(buckets.size>=maxKeys){
+    for(const [k,v] of buckets)if(now-v.start>=3600000)buckets.delete(k);
+    if(buckets.size>=maxKeys)buckets.delete(buckets.keys().next().value!);
+   }
+   bucket={count:0,start:now};buckets.set(key,bucket);
+  }
+  if(bucket.count>=maxRequests)return false;
+  bucket.count++;return true;
+ };
+}
 // Evaluate .env when the first paid request arrives, not at ES module import time.
 // main.ts loads the root .env before bootstrapping NestJS, but ESM static imports
 // are evaluated earlier than its top-level process.loadEnvFile() call.

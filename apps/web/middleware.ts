@@ -9,6 +9,9 @@ export function middleware(request:NextRequest){
  }
  const response=NextResponse.next();
  response.headers.set('Cache-Control','no-store');
+ response.headers.set('X-Content-Type-Options','nosniff');
+ response.headers.set('X-Frame-Options','DENY');
+ response.headers.set('Referrer-Policy','strict-origin-when-cross-origin');
  if(process.env.SITE_NOINDEX==='1')response.headers.set('X-Robots-Tag','noindex, nofollow');
  return response;
 }

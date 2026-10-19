@@ -48,7 +48,7 @@ export function cookieUser(req:IncomingMessage,now=Date.now()){
 }
 export function cookieHeader(token:string,request:IncomingMessage,maxAgeSeconds=SEVEN_DAYS/1000){
  const forwarded=request.headers['x-forwarded-proto'];
- const encrypted=String(Array.isArray(forwarded)?forwarded[0]:forwarded||'').split(',')[0].trim()==='https';
+ const encrypted=process.env.SESSION_COOKIE_SECURE==='1'||Boolean((request.socket as {encrypted?:boolean}|undefined)?.encrypted)||String(Array.isArray(forwarded)?forwarded[0]:forwarded||'').split(',')[0].trim()==='https';
  return COOKIE+'='+token+'; Path=/; HttpOnly; SameSite=Lax; Max-Age='+maxAgeSeconds+(encrypted?'; Secure':'');
 }
 export function setSession(res:ServerResponse,req:IncomingMessage,token:string){
@@ -62,7 +62,11 @@ export function clearSession(res:ServerResponse,req:IncomingMessage){
 /** Defend account mutations against cross-site browser POSTs (cookies alone are not sufficient). */
 export function sameOrigin(req:IncomingMessage){
  const origin=req.headers.origin;
- if(!origin)return true; // curl / server-side calls; browser always sends Origin for cross-site POST
+ // Fetch Metadata blocks cross-site browser writes even if Origin is stripped.
+ // Node scripts/curl without either header remain supported for local diagnostics.
+ const fetchSite=req.headers['sec-fetch-site'];
+ if(fetchSite==='cross-site'||fetchSite==='same-site')return false;
+ if(!origin)return fetchSite===undefined||fetchSite==='same-origin'||fetchSite==='none';
  try{
   const parsed=new URL(origin);
   if(!['http:','https:'].includes(parsed.protocol))return false;

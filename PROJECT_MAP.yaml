@@ -3,7 +3,7 @@ schema_version: 1
 updated: "2026-10-19"
 verified_against:
   branch: main
-  commit: "3d5bde312d1eb75df6e0dbad32a2f4d5b7db2502"
+  commit: "4e09a866ee819866c788236abd753d377444239d"
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -100,7 +100,8 @@ routes:
     docs: "/api/docs"
 quality:
   ci: ".github/workflows/ci.yml"
-  last_observed_main_ci: "success on 2026-10-19, run 39217508387"
+  last_observed_main_ci: "success on 2026-10-19, run 39228886759"
+  a1_branch_ci: "8/8 disposable PostgreSQL tests + unit/build/smoke success, run 39229698877"
   focused_commands:
     core: "npm test"
     jyotish_rules: "npm run test:engine2"
@@ -108,7 +109,9 @@ quality:
     tarot_session: "npm run test:tarot:session"
     access: "npm run test:access"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
-  missing_gates: ["real Postgres integration in CI", "browser E2E", "commercial license clearance", "deployment readiness review"]
+  missing_gates: ["browser E2E", "commercial license clearance", "deployment readiness review", "distributed rate limits and session revocation"]
+  db_integration: "tools/db-integration.test.mjs; npm run test:integration; disposable CI PostgreSQL 16 only"
+  security_preflight: "tools/security-preflight.mjs; npm run security:check"
 active_risks:
   - "Controllers mix orchestration, persistence and HTTP; extract use cases incrementally."
   - "Some in-process AI / request limits are not multi-instance durable."
@@ -117,7 +120,7 @@ active_risks:
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
   now: "architecture docs and canonical agent map"
-  next: "API/security/CI integration foundation; use-case extraction without behavioral change"
+  next: "A2: Tarot use-case extraction, preserve contracts and quotas; A1 remaining risk review before public launch"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -127,3 +130,4 @@ docs:
   tarot: "docs/tarot-v2.md"
   jyotish: "docs/jyotish-engine-2.md"
   windows: "docs/galaxiora-windows-runbook.md"
+  a1: "docs/a1-security-and-testing.md"

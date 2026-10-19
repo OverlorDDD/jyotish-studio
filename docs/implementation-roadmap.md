@@ -4,8 +4,8 @@ Status values distinguish **already in main** from work requiring new engineerin
 
 | Stage | Priority | Deliverable | State / measurable exit |
 |---|---|---|---|
-| A0 Architecture foundation | Now | `AGENTS.md`, `PROJECT_MAP.yaml`, DDD/ports-adapters ADR, risk register, reference index | Documentation PR submitted; review/merge pending |
-| A1 Secure engineering foundation | Highest next | Contract tests and CI with temporary PostgreSQL; auth/session/authorization and quota concurrency review; versioned environment validation | **Planned**; no confidential cross-user reads, repeatable DB-backed tests, CI green |
+| A0 Architecture foundation | Complete | `AGENTS.md`, `PROJECT_MAP.yaml`, DDD/ports-adapters ADR, risk register, reference index | **Merged to main as PR #10**, commit `9e0a4a9` |
+| A1 Secure engineering foundation | Highest next | Contract tests, disposable PostgreSQL CI, CSRF, per-account auth throttling and environment check | **Implemented; GitHub CI PostgreSQL integration (8/8), unit/build/Swagger/smoke all PASS for branch commit `4e09a86`.** See docs/a1-security-and-testing.md; server-side session revocation and distributed quotas are still future hardening |
 | A2 API module pilot | Next | Extract Tarot Draw use case, repository/AI interfaces, pure policy functions from controller without changing routes or schemas | **Planned**; 1/3/10 spread, ADMIN 100/UTC, MEMBER 3/UTC, history and AI consent pass unchanged |
 | A3 Reusable domain boundaries | Later | Extract account/admin, Jyotish report application, expert draft use cases only when touched; explicit module contracts | **Planned**; no DB/HTTP dependency in domain/application tests |
 | A4 Site quality and release readiness | Before public beta | UK/EN browser smoke/E2E, performance budget, SEO sitemap/robots, WCAG 2.2 AA checks, observability, backup/restore, privacy and licensing review | **Planned**; operational and legal checklist signed off |
