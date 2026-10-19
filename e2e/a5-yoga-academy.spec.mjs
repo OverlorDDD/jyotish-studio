@@ -34,7 +34,7 @@ test('Alternative breath modes contain no holds; pause/resume and no false compl
  await page.getByTestId('pattern-equal').click();
  await page.getByRole('button',{name:'Поїхали!'}).click();
  await expect(page.getByTestId('breath-phase')).toHaveText('Вдих');
- await page.getByRole('button',{name:'Пауза'}).click();
+ await page.getByRole('button',{name:'Пауза',exact:true}).click();
  const first=await page.getByRole('timer').textContent();
  await page.waitForTimeout(450);
  expect(await page.getByRole('timer').textContent()).toBe(first);
