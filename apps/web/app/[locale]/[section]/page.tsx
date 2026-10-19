@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import {notFound,redirect} from 'next/navigation';
 import PortalSection,{isPortalSection,SECTIONS,SECTION_COPY} from '../../components/PortalSection';
 import {BRAND,moduleTitle,isPortalLocale,portalPath,type PortalLocale} from '../../../lib/brand';
+import {indexRobots,INDEXED_SECTIONS} from '../../../lib/site-indexing';
 
 export const dynamicParams=false;
 export function generateStaticParams(){return BRAND.locales.flatMap(locale=>SECTIONS.map(section=>({locale,section})));}
@@ -12,6 +13,7 @@ export async function generateMetadata({params}:{params:Promise<{locale:string;s
  if(section==='experts')return {title:data.title,robots:{index:false,follow:true},alternates:{canonical:'/'+locale+'/tarot'}};
  return {
   title:data.title+' — '+moduleTitle(section),description:data.lead,
+  robots:indexRobots(INDEXED_SECTIONS.some(item=>item===section)),
   alternates:{canonical:'/'+locale+'/'+section,languages:{en:'/en/'+section,uk:'/uk/'+section}}
  };
 }

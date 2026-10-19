@@ -27,7 +27,7 @@ const request=async(path,{method='GET',cookie,origin,fetchSite,body}={})=>{
  const response=await fetch(base+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)});
  const raw=await response.text();let data;
  try{data=JSON.parse(raw);}catch{data={raw:raw.slice(0,300)};}
- return {status:response.status,data,cookie:response.headers.get('set-cookie')?.split(';')[0]||''};
+ return {status:response.status,data,cookie:response.headers.get('set-cookie')?.split(';')[0]||'',requestId:response.headers.get('x-request-id')};
 };
 const post=(path,body,cookie,origin=base)=>request(path,{method:'POST',body,cookie,origin});
 async function register(label){
@@ -55,6 +55,11 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
   await prisma.$connect();await start();
   const [a,b,admin]=await Promise.all([register('a'),register('b'),register('admin')]);
   await prisma.user.update({where:{id:admin.id},data:{role:'ADMIN'}});
+  await t.test('API request correlation is non-sensitive UUID',async()=>{
+   const health=await request('/api/health');
+   assert.match(health.requestId||'',/^[0-9a-f]{8}-[0-9a-f-]{27,}$/);
+   assert.equal((await request('/api/v1/account/me',{cookie:a.cookie})).status,200);
+  });
   await t.test('admin role enforced by database',async()=>{
    assert.equal((await request('/api/v1/admin/users')).status,401);
    assert.equal((await request('/api/v1/admin/users',{cookie:a.cookie})).status,403);

@@ -111,7 +111,8 @@ routes:
     docs: "/api/docs"
 quality:
   ci: ".github/workflows/ci.yml"
-  last_observed_main_ci: "success on 2026-10-19, run 39234248979"
+  last_observed_main_ci: "success on 2026-10-19, run 39250292394"
+  a4_branch_ci: "success 2026-10-19, run 39255336058 (10 desktop/mobile Chromium scenarios + unit/build/PostgreSQL)"
   a2_branch_ci: "success 2026-10-19, run 39234942474 (including live PostgreSQL concurrency)"
   a1_branch_ci: "8/8 disposable PostgreSQL tests + unit/build/smoke success, run 39229698877"
   focused_commands:
@@ -121,9 +122,12 @@ quality:
     tarot_session: "npm run test:tarot:session"
     tarot_application: "npm run test:tarot:app"
     access: "npm run test:access"
+    seo: "npm run test:seo"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
-  missing_gates: ["browser E2E", "commercial license clearance", "deployment readiness review", "distributed rate limits and session revocation"]
+  missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
+  browser_e2e: "e2e/a4-portal.spec.mjs; playwright.config.mjs; npm run test:e2e (requires full site and isolated DB)"
+  seo_policy: "apps/web/lib/site-indexing.ts; robots.ts; sitemap.ts; require HTTPS origin and SITE_NOINDEX=0"
   db_integration: "tools/db-integration.test.mjs; npm run test:integration; disposable CI PostgreSQL 16 only"
   security_preflight: "tools/security-preflight.mjs; npm run security:check"
 active_risks:
@@ -133,8 +137,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A3 verified by CI; next A4 site quality"
-  next: "A4: visual/user-facing quality and public beta readiness; A1 distributed-limit/session-risk review before public hosting"
+  now: "A4 engineering validated; actual production launch gates remain open"
+  next: "A5 Yoga and Academy content modules; close A4 production release gates separately"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -145,3 +149,8 @@ docs:
   jyotish: "docs/jyotish-engine-2.md"
   windows: "docs/galaxiora-windows-runbook.md"
   a1: "docs/a1-security-and-testing.md"
+  a4: "docs/a4-launch-readiness.md"
+
+# A4
+# Backup: tools/backup-db.ps1 (one-way, no automatic restore), docs/a4-launch-readiness.md.
+# API trace: apps/api/src/main.ts, X-Request-Id; optional HTTP_ACCESS_LOG=1 (no user paths/bodies).

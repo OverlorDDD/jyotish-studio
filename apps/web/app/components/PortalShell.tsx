@@ -12,13 +12,14 @@ const SECTIONS=['astrology','tarot','yoga','learn','news','community'] as const;
 export default function PortalShell({locale,children,active=''}:Props){
  const t=LABELS[locale];
  return <div className="as-shell">
+  <a href="#main-content" className="as-skip-link">{locale==='uk'?'Перейти до вмісту':'Skip to main content'}</a>
   <header className="as-header">
    <div className="as-header-inner">
     <Link href={portalPath(locale)} className="as-brand" aria-label={BRAND.name+' — '+t.home}>
      <span className="as-brand-icon"><MoonStar size={26} strokeWidth={1.45}/></span>
      <span><strong>{BRAND.name}</strong><small>ASTROLOGY · TAROT · COSMIC WISDOM</small></span>
     </Link>
-    <nav className="as-main-nav" aria-label={t.home}>
+    <nav className="as-main-nav" aria-label={locale==='uk'?'Основна навігація':'Main navigation'}>
      <Link href={portalPath(locale)} aria-current={!active?'page':undefined}>{t.home}</Link>
      {SECTIONS.map(s=><Link key={s} href={portalPath(locale,s)} aria-current={active===s?'page':undefined}>{t[s]}</Link>)}
     </nav>
@@ -29,7 +30,7 @@ export default function PortalShell({locale,children,active=''}:Props){
     </div>
    </div>
   </header>
-  <main className="as-main">{children}</main>
+  <main className="as-main" id="main-content" tabIndex={-1}>{children}</main>
   <footer className="as-footer">
     <div><Link className="as-footer-brand" href={portalPath(locale)}>{BRAND.name}</Link><p>{t.caption}</p></div>
     <p className="as-footer-note">{t.disclaimer}</p>
