@@ -42,9 +42,13 @@ test('360px-style responsiveness never forces document-level horizontal scrollin
  for(const path of ['/uk','/uk/tarot','/uk/astrology/jyotish','/en/account']){
   await page.goto(path);
   const geometry=await page.evaluate(()=>({
-   screen:document.documentElement.clientWidth,content:document.documentElement.scrollWidth
+   screen:document.documentElement.clientWidth,content:document.documentElement.scrollWidth,
+   offenders:[...document.querySelectorAll('body *')].map(el=>({el,rect:el.getBoundingClientRect()}))
+    .filter(({rect})=>rect.width>0&&rect.right>document.documentElement.clientWidth+2)
+    .slice(0,12).map(({el,rect})=>({tag:el.tagName,className:String(el.className).slice(0,85),
+      right:Math.round(rect.right),width:Math.round(rect.width)}))
   }));
-  expect(geometry.content-geometry.screen, path+' horizontal overflow').toBeLessThanOrEqual(2);
+  expect(geometry.content-geometry.screen, path+' horizontal overflow: '+JSON.stringify(geometry.offenders)).toBeLessThanOrEqual(2);
  }
 });
 test('live user flow: register, local Tarot draw, persisted history and logout',async({page})=>{
