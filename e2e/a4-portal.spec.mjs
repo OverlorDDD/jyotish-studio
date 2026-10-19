@@ -39,6 +39,7 @@ test('keyboard has visible skip link, navigable main content and focus treatment
  await expect(page.locator('main#main-content')).toBeFocused();
 });
 test('360px-style responsiveness never forces document-level horizontal scrolling',async({page})=>{
+ await page.setViewportSize({width:360,height:780});
  for(const path of ['/uk','/uk/tarot','/uk/astrology/jyotish','/en/account']){
   await page.goto(path);
   const geometry=await page.evaluate(()=>({

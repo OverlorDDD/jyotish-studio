@@ -461,3 +461,15 @@
   animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important
  }
 }
+
+/* A4: prevent intrinsic 1fr grid minimum from widening Jyotish at phone sizes.
+ * Keep the content visible, rather than masking overflow on <body>. */
+@media(max-width:550px){
+ .app-grid,.bottom-grid,.chart-layout{grid-template-columns:minmax(0,1fr)}
+ .app-grid > *, .chart-panel,.table-panel,.entry-panel,.metric-row,.wheel-wrap{
+  min-width:0;max-width:100%
+ }
+ .panel-title-row{flex-wrap:wrap}
+ .tab-group{max-width:100%;overflow-x:auto}
+ .metric-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+}
