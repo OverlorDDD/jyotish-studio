@@ -104,10 +104,11 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
   await t.test('client-supplied userId cannot redirect a signed-in Tarot draw',async()=>{
    const forged=await post('/api/v1/tarot/readings',{
     userId:a.id,spread:'one',question:'Check server-authenticated owner'},admin.cookie);
-   assert.equal(forged.status,201,JSON.stringify(forged.data));
+   // Global whitelist+forbidNonWhitelisted rejects a client-controlled owner ID.
+   assert.equal(forged.status,400,JSON.stringify(forged.data));
    const own=await request('/api/v1/tarot/readings',{cookie:admin.cookie});
    const other=await request('/api/v1/tarot/readings',{cookie:a.cookie});
-   assert.equal(own.data.readings.length,5);
+   assert.equal(own.data.readings.length,4);
    assert.equal(other.data.readings.length,3);
   });
   await t.test('only admin can change roles, audit persists',async()=>{
