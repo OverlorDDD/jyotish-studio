@@ -133,7 +133,7 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A3 module boundaries and CI validation"
+  now: "A3 verified by CI; next A4 site quality"
   next: "A4: visual/user-facing quality and public beta readiness; A1 distributed-limit/session-risk review before public hosting"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
