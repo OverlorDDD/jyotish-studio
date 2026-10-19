@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 import PortalHome from '../components/PortalHome';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../lib/brand';
+import {indexRobots} from '../../lib/site-indexing';
 
 export function generateStaticParams(){return BRAND.locales.map(locale=>({locale}));}
 export async function generateMetadata({params}:{params:Promise<{locale:string}>}):Promise<Metadata>{
@@ -10,6 +11,7 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  return {
   title: (locale==='uk'?'Астрологія, Таро, йога та духовні практики':'Astrology, Tarot & Cosmic Wisdom')+' | '+BRAND.name,
   description:locale==='uk'?'Galaxiora — космічний простір астрології Джйотіш, Таро, медитацій і духовних практик.':'Galaxiora is a cosmic space for Vedic astrology, tarot, mindful living and personal discovery.',
+  robots:indexRobots(),
   alternates:{canonical:'/'+locale,languages:{en:'/en',uk:'/uk','x-default':'/en'}}
  };
 }

@@ -12,3 +12,9 @@ coverage/
 
 # Downloaded, pinned public-domain Tarot card art; see npm run tarot:assets.
 /apps/web/public/tarot/rws/*.jpg
+
+# Playwright traces and local backups may contain private account data.
+playwright-report/
+test-results/
+backups/
+*.dump

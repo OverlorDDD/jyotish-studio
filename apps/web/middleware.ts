@@ -7,7 +7,10 @@ export function middleware(request:NextRequest){
  if(request.nextUrl.pathname.startsWith('/api/docs')){
   return new NextResponse('Not found',{status:404,headers:{'Cache-Control':'no-store'}});
  }
- const response=NextResponse.next();
+ const requestHeaders=new Headers(request.headers);
+ // Trust the route, not an incoming client-supplied locale header.
+ requestHeaders.set('x-galaxiora-locale',/^\/uk(?:\/|$)/.test(request.nextUrl.pathname)?'uk':'en');
+ const response=NextResponse.next({request:{headers:requestHeaders}});
  response.headers.set('Cache-Control','no-store');
  response.headers.set('X-Content-Type-Options','nosniff');
  response.headers.set('X-Frame-Options','DENY');

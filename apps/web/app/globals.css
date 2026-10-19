@@ -440,3 +440,24 @@
 .as-tarot-synthesis>a.as-button{display:inline-flex;margin:15px 0 8px;align-items:center;text-decoration:none}
 @media (max-width:530px){.as-rws-art{object-fit:contain}.as-tarot-card{min-height:185px}.as-tarot-synthesis{padding:22px}}
 @media (prefers-reduced-motion:reduce){.as-rws-art{transition:none}}
+
+/* A4: keyboard and small-screen safeguards, preserving Galaxiora visual language. */
+.as-skip-link{position:fixed;z-index:200;top:9px;left:12px;transform:translateY(-160%);
+ background:#f2d39c;color:#141d2a!important;border:2px solid #141d2a;
+ border-radius:7px;padding:12px 16px;font-weight:700;box-shadow:0 8px 24px #0008}
+.as-skip-link:focus{transform:translateY(0)}
+.as-shell :is(a,button,input,select,textarea):focus-visible,.as-main:focus-visible{
+ outline:3px solid #f3d392;outline-offset:3px;
+}
+.as-main{min-width:0}
+@media(max-width:760px){
+ .as-header-inner{min-width:0}
+ .as-main-nav{min-width:0;max-width:100%;width:100%;overscroll-behavior-x:contain}
+ .as-hero,.as-section,.as-subpage{min-width:0}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .as-shell *, .as-shell *::before, .as-shell *::after{
+  animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important
+ }
+}
