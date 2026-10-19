@@ -30,9 +30,11 @@ test('Card artwork has 78 mapped classic images and is auto-cached before full l
  const prep=read('tools/tarot-assets-prepare.mjs');
  const card=read('apps/web/app/components/TarotCardArt.tsx');
  const pkg=JSON.parse(read('package.json'));
- assert.ok(api.includes('ADMIN_LIMIT=100'));
- assert.ok(api.includes('FREE_LIMIT=3'));
- assert.ok(api.includes("limitFor(user?.role||'MEMBER')"));
+ const rules=read('apps/api/src/tarot-domain.ts');
+ assert.ok(rules.includes('ADMIN_LIMIT=100'));
+ assert.ok(rules.includes('FREE_LIMIT=3'));
+ assert.ok(rules.includes("role==='ADMIN'?ADMIN_LIMIT:FREE_LIMIT"));
+ assert.ok(api.includes('TAROT_USE_CASES'));
  assert.ok(mapping.includes("tarot/rider-waite/720px/"));
  assert.ok(mapping.includes("'/tarot/rws/'"));
  assert.ok(prep.includes("count===78"));

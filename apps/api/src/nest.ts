@@ -11,7 +11,10 @@ import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
 import {AdminController} from './admin.ts';
 import {ReadingOrdersController} from './reading-orders.ts';
-import {TarotController} from './tarot.ts';
+import {TarotController,TAROT_USE_CASES} from './tarot.ts';
+import {TarotUseCases} from './tarot-application.ts';
+import {PrismaTarotReadingRepository} from './tarot-prisma-repository.ts';
+import {createTarotAiGateway} from './tarot-ai-gateway.ts';
 import {BirthDto,ReportDto} from './dto.ts';
 import {cookieUser} from './auth.ts';
 
@@ -139,5 +142,8 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,ReadingOrdersController,TarotController],providers:[PrismaService]})
+@Module({controllers:[JyotishController,AccountController,AdminController,ReadingOrdersController,TarotController],
+ providers:[PrismaService,{provide:TAROT_USE_CASES,
+  useFactory:(prisma:PrismaService)=>new TarotUseCases(new PrismaTarotReadingRepository(prisma),createTarotAiGateway()),
+  inject:[PrismaService]}]})
 export class AppModule{}

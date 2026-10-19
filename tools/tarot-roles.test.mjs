@@ -40,12 +40,18 @@ test('Bootstrap admin only through local terminal and explicit account confirmat
  }
  assert.ok(!code.includes('http.createServer'));
 });
-test('Tarot quota requires authenticated user and locks row before count/create',()=>{
- const code=read('apps/api/src/tarot.ts');
- for(const needle of ["requireUser(req)","cookieUser(req)","FOR UPDATE","FREE_LIMIT=3","used>=limit","ADMIN_LIMIT=100","limitFor(user?.role","sameOrigin(req)","this.prisma.$transaction","describeDraws(base.drawn"]){
-  assert.ok(code.includes(needle),needle);
- }
- assert.ok(code.includes("where:{userId}"));
+test('Tarot A2: HTTP adapter delegates; Prisma transaction enforces quota and lock',()=>{
+ const controller=read('apps/api/src/tarot.ts');
+ const db=read('apps/api/src/tarot-prisma-repository.ts');
+ const app=read('apps/api/src/tarot-application.ts');
+ const domain=read('apps/api/src/tarot-domain.ts');
+ for(const needle of ["requireUser(req)","cookieUser(req)","sameOrigin(req)","this.tarot.draw","this.tarot.history"])
+  assert.ok(controller.includes(needle),needle);
+ for(const needle of ["FOR UPDATE","used>=limit","this.prisma.$transaction","where:{userId:input.userId"])
+  assert.ok(db.includes(needle),needle);
+ assert.ok(domain.includes('FREE_LIMIT=3')&&domain.includes('ADMIN_LIMIT=100'));
+ assert.ok(app.includes('describeDraws(base.drawn'));
+ assert.ok(!controller.includes('this.prisma'),'HTTP controller must not access Prisma');
  const page=read('apps/web/app/components/PortalSection.tsx');
  assert.ok(page.includes("<TarotStudio locale={locale}/>"));
 });
