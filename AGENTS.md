@@ -3,7 +3,7 @@
 Read `PROJECT_MAP.yaml` first, then only the files and docs relevant to the requested module. This is the public **Galaxiora** product in repository `jyotish-studio`; do not rename packages/routes solely to match the brand.
 
 ## Mission and boundaries
-- One bilingual (UK/EN) web platform: Jyotish, Tarot, shared accounts/admin; Experts is pre-checkout only; Yoga/Academy/News/Community are planned.
+- One bilingual (UK/EN) web platform: Jyotish, Tarot, shared accounts/admin; Experts is pre-checkout only; Yoga and Academy are implemented bilingual public content modules; News/Community are planned.
 - Target: **modular monolith with pragmatic DDD boundaries and ports/adapters**. See `docs/adr/0001-modular-monolith.md` and `docs/architecture-target.md`.
 - Preserve working features, calculations, DB records, bilingual labels, public URLs and test fixtures. Do not rewrite the application or add microservices speculatively.
 - `packages/jyotish-core`: deterministic domain calculations, no framework, DB or AI dependencies. Never use LLM output as an astronomical fact.
@@ -40,3 +40,9 @@ Read `PROJECT_MAP.yaml` first, then only the files and docs relevant to the requ
 Targeted: `npm run test:tarot:v2`, `npm run test:tarot:session`, `npm run test:engine2`, `npm run test:access`.
 Full: `npm run test:all`, `npm run test:swagger`, `npm run build`.
 Local PostgreSQL defaults to port 5433; Next 3000, Nest 4000. Check actual `.env` (never print secrets).
+
+## A5 content module conventions
+- Yoga practices: `apps/web/lib/yoga-content.ts`, stable slugs, original UK/EN step instructions and explicit gentle safety boundaries. Never add forced breathing, long holds, medical claims or external user-health data.
+- Academy: `apps/web/lib/academy-content.ts`, original 3-section lessons, key takeaways and exactly one self-check per lesson. Clearly distinguish astronomy/calculations, historical traditions and symbolic interpretation.
+- UI uses `YogaHub` / `YogaSession` and `AcademyHub` / `AcademyQuiz`; no DB, LLM, third-party visual assets or user tracking. Content completion lives in local component state only.
+- A new published practice/lesson requires both locale static routes, SEO sitemap inclusion and focused content/Chromium browser tests. Keep News and Community noindex until launched.
