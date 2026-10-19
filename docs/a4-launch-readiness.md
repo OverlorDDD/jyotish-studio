@@ -1,6 +1,6 @@
 # Galaxiora A4 — beta-readiness engineering and release blockers
 
-Status: A4 code/CI work submitted in PR #14, 2026-10-19. Passing a local or CI test is **not** a claim that privacy, security, commercial licensing, backup recovery, WCAG conformance or production readiness are certified.
+Status: A4 engineering changes tested in PR #14 on 2026-10-19. CI run 39255336058 passed 10/10 browser tests plus full unit/build/PostgreSQL checks. Production acceptance remains pending. Passing a local or CI test is **not** a claim that privacy, security, commercial licensing, backup recovery, WCAG conformance or production readiness are certified.
 
 ## Shipped implementation
 1. Preview-safe indexing: `NEXT_PUBLIC_SITE_URL` must be a root HTTPS origin and `SITE_NOINDEX` must not equal 1. Without both, `robots.txt` disallows crawling and `sitemap.xml` contains no URLs. The root `/` remains HTTP 200 but noindex; localized UK/EN routes have canonical/alternates.
