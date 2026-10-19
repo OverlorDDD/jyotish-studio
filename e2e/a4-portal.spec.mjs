@@ -13,7 +13,7 @@ test('localized home metadata, language, indexability and semantic main',async({
  }
 });
 test('SEO excludes unfinished modules and private screens; robots and sitemap are safe',async({page,request})=>{
- for(const path of ['/uk/yoga','/uk/learn','/en/news','/en/community','/uk/account','/en/admin']){
+ for(const path of ['/en/news','/en/community','/uk/account','/en/admin']){
   await page.goto(path);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
  }
@@ -27,7 +27,8 @@ test('SEO excludes unfinished modules and private screens; robots and sitemap ar
  const xml=await sitemap.text();
  expect(xml).toContain('https://galaxiora.example/uk/astrology/jyotish');
  expect(xml).toContain('https://galaxiora.example/en/tarot');
- expect(xml).not.toContain('/uk/yoga');
+ expect(xml).toContain('https://galaxiora.example/uk/yoga');
+ expect(xml).toContain('https://galaxiora.example/en/learn');
  expect(xml).not.toContain('/en/admin');
 });
 test('keyboard has visible skip link, navigable main content and focus treatment',async({page})=>{

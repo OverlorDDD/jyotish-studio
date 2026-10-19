@@ -3,13 +3,13 @@ import {ArrowUpRight, MoonStar} from 'lucide-react';
 import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 import GlobalAccount from './GlobalAccount';
 
-type Props={locale:PortalLocale;children:React.ReactNode;active?:string};
+type Props={locale:PortalLocale;children:React.ReactNode;active?:string;languagePath?:string};
 const LABELS={
  en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'Learn',news:'News',community:'Community',language:'Language',caption:'Symbolic tools for reflection and discovery',disclaimer:'Astrology and tarot are cultural and symbolic practices, not guarantees about the future.'},
  uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'Знання',news:'Новини',community:'Форум',language:'Мова',caption:'Символічні інструменти для пізнання себе',disclaimer:'Астрологія і Таро — культурні та символічні практики, а не гарантія передбачення майбутнього.'}
 } as const;
 const SECTIONS=['astrology','tarot','yoga','learn','news','community'] as const;
-export default function PortalShell({locale,children,active=''}:Props){
+export default function PortalShell({locale,children,active='',languagePath}:Props){
  const t=LABELS[locale];
  return <div className="as-shell">
   <a href="#main-content" className="as-skip-link">{locale==='uk'?'Перейти до вмісту':'Skip to main content'}</a>
@@ -25,8 +25,8 @@ export default function PortalShell({locale,children,active=''}:Props){
     </nav>
     <GlobalAccount locale={locale}/>
     <div className="as-language" aria-label={t.language}>
-      <Link href={portalPath('en',active)} aria-current={locale==='en'?'page':undefined} lang="en">EN</Link>
-      <span>/</span><Link href={portalPath('uk',active)} aria-current={locale==='uk'?'page':undefined} lang="uk">UA</Link>
+      <Link href={portalPath('en',languagePath??active)} aria-current={locale==='en'?'page':undefined} lang="en">EN</Link>
+      <span>/</span><Link href={portalPath('uk',languagePath??active)} aria-current={locale==='uk'?'page':undefined} lang="uk">UA</Link>
     </div>
    </div>
   </header>

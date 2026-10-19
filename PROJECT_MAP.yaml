@@ -79,11 +79,25 @@ modules:
     http: "apps/api/src/reading-orders.ts"
     web: "apps/web/app/components/ExpertOffer.tsx; apps/web/app/components/ReadingIntake.tsx"
     warning: "ReadingOrder DB skeleton is not a working commerce flow"
+  yoga:
+    status: "A5: four original bilingual guided practices, timer + optional untimed mode; no login"
+    content: "apps/web/lib/yoga-content.ts"
+    hub: "apps/web/app/components/YogaHub.tsx"
+    player: "apps/web/app/components/YogaSession.tsx"
+    detail: "apps/web/app/[locale]/yoga/[slug]/page.tsx"
+    privacy: "session progress in React memory, no personal data or persistence"
+  academy:
+    status: "A5: seven original bilingual lessons in three topic hubs with quiz"
+    content: "apps/web/lib/academy-content.ts"
+    hub: "apps/web/app/components/AcademyHub.tsx"
+    quiz: "apps/web/app/components/AcademyQuiz.tsx"
+    detail: "apps/web/app/[locale]/learn/[slug]/page.tsx"
+    privacy: "quiz answers in React memory, no account/DB"
   portal:
-    status: "implemented bilingual shell; placeholder content in future categories"
+    status: "implemented bilingual shell; Yoga and Academy live; News and Community placeholders"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
-    future: [western_astrology, panchang, yoga, academy_cms, news, community, mobile]
+    future: [western_astrology, panchang, academy_cms, news, community, mobile]
   ai_usage:
     status: "usage storage implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
@@ -97,6 +111,8 @@ routes:
     home: "/uk | /en"
     jyotish: "/{locale}/astrology/jyotish"
     tarot: "/{locale}/tarot"
+    yoga: "/{locale}/yoga | /{locale}/yoga/{slug}"
+    academy: "/{locale}/learn | /{locale}/learn/{slug}"
     account: "/{locale}/account"
     admin: "/{locale}/admin"
     experts: "/{locale}/experts -> tarot#human-readings"
@@ -123,6 +139,7 @@ quality:
     tarot_application: "npm run test:tarot:app"
     access: "npm run test:access"
     seo: "npm run test:seo"
+    a5_content: "npm run test:content:a5"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
@@ -137,8 +154,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A4 engineering validated; actual production launch gates remain open"
-  next: "A5 Yoga and Academy content modules; close A4 production release gates separately"
+  now: "A5 Yoga and Academy shipped behind CI; local browser acceptance required"
+  next: "A6 editorial content workflow, library expansion and production release gates (without opening payments)"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"

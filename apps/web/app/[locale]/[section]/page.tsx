@@ -11,8 +11,9 @@ export async function generateMetadata({params}:{params:Promise<{locale:string;s
  if(!isPortalLocale(locale)||!isPortalSection(section))return {};
  const data=SECTION_COPY[locale][section];
  if(section==='experts')return {title:data.title,robots:{index:false,follow:true},alternates:{canonical:'/'+locale+'/tarot'}};
+ const seo=section==='yoga'?{title:locale==='uk'?'Йога й медитація — покрокові практики':'Yoga & Mindfulness — Guided Practices',description:locale==='uk'?'Чотири доступні практики йоги та уважності з таймером і поясненнями.':'Four guided yoga and mindfulness sessions with step-by-step support.'}:section==='learn'?{title:locale==='uk'?'Академія — уроки Джйотіш, Таро та йоги':'Academy — Jyotish, Tarot & Yoga Lessons',description:locale==='uk'?'Сім авторських уроків про Джйотіш, Таро та уважність із перевіркою знань.':'Seven original lessons on Jyotish, Tarot and mindful practice with quizzes.'}:null;
  return {
-  title:data.title+' — '+moduleTitle(section),description:data.lead,
+  title:seo?seo.title+' | Galaxiora':data.title+' — '+moduleTitle(section),description:seo?.description??data.lead,
   robots:indexRobots(INDEXED_SECTIONS.some(item=>item===section)),
   alternates:{canonical:'/'+locale+'/'+section,languages:{en:'/en/'+section,uk:'/uk/'+section}}
  };
