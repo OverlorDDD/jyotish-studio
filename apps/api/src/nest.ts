@@ -35,7 +35,7 @@ type FreeReportAi=Awaited<ReturnType<typeof generateFreeInterpretationDetailed>>
 const interpretationReplay=new Map<string,{expires:number;pending:Promise<FreeReportAi>}>();
 function replayFreeNarrative(key:string,generate:()=>Promise<FreeReportAi>){
  const now=Date.now(),existing=interpretationReplay.get(key);
- if(existing&&existing.expires>now)return existing.pending;
+ if(existing&&existing.expires>now)return existing.pending.then(outcome=>({outcome,cached:true}));
  if(interpretationReplay.size>=60){
   const first=interpretationReplay.keys().next().value;
   if(first)interpretationReplay.delete(first);
@@ -46,7 +46,7 @@ function replayFreeNarrative(key:string,generate:()=>Promise<FreeReportAi>){
   return result;
  }).catch(error=>{interpretationReplay.delete(key);throw error;});
  interpretationReplay.set(key,{expires:now+30*60*1000,pending});
- return pending;
+ return pending.then(outcome=>({outcome,cached:false}));
 }
 
 function owner(req:IncomingMessage){
@@ -107,18 +107,19 @@ export class JyotishController{
    chart=prepared.chart;report=prepared.report as ReturnType<typeof buildDetailedReport>;
   }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
   if(birth.preferred==='local'||process.env.AI_MODE==='local')
-   return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
+   return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
-   return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
-  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':editorial-v1',
+   return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
+  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':interpretation-v3',
    ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
-    factsOverride:report.editorial.chapters.filter(ch=>['core','elements','strengths','relationships','career','challenges','growth'].includes(ch.id))
-     .map(ch=>({id:({core:'identity',elements:'planets',strengths:'houses',relationships:'navamsa',career:'dashamsa',challenges:'aspects',growth:'dasha'} as Record<string,string>)[ch.id],
-      fact:ch.title+' — '+ch.paragraphs.join(' ').slice(0,1050)+' '+(birth.lang==='uk'?'Практична ідея: ':'Practical idea: ')+ch.insights.join(' ')})),reportMode:true,
+    factsOverride:report.editorial.findings.map(f=>({id:f.id,
+      fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
+       '. Supporting: '+f.supportingFactors.join('; ')+'. Limits: '+f.limitations.join('; ')})),reportMode:true,
     onUsage:event=>this.recordAiUsage(event,'detailed_report'),
     approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
    }));
-  return {...report,ai:free.result||{provider:'local' as const,text:'',fallbackReason:free.reason}};
+  return {...report,ai:free.result?{...free.result,source:'llm' as const,cached}:
+   {provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:free.reason}};
  }
 
  /** Backward-compatible short reading: also stateless, no guest database write. */

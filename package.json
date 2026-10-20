@@ -17,7 +17,7 @@
     "db:generate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
-    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3 && npm run test:tarot && npm run test:brand && npm run test:tarot:depth && npm run test:tarot:v2 && npm run test:tarot:session && npm run test:tarot:app && npm run test:architecture:a3 && npm run test:seo && npm run test:content:a5 && npm run test:breathing && npm run test:editorial:a6 && npm run test:glossary",
+    "test:all": "npm test && npm run test:ui && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3 && npm run test:tarot && npm run test:brand && npm run test:tarot:depth && npm run test:tarot:v2 && npm run test:tarot:session && npm run test:tarot:app && npm run test:architecture:a3 && npm run test:seo && npm run test:content:a5 && npm run test:breathing && npm run test:editorial:a6 && npm run test:glossary && npm run test:a7:llm",
     "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
@@ -60,7 +60,9 @@
     "test:content:a5": "node --experimental-strip-types --test tools/a5-content.test.mjs",
     "test:breathing": "node --experimental-strip-types --test tools/breathing-engine.test.mjs",
     "test:editorial:a6": "node --experimental-strip-types --test tools/a6-editorial.test.mjs",
-    "test:glossary": "node --experimental-strip-types --test tools/glossary.test.mjs"
+    "test:glossary": "node --experimental-strip-types --test tools/glossary.test.mjs",
+    "test:a7:llm": "node --experimental-strip-types --test tools/a7-llm-failover.test.mjs",
+    "ai:verify-live": "node --env-file-if-exists=.env --experimental-strip-types tools/a7-live-llm-check.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",

@@ -68,7 +68,13 @@ Local PostgreSQL defaults to port 5433; Next 3000, Nest 4000. Check actual `.env
 - Yoga CMS safety field is optional and hidden from editor; leave cautions in article text. Preserve legacy safety entries; built-in box breathing warnings stay.
 
 ## Jyotish reader v3 and glossary
-- The rich deterministic consultation lives in apps/api/src/editorial-reading.ts. Synthesize conjunctions/house lords; remove generic 'interpretive key' and weekly to-do plan. Keep original 10 chapter IDs, report shape and chart facts unchanged.
+- Existing ten-chapter reader remains a historical source; new detailed consultations use `apps/api/src/interpretation-v3.ts`, eight visible chapters and versioned ranked `AstrologicalFinding` evidence. Never change Swiss/Lahiri/D1/D9/D10 astronomy to improve prose. Existing saved reports remain readable.
 - Research and quality contract in docs/interpretation-standard-v3.md. Never transplant Western Placidus/outer planet aspects into Parashari D1/D9/D10.
 - Shared term dictionary: apps/web/lib/glossary.ts. Safe, accessible GlossaryText component enriches generated reports, public CMS, original Academy/Yoga and Tarot; new content views must reuse it.
 - Test: npm run test:glossary; npm run test:report; npm run test:all; build; browser and real PostgreSQL.
+
+## Galaxiora site writing voice (user-approved)
+- Write as a knowledgeable, engaged practitioner of Jyotish, Tarot, Yoga and Indian spiritual traditions. Confident, warm, specific, eloquent natural Ukrainian; professional English translation. Treat sacred concepts sincerely rather than with cynical distancing.
+- Explain interrelated chart factors and lived significance rather than recycling technical labels or weekly-action worksheets. Show evidence for concrete placements; avoid false biographies, guaranteed outcomes or unsupported medical/financial/fertility claims.
+- Do not imply symbolic divination is experimentally proven. Attribute methods to their spiritual traditions without repeating disclaimers in every paragraph. Follow `docs/galaxiora-editorial-voice.md` for all new reader and CMS texts.
+- Voluntary support via a personal PrivatBank Konvert may be considered separately from paid services. Never unlock features, mark orders paid, or promise tax exemption for transfers labeled 'donations'; a real link and bank/tax terms are prerequisites.

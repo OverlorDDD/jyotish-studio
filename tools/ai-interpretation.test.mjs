@@ -130,7 +130,7 @@ test('long-form AI uses a chart-grounded Jyotish consultant voice and fact-linke
    const request=JSON.parse(init.body);
    const instructions=request.messages[0].content;
    assert.match(instructions,/traditional Parashari Jyotish consultation/);
-   assert.match(instructions,/explicitly use at least one supplied chart placement/);
+   assert.match(instructions,/Each section must use its matching verified finding/);
    assert.match(instructions,/Do not invent/);
    return apiReply({sections:[
     {factId:'identity',text:'У символічній традиції це може нагадувати про те, як ви починаєте нові справи. Корисно поміркувати, що допомагає вам почуватися впевнено.'},
