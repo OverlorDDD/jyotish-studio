@@ -203,7 +203,7 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
    const created=await post('/api/v1/editorial/entries',
     {kind:'ACADEMY',slug:'a61-long-'+nonce,topic:'jyotish',document:article},b.cookie);
    assert.equal(created.status,201,JSON.stringify(created.data).slice(0,450));
-   assert.equal(created.data.document.body.uk.length,longBody.length);
+   assert.equal(created.data.document.body.uk,longBody.trim());
    assert.equal(created.data.document.quiz.choices[1].uk,'Б');
    const yoga=await post('/api/v1/editorial/entries',{
     kind:'YOGA',slug:'a61-yoga-'+nonce,topic:'meditation',

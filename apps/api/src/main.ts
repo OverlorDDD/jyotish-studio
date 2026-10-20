@@ -9,11 +9,12 @@ const rootEnv=resolve(dirname(fileURLToPath(import.meta.url)),'../../../.env');
 if(existsSync(rootEnv))process.loadEnvFile(rootEnv);
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
+import type {NestExpressApplication} from '@nestjs/platform-express';
 import {ValidationPipe} from '@nestjs/common';
 import {SwaggerModule,DocumentBuilder} from '@nestjs/swagger';
 import {AppModule} from './nest.ts';
 async function bootstrap(){
- const app=await NestFactory.create(AppModule,{cors:{origin:[`http://localhost:${process.env.WEB_PORT||3000}`]}});
+ const app=await NestFactory.create<NestExpressApplication>(AppModule,{cors:{origin:[`http://localhost:${process.env.WEB_PORT||3000}`]}});
  // Editorial articles can be much longer than Express's default 100 kB JSON body limit.
  // Keep an explicit 2 MB ceiling to prevent unlimited request-body allocations.
  app.useBodyParser('json',{limit:'2mb'});

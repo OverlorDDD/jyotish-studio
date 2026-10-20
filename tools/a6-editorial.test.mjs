@@ -64,7 +64,7 @@ test('A6 writing: long articles, long choices and short valid answers',()=>{
    choices:[{uk:'А',en:'A'},{uk:'Б',en:'B'},{uk:'В',en:'C'}],
    explanation:{uk:'Так!',en:'Yes!'}}};
  const valid=validateEditorial('ACADEMY','long-article','jyotish',long);
- assert.equal(valid.document.body.uk.length,long.body.uk.length);
+ assert.equal(valid.document.body.uk,long.body.uk.trim());
  assert.equal(valid.document.quiz.choices[1].uk,'Б');
  assert.equal(valid.document.quiz.explanation.uk,'Так!');
  assert.throws(()=>validateEditorial('ACADEMY','overly-long-article','jyotish',
