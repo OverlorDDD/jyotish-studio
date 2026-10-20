@@ -1,6 +1,7 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {ukTerm,normalizeUkrainianAstroTerms} from './terminology.ts';
 import {verifyFreeProse} from './interpretation-policy.ts';
+import {parseAiConsultation,type AiChapterSpec} from './consultation-ai.ts';
 
 export class AiProviderError extends Error {
  readonly reason:'limit'|'upstream'|'format'|'timeout';
@@ -117,9 +118,9 @@ export type AiUsageEvent={
 };
 
 /** A shared, schema-validated chat adapter. Provider URLs are hard-coded, never user supplied. */
-export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose';factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;onUsage?:(event:AiUsageEvent)=>Promise<void>|void}){
+export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose'|'consultation';chapterSpecs?:ReadonlyArray<AiChapterSpec>;factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;onUsage?:(event:AiUsageEvent)=>Promise<void>|void}){
  const provider=options.provider||'openai';
- const configuredModel=options.model||(provider==='openrouter'?'openrouter/free':provider==='gemini'?'gemini-2.5-flash-lite':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
+ const configuredModel=options.model||(provider='openrouter'?'openrouter/free':provider==='gemini'?'gemini-2.5-flash-lite':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
  let usageReported=false;
  async function reportUsage(outcome:AiUsageEvent['outcome'],body?:{model?:string;usage?:{prompt_tokens?:unknown;completion_tokens?:unknown;total_tokens?:unknown;cost?:unknown}}){
   if(usageReported)return;
@@ -143,15 +144,15 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
  if(!(options.limit||defaultHourlyLimit)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
  const facts=options.factsOverride||astrologicalFacts(chart,lang,options.now);
  const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?60000:provider==='openrouter'?45000:15000);
+ const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?90000:provider==='openrouter'?60000:provider==='gemini'?60000:15000);
  const onAbort=()=>controller.abort();
  options.signal?.addEventListener('abort',onAbort,{once:true});
  try{
   const response=await (options.fetcher||fetch)(endpoint,{
    method:'POST',signal:controller.signal,
    headers:{'Content-Type':'application/json',...(provider==='ollama'?{}:{'Authorization':`Bearer ${options.key}`})},
-   body:JSON.stringify({model:configuredModel,temperature:options.reportMode?0.35:0.2,max_tokens:options.reportMode?3500:provider==='openrouter'?1800:1000,
-    ...(options.formatMode==='prompt'||options.formatMode==='prose'?{}:{response_format:{type:'json_schema',json_schema:{name:'jyotish_interpretation',strict:true,schema:{
+   body:JSON.stringify({model:configuredModel,temperature:options.reportMode?0.3:0.2,max_tokens:options.chapterSpecs?4400:options.reportMode?3500:provider==='openrouter'?1800:1000,
+    ...(options.formatMode==='prompt'||options.formatMode==='prose'||options.formatMode==='consultation'?{}:{response_format:{type:'json_schema',json_schema:{name:'jyotish_interpretation',strict:true,schema:{
       type:'object',additionalProperties:false,required:['sections'],properties:{sections:{type:'array',items:{type:'object',additionalProperties:false,required:['factId','text'],properties:{factId:{type:'string',enum:facts.map(f=>f.id)},text:{type:'string'}}}}}
     }}}}),
     messages:[
@@ -163,13 +164,15 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
        options.reportMode?
         'You are writing a paid-quality traditional Parashari Jyotish consultation, not a generic self-help worksheet. Speak confidently and respectfully in the interpretive voice of a well-trained astrologer while clearly attributing symbolism to the tradition. Build a connected account of personality, family, relationships, work, life orientation and current planetary period ONLY from supplied verified facts. Each section must use its matching verified finding as the interpretive anchor and explain HOW multiple documented factors interact; the website separately displays the exact verified placements. Do not invent, restate or recalculate exact house numbers, sign placements, degrees, yoga classifications or dates in model-authored prose because only the deterministic source may publish those facts. You may discuss the verified planetary principles, complementary forces and dharma in vivid natural language. Never treat a single position as destiny. Use real traditional terminology where helpful and explain it succinctly (for example, Lagna, graha, house ruler, nakshatra, mahadasha). Never invent a placement, strength, yoga, aspect, timeline or result not present in supplied facts. Do not invent precise personal history or another person’s intentions. Avoid filler, life-hack assignments, list-making exercises and unsupported certainty. Do not tell the user to try ideas this week or prove the reading. Distinguish what the chart calculates from how Jyotish traditionally interprets it; no medical, fertility, death, legal or financial guarantees. Write 4-5 connected, distinct paragraphs of 3-4 clear sentences each, about 350-650 characters per paragraph, in the requested language. Keep every paragraph focused on supplied evidence and a distinct life sphere.':
         'Write for a complete beginner in plain everyday language. Use 3 short sentences per section: personal-life meaning, relatable example, one safe specific action that can be tried this week. Avoid technical terms such as Lagna, graha, nakshatra, pada, house/bhava, drishti, dasha, yoga, Rashi, Navamsa, Dashamsa or D1/D9/D10. Do not repeat raw placements, dates, numeric houses or degrees. The application adds a friendly section title. Explain traditional symbolism as a possibility for reflection, not as a certainty or prediction. No medical, financial or legal predictions.',
+       options.formatMode==='consultation'?
+        'Write exactly eight substantial consultation chapters with these delimiters, one occurrence of each in this order: '+(options.chapterSpecs||[]).map(c=>'[['+c.id+']]').join(' ')+'. For each delimiter, write 1-2 connected paragraphs totalling 300-850 characters. We require insightful thematic synthesis, not a placement list, abstract self-help or worksheets. Every chapter must interpret ONLY the supplied verified findings for that chapter. Refer to the concepts and cross-factors, but never assert any exact numeric houses, planetary positions, dasha dates or new yogas; those are displayed by our deterministic rule engine. Write natural '+(lang==='uk'?'Ukrainian':'English')+' as a thoughtful traditional Jyotish consultant; no invented biography, guarantees, or medical/financial predictions. No JSON or markdown headings.' :
        options.formatMode==='prose'?
         'Write plain prose, not JSON or markdown. Output four or five developed paragraphs separated by a blank line, WITHOUT section titles. Each paragraph must use one verified input fact as an interpretive anchor, connecting at least two chart factors where supplied. Never restate numeric positions, signs or dates, even if supplied. Explain the traditional significance, tensions and nuance. Do not invent other placements, yogas, periods, dates or certain events. Do not add journaling exercises, habit challenges, generic advice or moralizing conclusions.':
        options.formatMode==='prompt'?
         'Output only a JSON object with a sections array of objects containing factId and text. Allowed factIds: '+facts.map(f=>f.id).join(', ')+'. Each factId must be unique; every text must be at least 20 characters. No markdown fences or other text.':
         'Output only the required JSON schema.'
       ].join(' ')},
-      {role:'user',content:JSON.stringify({facts,conventions:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu'}})}
+      {role:'user',content:JSON.stringify({facts:options.chapterSpecs?undefined:facts,chapterSpecs:options.chapterSpecs?.map(x=>({id:x.id,title:x.title,verifiedContext:x.facts})),conventions:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu'}})}
     ]})});
   if(!response.ok){
    await reportUsage('provider_error');
@@ -183,11 +186,44 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    throw new AiProviderError('upstream',`OpenAI HTTP ${response.status}${code?' '+code:''}`);
   }
   let result:{model?:string;usage?:{prompt_tokens?:number;completion_tokens?:number;total_tokens?:number;cost?:number};choices?:{message?:{content?:string;refusal?:string}}[]};
-  try{result=await response.json() as typeof result;}
-  catch{await reportUsage('returned');throw new AiProviderError('format','AI provider returned invalid JSON');}
+  // Read ONCE. A rotating free router can sometimes return empty/HTML/truncated JSON
+  // with HTTP 200. Do not confuse this transport failure with astrological validation.
+  const raw=await response.text();
+  const ctype=response.headers.get('content-type')||'';
+  if(!raw.trim())throw new AiProviderError('format','empty_provider_body');
+  if(raw.length>2000000)throw new AiProviderError('format','oversized_provider_body');
+  if(/html/i.test(ctype)||/^\s*<(?:!doctype|html)/i.test(raw))
+   throw new AiProviderError('format','provider_returned_html');
+  let decoded:unknown;
+  try{decoded=JSON.parse(raw.replace(/^\uFEFF/,'').trim());}
+  catch{
+   // SSE adaptation is only for unexpectedly stream-formatted compatible endpoints.
+   // Provider fragments and headers are never printed.
+   if(/^\s*data:\s*/m.test(raw)){
+    const packets=raw.split(/\r?\n/).filter(l=>l.startsWith('data:')).map(l=>l.slice(5).trim()).filter(x=>x!=='[DONE]');
+    const contents:string[]=[];let lastModel:string|undefined;
+    for(const packet of packets){
+     let obj:{choices?:{delta?:{content?:string};message?:{content?:string}}[];model?:string};
+     try{obj=JSON.parse(packet);}catch{throw new AiProviderError('format','malformed_sse_payload');}
+     const choice=obj.choices?.[0];const part=choice?.delta?.content||choice?.message?.content;
+     if(typeof part==='string')contents.push(part);
+     if(typeof obj.model==='string')lastModel=obj.model;
+    }
+    if(!contents.length)throw new AiProviderError('format','empty_sse_completion');
+    decoded={model:lastModel,choices:[{message:{content:contents.join('')}}]};
+   }else throw new AiProviderError('format','malformed_provider_json');
+  }
+  if(!decoded||typeof decoded!=='object')throw new AiProviderError('format','unexpected_provider_shape');
+  result=decoded as typeof result;
   await reportUsage('returned',result);
   const content=result.choices?.[0]?.message?.content;
   if(!content||result.choices?.[0]?.message?.refusal)throw new AiProviderError('format','OpenAI returned no interpretation');
+  if(options.formatMode==='consultation'&&options.chapterSpecs){
+   const chapters=parseAiConsultation(content,options.chapterSpecs,options.approvedYogas);
+   if(chapters.length<4)throw new AiProviderError('format','insufficient_verified_chapters');
+   const model=typeof result.model==='string'&&result.model.length<=120?result.model:configuredModel;
+   return {provider,model,text:chapters.map(ch=>'[['+ch.id+']]\n'+ch.paragraphs.join('\n\n')).join('\n\n'),chapters};
+  }
   if(options.formatMode==='prose'){
    const parts=content.trim().split(/\n\s*\n/).map(p=>p.replace(/^\s*(?:[#*>\-]|\d+[.)])+\s*/gm,'').trim()).filter(Boolean);
    const accepted=parts.filter(p=>p.length>=55&&p.length<=900&&verifyFreeProse(p,options.approvedYogas).ok).slice(0,6);
