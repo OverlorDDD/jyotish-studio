@@ -1,5 +1,6 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {createHourlyLimiter,generateOpenAiInterpretation,AiProviderError,type AiUsageEvent} from './ai.ts';
+import type {AiChapterSpec} from './consultation-ai.ts';
 
 /** Free by configuration only: Gemini requires separately verified FREE billing tier. */
 export type FreeProvider='openrouter'|'gemini'|'ollama';
@@ -27,7 +28,15 @@ function safeFormatDiagnostic(error:unknown){
   'Too few verified interpretation sections':'unsafe_or_short_sections',
   'Invalid, duplicate or unverified interpretation section':'unsafe_or_duplicate_sections',
   'OpenAI returned no interpretation':'empty_completion',
-  'AI provider returned invalid JSON':'malformed_provider_response'
+  'AI provider returned invalid JSON':'malformed_provider_response',
+  'empty_provider_body':'empty_provider_body',
+  'oversized_provider_body':'oversized_provider_body',
+  'provider_returned_html':'provider_returned_html',
+  'malformed_provider_json':'malformed_provider_json',
+  'malformed_sse_payload':'malformed_sse_payload',
+  'empty_sse_completion':'empty_sse_completion',
+  'unexpected_provider_shape':'unexpected_provider_shape',
+  'insufficient_verified_chapters':'insufficient_verified_chapters'
  };
  return known[error.message]||'unverified_format';
 }
@@ -48,7 +57,7 @@ function failureReason(error:unknown):FreeFallbackReason{
 export type FreeAiOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
- factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;
+ factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;chapterSpecs?:ReadonlyArray<AiChapterSpec>;approvedYogas?:ReadonlyArray<string>;
  onUsage?:(event:AiUsageEvent)=>Promise<void>|void;
 };
 export type FreeAiOutcome={
@@ -69,6 +78,9 @@ export async function generateFreeInterpretationDetailed(
  // Deliberate opt-in only after confirming in Google AI Studio that billing is OFF/free tier.
  const geminiEnabled=opts.geminiEnabled??process.env.GEMINI_FREE_TIER_CONFIRMED==='1';
  const ollamaModel=opts.ollamaModel||process.env.OLLAMA_MODEL||'gemma3:1b';
+ const customOpenRouter=(process.env.OPENROUTER_FREE_MODEL||'').trim();
+ // Permit ONLY explicitly free model slugs. Do not turn failover into paid inference.
+ const openRouterModel=customOpenRouter&&/^[a-z0-9_.-]+\/[a-z0-9_.:-]+:free$/i.test(customOpenRouter)?customOpenRouter:'openrouter/free';
  let reason:FreeFallbackReason='no_provider';
  for(const provider of providers){
   if(provider==='openrouter'&&!openrouterKey)continue;
@@ -77,19 +89,22 @@ export async function generateFreeInterpretationDetailed(
   try{
    if(provider==='openrouter'){
     if(!permit()){reason='hourly_limit';continue;}
-    const request=(formatMode:'strict'|'prompt'|'prose')=>generateOpenAiInterpretation(chart,lang,{
-     provider:'openrouter',key:openrouterKey,model:'openrouter/free',
-     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
+    const request=(formatMode:'strict'|'prompt'|'prose'|'consultation')=>generateOpenAiInterpretation(chart,lang,{
+     provider:'openrouter',key:openrouterKey,model:openRouterModel,
+     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     try{
      // Long-form advice uses vetted paragraphs, not JSON: openrouter/free rotates models
      // which often cannot honour JSON-schema. Keep legacy short-reading strict.
-     return {result:await request(opts.reportMode?'prose':'strict')};
+     return {result:await request(opts.chapterSpecs?'consultation':opts.reportMode?'prose':'strict')};
     }catch(error){
      // Free routers may choose endpoints that ignore strict schemas.
      // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.
      const rejected=error instanceof AiProviderError&&
       (error.reason==='format'||(error.reason==='upstream'&&/^OpenAI HTTP (400|422)\b/.test(error.message)));
+     // Transport failures or eight-chapter mode should switch providers: a JSON retry
+     // cannot fix a non-JSON HTTP envelope and cannot create missing chapters.
+     if(opts.chapterSpecs||error instanceof AiProviderError&&['malformed_provider_json','empty_provider_body','provider_returned_html','malformed_sse_payload','empty_sse_completion','oversized_provider_body'].includes(error.message))throw error;
      if(!rejected)throw error;
      if(!permit()){reason='hourly_limit';continue;}
      console.warn('Free AI: first response rejected'+(safeFormatDiagnostic(error)?' ('+safeFormatDiagnostic(error)+')':'')+'; retrying a fact-linked JSON prompt');
@@ -99,16 +114,16 @@ export async function generateFreeInterpretationDetailed(
    if(provider==='gemini'){
     if(!permit()){reason='hourly_limit';continue;}
     const result=await generateOpenAiInterpretation(chart,lang,{
-     provider:'gemini',key:geminiKey,model:'gemini-2.5-flash-lite',formatMode:'prompt',
-     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,
+     provider:'gemini',key:geminiKey,model:'gemini-2.5-flash-lite',formatMode:opts.chapterSpecs?'consultation':'prompt',
+     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,
      approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     return {result};
    }
    if(provider==='ollama'){
     const result=await generateOpenAiInterpretation(chart,lang,{
-     provider:'ollama',key:'',model:ollamaModel,
-     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
+     provider:'ollama',key:'',model:ollamaModel,formatMode:opts.chapterSpecs?'consultation':undefined,
+     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     return {result};
    }
