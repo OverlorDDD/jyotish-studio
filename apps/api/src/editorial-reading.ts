@@ -1,7 +1,7 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 export type EditorialChapter={id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]};
-export type EditorialReading={version:'1.0';chapters:EditorialChapter[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
+export type EditorialReading={version:'1.1';chapters:EditorialChapter[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
 const signsUk=['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козорозі','Водолії','Рибах'];
 const signsEn=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const personalities=[
@@ -73,7 +73,38 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en'):Edit
   const r=ruler(house);return uk?'управитель '+name(String(r.subject))+' розташований у сфері «'+area(Number(r.values.locatedHouse))+'»':
    'ruler '+name(String(r.subject))+' is linked to '+area(Number(r.values.locatedHouse));
  };
- const chapter=(id:string,u:string,e:string,p:string[],tips:string[],ev:string[]):EditorialChapter=>({id,title:uk?u:e,paragraphs:p,insights:tips,evidence:ev});
+ // Each chapter concludes with chart-specific Jyotish synthesis, not generic weekly homework.
+ const readingKey=(id:string):string=>{
+  const k=(house:number)=>area(Number(ruler(house).values.locatedHouse));
+  const moon=get('Moon'),sun=get('Sun'),mercury=get('Mercury'),venus=get('Venus'),jupiter=get('Jupiter'),saturn=get('Saturn');
+  const asc=chart.ascendant.sign;
+  const values:Record<string,[string,string]>={
+   core:['Лагна у '+sign(asc)+', Сонце у '+sign(sun.sign)+' та Місяць у '+sign(moon.sign)+' утворюють три опори цього прочитання: темперамент прояву, волю та внутрішню природу. Їх слід тлумачити разом, а не зводити карту до одного знака.',
+    'Lagna in '+sign(asc)+', Sun in '+sign(sun.sign)+' and Moon in '+sign(moon.sign)+' give three pillars: how a person meets the world, expresses purpose and experiences the inner life. Read them together, not as a single Sun-sign label.'],
+   elements:['Перевага стихії '+top+' описує характер розподілу семи класичних грах за раші. Це допоміжний фон карти; для висновків важливіші управителі домів, їхні зв’язки та періоди даші.',
+    'The prominence of '+top+' describes the distribution of the seven classical grahas through the rashis. It is secondary to house lords, their connections and dasha periods.'],
+   themes:['Поєднання '+together.map(name).join(', ')+' у сфері «'+area(leading.h)+'» робить цей бгава помітним вузлом карти. Трактування залежить від функцій кожної грахи та управителя відповідного дому.',
+    'The grouping of '+together.map(name).join(', ')+' in '+area(leading.h)+' makes this bhava a focus. Interpretation depends on each graha’s function and its house ruler.'],
+   strengths:['Сонце пов’язує самореалізацію зі сферою «'+area(sun.house)+'», тоді як Меркурій спрямовує мислення та навички у сферу «'+area(mercury.house)+'». Їхня взаємодія уточнює можливі способи реалізувати здібності.',
+    'Sun places public expression in '+area(sun.house)+' while Mercury places reasoning and craft in '+area(mercury.house)+'. Their relationship refines how these capacities may be expressed.'],
+   relationships:['Управитель сьомого бгави '+name(String(ruler(7).subject))+' веде тему партнерства у сферу «'+k(7)+'». Венера в '+sign(venus.sign)+' додає власний акцент прихильності та взаємності. Остаточне судження потребує їх спільного аналізу разом з D9.',
+    'The seventh-bhava ruler '+name(String(ruler(7).subject))+' brings partnership into '+k(7)+'. Venus in '+sign(venus.sign)+' adds a relational accent; read these together with D9.'],
+   career:['Управитель десятого бгави '+name(String(ruler(10).subject))+' з’єднує професійну дгарму зі сферою «'+k(10)+'». Меркурій у '+sign(mercury.sign)+' уточнює стиль мислення та навичок; D10 допомагає розкрити професійну тему, але не диктує єдину професію.',
+    'The tenth-bhava ruler '+name(String(ruler(10).subject))+' connects vocation with '+k(10)+'. Mercury in '+sign(mercury.sign)+' describes thinking and skills; D10 adds vocational context without dictating a single profession.'],
+   resources:['Управитель другого бгави '+name(String(ruler(2).subject))+' спрямовує тему накопичення, мовлення й родинних ресурсів до сфери «'+k(2)+'». Це ключ до трактування, а не обіцянка багатства.',
+    'The second-bhava ruler '+name(String(ruler(2).subject))+' links resources, speech and family values with '+k(2)+'. This is the interpretive link, not a promise of wealth.'],
+   challenges:['Сатурн у '+sign(saturn.sign)+', у сфері «'+area(saturn.house)+'», підкреслює традиційний мотив часу й відповідальності. Місяць у '+sign(moon.sign)+' показує окремий емоційний вимір; важливо бачити обидва, не оголошуючи напругу фатальною.',
+    'Saturn in '+sign(saturn.sign)+' in '+area(saturn.house)+' speaks to time and responsibility. The Moon in '+sign(moon.sign)+' adds emotional context; neither should be taken as a fixed fate.'],
+   growth:['Юпітер у '+sign(jupiter.sign)+', у сфері «'+area(jupiter.house)+'», є точкою для прочитання гуру-таттви — знання, вчителів і орієнтирів. Його зв’язок з управителем дев’ятого дому уточнює духовну тему карти.',
+    'Jupiter in '+sign(jupiter.sign)+' in '+area(jupiter.house)+' frames guru-tattva: learning, guidance and teachers. Its connection with the ninth-house ruler refines the spiritual emphasis.'],
+   conclusion:['Головна вісь карти: лагна у '+sign(asc)+' → управитель сьомого дому у темі «'+k(7)+'» → управитель десятого дому у темі «'+k(10)+'». Саме поєднання особистості, взаємності та дгарми дає ціліснішу картину, ніж ізольовані характеристики.',
+    'The chart’s synthesis: Lagna in '+sign(asc)+' → seventh-ruler themes in '+k(7)+' → tenth-ruler themes in '+k(10)+'. Identity, partnership and dharma form a more coherent picture than isolated traits.']
+  };
+  return values[id]?.[uk?0:1]||'';
+ };
+ const chapter=(id:string,u:string,e:string,p:string[],_tips:string[],ev:string[]):EditorialChapter=>({
+  id,title:uk?u:e,paragraphs:p,insights:[readingKey(id)],evidence:ev
+ });
  const sun=get('Sun'),moon=get('Moon'),saturn=get('Saturn'),venus=get('Venus'),jupiter=get('Jupiter');
  const mercury=get('Mercury'),asc=chart.ascendant.sign;
  const groups=[...new Set(classical.map(n=>get(n).house))].map(h=>({h,count:classical.filter(n=>get(n).house===h).length}))
@@ -171,7 +202,7 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en'):Edit
  ],[uk?'Оберіть дві практичні ідеї з цього звіту й перевірте, чи справді вони працюють у вашому житті.':'Try two suggestions and see what helps.'],
  ['ascendant.sign='+asc,'D1.Sun.house='+sun.house,'D1.Moon.house='+moon.house])
  ];
- return {version:'1.0',chapters,elements,highlights:[
+ return {version:'1.1',chapters,elements,highlights:[
   uk?'Найбільша концентрація планет: '+area(leading.h):'Largest cluster: '+area(leading.h),
   uk?'Найчастіша стихія: '+top:'Most frequent element: '+top,
   uk?'Професійний зв’язок: '+area(Number(ruler(10).values.locatedHouse)):'Career theme: '+area(Number(ruler(10).values.locatedHouse))
