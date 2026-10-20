@@ -189,6 +189,31 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
    const reopened=await action(admin.cookie,'reopen',archived.data.revision);
    assert.equal(reopened.status,201);assert.equal(reopened.data.status,'DRAFT');
   });
+  await t.test('A6.1 live API supports >100kb bilingual article, short answers and Yoga without safety',async()=>{
+   const longBody='Уважна велика стаття. '.repeat(5100);
+   const longEn='A long educational article. '.repeat(5100);
+   const article={
+    title:{uk:'Текст',en:'Text'},summary:{uk:'Опис',en:'Desc'},
+    body:{uk:longBody,en:longEn},
+    quiz:{question:{uk:'Так?',en:'Yes?'},
+     choices:[{uk:'А',en:'A'},{uk:'Б',en:'B'},{uk:'В',en:'C'}],
+     correct:1,explanation:{uk:'Так',en:'Yes'}}
+   };
+   assert.ok(Buffer.byteLength(JSON.stringify(article),'utf8')>100000);
+   const created=await post('/api/v1/editorial/entries',
+    {kind:'ACADEMY',slug:'a61-long-'+nonce,topic:'jyotish',document:article},b.cookie);
+   assert.equal(created.status,201,JSON.stringify(created.data).slice(0,450));
+   assert.equal(created.data.document.body.uk.length,longBody.length);
+   assert.equal(created.data.document.quiz.choices[1].uk,'Б');
+   const yoga=await post('/api/v1/editorial/entries',{
+    kind:'YOGA',slug:'a61-yoga-'+nonce,topic:'meditation',
+    document:{title:{uk:'Уважність',en:'Mindfulness'},
+     summary:{uk:'Спокійна пауза',en:'A quiet pause'},
+     body:{uk:'Сядь зручно та зверни увагу на звуки.',en:'Sit comfortably and notice surrounding sounds.'}}
+   },b.cookie);
+   assert.equal(yoga.status,201,JSON.stringify(yoga.data).slice(0,450));
+   assert.equal(yoga.data.document.safety,undefined);
+  });
   await t.test('logout clears browser cookie',async()=>{
    const out=await post('/api/v1/account/logout',{},b.cookie);
    assert.equal(out.status,201);assert.equal(out.cookie,'jyotish_session=');
