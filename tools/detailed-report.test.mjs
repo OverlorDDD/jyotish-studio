@@ -176,6 +176,9 @@ test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and
  assert.match(byChapter('portrait'),/Місяць у Близнюках, у домі 12/);
  assert.match(byChapter('relationships'),/Навамша D9/);
  assert.match(byChapter('career'),/Дашамша D10/);
+ assert.match(byChapter('career'),/Управитель дев’ятого дому Юпітер/);
+ assert.match(byChapter('career'),/управитель десятого дому Марс/);
+ assert.doesNotMatch(byChapter('career'),/Десятий дім[^.]*його управитель Юпітер/);
  assert.match(byChapter('timing'),/махадаша Сатурн/);
  assert.ok(reading.chapters.every(ch=>!ch.insights.length));
  assert.doesNotMatch(reading.chapters.flatMap(ch=>ch.paragraphs).join(' '),/Традиційний ключ:|Оберіть дві практичні/);
@@ -220,4 +223,22 @@ test('reader v3 rejects inconsistent whole-sign input rather than inventing narr
  const invalid=structuredClone(chart);
  invalid.d1[0].house=1;
  assert.throws(()=>buildDetailedReport(invalid,'uk','2026-10-20'),/whole-sign house mismatch/);
+});
+
+
+test('A7 reader never presents ninth-house Jupiter as the tenth-house ruler, including English',()=>{
+ const natal=structuredClone(chart);
+ natal.ascendant.sign=4;natal.ascendant.signName='Cancer';
+ const zodiac={Sun:12,Moon:3,Mars:12,Mercury:12,Jupiter:9,Venus:1,Saturn:12,Rahu:7,Ketu:1};
+ for(const graha of natal.d1){
+  graha.sign=zodiac[graha.name];graha.signName=signs[graha.sign-1];
+  graha.house=((graha.sign-4+12)%12)+1;
+  graha.longitude=(graha.sign-1)*30+13.25;
+ }
+ for(const language of ['uk','en']){
+  const report=buildDetailedReport(natal,language,'2026-10-20').editorial;
+  const career=report.chapters.find(c=>c.id==='career').paragraphs.join(' ');
+  assert.ok(career.includes(language==='uk'?'дев’ятого дому Юпітер':'ninth-house ruler Jupiter'),career);
+  assert.ok(career.includes(language==='uk'?'десятого дому Марс':'tenth-house ruler Mars'),career);
+ }
 });
