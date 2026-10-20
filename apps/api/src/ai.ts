@@ -233,13 +233,13 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    return {provider,model:(typeof result.model==='string'&&result.model.length<=120?result.model:options.model)||(provider==='openrouter'?'openrouter/free':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini'),
     text:accepted.map((p,i)=>headings[i]+'\n'+(lang==='uk'?normalizeUkrainianAstroTerms(p):p)).join('\n\n')};
   }
-  let decoded:unknown;
+  let interpretationJson:unknown;
   // Some free endpoints wrap valid JSON inside a Markdown code fence.
   // Strip ONLY a whole-response JSON fence; reject unrelated prose and unknown fact IDs.
   const normalized=content.trim().replace(/^`{3}(?:json)?\s*([\s\S]*?)\s*`{3}$/i,'$1');
-  try{decoded=JSON.parse(normalized);}catch{throw new AiProviderError('format','AI output is not valid JSON');}
-  if(!decoded||typeof decoded!=='object'||!Array.isArray((decoded as {sections?:unknown}).sections))throw new AiProviderError('format','OpenAI output is missing sections');
-  const sections=(decoded as {sections:unknown[]}).sections;
+  try{interpretationJson=JSON.parse(normalized);}catch{throw new AiProviderError('format','AI output is not valid JSON');}
+  if(!interpretationJson||typeof interpretationJson!=='object'||!Array.isArray((interpretationJson as {sections?:unknown}).sections))throw new AiProviderError('format','OpenAI output is missing sections');
+  const sections=(interpretationJson as {sections:unknown[]}).sections;
   if(sections.length<1||sections.length>12)throw new AiProviderError('format','Unexpected number of interpretation sections');
   const ids=new Set<string>();const lines:string[]=[];
   for(const entry of sections){
