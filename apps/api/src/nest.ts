@@ -5,6 +5,7 @@ import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts'
 import {runCalculation,interpretChart} from './logic.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
 import {buildDetailedReport,detailedReportFacts} from './report.ts';
+import {JYOTISH_READER_VERSION} from './jyotish-reader-style.ts';
 import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
 import {PrismaService} from './prisma.ts';
@@ -110,11 +111,11 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
-  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':editorial-v1',
+  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+JYOTISH_READER_VERSION,
    ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
-    factsOverride:report.editorial.chapters.filter(ch=>['core','elements','strengths','relationships','career','challenges','growth'].includes(ch.id))
-     .map(ch=>({id:({core:'identity',elements:'planets',strengths:'houses',relationships:'navamsa',career:'dashamsa',challenges:'aspects',growth:'dasha'} as Record<string,string>)[ch.id],
-      fact:ch.title+' — '+ch.paragraphs.join(' ').slice(0,1050)+' '+(birth.lang==='uk'?'Практична ідея: ':'Practical idea: ')+ch.insights.join(' ')})),reportMode:true,
+    // Only verified chart and engine rules, never advice paragraphs or user's private birth input.
+    factsOverride:detailedReportFacts(chart,birth.lang,report.asOf),
+    reportMode:true,
     onUsage:event=>this.recordAiUsage(event,'detailed_report'),
     approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
    }));

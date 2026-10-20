@@ -133,13 +133,13 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
   <h2>{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
   
   <p className="reading-intro">{uk?
-   'Дізнайтеся про ваші можливості, стосунки, професійні орієнтири та ідеї для щоденних рішень.' :
-   'Start with a plain-language summary. Detailed chapters follow for anyone who wants to explore further.'}</p>
+   'Цілісне трактування вашої карти в традиції Джйотіш: лагна, управителі бгав, накшатри, Д9, Д10 та періоди Вімшоттарі.' :
+   'A connected Jyotish interpretation: lagna, bhava lords, nakshatras, D9, D10 and Vimshottari periods.'}</p>
   {report.editorial?.chapters?.length?<div className="reading-editorial">
    <div className="reading-editorial-opening">
     <div className="reading-chapter-kicker">{uk?'✦ ПЕРСОНАЛЬНЕ ПРОЧИТАННЯ':'✦ YOUR PERSONAL READING'}</div>
     <h3>{uk?'Про вашу особистість, стосунки, кар’єру та життєві орієнтири':'Personality, relationships, work and life direction'}</h3>
-    <p>{uk?'Тут поєднано конкретні положення вашої натальної карти в цілісне символічне прочитання. Це не науковий тест особистості і не гарантований прогноз, а привід перевірити ідеї на власному досвіді.':'A coherent traditional reading based on the positions of your birth chart. It is not a scientific personality test or a guaranteed prediction.'}</p>
+    <p>{uk?'Трактування пов’язує конкретні показники карти в традиції Парашари. Положення грах, управителі домів і періоди даші читаються разом, а не як десять ізольованих характеристик.':'A traditional Parashari reading linking planetary placements, house rulership, and timing rather than isolated personality labels.'}</p>
    </div>
    <section className="reading-editorial-highlights" aria-label={uk?'Основні акценти карти':'Chart highlights'}>
     {report.editorial.highlights.map((h,i)=><div key={i}><span>{String(i+1).padStart(2,'0')}</span><strong>{h}</strong></div>)}
@@ -156,7 +156,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
        <small>{uk?'Частки семи класичних планет за знаками, не психологічний рейтинг.':'Share of seven classical grahas by sign; not a psychological score.'}</small>
       </div>:null}
       {chapter.insights?.length?<aside className="reading-editorial-advice">
-       <strong>{uk?'Що спробувати на практиці':'A practical idea'}</strong>
+       <strong>{uk?'Висновок астролога':'Astrologer’s synthesis'}</strong>
        {chapter.insights.map((ad,j)=><p key={j}>{ad}</p>)}
       </aside>:null}
      </article>)}
@@ -214,12 +214,12 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <p className="reading-ai-disclaimer">{uk?'Це символічне прочитання традиції Джйотіш, а не гарантований прогноз. Використовуйте його як привід для роздумів, а не як єдину основу важливих рішень.':'This is a symbolic reading from the Jyotish tradition, not a guaranteed prediction. Use it for reflection, not as the sole basis for important decisions.'}</p>
   </section>:null}
   </>:null}
-  <section className="reading-weekly-roadmap">
-   <div className="reading-chapter-kicker">{uk?'✦ ВАШ ПЛАН ДІЙ':'✦ YOUR ACTION PLAN'}</div>
-   <h3>{uk?'З чого почати':'Where to begin'}</h3>
-   <p>{uk?'Оберіть не більше трьох ідей і перевірте, чи вони справді корисні саме вам. Не потрібно робити все одразу.':'Choose no more than three ideas and see if they are genuinely useful for you. There is no need to do everything at once.'}</p>
-   <ol>{(report.editorial?.chapters?.length?report.editorial.chapters.filter(ch=>['core','relationships','career','growth'].includes(ch.id)).slice(0,3).map(ch=>({id:ch.id,title:ch.title,action:ch.insights[0]||''})):(report.lifePortrait?.chapters||[]).slice(0,3)).map(ch=><li key={ch.id}><strong>{ch.title}</strong><span>{ch.action}</span></li>)}</ol>
-  </section>
+  {report.editorial?.chapters?.length?<section className="reading-weekly-roadmap" aria-label={uk?'Головні зв’язки карти':'Key chart connections'}>
+   <div className="reading-chapter-kicker">{uk?'✦ АСТРОЛОГІЧНИЙ СИНТЕЗ':'✦ ASTROLOGICAL SYNTHESIS'}</div>
+   <h3>{uk?'Що об’єднує показники вашої карти':'The connections that shape your reading'}</h3>
+   <p>{uk?'Тут підсумовано ключові зв’язки лагни, партнерства та професійної дгарми за вашими розрахунками, а не універсальні поради на тиждень.':'A synthesis of lagna, partnership and vocational dharma from your computed chart, not generic weekly advice.'}</p>
+   <ol>{report.editorial.chapters.filter(ch=>['core','relationships','career'].includes(ch.id)).map(ch=><li key={ch.id}><strong>{ch.title}</strong><span>{ch.insights[0]}</span></li>)}</ol>
+  </section>:null}
   <details className="reading-technical" id="reading-details">
    <summary><span>{uk?'Астрологічні розрахунки та джерела':'Astrological calculations and sources'}</span>
     <small>{uk?'Необов’язково · для тих, хто хоче розібратися глибше':'Optional · for readers who want to explore the calculations'}</small></summary>

@@ -129,9 +129,9 @@ test('long-form AI uses beginner-friendly language and shows friendly headings i
   fetcher:async(_url,init)=>{
    const request=JSON.parse(init.body);
    const instructions=request.messages[0].content;
-   assert.match(instructions,/complete beginner/);
-   assert.match(instructions,/plain, everyday language/);
-   assert.match(instructions,/Avoid technical words entirely/);
+   assert.match(instructions,/consulting Jyotish astrologer/);
+   assert.match(instructions,/connected chain/);
+   assert.match(instructions,/nakshatra/);
    return apiReply({sections:[
     {factId:'identity',text:'У символічній традиції це може нагадувати про те, як ви починаєте нові справи. Корисно поміркувати, що допомагає вам почуватися впевнено.'},
     {factId:'houses',text:'Різні сфери життя не існують окремо одна від одної. Зверніть увагу, де ваші звички підтримують одне одного, а де потребують балансу.'},
@@ -139,9 +139,9 @@ test('long-form AI uses beginner-friendly language and shows friendly headings i
    ]});
   }
  });
- assert.match(result.text,/Загальна картина/);
+ assert.match(result.text,/Лагна та головна вісь карти/);
  assert.match(result.text,/Важливі сфери життя/);
- assert.match(result.text,/Поточний життєвий період/);
+ assert.match(result.text,/Вімшоттарі/);
  assert.doesNotMatch(result.text,/Лагна: Риби, дім 1/);
  assert.doesNotMatch(result.text,/Махадаша Сатурн/);
  assert.doesNotMatch(result.text,/Трактування в традиції Джйотіш/);

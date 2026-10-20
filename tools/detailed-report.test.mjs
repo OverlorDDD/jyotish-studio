@@ -134,7 +134,7 @@ test('life portrait has five practical narrative themes, each linked to actual c
 test('reader-first editorial report has chart-specific chapters and accurately counted elements',()=>{
  const uk=buildDetailedReport(chart,'uk','2026-10-13');
  const en=buildDetailedReport(chart,'en','2026-10-13');
- assert.equal(uk.editorial.version,'1.0');
+ assert.equal(uk.editorial.version,'1.1');
  assert.deepEqual(uk.editorial.chapters.map(c=>c.id),['core','elements','themes','strengths','relationships','career','resources','challenges','growth','conclusion']);
  assert.equal(uk.editorial.elements.reduce((s,v)=>s+v.count,0),7);
  assert.ok(uk.editorial.elements.every(v=>v.percentage===Math.round(v.count/7*100)));
