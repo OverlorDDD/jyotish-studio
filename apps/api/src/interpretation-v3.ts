@@ -54,6 +54,8 @@ export function analyzeAstrologicalFindings(chart:CalculatedChart,lang:'uk'|'en'
    counterFactors:distinct(counter),relativeImportance:importance,limitations});
  };
  const moon=get('Moon'),sun=get('Sun'),mars=get('Mars'),saturn=get('Saturn'),venus=get('Venus');
+ const confirmedYogas=rules.yogas;
+ const yogasText=confirmedYogas.length?(uk?' За підтвердженими умовами йоги: ':' Verified yoga conditions: ')+confirmedYogas.map(y=>y.name+' ('+planet(y.planet)+', '+y.house+(uk?'-й дім':'th house')+')').join('; ')+'.':'';
  const date=Date.parse(asOf+'T12:00:00Z');
  const major=chart.dasha.find(d=>Date.parse(d.start)<=date&&date<Date.parse(d.end));
  const minor=major?.antardashas?.find(d=>Date.parse(d.start)<=date&&date<Date.parse(d.end));
@@ -72,9 +74,9 @@ export function analyzeAstrologicalFindings(chart:CalculatedChart,lang:'uk'|'en'
  const cluster=cohorts[0];
  if(cluster.planets.length>=2){
   add('concentration','configuration','WHOLE_SIGN_CONJUNCTION',
-   uk?'У '+cluster.house+'-му домі ('+area(cluster.house)+') зібралися '+cluster.planets.map(planet).join(', ')+'. Тут одночасно взаємодіють '+cluster.planets.map(n=>themesUk[n]).join('; ')+'.':
-   'House '+cluster.house+' ('+area(cluster.house)+') gathers '+cluster.planets.map(planet).join(', ')+', combining '+cluster.planets.map(n=>themesEn[n]).join('; ')+'.',
-   cluster.planets.flatMap(n=>ev(get(n))),cluster.planets.map(n=>'D1.'+n+'.house='+cluster.house),[],98);
+   uk?'У '+cluster.house+'-му домі ('+area(cluster.house)+') зібралися '+cluster.planets.map(planet).join(', ')+'. Тут одночасно взаємодіють '+cluster.planets.map(n=>themesUk[n]).join('; ')+'.'+yogasText:
+   'House '+cluster.house+' ('+area(cluster.house)+') gathers '+cluster.planets.map(planet).join(', ')+', combining '+cluster.planets.map(n=>themesEn[n]).join('; ')+'.'+yogasText,
+   [...cluster.planets.flatMap(n=>ev(get(n))),...confirmedYogas.flatMap(y=>y.evidence)],cluster.planets.map(n=>'D1.'+n+'.house='+cluster.house),[],98);
  }else{
   add('distributed','configuration','PARASHARI_SIGN_LORDSHIP',
    uk?'У карті немає великого скупчення класичних грах. Замість вигаданого стеліуму головний сюжет формують управителі дев’ятого та десятого домів: '+ruler(9)+' і '+ruler(10)+'.':
@@ -92,12 +94,12 @@ export function analyzeAstrologicalFindings(chart:CalculatedChart,lang:'uk'|'en'
  add('partnership','relationships','PARASHARI_SIGN_LORDSHIP',
   uk?'Сьомим домом керує '+ruler(7)+' із дому '+at(7)+'. Венера у '+sign(venus.sign)+' в домі '+venus.house+', а Місяць у домі '+moon.house+' показують, як взаємність і потреба у близькості можуть мати різні акценти.':
   'The seventh lord '+ruler(7)+' sits in house '+at(7)+'. Venus in '+sign(venus.sign)+' (house '+venus.house+') and Moon in house '+moon.house+' add distinct themes of affection and emotional security.',
-  [...lord(7).evidence,...ev(venus),...ev(moon), 'D9.ascendant.sign='+chart.lagnaD9.sign],
+  [...lord(7).evidence,...ev(venus),...ev(moon), 'D9.ascendant.sign='+chart.lagnaD9.sign,'D9.Venus.house='+chart.d9.find(g=>g.name==='Venus')!.house],
   [lord(7).id,'D1.Venus.house='+venus.house,'D9.ascendant.sign='+chart.lagnaD9.sign],[],90);
  add('vocation','career','PARASHARI_SIGN_LORDSHIP',
   uk?'Управитель десятого дому '+ruler(10)+' перебуває у домі '+at(10)+' ('+area(at(10))+'). Дашамша D10 має лагну у '+sign(chart.lagnaD10.sign)+'; її показники уточнюють професійну тему, не замінюючи D1.':
   'The tenth lord '+ruler(10)+' occupies house '+at(10)+' ('+area(at(10))+'). D10 has its ascendant in '+sign(chart.lagnaD10.sign)+' and supplements rather than replaces D1.',
-  [...lord(10).evidence,'D10.ascendant.sign='+chart.lagnaD10.sign],
+  [...lord(10).evidence,...lord(9).evidence,'D10.ascendant.sign='+chart.lagnaD10.sign,'D10.'+String(lord(10).subject)+'.house='+chart.d10.find(g=>g.name===String(lord(10).subject))!.house],
   [lord(10).id,'D10.ascendant.sign='+chart.lagnaD10.sign],[],91);
  add('resources','resources','PARASHARI_SIGN_LORDSHIP',
   uk?'Управитель другого дому '+ruler(2)+' міститься в домі '+at(2)+'; управитель одинадцятого '+ruler(11)+' — у домі '+at(11)+'. Разом це зв’язує особисті ресурси, результати праці та коло підтримки.':
