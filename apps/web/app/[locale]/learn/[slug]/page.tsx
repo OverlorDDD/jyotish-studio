@@ -7,19 +7,31 @@ import AcademyQuiz from '../../../components/AcademyQuiz';
 import {ACADEMY_LESSONS,ACADEMY_TOPICS,academyBySlug} from '../../../../lib/academy-content';
 import {isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
-export const dynamicParams=false;
+import {publishedDetail} from '../../../../lib/editorial-public';
+import EditorialArticle from '../../../components/EditorialArticle';
+export const dynamicParams=true;
 type Params={params:Promise<{locale:string;slug:string}>};
 export function generateStaticParams(){return (['uk','en'] as const).flatMap(locale=>ACADEMY_LESSONS.map(item=>({locale,slug:item.slug})));}
 export async function generateMetadata({params}:Params):Promise<Metadata>{
  const {locale,slug}=await params,lesson=academyBySlug(slug);
- if(!isPortalLocale(locale)||!lesson)return {};
+ if(!isPortalLocale(locale))return {};
+ if(!lesson){
+  const cms=await publishedDetail('ACADEMY',slug);
+  if(!cms)return {robots:{index:false,follow:false}};
+  return {title:cms.document.title[locale]+' | Galaxiora Academy',description:cms.document.summary[locale],robots:indexRobots(),alternates:{canonical:'/'+locale+'/learn/'+slug,languages:{uk:'/uk/learn/'+slug,en:'/en/learn/'+slug}}};
+ }
  return {title:lesson.title[locale]+' | Galaxiora Academy',description:lesson.description[locale],
   robots:indexRobots(),alternates:{canonical:'/'+locale+'/learn/'+slug,
    languages:{uk:'/uk/learn/'+slug,en:'/en/learn/'+slug}}};
 }
 export default async function AcademyLessonPage({params}:Params){
  const {locale,slug}=await params,lesson=academyBySlug(slug);
- if(!isPortalLocale(locale)||!lesson)notFound();
+ if(!isPortalLocale(locale))notFound();
+ if(!lesson){
+  const cms=await publishedDetail('ACADEMY',slug);
+  if(!cms)notFound();
+  return <EditorialArticle entry={cms} locale={locale}/>;
+ }
  const uk=locale==='uk',position=ACADEMY_LESSONS.findIndex(l=>l.slug===slug),
   next=ACADEMY_LESSONS[position+1],topic=ACADEMY_TOPICS.find(t=>t.id===lesson.topic)!;
  return <PortalShell locale={locale} active="learn" languagePath={'learn/'+slug}>

@@ -3,6 +3,7 @@ import {ArrowUpRight,Wind,Sun,Leaf,Moon,ShieldCheck} from 'lucide-react';
 import PortalShell from './PortalShell';
 import {YOGA_PRACTICES,say,type ContentLocale} from '../../lib/yoga-content';
 import {BREATHING_PATTERNS,sessionMs} from '../../lib/breathing-patterns';
+import EditorialPublishedCards from './EditorialPublishedCards';
 const Icon={wind:Wind,sun:Sun,leaf:Leaf,moon:Moon};
 export default function YogaHub({locale}:{locale:ContentLocale}){
  const uk=locale==='uk';
@@ -27,6 +28,7 @@ export default function YogaHub({locale}:{locale:ContentLocale}){
     </Link>;
    })}</div>
   </section>
+  <EditorialPublishedCards kind="YOGA" locale={locale}/>
   <aside className="as-wellness-note"><ShieldCheck size={23} aria-hidden="true"/><div><strong>{uk?'Турбота про безпеку':'Practice safely'}</strong>
    <p>{uk?'Рухайся лише в комфортній амплітуді й дихай природно. За болю, запаморочення або дискомфорту припини вправу. За медичних обмежень обирай рекомендації кваліфікованого фахівця.':'Move within a comfortable range and breathe naturally. Stop for pain, dizziness or distress. If you have medical limitations, seek personalized advice from a qualified professional.'}</p>
    <a href="https://www.nccih.nih.gov/health/yoga-effectiveness-and-safety" target="_blank" rel="noopener noreferrer">{uk?'NIH: безпека йоги':'NIH: yoga safety'} <ArrowUpRight size={14}/></a></div>

@@ -3,6 +3,7 @@ import {ArrowUpRight,BookOpen,Compass,Layers,Sparkles} from 'lucide-react';
 import PortalShell from './PortalShell';
 import {ACADEMY_TOPICS,ACADEMY_LESSONS} from '../../lib/academy-content';
 import type {ContentLocale} from '../../lib/yoga-content';
+import EditorialPublishedCards from './EditorialPublishedCards';
 const ICONS={jyotish:Compass,tarot:Sparkles,practice:Layers};
 export default function AcademyHub({locale}:{locale:ContentLocale}){
  const uk=locale==='uk';
@@ -31,6 +32,7 @@ export default function AcademyHub({locale}:{locale:ContentLocale}){
      </Link>)}</div>
    </section>;
   })}</div>
+  <EditorialPublishedCards kind="ACADEMY" locale={locale}/>
   <aside className="as-wellness-note"><BookOpen size={23} aria-hidden="true"/><div>
    <strong>{uk?'Як влаштована бібліотека':'About this learning library'}</strong>
    <p>{uk?'Це авторські вступні матеріали з розмежуванням історичних традицій, математичних розрахунків і символічних тверджень. Запитання після уроків перевіряють розуміння тексту, а не «духовні здібності».':'These are original introductory materials that distinguish traditions, mathematical calculations and symbolic claims. Lesson questions check understanding, not spiritual ability.'}</p>

@@ -15,6 +15,9 @@ import {JYOTISH_REPORT_USE_CASES,JyotishReportUseCases} from './jyotish-report-a
 import {ADMIN_ROLE_USE_CASE,ChangeRoleUseCase} from './admin-role-application.ts';
 import {PrismaRoleChangeStore} from './admin-role-prisma.ts';
 import {AdminController} from './admin.ts';
+import {EditorialController,PublicContentController} from './editorial.ts';
+import {EDITORIAL_USE_CASES,EditorialUseCases} from './editorial-application.ts';
+import {PrismaEditorialStore} from './editorial-prisma.ts';
 import {ReadingOrdersController} from './reading-orders.ts';
 import {TarotController,TAROT_USE_CASES} from './tarot.ts';
 import {TarotUseCases} from './tarot-application.ts';
@@ -146,13 +149,15 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,ReadingOrdersController,TarotController],
+@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController],
  providers:[PrismaService,
   {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
    new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},
   {provide:JYOTISH_REPORT_USE_CASES,useFactory:()=>new JyotishReportUseCases(runCalculation,buildDetailedReport)},
   {provide:ADMIN_ROLE_USE_CASE,useFactory:(prisma:PrismaService)=>
    new ChangeRoleUseCase(new PrismaRoleChangeStore(prisma)),inject:[PrismaService]},
+  {provide:EDITORIAL_USE_CASES,useFactory:(prisma:PrismaService)=>
+   new EditorialUseCases(new PrismaEditorialStore(prisma)),inject:[PrismaService]},
   {provide:TAROT_USE_CASES,
   useFactory:(prisma:PrismaService)=>new TarotUseCases(new PrismaTarotReadingRepository(prisma),createTarotAiGateway()),
   inject:[PrismaService]}]})
