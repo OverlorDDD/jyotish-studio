@@ -134,8 +134,8 @@ test('life portrait has five practical narrative themes, each linked to actual c
 test('reader-first editorial report has chart-specific chapters and accurately counted elements',()=>{
  const uk=buildDetailedReport(chart,'uk','2026-10-13');
  const en=buildDetailedReport(chart,'en','2026-10-13');
- assert.equal(uk.editorial.version,'1.0');
- assert.deepEqual(uk.editorial.chapters.map(c=>c.id),['core','elements','themes','strengths','relationships','career','resources','challenges','growth','conclusion']);
+ assert.equal(uk.editorial.version,'3.0.0');
+ assert.deepEqual(uk.editorial.chapters.map(c=>c.id),['portrait','configuration','tensions','relationships','career','resources','timing','conclusion']);
  assert.equal(uk.editorial.elements.reduce((s,v)=>s+v.count,0),7);
  assert.ok(uk.editorial.elements.every(v=>v.percentage===Math.round(v.count/7*100)));
  assert.ok(uk.editorial.highlights.length===3);
@@ -170,13 +170,54 @@ test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and
  for(const graha of natal.d1)graha.house=((graha.sign-natal.ascendant.sign+12)%12)+1;
  const reading=buildDetailedReport(natal,'uk','2026-10-20').editorial;
  const byChapter=id=>reading.chapters.find(c=>c.id===id).paragraphs.join(' ');
- assert.match(byChapter('themes'),/Сонце.*Марс.*Меркурій.*Сатурн/);
- assert.match(byChapter('themes'),/дев’ятий дім/);
- assert.match(byChapter('themes'),/Марс і Сатурн/);
- assert.match(byChapter('core'),/Місяць у дванадцятому домі/);
+ assert.match(byChapter('configuration'),/Сонце.*Марс.*Меркурій.*Сатурн/);
+ assert.match(byChapter('configuration'),/9-му домі/);
+ assert.match(byChapter('tensions'),/Марс і Сатурн/);
+ assert.match(byChapter('portrait'),/Місяць у Близнюках, у домі 12/);
  assert.match(byChapter('relationships'),/Навамша D9/);
  assert.match(byChapter('career'),/Дашамша D10/);
- assert.match(byChapter('conclusion'),/махадаша Сатурн/);
+ assert.match(byChapter('timing'),/махадаша Сатурн/);
  assert.ok(reading.chapters.every(ch=>!ch.insights.length));
  assert.doesNotMatch(reading.chapters.flatMap(ch=>ch.paragraphs).join(' '),/Традиційний ключ:|Оберіть дві практичні/);
+});
+
+
+test('Interpretation v3 findings are ranked, evidence-linked and free of identifying birth data',()=>{
+ const reading=buildDetailedReport(chart,'uk','2026-10-20').editorial;
+ assert.ok(reading.findings.length>=5&&reading.findings.length<=8);
+ assert.ok(reading.findings.every(f=>f.ruleId&&f.verifiedEvidence.length&&f.supportingFactors.length&&f.limitations.length));
+ assert.ok(reading.findings.every(f=>Number.isFinite(f.relativeImportance)));
+ assert.equal(reading.chapters.length,8);
+ const serialized=JSON.stringify(reading);
+ for(const secret of ['Asia/Kolkata','28.6139','77.209','2000-01-01'])
+  assert.ok(!serialized.includes(secret));
+ assert.ok(reading.chapters.every(c=>!c.insights.length));
+ assert.ok(!reading.chapters.some(c=>c.id==='elements'));
+});
+
+test('twenty independent synthetic whole-sign charts yield stable, substantively different consultations',()=>{
+ const variants=[];
+ for(let i=0;i<20;i++){
+  const sample=structuredClone(chart);
+  const asc=i%12+1;
+  sample.ascendant.sign=asc;sample.ascendant.signName=signs[asc-1];
+  sample.d1.forEach((g,j)=>{
+   const zodiac=((i*7+j*3+(j===3?i:0))%12)+1;
+   g.sign=zodiac;g.signName=signs[zodiac-1];g.house=((zodiac-asc+12)%12)+1;
+   g.longitude=(zodiac-1)*30+13.25;
+  });
+  const out=buildDetailedReport(sample,'uk','2026-10-20').editorial;
+  assert.equal(out.version,'3.0.0');
+  assert.ok(out.findings.every(f=>f.verifiedEvidence.length));
+  assert.equal(out.chapters.length,8);
+  assert.deepEqual(out,buildDetailedReport(sample,'uk','2026-10-20').editorial);
+  variants.push(JSON.stringify(out.chapters.map(c=>c.paragraphs)));
+ }
+ assert.ok(new Set(variants).size>=18,'reader should not recycle the same consultation for every chart');
+});
+
+test('reader v3 rejects inconsistent whole-sign input rather than inventing narrative',()=>{
+ const invalid=structuredClone(chart);
+ invalid.d1[0].house=1;
+ assert.throws(()=>buildDetailedReport(invalid,'uk','2026-10-20'),/whole-sign house mismatch/);
 });
