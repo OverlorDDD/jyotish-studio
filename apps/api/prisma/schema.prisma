@@ -39,6 +39,7 @@ model User {
  role UserRole @default(MEMBER)
  subscriptionTier SubscriptionTier @default(FREE)
  subscriptionEndsAt DateTime?
+ expertProfile ExpertProfile? @relation("ExpertApplicant")
  editorialCreated EditorialEntry[] @relation("EditorialCreator")
  readingDrafts ReadingDraft[]
  tarotReadings TarotReading[]
@@ -204,4 +205,31 @@ model EditorialVersion {
  createdAt DateTime @default(now())
  @@unique([entryId,revision])
  @@index([entryId,createdAt])
+}
+
+/** A7 verified expertise listings are distinct from staff EXPERT role.
+ * Approval is an editorial credential, not a medical/professional license claim.
+ */
+enum ExpertReviewStatus {
+ SUBMITTED
+ VERIFIED
+ REJECTED
+ SUSPENDED
+}
+model ExpertProfile {
+ id String @id @default(uuid())
+ userId String @unique
+ user User @relation("ExpertApplicant",fields:[userId],references:[id],onDelete:Cascade)
+ displayName String @db.VarChar(100)
+ bioUk String @db.Text
+ bioEn String @db.Text
+ specialties String[]
+ reviewStatus ExpertReviewStatus @default(SUBMITTED)
+ consentAt DateTime
+ reviewedAt DateTime?
+ reviewerId String?
+ revision Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([reviewStatus,updatedAt])
 }
