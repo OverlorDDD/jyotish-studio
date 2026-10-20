@@ -7,6 +7,7 @@ import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} 
 import {buildDetailedReport,detailedReportFacts} from './report.ts';
 import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
+import {buildAiChapterSpecs} from './consultation-ai.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
@@ -110,8 +111,9 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':interpretation-v3',
+  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+':interpretation-v3.3-chapters',
    ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
+    chapterSpecs:buildAiChapterSpecs(report.editorial),
     factsOverride:report.editorial.findings.map(f=>({id:f.id,
       fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
        '. Supporting: '+f.supportingFactors.join('; ')+'. Limits: '+f.limitations.join('; ')})),reportMode:true,
