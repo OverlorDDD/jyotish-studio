@@ -202,7 +202,7 @@ test('twenty independent synthetic whole-sign charts yield stable, substantively
   const asc=i%12+1;
   sample.ascendant.sign=asc;sample.ascendant.signName=signs[asc-1];
   sample.d1.forEach((g,j)=>{
-   const zodiac=((i*7+j*3+(j===3?i:0))%12)+1;
+   const zodiac=((i*7+j*3+(j===3?i:0)+(i>=12&&(j===0||j===4)?(i-11)*2:0))%12)+1;
    g.sign=zodiac;g.signName=signs[zodiac-1];g.house=((zodiac-asc+12)%12)+1;
    g.longitude=(zodiac-1)*30+13.25;
   });
