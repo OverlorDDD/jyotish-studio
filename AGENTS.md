@@ -66,3 +66,9 @@ Local PostgreSQL defaults to port 5433; Next 3000, Nest 4000. Check actual `.env
 - Exactly 3 nonempty quiz choice lines per language; blank spacer lines and CRLF are ignored. Do not truncate four responses into three.
 - Bounded long-form: body 120,000 characters per language and a 2 MB Nest JSON parser request limit. Short quiz answers and explanations are valid.
 - Yoga CMS safety field is optional and hidden from editor; leave cautions in article text. Preserve legacy safety entries; built-in box breathing warnings stay.
+
+## Jyotish reader v3 and glossary
+- The rich deterministic consultation lives in apps/api/src/editorial-reading.ts. Synthesize conjunctions/house lords; remove generic 'interpretive key' and weekly to-do plan. Keep original 10 chapter IDs, report shape and chart facts unchanged.
+- Research and quality contract in docs/interpretation-standard-v3.md. Never transplant Western Placidus/outer planet aspects into Parashari D1/D9/D10.
+- Shared term dictionary: apps/web/lib/glossary.ts. Safe, accessible GlossaryText component enriches generated reports, public CMS, original Academy/Yoga and Tarot; new content views must reuse it.
+- Test: npm run test:glossary; npm run test:report; npm run test:all; build; browser and real PostgreSQL.

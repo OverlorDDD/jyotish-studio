@@ -76,26 +76,8 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en',asOf=
   const r=ruler(house);return uk?'управитель '+name(String(r.subject))+' розташований у сфері «'+area(Number(r.values.locatedHouse))+'»':
    'ruler '+name(String(r.subject))+' is linked to '+area(Number(r.values.locatedHouse));
  };
- const readingKey=(id:string):string=>{
-  const star=(planet:string)=>placement(planet);
-  const houseRuler=(house:number)=>rulerPhrase(house);
-  const prefix=uk?'Традиційний ключ: ':'Classical reading key: ';
-  const keys:Record<string,string>={
-   core:star('Sun')+'; '+star('Moon')+'.',
-   elements:uk?'Співвідношення стихій: '+top+'; цей підрахунок уточнюється значенням управителів домів.':'Elements lead with '+top+'; house lords provide the essential contextual reading.',
-   themes:star('Sun')+'; '+star('Moon')+'.',
-   strengths:star('Sun')+'; '+houseRuler(1)+'.',
-   relationships:star('Venus')+'; '+houseRuler(7)+'.',
-   career:star('Mercury')+'; '+houseRuler(10)+'.',
-   resources:houseRuler(2)+'.',
-   challenges:star('Saturn')+'; '+star('Moon')+'.',
-   growth:star('Jupiter')+'; '+houseRuler(9)+'.',
-   conclusion:houseRuler(7)+'; '+houseRuler(10)+'.'
-  };
-  return prefix+(keys[id]||star('Sun'));
- };
  const chapter=(id:string,u:string,e:string,p:string[],tips:string[],ev:string[]):EditorialChapter=>({
-  id,title:uk?u:e,paragraphs:p,insights:[readingKey(id)],evidence:ev
+  id,title:uk?u:e,paragraphs:consultation(id,p),insights:[],evidence:ev
  });
  const sun=get('Sun'),moon=get('Moon'),saturn=get('Saturn'),venus=get('Venus'),jupiter=get('Jupiter');
  const mercury=get('Mercury'),asc=chart.ascendant.sign;
@@ -109,6 +91,110 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en',asOf=
  const top=elements.filter(x=>x.count===max).map(x=>x.name).join(uk?' і ':' and ');
  const low=elements.filter(x=>x.count===min).map(x=>x.name).join(uk?' і ':' and ');
  const overlap=(a:string,b:string)=>get(a).house===get(b).house;
+
+ // Reader-first, chart-grounded narrative. LLM is optional; the ten public chapters must
+ // be helpful even when the provider is down. Explain a conjunction, NOT a raw coordinate.
+ const locative=(g:string)=>name(g)+(uk?' у ':' in ')+sign(get(g).sign)+(uk?' в '+get(g).house+'-му домі':' in house '+get(g).house);
+ const house=(h:number)=>uk?String(h)+'-му домі ('+area(h)+')':'house '+h+' ('+area(h)+')';
+ const lord=(h:number)=>ruler(h);
+ const rulerName=(h:number)=>name(String(lord(h).subject));
+ const rulerAt=(h:number)=>Number(lord(h).values.locatedHouse);
+ const same=(a:string,b:string)=>get(a).house===get(b).house;
+ const periodName=period?name(period.lord):'';
+ const subName=subperiod?name(subperiod.lord):'';
+ const planetaryThemes:Record<string,[string,string]>={
+  Sun:['воля, авторитет і самовираження','identity, authority and volition'],
+  Moon:['емоційна пам’ять і потреба у внутрішньому просторі','emotional life, memory and inner security'],
+  Mars:['рішучість, боротьба і спосіб діяти','initiative, conflict and the way we take action'],
+  Mercury:['мислення, мова, аргументація та навчання','reasoning, speech and learning'],
+  Jupiter:['сенс, наставництво і життєві принципи','purpose, mentorship and guiding values'],
+  Venus:['прихильність, взаємність і краса','affection, reciprocity and aesthetics'],
+  Saturn:['відповідальність, обмеження і випробування часом','discipline, limits and responsibilities']
+ };
+ const meaning=(g:string)=>planetaryThemes[g]?.[ix]||name(g);
+ const cluster=together.map(n=>name(n)).join(', ');
+ const conflicts=same('Mars','Saturn')?
+  (uk?'Марс і Сатурн зосереджені в одному домі: імпульс діяти стикається з вимогою дисципліни. Це можна читати як внутрішнє напруження між швидким рішенням і потребою все перевірити, не оголошуючи його неминучою рисою людини.':
+   'Mars and Saturn share a house: initiative meets restriction and discipline. Traditionally this suggests tension between starting quickly and demanding careful preparation, without defining a person as inevitably conflicted.'):
+  (uk?'Марс і Сатурн займають різні доми. Тому їхні теми дії та дисципліни потрібно розглядати в різних життєвих обставинах, а не вигадувати пряме з’єднання.':
+   'Mars and Saturn occupy different houses. Their themes of initiative and discipline should be interpreted in separate contexts, not as an invented conjunction.');
+ const combined=leading.count>1?
+  (uk?'Найпомітніша конфігурація D1 — '+leading.count+' класичних планет в '+house(leading.h)+': '+cluster+'. Тут поєднуються '+together.map(n=>meaning(n)).join('; ')+'. Саме взаємодія цих різних принципів важливіша за просту назву дому.':
+   'The main D1 cluster has '+leading.count+' classical planets in '+house(leading.h)+': '+cluster+'. It connects '+together.map(n=>meaning(n)).join('; ')+'. The interaction matters more than a generic house label.'):
+  (uk?'Класичні планети розподілені між різними домами. Тому в цій карті немає однієї великої планетної групи, а центральний сюжет треба збирати через лагну та управителів домів.':
+   'The classical grahas are spread across separate houses, so the central narrative should come from the ascendant and house lords rather than an invented major conjunction.');
+ const ninth=leading.h===9&&leading.count>=3?
+  (uk?'Оскільки це дев’ятий дім, у традиції особливо підкреслюють світогляд, наставників, вищу освіту, дгарму, далекі горизонти та питання «для чого я це роблю?». Таку конфігурацію коректніше читати як напружений діалог власних переконань, способу мислити й способу діяти — а не просто як абстрактний «пошук знань».':
+   'Because the cluster occupies the ninth house, classical themes include worldview, teachers, higher learning, dharma and the reasons behind a person’s choices. This reads as an interplay of convictions, reasoning and action, not a vague label of “learning”.'):
+  (uk?'Положення планет у цьому домі надає особливої ваги його традиційним темам, але оцінка завжди залежить від управителів, інших домів і поточного періоду.':
+   'The house cluster strengthens the importance of that domain in the tradition, subject to its rulers, other houses and current period.');
+ const moonContext=get('Moon').house===12?
+  (uk?'Місяць у дванадцятому домі додає інший полюс: приватність, сон, потребу в тиші, усамітнення та переживання, які не завжди хочеться показувати назовні. Це може створювати відмінність між зовнішнім стилем дій і внутрішнім способом відновлення.':
+   'Moon in the twelfth house adds privacy, solitude, rest and emotions that may not be expressed openly. This can contrast with the more visible outward direction of the chart.'):
+  (uk?'Місяць у '+house(get('Moon').house)+' переносить емоційну вагу саме в цю частину карти. Його знак '+sign(get('Moon').sign)+' і накшатра '+get('Moon').nakshatra+' уточнюють спосіб переживати цей життєвий мотив.':
+   'Moon in '+house(get('Moon').house)+' locates the emotional center there. Its sign and nakshatra refine this traditional emphasis.');
+ const signature=uk?'Лагна в '+sign(asc)+' описує вихідний стиль взаємодії зі світом. Її управитель '+rulerName(1)+' знаходиться в '+house(rulerAt(1))+'. Це важливіше за опис одного знака: управитель показує, в яких обставинах символічно розкривається тема першого дому.':
+  'The ascendant in '+sign(asc)+' establishes the starting mode of expression. Its lord '+rulerName(1)+' is in '+house(rulerAt(1))+', showing where the first-house theme is developed in the traditional reading.';
+ const conclusions=uk?'Провідні мотиви цієї карти: '+(leading.count>1?cluster+' в '+leading.h+'-му домі; ':'зв’язки управителів домів; ')+
+  'лагна у '+sign(asc)+' та Місяць у '+house(get('Moon').house)+'. Їх варто читати разом: зовнішній напрям і внутрішні потреби можуть мати різний ритм.':
+  'The principal motifs are '+(leading.count>1?cluster+' sharing house '+leading.h+', ':'house rulerships, ')+
+  'the ascendant in '+sign(asc)+' and the Moon in '+house(get('Moon').house)+'. These form one portrait: outer direction and inner needs can follow different rhythms.';
+ const timing=period?(uk?'Станом на '+asOf+' триває махадаша '+periodName+(subperiod?' й антардаша '+subName:'')+'. У традиції Вімшоттарі це надає ваги темам '+meaning(period.lord)+(subperiod?' і '+meaning(subperiod.lord):'')+'. Конкретні події з назви періоду не випливають: їх не слід вигадувати.':
+  'As of '+asOf+' the active period is '+periodName+' mahadasha'+(subperiod?' with '+subName+' antardasha':'')+'. Vimshottari emphasizes the themes of these grahas, but their names alone do not predict specific events.'):
+  (uk?'Для обраної дати немає підтвердженої активної даші, тому часові прогнози не додаємо.':
+   'No verified active dasha is available on the reference date, so no timing claim is made.');
+ const consultation=(id:string,fallback:string[]):string[]=>{
+  const chunks:Record<string,string[]>={
+   core:[signature,
+    (uk?'Сонце '+(same('Sun','Moon')?'і Місяць розташовані в одному домі':'та Місяць перебувають у різних домах')+'. Сонце в '+sign(get('Sun').sign)+' в '+house(get('Sun').house)+' описує традиційну тему самовираження; Місяць у '+sign(get('Moon').sign)+' в '+house(get('Moon').house)+' — спосіб переживати й відновлювати внутрішню рівновагу. Їхня відмінність створює не «суперечливу людину», а два різні напрями потреб.':
+     'Sun and Moon '+(same('Sun','Moon')?'share a house':'occupy different houses')+'. Sun in '+sign(get('Sun').sign)+' and '+house(get('Sun').house)+' symbolizes outward aims; Moon in '+sign(get('Moon').sign)+' and '+house(get('Moon').house)+' marks inner needs. The distinction forms two meaningful dimensions, not a diagnosis of a personality conflict.'),
+    moonContext],
+   elements:[(uk?'Серед семи класичних грах переважає стихія '+top+' ('+max+' із 7). Це лише пропорція положень за знаками. У традиційному читанні стихія додає барву, але не вирішує характер людини й не має переважати над лагною та управителями.':
+     'Among seven classical grahas, the most common sign element is '+top+' ('+max+' of 7). This is a sign distribution, not a measurement of personality; the ascendant and house lords carry more interpretive weight.'),
+    (uk?'Найменше представлена стихія '+low+' ('+min+' із 7). Це не означає дефіциту здібностей. Справжній сюжет цього гороскопа формують зв’язки конкретних планет, наведені далі, а не відсоток стихій.':
+     'The least represented element is '+low+' ('+min+' of 7). This does not imply missing abilities; the meaningful story comes from actual planetary combinations discussed below.')],
+   themes:[combined,ninth,conflicts],
+   strengths:[(uk?'Сонце в '+house(get('Sun').house)+' підкреслює, де традиція бачить можливість проявляти волю та брати відповідальність. Меркурій у '+house(get('Mercury').house)+' додає інтелектуальну складову — аналіз, мову та здатність пояснювати.':
+     'The Sun in '+house(get('Sun').house)+' highlights where will and responsibility are expressed. Mercury in '+house(get('Mercury').house)+' adds the themes of analysis, speech and explanation.'),
+    same('Sun','Mercury')?(uk?'Оскільки Сонце і Меркурій стоять разом, теми власної позиції та мислення взаємно підсилюються у цій ділянці карти. У традиційному портреті це може проявлятися як потреба аргументувати власні переконання, навчати або переконувати, але висновок залежить і від інших чинників.':
+     'Since Sun and Mercury share a house, identity and reasoning converge in this life domain. Traditional readings may associate that with articulating convictions, teaching or communicating ideas, subject to other placements.'):
+     (uk?'Сонце й Меркурій розташовані в різних домах, тому прояв волі й здатність працювати з інформацією мають окремі центри ваги. Їх не слід штучно перетворювати на з’єднання.':
+      'Sun and Mercury occupy different houses; self-expression and reasoning have separate domains, and no conjunction should be invented.'),
+    (uk?'Юпітер у '+sign(get('Jupiter').sign)+' в '+house(get('Jupiter').house)+' уточнює, як у такому портреті працюють освіта, наставництво та власні принципи.':
+     'Jupiter in '+sign(get('Jupiter').sign)+' and '+house(get('Jupiter').house)+' adds a separate perspective on learning, teaching and principles.')],
+   relationships:[(uk?'Сьомий дім стосується союзу й домовленостей. Його управитель '+rulerName(7)+' розташований у '+house(rulerAt(7))+': у традиції це зв’язує тему партнерства з інтересами й обставинами саме цього дому. Це не означає, що вже можна описати зовнішність або наміри майбутнього партнера.':
+     'The seventh house concerns partnership and agreements. Its lord '+rulerName(7)+' is located in '+house(rulerAt(7))+', connecting relationship themes with that domain without asserting a future partner’s traits or intentions.'),
+    (uk?'Венера '+(same('Venus',String(lord(7).subject))?'стоїть разом з управителем сьомого дому':'знаходиться в '+house(get('Venus').house))+
+     '. Вона додає мотиви прихильності, близькості й особистих цінностей. Місяць у '+house(get('Moon').house)+' показує інший рівень — потребу в безпечному емоційному просторі. Взаємодія цих тем важливіша за одну коротку характеристику знака.':
+     'Venus '+(same('Venus',String(lord(7).subject))?'shares a house with the seventh lord':'is in '+house(get('Venus').house))+
+     ', adding affection, attraction and values. The Moon in '+house(get('Moon').house)+' adds emotional needs; together they create a more nuanced relationship portrait.'),
+    (uk?'Навамша D9 має лагну у '+sign(chart.lagnaD9.sign)+'. Ця дробова карта доповнює D1 у традиційному прочитанні стосунків і дгарми; сама її лагна ще не є доказом конкретного сценарію в особистому житті.':
+     'The D9 Navamsha ascendant is in '+sign(chart.lagnaD9.sign)+'. This divisional chart supplements D1 for relationships and dharma rather than proving an outcome on its own.')],
+   career:[(uk?'Десятий дім описує професію й суспільну роль. Його управитель '+rulerName(10)+' розташований у '+house(rulerAt(10))+'. Тому кар’єру тут традиційно пов’язують не лише з посадою, а й з тематикою цього дому.':
+     'The tenth house concerns work and public standing. Its lord '+rulerName(10)+' occupies '+house(rulerAt(10))+', linking vocation to the matters of that house.'),
+    rulerAt(10)===9?(uk?'Оскільки управитель кар’єри перебуває в дев’ятому домі, у такому прочитанні можуть виділятися викладання, розвиток компетенцій, робота з ідеями, міжнародний контекст або пошук сенсу у професії. Це варіанти традиційних відповідностей, а не готовий список гарантовано успішних професій.':
+     'With the tenth lord in the ninth house, classical themes may include teaching, higher learning, international perspectives or work grounded in convictions—not a guaranteed list of careers.'):
+     (uk?'Це положення насамперед описує стиль професійної реалізації: теми '+area(rulerAt(10))+' переплітаються з питаннями діяльності й репутації.':
+      'This ties professional expression to '+area(rulerAt(10))+' without dictating a single occupation.'),
+    (uk?'Дашамша D10 має лагну у '+sign(chart.lagnaD10.sign)+'. У Джйотіш її вивчають як додатковий професійний контекст, зіставляючи з основною картою D1, а не підміняючи нею розрахунок.':
+     'D10 Dashamsha has its ascendant in '+sign(chart.lagnaD10.sign)+'. In Jyotish this adds vocational context and should be compared with the main D1 chart.')],
+   resources:[(uk?'Другий дім пов’язаний із накопиченнями, сімейними цінностями й мовленням. Його управитель '+rulerName(2)+' у '+house(rulerAt(2))+' переносить цей сюжет у конкретну частину карти. Тому ресурси в традиційному тлумаченні не відокремлюються від освіти, обов’язків чи партнерства, якщо на це вказує положення управителя.':
+     'The second house covers assets, family values and speech. Its lord '+rulerName(2)+' in '+house(rulerAt(2))+' links resources with that life area in the traditional framework.'),
+    (uk?'Управитель одинадцятого дому, пов’язаного з досягненнями та мережами підтримки, — '+rulerName(11)+' — розташований у '+house(rulerAt(11))+'. Поєднання другого та одинадцятого домів дає глибший контекст, але не дозволяє обіцяти багатство чи точні суми доходів.':
+     'The eleventh house concerns gains and networks; its lord '+rulerName(11)+' is in '+house(rulerAt(11))+'. Reading both houses adds nuance, but cannot justify guaranteed earnings or wealth.')],
+   challenges:[conflicts,moonContext,(uk?'Сатурн у '+sign(get('Saturn').sign)+' в '+house(get('Saturn').house)+' показує, де традиція говорить про час, відповідальність та обмеження. Його взаємодію з іншими грахами потрібно читати за підтвердженими положеннями, а не вигадувати емоційні травми чи діагнози.':
+    'Saturn in '+sign(get('Saturn').sign)+' and '+house(get('Saturn').house)+' frames the themes of time, responsibility and limits; chart evidence does not justify inventing traumas or diagnoses.')],
+   growth:[(uk?'Юпітер у '+sign(get('Jupiter').sign)+' в '+house(get('Jupiter').house)+' описує, де у традиції шукають джерело мудрості, смислу й наставництва. Це не універсальна обіцянка духовного покликання, а конкретна частина цієї карти.':
+     'Jupiter in '+sign(get('Jupiter').sign)+' and '+house(get('Jupiter').house)+' shows where the tradition places themes of wisdom, values and mentorship.'),
+    (uk?'Дев’ятим домом керує '+rulerName(9)+' з '+house(rulerAt(9))+'. У поєднанні з Юпітером це допомагає відрізнити справжні пріоритети карти від простої поради «розвивайтеся».':
+     'The ninth house is ruled by '+rulerName(9)+' in '+house(rulerAt(9))+'. Reading that lord alongside Jupiter provides a chart-grounded view of learning and worldview.'),
+    (uk?'Місяць перебуває в накшатрі '+get('Moon').nakshatra+', пада '+get('Moon').pada+'. Ця подробиця допомагає читати місячний темперамент і лежить в основі обчислення періодів Вімшоттарі.':
+     'The Moon occupies nakshatra '+get('Moon').nakshatra+', pada '+get('Moon').pada+'. This refines the lunar reading and grounds Vimshottari timing.')],
+   conclusion:[combined, (uk?'Лагна у '+sign(asc)+' і управитель першого дому '+rulerName(1)+' у '+house(rulerAt(1))+' задають центральну рамку особистого шляху. Управитель сьомого дому '+rulerName(7)+' та десятого '+rulerName(10)+' вказують, як до цього додаються партнерство і професійна роль.':
+     'The ascendant in '+sign(asc)+' and its lord '+rulerName(1)+' in '+house(rulerAt(1))+' frame the central life direction. Seventh and tenth lords '+rulerName(7)+' and '+rulerName(10)+' place relationships and vocation in that context.'), timing]
+  };
+  return chunks[id]||fallback;
+ };
  const chapters=[
  chapter('core','Ядро особистості','Your inner and outer world',[
   uk?'Висхідний знак у '+sign(asc)+' додає до вашого традиційного портрета тему '+character(asc)+'. '+sunStories[sun.sign-1]+' '+moonStories[moon.sign-1]+' Зовнішні прагнення, емоційні потреби та перше враження не обов’язково збігаються — у цьому й полягає цікава взаємодія цих трьох положень.':

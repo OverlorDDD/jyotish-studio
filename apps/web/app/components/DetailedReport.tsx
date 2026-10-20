@@ -1,4 +1,5 @@
 'use client';
+import GlossaryText from './GlossaryText';
 
 export type ReadingSection={
  id:string;heading:string;eyebrow:string;lead:string;paragraphs:string[];
@@ -142,12 +143,12 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     <p>{uk?'Перед вами персональне прочитання за традицією Джйотіш: лагна, положення грах, управителі домів, накшатра Місяця та поточна даша. Ми пояснюємо, звідки походить кожен висновок, відділяючи астрологічний розрахунок від традиційного тлумачення.':'A personal reading in the Jyotish tradition, following the ascendant, grahas, house rulers, Moon nakshatra and current dasha. Each conclusion is tied to the chart, distinguishing astronomical calculations from traditional interpretation.'}</p>
    </div>
    <section className="reading-editorial-highlights" aria-label={uk?'Основні акценти карти':'Chart highlights'}>
-    {report.editorial.highlights.map((h,i)=><div key={i}><span>{String(i+1).padStart(2,'0')}</span><strong>{h}</strong></div>)}
+    {report.editorial.highlights.map((h,i)=><div key={i}><span>{String(i+1).padStart(2,'0')}</span><strong><GlossaryText text={h} locale={lang}/></strong></div>)}
    </section>
    <div className="reading-editorial-chapters">
     {report.editorial.chapters.map((chapter,i)=><article className="reading-editorial-chapter" key={chapter.id} id={'reading-story-'+chapter.id}>
       <div className="reading-editorial-chapter-header"><span>{String(i+1).padStart(2,'0')}</span><h3>{chapter.title}</h3></div>
-      {chapter.paragraphs.map((p,j)=><p key={j}>{p}</p>)}
+      {chapter.paragraphs.map((p,j)=><p key={j}><GlossaryText text={p} locale={lang}/></p>)}
       {chapter.id==='elements'?<div className="reading-elements" aria-label={uk?'Підрахунок стихій':'Element count'}>
        {report.editorial!.elements.map(e=><div className="reading-element" key={e.name}>
         <div><strong>{e.name}</strong><span>{e.count} / 7 · {e.percentage}%</span></div>
@@ -166,7 +167,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <summary>{uk?'✧ Додаткове прочитання від AI-асистента':'✧ Additional AI interpretation'}</summary>
    <p>{uk?'Це додатковий погляд у традиції Джйотіш на основі перевірених положень вашої карти. Генеративна модель не має права вигадувати нові йоги, даші або положення планет.':'This additional Jyotish interpretation is grounded in verified chart placements. The model must not invent yogas, dashas or planetary placements.'}</p>
    <div className="reading-ai-text">{friendlyAiCards(ai.text,lang).map((item,i)=><article key={i} className="reading-ai-card">
-    <h4>{item.heading}</h4><p>{item.body}</p>
+    <h4>{item.heading}</h4><p><GlossaryText text={item.body} locale={lang}/></p>
    </article>)}</div>
   </details>:null}
   {!report.editorial?.chapters?.length?<>
@@ -202,7 +203,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
      <p className="reading-provider">{(ai.provider==='openrouter'?'OpenRouter':'Ollama')+(ai.model?' · '+ai.model:'')} · {uk?'без платного OpenAI':'no paid OpenAI'}</p>
      <div className="reading-ai-text">
       {friendlyAiCards(ai.text,lang).map((card,index)=><article className="reading-ai-card" key={index}>
-       <h4>{card.heading}</h4><p>{card.body}</p>
+       <h4>{card.heading}</h4><p><GlossaryText text={card.body} locale={lang}/></p>
       </article>)}
      </div>
      {!friendlyAiCards(ai.text,lang).length?<p className="reading-paragraph">{uk?'Не вдалося розібрати короткий AI-підсумок. Детальний розрахований звіт доступний нижче.':'The AI summary could not be displayed. The detailed calculated report is available below.'}</p>:null}
@@ -214,12 +215,6 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <p className="reading-ai-disclaimer">{uk?'Це символічне прочитання традиції Джйотіш, а не гарантований прогноз. Використовуйте його як привід для роздумів, а не як єдину основу важливих рішень.':'This is a symbolic reading from the Jyotish tradition, not a guaranteed prediction. Use it for reflection, not as the sole basis for important decisions.'}</p>
   </section>:null}
   </>:null}
-  <section className="reading-weekly-roadmap">
-   <div className="reading-chapter-kicker">{uk?'✦ ВАШ ПЛАН ДІЙ':'✦ YOUR ACTION PLAN'}</div>
-   <h3>{uk?'З чого почати':'Where to begin'}</h3>
-   <p>{uk?'Оберіть не більше трьох ідей і перевірте, чи вони справді корисні саме вам. Не потрібно робити все одразу.':'Choose no more than three ideas and see if they are genuinely useful for you. There is no need to do everything at once.'}</p>
-   <ol>{(report.editorial?.chapters?.length?report.editorial.chapters.filter(ch=>['core','relationships','career','growth'].includes(ch.id)).slice(0,3).map(ch=>({id:ch.id,title:ch.title,action:ch.insights[0]||''})):(report.lifePortrait?.chapters||[]).slice(0,3)).map(ch=><li key={ch.id}><strong>{ch.title}</strong><span>{ch.action}</span></li>)}</ol>
-  </section>
   <details className="reading-technical" id="reading-details">
    <summary><span>{uk?'Астрологічні розрахунки та джерела':'Astrological calculations and sources'}</span>
     <small>{uk?'Необов’язково · для тих, хто хоче розібратися глибше':'Optional · for readers who want to explore the calculations'}</small></summary>
@@ -236,9 +231,9 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
       <div className="reading-chapter-copy">
        <div className="reading-chapter-kicker">{section.eyebrow}</div>
        <h3>{section.heading}</h3>
-       <p className="reading-chapter-lead">{section.lead}</p>
-       {section.paragraphs.map((paragraph,i)=><p key={i} className="reading-paragraph">{paragraph}</p>)}
-       {section.facts?.length?<details className="reading-facts"><summary>{uk?'Показати точні дані карти':'Show precise chart data'}</summary><ul>{section.facts.map((fact,i)=><li key={i}>{fact}</li>)}</ul></details>:null}
+       <p className="reading-chapter-lead"><GlossaryText text={section.lead} locale={lang}/></p>
+       {section.paragraphs.map((paragraph,i)=><p key={i} className="reading-paragraph"><GlossaryText text={paragraph} locale={lang}/></p>)}
+       {section.facts?.length?<details className="reading-facts"><summary>{uk?'Показати точні дані карти':'Show precise chart data'}</summary><ul>{section.facts.map((fact,i)=><li key={i}><GlossaryText text={fact} locale={lang}/></li>)}</ul></details>:null}
       </div>
      </article>)}
     </div>

@@ -139,8 +139,9 @@ test('reader-first editorial report has chart-specific chapters and accurately c
  assert.equal(uk.editorial.elements.reduce((s,v)=>s+v.count,0),7);
  assert.ok(uk.editorial.elements.every(v=>v.percentage===Math.round(v.count/7*100)));
  assert.ok(uk.editorial.highlights.length===3);
- assert.ok(uk.editorial.chapters.every(c=>c.paragraphs.length>=2&&c.insights.length&&c.evidence.length));
- assert.match(uk.editorial.chapters.find(c=>c.id==='career').paragraphs.join(' '),/Сонце|Меркурій/);
+ assert.ok(uk.editorial.chapters.every(c=>c.paragraphs.length>=2&&c.evidence.length));
+ assert.ok(uk.editorial.chapters.every(c=>!c.insights.length));
+ assert.match(uk.editorial.chapters.find(c=>c.id==='career').paragraphs.join(' '),/Десятий дім|управитель|Дашамша/);
  assert.ok(!uk.editorial.chapters.some(c=>c.paragraphs.some(p=>p.includes('Placidus')||p.includes('Уран'))));
  assert.equal(en.editorial.elements.map(v=>v.count).join(','),uk.editorial.elements.map(v=>v.count).join(','));
  assert.deepEqual(uk.editorial,buildDetailedReport(chart,'uk','2026-10-13').editorial);
@@ -150,12 +151,32 @@ test('reader-first editorial report has chart-specific chapters and accurately c
  assert.notDeepEqual(uk.editorial,buildDetailedReport(changed,'uk','2026-10-13').editorial);
 });
 
-test('Jyotish consultation does not give generic worksheet assignments as the reading conclusion',()=>{
- const reading=buildDetailedReport(chart,'uk','2026-10-13').editorial;
- const end=reading.chapters.find(c=>c.id==='conclusion');
- assert.ok(end);
- assert.doesNotMatch(end.insights.join(' '),/Оберіть дві практичні ідеї|перевірте, чи справді/);
- assert.match(end.insights.join(' '),/управитель|Традиційний ключ/);
- assert.ok(reading.chapters.every(c=>c.insights.some(x=>x.includes('Традиційний ключ'))));
- assert.match(end.paragraphs.join(' '),/Лагна|управителі/);
+test('reader summary supplies astrology rather than a worksheet action list',()=>{
+ const editorial=buildDetailedReport(chart,'uk','2026-10-13').editorial;
+ const end=editorial.chapters.find(c=>c.id==='conclusion');
+ assert.equal(end.insights.length,0);
+ assert.match(end.paragraphs.join(' '),/управитель|махадаша/);
+ assert.ok(editorial.chapters.every(ch=>ch.insights.length===0));
+ assert.doesNotMatch(editorial.chapters.flatMap(ch=>ch.paragraphs).join(' '),/Традиційний ключ:|Оберіть дві практичні ідеї/);
+});
+test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and house lords',()=>{
+ const natal=structuredClone(chart);
+ natal.ascendant.sign=4;natal.ascendant.signName='Cancer';
+ for(const name of ['Sun','Mars','Mercury','Saturn']){
+  const p=natal.d1.find(g=>g.name===name);p.house=9;p.sign=12;p.signName='Pisces';p.longitude=343.25;
+ }
+ const moon=natal.d1.find(g=>g.name==='Moon');
+ moon.house=12;moon.sign=3;moon.signName='Gemini';moon.longitude=73.25;
+ for(const graha of natal.d1)graha.house=((graha.sign-natal.ascendant.sign+12)%12)+1;
+ const reading=buildDetailedReport(natal,'uk','2026-10-20').editorial;
+ const byChapter=id=>reading.chapters.find(c=>c.id===id).paragraphs.join(' ');
+ assert.match(byChapter('themes'),/Сонце.*Марс.*Меркурій.*Сатурн/);
+ assert.match(byChapter('themes'),/дев’ятий дім/);
+ assert.match(byChapter('themes'),/Марс і Сатурн/);
+ assert.match(byChapter('core'),/Місяць у дванадцятому домі/);
+ assert.match(byChapter('relationships'),/Навамша D9/);
+ assert.match(byChapter('career'),/Дашамша D10/);
+ assert.match(byChapter('conclusion'),/махадаша Сатурн/);
+ assert.ok(reading.chapters.every(ch=>!ch.insights.length));
+ assert.doesNotMatch(reading.chapters.flatMap(ch=>ch.paragraphs).join(' '),/Традиційний ключ:|Оберіть дві практичні/);
 });
