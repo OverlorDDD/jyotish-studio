@@ -68,7 +68,9 @@ export async function generateFreeInterpretationDetailed(
      formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     try{
-     return {result:await request('strict')};
+     // Long-form advice uses vetted paragraphs, not JSON: openrouter/free rotates models
+     // which often cannot honour JSON-schema. Keep legacy short-reading strict.
+     return {result:await request(opts.reportMode?'prose':'strict')};
     }catch(error){
      // Free routers may choose endpoints that ignore strict schemas.
      // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.
@@ -76,7 +78,7 @@ export async function generateFreeInterpretationDetailed(
       (error.reason==='format'||(error.reason==='upstream'&&/^OpenAI HTTP (400|422)\b/.test(error.message)));
      if(!rejected)throw error;
      if(!permit()){reason='hourly_limit';continue;}
-     console.warn('Free AI: first response rejected; retrying with a simpler fact-linked JSON prompt');
+     console.warn('Free AI: first response rejected; retrying a fact-linked JSON prompt');
      return {result:await request('prompt')};
     }
    }
