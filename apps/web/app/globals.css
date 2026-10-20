@@ -612,3 +612,41 @@
 .as-loading-skeleton span{display:block;height:55px;border-radius:12px;background:linear-gradient(110deg,#233146,#3a4556,#233146);opacity:.85}
 .as-loading-skeleton span:nth-child(2){height:170px}
 .as-loading-skeleton span:nth-child(3){height:84px}
+
+/* A6 editorial workspace and published read-only practice steps */
+.as-editorial-workspace{border-top:1px solid #566070;padding:35px 0;margin-top:42px}
+.as-editorial-workspace>header h2{font:500 clamp(29px,3.5vw,43px) Georgia,serif;margin:13px 0}
+.as-editorial-workspace>header p{color:#bbc7d6;line-height:1.8;max-width:750px}
+.as-editorial-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.as-editorial-error{padding:13px 17px;border:1px solid #a56565;background:#432b35;color:#ffdbdb;border-radius:9px}
+.as-editorial-success{display:flex;gap:9px;align-items:center;color:#c4e8cb}
+.as-editorial-layout{display:grid;grid-template-columns:minmax(210px,300px) minmax(0,1fr);gap:24px;align-items:start}
+.as-editorial-sidebar{border:1px solid #4b5669;border-radius:15px;padding:15px;max-height:640px;overflow-y:auto}
+.as-editorial-sidebar h3{font-size:17px;margin:8px 0 18px}
+.as-editorial-item{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;border:1px solid #3a485c;background:#1a293c;border-radius:11px;padding:15px;color:#e1e7f1;cursor:pointer;margin:0 0 10px}
+.as-editorial-item.active{border-color:#dbba85;background:#323c4d}
+.as-editorial-item strong{font-size:15px}.as-editorial-item small{overflow-wrap:anywhere;color:#bbc4d3}
+.as-editorial-editor{min-width:0;border:1px solid #4d5b70;border-radius:16px;padding:clamp(17px,3vw,30px);background:#182638}
+.as-editorial-editor-head{display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
+.as-editorial-editor-head h3{margin:0 0 15px;font-size:19px}
+.as-editorial-pill{border:1px solid #8e8060;color:#f1d4a3;border-radius:20px;padding:5px 11px;font-size:11px}
+.as-editorial-field-grid,.as-editorial-dual{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.as-editorial-field{display:flex;flex-direction:column;gap:8px;margin:10px 0;font-size:13px;color:#d5dce5}
+.as-editorial-field>span{font-weight:600}
+.as-editorial-field input,.as-editorial-field textarea,.as-editorial-field select{min-width:0;width:100%;padding:12px 13px;background:#112036;color:#eaf0f8;border:1px solid #6a778b;border-radius:9px;font:400 14px/1.5 inherit;font-family:inherit}
+.as-editorial-field textarea{line-height:1.6;resize:vertical}
+.as-editorial-field input:focus-visible,.as-editorial-field textarea:focus-visible,.as-editorial-field select:focus-visible{outline:2px solid #e7c789;outline-offset:2px}
+.as-editorial-field input:disabled,.as-editorial-field select:disabled{opacity:.7}
+.as-editorial-dual>div{min-width:0;padding-top:8px}
+.as-editorial-dual h4{border-bottom:1px solid #526077;margin:12px 0;padding-bottom:12px;font-size:17px}
+.as-editorial-hint{color:#aebdce;font-size:12px;line-height:1.8}
+.as-editorial-correct{max-width:270px}
+.as-editorial-history{border:1px solid #5d6d80;border-radius:12px;padding:18px;margin:20px 0}
+.as-editorial-history p{font-size:12px;color:#bdc9da}
+.as-editorial-preview{display:inline-flex;align-items:center;gap:8px;color:#efd29e;margin-bottom:14px}
+.as-cms-steps{display:grid;gap:16px;margin:30px 0}
+.as-cms-step{border:1px solid #4d5b71;border-radius:15px;padding:21px;background:#1e2c40}
+.as-cms-step p{font-size:17px;line-height:1.9;color:#dce5ef;white-space:pre-wrap}
+.as-lesson-sections .as-lesson-section p{white-space:pre-wrap}
+@media(max-width:850px){.as-editorial-layout{grid-template-columns:minmax(0,1fr)}.as-editorial-sidebar{max-height:320px}}
+@media(max-width:620px){.as-editorial-dual,.as-editorial-field-grid{grid-template-columns:minmax(0,1fr)}}
