@@ -167,6 +167,7 @@ test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and
  }
  const moon=natal.d1.find(g=>g.name==='Moon');
  moon.house=12;moon.sign=3;moon.signName='Gemini';moon.longitude=73.25;
+ for(const graha of natal.d1)graha.house=((graha.sign-natal.ascendant.sign+12)%12)+1;
  const reading=buildDetailedReport(natal,'uk','2026-10-20').editorial;
  const byChapter=id=>reading.chapters.find(c=>c.id===id).paragraphs.join(' ');
  assert.match(byChapter('themes'),/Сонце.*Марс.*Меркурій.*Сатурн/);
