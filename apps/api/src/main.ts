@@ -14,6 +14,9 @@ import {SwaggerModule,DocumentBuilder} from '@nestjs/swagger';
 import {AppModule} from './nest.ts';
 async function bootstrap(){
  const app=await NestFactory.create(AppModule,{cors:{origin:[`http://localhost:${process.env.WEB_PORT||3000}`]}});
+ // Editorial articles can be much longer than Express's default 100 kB JSON body limit.
+ // Keep an explicit 2 MB ceiling to prevent unlimited request-body allocations.
+ app.useBodyParser('json',{limit:'2mb'});
  app.enableShutdownHooks();
  app.use((req:IncomingMessage,res:ServerResponse,next:()=>void)=>{
   const id=randomUUID(),start=Date.now();
