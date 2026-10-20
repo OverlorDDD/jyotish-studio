@@ -1,5 +1,6 @@
 import {Clock,LockKeyhole,MessageCircleMore,ShieldCheck,Video} from 'lucide-react';
 import type {PortalLocale} from '../../lib/brand';
+import Link from 'next/link';
 import DraftCheckout from './DraftCheckout';
 export default function ExpertOffer({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
@@ -28,6 +29,7 @@ export default function ExpertOffer({locale}:{locale:PortalLocale}){
    </ol>
    <p className="as-muted"><LockKeyhole size={15}/> {uk?'Наразі оплата ще не підключена, тому можна зберегти тільки приватну чернетку.':'Checkout is not connected yet; currently you can only save a private draft.'}</p>
   </div>
+  <p><Link className="as-button as-button-secondary" href={'/'+locale+'/experts'}>{uk?'Переглянути перевірених експертів':'View reviewed practitioners'}</Link></p>
   <DraftCheckout locale={locale}/>
  </section>;
 }
