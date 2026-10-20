@@ -4,6 +4,7 @@ import {notFound} from 'next/navigation';
 import {ArrowLeft,ArrowUpRight,ShieldCheck} from 'lucide-react';
 import PortalShell from '../../../components/PortalShell';
 import YogaSession from '../../../components/YogaSession';
+import GlossaryText from '../../../components/GlossaryText';
 import {YOGA_PRACTICES,yogaBySlug,say} from '../../../../lib/yoga-content';
 import {BREATHING_PATTERNS,sessionMs} from '../../../../lib/breathing-patterns';
 import {isPortalLocale} from '../../../../lib/brand';
@@ -40,12 +41,12 @@ export default async function YogaPracticePage({params}:Params){
    <header className="as-wellness-detail-head">
     <span className="as-overline">GALAXIORA YOGA</span>
     <h1>{say(practice.title,locale)}</h1>
-    <p>{say(practice.purpose,locale)}</p>
+    <p><GlossaryText text={say(practice.purpose,locale)} locale={locale}/></p>
     <div className="as-wellness-tags"><span>{practice.category==='breathing'?sessionMs(BREATHING_PATTERNS[0])/60000:practice.steps.reduce((sum,s)=>sum+s.seconds,0)/60} {uk?'хвилин':'minutes'}</span><span>{practice.category==='breathing'?BREATHING_PATTERNS[0].rounds:practice.steps.length} {practice.category==='breathing'?(uk?'циклів':'cycles'):(uk?'підказок':'guides')}</span></div>
    </header>
-   <aside className="as-wellness-prep"><h2>{uk?'Перед початком':'Before you begin'}</h2><p>{say(practice.preparation,locale)}</p></aside>
+   <aside className="as-wellness-prep"><h2>{uk?'Перед початком':'Before you begin'}</h2><p><GlossaryText text={say(practice.preparation,locale)} locale={locale}/></p></aside>
    <YogaSession practice={practice} locale={locale}/>
-   <aside className="as-wellness-note"><ShieldCheck size={22} aria-hidden="true"/><div><strong>{uk?'Важливо':'Safety first'}</strong><p>{say(practice.safety,locale)}</p></div></aside>
+   <aside className="as-wellness-note"><ShieldCheck size={22} aria-hidden="true"/><div><strong>{uk?'Важливо':'Safety first'}</strong><p><GlossaryText text={say(practice.safety,locale)} locale={locale}/></p></div></aside>
    <div className="as-wellness-next"><Link href={'/'+locale+'/learn/yoga-roots-and-safety'}>{uk?'Більше про йогу в Академії':'Explore yoga in Academy'} <ArrowUpRight size={16}/></Link></div>
   </div></PortalShell>;
 }

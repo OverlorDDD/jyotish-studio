@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {RefreshCcw,Sparkles,History,LockKeyhole} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
 import TarotCardArt from './TarotCardArt';
+import GlossaryText from './GlossaryText';
 import type {PortalLocale} from '../../lib/brand';
 
 type Localized={en:string;uk:string};
@@ -96,24 +97,24 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
        {!open?<span className="as-card-back"><span>✺</span><small>✦ TAROT ✦</small></span>:
         <TarotCardArt id={card.id} name={card.name[locale]} reversed={card.reversed} locale={locale}/>}
       </button>
-      {open&&<div className="as-card-interpret"><strong>{card.reversed?(uk?'Перевернута':'Reversed'):(uk?'Пряма':'Upright')}</strong><p>{card.meaning[locale]}</p><p className="as-card-depth">{card.detail[locale]}</p><p className="as-card-position-meaning">{card.positionInsight[locale]}</p></div>}
+      {open&&<div className="as-card-interpret"><strong>{card.reversed?(uk?'Перевернута':'Reversed'):(uk?'Пряма':'Upright')}</strong><p><GlossaryText text={card.meaning[locale]} locale={locale}/></p><p className="as-card-depth"><GlossaryText text={card.detail[locale]} locale={locale}/></p><p className="as-card-position-meaning"><GlossaryText text={card.positionInsight[locale]} locale={locale}/></p></div>}
      </div>
     })}
    </div>
    {revealed.length===reading.cards.length&&narrative&&<article className="as-tarot-synthesis" aria-labelledby="tarot-answer-heading">
     <span className="as-overline">{uk?'ТАРО — ПОВНЕ ЧИТАННЯ':'TAROT — FULL READING'}</span>
     <h3 id="tarot-answer-heading">{uk?'Що показують карти на твоє питання':'What the cards suggest about your question'}</h3>
-    <p className="as-reader-direct">{narrative.directAnswer}</p>
+    <p className="as-reader-direct"><GlossaryText text={narrative.directAnswer} locale={locale}/></p>
     <h4>{uk?'Як можуть розвиватися події':'How the situation could unfold'}</h4>
-    <p>{narrative.development}</p>
+    <p><GlossaryText text={narrative.development} locale={locale}/></p>
     <h4>{uk?'Кожна карта в контексті запитання':'Every card in context'}</h4>
     {narrative.cardExplanations.map((paragraph,i)=><p key={i} className="as-reader-card-detail">
      <strong>{i+1}. {reading.cards[i].name[locale]}{reading.cards[i].reversed?(uk?' (перевернута)':' (reversed)'):''}:</strong> {paragraph}
     </p>)}
     <h4>{uk?'На що звернути увагу':'What to watch for'}</h4>
-    <p>{narrative.caution}</p>
+    <p><GlossaryText text={narrative.caution} locale={locale}/></p>
     <h4>{uk?'Порада таролога':'Reader’s advice'}</h4>
-    <p>{narrative.advice}</p>
+    <p><GlossaryText text={narrative.advice} locale={locale}/></p>
     <p className="as-muted">{aiWasUsed?
       (uk?'AI-інтерпретація за згодою користувача · модель: ':'AI interpretation with your consent · model: ')+reading.aiReading?.model:
       (uk?'Авторська сценарна інтерпретація без AI. Події — можливі символічні сценарії, а не гарантоване майбутнє.':'Original rule-based reading without AI. Scenarios are symbolic possibilities, not known future events.')}
