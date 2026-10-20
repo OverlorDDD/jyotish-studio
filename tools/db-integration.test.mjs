@@ -129,6 +129,66 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
    const audit=await request('/api/v1/admin/role-audit',{cookie:admin.cookie});
    assert.equal(audit.status,200);assert.ok(audit.data.some(row=>row.newRole==='SUPPORT'));
   });
+  await t.test('A6 editorial PostgreSQL: CSRF, roles, revisions, publishing and archives',async()=>{
+   const body={
+    title:{uk:'Новий урок про традиції',en:'A new lesson about traditions'},
+    summary:{uk:'Зрозумілий вступний матеріал про традиції та їхні історичні межі.',en:'A clear introductory guide to traditions and their historical boundaries.'},
+    body:{uk:'Це освітній матеріал про культурний контекст та способи його вивчення. '.repeat(4),
+     en:'This educational material explores historical context and the methods used in careful inquiry. '.repeat(4)},
+    quiz:{question:{uk:'Що ми вивчаємо в цьому уроці?',en:'What are we exploring in this lesson?'},
+     choices:[{uk:'Традиції',en:'Traditions'},{uk:'Рецепт',en:'Recipe'},{uk:'Діагноз',en:'Diagnosis'}],
+     correct:0,explanation:{uk:'Ми аналізуємо культурний контекст, а не медичні діагнози.',en:'We examine cultural context rather than medical diagnoses.'}}
+   };
+   const slug='a6-'+nonce;
+   const create={kind:'ACADEMY',slug,topic:'jyotish',document:body};
+   const write='/api/v1/editorial/entries';
+   assert.equal((await post(write,create,a.cookie)).status,403);
+   assert.equal((await post(write,create,b.cookie,'https://evil.example')).status,403);
+   const made=await post(write,create,b.cookie);
+   assert.equal(made.status,201,JSON.stringify(made.data));
+   let rev=made.data.revision,id=made.data.id;
+   assert.equal(rev,1);
+   const live='/api/v1/content/ACADEMY/'+slug;
+   assert.equal((await request(live)).status,404);
+   assert.equal((await request('/api/v1/content?kind=ACADEMY')).data.some(e=>e.slug===slug),false);
+   assert.equal((await request('/api/v1/editorial/entries')).status,401);
+   assert.equal((await request('/api/v1/editorial/entries',{cookie:a.cookie})).status,403);
+   assert.equal((await post(write,create,b.cookie)).status,409);
+   const editUrl=write+'/'+id;
+   const edited=await request(editUrl,{method:'PATCH',cookie:b.cookie,origin:base,
+    body:{topic:'practice',document:body,expectedRevision:rev}});
+   assert.equal(edited.status,200,JSON.stringify(edited.data));
+   rev=edited.data.revision;assert.equal(rev,2);
+   assert.equal((await request(editUrl,{method:'PATCH',cookie:b.cookie,origin:base,
+    body:{topic:'practice',document:body,expectedRevision:1}})).status,409);
+   const action=(cookie,act,revision)=>post(editUrl+'/transition',{action:act,expectedRevision:revision},cookie);
+   assert.equal((await action(b.cookie,'publish',rev)).status,403);
+   const review=await action(b.cookie,'submit',rev);
+   assert.equal(review.status,201,JSON.stringify(review.data));
+   rev=review.data.revision;
+   assert.equal(review.data.status,'IN_REVIEW');
+   assert.equal((await request(live)).status,404);
+   assert.equal((await action(b.cookie,'approve',rev)).status,403);
+   const approved=await action(admin.cookie,'approve',rev);
+   assert.equal(approved.status,201,JSON.stringify(approved.data));rev=approved.data.revision;
+   const published=await action(admin.cookie,'publish',rev);
+   assert.equal(published.status,201,JSON.stringify(published.data));rev=published.data.revision;
+   assert.equal(published.data.status,'PUBLISHED');
+   const accessible=await request(live);
+   assert.equal(accessible.status,200);assert.equal(accessible.data.document.title.en,body.title.en);
+   assert.equal((await request('/api/v1/content?kind=ACADEMY')).data.some(e=>e.slug===slug),true);
+   assert.equal((await request(editUrl,{method:'PATCH',cookie:b.cookie,origin:base,
+    body:{topic:'jyotish',document:body,expectedRevision:rev}})).status,409);
+   const history=await request(editUrl+'/history',{cookie:b.cookie});
+   assert.equal(history.status,200);assert.equal(history.data.length,5);
+   assert.deepEqual(history.data.map(x=>x.action),['publish','approve','submit','edit','create']);
+   const archived=await action(admin.cookie,'archive',rev);
+   assert.equal(archived.status,201);assert.equal(archived.data.status,'ARCHIVED');
+   assert.equal((await request(live)).status,404);
+   assert.equal((await request('/api/v1/content?kind=ACADEMY')).data.some(e=>e.slug===slug),false);
+   const reopened=await action(admin.cookie,'reopen',archived.data.revision);
+   assert.equal(reopened.status,201);assert.equal(reopened.data.status,'DRAFT');
+  });
   await t.test('logout clears browser cookie',async()=>{
    const out=await post('/api/v1/account/logout',{},b.cookie);
    assert.equal(out.status,201);assert.equal(out.cookie,'jyotish_session=');
