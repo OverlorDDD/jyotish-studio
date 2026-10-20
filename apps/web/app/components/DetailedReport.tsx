@@ -9,7 +9,7 @@ export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
- editorial?:{version:string;chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
+ editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string};
 };
@@ -149,19 +149,22 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     {report.editorial.chapters.map((chapter,i)=><article className="reading-editorial-chapter" key={chapter.id} id={'reading-story-'+chapter.id}>
       <div className="reading-editorial-chapter-header"><span>{String(i+1).padStart(2,'0')}</span><h3>{chapter.title}</h3></div>
       {chapter.paragraphs.map((p,j)=><p key={j}><GlossaryText text={p} locale={lang}/></p>)}
-      {chapter.id==='elements'?<div className="reading-elements" aria-label={uk?'Підрахунок стихій':'Element count'}>
+      {false&&chapter.id==='elements'?<div className="reading-elements" aria-label={uk?'Підрахунок стихій':'Element count'}>
        {report.editorial!.elements.map(e=><div className="reading-element" key={e.name}>
         <div><strong>{e.name}</strong><span>{e.count} / 7 · {e.percentage}%</span></div>
         <div className="reading-element-track"><div style={{width:e.percentage+'%'}}/></div>
        </div>)}
        <small>{uk?'Частки семи класичних планет за знаками, не психологічний рейтинг.':'Share of seven classical grahas by sign; not a psychological score.'}</small>
       </div>:null}
-      {chapter.insights?.length?<aside className="reading-editorial-advice">
-       <strong>{uk?'Ключ до трактування':'Interpretive key'}</strong>
-       {chapter.insights.map((ad,j)=><p key={j}>{ad}</p>)}
-      </aside>:null}
+      {report.editorial?.findings?.length?<details className="reading-portrait-evidence"><summary>{uk?'Перевірені астрологічні опори':'Verified astrological evidence'}</summary>
+       <ul>{report.editorial.findings.filter(f=>chapter.evidence.some(ev=>f.verifiedEvidence.includes(ev))).map(f=><li key={f.id}><strong>{f.ruleId}</strong>: {f.verifiedEvidence.join(' · ')}</li>)}</ul>
+      </details>:null}
      </article>)}
    </div>
+   <details className="reading-glossary"><summary>{uk?'Технічний додаток: баланс стихій':'Technical appendix: element distribution'}</summary>
+    <div className="reading-elements">{report.editorial.elements.map(e=><div className="reading-element" key={e.name}><div><strong>{e.name}</strong><span>{e.count} / 7 · {e.percentage}%</span></div><div className="reading-element-track"><div style={{width:e.percentage+'%'}}/></div></div>)}</div>
+    <p>{report.editorial.method}</p>
+   </details>
   </div>:null}
   {report.editorial?.chapters?.length&&(ai.provider==='openrouter'||ai.provider==='ollama')&&friendlyAiCards(ai.text,lang).length>0?<details className="reading-editorial-ai">
    <summary>{uk?'✧ Додаткове прочитання від AI-асистента':'✧ Additional AI interpretation'}</summary>
