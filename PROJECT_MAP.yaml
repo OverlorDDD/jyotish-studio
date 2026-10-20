@@ -36,7 +36,7 @@ modules:
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
     interpretation_v3: "apps/api/src/interpretation-v3.ts; ranked AstrologicalFinding and eight narrative chapters; optional AI receives evidence instead of boilerplate"
     interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
-    interpretation_release: "PR #22: GitHub CI gate and independent manual birth-chart/external-LLM verification required"
+    interpretation_release: "A7.3 AI-authored eight chapter overlays with verified per-chapter fallback; actual cloud use requires live PASS"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
@@ -116,8 +116,8 @@ modules:
     status: "usage storage and OpenRouter/Gemini/Ollama fallback implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
     live_check: "npm run ai:verify-live; invented chart facts, never CI; success identifies actual upstream model"
-    provenance: "report.ai.source llm/deterministic; report.ai.cached; visible reading-ai-provenance UI"
-    cost_guard: "AI_MODE=free; Gemini requires GEMINI_API_KEY and GEMINI_FREE_TIER_CONFIRMED=1"
+    provenance: "report.ai.source llm/deterministic; report.ai.chapters 4-8 verified, missing chapters remain deterministic; reading-ai-provenance UI"
+    cost_guard: "AI_MODE=free; Gemini requires GEMINI_API_KEY and GEMINI_FREE_TIER_CONFIRMED=1; optional OPENROUTER_FREE_MODEL must end in :free"
     table: AiUsage
 persistence:
   schema: "apps/api/prisma/schema.prisma"
@@ -163,6 +163,7 @@ quality:
     a5_content: "npm run test:content:a5"
     editorial_a6: "npm run test:editorial:a6"
     a7_llm: "npm run test:a7:llm"
+    a7_consultation: "npm run test:a7:consultation"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
@@ -189,6 +190,7 @@ docs:
   jyotish: "docs/jyotish-engine-2.md"
   windows: "docs/galaxiora-windows-runbook.md"
   a7_llm: "docs/a7-llm-provenance-and-failover.md"
+  a7_full_consultation: "docs/a7-3-professional-consultation.md"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"
   a1: "docs/a1-security-and-testing.md"
   a4: "docs/a4-launch-readiness.md"
