@@ -73,7 +73,27 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en'):Edit
   const r=ruler(house);return uk?'управитель '+name(String(r.subject))+' розташований у сфері «'+area(Number(r.values.locatedHouse))+'»':
    'ruler '+name(String(r.subject))+' is linked to '+area(Number(r.values.locatedHouse));
  };
- const chapter=(id:string,u:string,e:string,p:string[],tips:string[],ev:string[]):EditorialChapter=>({id,title:uk?u:e,paragraphs:p,insights:tips,evidence:ev});
+ const readingKey=(id:string):string=>{
+  const star=(planet:string)=>placement(planet);
+  const houseRuler=(house:number)=>rulerPhrase(house);
+  const prefix=uk?'Традиційний ключ: ':'Classical reading key: ';
+  const keys:Record<string,string>={
+   core:star('Sun')+'; '+star('Moon')+'.',
+   elements:uk?'Співвідношення стихій: '+top+'; цей підрахунок уточнюється значенням управителів домів.':'Elements lead with '+top+'; house lords provide the essential contextual reading.',
+   themes:star('Sun')+'; '+star('Moon')+'.',
+   strengths:star('Sun')+'; '+houseRuler(1)+'.',
+   relationships:star('Venus')+'; '+houseRuler(7)+'.',
+   career:star('Mercury')+'; '+houseRuler(10)+'.',
+   resources:houseRuler(2)+'.',
+   challenges:star('Saturn')+'; '+star('Moon')+'.',
+   growth:star('Jupiter')+'; '+houseRuler(9)+'.',
+   conclusion:houseRuler(7)+'; '+houseRuler(10)+'.'
+  };
+  return prefix+(keys[id]||star('Sun'));
+ };
+ const chapter=(id:string,u:string,e:string,p:string[],tips:string[],ev:string[]):EditorialChapter=>({
+  id,title:uk?u:e,paragraphs:p,insights:[readingKey(id)],evidence:ev
+ });
  const sun=get('Sun'),moon=get('Moon'),saturn=get('Saturn'),venus=get('Venus'),jupiter=get('Jupiter');
  const mercury=get('Mercury'),asc=chart.ascendant.sign;
  const groups=[...new Set(classical.map(n=>get(n).house))].map(h=>({h,count:classical.filter(n=>get(n).house===h).length}))
