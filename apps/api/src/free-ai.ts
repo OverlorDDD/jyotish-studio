@@ -1,12 +1,12 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {createHourlyLimiter,generateOpenAiInterpretation,AiProviderError,type AiUsageEvent} from './ai.ts';
 
-/** Every cloud inference request uses the strictly free OpenRouter model router. */
-type FreeProvider='openrouter'|'ollama';
+/** Free by configuration only: Gemini requires separately verified FREE billing tier. */
+export type FreeProvider='openrouter'|'gemini'|'ollama';
 export type FreeFallbackReason='hourly_limit'|'no_provider'|'rate_limited'|'provider_rejected'|'provider_unavailable'|'invalid_response'|'timeout'|'network';
-const allowed=new Set<FreeProvider>(['openrouter','ollama']);
+const allowed=new Set<FreeProvider>(['openrouter','gemini','ollama']);
 const order=():FreeProvider[]=>{
- const configured=process.env.FREE_AI_ORDER||'openrouter,ollama';
+ const configured=process.env.FREE_AI_ORDER||'openrouter,gemini,ollama';
  return [...new Set(configured.split(',').map(s=>s.trim()).filter((s):s is FreeProvider=>allowed.has(s as FreeProvider)))];
 };
 let budget:(()=>boolean)|undefined;
@@ -33,7 +33,7 @@ function failureReason(error:unknown):FreeFallbackReason{
 }
 export type FreeAiOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
- ollamaEnabled?:boolean;ollamaModel?:string;
+ ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
  factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;
  onUsage?:(event:AiUsageEvent)=>Promise<void>|void;
 };
@@ -51,11 +51,15 @@ export async function generateFreeInterpretationDetailed(
  const providers=opts.order||order();
  const openrouterKey=opts.key??process.env.OPENROUTER_API_KEY?.trim()??'';
  const ollamaEnabled=opts.ollamaEnabled??process.env.OLLAMA_ENABLED==='1';
+ const geminiKey=opts.geminiKey??process.env.GEMINI_API_KEY?.trim()??'';
+ // Deliberate opt-in only after confirming in Google AI Studio that billing is OFF/free tier.
+ const geminiEnabled=opts.geminiEnabled??process.env.GEMINI_FREE_TIER_CONFIRMED==='1';
  const ollamaModel=opts.ollamaModel||process.env.OLLAMA_MODEL||'gemma3:1b';
  let reason:FreeFallbackReason='no_provider';
  for(const provider of providers){
   if(provider==='openrouter'&&!openrouterKey)continue;
   if(provider==='ollama'&&!ollamaEnabled)continue;
+  if(provider==='gemini'&&(!geminiEnabled||!geminiKey))continue;
   try{
    if(provider==='openrouter'){
     if(!permit()){reason='hourly_limit';continue;}
@@ -75,6 +79,15 @@ export async function generateFreeInterpretationDetailed(
      console.warn('Free AI: first response rejected; retrying with a simpler fact-linked JSON prompt');
      return {result:await request('prompt')};
     }
+   }
+   if(provider==='gemini'){
+    if(!permit()){reason='hourly_limit';continue;}
+    const result=await generateOpenAiInterpretation(chart,lang,{
+     provider:'gemini',key:geminiKey,model:'gemini-2.5-flash-lite',formatMode:'prompt',
+     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,
+     approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
+    });
+    return {result};
    }
    if(provider==='ollama'){
     const result=await generateOpenAiInterpretation(chart,lang,{
