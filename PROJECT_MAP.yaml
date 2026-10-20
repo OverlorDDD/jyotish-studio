@@ -187,3 +187,7 @@ docs:
 # A4
 # Backup: tools/backup-db.ps1 (one-way, no automatic restore), docs/a4-launch-readiness.md.
 # API trace: apps/api/src/main.ts, X-Request-Id; optional HTTP_ACCESS_LOG=1 (no user paths/bodies).
+
+# Reader v3 / content tooltips: apps/api/src/editorial-reading.ts, apps/web/lib/glossary.ts, apps/web/app/components/GlossaryText.tsx.
+# Editorial policy and UX research: docs/interpretation-standard-v3.md.
+# QA: npm run test:glossary; npm run test:report.
