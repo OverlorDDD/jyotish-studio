@@ -61,7 +61,8 @@
     "test:breathing": "node --experimental-strip-types --test tools/breathing-engine.test.mjs",
     "test:editorial:a6": "node --experimental-strip-types --test tools/a6-editorial.test.mjs",
     "test:glossary": "node --experimental-strip-types --test tools/glossary.test.mjs",
-    "test:a7:llm": "node --experimental-strip-types --test tools/a7-llm-failover.test.mjs"
+    "test:a7:llm": "node --experimental-strip-types --test tools/a7-llm-failover.test.mjs",
+    "ai:verify-live": "node --env-file-if-exists=.env --experimental-strip-types tools/a7-live-llm-check.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
