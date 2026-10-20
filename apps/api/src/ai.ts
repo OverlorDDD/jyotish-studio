@@ -142,7 +142,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   provider==='ollama'?'http://127.0.0.1:11434/v1/chat/completions':'https://api.openai.com/v1/chat/completions';
  if(provider!=='ollama'&&!options.key.trim())throw new AiProviderError('upstream','API key is not configured');
  if(!(options.limit||defaultHourlyLimit)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
- const facts=options.factsOverride||astrologicalFacts(chart,lang,options.now);
+ const facts=options.factsOverride||(options.chapterSpecs?[]:astrologicalFacts(chart,lang,options.now));
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?90000:provider==='openrouter'?60000:provider==='gemini'?60000:15000);
  const onAbort=()=>controller.abort();
