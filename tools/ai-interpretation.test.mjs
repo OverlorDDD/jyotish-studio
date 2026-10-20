@@ -117,7 +117,7 @@ test('offline report includes actual D1 D9 D10 and dasha period details',()=>{
 });
 
 
-test('long-form AI uses beginner-friendly language and shows friendly headings instead of raw astrology facts',async()=>{
+test('long-form AI uses a chart-grounded Jyotish consultant voice and fact-linked headings',async()=>{
  const factsOverride=[
   {id:'identity',fact:'Лагна: Риби, дім 1.'},
   {id:'houses',fact:'Дванадцять домів, зайняті планетами: technical facts'},
@@ -129,9 +129,9 @@ test('long-form AI uses beginner-friendly language and shows friendly headings i
   fetcher:async(_url,init)=>{
    const request=JSON.parse(init.body);
    const instructions=request.messages[0].content;
-   assert.match(instructions,/complete beginner/);
-   assert.match(instructions,/plain, everyday language/);
-   assert.match(instructions,/Avoid technical words entirely/);
+   assert.match(instructions,/traditional Parashari Jyotish consultation/);
+   assert.match(instructions,/explicitly use at least one supplied chart placement/);
+   assert.match(instructions,/Do not invent/);
    return apiReply({sections:[
     {factId:'identity',text:'У символічній традиції це може нагадувати про те, як ви починаєте нові справи. Корисно поміркувати, що допомагає вам почуватися впевнено.'},
     {factId:'houses',text:'Різні сфери життя не існують окремо одна від одної. Зверніть увагу, де ваші звички підтримують одне одного, а де потребують балансу.'},
