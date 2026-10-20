@@ -41,6 +41,11 @@ export function validateEditorial(kind:unknown,slug:unknown,topic:unknown,input:
  if(kind!=='ACADEMY'&&kind!=='YOGA')fail('Invalid content kind');
  if(typeof slug!=='string'||! /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)||slug.length>80)
   fail('Slug must contain lowercase ASCII words separated by hyphens (up to 80 characters)');
+ const reserved:Record<EditorialKind,readonly string[]>={
+  ACADEMY:['sidereal-and-tropical','nakshatras','divisional-charts','tarot-questions','tarot-reversals','mindful-practice','yoga-roots-and-safety'],
+  YOGA:['gentle-breath','desk-mobility','five-senses','evening-unwind']
+ };
+ if(reserved[kind].includes(slug))fail('This slug belongs to the protected A5 content library');
  if(typeof topic!=='string'||!EDITORIAL_TOPICS[kind].includes(topic))fail('Topic not allowed for content kind');
  if(!input||typeof input!=='object'||Array.isArray(input))fail('Invalid editorial document');
  const doc=input as Record<string,unknown>;
