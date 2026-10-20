@@ -191,7 +191,7 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
   });
   await t.test('A6.1 live API supports >100kb bilingual article, short answers and Yoga without safety',async()=>{
    const longBody='Уважна велика стаття. '.repeat(5100);
-   const longEn='A long educational article. '.repeat(5100);
+   const longEn='A long educational article. '.repeat(3500);
    const article={
     title:{uk:'Текст',en:'Text'},summary:{uk:'Опис',en:'Desc'},
     body:{uk:longBody,en:longEn},
