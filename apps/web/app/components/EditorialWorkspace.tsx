@@ -115,7 +115,7 @@ export default function EditorialWorkspace({locale}:{locale:PortalLocale}){
  const field=(key:keyof Draft,label:string,multiline=false,placeholder='')=><label className="as-editorial-field" key={String(key)}>
   <span>{label}</span>
   {multiline?<textarea rows={key==='bodyUk'||key==='bodyEn'?7:3} value={String(form[key])} placeholder={placeholder}
-   onChange={e=>editField(key,e.target.value as never)}/>:<input value={String(form[key])} placeholder={placeholder}
+   onChange={e=>editField(key,e.target.value as never)}/>:<input disabled={(key==='slug'&&!!selected)||!!selected&&selected.status!=='DRAFT'} value={String(form[key])} placeholder={placeholder}
    onChange={e=>editField(key,e.target.value as never)}/>}
  </label>;
  return <section className="as-editorial-workspace" id="editorial" aria-label={uk?'Редакційна панель':'Editorial workspace'}>
@@ -190,3 +190,4 @@ export default function EditorialWorkspace({locale}:{locale:PortalLocale}){
    </div>
   </>}
  </section>;
+}
