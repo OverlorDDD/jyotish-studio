@@ -120,7 +120,7 @@ export type AiUsageEvent={
 /** A shared, schema-validated chat adapter. Provider URLs are hard-coded, never user supplied. */
 export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose'|'consultation';chapterSpecs?:ReadonlyArray<AiChapterSpec>;factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;onUsage?:(event:AiUsageEvent)=>Promise<void>|void}){
  const provider=options.provider||'openai';
- const configuredModel=options.model||(provider='openrouter'?'openrouter/free':provider==='gemini'?'gemini-2.5-flash-lite':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
+ const configuredModel=options.model||(provider==='openrouter'?'openrouter/free':provider==='gemini'?'gemini-2.5-flash-lite':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
  let usageReported=false;
  async function reportUsage(outcome:AiUsageEvent['outcome'],body?:{model?:string;usage?:{prompt_tokens?:unknown;completion_tokens?:unknown;total_tokens?:unknown;cost?:unknown}}){
   if(usageReported)return;
