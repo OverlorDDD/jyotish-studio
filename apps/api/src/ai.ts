@@ -98,7 +98,6 @@ const REPORT_HEADINGS:Record<string,{uk:string;en:string}>={
  identity:{uk:'Загальна картина',en:'The big picture'},
  lagna:{uk:'Загальна картина',en:'The big picture'},
  sun:{uk:'Самовираження та цілі',en:'Self-expression and purpose'},
- moon:{uk:'Почуття та внутрішній комфорт',en:'Feelings and inner comfort'},
  planets:{uk:'Що символізують планети',en:'What the planets represent'},
  houses:{uk:'Важливі сфери життя',en:'Important areas of life'},
  aspects:{uk:'Як різні теми взаємодіють',en:'How different themes interact'},
