@@ -8,19 +8,19 @@ import {EDITORIAL_USE_CASES,EditorialUseCases} from './editorial-application.ts'
 import {EditorialError,EDITORIAL_TOPICS,type EditorialRole,type EditorialAction} from './editorial-policy.ts';
 
 export class EditorialCreateDto{
- @ApiProperty({enum:['ACADEMY','YOGA']}) @IsIn(['ACADEMY','YOGA']) kind!: 'ACADEMY'|'YOGA';
- @ApiProperty() @IsString() @MaxLength(80) slug!:string;
- @ApiProperty() @IsString() topic!:string;
- @ApiProperty({type:'object'}) @IsObject() document!:object;
+ @ApiProperty({type:String,enum:['ACADEMY','YOGA']}) @IsIn(['ACADEMY','YOGA']) kind!: 'ACADEMY'|'YOGA';
+ @ApiProperty({type:String}) @IsString() @MaxLength(80) slug!:string;
+ @ApiProperty({type:String}) @IsString() topic!:string;
+ @ApiProperty({type:Object}) @IsObject() document!:object;
 }
 export class EditorialEditDto{
- @ApiProperty() @IsInt() @Min(1) expectedRevision!:number;
- @ApiProperty() @IsString() topic!:string;
- @ApiProperty({type:'object'}) @IsObject() document!:object;
+ @ApiProperty({type:Number}) @IsInt() @Min(1) expectedRevision!:number;
+ @ApiProperty({type:String}) @IsString() topic!:string;
+ @ApiProperty({type:Object}) @IsObject() document!:object;
 }
 export class EditorialTransitionDto{
- @ApiProperty() @IsInt() @Min(1) expectedRevision!:number;
- @ApiProperty({enum:['submit','approve','reject','publish','archive','reopen']})
+ @ApiProperty({type:Number}) @IsInt() @Min(1) expectedRevision!:number;
+ @ApiProperty({type:String,enum:['submit','approve','reject','publish','archive','reopen']})
  @IsIn(['submit','approve','reject','publish','archive','reopen']) action!:EditorialAction;
 }
 function handle(err:unknown):never{

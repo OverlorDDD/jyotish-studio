@@ -11,7 +11,8 @@ export type EditorialDocument={
 };
 export type EditorialShape={kind:EditorialKind;slug:string;topic:string;document:EditorialDocument};
 export class EditorialError extends Error{
- constructor(public readonly code:'validation'|'permission'|'conflict'|'missing',message:string){super(message);this.name='EditorialError';}
+ readonly code:'validation'|'permission'|'conflict'|'missing';
+ constructor(code:'validation'|'permission'|'conflict'|'missing',message:string){super(message);this.code=code;this.name='EditorialError';}
 }
 export const EDITORIAL_KIND=['ACADEMY','YOGA'] as const;
 export const EDITORIAL_TOPICS:{[key in EditorialKind]:readonly string[]}={
