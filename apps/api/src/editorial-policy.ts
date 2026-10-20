@@ -52,8 +52,9 @@ export function validateEditorial(kind:unknown,slug:unknown,topic:unknown,input:
  const doc=input as Record<string,unknown>;
  const allowed=kind==='ACADEMY'?['title','summary','body','quiz']:['title','summary','body','safety'];
  if(Object.keys(doc).some(k=>!allowed.includes(k)))fail('Unexpected editorial field');
- const title=both(doc.title,'title',5,150),summary=both(doc.summary,'summary',20,480);
- const body=both(doc.body,'body',kind==='ACADEMY'?150:80,18000);
+ // Intentionally avoid artificial minimum prose lengths. Large editorial text is bounded for API/DB safety.
+ const title=both(doc.title,'title',1,300),summary=both(doc.summary,'summary',1,4000);
+ const body=both(doc.body,'body',1,120000);
  if(kind==='ACADEMY'){
   const q=doc.quiz;
   if(!q||typeof q!=='object'||Array.isArray(q))fail('Academy quiz required');
@@ -62,13 +63,16 @@ export function validateEditorial(kind:unknown,slug:unknown,topic:unknown,input:
   if(!Array.isArray(quiz.choices)||quiz.choices.length!==3)fail('Exactly three quiz choices required');
   if(![0,1,2].includes(quiz.correct as number))fail('Quiz correct answer must be 0, 1 or 2');
   return {kind,slug,topic,document:{title,summary,body,quiz:{
-   question:both(quiz.question,'quiz.question',10,300),
-   choices:quiz.choices.map((c,i)=>both(c,'quiz.choice'+i,2,160)) as [Both,Both,Both],
+   question:both(quiz.question,'quiz.question',1,4000),
+   choices:quiz.choices.map((c,i)=>both(c,'quiz.choice'+(i+1),1,4000)) as [Both,Both,Both],
    correct:quiz.correct as 0|1|2,
-   explanation:both(quiz.explanation,'quiz.explanation',15,500)
+   explanation:both(quiz.explanation,'quiz.explanation',1,12000)
   }}};
  }
- return {kind,slug,topic,document:{title,summary,body,safety:both(doc.safety,'safety',30,700)}};
+ // A safety sidebar is optional. Authors may put any relevant caution directly in the article.
+ // Previously saved Yoga entries with a safety field remain valid and keep their content.
+ const safety=doc.safety===undefined?undefined:both(doc.safety,'safety',1,4000);
+ return {kind,slug,topic,document:{title,summary,body,...(safety?{safety}:{})}};
 }
 export function canWrite(role:EditorialRole){return role==='ADMIN'||role==='SUPPORT';}
 export function transitionPolicy(action:EditorialAction,status:EditorialStatus,role:EditorialRole){
