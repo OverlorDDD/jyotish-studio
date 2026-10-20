@@ -214,6 +214,51 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
    assert.equal(yoga.status,201,JSON.stringify(yoga.data).slice(0,450));
    assert.equal(yoga.data.document.safety,undefined);
   });
+  await t.test('A7 expert verification and public catalog privacy',async()=>{
+   await prisma.user.update({where:{id:b.id},data:{role:'EXPERT'}});
+   const form={displayName:'Registered expert '+nonce,
+    bioUk:'Ведичні консультації та відповідальний підхід до джйотіш, астрології й символів.'.repeat(2),
+    bioEn:'Traditional Jyotish practice and careful chart interpretation for spiritual study.'.repeat(2),
+    specialties:['jyotish','tarot'],consent:true};
+   const url='/api/v1/experts';
+   assert.equal((await post(url+'/apply',form,a.cookie)).status,403);
+   assert.equal((await post(url+'/apply',form,b.cookie,'https://other.invalid')).status,403);
+   assert.equal((await post(url+'/apply',{...form,consent:false},b.cookie)).status,400);
+   const made=await post(url+'/apply',form,b.cookie);
+   assert.equal(made.status,201,JSON.stringify(made.data));assert.equal(made.data.reviewStatus,'SUBMITTED');
+   const list=await request(url);
+   assert.equal(list.status,200);
+   assert.equal(list.data.profiles.some(x=>x.id===made.data.id),false);
+   assert.equal((await request(url+'/admin/applications',{cookie:a.cookie})).status,403);
+   const profiles=await request(url+'/admin/applications',{cookie:admin.cookie});
+   assert.equal(profiles.status,200);
+   assert.equal(profiles.data.find(x=>x.id===made.data.id).reviewStatus,'SUBMITTED');
+   const path=url+'/admin/applications/'+made.data.id+'/review';
+   assert.equal((await post(path,{action:'verify',expectedRevision:1},b.cookie)).status,403);
+   assert.equal((await post(path,{action:'verify',expectedRevision:99},admin.cookie)).status,409);
+   const verified=await post(path,{action:'verify',expectedRevision:1},admin.cookie);
+   assert.equal(verified.status,201,JSON.stringify(verified.data));assert.equal(verified.data.status,'VERIFIED');
+   const publicList=await request(url);
+   assert.equal(publicList.status,200);
+   const publicExpert=publicList.data.profiles.find(x=>x.id===made.data.id);
+   assert.equal(publicExpert.displayName,form.displayName);
+   assert.equal(publicExpert.bioUk,form.bioUk.trim());
+   assert.ok(!('userId' in publicExpert)&&!('email' in publicExpert)&&!('consentAt' in publicExpert));
+   assert.equal((await post(path,{action:'verify',expectedRevision:1},admin.cookie)).status,409);
+   const suspended=await post(path,{action:'suspend',expectedRevision:2},admin.cookie);
+   assert.equal(suspended.status,201);assert.equal(suspended.data.status,'SUSPENDED');
+   assert.ok(!(await request(url)).data.profiles.some(x=>x.id===made.data.id));
+   const resubmitted=await post(url+'/apply',form,b.cookie);
+   assert.equal(resubmitted.status,201);assert.equal(resubmitted.data.reviewStatus,'SUBMITTED');
+   assert.equal((await request(url+'/my-orders',{cookie:b.cookie})).status,404);
+   assert.equal((await request('/api/v1/reading-orders/my-orders')).status,401);
+   assert.equal((await request('/api/v1/reading-orders/my-orders',{cookie:b.cookie})).status,200);
+   assert.equal((await request('/api/v1/reading-orders/admin/queue',{cookie:b.cookie})).status,403);
+   const queue=await request('/api/v1/reading-orders/admin/queue',{cookie:admin.cookie});
+   assert.equal(queue.status,200);
+   assert.deepEqual(queue.data.orders,[]);
+   assert.equal(queue.data.checkoutAvailable,false);
+  });
   await t.test('logout clears browser cookie',async()=>{
    const out=await post('/api/v1/account/logout',{},b.cookie);
    assert.equal(out.status,201);assert.equal(out.cookie,'jyotish_session=');
