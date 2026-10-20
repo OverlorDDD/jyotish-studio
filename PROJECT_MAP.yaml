@@ -1,6 +1,6 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-19"
+updated: "2026-10-20"
 verified_against:
   branch: main
   commit: "66ea0f18474d756d42e740e1242166cd861f256b"
@@ -34,6 +34,9 @@ modules:
     http: "apps/api/src/nest.ts"
     web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
+    interpretation_v3: "apps/api/src/interpretation-v3.ts; ranked AstrologicalFinding and eight narrative chapters; optional AI receives evidence instead of boilerplate"
+    interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
+    interpretation_release: "PR #22 draft; automated and manual gates pending"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
