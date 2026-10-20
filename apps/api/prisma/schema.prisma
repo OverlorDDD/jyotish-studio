@@ -39,6 +39,7 @@ model User {
  role UserRole @default(MEMBER)
  subscriptionTier SubscriptionTier @default(FREE)
  subscriptionEndsAt DateTime?
+ editorialCreated EditorialEntry[] @relation("EditorialCreator")
  readingDrafts ReadingDraft[]
  tarotReadings TarotReading[]
  roleChangesAsTarget RoleChange[] @relation("RoleChangeTarget")
@@ -158,4 +159,49 @@ model TarotReading {
  narrativeModel String?
  deckVersion String @default("rws-v1")
  @@index([userId,createdAt])
+}
+
+/** A6 editorial workflow. Published content is visible only when status=PUBLISHED.
+ * Revision increments on every action; EditorialVersion is append-only.
+ */
+enum EditorialKind {
+ ACADEMY
+ YOGA
+}
+enum EditorialStatus {
+ DRAFT
+ IN_REVIEW
+ APPROVED
+ PUBLISHED
+ ARCHIVED
+}
+model EditorialEntry {
+ id String @id @default(uuid())
+ kind EditorialKind
+ slug String @db.VarChar(80)
+ topic String @db.VarChar(30)
+ status EditorialStatus @default(DRAFT)
+ revision Int @default(1)
+ document Json
+ creatorId String
+ creator User @relation("EditorialCreator",fields:[creatorId],references:[id],onDelete:Restrict)
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ versions EditorialVersion[]
+ @@unique([kind,slug])
+ @@index([kind,status,publishedAt])
+ @@index([createdAt])
+}
+model EditorialVersion {
+ id String @id @default(uuid())
+ entryId String
+ entry EditorialEntry @relation(fields:[entryId],references:[id],onDelete:Cascade)
+ revision Int
+ action String @db.VarChar(30)
+ actorId String
+ snapshot Json
+ createdAt DateTime @default(now())
+ @@unique([entryId,revision])
+ @@index([entryId,createdAt])
 }
