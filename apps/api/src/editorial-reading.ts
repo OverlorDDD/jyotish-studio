@@ -95,7 +95,7 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en',asOf=
  // Reader-first, chart-grounded narrative. LLM is optional; the ten public chapters must
  // be helpful even when the provider is down. Explain a conjunction, NOT a raw coordinate.
  const locative=(g:string)=>name(g)+(uk?' у ':' in ')+sign(get(g).sign)+(uk?' в '+get(g).house+'-му домі':' in house '+get(g).house);
- const house=(h:number)=>uk?String(h)+'-й дім ('+area(h)+')':'house '+h+' ('+area(h)+')';
+ const house=(h:number)=>uk?String(h)+'-му домі ('+area(h)+')':'house '+h+' ('+area(h)+')';
  const lord=(h:number)=>ruler(h);
  const rulerName=(h:number)=>name(String(lord(h).subject));
  const rulerAt=(h:number)=>Number(lord(h).values.locatedHouse);
