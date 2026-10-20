@@ -149,3 +149,13 @@ test('reader-first editorial report has chart-specific chapters and accurately c
  sun.sign=10;sun.signName='Capricorn';sun.house=11;sun.longitude=283.25;
  assert.notDeepEqual(uk.editorial,buildDetailedReport(changed,'uk','2026-10-13').editorial);
 });
+
+test('Jyotish consultation does not give generic worksheet assignments as the reading conclusion',()=>{
+ const reading=buildDetailedReport(chart,'uk','2026-10-13').editorial;
+ const end=reading.chapters.find(c=>c.id==='conclusion');
+ assert.ok(end);
+ assert.doesNotMatch(end.insights.join(' '),/Оберіть дві практичні ідеї|перевірте, чи справді/);
+ assert.match(end.insights.join(' '),/управитель|Традиційний ключ/);
+ assert.ok(reading.chapters.every(c=>c.insights.some(x=>x.includes('Традиційний ключ'))));
+ assert.match(end.paragraphs.join(' '),/Лагна|управителі/);
+});

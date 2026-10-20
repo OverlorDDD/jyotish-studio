@@ -170,8 +170,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A6 bilingual editorial CMS in PR; integration and browser QA gates ongoing"
-  next: "A7 vetted expert services and payment verification only when explicitly approved"
+  now: "A7 Jyotish consultant-style narrative and customer-managed private expert drafts; CI gate pending"
+  next: "A7 payment verification, actual expert onboarding and secure video delivery require provider/product decisions"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"
