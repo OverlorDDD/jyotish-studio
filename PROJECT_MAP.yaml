@@ -94,11 +94,21 @@ modules:
     quiz: "apps/web/app/components/AcademyQuiz.tsx"
     detail: "apps/web/app/[locale]/learn/[slug]/page.tsx"
     privacy: "quiz answers in React memory, no account/DB"
+  editorial:
+    status: "A6 versioned CMS, additive migration, SUPPORT drafts and ADMIN approvals"
+    policy: "apps/api/src/editorial-policy.ts"
+    application: "apps/api/src/editorial-application.ts"
+    repository: "apps/api/src/editorial-prisma.ts"
+    controller: "apps/api/src/editorial.ts"
+    tables: [EditorialEntry, EditorialVersion]
+    user_interface: "apps/web/app/components/EditorialWorkspace.tsx"
+    public: "apps/web/lib/editorial-public.ts; EditorialPublishedCards.tsx; EditorialArticle.tsx"
+    invariant: "only PUBLISHED visible to public; immutable versions; CAS expectedRevision; A5 slugs reserved"
   portal:
     status: "implemented bilingual shell; Yoga and Academy live; News and Community placeholders"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
-    future: [western_astrology, panchang, academy_cms, news, community, mobile]
+    future: [western_astrology, panchang, news, community, mobile]
   ai_usage:
     status: "usage storage implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
@@ -106,7 +116,7 @@ modules:
 persistence:
   schema: "apps/api/prisma/schema.prisma"
   migrations: "apps/api/prisma/migrations/"
-  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, RoleChange, TarotReading]
+  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, RoleChange, TarotReading, EditorialEntry, EditorialVersion]
 routes:
   web:
     home: "/uk | /en"
@@ -116,6 +126,7 @@ routes:
     academy: "/{locale}/learn | /{locale}/learn/{slug}"
     account: "/{locale}/account"
     admin: "/{locale}/admin"
+    editorial: "/{locale}/editorial"
     experts: "/{locale}/experts -> tarot#human-readings"
   api:
     charts: "/api/v1/charts/*"
@@ -124,6 +135,8 @@ routes:
     accounts: "/api/v1/account/*"
     tarot: "/api/v1/tarot/*"
     admin: "/api/v1/admin/*"
+    editorial: "/api/v1/editorial/entries/*"
+    content_public: "/api/v1/content/*"
     drafts: "/api/v1/reading-orders/drafts"
     docs: "/api/docs"
 quality:
@@ -142,6 +155,7 @@ quality:
     access: "npm run test:access"
     seo: "npm run test:seo"
     a5_content: "npm run test:content:a5"
+    editorial_a6: "npm run test:editorial:a6"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
@@ -156,8 +170,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A5 Yoga and Academy shipped behind CI; local browser acceptance required"
-  next: "A6 editorial content workflow; monitor Jyotish timing metrics and production readiness (no payments)"
+  now: "A6 bilingual editorial CMS in PR; integration and browser QA gates ongoing"
+  next: "A7 vetted expert services and payment verification only when explicitly approved"
   later: "content modules, verified paid workflows, permanent deployment, mobile"
 docs:
   architecture: "docs/architecture-target.md"

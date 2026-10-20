@@ -10,10 +10,10 @@ Status values distinguish **already in main** from work requiring new engineerin
 | A3 Reusable domain boundaries | Current | Extract account saved-chart, admin role, shared entitlement and Jyotish deterministic report preparation into explicit application ports/Prisma adapters | **Implemented; PR branch CI passed**, including tests, build, Swagger, smoke and real PostgreSQL (run 39249620186). Manual browser QA not performed. Expert drafts deferred. |
 | A5 Yoga and Academy public modules | Delivered in A5 PR | 4 original bilingual guided sessions, 7 educational lessons in 3 topics with quizzes, real hub/detail navigation, SEO and browser tests | **Code implemented; CI and browser acceptance required before final status.** No DB changes, logins, or AI charges |
 | A4 Site quality and release readiness | A4 engineering delivered | UK/EN browser E2E, gated SEO, keyboard/360px QA, backup tooling and release checklist | **PR CI PASS (10/10 desktop/mobile browser tests + unit/build/PostgreSQL), run 39255336058**; production audit, real restore drill and legal/privacy/accessibility sign-off remain blockers |
-| A5 Publishing/content | After foundation | Real yoga/meditation and Academy content with editorial CMS, author/source workflow, SEO; news/community later with moderation | **Planned**; real multilingual content, moderation and no empty public promises |
-| A6 Services and monetization | After security | Expert verification, order/payment webhook, protected video, refunds; premium plans and AI costs | **Planned**; never claim a pre-checkout draft is paid |
-| A7 Public distribution | After A4/A6 as applicable | Stable domain, permanent free/low-cost hosting evaluation, analytics with privacy controls, marketing experiments, legal launch | **Planned**; continuous deployment, backup/rollback and monitored public site |
-| A8 Mobile | After API stabilizes | Reuse shared API and contracts in React Native/other mobile client; no duplicated Jyotish/Tarot rules | **Planned**; tested parity with web |
+| A6 Editorial CMS | A6 implementation | Bilingual Yoga/Academy drafts, approval, published-only API, revision audit, safe responsive staff editor and dynamic public pages | **PR implementation, CI validation pending**; existing A5 seed content retained |
+| A7 Services and monetization | After security | Expert verification, order/payment webhook, protected video, refunds; premium plans and AI costs | **Planned**; never claim a pre-checkout draft is paid |
+| A8 Public distribution | After A4/A7 as applicable | Stable domain, permanent free/low-cost hosting evaluation, analytics with privacy controls, marketing experiments, legal launch | **Planned**; continuous deployment, backup/rollback and monitored public site |
+| A9 Mobile | After API stabilizes | Reuse shared API and contracts in React Native/other mobile client; no duplicated Jyotish/Tarot rules | **Planned**; tested parity with web |
 
 ## Live functionality baseline to preserve
 - Galaxiora UK/EN shell; Jyotish Swiss/Lahiri D1/D9/D10, Vimshottari and rule-based reports.
@@ -37,3 +37,10 @@ Status values distinguish **already in main** from work requiring new engineerin
 
 ## Work still requiring product decisions
 Payment processor/countries, real domain, licensing budget, storage for videos, editorial moderation policy, privacy/retention terms, analytics/marketing approach. Do not silently invent these.
+
+## A6 editorial CMS acceptance gates
+- Two languages required, fixed slugs, type-specific topics, mandatory Academy quiz and Yoga safety notices.
+- DRAFT -> IN_REVIEW -> APPROVED -> PUBLISHED -> ARCHIVED; reject/reopen goes to DRAFT.
+- SUPPORT may create, edit and submit. ADMIN alone can approve/publish/archive/reopen. No automatic publishing and no payment integration.
+- All transitions append immutable history in a transaction with revision compare-and-swap. Stale edits return 409.
+- Public listings only include PUBLISHED. A5 original content keeps working when API is unavailable. New public articles have UA/EN URLs and public metadata under existing HTTPS SEO gate.

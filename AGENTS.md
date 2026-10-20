@@ -52,3 +52,12 @@ Local PostgreSQL defaults to port 5433; Next 3000, Nest 4000. Check actual `.env
 - Gentle no-hold patterns remain available; allow pause/resume and early stop without awarding completion. Avoid claiming therapy or forcing belly expansion.
 - Non-breath Yoga practices are manual read-and-try instructions; the completion state only says content was reviewed. Mindfulness/evening prompts have no timers.
 - Jyotish heavy full-report code is lazy-loaded and account history loads only when the popover opens. Track perceived route feedback and actual production navigation timing separately; dev cold-compilation is not the same as production performance.
+
+## A6 editorial ownership and security
+- PostgreSQL EditorialEntry holds bilingual drafts and publication status; append-only EditorialVersion records each transition. New migration is additive and must never reset existing records.
+- Pure editorial-policy.ts validates structured bilingual text and state transitions. EditorialUseCases delegates to PrismaEditorialStore where every edit/transition is atomic CAS by revision and status. Keep HTTP controllers thin.
+- ADMIN/SUPPORT create, edit and submit drafts. Only ADMIN approves/publishes/archives/reopens. Every write requires fresh DB role, valid signed session and same-origin request.
+- Public /api/v1/content endpoints only expose status=PUBLISHED; editor list and version history remain staff-only. Never expose draft text in sitemap, SSR metadata or client components.
+- Protect A5 original slugs. The new CMS adds Yoga mobility/meditation (no breath timers) and Academy lessons with mandatory quiz; old A5 modules remain code-owned.
+- React renders user text normally without dangerous HTML injection, and the CMS does not allow arbitrary embedded scripts, images or external HTML.
+- Required tests: npm run test:editorial:a6; isolated npm run test:integration; production build, Swagger and Chromium E2E. Never run destructive tests on user DB.
