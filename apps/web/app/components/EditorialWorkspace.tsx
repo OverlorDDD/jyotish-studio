@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {CheckCircle2,BookOpen,Edit3,FileClock,Save,Send,Archive,RotateCcw,ShieldCheck,ExternalLink} from 'lucide-react';
 import Link from 'next/link';
 import {readApiJson} from '../../lib/api-response';
+import {parseQuizChoices,quizChoiceCountMessage} from '../../lib/editorial-quiz';
 import type {PortalLocale} from '../../lib/brand';
 
 type Both={uk:string;en:string};
@@ -35,9 +36,9 @@ const both=(uk:string,en:string)=>({uk,en});
 function docFrom(form:Draft):ContentDoc{
  const value:ContentDoc={title:both(form.titleUk,form.titleEn),summary:both(form.summaryUk,form.summaryEn),
   body:both(form.bodyUk,form.bodyEn)};
- if(form.kind==='YOGA')value.safety=both(form.safetyUk,form.safetyEn);
+ if(form.kind==='YOGA'&&form.safetyUk.trim()&&form.safetyEn.trim())value.safety=both(form.safetyUk,form.safetyEn);
  if(form.kind==='ACADEMY'){
-  const uk=form.choicesUk.split('\n').map(s=>s.trim()),en=form.choicesEn.split('\n').map(s=>s.trim());
+  const uk=parseQuizChoices(form.choicesUk),en=parseQuizChoices(form.choicesEn);
   value.quiz={question:both(form.questionUk,form.questionEn),choices:[0,1,2].map(i=>both(uk[i]||'',en[i]||'')) as [Both,Both,Both],
    correct:form.correct,explanation:both(form.explanationUk,form.explanationEn)};
  }
@@ -88,6 +89,13 @@ export default function EditorialWorkspace({locale}:{locale:PortalLocale}){
    headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}));
  }
  async function save(){
+  if(form.kind==='ACADEMY'){
+   const ua=parseQuizChoices(form.choicesUk),en=parseQuizChoices(form.choicesEn);
+   if(ua.length!==3||en.length!==3){
+    setError(uk?'У тесті потрібно рівно 3 непорожні відповіді українською та 3 англійською. Порожні рядки можна залишати.':'The quiz needs exactly 3 non-empty Ukrainian and 3 English answers. Blank spacer lines are fine.');
+    return;
+   }
+  }
   await operate(async()=>{
    const payload={topic:form.topic,document:docFrom(form)};
    const updated=selected?
@@ -115,8 +123,15 @@ export default function EditorialWorkspace({locale}:{locale:PortalLocale}){
  const field=(key:keyof Draft,label:string,multiline=false,placeholder='')=><label className="as-editorial-field" key={String(key)}>
   <span>{label}</span>
   {multiline?<textarea rows={key==='bodyUk'||key==='bodyEn'?7:3} value={String(form[key])} placeholder={placeholder}
+   disabled={!!selected&&selected.status!=='DRAFT'}
    onChange={e=>editField(key,e.target.value as never)}/>:<input disabled={(key==='slug'&&!!selected)||!!selected&&selected.status!=='DRAFT'} value={String(form[key])} placeholder={placeholder}
    onChange={e=>editField(key,e.target.value as never)}/>}
+  {(key==='choicesUk'||key==='choicesEn')?<span className="as-editorial-field-hint" aria-live="polite" data-testid={'quiz-count-'+key}>
+   {quizChoiceCountMessage(String(form[key]),uk)}
+  </span>:key==='bodyUk'||key==='bodyEn'?<span className="as-editorial-field-hint">
+   {uk?'Символів: ':'Characters: '}{String(form[key]).length.toLocaleString(uk?'uk-UA':'en-US')}
+   {uk?' · до 120 000':' · up to 120,000'}
+  </span>:null}
  </label>;
  return <section className="as-editorial-workspace" id="editorial" aria-label={uk?'Редакційна панель':'Editorial workspace'}>
   <header><span className="as-overline">{uk?'ЕТАП A6 · РЕДАКЦІЯ':'A6 · EDITORIAL WORKSPACE'}</span>
@@ -155,17 +170,17 @@ export default function EditorialWorkspace({locale}:{locale:PortalLocale}){
       </label>
       {field('slug',uk?'URL-адреса (латиницею)':'URL slug',false,'my-new-lesson')}
      </div>
-     <p className="as-editorial-hint">{uk?'Slug потрібно задавати до створення; змінити URL після створення не можна. Тексти обох мов обов’язкові.':'Choose a slug before creating; it stays immutable. Both translations are required.'}</p>
+     <p className="as-editorial-hint">{uk?'Slug потрібно задавати до створення; змінити URL після створення не можна. Тексти обох мов обов’язкові. Для тесту введи рівно три непорожні відповіді кожною мовою: порожні рядки можна залишати.':'Choose a slug before creating; it stays immutable. Both translations are required. For quizzes enter exactly three non-empty answers per language; blank spacer lines are fine.'}</p>
      <div className="as-editorial-dual">
       <div><h4>🇺🇦 Українська</h4>{field('titleUk','Назва')}{field('summaryUk','Короткий опис',true)}
        {field('bodyUk',form.kind==='YOGA'?'Кроки (через порожній рядок)':'Текст статті (абзаци через порожній рядок)',true)}
-       {form.kind==='YOGA'?field('safetyUk','Застереження щодо безпеки',true):<>
+       {form.kind==='YOGA'?null:<>
         {field('questionUk','Запитання тесту')}{field('choicesUk','Три варіанти (кожен із нового рядка)',true)}
         {field('explanationUk','Пояснення відповіді',true)}
        </>}</div>
       <div><h4>🇬🇧 English</h4>{field('titleEn','Title')}{field('summaryEn','Short description',true)}
        {field('bodyEn',form.kind==='YOGA'?'Steps (separate by a blank line)':'Article (paragraphs separated by blank lines)',true)}
-       {form.kind==='YOGA'?field('safetyEn','Safety notice',true):<>
+       {form.kind==='YOGA'?null:<>
         {field('questionEn','Quiz question')}{field('choicesEn','Three choices (one per line)',true)}
         {field('explanationEn','Answer explanation',true)}
        </>}</div>

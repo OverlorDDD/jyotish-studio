@@ -61,3 +61,8 @@ Local PostgreSQL defaults to port 5433; Next 3000, Nest 4000. Check actual `.env
 - Protect A5 original slugs. The new CMS adds Yoga mobility/meditation (no breath timers) and Academy lessons with mandatory quiz; old A5 modules remain code-owned.
 - React renders user text normally without dangerous HTML injection, and the CMS does not allow arbitrary embedded scripts, images or external HTML.
 - Required tests: npm run test:editorial:a6; isolated npm run test:integration; production build, Swagger and Chromium E2E. Never run destructive tests on user DB.
+
+## A6.1 editor corrections
+- Exactly 3 nonempty quiz choice lines per language; blank spacer lines and CRLF are ignored. Do not truncate four responses into three.
+- Bounded long-form: body 120,000 characters per language and a 2 MB Nest JSON parser request limit. Short quiz answers and explanations are valid.
+- Yoga CMS safety field is optional and hidden from editor; leave cautions in article text. Preserve legacy safety entries; built-in box breathing warnings stay.
