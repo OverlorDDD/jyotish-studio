@@ -44,3 +44,9 @@ Payment processor/countries, real domain, licensing budget, storage for videos, 
 - SUPPORT may create, edit and submit. ADMIN alone can approve/publish/archive/reopen. No automatic publishing and no payment integration.
 - All transitions append immutable history in a transaction with revision compare-and-swap. Stale edits return 409.
 - Public listings only include PUBLISHED. A5 original content keeps working when API is unavailable. New public articles have UA/EN URLs and public metadata under existing HTTPS SEO gate.
+
+## A7 operational foundation + Jyotish consultation voice (2026-10-20)
+- Upgrade Jyotish AI prompt from generic coaching to substantive traditional Parashari consulting voice: explicitly anchor every section to supplied verified lagna, grahas, house lords, Moon nakshatra, D9/D10 and dasha. Do not fabricate chart facts or guaranteed real-world events.
+- Replace report “What to try in practice” worksheet cards with chart-specific "Interpretive key" derived from calculated house-lord and planetary placements. Do not force journaling exercises into a spiritual reading.
+- The expert-service funnel retains **precheckout only**: private 7-day request draft, owner-only browsing/deletion and explicit unpaid/unassigned status. No checkout; no new Reader access to client requests; no fictitious payment completion.
+- Remaining A7 blocking decisions: payment provider and region, public terms/price/refunds, verified webhook, identity/role of actual practitioners, consent policies, secure video delivery/storage and administrative audit for fulfilled orders. These are not silently assumed or enabled.
