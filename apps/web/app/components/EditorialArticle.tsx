@@ -2,6 +2,7 @@ import Link from 'next/link';
 import {ArrowLeft,ShieldCheck} from 'lucide-react';
 import PortalShell from './PortalShell';
 import PublishedAcademyQuiz from './PublishedAcademyQuiz';
+import GlossaryText from './GlossaryText';
 import type {PublishedContent,Locale} from '../../lib/editorial-public';
 export default function EditorialArticle({entry,locale}:{entry:PublishedContent;locale:Locale}){
  const uk=locale==='uk',academy=entry.kind==='ACADEMY',base=academy?'learn':'yoga';
@@ -11,11 +12,11 @@ export default function EditorialArticle({entry,locale}:{entry:PublishedContent;
    <Link href={'/'+locale+'/'+base} className="as-wellness-back"><ArrowLeft size={16}/>{uk?'До бібліотеки':'Back to library'}</Link>
    <article className="as-academy-article">
     <header className="as-wellness-detail-head"><span className="as-overline">{entry.topic.toUpperCase()} · GALAXIORA</span>
-     <h1>{entry.document.title[locale]}</h1><p>{entry.document.summary[locale]}</p></header>
+     <h1><GlossaryText text={entry.document.title[locale]} locale={locale}/></h1><p><GlossaryText text={entry.document.summary[locale]} locale={locale}/></p></header>
     {academy?<div className="as-lesson-sections">{body.map((text,i)=><section key={i} className="as-lesson-section">
-     <p>{text}</p></section>)}</div>:
-     <div className="as-cms-steps">{body.map((text,i)=><section key={i} className="as-cms-step"><span className="as-overline">{uk?'КРОК':'STEP'} {i+1}</span><p>{text}</p></section>)}</div>}
-    {!academy&&entry.document.safety?<aside className="as-wellness-note"><ShieldCheck size={22}/><div><strong>{uk?'Безпека':'Safety'}</strong><p>{entry.document.safety[locale]}</p></div></aside>:null}
+     <p><GlossaryText text={text} locale={locale}/></p></section>)}</div>:
+     <div className="as-cms-steps">{body.map((text,i)=><section key={i} className="as-cms-step"><span className="as-overline">{uk?'КРОК':'STEP'} {i+1}</span><p><GlossaryText text={text} locale={locale}/></p></section>)}</div>}
+    {!academy&&entry.document.safety?<aside className="as-wellness-note"><ShieldCheck size={22}/><div><strong>{uk?'Безпека':'Safety'}</strong><p><GlossaryText text={entry.document.safety[locale]} locale={locale}/></p></div></aside>:null}
     {academy&&entry.document.quiz?<PublishedAcademyQuiz quiz={entry.document.quiz} locale={locale}/>:null}
    </article>
   </div>

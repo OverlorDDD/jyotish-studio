@@ -660,3 +660,14 @@
 .as-expert-draft-card h4{font-size:18px;margin:0;color:#f4dcaf}
 .as-expert-draft-card p{line-height:1.75;color:#d5e0ee}
 .as-expert-draft-card .as-button{justify-self:start}
+
+/* Shared bilingual glossary — hover, keyboard focus, mobile tap */
+.as-glossary-term{position:relative;cursor:help;text-decoration:underline dotted rgba(232,196,130,.85);text-underline-offset:3px;border-radius:2px;color:inherit}
+.as-glossary-term:focus-visible{outline:2px solid #e8c482;outline-offset:3px}
+.as-glossary-term:hover::after,.as-glossary-term:focus::after{
+ content:attr(data-definition);position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);
+ width:max-content;max-width:min(320px,80vw);min-width:190px;white-space:normal;line-height:1.5;font:400 13px/1.5 system-ui,sans-serif;
+ padding:12px 15px;background:#26364c;border:1px solid #a88e60;color:#fff5e0;z-index:50;
+ border-radius:10px;box-shadow:0 6px 24px #0009;text-align:left;text-decoration:none;pointer-events:none
+}
+@media(max-width:640px){.as-glossary-term:hover::after,.as-glossary-term:focus::after{max-width:240px;left:0;transform:none}}
