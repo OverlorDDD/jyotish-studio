@@ -62,6 +62,36 @@ export class ReadingOrdersController{
    select:{id:true,createdAt:true,expiresAt:true,topic:true,question:true,context:true,timeframe:true}
   });
  }
+ /** Client can inspect its order status without exposing payment IDs, expert files, or other customers. */
+ @Get('my-orders')
+ async myOrders(@Req()req:IncomingMessage){
+  const customerId=cookieUser(req);
+  if(!customerId)throw new UnauthorizedException('Sign in required');
+  const orders=await this.prisma.readingOrder.findMany({where:{customerId},orderBy:{createdAt:'desc'},take:30,
+   select:{id:true,status:true,offerCode:true,createdAt:true,updatedAt:true,completedAt:true,
+    paymentVerifiedAt:true,expertId:true}});
+  return {orders:orders.map(o=>({
+   id:o.id,status:o.status,offerCode:o.offerCode,createdAt:o.createdAt,updatedAt:o.updatedAt,
+   completedAt:o.completedAt,hasVerifiedPayment:Boolean(o.paymentVerifiedAt),hasAssignedExpert:Boolean(o.expertId)
+  })),checkoutAvailable:false};
+ }
+ /** ADMIN desk must never see private pre-checkout drafts.
+  * Only server-verified paid orders enter an operational queue; no client-provided paid flag.
+  */
+ @Get('admin/queue')
+ async paidQueue(@Req()req:IncomingMessage){
+  const actor=cookieUser(req);
+  if(!actor)throw new UnauthorizedException('Sign in required');
+  const staff=await this.prisma.user.findUnique({where:{id:actor},select:{role:true}});
+  if(staff?.role!=='ADMIN')throw new ForbiddenException('ADMIN required');
+  const orders=await this.prisma.readingOrder.findMany({
+   where:{paymentVerifiedAt:{not:null},providerPaymentId:{not:null},status:{not:'AWAITING_PAYMENT'}},
+   orderBy:{updatedAt:'desc'},take:100,
+   select:{id:true,status:true,question:true,context:true,expertId:true,createdAt:true,updatedAt:true,
+    paymentVerifiedAt:true,completedAt:true}
+  });
+  return {orders,checkoutAvailable:false};
+ }
  @Delete('drafts/:id')
  async deleteDraft(@Param('id')id:string,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
@@ -92,3 +122,5 @@ Reflect.defineMetadata('design:paramtypes',[String,ReadingBriefDto,Object],Readi
 Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'saveDraft');
 Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'myDrafts');
 Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteDraft');
+Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'myOrders');
+Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'paidQueue');
