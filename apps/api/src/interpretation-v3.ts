@@ -137,12 +137,20 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
   '. Найважливіше — зіставити її з управителем сьомого дому D1, а не виводити долю шлюбу з одного знака.':
   'Navamsha D9 rises in '+sign(chart.lagnaD9.sign)+' and places Venus in D9 house '+getD(chart.d9,'Venus').house+
   '. It clarifies partnership alongside D1, rather than deciding marriage from a single sign.';
+ const workDharmaLinked=at(10)===9||at(9)===10||at(9)===at(10)||String(lord(9).subject)===String(lord(10).subject);
  const career=uk?
-  'Десятий дім не існує окремо від дев’ятого: його управитель '+planet(String(lord(9).subject))+' у домі '+at(9)+
-  ' показує, які принципи, знання та наставники взаємодіють з професійним шляхом. Додатковий професійний зріз: управитель десятого дому D1 '+planet(String(lord(10).subject))+
-  ' у D10 перебуває у домі '+getD(chart.d10,String(lord(10).subject)).house+'.':
-  'The ninth lord '+planet(String(lord(9).subject))+' in house '+at(9)+' links convictions and study with work. The D1 tenth lord '+planet(String(lord(10).subject))+
-  ' occupies house '+getD(chart.d10,String(lord(10).subject)).house+' in D10.';
+  'Управитель дев’ятого дому '+planet(String(lord(9).subject))+' перебуває у домі '+at(9)+
+  ', а управитель десятого дому '+planet(String(lord(10).subject))+' — у домі '+at(10)+'. '+
+  (workDharmaLinked?'Положення управителів пов’язують у цій карті теми професії та дгарми; їх слід читати разом. ':
+   'Це різні астрологічні показники: не приписуємо їм прямого взаємозв’язку без підтвердження. ')+
+  'У Дашамші D10 управитель десятого дому D1 '+planet(String(lord(10).subject))+
+  ' перебуває у домі '+getD(chart.d10,String(lord(10).subject)).house+'.':
+  'The ninth-house ruler '+planet(String(lord(9).subject))+' occupies house '+at(9)+
+  ', while the tenth-house ruler '+planet(String(lord(10).subject))+' occupies house '+at(10)+'. '+
+  (workDharmaLinked?'These verified placements link vocation with dharma and deserve a joint reading. ':
+   'These are separate indicators; no direct connection is claimed without verified evidence. ')+
+  'In D10 the D1 tenth-house ruler '+planet(String(lord(10).subject))+
+  ' occupies house '+getD(chart.d10,String(lord(10).subject)).house+'.';
  const chapters=[
   chapter('portrait','Ваш астрологічний портрет','Your astrological portrait',
    [text('ascendant'),text('moon')+(uk?' Сонце у домі '+get('Sun').house+' додає тему '+area(get('Sun').house)+'. Особистий напрям і внутрішня потреба не завжди розвиваються в одному ритмі.':

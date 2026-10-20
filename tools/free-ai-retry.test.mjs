@@ -86,3 +86,46 @@ test('unknown fact IDs are rejected after both formats',async()=>{
  assert.equal(count,2);
  assert.equal(r.reason,'invalid_response');
 });
+
+
+test('A7 detailed report requests safer fact-linked prose before trying fragile JSON',async()=>{
+ const paragraphs=[
+  'In the Jyotish tradition, the lunar need for emotional space meets a strong desire to serve. Together they describe a meaningful tension between privacy and commitment. Neither theme alone decides the person’s life.',
+  'The emphasis on purposeful work interacts with the need to make room for family ties. Responsible choices here carry weight because both duties can matter at once. This is a traditional interpretive theme rather than a guaranteed event.',
+  'The planetary period offers a perspective on patience and a developing sense of responsibility. Its effect is read alongside the other verified factors and does not establish a fixed outcome.'
+ ];
+ let calls=0;
+ const outcome=await generateFreeInterpretationDetailed(chart,'en',{key:'example',ollamaEnabled:false,limit:()=>true,
+  reportMode:true,fetcher:async(_url,init)=>{
+   calls++;const payload=JSON.parse(init.body);
+   assert.equal(payload.response_format,undefined);
+   assert.match(payload.messages[0].content,/plain prose/);
+   assert.ok(!JSON.stringify(payload).includes('2000-01-01'));
+   return reply(paragraphs.join('\n\n'));
+  }
+ });
+ assert.equal(calls,1);
+ assert.equal(outcome.result?.provider,'openrouter');
+ assert.match(outcome.result?.text,/lunar need for emotional space/i);
+});
+
+test('A7 unsafe prose is rejected and retries as fact-linked JSON, never as fabricated insight',async()=>{
+ let count=0;
+ const unsafe='The Sun is in Scorpio and absolutely guarantees wealth and marriage. The coming year is predetermined.';
+ const result=await generateFreeInterpretationDetailed(chart,'en',{key:'example',ollamaEnabled:false,limit:()=>true,
+  reportMode:true,fetcher:async(_url,init)=>{
+   count++;
+   const body=JSON.parse(init.body);
+   if(count===1){
+    assert.equal(body.response_format,undefined);
+    return reply([unsafe,unsafe].join('\n\n'));
+   }
+   assert.equal(body.response_format,undefined);
+   assert.match(body.messages[0].content,/sections array/);
+   return reply(JSON.stringify(good));
+  }
+ });
+ assert.equal(count,2);
+ assert.equal(result.result?.provider,'openrouter');
+ assert.doesNotMatch(result.result.text,/guarantees wealth/);
+});

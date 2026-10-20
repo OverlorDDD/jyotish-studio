@@ -17,6 +17,20 @@ function allowFreeRequest(){
  }
  return budget();
 }
+/** Diagnostic codes are selected from our own fixed messages: never print provider text. */
+function safeFormatDiagnostic(error:unknown){
+ if(!(error instanceof AiProviderError)||error.reason!=='format')return '';
+ const known:Record<string,string>={
+  'Insufficient safe plain-language paragraphs':'unsafe_or_short_prose',
+  'AI output is not valid JSON':'malformed_json',
+  'AI output is missing sections':'missing_sections',
+  'Too few verified interpretation sections':'unsafe_or_short_sections',
+  'Invalid, duplicate or unverified interpretation section':'unsafe_or_duplicate_sections',
+  'OpenAI returned no interpretation':'empty_completion',
+  'AI provider returned invalid JSON':'malformed_provider_response'
+ };
+ return known[error.message]||'unverified_format';
+}
 function failureReason(error:unknown):FreeFallbackReason{
  if(!(error instanceof AiProviderError))return 'network';
  if(error.reason==='timeout')return 'timeout';
@@ -68,7 +82,9 @@ export async function generateFreeInterpretationDetailed(
      formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     try{
-     return {result:await request('strict')};
+     // Long-form advice uses vetted paragraphs, not JSON: openrouter/free rotates models
+     // which often cannot honour JSON-schema. Keep legacy short-reading strict.
+     return {result:await request(opts.reportMode?'prose':'strict')};
     }catch(error){
      // Free routers may choose endpoints that ignore strict schemas.
      // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.
@@ -76,7 +92,7 @@ export async function generateFreeInterpretationDetailed(
       (error.reason==='format'||(error.reason==='upstream'&&/^OpenAI HTTP (400|422)\b/.test(error.message)));
      if(!rejected)throw error;
      if(!permit()){reason='hourly_limit';continue;}
-     console.warn('Free AI: first response rejected; retrying with a simpler fact-linked JSON prompt');
+     console.warn('Free AI: first response rejected'+(safeFormatDiagnostic(error)?' ('+safeFormatDiagnostic(error)+')':'')+'; retrying a fact-linked JSON prompt');
      return {result:await request('prompt')};
     }
    }
@@ -99,7 +115,7 @@ export async function generateFreeInterpretationDetailed(
   }catch(error){
    reason=failureReason(error);
    // No raw provider errors: they may include private account information.
-   console.warn(`Free AI fallback: ${provider} ${reason}; trying next provider`);
+   console.warn(`Free AI fallback: ${provider} ${reason}${safeFormatDiagnostic(error)?' ('+safeFormatDiagnostic(error)+')':''}; trying next provider`);
   }
  }
  return {result:null,reason};
