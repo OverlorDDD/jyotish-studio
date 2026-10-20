@@ -8,19 +8,31 @@ import {YOGA_PRACTICES,yogaBySlug,say} from '../../../../lib/yoga-content';
 import {BREATHING_PATTERNS,sessionMs} from '../../../../lib/breathing-patterns';
 import {isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
-export const dynamicParams=false;
+import {publishedDetail} from '../../../../lib/editorial-public';
+import EditorialArticle from '../../../components/EditorialArticle';
+export const dynamicParams=true;
 type Params={params:Promise<{locale:string;slug:string}>};
 export function generateStaticParams(){return (['uk','en'] as const).flatMap(locale=>YOGA_PRACTICES.map(item=>({locale,slug:item.slug})));}
 export async function generateMetadata({params}:Params):Promise<Metadata>{
  const {locale,slug}=await params,practice=yogaBySlug(slug);
- if(!isPortalLocale(locale)||!practice)return {};
+ if(!isPortalLocale(locale))return {};
+ if(!practice){
+  const cms=await publishedDetail('YOGA',slug);
+  if(!cms)return {robots:{index:false,follow:false}};
+  return {title:cms.document.title[locale]+' | Galaxiora Yoga',description:cms.document.summary[locale],robots:indexRobots(),alternates:{canonical:'/'+locale+'/yoga/'+slug,languages:{uk:'/uk/yoga/'+slug,en:'/en/yoga/'+slug}}};
+ }
  return {title:say(practice.title,locale)+' | Galaxiora Yoga',
   description:say(practice.purpose,locale),robots:indexRobots(),
   alternates:{canonical:'/'+locale+'/yoga/'+slug,languages:{uk:'/uk/yoga/'+slug,en:'/en/yoga/'+slug}}};
 }
 export default async function YogaPracticePage({params}:Params){
  const {locale,slug}=await params,practice=yogaBySlug(slug);
- if(!isPortalLocale(locale)||!practice)notFound();
+ if(!isPortalLocale(locale))notFound();
+ if(!practice){
+  const cms=await publishedDetail('YOGA',slug);
+  if(!cms)notFound();
+  return <EditorialArticle entry={cms} locale={locale}/>;
+ }
  const uk=locale==='uk';
  return <PortalShell locale={locale} active="yoga" languagePath={'yoga/'+slug}>
   <div className="as-wellness as-wellness-detail">
