@@ -286,5 +286,5 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
   [(uk?"Версія правил: ":"Ruleset: ")+RULESET_VERSION,(uk?"Перевірені факти: ":"Verified facts: ")+findings.facts.length]));
  return {sections,generatedAt:asOf+'T00:00:00.000Z',asOf,
   rulesVersion:RULESET_VERSION,rulesDigest:ruleFingerprint(chart,asOf),
-  ruleFacts:findings.facts,practicalTips:practicalGuidance(chart,lang),lifePortrait:createLifePortrait(chart,lang),editorial:buildEditorialReading(chart,lang),chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
+  ruleFacts:findings.facts,practicalTips:practicalGuidance(chart,lang),lifePortrait:createLifePortrait(chart,lang),editorial:buildEditorialReading(chart,lang,asOf),chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
 }

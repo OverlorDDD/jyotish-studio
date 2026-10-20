@@ -56,8 +56,11 @@ const areasUk=['починання','фінанси й цінності','спі
 const areasEn=['new beginnings','resources','communication','home','creativity and learning','daily routines','relationships','trust and change','learning','career','community','rest'];
 const namesUk:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
 const classical=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn'];
-export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en'):EditorialReading{
+export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en',asOf='2026-10-20'):EditorialReading{
  const uk=lang==='uk',ix=uk?0:1;
+ const reference=Date.parse(asOf+'T12:00:00Z');
+ const period=chart.dasha.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
+ const subperiod=period?.antardashas?.find(d=>Date.parse(d.start)<=reference&&reference<Date.parse(d.end));
  const rules=ruleFindings(chart);
  const get=(name:string)=>{const p=chart.d1.find(g=>g.name===name);if(!p)throw new Error('Missing verified '+name);return p;};
  const name=(n:string)=>uk?namesUk[n]||n:n;
@@ -187,7 +190,12 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en'):Edit
   uk?'Найбільша концентрація класичних планет припадає на '+area(leading.h)+', а найпоширенішою стихією є '+top+'. Це факти про структуру карти, але не доведені характеристики особистості.':
    'The biggest classical-planet cluster is in '+area(leading.h)+', and the most frequent element is '+top+'.',
   uk?'Суть цього натального прочитання не в переліку порад. Лагна задає характер прояву, Сонце й Місяць описують два різні центри переживань, а управителі важливих домів показують, як у традиції пов’язані особистий шлях, союз і справа життя. Часовий акцент уточнює Вімшоттарі-даша, а роздільні карти D9 та D10 слугують додатковими рівнями тлумачення.':
-   'This reading is not a list of generic tasks. The ascendant defines the chart framework; Sun and Moon mark different emphases, while the house lords connect identity, partnership and vocation. Vimshottari dasha adds timing context, while D9 and D10 provide supplementary perspectives.'
+   'This reading is not a list of generic tasks. The ascendant defines the chart framework; Sun and Moon mark different emphases, while the house lords connect identity, partnership and vocation. Vimshottari dasha adds timing context, while D9 and D10 provide supplementary perspectives.',
+  period?(uk?'Часовий акцент станом на '+asOf+': махадаша '+name(period.lord)+(subperiod?', антардаша '+name(subperiod.lord):'')+'. У традиції цей період уточнює, які теми карти можуть бути особливо актуальними. Це не автоматична обіцянка конкретної події.':
+   'Timing emphasis as of '+asOf+': '+name(period.lord)+' mahadasha'+(subperiod?' / '+name(subperiod.lord)+' antardasha':'')+'. Traditionally this adds timing context to the natal reading, not a promise of a specific event.'):
+   (uk?'Для обраної дати активний період даші у розрахованих даних не визначено.':'No active dasha period is available for the chosen reference date.'),
+  uk?'Навамша D9 — лагна '+sign(chart.lagnaD9.sign)+'; Дашамша D10 — лагна '+sign(chart.lagnaD10.sign)+'. Це уточнювальні карти традиції, а не заміна основної D1.':
+   'Navamsha D9 ascendant: '+sign(chart.lagnaD9.sign)+'; Dashamsha D10 ascendant: '+sign(chart.lagnaD10.sign)+'. These divisional charts complement rather than replace D1.'
  ],[uk?'Ключ до читання: управитель десятого дому — '+name(String(ruler(10).subject))+' — переносить тему професії у сферу «'+area(Number(ruler(10).values.locatedHouse))+'»; управитель сьомого дому — '+name(String(ruler(7).subject))+' — пов’язує партнерство зі сферою «'+area(Number(ruler(7).values.locatedHouse))+'». У традиції Парашари саме ці зв’язки, а не універсальні поради, задають основу подальшого аналізу.':
    'The tenth-house ruler '+name(String(ruler(10).subject))+' connects vocation with '+area(Number(ruler(10).values.locatedHouse))+', while the seventh-house ruler '+name(String(ruler(7).subject))+' connects partnership with '+area(Number(ruler(7).values.locatedHouse))+'. These verified lordship connections are the foundation of a Parashari reading.'],
  ['ascendant.sign='+asc,'D1.Sun.house='+sun.house,'D1.Moon.house='+moon.house])
