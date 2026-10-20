@@ -20,6 +20,7 @@ import {EditorialController,PublicContentController} from './editorial.ts';
 import {EDITORIAL_USE_CASES,EditorialUseCases} from './editorial-application.ts';
 import {PrismaEditorialStore} from './editorial-prisma.ts';
 import {ReadingOrdersController} from './reading-orders.ts';
+import {ExpertsController} from './experts.ts';
 import {TarotController,TAROT_USE_CASES} from './tarot.ts';
 import {TarotUseCases} from './tarot-application.ts';
 import {PrismaTarotReadingRepository} from './tarot-prisma-repository.ts';
@@ -150,7 +151,7 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController],
+@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,ExpertsController,TarotController],
  providers:[PrismaService,
   {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
    new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},
