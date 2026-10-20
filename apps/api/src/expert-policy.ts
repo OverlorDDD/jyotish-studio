@@ -2,7 +2,8 @@
 export const EXPERT_SPECIALTIES=['jyotish','tarot','yoga','meditation'] as const;
 export type Specialty=typeof EXPERT_SPECIALTIES[number];
 export class ExpertProfileError extends Error{
- constructor(public readonly code:'validation'|'permission'|'conflict',message:string){super(message);this.name='ExpertProfileError';}
+ readonly code:'validation'|'permission'|'conflict';
+ constructor(code:'validation'|'permission'|'conflict',message:string){super(message);this.code=code;this.name='ExpertProfileError';}
 }
 function field(input:unknown,label:string,max:number,min=1):string{
  if(typeof input!=='string'||input.trim().length<min||input.length>max)throw new ExpertProfileError('validation',label+' length invalid');
