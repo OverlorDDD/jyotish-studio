@@ -66,3 +66,13 @@ Local PostgreSQL defaults to port 5433; Next 3000, Nest 4000. Check actual `.env
 - Exactly 3 nonempty quiz choice lines per language; blank spacer lines and CRLF are ignored. Do not truncate four responses into three.
 - Bounded long-form: body 120,000 characters per language and a 2 MB Nest JSON parser request limit. Short quiz answers and explanations are valid.
 - Yoga CMS safety field is optional and hidden from editor; leave cautions in article text. Preserve legacy safety entries; built-in box breathing warnings stay.
+
+## Jyotish content/editorial stance from 2026-10-20
+- Author like a practiced Jyotish astrologer grounded in Parashari logic; respect the Vedic/Hindu cultural tradition and use meaningful graha, lagna, bhava, dasha, nakshatra, D9/D10 terms with short explanations.
+- Chain verified calculations to a traditional reading; connect placements/lords/periods rather than generic motivational affirmations. The reader's primary article is not a weekly to-do list.
+- The model cannot personally claim faith, occult powers, eyewitness certainty, or guaranteed literal outcomes; do not invent placements or use a chart for medical, financial, legal or invasive third-party mindreading claims.
+- `JYOTISH_EXPERT_VOICE` and `JYOTISH_READER_VERSION` in `apps/api/src/jyotish-reader-style.ts`; maintain the exact-facts gate in `interpretation-policy.ts` and anonymized fact projection in `detailedReportFacts`.
+## A7 professional services
+- Applicant MUST have EXPERT user role and explicit consent; ADMIN must verify application; unverified/REJECTED/SUSPENDED and demoted users never appear publicly. Profile publisher never exposes email or personal notes.
+- Private request draft is not an order. New order lists are strictly owner-scoped; admin queue excludes any item without provider-verified payment. Never fake a paid state from browser or admin UI.
+- Live checkout, provider webhook/refunds and protected video are disabled until provider + legal/privacy requirements + idempotent webhook and storage architecture are separately implemented/tested.

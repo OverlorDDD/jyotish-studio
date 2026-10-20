@@ -1,9 +1,9 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-19"
+updated: "2026-10-20"
 verified_against:
   branch: main
-  commit: "66ea0f18474d756d42e740e1242166cd861f256b"
+  commit: "fcd356f63d5b66105460e4983ed3f68e05099d96"
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -34,6 +34,8 @@ modules:
     http: "apps/api/src/nest.ts"
     web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
+    writing_voice: "apps/api/src/jyotish-reader-style.ts; docs/jyotish-editorial-standard.md"
+    reading_narrative: "apps/api/src/editorial-reading.ts v1.1 — chart-linked synthesis, no generic weekly homework"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
@@ -75,10 +77,14 @@ modules:
       admin: 10
     privacy: "authenticated draw, user-private history, explicit AI consent"
   experts:
-    status: "private pre-checkout drafts implemented; payments/expert video delivery NOT live"
-    http: "apps/api/src/reading-orders.ts"
-    web: "apps/web/app/components/ExpertOffer.tsx; apps/web/app/components/ReadingIntake.tsx"
-    warning: "ReadingOrder DB skeleton is not a working commerce flow"
+    status: "A7 first phase: verified expert profiles, authenticated applications, admin approval/suspension and public directory; real payments not live"
+    profile_policy: "apps/api/src/expert-policy.ts"
+    http: "apps/api/src/experts.ts; apps/api/src/reading-orders.ts"
+    web: "apps/web/app/components/ExpertMarketplace.tsx; apps/web/app/[locale]/experts/page.tsx; ExpertOffer.tsx"
+    persistence: "ExpertProfile (review status, revision CAS, applicant consent); private ReadingDraft, ReadingOrder skeleton"
+    invariant: "only VERIFIED profiles with active EXPERT role can appear publicly; private briefs not forwarded; no client-controlled PAID transition"
+    next_gate: "choose licensed payment provider, verified signature webhooks, idempotent transaction, refunds, protected video storage"
+    warning: "No checkout or real monetary operation; A7 payment and delivery completion explicitly blocked"
   yoga:
     status: "Yoga v2: four guided practices; box visual 4-4-4-4 and two no-hold alternatives; reflection untimed"
     content: "apps/web/lib/yoga-content.ts"
@@ -116,7 +122,7 @@ modules:
 persistence:
   schema: "apps/api/prisma/schema.prisma"
   migrations: "apps/api/prisma/migrations/"
-  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, RoleChange, TarotReading, EditorialEntry, EditorialVersion]
+  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, RoleChange, TarotReading, EditorialEntry, EditorialVersion, ExpertProfile]
 routes:
   web:
     home: "/uk | /en"
@@ -127,7 +133,7 @@ routes:
     account: "/{locale}/account"
     admin: "/{locale}/admin"
     editorial: "/{locale}/editorial"
-    experts: "/{locale}/experts -> tarot#human-readings"
+    experts: "/{locale}/experts (public verified practitioner directory and expert applications)"
   api:
     charts: "/api/v1/charts/*"
     reports: "/api/v1/reports"
@@ -138,6 +144,9 @@ routes:
     editorial: "/api/v1/editorial/entries/*"
     content_public: "/api/v1/content/*"
     drafts: "/api/v1/reading-orders/drafts"
+    expert_profiles: "/api/v1/experts/*"
+    order_tracker: "/api/v1/reading-orders/my-orders"
+    paid_admin_queue: "/api/v1/reading-orders/admin/queue"
     docs: "/api/docs"
 quality:
   ci: ".github/workflows/ci.yml"
@@ -156,6 +165,7 @@ quality:
     seo: "npm run test:seo"
     a5_content: "npm run test:content:a5"
     editorial_a6: "npm run test:editorial:a6"
+    expert_a7: "npm run test:expert:a7"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
