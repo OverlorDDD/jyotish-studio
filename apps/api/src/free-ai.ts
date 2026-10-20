@@ -64,7 +64,7 @@ export async function generateFreeInterpretationDetailed(
      formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     try{
-     return {result:await request(opts.reportMode?'prose':'strict')};
+     return {result:await request('strict')};
     }catch(error){
      // Free routers may choose endpoints that ignore strict schemas.
      // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.

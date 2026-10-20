@@ -166,9 +166,10 @@ export function buildEditorialReading(chart:CalculatedChart,lang:'uk'|'en'):Edit
    'The chart links '+character(asc)+', '+area(sun.house)+' and '+area(moon.house)+'.',
   uk?'Найбільша концентрація класичних планет припадає на '+area(leading.h)+', а найпоширенішою стихією є '+top+'. Це факти про структуру карти, але не доведені характеристики особистості.':
    'The biggest classical-planet cluster is in '+area(leading.h)+', and the most frequent element is '+top+'.',
-  uk?'Важливо не «вірити кожному реченню», а залишити ті ідеї, які допомагають краще розуміти свої потреби, реальні можливості й наступні кроки.':
-   'Keep only reflections that help you make meaningful choices.'
- ],[uk?'Оберіть дві практичні ідеї з цього звіту й перевірте, чи справді вони працюють у вашому житті.':'Try two suggestions and see what helps.'],
+  uk?'Суть цього натального прочитання не в переліку порад. Лагна задає характер прояву, Сонце й Місяць описують два різні центри переживань, а управителі важливих домів показують, як у традиції пов’язані особистий шлях, союз і справа життя. Часовий акцент уточнює Вімшоттарі-даша, а роздільні карти D9 та D10 слугують додатковими рівнями тлумачення.':
+   'This reading is not a list of generic tasks. The ascendant defines the chart framework; Sun and Moon mark different emphases, while the house lords connect identity, partnership and vocation. Vimshottari dasha adds timing context, while D9 and D10 provide supplementary perspectives.'
+ ],[uk?'Ключ до читання: управитель десятого дому — '+name(String(ruler(10).subject))+' — переносить тему професії у сферу «'+area(Number(ruler(10).values.locatedHouse))+'»; управитель сьомого дому — '+name(String(ruler(7).subject))+' — пов’язує партнерство зі сферою «'+area(Number(ruler(7).values.locatedHouse))+'». У традиції Парашари саме ці зв’язки, а не універсальні поради, задають основу подальшого аналізу.':
+   'The tenth-house ruler '+name(String(ruler(10).subject))+' connects vocation with '+area(Number(ruler(10).values.locatedHouse))+', while the seventh-house ruler '+name(String(ruler(7).subject))+' connects partnership with '+area(Number(ruler(7).values.locatedHouse))+'. These verified lordship connections are the foundation of a Parashari reading.'],
  ['ascendant.sign='+asc,'D1.Sun.house='+sun.house,'D1.Moon.house='+moon.house])
  ];
  return {version:'1.0',chapters,elements,highlights:[

@@ -139,7 +139,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <div className="reading-editorial-opening">
     <div className="reading-chapter-kicker">{uk?'✦ ПЕРСОНАЛЬНЕ ПРОЧИТАННЯ':'✦ YOUR PERSONAL READING'}</div>
     <h3>{uk?'Про вашу особистість, стосунки, кар’єру та життєві орієнтири':'Personality, relationships, work and life direction'}</h3>
-    <p>{uk?'Тут поєднано конкретні положення вашої натальної карти в цілісне символічне прочитання. Це не науковий тест особистості і не гарантований прогноз, а привід перевірити ідеї на власному досвіді.':'A coherent traditional reading based on the positions of your birth chart. It is not a scientific personality test or a guaranteed prediction.'}</p>
+    <p>{uk?'Перед вами персональне прочитання за традицією Джйотіш: лагна, положення грах, управителі домів, накшатра Місяця та поточна даша. Ми пояснюємо, звідки походить кожен висновок, відділяючи астрологічний розрахунок від традиційного тлумачення.':'A personal reading in the Jyotish tradition, following the ascendant, grahas, house rulers, Moon nakshatra and current dasha. Each conclusion is tied to the chart, distinguishing astronomical calculations from traditional interpretation.'}</p>
    </div>
    <section className="reading-editorial-highlights" aria-label={uk?'Основні акценти карти':'Chart highlights'}>
     {report.editorial.highlights.map((h,i)=><div key={i}><span>{String(i+1).padStart(2,'0')}</span><strong>{h}</strong></div>)}
@@ -156,7 +156,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
        <small>{uk?'Частки семи класичних планет за знаками, не психологічний рейтинг.':'Share of seven classical grahas by sign; not a psychological score.'}</small>
       </div>:null}
       {chapter.insights?.length?<aside className="reading-editorial-advice">
-       <strong>{uk?'Що спробувати на практиці':'A practical idea'}</strong>
+       <strong>{uk?'Ключ до трактування':'Interpretive key'}</strong>
        {chapter.insights.map((ad,j)=><p key={j}>{ad}</p>)}
       </aside>:null}
      </article>)}
@@ -164,7 +164,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
   </div>:null}
   {report.editorial?.chapters?.length&&(ai.provider==='openrouter'||ai.provider==='ollama')&&friendlyAiCards(ai.text,lang).length>0?<details className="reading-editorial-ai">
    <summary>{uk?'✧ Додаткове прочитання від AI-асистента':'✧ Additional AI interpretation'}</summary>
-   <p>{uk?'AI пояснює вже розраховані теми іншими словами. Він не встановлює факти про вашу особистість і не змінює положень планет.':'AI rephrases the calculated themes without altering placements or establishing personal facts.'}</p>
+   <p>{uk?'Це додатковий погляд у традиції Джйотіш на основі перевірених положень вашої карти. Генеративна модель не має права вигадувати нові йоги, даші або положення планет.':'This additional Jyotish interpretation is grounded in verified chart placements. The model must not invent yogas, dashas or planetary placements.'}</p>
    <div className="reading-ai-text">{friendlyAiCards(ai.text,lang).map((item,i)=><article key={i} className="reading-ai-card">
     <h4>{item.heading}</h4><p>{item.body}</p>
    </article>)}</div>
