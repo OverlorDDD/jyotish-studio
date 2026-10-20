@@ -110,11 +110,11 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',fallbackReason:'no_provider'}};
-  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':editorial-v1',
+  const free=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':interpretation-v3',
    ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
-    factsOverride:report.editorial.chapters.filter(ch=>['core','elements','strengths','relationships','career','challenges','growth'].includes(ch.id))
-     .map(ch=>({id:({core:'identity',elements:'planets',strengths:'houses',relationships:'navamsa',career:'dashamsa',challenges:'aspects',growth:'dasha'} as Record<string,string>)[ch.id],
-      fact:ch.title+' — '+ch.paragraphs.join(' ').slice(0,1050)+' '+(birth.lang==='uk'?'Практична ідея: ':'Practical idea: ')+ch.insights.join(' ')})),reportMode:true,
+    factsOverride:report.editorial.findings.map(f=>({id:f.id,
+      fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
+       '. Supporting: '+f.supportingFactors.join('; ')+'. Limits: '+f.limitations.join('; ')})),reportMode:true,
     onUsage:event=>this.recordAiUsage(event,'detailed_report'),
     approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
    }));
