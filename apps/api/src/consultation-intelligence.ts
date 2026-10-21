@@ -84,7 +84,7 @@ export function verifyUnifiedConsultation(
  errors.push(...checkNarrativeLordClaims(all,houseLords).errors);
  if(/(?:гарантован[оіий]|неодмінно|will certainly|guaranteed profit|fatal disease|безплідн)/iu.test(all))errors.push('unfounded_certainty');
  if(/(?:\b(?:Pluto|Chiron|Lilith|Uranus|Neptune|Midheaven|MC)\b|Плутон|Хірон|Ліліт|Уран|Нептун|квадрат(?:ом|і|у)?|sextile|square aspect)/iu.test(all))errors.push('unsupported_western_factor');
- if(lang==='uk'&&/(?:\b(?:который|является|отношения|согласно)\b)/iu.test(all))errors.push('ru_mixed');
+ if(lang==='uk'&&/(?:который|является|отношения|согласно)/iu.test(all))errors.push('ru_mixed');
  const major=graph.nodes.find(n=>n.id==='vimshottari.major');
  const minor=graph.nodes.find(n=>n.id==='vimshottari.minor');
  const namesGen:Record<string,string>={Сонця:'Sun',Місяця:'Moon',Марса:'Mars',Меркурія:'Mercury',
