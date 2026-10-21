@@ -173,7 +173,7 @@ test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and
  assert.match(byChapter('configuration'),/Сонце.*Марс.*Меркурій.*Сатурн/);
  assert.match(byChapter('configuration'),/9-му домі/);
  assert.match(byChapter('tensions'),/Марс і Сатурн/);
- assert.match(byChapter('portrait'),/Місяць.*12-му домі.*Близнюках/s);
+ assert.match(byChapter('portrait'),/Місяць.*Близнюках.*12-му домі/s);
  assert.match(byChapter('relationships'),/Навамш[аі] D9/);
  assert.match(byChapter('career'),/Дашамша D10/);
  assert.match(byChapter('career'),/Управитель дев’ятого дому Юпітер/);
