@@ -12,8 +12,8 @@ function pos(name,sign,lagna){
   pada:4,retrograde:false};
 }
 const chart={
- input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:0,longitude:0},
- utc:'1996-03-27T10:58:00.000Z',ayanamsa:23.8,ephemeris:'SYNTHETIC REGRESSION -- NOT EPHEMERIS',
+ input:{date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},
+ utc:'2000-01-01T12:00:00.000Z',ayanamsa:23.8,ephemeris:'SYNTHETIC REGRESSION -- NOT EPHEMERIS',
  ascendant:pos('Ascendant',4,4),lagnaD9:pos('Ascendant',9,9),lagnaD10:pos('Ascendant',5,5),
  d1:raw.map(([name,sign])=>pos(name,sign,4)),
  d9:raw.map(([name,sign])=>pos(name,name==='Venus'?9:sign,9)),
