@@ -12,11 +12,11 @@ export const CHAPTER_IDS=['portrait','configuration','tensions','relationships',
 
 /** Repetitive boilerplate is not a reading. Keep one methodology note in the UI instead. */
 export function removeConsultationBoilerplate(value:string):string{
- return value.replace(/(?:Проте\\s+)?[Тт]радиційн(?:а межа|і межі)\\s+(?:нагадує|вказує|підкреслює)[^.!?]*[.!?]/gu,'')
+ return value.replace(/(?:Проте\s+)?[Тт]радиційн(?:а межа|і межі)\s+(?:нагадує|вказує|підкреслює)[^.!?]*[.!?]/gu,'')
   .replace(/[Зз]а традиційними межами[^.!?]*[.!?]/gu,'')
   .replace(/[Цц]е лише символічна інтерпретація[^.!?]*[.!?]/gu,'')
   .replace(/(?:This is only a symbolic interpretation|The traditional boundary reminds us)[^.!?]*[.!?]/giu,'')
-  .replace(/\\s{2,}/g,' ').trim();
+  .replace(/\s{2,}/g,' ').trim();
 }
 const OUT_OF_SCOPE_CLUSTER=/(?:концентрац|скупчен|спільн.{0,15}присутн|concentrat|cluster).{0,95}(?:сонц|марс|меркур|сатурн|Sun|Mars|Mercury|Saturn)/iu;
 /** Editorial focus is data supplied by the server, never a user-authored chart claim. */
