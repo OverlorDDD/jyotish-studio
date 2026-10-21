@@ -113,11 +113,11 @@ modules:
     brand: "apps/web/lib/brand.ts"
     future: [western_astrology, panchang, news, community, mobile]
   ai_usage:
-    status: "usage storage and OpenRouter/Gemini/Ollama fallback implemented; distributed budgets/throttles pending"
+    status: "usage storage and Gemini/GroqCloud/OpenRouter (cloud-only default) fallback implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
     live_check: "npm run ai:verify-live; invented chart facts, never CI; success identifies actual upstream model"
     provenance: "report.ai.source llm/deterministic; report.ai.chapters 4-8 verified, missing chapters remain deterministic; reading-ai-provenance UI"
-    cost_guard: "AI_MODE=free; Gemini requires GEMINI_API_KEY and GEMINI_FREE_TIER_CONFIRMED=1; optional OPENROUTER_FREE_MODEL must end in :free"
+    cost_guard: "AI_MODE=free; Gemini and Groq each require separate confirmed FREE tier and keys; optional OpenRouter free model must end in :free; no local models by default"
     table: AiUsage
 persistence:
   schema: "apps/api/prisma/schema.prisma"
@@ -164,6 +164,7 @@ quality:
     editorial_a6: "npm run test:editorial:a6"
     a7_llm: "npm run test:a7:llm"
     a7_consultation: "npm run test:a7:consultation"
+    a7_cloud: "npm run test:a7:cloud"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
