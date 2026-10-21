@@ -1,9 +1,10 @@
 import type {CalculatedChart,Graha} from '../../../packages/jyotish-core/src/index.ts';
 import {CLASSICAL_GRAHAS,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {readerClassicalContext} from './reader-classical.ts';
+import {authorConsultationV5} from './reader-narrative-v5.ts';
 
 /** Interpretation rules are independently versioned from astronomy and Engine 2.0. */
-export const INTERPRETATION_VERSION='4.1.0';
+export const INTERPRETATION_VERSION='5.0.0';
 export type AstrologicalFinding={
  id:string;topic:string;ruleId:string;verifiedEvidence:string[];
  traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];
@@ -236,11 +237,27 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
      'The seventh lord in house '+at(7)+' and tenth lord in house '+at(10)+' shape two dimensions of life. '+(active?'The current '+planet(active.lord)+' period further emphasizes house '+get(active.lord).house+'.':'No unsupported timing claim is added.')],
    ['ascendant',primary.id,'partnership','vocation','active-dasha'])
  ];
+ // The core reading is now an authored multi-paragraph synthesis, independently
+ // usable when the external LLM times out or produces generic material.
+ const authored=authorConsultationV5(chart,lang,asOf);
+ const chaptersV5=chapters.map(c=>{
+  const improved=authored.find(a=>a.id===c.id);
+  if(!improved||improved.paragraphs.length<2)throw Error('Missing substantive chapter '+c.id);
+  return {...c,paragraphs:improved.paragraphs};
+ });
  const counts=[0,0,0,0];for(const name of CLASSICAL_GRAHAS)counts[(get(name).sign-1)%4]++;
  const labels=uk?['Вогонь','Земля','Повітря','Вода']:['Fire','Earth','Air','Water'];
- return {version:INTERPRETATION_VERSION,findings,chapters,
+ return {version:INTERPRETATION_VERSION,findings,chapters:chaptersV5,
   elements:counts.map((count,i)=>({name:labels[i],count,percentage:Math.round(count/7*100)})),
-  highlights:[text(primary.id),text('ascendant'),text('vocation')].map(t=>t.slice(0,280)),
+  highlights:(uk?[
+   'Головна тема: '+(primary.id==='concentration'?'взаємодія '+primary.traditionalMeaning.slice(0,170):'зв’язок управителів життєвого напряму'),
+   'Особистий ключ: '+planet(String(lord(1).subject))+' як управитель лагни у домі '+at(1),
+   'Професійний ключ: '+planet(String(lord(10).subject))+' керує 10-м домом і перебуває в домі '+at(10)
+  ]:[
+   'Defining motif: '+primary.traditionalMeaning.slice(0,170),
+   'Personal anchor: ascendant lord '+String(lord(1).subject)+' in house '+at(1),
+   'Work anchor: tenth lord '+String(lord(10).subject)+' in house '+at(10)
+  ]).map(t=>t.slice(0,280)),
   method:uk?'Парашарі Джйотіш: перевірені D1, управителі домів, накшатра, D9, D10 і Вімшоттарі. Версія синтезу '+INTERPRETATION_VERSION+'. Стихії наведено лише як статистику.':
    'Parashari Jyotish: verified D1, house lords, nakshatra, D9, D10 and Vimshottari. Narrative version '+INTERPRETATION_VERSION+'. Elements are technical statistics only.'};
 }
