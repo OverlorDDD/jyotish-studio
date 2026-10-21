@@ -31,6 +31,7 @@ test('A8.7 Cancer reference chart gets eight substantial, actually different, 3-
  assert.match(one('portrait'),/Місяць.*12-му домі/si);
  assert.match(one('configuration'),/йогакарака/);
  assert.match(one('configuration'),/Юпітер.*власному Стрільці/);
+ assert.match(one('configuration'),/Юпітер є диспозитором/);
  assert.match(one('tensions'),/Меркурій.*падіння/);
  assert.match(one('relationships'),/Навамші D9/);
  assert.match(one('career'),/Дашамша D10/);
