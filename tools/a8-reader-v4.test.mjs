@@ -1,3 +1,4 @@
+import {verifyFreeProse} from '../apps/api/src/interpretation-policy.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {classicalLordshipTable,yogakarakasForLagna,readerClassicalContext,checkNarrativeLordClaims,CLASSICAL_METHOD_SOURCES} from '../apps/api/src/reader-classical.ts';
@@ -96,4 +97,12 @@ test('A8.1 English and Ukrainian Cancer career passages mention yogakaraka Mars'
   const career=r.chapters.find(x=>x.id==='career').paragraphs.join(' ');
   assert.match(career,lang==='uk'?/йогакарака/i:/yogakaraka/i);
  }
+});
+
+test('A8.4 yogakaraka only allowed with exact lagna proof, no unsupported named yoga',()=>{
+ const prose='Для лагни в Раку Марс — йогакарака: в традиційному читанні він пов’язує покликання з творенням та наполегливою дією, хоча інші чинники карти мають значення.';
+ assert.equal(verifyFreeProse(prose,[]).ok,false);
+ assert.equal(verifyFreeProse(prose,['yogakaraka']).ok,true);
+ const unsupported='Йогакарака Марс і Малавйя йога визначають майбутнє.';
+ assert.equal(verifyFreeProse(unsupported,['yogakaraka']).ok,false);
 });
