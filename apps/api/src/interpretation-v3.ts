@@ -127,8 +127,10 @@ export function analyzeAstrologicalFindings(chart:CalculatedChart,lang:'uk'|'en'
    (uk?'йогакарака — управитель кендри й трикони':'yogakaraka, joining a kendra and a trikona'):
    (uk?'управитель домів':'ruler of houses');
   const listed=role.houses.join(', ');
-  const dignity=uk?{exalted:'в екзальтації',debilitated:'у падінні',own:'у власному знаку',other:'без особливого статусу за знаком'}[role.dignity]:
-   {exalted:'exalted',debilitated:'debilitated',own:'in own sign',other:'without a special sign dignity'}[role.dignity];
+  const dignityLabels:Record<string,string>=uk?
+   {exalted:'в екзальтації',debilitated:'у падінні',own:'у власному знаку',other:'без особливого статусу за знаком'}:
+   {exalted:'exalted',debilitated:'debilitated',own:'in own sign',other:'without a special sign dignity'};
+  const dignity=dignityLabels[role.dignity];
   const main=uk?
    planet(role.graha)+': '+roleLabel+' '+listed+'; положення у домі '+role.locatedHouse+
     ', '+(dignity||'невизначений стан знака')+'. Трактування залежить від цих домів, а не від загального образу планети.':
