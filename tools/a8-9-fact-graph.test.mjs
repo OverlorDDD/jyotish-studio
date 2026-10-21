@@ -29,7 +29,7 @@ test('A8.9 fact graph: refuses nonexistent facts, invalid dates, inconsistent in
  const chart=make(),graph=buildChartFactGraph(chart,'2026-10-21');
  assert.throws(()=>requireGraphFacts(graph,['D1.yoga.nonexistent']),/Unsupported chart fact/);
  assert.throws(()=>buildChartFactGraph(chart,'2026-02-30'),/Invalid asOf/);
- chart.d9[0].house=11;
+ chart.d9[0].house=(chart.d9[0].house%12)+1;
  assert.throws(()=>buildChartFactGraph(chart,'2026-10-21'),/D9 inconsistent/);
 });
 test('A8.9 fact graph: positions alter fingerprint without touching writer',()=>{
