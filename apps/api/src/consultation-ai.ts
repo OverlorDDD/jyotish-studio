@@ -1,4 +1,5 @@
 import {verifyFreeProse} from './interpretation-policy.ts';
+import {checkNarrativeLordClaims} from './reader-classical.ts';
 
 /** Only deterministic, server-authored finding material may enter the model context. */
 export type AiChapterSpec={
@@ -11,7 +12,7 @@ export const CHAPTER_IDS=['portrait','configuration','tensions','relationships',
 
 /** Plain section delimiters work with models that do not support JSON-schema mode.
  * The deterministic report retains the exact factual placements, houses and evidence. */
-export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec>,approvedYogas:ReadonlyArray<string>=[]):AiConsultationChapter[]{
+export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec>,approvedYogas:ReadonlyArray<string>=[],houseLords?:Record<number,string>):AiConsultationChapter[]{
  if(raw.length>24000)return [];
  const allowed=new Set(specs.map(c=>c.id));
  const markers=[...raw.matchAll(/\[\[([a-z][a-z-]*)\]\]/g)];
@@ -28,6 +29,7 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
   // Reject empty headings, a list of isolated keywords, generic short worksheet prompts.
   if(combined.length<145||!/[\p{L}][^.!?]{12,}[.!?]/u.test(combined))continue;
   if(/(?:гарантовано|неодмінно|точно передбачає|guarantees|will certainly|fatal disease|безумовно)/iu.test(combined))continue;
+  if(houseLords&&!checkNarrativeLordClaims(combined,houseLords).ok)continue;
   chapters.push({id,paragraphs:normalized,source:'llm'});
  }
  return chapters;
@@ -51,9 +53,9 @@ export function buildAiChapterSpecs(editorial:{
    (ch.id==='career'&&f.topic==='career')||
    (ch.id==='resources'&&f.topic==='resources')||
    (ch.id==='timing'&&f.topic==='timing'));
-  const selected=ch.id==='conclusion'?editorial.findings.slice(0,4):related.slice(0,4);
+  const selected=ch.id==='conclusion'?editorial.findings.slice(0,6):related.slice(0,6);
   const facts=selected.map(f=>[
-   'Verified rule '+f.ruleId, f.traditionalMeaning,
+   'Fact ID '+f.id+', verified rule '+f.ruleId, f.traditionalMeaning,
    'Supporting factors '+f.supportingFactors.slice(0,4).join('; '),
    'Counter-factors '+f.counterFactors.slice(0,3).join('; '),
    'Boundaries '+f.limitations.slice(0,2).join('; ')
