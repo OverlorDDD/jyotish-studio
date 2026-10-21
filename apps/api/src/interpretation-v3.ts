@@ -250,7 +250,7 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
  return {version:INTERPRETATION_VERSION,findings,chapters:chaptersV5,
   elements:counts.map((count,i)=>({name:labels[i],count,percentage:Math.round(count/7*100)})),
   highlights:(uk?[
-   'Головна тема: '+(primary.id==='concentration'?'взаємодія '+primary.traditionalMeaning.slice(0,170):'зв’язок управителів життєвого напряму'),
+   'Головна тема: '+(primary.id==='concentration'?'поєднання класичних грах у провідній сфері карти':'взаємодія управителів життєвого напряму'),
    'Особистий ключ: '+planet(String(lord(1).subject))+' як управитель лагни у домі '+at(1),
    'Професійний ключ: '+planet(String(lord(10).subject))+' керує 10-м домом і перебуває в домі '+at(10)
   ]:[

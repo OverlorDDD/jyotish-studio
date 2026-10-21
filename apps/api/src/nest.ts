@@ -9,6 +9,7 @@ import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
 import {generateResilientFreeConsultation} from './resilient-consultation.ts';
 import {buildAiChapterSpecs} from './consultation-ai.ts';
+import {generateConsultationIntelligence} from './consultation-intelligence.ts';
 import {yogakarakasForLagna} from './reader-classical.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
@@ -113,8 +114,11 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+':interpretation-v5-1-bounded-cloud-enrichment',
-   ()=>generateResilientFreeConsultation(chart,birth.lang,{
+  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+(process.env.GALAXIORA_A89_PREVIEW==='1'?':a8.9-preview-1':':interpretation-v5-1-bounded-cloud-enrichment'),
+   ()=>process.env.GALAXIORA_A89_PREVIEW==='1'?
+     generateConsultationIntelligence(chart,birth.lang,report.asOf,report.editorial,{
+      onUsage:event=>this.recordAiUsage(event,'detailed_report')
+     }):generateResilientFreeConsultation(chart,birth.lang,{
     chapterSpecs:buildAiChapterSpecs(report.editorial),
     factsOverride:report.editorial.findings.map(f=>({id:f.id,
       fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
@@ -122,7 +126,8 @@ export class JyotishController{
     onUsage:event=>this.recordAiUsage(event,'detailed_report'),
     approvedYogas:[...ruleFindings(chart).yogas.map(y=>y.name),...(yogakarakasForLagna(chart.ascendant.sign).length?['yogakaraka']:[])]
    }));
-  return {...report,ai:free.result?{...free.result,source:'llm' as const,cached}:
+  return {...report,ai:free.result?{...free.result,source:'llm' as const,cached,
+     ...(process.env.GALAXIORA_A89_PREVIEW==='1'?{documentMode:'unified' as const}:{} )}:
    {provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:free.reason}};
  }
 

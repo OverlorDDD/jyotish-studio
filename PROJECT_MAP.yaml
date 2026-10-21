@@ -1,6 +1,6 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-20"
+updated: "2026-10-21"
 verified_against:
   branch: main
   commit: "66ea0f18474d756d42e740e1242166cd861f256b"
@@ -184,8 +184,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A8.6 Reader v4.1 quality: per-topic verified D1/D9/D10/dasha evidence, stronger 8-chapter prompts and generic/redundant prose gate; human expert review NOT complete"
-  next: "Manual A8.6 real Groq reading comparison, JHora parity on real charts, expert Jyotish review of 10-20 real readings; then A9 Vimshottari/transits forecast"
+  now: "A8.9 Consultation Intelligence preview: graph, calculated claims, global theme plan, atomic cloud author/editor gate; human review NOT complete"
+  next: "A8.9 real cloud UA/EN quality acceptance, JHora parity on consented real charts, expert review 10-20 cases; do not begin A9 until acceptance"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -219,3 +219,9 @@ docs:
 # A8.8: full Jyotish v5.0.0 enrichment split into two bounded four-chapter free-only calls.
 # Groq GPT-OSS reasoning_effort=low; timeout 16s per chunk, total 42s; all valid partial chapters are retained, fallback never loses Reader V5.
 # Next: real user chart, timing of Groq, 8/8 not required but >=2 meaningful chapters; human reader quality review before A9 forecasting.
+
+# A8.9 preview (opt-in): GALAXIORA_A89_PREVIEW=1 for Nest API process only.
+# apps/api/src/consultation-fact-graph.ts => provenance-linked D1/D9/D10/dasha graph.
+# apps/api/src/consultation-intelligence.ts => calculated claim ledger, global motifs, atomic eight-chapter writer/reviewer and partial factual gate.
+# IMPORTANT: classical OCR rules are NOT certified; semantic/human quality gate remains OPEN.
+# npm run test:a8:graph; npm run test:a8:intelligence.
