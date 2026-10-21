@@ -52,7 +52,9 @@ export function analyzeAstrologicalFindings(chart:CalculatedChart,lang:'uk'|'en'
  const findings:AstrologicalFinding[]=[];
  const add=(id:string,topic:string,ruleId:string,meaning:string,evidence:string[],supports:string[],counter:string[],importance:number,limitations=meaningfulLimitations)=>{
   findings.push({id,topic,ruleId,traditionalMeaning:meaning,verifiedEvidence:distinct(evidence),supportingFactors:distinct(supports),
-   counterFactors:distinct(counter),relativeImportance:importance,limitations});
+   counterFactors:distinct(counter),relativeImportance:importance,limitations,
+   sourceIds:ruleId.startsWith('PARASHARI_FUNCTIONAL')||ruleId.startsWith('PARASHARI_KENDRA_TRIKONA')?
+    ['RULESET-D1-2.0.0','LAGHU-PARASHARI-JHA-1900']:['RULESET-D1-2.0.0']});
  };
  const moon=get('Moon'),sun=get('Sun'),mars=get('Mars'),saturn=get('Saturn'),venus=get('Venus');
  const confirmedYogas=rules.yogas;
