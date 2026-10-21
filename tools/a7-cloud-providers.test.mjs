@@ -69,3 +69,15 @@ test('cloud-only Groq upstream failure transparently falls through to OpenRouter
  assert.equal(calls.length,2);
  assert.equal(result.result?.provider,'openrouter');
 });
+
+
+test('legacy Ollama selection cannot initiate a local-network AI request for Jyotish',async()=>{
+ let attempts=0;
+ const result=await generateFreeInterpretationDetailed(chart,'en',{
+  order:['ollama'],ollamaEnabled:true,ollamaModel:'gemma3:1b',limit:()=>true,
+  fetcher:async()=>{attempts++;throw Error('Should not access local model');}
+ });
+ assert.equal(result.reason,'no_provider');
+ assert.equal(result.result,null);
+ assert.equal(attempts,0);
+});
