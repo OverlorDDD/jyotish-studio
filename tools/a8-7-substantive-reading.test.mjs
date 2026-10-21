@@ -28,7 +28,7 @@ test('A8.7 Cancer reference chart gets eight substantial, actually different, 3-
  for(const chapter of c)assert.ok(chapter.paragraphs.join(' ').length>600,chapter.id+' too short');
  assert.ok(new Set(c.map(x=>x.paragraphs.join(' '))).size===8);
  const one=id=>c.find(x=>x.id===id).paragraphs.join(' ');
- assert.match(one('portrait'),/Місяць.*дванадцят/si);
+ assert.match(one('portrait'),/Місяць.*12-му домі/si);
  assert.match(one('configuration'),/йогакарака/);
  assert.match(one('configuration'),/Юпітер.*власному Стрільці/);
  assert.match(one('tensions'),/Меркурій.*падіння/);
