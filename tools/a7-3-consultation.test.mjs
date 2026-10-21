@@ -38,7 +38,7 @@ test('HTTP 200 HTML / malformed upstream format fail over to independently confi
    assert.ok(!JSON.stringify(body).includes('2000-01-01'));
    if(calls.length===1)return new Response('<html>upstream unavailable</html>',{status:200,headers:{'content-type':'text/html'}});
    assert.ok(url.includes('generativelanguage.googleapis.com'));
-   return reply(full,'gemini-2.5-flash-lite');
+   return reply(full,'gemini-3.1-flash-lite');
   }
  });
  assert.equal(calls.length,2);
