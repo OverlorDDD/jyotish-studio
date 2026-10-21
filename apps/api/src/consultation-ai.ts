@@ -65,7 +65,7 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
 /** Protect the astronomy data contract: only each specific chapter's verified findings
  * are offered to the model; there are no user names, birth dates or locations. */
 export function buildAiChapterSpecs(editorial:{
- chapters:ReadonlyArray<{id:string;title:string;evidence:ReadonlyArray<string>}>;
+ chapters:ReadonlyArray<{id:string;title:string;evidence:ReadonlyArray<string>;paragraphs?:ReadonlyArray<string>}>;
  findings:ReadonlyArray<{
   id:string;topic:string;ruleId:string;verifiedEvidence:ReadonlyArray<string>;
   traditionalMeaning:string;supportingFactors:ReadonlyArray<string>;counterFactors:ReadonlyArray<string>;limitations:ReadonlyArray<string>;
@@ -98,6 +98,11 @@ export function buildAiChapterSpecs(editorial:{
    'Evidence '+f.id+', deterministic rule '+f.ruleId, f.traditionalMeaning,
    f.counterFactors.length?'Verified counterweights: '+f.counterFactors.slice(0,2).join('; '):''
   ].filter(Boolean).join('. '));
-  return {id:ch.id,title:ch.title,focus:CHAPTER_FOCUS[ch.id],facts:facts.length?facts:['No independent evidence; avoid fabricating details.']};
+  // D9, D10 and exact dasha evidence live in the deterministic chapter text;
+  // the older model input unintentionally lost all of these facts.
+  const crossVarga=['relationships','career','timing'].includes(ch.id)?
+   (ch.paragraphs||[]).slice(0,2).map(t=>'Verified chapter calculation context: '+t):[];
+  return {id:ch.id,title:ch.title,focus:CHAPTER_FOCUS[ch.id],
+   facts:[...facts,...crossVarga].length?[...facts,...crossVarga]:['No independent evidence; avoid fabricating details.']};
  });
 }
