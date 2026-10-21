@@ -79,7 +79,7 @@ test('A8.5 twenty synthetic charts have eight evidence chapters and stable varie
  for(let i=0;i<20;i++){
   const natal=chartFor(i%12+1,Math.floor(i/12));
   const report=buildDetailedReport(natal,'uk','2026-10-21').editorial;
-  assert.equal(report.version,'4.0.0');
+  assert.equal(report.version,'4.1.0');
   assert.equal(report.chapters.length,8);
   assert.ok(report.findings.length>=12);
   assert.ok(report.findings.every(x=>x.ruleId&&x.verifiedEvidence.length));

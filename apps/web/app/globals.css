@@ -671,3 +671,12 @@
  border-radius:10px;box-shadow:0 6px 24px #0009;text-align:left;text-decoration:none;pointer-events:none
 }
 @media(max-width:640px){.as-glossary-term:hover::after,.as-glossary-term:focus::after{max-width:240px;left:0;transform:none}}
+
+/* A8.6: chart proof is explanatory prose, never a list of empty bullets. */
+.reading-evidence-entries{display:grid;gap:10px;margin-top:14px}
+.reading-evidence-entry{border:1px solid #384d66;border-radius:9px;padding:13px 15px;background:#142034}
+.reading-evidence-entry>p{font-size:13px;line-height:1.8;color:#dce4ef;margin:0}
+.reading-evidence-technical{font-size:11px;margin-top:9px;color:#a7bacf}
+.reading-evidence-technical>summary{cursor:pointer;font-size:11px;color:#dfc89c}
+.reading-evidence-technical code{display:block;white-space:normal;overflow-wrap:anywhere;font-size:11px;line-height:1.6;margin-top:9px}
+.reading-evidence-technical small{display:block;color:#b8bfc9;font-size:11px;line-height:1.6;margin-top:7px}

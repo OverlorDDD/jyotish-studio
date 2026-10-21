@@ -134,7 +134,7 @@ test('life portrait has five practical narrative themes, each linked to actual c
 test('reader-first editorial report has chart-specific chapters and accurately counted elements',()=>{
  const uk=buildDetailedReport(chart,'uk','2026-10-13');
  const en=buildDetailedReport(chart,'en','2026-10-13');
- assert.equal(uk.editorial.version,'4.0.0');
+ assert.equal(uk.editorial.version,'4.1.0');
  assert.deepEqual(uk.editorial.chapters.map(c=>c.id),['portrait','configuration','tensions','relationships','career','resources','timing','conclusion']);
  assert.equal(uk.editorial.elements.reduce((s,v)=>s+v.count,0),7);
  assert.ok(uk.editorial.elements.every(v=>v.percentage===Math.round(v.count/7*100)));
@@ -210,7 +210,7 @@ test('A8.5 twenty independent synthetic whole-sign charts yield stable, substant
    g.longitude=(zodiac-1)*30+13.25;
   });
   const out=buildDetailedReport(sample,'uk','2026-10-20').editorial;
-  assert.equal(out.version,'4.0.0');
+  assert.equal(out.version,'4.1.0');
   assert.ok(out.findings.every(f=>f.verifiedEvidence.length));
   assert.equal(out.chapters.length,8);
   assert.deepEqual(out,buildDetailedReport(sample,'uk','2026-10-20').editorial);
