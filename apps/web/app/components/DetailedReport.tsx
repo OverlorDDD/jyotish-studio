@@ -9,7 +9,7 @@ export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
- editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
+ editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[];sourceIds?:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string;source?:'llm'|'deterministic';cached?:boolean;chapters?:{id:string;paragraphs:string[];source:'llm'}[]};
 };
@@ -136,6 +136,7 @@ function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:Non
   <ul>{rows.map(f=><li key={f.id}>
    <strong>{f.ruleId}</strong>: <GlossaryText text={f.traditionalMeaning} locale={lang}/>
    <small>{f.verifiedEvidence.join(' · ')}</small>
+   {f.sourceIds?.length?<small>{lang==='uk'?'Методологічні джерела (не точні цитати): ':'Method references (not verse quotations): '}{f.sourceIds.join(', ')}</small>:null}
   </li>)}</ul>
  </details>;
 }
