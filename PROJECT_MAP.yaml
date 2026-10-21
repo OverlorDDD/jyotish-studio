@@ -179,9 +179,9 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A7.1 Jyotish interpretation v3 with verifiable AI provenance and independent-provider fallback; PR #22 gated by CI/manual acceptance"
-  next: "A7.2 expert onboarding and payments depend on lawful seller/partner, provider verification and secure video delivery"
-  later: "content modules, verified paid workflows, permanent deployment, mobile"
+  now: "A8.1 urgent Jyotish truth/UX audit (wrong Cancer 4th ruler, blank evidence list, portrait local 7/8); existing A7.4 Groq LLM works but text quality needs classical synthesis"
+  next: "A8.2-A8.5 classical rule expansion, rights-checked source ledger, Reader v4 and independent JHora + practitioner review"
+  later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
   adr: "docs/adr/0001-modular-monolith.md"
@@ -192,6 +192,10 @@ docs:
   windows: "docs/galaxiora-windows-runbook.md"
   a7_llm: "docs/a7-llm-provenance-and-failover.md"
   a7_full_consultation: "docs/a7-3-professional-consultation.md"
+  a8_classical_sources: "docs/research/a8-classical-source-registry.md"
+  a8_reader_v4: "docs/research/a8-professional-reader-v4.md"
+  a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
+  classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"
   a1: "docs/a1-security-and-testing.md"
   a4: "docs/a4-launch-readiness.md"
