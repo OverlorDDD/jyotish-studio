@@ -125,7 +125,7 @@ export async function generateFreeInterpretationDetailed(
    if(provider==='gemini'){
     if(!permit()){reason='hourly_limit';continue;}
     const result=await generateOpenAiInterpretation(chart,lang,{
-     provider:'gemini',key:geminiKey,model:'gemini-2.5-flash-lite',formatMode:opts.chapterSpecs?'consultation':'prompt',
+     provider:'gemini',key:geminiKey,model:'gemini-3.1-flash-lite',formatMode:opts.chapterSpecs?'consultation':'prompt',
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,
      approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
