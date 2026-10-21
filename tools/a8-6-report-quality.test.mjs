@@ -62,7 +62,7 @@ test('A8.6 repeated artificial disclaimers are removed without changing chart as
 });
 const first='Для лагни у Раку управитель особистого шляху Місяць перебуває у дванадцятому домі, через що питання самостійності варто читати разом із потребою у відновленні та приватному просторі. Цей зв’язок відрізняється від загальної характеристики водного знака, адже стосується реального управління першим домом.';
 const second='У цій традиції сила такого поєднання проявляється в умінні поєднати турботу про близьких із періодами тиші, коли важливо відновити власні сили. Це не ізоляція за замовчуванням, а конкретна суперечність між зовнішньою відповідальністю та потребою самостійно осмислювати пережите.';
-test('A8.6 focused Reader v4.1 accepts two specific substantial paragraphs; strips policy filler',()=>{
+test('A8.6 focused Reader v5 accepts two specific substantial paragraphs; strips policy filler',()=>{
  const specs=[{id:'portrait',title:'Портрет',focus:'Identity only',facts:['Lagna Cancer; lord Moon in twelfth']}];
  const full='[[portrait]]\n'+first+' Проте традиційна межа нагадує про умовність.\n\n'+second;
  const chapters=parseAiConsultation(full,specs,[],classicalLordshipTable(4));
@@ -76,12 +76,12 @@ test('A8.6 short generic LLM prose falls back, and unrelated ninth-house list is
  const intrusion=first+'\n\n'+second+' Концентрація Сонця, Марса, Меркурія і Сатурна є основною темою всіх стосунків.';
  assert.equal(parseAiConsultation('[[relationships]]\n'+intrusion,specs).length,0);
 });
-test('A8.6 evidence rendering no longer uses empty-bullet list and UI identifies Reader v4',()=>{
+test('A8.6 evidence rendering no longer uses empty-bullet list and UI identifies Reader v5',()=>{
  const ui=readFileSync(new URL('../apps/web/app/components/DetailedReport.tsx',import.meta.url),'utf8');
  const a=ui.indexOf('function ChapterEvidence('),b=ui.indexOf('export default function DetailedReport(',a);
  assert.ok(a>=0&&b>a);
  const section=ui.slice(a,b);
  assert.ok(section.includes('reading-evidence-entry'));
  assert.doesNotMatch(section,/<ul>|<li[\s>]/);
- assert.match(ui,/Jyotish Reader v4/);
+ assert.match(ui,/Jyotish Reader v5/);
 });

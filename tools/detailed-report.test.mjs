@@ -134,7 +134,7 @@ test('life portrait has five practical narrative themes, each linked to actual c
 test('reader-first editorial report has chart-specific chapters and accurately counted elements',()=>{
  const uk=buildDetailedReport(chart,'uk','2026-10-13');
  const en=buildDetailedReport(chart,'en','2026-10-13');
- assert.equal(uk.editorial.version,'4.1.0');
+ assert.equal(uk.editorial.version,'5.0.0');
  assert.deepEqual(uk.editorial.chapters.map(c=>c.id),['portrait','configuration','tensions','relationships','career','resources','timing','conclusion']);
  assert.equal(uk.editorial.elements.reduce((s,v)=>s+v.count,0),7);
  assert.ok(uk.editorial.elements.every(v=>v.percentage===Math.round(v.count/7*100)));
@@ -155,7 +155,7 @@ test('reader summary supplies astrology rather than a worksheet action list',()=
  const editorial=buildDetailedReport(chart,'uk','2026-10-13').editorial;
  const end=editorial.chapters.find(c=>c.id==='conclusion');
  assert.equal(end.insights.length,0);
- assert.match(end.paragraphs.join(' '),/управитель|махадаша/);
+ assert.match(end.paragraphs.join(' '),/управител|махадаш/);
  assert.ok(editorial.chapters.every(ch=>ch.insights.length===0));
  assert.doesNotMatch(editorial.chapters.flatMap(ch=>ch.paragraphs).join(' '),/Традиційний ключ:|Оберіть дві практичні ідеї/);
 });
@@ -173,11 +173,11 @@ test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and
  assert.match(byChapter('configuration'),/Сонце.*Марс.*Меркурій.*Сатурн/);
  assert.match(byChapter('configuration'),/9-му домі/);
  assert.match(byChapter('tensions'),/Марс і Сатурн/);
- assert.match(byChapter('portrait'),/Місяць у Близнюках, у домі 12/);
- assert.match(byChapter('relationships'),/Навамша D9/);
+ assert.match(byChapter('portrait'),/Місяць.*Близнюках.*12-му домі/s);
+ assert.match(byChapter('relationships'),/Навамш[аі] D9/);
  assert.match(byChapter('career'),/Дашамша D10/);
  assert.match(byChapter('career'),/Управитель дев’ятого дому Юпітер/);
- assert.match(byChapter('career'),/управитель десятого дому Марс/);
+ assert.match(byChapter('career'),/управитель десятого дому Марс/i);
  assert.doesNotMatch(byChapter('career'),/Десятий дім[^.]*його управитель Юпітер/);
  assert.match(byChapter('timing'),/махадаша Сатурн/);
  assert.ok(reading.chapters.every(ch=>!ch.insights.length));
@@ -210,7 +210,7 @@ test('A8.5 twenty independent synthetic whole-sign charts yield stable, substant
    g.longitude=(zodiac-1)*30+13.25;
   });
   const out=buildDetailedReport(sample,'uk','2026-10-20').editorial;
-  assert.equal(out.version,'4.1.0');
+  assert.equal(out.version,'5.0.0');
   assert.ok(out.findings.every(f=>f.verifiedEvidence.length));
   assert.equal(out.chapters.length,8);
   assert.deepEqual(out,buildDetailedReport(sample,'uk','2026-10-20').editorial);
@@ -238,7 +238,7 @@ test('A7 reader never presents ninth-house Jupiter as the tenth-house ruler, inc
  for(const language of ['uk','en']){
   const report=buildDetailedReport(natal,language,'2026-10-20').editorial;
   const career=report.chapters.find(c=>c.id==='career').paragraphs.join(' ');
-  assert.ok(career.includes(language==='uk'?'дев’ятого дому Юпітер':'ninth-house ruler Jupiter'),career);
-  assert.ok(career.includes(language==='uk'?'десятого дому Марс':'tenth-house ruler Mars'),career);
+  assert.ok(career.includes(language==='uk'?'дев’ятого дому Юпітер':'ninth lord Jupiter'),career);
+  assert.ok(career.includes(language==='uk'?'десятого дому Марс':'tenth-house lord Mars'),career);
  }
 });

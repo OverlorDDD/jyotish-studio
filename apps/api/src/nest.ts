@@ -112,7 +112,7 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+':interpretation-v4.1-quality-domain-focus',
+  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+':interpretation-v5-authored-narrative-and-editor',
    ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
     chapterSpecs:buildAiChapterSpecs(report.editorial),
     factsOverride:report.editorial.findings.map(f=>({id:f.id,
