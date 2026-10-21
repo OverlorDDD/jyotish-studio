@@ -166,9 +166,12 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
  const text=(id:string)=>findings.find(f=>f.id===id)?.traditionalMeaning||'';
  const evidence=(ids:string[])=>distinct(findings.filter(f=>ids.includes(f.id)).flatMap(f=>f.verifiedEvidence));
  const chapter=(id:string,ua:string,en:string,paragraphs:string[],findingIds:string[]):ConsultationChapter=>({
-  id,title:uk?ua:en,paragraphs:paragraphs.filter(Boolean),insights:[],evidence:evidence(findingIds)
+  id,title:uk?ua:en,paragraphs:paragraphs.filter(Boolean),insights:[],
+  evidence:distinct([...evidence(findingIds),...findings.filter(f=>f.topic===id||(id==='configuration'&&f.id.startsWith('yogakaraka'))).flatMap(f=>f.verifiedEvidence)])
  });
- const primary=findings.find(f=>f.topic==='configuration')!;
+ const primary=findings.find(f=>f.id==='concentration'||f.id==='distributed')!;
+ const functional=readerClassicalContext(chart,asOf);
+ const yogaSummary=functional.yogakarakas.map(g=>findings.find(f=>f.id==='yogakaraka-'+g.toLowerCase())!.traditionalMeaning).join(' ');
  const dates=Date.parse(asOf+'T12:00:00Z');
  const active=chart.dasha.find(d=>Date.parse(d.start)<=dates&&dates<Date.parse(d.end));
  const minor=active?.antardashas?.find(d=>Date.parse(d.start)<=dates&&dates<Date.parse(d.end));
@@ -197,7 +200,7 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
     ' Sun in house '+get('Sun').house+' adds the life topic of '+area(get('Sun').house)+'. Outward direction and inner needs need not follow the same rhythm.')],['ascendant','moon']),
   chapter('configuration','Головна конфігурація карти','The defining configuration',
    [text(primary.id),uk?'Положення управителя дев’ятого дому '+planet(String(lord(9).subject))+' у домі '+at(9)+' допомагає зрозуміти, як цей центр карти пов’язаний з питаннями переконань та навчання.':
-   'The ninth lord '+planet(String(lord(9).subject))+' in house '+at(9)+' adds the wider context of worldview and study.'],[primary.id,'ascendant']),
+   'The ninth lord '+planet(String(lord(9).subject))+' in house '+at(9)+' adds the wider context of worldview and study.',yogaSummary],[primary.id,'ascendant']),
   chapter('tensions','Внутрішні суперечності й особисті сили','Inner tensions and personal strengths',
    [text('mars-saturn'),uk?'Порівнюючи волю Сонця у домі '+get('Sun').house+' з переживаннями Місяця у домі '+get('Moon').house+
     ', ми бачимо два різні способи реагувати на життєві завдання. Така відмінність може стати ресурсом, коли дія не пригнічує потреби у відновленні.':
@@ -205,7 +208,7 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
   chapter('relationships','Кохання, близькість і партнерство','Love, intimacy and partnership',
    [text('partnership'),relationship],['partnership']),
   chapter('career','Професія, здібності й покликання','Profession, abilities and vocation',
-   [text('vocation'),career],['vocation','ascendant']),
+   [text('vocation'),career,yogaSummary],['vocation','ascendant']),
   chapter('resources','Ресурси та матеріальний шлях','Resources and the material path',
    [text('resources'),uk?'Тут важливо розрізняти те, що людина вміє накопичувати, і те, що приходить через професійні результати й оточення. Положення управителів задають контекст для читання цих двох напрямів, але не визначають суму майбутніх доходів.':
     'The second and eleventh lords distinguish resources held from gains linked to work and community. They do not determine future earnings.'],['resources']),
