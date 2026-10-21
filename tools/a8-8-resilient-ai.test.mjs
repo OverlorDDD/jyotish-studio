@@ -27,7 +27,7 @@ test('A8.8 full eight-chapter report uses two independent bounded Groq requests 
  const calls=[];
  const result=await generateResilientFreeConsultation(chart,'en',{
   order:['groq'],groqEnabled:true,groqKey:'fake_free_groq',
-  chapterSpecs:specs,reportMode:true,limit:()=>true,
+  chapterSpecs:specs,reportMode:true,limit:()=>true,approvedYogas:['yogakaraka'],
   fetcher:async(url,init)=>{
    const body=JSON.parse(init.body);
    calls.push({url,body});
@@ -52,10 +52,10 @@ test('A8.8 keeps accepted first four chapters when second Groq attempt times out
  const signal=new AbortController();
  const result=await generateResilientFreeConsultation(chart,'en',{
   order:['groq'],groqEnabled:true,groqKey:'free_key',chapterSpecs:specs,
-  limit:()=>true,signal:signal.signal,reportMode:true,
+  limit:()=>true,signal:signal.signal,reportMode:true,approvedYogas:['yogakaraka'],
   fetcher:async(_url,init)=>{
    calls++;
-   if(calls===1)return makeAnswer(JSON.parse(init.body.messages[1].content).chapterSpecs);
+   if(calls===1)return makeAnswer(JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs);
    signal.abort();
    throw new DOMException('Aborted','AbortError');
   }
@@ -68,8 +68,8 @@ test('A8.8 respects free budget and never throws away a prior valid set of chapt
  let used=0;
  const result=await generateResilientFreeConsultation(chart,'en',{
   order:['groq'],groqEnabled:true,groqKey:'free_key',
-  chapterSpecs:specs,reportMode:true,limit:()=>++used<=1,
-  fetcher:async(_url,init)=>makeAnswer(JSON.parse(init.body.messages[1].content).chapterSpecs)
+  chapterSpecs:specs,reportMode:true,limit:()=>++used<=1,approvedYogas:['yogakaraka'],
+  fetcher:async(_url,init)=>makeAnswer(JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs)
  });
  assert.equal(used,2);
  assert.equal(result.result?.chapters?.length,4);
@@ -79,11 +79,11 @@ test('A8.8 first failed Groq chunk falls through to verified free Gemini, pins p
  const result=await generateResilientFreeConsultation(chart,'en',{
   order:['groq','gemini'],groqEnabled:true,groqKey:'free_groq',
   geminiEnabled:true,geminiKey:'free_gemini',limit:()=>true,
-  chapterSpecs:specs,reportMode:true,
+  chapterSpecs:specs,reportMode:true,approvedYogas:['yogakaraka'],
   fetcher:async(url,init)=>{
    seen.push(url);
    if(url.includes('groq.com'))return new Response('{}',{status:503});
-   return makeAnswer(JSON.parse(init.body.messages[1].content).chapterSpecs,'gemini-3.1-flash-lite');
+   return makeAnswer(JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs,'gemini-3.1-flash-lite');
   }
  });
  assert.equal(seen.length,3);
