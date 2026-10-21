@@ -75,8 +75,9 @@ const LEXICON:Record<string,string>={
 };
 const planets='(?:Сонце|Сонця|Місяць|Місяця|Марс|Марса|Меркурій|Меркурія|Юпітер|Юпітера|Венера|Венери|Сатурн|Сатурна|Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn)';
 const familyAlias='(?:сімейного|родинного|домашнього|батьківського|дом[ау]|home|family|fourth)';
-function extractedPlanet(x:string){return LEXICON[x.toLowerCase()]||null;}
-function houseNumber(x:string):number|null{
+function extractedPlanet(x:string|undefined){return x?LEXICON[x.toLowerCase()]||null:null;}
+function houseNumber(x:string|undefined):number|null{
+ if(!x)return null;
  const v=x.toLowerCase();
  if(/сімей|родин|домаш|батьків|family|home|fourth/.test(v))return 4;
  if(/партнер|шлюб|partnership|marriage|seventh/.test(v))return 7;
@@ -91,7 +92,7 @@ export function checkNarrativeLordClaims(text:string,lords:Record<number,string>
  const place='(?:[1-9]|1[0-2])(?:-?(?:го|му|й|ий|th|st|nd|rd))?|'+familyAlias+
  '|(?:партнерства|шлюбу|професії|кар’єри|career|partnership|seventh|tenth)';
  const patterns=[
-  new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)?(?:' +
+  new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)?(' +
    place + ')\\s*(?:[-–]?го|[-–]?му|[-–]?й)?\\s*(?:(?:дому|домі|дім|house)\\b)?[\\s,.:—-]{0,15}('+planets+')','giu'),
   new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)?(?:дому|house)\\s*('+
    place + ')[\\s,.:—-]{0,15}('+planets+')','giu'),
