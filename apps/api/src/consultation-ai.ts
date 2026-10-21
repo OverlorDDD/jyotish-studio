@@ -97,16 +97,21 @@ export function buildAiChapterSpecs(editorial:{
    timing:[time,byPlanet(period('major')),byPlanet(period('minor'))],
    conclusion:[one('ascendant'),namedYoga||first('configuration'),one('partnership'),one('vocation'),time]
   };
-  const selected=[...new Map((chapters[ch.id]||[]).filter((f):f is typeof findings[number]=>Boolean(f)).map(f=>[f.id,f] as const)).values()].slice(0,4);
+  const selected=[...new Map((chapters[ch.id]||[]).filter((f):f is typeof findings[number]=>Boolean(f)).map(f=>[f.id,f] as const)).values()].slice(0,3);
+  // Groq Free has a shared per-minute token budget: keep factual anchors
+  // concise and preserve the full chapter draft only on our own server.
   const facts=selected.map(f=>[
-   'Evidence '+f.id+', deterministic rule '+f.ruleId, f.traditionalMeaning,
-   f.counterFactors.length?'Verified counterweights: '+f.counterFactors.slice(0,2).join('; '):''
+   'Evidence '+f.id+', rule '+f.ruleId, f.traditionalMeaning.slice(0,185),
+   f.counterFactors.length?'Counterweight: '+f.counterFactors[0].slice(0,95):''
   ].filter(Boolean).join('. '));
   // D9, D10 and exact dasha evidence live in the deterministic chapter text;
   // the older model input unintentionally lost all of these facts.
   const crossVarga=['relationships','career','timing'].includes(ch.id)?
-   (ch.paragraphs||[]).slice(0,2).map(t=>'Verified chapter calculation context: '+t):[];
-  return {id:ch.id,title:ch.title,focus:CHAPTER_FOCUS[ch.id],draft:ch.paragraphs||[],
+   (ch.paragraphs||[]).slice(-1).map(t=>'Varga/period context: '+t.slice(0,260)):[];
+  // Enough detail for editorial direction without sending 8x full essays;
+  // complete, readable content is served from the local authored report.
+  const condensedDraft=(ch.paragraphs||[]).map(p=>p.slice(0,260));
+  return {id:ch.id,title:ch.title,focus:CHAPTER_FOCUS[ch.id],draft:condensedDraft,
    facts:[...facts,...crossVarga].length?[...facts,...crossVarga]:['No independent evidence; avoid fabricating details.']};
  });
 }
