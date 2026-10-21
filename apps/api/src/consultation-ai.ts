@@ -93,7 +93,7 @@ export function buildAiChapterSpecs(editorial:{
    timing:[time,byPlanet(period('major')),byPlanet(period('minor'))],
    conclusion:[one('ascendant'),namedYoga||first('configuration'),one('partnership'),one('vocation'),time]
   };
-  const selected=[...new Map((chapters[ch.id]||[]).filter((f):f is typeof findings[number]=>Boolean(f)).map(f=>[f.id,f])).values()].slice(0,4);
+  const selected=[...new Map((chapters[ch.id]||[]).filter((f):f is typeof findings[number]=>Boolean(f)).map(f=>[f.id,f] as const)).values()].slice(0,4);
   const facts=selected.map(f=>[
    'Evidence '+f.id+', deterministic rule '+f.ruleId, f.traditionalMeaning,
    f.counterFactors.length?'Verified counterweights: '+f.counterFactors.slice(0,2).join('; '):''
