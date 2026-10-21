@@ -11,7 +11,7 @@ Provider response bodies are bounded and classified without printing upstream co
 
 ## Recommended free providers
 1. Google Gemini 2.5 Flash-Lite via Google AI Studio, only when the project's free tier and NO paid billing have been verified. Enable GEMINI_FREE_TIER_CONFIRMED=1 only then; otherwise 0. See https://ai.google.dev/gemini-api/docs/pricing and https://ai.google.dev/gemini-api/docs/billing.
-2. OpenRouter with a named free model rather than the rotating openrouter/free router: OPENROUTER_FREE_MODEL=qwen/qwen3-32b:free. Check current availability and $0 pricing at https://openrouter.ai/qwen/qwen3-32b:free before choosing it. Only a model suffix :free can be configured; an invalid or paid slug is ignored.
+2. OpenRouter with a named free model rather than the rotating openrouter/free router: OPENROUTER_FREE_MODEL=   # first leave unset/empty; use the doctor to find an active :free model. Check current availability and $0 pricing at https://openrouter.ai/qwen/qwen3-32b:free before choosing it. Only a model suffix :free can be configured; an invalid or paid slug is ignored.
 3. Ollama local model if installed. Small models can struggle to author eight well-developed Ukrainian sections.
 
 ## Windows PowerShell
@@ -40,3 +40,9 @@ Test with fictional birth details first. Review the provenance label on every ge
 
 ## Guardrails
 No paid OpenAI fallback in AI_MODE=free, no self-invented numeric astrology claims, no raw birth dates/names/coordinates in LLM input. The derived chart findings still go to external providers; obtain consent and disclose provider data handling. The per-process free hourly limiter is not production-grade distributed billing enforcement. GitHub CI cannot verify the user's real key or live free-model availability; a manual PASS is mandatory before promising this feature works remotely.
+
+## A7 provider troubleshooting after a PC restart
+
+Docker Desktop being open is NOT proof that the project PostgreSQL container is running. Use `docker compose up -d db` then `docker compose ps`; no reset or volume deletion is required. The live model check does not depend on Docker, and `FREE_AI_ORDER` does not turn on Gemini without a key or Ollama without a local model.
+
+Run `npm run ai:doctor` (key, free catalogue, actual model endpoints, no inference), then `npm run ai:doctor -- --probe` (one tiny external request) before running the expensive eight-chapter `npm run ai:verify-live`. A 401 means key failure; 403 permission/guardrail; 404 removed model or no endpoints; 429 rate limited. Never paste `.env`, keys or complete request bodies into chat.
