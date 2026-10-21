@@ -40,6 +40,12 @@ function safeFormatDiagnostic(error:unknown){
  };
  return known[error.message]||'unverified_format';
 }
+/** Only the numeric upstream HTTP status, never upstream text or credentials. */
+function safeHttpDiagnostic(error:unknown){
+ if(!(error instanceof AiProviderError))return '';
+ const m=/^OpenAI HTTP (\d{3})(?:\s|$)/.exec(error.message);
+ return m?'HTTP '+m[1]:'';
+}
 function failureReason(error:unknown):FreeFallbackReason{
  if(!(error instanceof AiProviderError))return 'network';
  if(error.reason==='timeout')return 'timeout';
@@ -130,7 +136,7 @@ export async function generateFreeInterpretationDetailed(
   }catch(error){
    reason=failureReason(error);
    // No raw provider errors: they may include private account information.
-   console.warn(`Free AI fallback: ${provider} ${reason}${safeFormatDiagnostic(error)?' ('+safeFormatDiagnostic(error)+')':''}; trying next provider`);
+   console.warn(`Free AI fallback: ${provider} ${reason}${safeHttpDiagnostic(error)?' ('+safeHttpDiagnostic(error)+')':safeFormatDiagnostic(error)?' ('+safeFormatDiagnostic(error)+')':''}; trying next provider`);
   }
  }
  return {result:null,reason};
