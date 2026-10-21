@@ -3,7 +3,7 @@ import {CLASSICAL_GRAHAS,ruleFindings} from '../../../packages/jyotish-core/src/
 import {readerClassicalContext} from './reader-classical.ts';
 
 /** Interpretation rules are independently versioned from astronomy and Engine 2.0. */
-export const INTERPRETATION_VERSION='4.0.0';
+export const INTERPRETATION_VERSION='4.1.0';
 export type AstrologicalFinding={
  id:string;topic:string;ruleId:string;verifiedEvidence:string[];
  traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];
@@ -198,6 +198,15 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
    'These are separate indicators; no direct connection is claimed without verified evidence. ')+
   'In D10 the D1 tenth-house ruler '+planet(String(lord(10).subject))+
   ' occupies house '+getD(chart.d10,String(lord(10).subject)).house+'.';
+ const periodRoles=(name:string)=>functional.functional.find(f=>f.graha===name)?.houses.join(', ')||'';
+ const periodContext=active?(uk?
+  'Махадаша '+planet(active.lord)+' діє від '+active.start+' до '+active.end+' й у цій лагні керує домами '+periodRoles(active.lord)+
+  '. '+(minor?'Антардаша '+planet(minor.lord)+' триває від '+minor.start+' до '+minor.end+'; її планета керує домами '+periodRoles(minor.lord)+'. ':
+    'Чинний підперіод у наявних розрахунках не визначено. ')+
+  'Тому ці два управління потрібно аналізувати разом із натальними домами планет, не підмінюючи їх загальними характеристиками.':
+  'The '+active.lord+' major period runs from '+active.start+' to '+active.end+' and its ruler owns natal houses '+periodRoles(active.lord)+'. '+
+  (minor?'The '+minor.lord+' subperiod runs from '+minor.start+' to '+minor.end+' and its ruler owns houses '+periodRoles(minor.lord)+'. ':'No current subperiod is calculated. ')+
+  'Read both ruler roles against their natal placements rather than treating the period as a generic planet archetype.'):'';
  const chapters=[
   chapter('portrait','Ваш астрологічний портрет','Your astrological portrait',
    [text('ascendant'),text('moon')+(uk?' Сонце у домі '+get('Sun').house+' додає тему '+area(get('Sun').house)+'. Особистий напрям і внутрішня потреба не завжди розвиваються в одному ритмі.':
@@ -218,9 +227,7 @@ export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf=
     'The second and eleventh lords distinguish resources held from gains linked to work and community. They do not determine future earnings.'],['resources']),
   chapter('timing','Ваш життєвий етап зараз','Your current planetary period',
    [text('active-dasha')||(uk?'Для '+asOf+' активний період не встановлено у наданому розрахунку.':'No active period is available for '+asOf+'.'),
-    active?(uk?'Розглядати цей період слід через доми його управителів, а не лише через загальні значення планет. '+planet(active.lord)+' пов’язаний із темою '+area(get(active.lord).house)+
-     (minor?'; '+planet(minor.lord)+' уточнює тему '+area(get(minor.lord).house):'')+'.':
-      planet(active.lord)+' directs attention toward '+area(get(active.lord).house)+(minor?'; '+planet(minor.lord)+' adds '+area(get(minor.lord).house):'')+'.'):''],['active-dasha']),
+    periodContext],['active-dasha']),
   chapter('conclusion','Головний висновок','The central insight',
    [uk?'Три опори цього прочитання — лагна й її управитель, головна конфігурація та взаємодія сьомого й десятого домів. Саме їхнє поєднання, а не окрема характеристика знака, формує неповторний малюнок натальної карти.':
     'The three anchors are the ascendant and its lord, the defining configuration, and the relationship between the seventh and tenth houses.',
