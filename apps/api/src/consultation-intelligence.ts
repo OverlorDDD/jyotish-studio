@@ -85,6 +85,19 @@ export function verifyUnifiedConsultation(
  if(/(?:гарантован[оіий]|неодмінно|will certainly|guaranteed profit|fatal disease|безплідн)/iu.test(all))errors.push('unfounded_certainty');
  if(/(?:\b(?:Pluto|Chiron|Lilith|Uranus|Neptune|Midheaven|MC)\b|Плутон|Хірон|Ліліт|Уран|Нептун|квадрат(?:ом|і|у)?|sextile|square aspect)/iu.test(all))errors.push('unsupported_western_factor');
  if(lang==='uk'&&/(?:\b(?:который|является|отношения|согласно)\b)/iu.test(all))errors.push('ru_mixed');
+ const major=graph.nodes.find(n=>n.id==='vimshottari.major');
+ const minor=graph.nodes.find(n=>n.id==='vimshottari.minor');
+ const namesGen:Record<string,string>={Сонця:'Sun',Місяця:'Moon',Марса:'Mars',Меркурія:'Mercury',
+  Юпітера:'Jupiter',Венери:'Venus',Сатурна:'Saturn'};
+ for(const m of all.matchAll(/(?:махадаш[аіи]|mahadasha)\s+(Сонця|Місяця|Марса|Меркурія|Юпітера|Венери|Сатурна|Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn)/giu)){
+  if(!major||String(major.value.lord)!==(namesGen[m[1]]||m[1]))errors.push('wrong_major_dasha');
+ }
+ for(const m of all.matchAll(/(?:антардаш[аіи]|antardasha)\s+(Сонця|Місяця|Марса|Меркурія|Юпітера|Венери|Сатурна|Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn)/giu)){
+  if(!minor||String(minor.value.lord)!==(namesGen[m[1]]||m[1]))errors.push('wrong_minor_dasha');
+ }
+ const normalized=chapters.flatMap(ch=>ch.paragraphs).map(p=>p.toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu,' ').trim());
+ if(new Set(normalized).size!==normalized.length)errors.push('duplicate_paragraph');
+
  // Only explicit planet-house associations. Other claims remain subject to editorial review.
  const planet='(Сонце|Місяць|Марс|Меркурій|Юпітер|Венера|Сатурн|Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn)';
  const aliases:Record<string,string>={...Object.fromEntries(Object.entries(NAMES_UK).map(([en,uk])=>[uk,en])),
