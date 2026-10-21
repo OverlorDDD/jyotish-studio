@@ -70,9 +70,9 @@ export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=fa
      emit('Active endpoint records='+n);
      if(n===0){emit('ACTION: Selected free model has zero endpoints; choose another free model.');return {ok:false,reason:'no_endpoints'};}
     }
-   }else if(endpoints.status===404){
-    emit('ACTION: This free model has no matching endpoint; use a different available free model.');
-    return {ok:false,reason:'endpoint_404'};
+   }else{
+    emit('ACTION: Cannot verify model endpoints. Review status or try another free model.');
+    return {ok:false,reason:'endpoint_http_'+endpoints.status};
    }
   }
   if(!probe){emit('KEY/MODEL PRECHECK: PASS; actual generation NOT yet tested. Run npm run ai:doctor -- --probe.');return {ok:true,reason:'precheck_only'};}
