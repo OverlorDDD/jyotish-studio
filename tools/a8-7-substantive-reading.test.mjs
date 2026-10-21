@@ -64,3 +64,13 @@ test('A8.7 English user gets a useful chart-linked fallback, not Ukrainian templ
  assert.match(cs.find(c=>c.id==='career').paragraphs.join(' '),/Dashamsha D10/);
  assert.match(cs.find(c=>c.id==='relationships').paragraphs.join(' '),/Navamsha D9/);
 });
+
+test('A8.7 an ornate but fact-free LLM section does not displace the substantive chart-linked reading',()=>{
+ const report=buildDetailedReport(chart,'uk','2026-10-21');
+ const specs=buildAiChapterSpecs(report.editorial);
+ const noAstrology='У різні періоди життя людина може переживати напруження між бажанням рухатися вперед і потребою зберігати обережність, що іноді підштовхує до обдуманого вибору. Такий шлях здатен допомогти уважніше розуміти свої прагнення, налагоджувати спілкування та знаходити напрямок, у якому розвиток набуває глибшого внутрішнього значення.';
+ const full='[[relationships]]\\n'+noAstrology+'\\n\\n'+noAstrology+' '+noAstrology;
+ const accepted=parseAiConsultation(full,specs,[],{4:'Venus',7:'Saturn'});
+ assert.equal(accepted.length,0);
+ assert.ok(report.editorial.chapters.find(c=>c.id==='relationships').paragraphs.join(' ').includes('Навамші'));
+});
