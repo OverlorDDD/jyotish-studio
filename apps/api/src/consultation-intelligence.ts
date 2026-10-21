@@ -4,7 +4,7 @@ import {buildChartFactGraph,requireGraphFacts,type ChartFactGraph} from './consu
 import {buildAiChapterSpecs,CHAPTER_IDS,type AiChapterSpec} from './consultation-ai.ts';
 import {generateResilientFreeConsultation} from './resilient-consultation.ts';
 import {checkNarrativeLordClaims} from './reader-classical.ts';
-import type {FreeAiOptions,FreeAiOutcome} from './free-ai.ts';
+import {generateFreeInterpretationDetailed,type FreeAiOptions,type FreeAiOutcome} from './free-ai.ts';
 
 /** A8.9 preview only: rules here are arithmetic facts, not unverified OCR interpretations. */
 export type SupportedClaim={
@@ -117,5 +117,20 @@ export async function generateConsultationIntelligence(chart:CalculatedChart,lan
  const chapters=free.result?.chapters||[];
  const check=verifyUnifiedConsultation(chapters,graph,lang);
  if(!free.result||!check.ok)return {result:null,reason:free.reason||'invalid_response',plan};
- return {...free,plan};
+ // A single final editor sees EVERY chapter in order, the chart-wide thesis and the
+ // same verified evidence. The draft set is never published as a partial patchwork.
+ const fullDraft=specs.map(spec=>{
+  const chapter=chapters.find(c=>c.id===spec.id);
+  return {...spec,focus:'UNIFY ONE DOCUMENT: '+plan.thesis+' Do not repeat a motif; edit for vivid '+lang+
+   ' prose while preserving all named, verified factual anchors. '+spec.focus,
+   draft:chapter?.paragraphs||[]};
+ });
+ const review=await generateFreeInterpretationDetailed(chart,lang,{
+  ...options,chapterSpecs:fullDraft,reportMode:true,
+  order:[free.result.provider as 'groq'|'gemini'|'openrouter'],timeoutMs:25000
+ });
+ const finalChapters=review.result?.chapters||[];
+ if(!review.result||!verifyUnifiedConsultation(finalChapters,graph,lang).ok)
+  return {result:null,reason:review.reason||'invalid_response',plan};
+ return {...review,plan};
 }
