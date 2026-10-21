@@ -11,7 +11,7 @@ const successful={sections:[
  {factId:'sun',text:'A desire for meaningful work interacts with the need for self-respect.'},
  {factId:'moon',text:'The inner emotional world gives this path a reflective counterweight.'}
 ]};
-const respond=()=>new Response(JSON.stringify({model:'gemini-2.5-flash-lite',
+const respond=()=>new Response(JSON.stringify({model:'gemini-3.1-flash-lite',
  choices:[{message:{content:JSON.stringify(successful)}}],
  usage:{prompt_tokens:100,completion_tokens:70,total_tokens:170}}),{status:200});
 
@@ -30,12 +30,12 @@ test('429 primary OpenRouter falls through to independent Gemini using separate 
     return new Response('{}',{status:429});
    }
    assert.equal(url,'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions');
-   assert.equal(body.model,'gemini-2.5-flash-lite');assert.equal(init.headers.Authorization,'Bearer gemini_fake');
+   assert.equal(body.model,'gemini-3.1-flash-lite');assert.equal(init.headers.Authorization,'Bearer gemini_fake');
    return respond();
   }
  });
  assert.equal(output.result?.provider,'gemini');
- assert.equal(output.result?.model,'gemini-2.5-flash-lite');
+ assert.equal(output.result?.model,'gemini-3.1-flash-lite');
  assert.equal(calls.length,2);
  assert.equal(telemetry.length,2);
  assert.deepEqual(telemetry.map(t=>t.outcome),['provider_error','returned']);

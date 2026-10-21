@@ -6,7 +6,7 @@
 import {generateFreeInterpretationDetailed} from '../apps/api/src/free-ai.ts';
 import {CHAPTER_IDS} from '../apps/api/src/consultation-ai.ts';
 
-const fake={ascendant:{signName:'Cancer'},d1:[],dasha:[],input:{
+const fake={ascendant:{sign:4,signName:'Cancer'},d1:[],dasha:[],input:{
  date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0}};
 const chapterIdeas=[
  'The first lord and lunar privacy are both verified; show the tension between caring for others and keeping emotional boundaries.',
@@ -21,6 +21,17 @@ const chapterIdeas=[
 const chapters=CHAPTER_IDS.map((id,i)=>({
  id,title:id,facts:[chapterIdeas[i], 'Rule-grounded traditional context only; no new chart facts or invented dates.']
 }));
+// Show only provider eligibility and nonsecret IDs so 'skipped Groq' is actionable.
+const order=(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim());
+console.log('Cloud model check (only configured free-tier providers will be contacted):');
+for(const p of order){
+ const key=p==='gemini'?'GEMINI_API_KEY':p==='groq'?'GROQ_API_KEY':p==='openrouter'?'OPENROUTER_API_KEY':'';
+ const flag=p==='gemini'?'GEMINI_FREE_TIER_CONFIRMED':p==='groq'?'GROQ_FREE_TIER_CONFIRMED':null;
+ const reason=!key?'unsupported or disabled legacy provider':
+  !process.env[key]?.trim()?'MISSING_KEY':
+  flag&&process.env[flag]!=='1'?'FREE_TIER_NOT_CONFIRMED':'READY';
+ console.log('  '+p+': '+reason+(p==='gemini'&&reason==='READY'?' (model gemini-3.1-flash-lite)':''));
+}
 if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
  console.error('FAIL: Set AI_MODE=free. This script never enables billed OpenAI models.');
  process.exitCode=2;
@@ -29,7 +40,7 @@ if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
   const r=await generateFreeInterpretationDetailed(fake,'uk',{chapterSpecs:chapters,reportMode:true});
   if(!r.result){
    console.error('FAIL: no accepted external LLM consultation. Reason='+r.reason);
-   console.error('Review sanitized provider details above; if OpenRouter returns malformed JSON/HTML, use a verified free Gemini key or a pinned :free model.');
+   console.error('Check provider READY/MISSING_KEY/FREE_TIER_NOT_CONFIRMED statuses above. Gemini uses gemini-3.1-flash-lite; Groq requires explicit FREE plan confirmation; OpenRouter long responses may time out.');
    console.error('Offline Jyotish charts still work. Live inference is NOT verified.');
    process.exitCode=1;
   }else{
