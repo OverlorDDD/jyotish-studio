@@ -229,7 +229,10 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   if(!content||result.choices?.[0]?.message?.refusal)throw new AiProviderError('format','OpenAI returned no interpretation');
   if(options.formatMode==='consultation'&&options.chapterSpecs){
    const chapters=parseAiConsultation(content,options.chapterSpecs,options.approvedYogas,classicalLordshipTable(chart.ascendant.sign));
-   if(chapters.length<4)throw new AiProviderError('format','insufficient_verified_chapters');
+   // A short, bounded request can validly return only part of its four chapters;
+   // never throw away sound prose merely because one neighboring chapter failed QA.
+   const minAccepted=options.chapterSpecs.length<=4?1:4;
+   if(chapters.length<minAccepted)throw new AiProviderError('format','insufficient_verified_chapters');
    const model=typeof result.model==='string'&&result.model.length<=120?result.model:configuredModel;
    return {provider,model,text:chapters.map(ch=>'[['+ch.id+']]\n'+ch.paragraphs.join('\n\n')).join('\n\n'),chapters};
   }
