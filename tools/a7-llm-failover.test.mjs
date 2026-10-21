@@ -17,7 +17,7 @@ const respond=()=>new Response(JSON.stringify({model:'gemini-2.5-flash-lite',
 
 test('429 primary OpenRouter falls through to independent Gemini using separate key and endpoint',async()=>{
  const calls=[],telemetry=[];
- const output=await generateFreeInterpretationDetailed(chart,'en',{key:'router_fake',geminiKey:'gemini_fake',
+ const output=await generateFreeInterpretationDetailed(chart,'en',{order:['openrouter','gemini'],key:'router_fake',geminiKey:'gemini_fake',
   geminiEnabled:true,ollamaEnabled:false,limit:()=>true,onUsage:e=>telemetry.push(e),
   fetcher:async(url,init)=>{
    calls.push(url);
@@ -51,7 +51,7 @@ test('Gemini must be opted into its confirmed free tier, a key alone never trigg
 });
 test('all remote attempts failing yields a real local fallback without a fictitious provider success',async()=>{
  const output=await generateFreeInterpretationDetailed(chart,'en',{
-  key:'router',geminiKey:'gemini',geminiEnabled:true,ollamaEnabled:false,limit:()=>true,
+  order:['openrouter','gemini'],key:'router',geminiKey:'gemini',geminiEnabled:true,ollamaEnabled:false,limit:()=>true,
   fetcher:async()=>new Response('{}',{status:503})
  });
  assert.equal(output.result,null);assert.equal(output.reason,'provider_unavailable');
