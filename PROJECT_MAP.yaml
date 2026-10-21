@@ -166,6 +166,7 @@ quality:
     a7_consultation: "npm run test:a7:consultation"
     a7_cloud: "npm run test:a7:cloud"
     a8_reader: "npm run test:a8:reader"
+    a8_quality: "npm run test:a8:quality"
     a8_cloud: "npm run test:a8:cloud"
     full_classical_ocr: "npm run research:verify-library"
     architecture_a3: "npm run test:architecture:a3"
@@ -182,8 +183,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A8 Reader v4 code/QA branch: functional lordship, yogakarakas, richer AI evidence, partial semantic claim checks and human-readable evidence accordion; independent expert review NOT complete"
-  next: "Independent Jagannatha Hora birth-chart parity and a qualified Jyotish reviewer must validate 10-20 real cases before claiming expert-grade accuracy"
+  now: "A8.6 Reader v4.1 quality: per-topic verified D1/D9/D10/dasha evidence, stronger 8-chapter prompts and generic/redundant prose gate; human expert review NOT complete"
+  next: "Manual A8.6 real Groq reading comparison, JHora parity on real charts, expert Jyotish review of 10-20 real readings; then A9 Vimshottari/transits forecast"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
