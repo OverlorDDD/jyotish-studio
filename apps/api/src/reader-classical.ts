@@ -92,9 +92,9 @@ export function checkNarrativeLordClaims(text:string,lords:Record<number,string>
  const place='(?:[1-9]|1[0-2])(?:-?(?:го|му|й|ий|th|st|nd|rd))?|'+familyAlias+
  '|(?:партнерства|шлюбу|професії|кар’єри|career|partnership|seventh|tenth)';
  const patterns=[
-  new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)?(' +
-   place + ')\\s*(?:[-–]?го|[-–]?му|[-–]?й)?\\s*(?:(?:дому|домі|дім|house)\\b)?[\\s,.:—-]{0,15}('+planets+')','giu'),
-  new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)?(?:дому|house)\\s*('+
+  new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)*(' +
+   place + ')\\s*(?:[-–]?го|[-–]?му|[-–]?й)?\\s*(?:(?:дому|домі|дім|house))?[\\s,.:—-]{0,15}('+planets+')','giu'),
+  new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)*(?:дому|house)\\s*('+
    place + ')[\\s,.:—-]{0,15}('+planets+')','giu'),
   new RegExp('('+planets+')\\s*(?:—|–|-|є|is|as)\\s*(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the)\\s+)?(?:дому|house)?\\s*('+
    place + ')','giu')
