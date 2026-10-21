@@ -3,11 +3,11 @@ import {createHourlyLimiter,generateOpenAiInterpretation,AiProviderError,type Ai
 import type {AiChapterSpec} from './consultation-ai.ts';
 
 /** Free by configuration only: Gemini requires separately verified FREE billing tier. */
-export type FreeProvider='openrouter'|'gemini'|'ollama';
+export type FreeProvider='openrouter'|'gemini'|'groq'|'ollama';
 export type FreeFallbackReason='hourly_limit'|'no_provider'|'rate_limited'|'provider_rejected'|'provider_unavailable'|'invalid_response'|'timeout'|'network';
-const allowed=new Set<FreeProvider>(['openrouter','gemini','ollama']);
+const allowed=new Set<FreeProvider>(['openrouter','gemini','groq','ollama']);
 const order=():FreeProvider[]=>{
- const configured=process.env.FREE_AI_ORDER||'openrouter,gemini,ollama';
+ const configured=process.env.FREE_AI_ORDER||'gemini,groq,openrouter';
  return [...new Set(configured.split(',').map(s=>s.trim()).filter((s):s is FreeProvider=>allowed.has(s as FreeProvider)))];
 };
 let budget:(()=>boolean)|undefined;
@@ -63,6 +63,7 @@ function failureReason(error:unknown):FreeFallbackReason{
 export type FreeAiOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
+ groqEnabled?:boolean;groqKey?:string;groqModel?:string;
  factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;chapterSpecs?:ReadonlyArray<AiChapterSpec>;approvedYogas?:ReadonlyArray<string>;
  onUsage?:(event:AiUsageEvent)=>Promise<void>|void;
 };
@@ -83,6 +84,12 @@ export async function generateFreeInterpretationDetailed(
  const geminiKey=opts.geminiKey??process.env.GEMINI_API_KEY?.trim()??'';
  // Deliberate opt-in only after confirming in Google AI Studio that billing is OFF/free tier.
  const geminiEnabled=opts.geminiEnabled??process.env.GEMINI_FREE_TIER_CONFIRMED==='1';
+ const groqKey=opts.groqKey??process.env.GROQ_API_KEY?.trim()??'';
+ // Explicit free-plan consent: never auto-use a paid Groq account.
+ const groqEnabled=opts.groqEnabled??process.env.GROQ_FREE_TIER_CONFIRMED==='1';
+ const permittedGroqModels=new Set(['openai/gpt-oss-120b','openai/gpt-oss-20b']);
+ const preferredGroq=opts.groqModel||process.env.GROQ_MODEL||'openai/gpt-oss-120b';
+ const groqModel=permittedGroqModels.has(preferredGroq)?preferredGroq:'openai/gpt-oss-120b';
  const ollamaModel=opts.ollamaModel||process.env.OLLAMA_MODEL||'gemma3:1b';
  const customOpenRouter=(process.env.OPENROUTER_FREE_MODEL||'').trim();
  // Permit ONLY explicitly free model slugs. Do not turn failover into paid inference.
@@ -92,6 +99,7 @@ export async function generateFreeInterpretationDetailed(
   if(provider==='openrouter'&&!openrouterKey)continue;
   if(provider==='ollama'&&!ollamaEnabled)continue;
   if(provider==='gemini'&&(!geminiEnabled||!geminiKey))continue;
+  if(provider==='groq'&&(!groqEnabled||!groqKey))continue;
   try{
    if(provider==='openrouter'){
     if(!permit()){reason='hourly_limit';continue;}
@@ -123,6 +131,16 @@ export async function generateFreeInterpretationDetailed(
      provider:'gemini',key:geminiKey,model:'gemini-2.5-flash-lite',formatMode:opts.chapterSpecs?'consultation':'prompt',
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,
      approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
+    });
+    return {result};
+   }
+   if(provider==='groq'){
+    if(!permit()){reason='hourly_limit';continue;}
+    const result=await generateOpenAiInterpretation(chart,lang,{
+     provider:'groq',key:groqKey,model:groqModel,
+     formatMode:opts.chapterSpecs?'consultation':'prompt',
+     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,
+     chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
     });
     return {result};
    }
