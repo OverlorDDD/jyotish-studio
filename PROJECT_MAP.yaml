@@ -167,6 +167,7 @@ quality:
     a7_cloud: "npm run test:a7:cloud"
     a8_reader: "npm run test:a8:reader"
     a8_quality: "npm run test:a8:quality"
+    a8_resilience: "npm run test:a8:resilience"
     a8_cloud: "npm run test:a8:cloud"
     full_classical_ocr: "npm run research:verify-library"
     architecture_a3: "npm run test:architecture:a3"
@@ -214,3 +215,7 @@ docs:
 
 # A8 cloud restart: Gemini 2.5 Flash-Lite retired 2026-10-16, use Gemini 3.1 Flash-Lite FREE; Groq opt-in must be confirmed.
 # A8 literature: three full historical OCR books in research-library/primary-texts, see research-library/README.md.
+
+# A8.8: full Jyotish v5.0.0 enrichment split into two bounded four-chapter free-only calls.
+# Groq GPT-OSS reasoning_effort=low; timeout 16s per chunk, total 42s; all valid partial chapters are retained, fallback never loses Reader V5.
+# Next: real user chart, timing of Groq, 8/8 not required but >=2 meaningful chapters; human reader quality review before A9 forecasting.

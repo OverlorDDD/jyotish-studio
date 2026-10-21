@@ -65,7 +65,7 @@ export type FreeAiOptions={
  ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
  groqEnabled?:boolean;groqKey?:string;groqModel?:string;
  factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;chapterSpecs?:ReadonlyArray<AiChapterSpec>;approvedYogas?:ReadonlyArray<string>;
- onUsage?:(event:AiUsageEvent)=>Promise<void>|void;
+ onUsage?:(event:AiUsageEvent)=>Promise<void>|void;signal?:AbortSignal;timeoutMs?:number;
 };
 export type FreeAiOutcome={
  result:Awaited<ReturnType<typeof generateOpenAiInterpretation>>|null;
@@ -102,7 +102,7 @@ export async function generateFreeInterpretationDetailed(
     if(!permit()){reason='hourly_limit';continue;}
     const request=(formatMode:'strict'|'prompt'|'prose'|'consultation')=>generateOpenAiInterpretation(chart,lang,{
      provider:'openrouter',key:openrouterKey,model:openRouterModel,
-     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
+     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
     try{
      // Long-form advice uses vetted paragraphs, not JSON: openrouter/free rotates models
@@ -127,7 +127,7 @@ export async function generateFreeInterpretationDetailed(
     const result=await generateOpenAiInterpretation(chart,lang,{
      provider:'gemini',key:geminiKey,model:'gemini-3.1-flash-lite',formatMode:opts.chapterSpecs?'consultation':'prompt',
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,
-     approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
+     approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
     return {result};
    }
@@ -137,7 +137,7 @@ export async function generateFreeInterpretationDetailed(
      provider:'groq',key:groqKey,model:groqModel,
      formatMode:opts.chapterSpecs?'consultation':'prompt',
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,
-     chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
+     chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
     return {result};
    }
