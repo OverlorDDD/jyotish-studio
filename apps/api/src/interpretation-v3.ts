@@ -1,12 +1,13 @@
 import type {CalculatedChart,Graha} from '../../../packages/jyotish-core/src/index.ts';
 import {CLASSICAL_GRAHAS,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
+import {readerClassicalContext} from './reader-classical.ts';
 
 /** Interpretation rules are independently versioned from astronomy and Engine 2.0. */
-export const INTERPRETATION_VERSION='3.0.0';
+export const INTERPRETATION_VERSION='4.0.0';
 export type AstrologicalFinding={
  id:string;topic:string;ruleId:string;verifiedEvidence:string[];
  traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];
- relativeImportance:number;limitations:string[];
+ relativeImportance:number;limitations:string[];sourceIds?:string[];
 };
 export type ConsultationChapter={
  id:string;title:string;paragraphs:string[];insights:string[];evidence:string[];
@@ -112,7 +113,46 @@ export function analyzeAstrologicalFindings(chart:CalculatedChart,lang:'uk'|'en'
   ['dasha.major='+major.lord, 'dasha.start='+major.start,'dasha.end='+major.end,...ev(get(major.lord)),
    ...(minor?['dasha.minor='+minor.lord,'dasha.minor.start='+minor.start,'dasha.minor.end='+minor.end,...ev(get(minor.lord))]:[])],
   ['D1.'+major.lord+'.house='+get(major.lord).house,...(minor?['D1.'+minor.lord+'.house='+get(minor.lord).house]:[])],[],84);
- return findings.sort((a,b)=>b.relativeImportance-a.relativeImportance||a.id.localeCompare(b.id)).slice(0,8);
+ // A8 Reader v4: functional lordship is a separate, chart-specific rule family.
+ // A sign's generic planet archetype NEVER replaces its actual house ownership.
+ const context=readerClassicalContext(chart,asOf);
+ const topicalHouse=(houses:number[])=>houses.includes(7)?'relationships':
+  houses.includes(10)||houses.includes(5)||houses.includes(9)?'career':
+  houses.includes(2)||houses.includes(11)?'resources':
+  houses.includes(1)||houses.includes(4)?'portrait':'tensions';
+ for(const role of context.functional){
+  const roleLabel=role.roles.includes('yogakaraka')?
+   (uk?'йогакарака — управитель кендри й трикони':'yogakaraka, joining a kendra and a trikona'):
+   (uk?'управитель домів':'ruler of houses');
+  const listed=role.houses.join(', ');
+  const dignity=uk?{exalted:'в екзальтації',debilitated:'у падінні',own:'у власному знаку',other:'без особливого статусу за знаком'}[role.dignity]:
+   {exalted:'exalted',debilitated:'debilitated',own:'in own sign',other:'without a special sign dignity'}[role.dignity];
+  const main=uk?
+   planet(role.graha)+': '+roleLabel+' '+listed+'; положення у домі '+role.locatedHouse+
+    ', '+(dignity||'невизначений стан знака')+'. Трактування залежить від цих домів, а не від загального образу планети.':
+   role.graha+': '+roleLabel+' '+listed+', located in house '+role.locatedHouse+
+    ', '+(dignity||'unknown sign status')+'. Interpret its actual owned houses rather than generic planet keywords.';
+  add('functional-'+role.graha.toLowerCase(),topicalHouse(role.houses),'PARASHARI_FUNCTIONAL_LORDSHIP',
+   main,role.evidence,[...role.roles,'Houses '+listed],
+   role.dignity==='debilitated'?['debilitated in the natal sign']:[],role.roles.includes('yogakaraka')?99:role.houses.includes(1)?94:81,
+   [uk?'Це правило про управління за знаком; ступеневу силу та скасування падіння не розраховано.':
+    'Sign-level ownership only; no inferred degree-strength or debilitation cancellation.']);
+ }
+ if(context.yogakarakas.length){
+  for(const graha of context.yogakarakas){
+   const rule=context.functional.find(f=>f.graha===graha)!;
+   add('yogakaraka-'+graha.toLowerCase(),'configuration','PARASHARI_KENDRA_TRIKONA_LORDSHIP',
+    uk?planet(graha)+' керує '+rule.houses.join('-м і ')+
+     '-м домами: поєднання управління триконою та кендрою називають йогакаракою. У D1 планета перебуває в домі '+rule.locatedHouse+'.':
+     graha+' rules houses '+rule.houses.join(' and ')+
+     ', combining kendra and trikona lordships as a yogakaraka. Its D1 house is '+rule.locatedHouse+'.',
+    rule.evidence,[...rule.roles,'yogakaraka_'+graha],
+    rule.dignity==='debilitated'?['Natal sign debilitation needs careful contextual review']:[],100);
+  }
+ }
+ // No evidence silently disappears merely because the first eight rules were dominant.
+ // The model selector narrows per-topic input separately; the UI keeps the full ledger.
+ return findings.sort((a,b)=>b.relativeImportance-a.relativeImportance||a.id.localeCompare(b.id)).slice(0,24);
 }
 export function buildInterpretationV3(chart:CalculatedChart,lang:'uk'|'en',asOf='2026-10-20'):InterpretationV3{
  const uk=lang==='uk',findings=analyzeAstrologicalFindings(chart,lang,asOf);
