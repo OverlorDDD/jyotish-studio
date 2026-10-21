@@ -22,8 +22,8 @@ function position(graph:ChartFactGraph,scope:string,name:string){
 }
 export function buildSupportedClaims(graph:ChartFactGraph):SupportedClaim[]{
  const claims:SupportedClaim[]=graph.nodes.filter(n=>
-  ['placement','house-lord','dispositor','aspect','yoga','period'].includes(n.kind)).map(n=>({
-  id:n.id,kind:n.kind==='house-lord'?'lordship':n.kind as SupportedClaim['kind'],
+  ['ascendant','placement','house-lord','dispositor','aspect','yoga','period'].includes(n.kind)).map(n=>({
+  id:n.id,kind:n.kind==='ascendant'?'placement':n.kind==='house-lord'?'lordship':n.kind as SupportedClaim['kind'],
   evidence:[n.id,...n.derivedFrom.filter(x=>!x.startsWith('ephemeris:'))],
   topic:n.scope==='vimshottari'?'timing':n.kind==='yoga'?'vocation':n.kind==='house-lord'?'lordship':n.scope,
   ruleId:n.ruleId,reviewStatus:'calculation_verified' as const
