@@ -1,3 +1,5 @@
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 /**
  * One-shot, user-safe OpenRouter account/model doctor.
  * Only prints statuses and public model IDs, never token, user identifier, HTTP body or prompt.
@@ -45,7 +47,6 @@ export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=fa
   let data;
   try{data=await catalog.json();}catch{emit('CATALOG: unparseable_json');return {ok:false,reason:'invalid_catalog'};}
   const models=Array.isArray(data?.data)?data.data:[];
-  const free=models.filter(x=>typeof x?.id==='string'&&SAFE_MODEL.test(x.id)&&priceZero(x.pricing?.prompt)&&priceZero(x.pricing?.completion)&&!x.architecture?.output_modalities?.length||false);
   // Include normal text-output models; never infer actual endpoint health from catalogue membership.
   const available=models.filter(x=>typeof x?.id==='string'&&SAFE_MODEL.test(x.id)
     &&priceZero(x.pricing?.prompt)&&priceZero(x.pricing?.completion)
@@ -93,7 +94,7 @@ export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=fa
   return {ok:false,reason:'network_error'};
  }
 }
-if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1].replaceAll('\\','/')).href){
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  const result=await diagnoseOpenRouter({probe:process.argv.includes('--probe')});
  if(!result.ok)process.exitCode=1;
 }
