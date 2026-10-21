@@ -127,9 +127,21 @@ function PlainLanguageGlossary({lang}:{lang:'uk'|'en'}){
  </details>;
 }
 
+/** User-readable rule evidence. Never render empty unordered-list bullets. */
+function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:NonNullable<ReadingReport['editorial']>['chapters'][number];lang:'uk'|'en'}){
+ const rows=(report.editorial?.findings||[]).filter(f=>f.verifiedEvidence.length&&chapter.evidence.some(ev=>f.verifiedEvidence.includes(ev)));
+ if(!rows.length)return null;
+ return <details className="reading-portrait-evidence" data-testid={'reading-proof-'+chapter.id}>
+  <summary>{lang==='uk'?'Перевірені розрахункові опори':'Calculated supporting evidence'} ({rows.length})</summary>
+  <ul>{rows.map(f=><li key={f.id}>
+   <strong>{f.ruleId}</strong>: <GlossaryText text={f.traditionalMeaning} locale={lang}/>
+   <small>{f.verifiedEvidence.join(' · ')}</small>
+  </li>)}</ul>
+ </details>;
+}
 export default function DetailedReport({report,lang}:{report:ReadingReport;lang:'uk'|'en'}){
  const uk=lang==='uk',ai=report.ai;
- const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq','ollama'].includes(ai.provider)&&Boolean(ai.text);
+ const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text);
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
  const fullConsultation=aiChapters.size>0;
  return <section className="reading-root" id="full-reading" aria-label={uk?'Детальне трактування карти':'Detailed chart interpretation'}>
@@ -166,7 +178,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <div className="reading-editorial-chapters">
     {report.editorial.chapters.map((chapter,i)=><article className="reading-editorial-chapter" key={chapter.id} id={'reading-story-'+chapter.id}>
       <div className="reading-editorial-chapter-header"><span>{String(i+1).padStart(2,'0')}</span><h3>{chapter.title}</h3></div>
-      <p className="reading-provider" data-testid={'reading-chapter-source-'+chapter.id}>{aiChapters.has(chapter.id)?(uk?'✧ Трактування LLM за перевіреними астрологічними даними':'✧ LLM interpretation grounded in verified chart evidence'):(uk?'✦ Перевірене локальне трактування':'✦ Verified deterministic interpretation')}</p>
+      <p className="reading-provider" data-testid={'reading-chapter-source-'+chapter.id}>{aiChapters.has(chapter.id)?(uk?'✧ Трактування LLM · автоматична перевірка окремих тверджень':'✧ LLM interpretation · partial automated claim checks'):(uk?'✦ Перевірене локальне трактування':'✦ Verified deterministic interpretation')}</p>
       {(aiChapters.get(chapter.id)?.paragraphs||chapter.paragraphs).map((p,j)=><p key={j}><GlossaryText text={p} locale={lang}/></p>)}
       {false&&chapter.id==='elements'?<div className="reading-elements" aria-label={uk?'Підрахунок стихій':'Element count'}>
        {report.editorial!.elements.map(e=><div className="reading-element" key={e.name}>
@@ -175,9 +187,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
        </div>)}
        <small>{uk?'Частки семи класичних планет за знаками, не психологічний рейтинг.':'Share of seven classical grahas by sign; not a psychological score.'}</small>
       </div>:null}
-      {report.editorial?.findings?.length?<details className="reading-portrait-evidence"><summary>{uk?'Перевірені астрологічні опори':'Verified astrological evidence'}</summary>
-       <ul>{report.editorial.findings.filter(f=>chapter.evidence.some(ev=>f.verifiedEvidence.includes(ev))).map(f=><li key={f.id}><strong>{f.ruleId}</strong>: {f.verifiedEvidence.join(' · ')}</li>)}</ul>
-      </details>:null}
+      <ChapterEvidence report={report} chapter={chapter} lang={lang}/>
      </article>)}
    </div>
    <details className="reading-glossary"><summary>{uk?'Технічний додаток: баланс стихій':'Technical appendix: element distribution'}</summary>
