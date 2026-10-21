@@ -7,6 +7,7 @@ import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} 
 import {buildDetailedReport,detailedReportFacts} from './report.ts';
 import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
+import {generateResilientFreeConsultation} from './resilient-consultation.ts';
 import {buildAiChapterSpecs} from './consultation-ai.ts';
 import {yogakarakasForLagna} from './reader-classical.ts';
 import {PrismaService} from './prisma.ts';
@@ -112,8 +113,8 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+':interpretation-v5-authored-narrative-and-editor',
-   ()=>generateFreeInterpretationDetailed(chart,birth.lang,{
+  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+':interpretation-v5-1-bounded-cloud-enrichment',
+   ()=>generateResilientFreeConsultation(chart,birth.lang,{
     chapterSpecs:buildAiChapterSpecs(report.editorial),
     factsOverride:report.editorial.findings.map(f=>({id:f.id,
       fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
