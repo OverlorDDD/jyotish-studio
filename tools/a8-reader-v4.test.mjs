@@ -95,7 +95,7 @@ test('A8.1 English and Ukrainian Cancer career passages mention yogakaraka Mars'
  for(const lang of ['uk','en']){
   const r=buildDetailedReport(chart,lang,'2026-10-21').editorial;
   const career=r.chapters.find(x=>x.id==='career').paragraphs.join(' ');
-  assert.match(career,lang==='uk'?/йогакарака/i:/yogakaraka/i);
+  assert.match(career,lang==='uk'?/йогакарак/i:/yogakaraka/i);
  }
 });
 
