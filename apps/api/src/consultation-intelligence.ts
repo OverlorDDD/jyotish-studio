@@ -83,12 +83,13 @@ export function verifyUnifiedConsultation(
  }));
  errors.push(...checkNarrativeLordClaims(all,houseLords).errors);
  if(/(?:гарантован[оіий]|неодмінно|will certainly|guaranteed profit|fatal disease|безплідн)/iu.test(all))errors.push('unfounded_certainty');
+ if(/(?:\b(?:Pluto|Chiron|Lilith|Uranus|Neptune|Midheaven|MC)\b|Плутон|Хірон|Ліліт|Уран|Нептун|квадрат(?:ом|і|у)?|sextile|square aspect)/iu.test(all))errors.push('unsupported_western_factor');
  if(lang==='uk'&&/(?:\b(?:который|является|отношения|согласно)\b)/iu.test(all))errors.push('ru_mixed');
  // Only explicit planet-house associations. Other claims remain subject to editorial review.
  const planet='(Сонце|Місяць|Марс|Меркурій|Юпітер|Венера|Сатурн|Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn)';
  const aliases:Record<string,string>={...Object.fromEntries(Object.entries(NAMES_UK).map(([en,uk])=>[uk,en])),
   ...Object.fromEntries(Object.keys(NAMES_UK).map(x=>[x,x]))};
- const re=new RegExp(planet+'\\s+(?:знаходиться|стоїть|перебуває|is|occupies|stands|in)\\s+(?:в|у|in)?\\s*(1[0-2]|[1-9])(?:[ -]?(?:му|м|го|й|th|st|nd|rd))?\\s*(?:домі|дому|будинку|house)','giu');
+ const re=new RegExp(planet+'\\s+(?:знаходиться|стоїть|перебуває|is|occupies|stands|in)\\s+(?:в|у|in)?\\s*(?:house\\s*)?(1[0-2]|[1-9])(?:[ -]?(?:му|м|го|й|th|st|nd|rd))?\\s*(?:домі|дому|будинку|house)','giu');
  for(const m of all.matchAll(re)){
   const n=position(graph,'D1',aliases[m[1]]);
   if(Number(n.value.house)!==Number(m[2]))errors.push('wrong_house:'+aliases[m[1]]);
