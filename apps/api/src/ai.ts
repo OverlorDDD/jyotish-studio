@@ -110,7 +110,7 @@ const REPORT_HEADINGS:Record<string,{uk:string;en:string}>={
 function reportHeading(factId:string,lang:'uk'|'en'){
  return REPORT_HEADINGS[factId]?.[lang]||(lang==='uk'?'Пояснення до карти':'Chart insight');
 }
-export type ChatProvider='openai'|'openrouter'|'gemini'|'ollama';
+export type ChatProvider='openai'|'openrouter'|'gemini'|'groq'|'ollama';
 /** Provider-reported metadata only; no prompt, response text, account or birth details. */
 export type AiUsageEvent={
  provider:ChatProvider;model:string;outcome:'returned'|'provider_error'|'request_error';
@@ -120,7 +120,7 @@ export type AiUsageEvent={
 /** A shared, schema-validated chat adapter. Provider URLs are hard-coded, never user supplied. */
 export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose'|'consultation';chapterSpecs?:ReadonlyArray<AiChapterSpec>;factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;onUsage?:(event:AiUsageEvent)=>Promise<void>|void}){
  const provider=options.provider||'openai';
- const configuredModel=options.model||(provider==='openrouter'?'openrouter/free':provider==='gemini'?'gemini-2.5-flash-lite':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
+ const configuredModel=options.model||(provider==='openrouter'?'openrouter/free':provider==='gemini'?'gemini-2.5-flash-lite':provider==='groq'?'openai/gpt-oss-120b':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
  let usageReported=false;
  async function reportUsage(outcome:AiUsageEvent['outcome'],body?:{model?:string;usage?:{prompt_tokens?:unknown;completion_tokens?:unknown;total_tokens?:unknown;cost?:unknown}}){
   if(usageReported)return;
@@ -139,19 +139,20 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
 
  const endpoint=provider==='openrouter'?'https://openrouter.ai/api/v1/chat/completions':
   provider==='gemini'?'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions':
+  provider==='groq'?'https://api.groq.com/openai/v1/chat/completions':
   provider==='ollama'?'http://127.0.0.1:11434/v1/chat/completions':'https://api.openai.com/v1/chat/completions';
  if(provider!=='ollama'&&!options.key.trim())throw new AiProviderError('upstream','API key is not configured');
  if(!(options.limit||defaultHourlyLimit)())throw new AiProviderError('limit','OpenAI demo hourly request limit reached');
  const facts=options.factsOverride||(options.chapterSpecs?[]:astrologicalFacts(chart,lang,options.now));
  const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?90000:provider==='openrouter'?60000:provider==='gemini'?60000:15000);
+ const timeout=setTimeout(()=>controller.abort(),provider==='ollama'?90000:provider==='openrouter'?20000:provider==='gemini'?30000:provider==='groq'?25000:15000);
  const onAbort=()=>controller.abort();
  options.signal?.addEventListener('abort',onAbort,{once:true});
  try{
   const response=await (options.fetcher||fetch)(endpoint,{
    method:'POST',signal:controller.signal,
    headers:{'Content-Type':'application/json',...(provider==='ollama'?{}:{'Authorization':`Bearer ${options.key}`})},
-   body:JSON.stringify({model:configuredModel,temperature:options.reportMode?0.3:0.2,max_tokens:options.chapterSpecs?4400:options.reportMode?3500:provider==='openrouter'?1800:1000,
+   body:JSON.stringify({model:configuredModel,temperature:options.reportMode?0.3:0.2,max_tokens:options.chapterSpecs?(provider==='groq'?3000:4400):options.reportMode?3500:provider==='openrouter'?1800:1000,
     ...(options.formatMode==='prompt'||options.formatMode==='prose'||options.formatMode==='consultation'?{}:{response_format:{type:'json_schema',json_schema:{name:'jyotish_interpretation',strict:true,schema:{
       type:'object',additionalProperties:false,required:['sections'],properties:{sections:{type:'array',items:{type:'object',additionalProperties:false,required:['factId','text'],properties:{factId:{type:'string',enum:facts.map(f=>f.id)},text:{type:'string'}}}}}
     }}}}),

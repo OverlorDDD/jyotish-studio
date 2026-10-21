@@ -25,7 +25,7 @@ export function selectedFreeModel(env){
  const raw=(env.OPENROUTER_FREE_MODEL||'').trim();
  return SAFE_MODEL.test(raw)?raw:ROUTER;
 }
-export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=false,log=console.log}={}){
+export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=false,timeoutMs=12000,log=console.log}={}){
  const key=(env.OPENROUTER_API_KEY||'').trim(),model=selectedFreeModel(env);
  const emit=line=>log(line);
  emit('A7 OpenRouter doctor');
@@ -33,7 +33,14 @@ export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=fa
  emit('Configured model='+model);
  if(!key){emit('KEY: MISSING (add OPENROUTER_API_KEY to private .env)');return {ok:false,reason:'missing_key'};}
  const headers={'Authorization':'Bearer '+key,'Accept':'application/json'};
- const request=async(url,init={})=>fetcher(url,{...init,headers:{...headers,...(init.headers||{})},signal:AbortSignal.timeout(15000)});
+ const request=async(url,init={})=>{
+  // A referenced timer avoids a silent Node process exit while an unref'ed AbortSignal
+  // is the only outstanding work. Always print an explicit TIMEOUT status.
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),Math.max(10,Math.min(15000,timeoutMs)));
+  try{return await fetcher(url,{...init,headers:{...headers,...(init.headers||{})},signal:controller.signal});}
+  finally{clearTimeout(timer);}
+ };
  try{
   const auth=await request(BASE+'/key');
   emit('KEY: HTTP '+auth.status+' '+(auth.ok?'VALID':meaning(auth.status)));
@@ -76,7 +83,7 @@ export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=fa
    }
   }
   if(!probe){emit('KEY/MODEL PRECHECK: PASS; actual generation NOT yet tested. Run npm run ai:doctor -- --probe.');return {ok:true,reason:'precheck_only'};}
-  emit('PROBE: one synthetic free-model request, no user data');
+  emit('PROBE: one synthetic free-model request, no user data; deadline 12s');
   const body={model,stream:false,max_tokens:36,temperature:0,messages:[{role:'user',content:'Write only the single word OK.'}]};
   const response=await request(BASE+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   emit('PROBE HTTP '+response.status+' '+(response.ok?'OK':meaning(response.status)));

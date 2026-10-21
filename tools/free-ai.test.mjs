@@ -36,21 +36,23 @@ test('free router always uses zero-priced openrouter/free; payload excludes birt
  assert.equal(calls,1);assert.equal(result.provider,'openrouter');assert.equal(result.model,'openrouter/free');
  assert.match(result.text,/Загальна картина/);assert.doesNotMatch(result.text,/Лагна: Pisces/);
 });
-test('429 from OpenRouter switches to local Ollama without forwarding API keys',async()=>{
+test('429 from OpenRouter switches to independent online Groq FREE account',async()=>{
  const endpoints=[];
  const result=await generateFreeInterpretation(chart,'en',{
-  key:'test_openrouter_key',ollamaEnabled:true,ollamaModel:'gemma3:1b',limit:()=>true,
+  order:['openrouter','groq'],key:'test_openrouter_key',groqKey:'fake_groq',
+  groqEnabled:true,limit:()=>true,
   fetcher:async(url,init)=>{
    endpoints.push(url);
    if(url.includes('openrouter.ai'))return new Response('rate limited',{status:429});
-   assert.equal(url,'http://127.0.0.1:11434/v1/chat/completions');
-   assert.equal(init.headers.Authorization,undefined);
-   assert.equal(JSON.parse(init.body).model,'gemma3:1b');
+   assert.equal(url,'https://api.groq.com/openai/v1/chat/completions');
+   assert.equal(init.headers.Authorization,'Bearer fake_groq');
+   assert.equal(JSON.parse(init.body).model,'openai/gpt-oss-120b');
+   assert.ok(!JSON.stringify(JSON.parse(init.body)).includes('test_openrouter_key'));
    return completion();
   }
  });
  assert.equal(endpoints.length,2);
- assert.equal(result.provider,'ollama');
+ assert.equal(result.provider,'groq');
 });
 test('no API key and Ollama disabled: no network; fallback returns null',async()=>{
  let calls=0;
@@ -59,10 +61,11 @@ test('no API key and Ollama disabled: no network; fallback returns null',async()
  });
  assert.equal(result,null);assert.equal(calls,0);
 });
-test('when both free services fail, no paid model is called',async()=>{
+test('when two independent online FREE providers fail, no paid OpenAI model is called',async()=>{
  const calls=[];
  const result=await generateFreeInterpretation(chart,'uk',{
-  key:'test_openrouter_key',ollamaEnabled:true,limit:()=>true,
+  order:['openrouter','groq'],key:'test_openrouter_key',groqKey:'fake_groq',
+  groqEnabled:true,limit:()=>true,
   fetcher:async(url)=>{calls.push(url);return new Response('{}',{status:503});}
  });
  assert.equal(result,null);assert.equal(calls.length,2);
