@@ -8,6 +8,7 @@ import {buildDetailedReport,detailedReportFacts} from './report.ts';
 import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {generateFreeInterpretationDetailed} from './free-ai.ts';
 import {buildAiChapterSpecs} from './consultation-ai.ts';
+import {yogakarakasForLagna} from './reader-classical.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
@@ -118,7 +119,7 @@ export class JyotishController{
       fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
        '. Supporting: '+f.supportingFactors.join('; ')+'. Limits: '+f.limitations.join('; ')})),reportMode:true,
     onUsage:event=>this.recordAiUsage(event,'detailed_report'),
-    approvedYogas:ruleFindings(chart).yogas.map(y=>y.name)
+    approvedYogas:[...ruleFindings(chart).yogas.map(y=>y.name),...(yogakarakasForLagna(chart.ascendant.sign).length?['yogakaraka']:[])]
    }));
   return {...report,ai:free.result?{...free.result,source:'llm' as const,cached}:
    {provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:free.reason}};
