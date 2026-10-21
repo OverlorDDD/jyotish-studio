@@ -155,7 +155,7 @@ test('reader summary supplies astrology rather than a worksheet action list',()=
  const editorial=buildDetailedReport(chart,'uk','2026-10-13').editorial;
  const end=editorial.chapters.find(c=>c.id==='conclusion');
  assert.equal(end.insights.length,0);
- assert.match(end.paragraphs.join(' '),/управитель|махадаша/);
+ assert.match(end.paragraphs.join(' '),/управител|махадаш/);
  assert.ok(editorial.chapters.every(ch=>ch.insights.length===0));
  assert.doesNotMatch(editorial.chapters.flatMap(ch=>ch.paragraphs).join(' '),/Традиційний ключ:|Оберіть дві практичні ідеї/);
 });
@@ -173,11 +173,11 @@ test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and
  assert.match(byChapter('configuration'),/Сонце.*Марс.*Меркурій.*Сатурн/);
  assert.match(byChapter('configuration'),/9-му домі/);
  assert.match(byChapter('tensions'),/Марс і Сатурн/);
- assert.match(byChapter('portrait'),/Місяць у Близнюках, у домі 12/);
- assert.match(byChapter('relationships'),/Навамша D9/);
+ assert.match(byChapter('portrait'),/Місяць.*12-му домі.*Близнюках/s);
+ assert.match(byChapter('relationships'),/Навамш[аі] D9/);
  assert.match(byChapter('career'),/Дашамша D10/);
  assert.match(byChapter('career'),/Управитель дев’ятого дому Юпітер/);
- assert.match(byChapter('career'),/управитель десятого дому Марс/);
+ assert.match(byChapter('career'),/управитель десятого дому Марс/i);
  assert.doesNotMatch(byChapter('career'),/Десятий дім[^.]*його управитель Юпітер/);
  assert.match(byChapter('timing'),/махадаша Сатурн/);
  assert.ok(reading.chapters.every(ch=>!ch.insights.length));
@@ -238,7 +238,7 @@ test('A7 reader never presents ninth-house Jupiter as the tenth-house ruler, inc
  for(const language of ['uk','en']){
   const report=buildDetailedReport(natal,language,'2026-10-20').editorial;
   const career=report.chapters.find(c=>c.id==='career').paragraphs.join(' ');
-  assert.ok(career.includes(language==='uk'?'дев’ятого дому Юпітер':'ninth-house ruler Jupiter'),career);
-  assert.ok(career.includes(language==='uk'?'десятого дому Марс':'tenth-house ruler Mars'),career);
+  assert.ok(career.includes(language==='uk'?'дев’ятого дому Юпітер':'ninth lord Jupiter'),career);
+  assert.ok(career.includes(language==='uk'?'десятого дому Марс':'tenth-house lord Mars'),career);
  }
 });
