@@ -29,9 +29,16 @@ export function verifyFreeProse(text:string,approvedYogas:ReadonlyArray<string>=
  if(prohibitedClaims.test(text))
   return {ok:false as const,reason:'strength_claim_requires_rule_engine'};
  const active=new Set(approvedYogas.map(x=>x.toLowerCase()));
- if(yogaGeneric.test(text)&&![...text.matchAll(yogaWords)].some(x=>listedYoga(x[0])&&active.has(listedYoga(x[0])!)))
+ // Yogakaraka is a functional Kendra/Trikona lordship, not a Pancha Mahapurusha yoga.
+ // The same deterministic gate must explicitly approve this role for the given lagna.
+ const mentionsYogakaraka=/(?:yogakaraka|йогакарак[а-яіїєґ]*)/iu.test(text);
+ if(mentionsYogakaraka&&!active.has('yogakaraka'))
+  return {ok:false as const,reason:'unverified_yogakaraka_claim'};
+ const checkedText=active.has('yogakaraka')?
+  text.replace(/(?:yogakaraka|йогакарак[а-яіїєґ]*)/giu,''):text;
+ if(yogaGeneric.test(checkedText)&&![...checkedText.matchAll(yogaWords)].some(x=>listedYoga(x[0])&&active.has(listedYoga(x[0])!)))
   return {ok:false as const,reason:'unverified_yoga_claim'};
- for(const match of text.matchAll(yogaWords)){
+ for(const match of checkedText.matchAll(yogaWords)){
   const name=listedYoga(match[0]);
   if(!name||!active.has(name))return {ok:false as const,reason:'unverified_yoga_claim'};
  }

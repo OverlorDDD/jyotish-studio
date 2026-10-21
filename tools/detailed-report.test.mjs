@@ -134,7 +134,7 @@ test('life portrait has five practical narrative themes, each linked to actual c
 test('reader-first editorial report has chart-specific chapters and accurately counted elements',()=>{
  const uk=buildDetailedReport(chart,'uk','2026-10-13');
  const en=buildDetailedReport(chart,'en','2026-10-13');
- assert.equal(uk.editorial.version,'3.0.0');
+ assert.equal(uk.editorial.version,'4.0.0');
  assert.deepEqual(uk.editorial.chapters.map(c=>c.id),['portrait','configuration','tensions','relationships','career','resources','timing','conclusion']);
  assert.equal(uk.editorial.elements.reduce((s,v)=>s+v.count,0),7);
  assert.ok(uk.editorial.elements.every(v=>v.percentage===Math.round(v.count/7*100)));
@@ -187,7 +187,7 @@ test('reader v3: synthesis rather than duplicate keys, meaningful D1 cluster and
 
 test('Interpretation v3 findings are ranked, evidence-linked and free of identifying birth data',()=>{
  const reading=buildDetailedReport(chart,'uk','2026-10-20').editorial;
- assert.ok(reading.findings.length>=5&&reading.findings.length<=8);
+ assert.ok(reading.findings.length>=12&&reading.findings.length<=24);
  assert.ok(reading.findings.every(f=>f.ruleId&&f.verifiedEvidence.length&&f.supportingFactors.length&&f.limitations.length));
  assert.ok(reading.findings.every(f=>Number.isFinite(f.relativeImportance)));
  assert.equal(reading.chapters.length,8);
@@ -198,7 +198,7 @@ test('Interpretation v3 findings are ranked, evidence-linked and free of identif
  assert.ok(!reading.chapters.some(c=>c.id==='elements'));
 });
 
-test('twenty independent synthetic whole-sign charts yield stable, substantively different consultations',()=>{
+test('A8.5 twenty independent synthetic whole-sign charts yield stable, substantively different consultations',()=>{
  const variants=[];
  for(let i=0;i<20;i++){
   const sample=structuredClone(chart);
@@ -210,7 +210,7 @@ test('twenty independent synthetic whole-sign charts yield stable, substantively
    g.longitude=(zodiac-1)*30+13.25;
   });
   const out=buildDetailedReport(sample,'uk','2026-10-20').editorial;
-  assert.equal(out.version,'3.0.0');
+  assert.equal(out.version,'4.0.0');
   assert.ok(out.findings.every(f=>f.verifiedEvidence.length));
   assert.equal(out.chapters.length,8);
   assert.deepEqual(out,buildDetailedReport(sample,'uk','2026-10-20').editorial);

@@ -34,7 +34,7 @@ modules:
     http: "apps/api/src/nest.ts"
     web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
-    interpretation_v3: "apps/api/src/interpretation-v3.ts; ranked AstrologicalFinding and eight narrative chapters; optional AI receives evidence instead of boilerplate"
+    interpretation_v3: "apps/api/src/interpretation-v3.ts v4.0.0; expanded classical lordship/yogakarakas and eight narrative chapters; semantic claim gate in consultation-ai.ts"
     interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
     interpretation_release: "A7.3 AI-authored eight chapter overlays with verified per-chapter fallback; actual cloud use requires live PASS"
   identity:
@@ -165,6 +165,7 @@ quality:
     a7_llm: "npm run test:a7:llm"
     a7_consultation: "npm run test:a7:consultation"
     a7_cloud: "npm run test:a7:cloud"
+    a8_reader: "npm run test:a8:reader"
     architecture_a3: "npm run test:architecture:a3"
   wider_commands: ["npm run test:all", "npm run test:swagger", "npm run build"]
   missing_gates: ["production domain acceptance", "commercial license clearance", "real backups/restore drill", "privacy review", "distributed rate limits and session revocation"]
@@ -179,8 +180,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A8.1 urgent Jyotish truth/UX audit (wrong Cancer 4th ruler, blank evidence list, portrait local 7/8); existing A7.4 Groq LLM works but text quality needs classical synthesis"
-  next: "A8.2-A8.5 classical rule expansion, rights-checked source ledger, Reader v4 and independent JHora + practitioner review"
+  now: "A8 Reader v4 code/QA branch: functional lordship, yogakarakas, richer AI evidence, partial semantic claim checks and human-readable evidence accordion; independent expert review NOT complete"
+  next: "Independent Jagannatha Hora birth-chart parity and a qualified Jyotish reviewer must validate 10-20 real cases before claiming expert-grade accuracy"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"

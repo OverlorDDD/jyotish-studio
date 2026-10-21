@@ -8,7 +8,7 @@ const reply=(providerModel)=>new Response(JSON.stringify({
  model:providerModel,choices:[{message:{content:ids.map(id=>'[['+id+']]\n'+text).join('\n\n')}}],
  usage:{prompt_tokens:100,completion_tokens:1200,total_tokens:1300}
 }),{status:200,headers:{'content-type':'application/json'}});
-const chart={input:{date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},d1:[],ascendant:{signName:'Cancer'},dasha:[]};
+const chart={input:{date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},d1:[],ascendant:{sign:4,signName:'Cancer'},dasha:[]};
 
 test('cloud-only free failover: Gemini HTTP 429 then independent Groq 120B eight-chapter consultation',async()=>{
  const calls=[];
