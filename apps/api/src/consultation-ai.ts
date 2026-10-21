@@ -59,6 +59,20 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
    // deterministic reading. A very short generic answer is never shown.
    const draftLength=(spec?.draft||[]).join(' ').length;
    if(combined.length<440||normalized.length<2||combined.length<Math.min(850,Math.floor(draftLength*0.6)))continue;
+   // Explicit domain-specific gate prevents 700 words of generic motivation from
+   // displacing a calculation-grounded chapter. This is editorial, not a proof
+   // that every natural-language statement is astrological truth.
+   const cues:Record<string,RegExp>={
+    portrait:/лагн|управител.{0,18}перш|місяц|ascendant|moon|first.house/iu,
+    configuration:/йогакарак|з.{0,10}єднан|сполучен|управител.{0,24}дом|yogakaraka|conjunction|lordship/iu,
+    tensions:/сатурн|марс|меркур|moon|saturn|mars|mercury/iu,
+    relationships:/венер|сатурн|сьом|навамш|партнер|venus|saturn|seventh|navamsha|relationship/iu,
+    career:/десят|марс|дашамш|профес|career|mars|tenth|dashamsha/iu,
+    resources:/друг|одинадцят|венер|сонц|ресурс|second|eleventh|venus|sun|resource/iu,
+    timing:/махадаш|антардаш|сатурн|місяц|mahadasha|antardasha|saturn|moon/iu,
+    conclusion:/лагн|управител|місяц|марс|ascendant|moon|mars|lordship/iu
+   };
+   if(cues[id]&&!cues[id].test(combined))continue;
    if(['portrait','relationships','resources','timing'].includes(id)&&OUT_OF_SCOPE_CLUSTER.test(combined))continue;
   }
   chapters.push({id,paragraphs:normalized,source:'llm'});
