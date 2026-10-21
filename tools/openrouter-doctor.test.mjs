@@ -56,3 +56,20 @@ test('unsafe paid model override always falls back to the free router',()=>{
  assert.equal(selectedFreeModel({OPENROUTER_FREE_MODEL:'fresh/fresh-chat:free'}),'fresh/fresh-chat:free');
  assert.equal(selectedFreeModel({OPENROUTER_FREE_MODEL:''}),'openrouter/free');
 });
+
+
+test('probe has a referenced deadline and reports timeout rather than silently exiting',async()=>{
+ const lines=[];
+ const fetcher=async(url,opts)=>{
+  if(url.endsWith('/key'))return reply({data:{is_free_tier:true}});
+  if(url.includes('/models?'))return reply({data:[free]});
+  if(url.endsWith('/endpoints'))return reply({data:{endpoints:[{name:'healthy'}]}});
+  if(url.endsWith('/chat/completions'))return new Promise((_resolve,reject)=>{
+   opts.signal.addEventListener('abort',()=>reject(new DOMException('Cancelled','AbortError')),{once:true});
+  });
+  throw Error('unexpected URL');
+ };
+ const result=await diagnoseOpenRouter({env:fakeEnv,fetcher,probe:true,timeoutMs:25,log:x=>lines.push(x)});
+ assert.equal(result.reason,'network_error');
+ assert.ok(lines.join('\n').includes('NETWORK: timeout'));
+});
