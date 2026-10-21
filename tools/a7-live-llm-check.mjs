@@ -6,7 +6,7 @@
 import {generateFreeInterpretationDetailed} from '../apps/api/src/free-ai.ts';
 import {CHAPTER_IDS} from '../apps/api/src/consultation-ai.ts';
 
-const fake={ascendant:{signName:'Cancer'},d1:[],dasha:[],input:{
+const fake={ascendant:{sign:4,signName:'Cancer'},d1:[],dasha:[],input:{
  date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0}};
 const chapterIdeas=[
  'The first lord and lunar privacy are both verified; show the tension between caring for others and keeping emotional boundaries.',
