@@ -3,9 +3,9 @@ import {createHourlyLimiter,generateOpenAiInterpretation,AiProviderError,type Ai
 import type {AiChapterSpec} from './consultation-ai.ts';
 
 /** Free by configuration only: Gemini requires separately verified FREE billing tier. */
-export type FreeProvider='openrouter'|'gemini'|'groq'|'ollama';
+export type FreeProvider='openrouter'|'gemini'|'groq';
 export type FreeFallbackReason='hourly_limit'|'no_provider'|'rate_limited'|'provider_rejected'|'provider_unavailable'|'invalid_response'|'timeout'|'network';
-const allowed=new Set<FreeProvider>(['openrouter','gemini','groq','ollama']);
+const allowed=new Set<FreeProvider>(['openrouter','gemini','groq']);
 const order=():FreeProvider[]=>{
  const configured=process.env.FREE_AI_ORDER||'gemini,groq,openrouter';
  return [...new Set(configured.split(',').map(s=>s.trim()).filter((s):s is FreeProvider=>allowed.has(s as FreeProvider)))];
@@ -80,7 +80,6 @@ export async function generateFreeInterpretationDetailed(
  const permit=opts.limit||allowFreeRequest; // Count every free cloud attempt, including a JSON retry.
  const providers=opts.order||order();
  const openrouterKey=opts.key??process.env.OPENROUTER_API_KEY?.trim()??'';
- const ollamaEnabled=opts.ollamaEnabled??process.env.OLLAMA_ENABLED==='1';
  const geminiKey=opts.geminiKey??process.env.GEMINI_API_KEY?.trim()??'';
  // Deliberate opt-in only after confirming in Google AI Studio that billing is OFF/free tier.
  const geminiEnabled=opts.geminiEnabled??process.env.GEMINI_FREE_TIER_CONFIRMED==='1';
@@ -90,14 +89,12 @@ export async function generateFreeInterpretationDetailed(
  const permittedGroqModels=new Set(['openai/gpt-oss-120b','openai/gpt-oss-20b']);
  const preferredGroq=opts.groqModel||process.env.GROQ_MODEL||'openai/gpt-oss-120b';
  const groqModel=permittedGroqModels.has(preferredGroq)?preferredGroq:'openai/gpt-oss-120b';
- const ollamaModel=opts.ollamaModel||process.env.OLLAMA_MODEL||'gemma3:1b';
  const customOpenRouter=(process.env.OPENROUTER_FREE_MODEL||'').trim();
  // Permit ONLY explicitly free model slugs. Do not turn failover into paid inference.
  const openRouterModel=customOpenRouter&&/^[a-z0-9_.-]+\/[a-z0-9_.:-]+:free$/i.test(customOpenRouter)?customOpenRouter:'openrouter/free';
  let reason:FreeFallbackReason='no_provider';
  for(const provider of providers){
   if(provider==='openrouter'&&!openrouterKey)continue;
-  if(provider==='ollama'&&!ollamaEnabled)continue;
   if(provider==='gemini'&&(!geminiEnabled||!geminiKey))continue;
   if(provider==='groq'&&(!groqEnabled||!groqKey))continue;
   try{
@@ -144,13 +141,7 @@ export async function generateFreeInterpretationDetailed(
     });
     return {result};
    }
-   if(provider==='ollama'){
-    const result=await generateOpenAiInterpretation(chart,lang,{
-     provider:'ollama',key:'',model:ollamaModel,formatMode:opts.chapterSpecs?'consultation':undefined,
-     fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage
-    });
-    return {result};
-   }
+
   }catch(error){
    reason=failureReason(error);
    // No raw provider errors: they may include private account information.
