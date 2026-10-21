@@ -25,7 +25,7 @@ export function selectedFreeModel(env){
  const raw=(env.OPENROUTER_FREE_MODEL||'').trim();
  return SAFE_MODEL.test(raw)?raw:ROUTER;
 }
-export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=false,log=console.log}={}){
+export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=false,timeoutMs=12000,log=console.log}={}){
  const key=(env.OPENROUTER_API_KEY||'').trim(),model=selectedFreeModel(env);
  const emit=line=>log(line);
  emit('A7 OpenRouter doctor');
@@ -37,7 +37,7 @@ export async function diagnoseOpenRouter({env=process.env,fetcher=fetch,probe=fa
   // A referenced timer avoids a silent Node process exit while an unref'ed AbortSignal
   // is the only outstanding work. Always print an explicit TIMEOUT status.
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),12000);
+  const timer=setTimeout(()=>controller.abort(),Math.max(10,Math.min(15000,timeoutMs)));
   try{return await fetcher(url,{...init,headers:{...headers,...(init.headers||{})},signal:controller.signal});}
   finally{clearTimeout(timer);}
  };
