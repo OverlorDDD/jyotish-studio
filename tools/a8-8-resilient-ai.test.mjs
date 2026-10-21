@@ -10,7 +10,17 @@ const specs=ids.map(id=>({id,title:id,focus:'Use two verified symbolic chart fac
 const p1='For a Cancer ascendant, the confirmed Jyotish evidence offers a detailed traditional interpretation of personal growth. The specific house ruler brings this subject into focus, while a second indicator offers an important and distinct counterweight. This reading therefore concerns the actual interaction of natal roles, rather than a vague forecast.';
 const p2='In everyday life this pattern can be approached through the demands of responsibility, the rhythm of learning and the practical consequences of commitments. The confirmed indicator provides a possible theme for reflection, not a fabricated personal biography or a guaranteed event. The interpretation is grounded in the supplied chart facts and respects each life domain.';
 function makeAnswer(chapters,model='openai/gpt-oss-120b'){
- const content=chapters.map(c=>'[['+c.id+']]\n'+p1+'\n\n'+p2).join('\n\n');
+ const anchor={
+  portrait:'The ascendant lord Moon is a relevant individual chart indicator. ',
+  configuration:'The yogakaraka Mars and its functional house lordship are confirmed. ',
+  tensions:'The Mars and Saturn interaction supplies a specific and constrained contrast. ',
+  relationships:'Venus and the seventh lord Saturn are genuine D1 and D9 anchors. ',
+  career:'The tenth-house lord Mars and Dashamsha D10 connect vocation with practice. ',
+  resources:'The second-house lord Sun and eleventh-house lord Venus frame financial resources. ',
+  timing:'Saturn mahadasha and Moon antardasha define the active period. ',
+  conclusion:'The ascendant Moon and Mars lordship synthesize these distinct meanings. '
+ };
+ const content=chapters.map(c=>'[['+c.id+']]\n'+(anchor[c.id]||'')+p1+'\n\n'+p2).join('\n\n');
  return new Response(JSON.stringify({model,choices:[{message:{content}}]}),{status:200,headers:{'content-type':'application/json'}});
 }
 test('A8.8 full eight-chapter report uses two independent bounded Groq requests and correct low-reasoning parameters',async()=>{
