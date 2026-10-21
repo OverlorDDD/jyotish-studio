@@ -71,7 +71,8 @@
     "research:verify-library": "node tools/research/verify-full-books.mjs",
     "test:a8:cloud": "node --experimental-strip-types --test tools/a8-cloud-live-regression.test.mjs",
     "test:a8:quality": "node --experimental-strip-types --test tools/a8-6-report-quality.test.mjs",
-    "test:a8:substantive": "node --experimental-strip-types --test tools/a8-7-substantive-reading.test.mjs"
+    "test:a8:substantive": "node --experimental-strip-types --test tools/a8-7-substantive-reading.test.mjs",
+    "a8:preview": "node --experimental-strip-types tools/a8-7-reader-preview.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
