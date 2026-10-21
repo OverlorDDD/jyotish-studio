@@ -9,7 +9,7 @@ const positions=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu'
  .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}));
 const chart=()=>calculateChart(input,{ayanamsa:23.8,ascendant:100,positions,julianDay:2451545,backend:'synthetic'});
 const graph=()=>buildChartFactGraph(chart(),'2026-10-21');
-const chapters=(prefix='A reflection on the relationships among the chart factors points toward a careful interpretation of personal priorities and how those priorities can be managed over time. ')=>CHAPTER_IDS.map(id=>({id,paragraphs:[prefix.repeat(3),prefix.repeat(3)]}));
+const chapters=(prefix='A reflection on the relationships among the chart factors points toward a careful interpretation of personal priorities and how those priorities can be managed over time. ')=>CHAPTER_IDS.map((id,i)=>({id,paragraphs:[('Chapter '+id+' '+prefix).repeat(3),('Second viewpoint '+id+' '+prefix).repeat(3)]}));
 test('A8.9: sourced calculations and one cross-chapter narrative plan',()=>{
  const g=graph(),claims=buildSupportedClaims(g),p=planConsultation(g,claims,'uk');
  assert.equal(claims.filter(c=>c.kind==='lordship').length,12);
