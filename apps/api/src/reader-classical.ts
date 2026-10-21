@@ -82,14 +82,14 @@ function houseNumber(x:string|undefined):number|null{
  if(/сімей|родин|домаш|батьків|family|home|fourth/.test(v))return 4;
  if(/партнер|шлюб|partnership|marriage|seventh/.test(v))return 7;
  if(/профес|кар.?єр|career|profession|tenth/.test(v))return 10;
- const number=/\b(1[0-2]|[1-9])(?:-?(?:го|му|й|ий|th|st|nd|rd))?\b/u.exec(v);
+ const number=/(?:^|[^0-9])(1[0-2]|[1-9])(?:-?(?:го|му|й|ий|th|st|nd|rd))?/u.exec(v);
  return number?Number(number[1]):null;
 }
 
 /** Strictly test detected explicit ruler claims. Unrecognized idioms are NOT proof. */
 export function checkNarrativeLordClaims(text:string,lords:Record<number,string>){
  // Ruler of the [number/home/etc] house = Planet, both English and Ukrainian.
- const place='(?:[1-9]|1[0-2])(?:-?(?:го|му|й|ий|th|st|nd|rd))?|'+familyAlias+
+ const place='(?:1[0-2]|[1-9])(?:-?(?:го|му|й|ий|th|st|nd|rd))?|'+familyAlias+
  '|(?:партнерства|шлюбу|професії|кар’єри|career|partnership|seventh|tenth)';
  const patterns=[
   new RegExp('(?:управител[ьяем]*|володар[ьяем]*|ruler|lord)\\s+(?:(?:of|the|на)\\s+)*(' +
