@@ -3,7 +3,7 @@ import {checkNarrativeLordClaims} from './reader-classical.ts';
 
 /** Only deterministic, server-authored finding material may enter the model context. */
 export type AiChapterSpec={
- id:string;title:string;facts:ReadonlyArray<string>;focus?:string;
+ id:string;title:string;facts:ReadonlyArray<string>;focus?:string;draft?:ReadonlyArray<string>;
 };
 export type AiConsultationChapter={
  id:string;paragraphs:string[];source:'llm';
@@ -50,11 +50,15 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
   if(combined.length<145||!/[\p{L}][^.!?]{12,}[.!?]/u.test(combined))continue;
   if(/(?:гарантовано|неодмінно|точно передбачає|guarantees|will certainly|fatal disease|безумовно)/iu.test(combined))continue;
   if(houseLords&&!checkNarrativeLordClaims(combined,houseLords).ok)continue;
-  const enriched=specs.find(spec=>spec.id===id)?.focus;
+  const spec=specs.find(spec=>spec.id===id);
+  const enriched=spec?.focus;
   if(enriched){
    // Minimum substance for a reader-facing consultation; an underdeveloped model
    // section falls back to the chart-specific deterministic chapter.
-   if(combined.length<370||(normalized.length<2&&combined.length<570))continue;
+   // A model is an enrichment, not a replacement for a better-written
+   // deterministic reading. A very short generic answer is never shown.
+   const draftLength=(spec?.draft||[]).join(' ').length;
+   if(combined.length<440||normalized.length<2||combined.length<Math.min(850,Math.floor(draftLength*0.6)))continue;
    if(['portrait','relationships','resources','timing'].includes(id)&&OUT_OF_SCOPE_CLUSTER.test(combined))continue;
   }
   chapters.push({id,paragraphs:normalized,source:'llm'});
@@ -102,7 +106,7 @@ export function buildAiChapterSpecs(editorial:{
   // the older model input unintentionally lost all of these facts.
   const crossVarga=['relationships','career','timing'].includes(ch.id)?
    (ch.paragraphs||[]).slice(0,2).map(t=>'Verified chapter calculation context: '+t):[];
-  return {id:ch.id,title:ch.title,focus:CHAPTER_FOCUS[ch.id],
+  return {id:ch.id,title:ch.title,focus:CHAPTER_FOCUS[ch.id],draft:ch.paragraphs||[],
    facts:[...facts,...crossVarga].length?[...facts,...crossVarga]:['No independent evidence; avoid fabricating details.']};
  });
 }
