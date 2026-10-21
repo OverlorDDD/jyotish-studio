@@ -5,7 +5,7 @@ import {generateFreeInterpretationDetailed} from '../apps/api/src/free-ai.ts';
 const chapters=CHAPTER_IDS.map((id,i)=>({id,title:'Verified topic '+(i+1),facts:['Traditional reading of verified topic '+(i+1)+' with supporting and limiting facts']}));
 const paragraph='Traditional Jyotish treats this placement as a meeting of personal responsibility and inner conviction. Read together with the verified counterweight, it can symbolize a patient search for meaning without determining future events. The tension is not fate but a theme of this particular chart.';
 const full=chapters.map(c=>'[['+c.id+']]\n'+paragraph).join('\n\n');
-const chart={input:{date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},ascendant:{signName:'Cancer'},d1:[],dasha:[]};
+const chart={input:{date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},ascendant:{sign:4,signName:'Cancer'},d1:[],dasha:[]};
 const reply=(text,model='qwen/qwen3-32b:free')=>new Response(JSON.stringify({model,choices:[{message:{content:text}}],usage:{prompt_tokens:200,completion_tokens:500,total_tokens:700}}),{status:200,headers:{'content-type':'application/json'}});
 test('eight chapter boundaries are parsed and verified individually; no unsupported placements',()=>{
  const items=parseAiConsultation(full,chapters);
