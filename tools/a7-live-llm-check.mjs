@@ -3,7 +3,7 @@
  * Uses synthetic astrological themes ONLY; prints provider/model and pass/fail,
  * never API keys, user birth data, or unfiltered external provider output.
  */
-import {generateFreeInterpretationDetailed} from '../apps/api/src/free-ai.ts';
+import {generateResilientFreeConsultation} from '../apps/api/src/resilient-consultation.ts';
 import {CHAPTER_IDS} from '../apps/api/src/consultation-ai.ts';
 
 const fake={ascendant:{sign:4,signName:'Cancer'},d1:[],dasha:[],input:{
@@ -37,7 +37,7 @@ if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
  process.exitCode=2;
 }else{
  try{
-  const r=await generateFreeInterpretationDetailed(fake,'uk',{chapterSpecs:chapters,reportMode:true});
+  const r=await generateResilientFreeConsultation(fake,'uk',{chapterSpecs:chapters,reportMode:true});
   if(!r.result){
    console.error('FAIL: no accepted external LLM consultation. Reason='+r.reason);
    console.error('Check provider READY/MISSING_KEY/FREE_TIER_NOT_CONFIRMED statuses above. Gemini uses gemini-3.1-flash-lite; Groq requires explicit FREE plan confirmation; OpenRouter long responses may time out.');
@@ -47,7 +47,7 @@ if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
    const count=r.result.chapters?.length||0;
    console.log('PASS: received and validated a real model consultation.');
    console.log('Provider='+r.result.provider+'; model='+r.result.model);
-   console.log('Accepted AI chapters='+count+'/8. Missing chapters would be filled by distinctly labeled deterministic material.');
+   console.log('Accepted AI chapters='+count+'/8. Incomplete chapters retain their complete deterministic Reader V5 prose.');
    console.log('No private birth information or provider response content was printed.');
   }
  }catch(error){
