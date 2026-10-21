@@ -31,6 +31,7 @@ test('A8.7 Cancer reference chart gets eight substantial, actually different, 3-
  assert.match(one('portrait'),/Місяць.*12-му домі/si);
  assert.match(one('configuration'),/йогакарака/);
  assert.match(one('configuration'),/Юпітер.*власному Стрільці/);
+ assert.match(one('configuration'),/Юпітер є диспозитором/);
  assert.match(one('tensions'),/Меркурій.*падіння/);
  assert.match(one('relationships'),/Навамші D9/);
  assert.match(one('career'),/Дашамша D10/);
@@ -63,4 +64,14 @@ test('A8.7 English user gets a useful chart-linked fallback, not Ukrainian templ
  assert.ok(cs.every(c=>c.paragraphs.length===3));
  assert.match(cs.find(c=>c.id==='career').paragraphs.join(' '),/Dashamsha D10/);
  assert.match(cs.find(c=>c.id==='relationships').paragraphs.join(' '),/Navamsha D9/);
+});
+
+test('A8.7 an ornate but fact-free LLM section does not displace the substantive chart-linked reading',()=>{
+ const report=buildDetailedReport(chart,'uk','2026-10-21');
+ const specs=buildAiChapterSpecs(report.editorial);
+ const noAstrology='У різні періоди життя людина може переживати напруження між бажанням рухатися вперед і потребою зберігати обережність, що іноді підштовхує до обдуманого вибору. Такий шлях здатен допомогти уважніше розуміти свої прагнення, налагоджувати спілкування та знаходити напрямок, у якому розвиток набуває глибшого внутрішнього значення.';
+ const full='[[relationships]]\\n'+noAstrology+'\\n\\n'+noAstrology+' '+noAstrology;
+ const accepted=parseAiConsultation(full,specs,[],{4:'Venus',7:'Saturn'});
+ assert.equal(accepted.length,0);
+ assert.ok(report.editorial.chapters.find(c=>c.id==='relationships').paragraphs.join(' ').includes('Навамші'));
 });
