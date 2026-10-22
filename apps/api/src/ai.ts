@@ -232,6 +232,8 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
    // A short, bounded request can validly return only part of its four chapters;
    // never throw away sound prose merely because one neighboring chapter failed QA.
    const minAccepted=options.chapterSpecs.length<=4?1:4;
+   if(process.env.A89_DIAGNOSTICS==='1'&&options.chapterSpecs.length<=2)
+    console.warn('A8.9 chunk QA: requested='+options.chapterSpecs.length+',accepted='+chapters.length+',provider='+provider);
    if(chapters.length<minAccepted)throw new AiProviderError('format','insufficient_verified_chapters');
    const model=typeof result.model==='string'&&result.model.length<=120?result.model:configuredModel;
    return {provider,model,text:chapters.map(ch=>'[['+ch.id+']]\n'+ch.paragraphs.join('\n\n')).join('\n\n'),chapters};
