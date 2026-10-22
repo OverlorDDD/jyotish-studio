@@ -62,7 +62,7 @@ test('A8.9 production path derives yoga approvals and publishes complete verifie
    const specs=JSON.parse(body.messages[1].content).chapterSpecs;
    if(calls===1){
     assert.ok(specs.find(c=>c.id==='configuration').verifiedContext.length>3);
-    assert.match(body.messages[0].content,/Do not copy numeric house placements/);
+    assert.match(body.messages[0].content,/WRITE exactly/);
    }
    const content=specs.map(c=>'[['+c.id+']]\n'+anchors[c.id]+
     ' In the '+c.id+' theme, the verified factors describe a balance between personal initiative and the need to listen carefully to circumstances. You may recognize this in the way enthusiasm grows when the task carries meaning, while external pressure makes thoughtful pacing especially valuable.\n\n'+
