@@ -18,6 +18,8 @@ test('A8.9: sourced calculations and one cross-chapter narrative plan',()=>{
  assert.ok(p.themes.length>=3&&p.themes.length<=5);
  assert.match(p.thesis,/Раку/);
  assert.equal(p.chapterClaims.career.includes('D1.house-lord.10'),true);
+ assert.ok(p.chapterClaims.resources.includes('D1.house-lord.2'));
+ assert.ok(p.chapterClaims.resources.includes('D1.house-lord.11'));
  assert.deepEqual(planConsultation(g,claims,'uk'),p);
  assert.notEqual(planConsultation(g,claims,'en').thesis,p.thesis);
 });
