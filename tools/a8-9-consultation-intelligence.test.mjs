@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
 import {buildChartFactGraph} from '../apps/api/src/consultation-fact-graph.ts';
 import {buildSupportedClaims,planConsultation,verifyUnifiedConsultation,generateConsultationIntelligence} from '../apps/api/src/consultation-intelligence.ts';
-import {CHAPTER_IDS} from '../apps/api/src/consultation-ai.ts';
+import {CHAPTER_IDS,parseAiConsultation} from '../apps/api/src/consultation-ai.ts';
 const input={date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0};
 const positions=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
  .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}));
@@ -148,4 +148,11 @@ test('A8.9 reuses verified chapters after provider outage within the same API pr
  const resumed=await generateResilientFreeConsultation(chart(),'en',opts);
  assert.deepEqual(resumed.result?.chapters.map(c=>c.id),CHAPTER_IDS);
  assert.equal(calls,9); // portrait is reused, not requested twice
+});
+
+test('A8.9 accepts genuine one-chapter prose without a redundant delimiter but keeps fact safety',()=>{
+ const spec=[{id:'portrait',title:'Identity',focus:'Moon as lagna lord',facts:['Verified Moon role']}];
+ const prose=('The lunar ruler of the ascendant can describe a complex balance between private emotional renewal and a visible contribution to other people. ').repeat(4);
+ assert.equal(parseAiConsultation(prose,spec,[],undefined,true).length,1);
+ assert.equal(parseAiConsultation(prose+' Mars is exalted.',spec,[],undefined,true).length,0);
 });
