@@ -62,7 +62,7 @@ function failureReason(error:unknown):FreeFallbackReason{
 }
 export type FreeAiOptions={
  /** Keep complete server-verified evidence for the unified writer. */
- preserveChapterContext?:boolean;strictCompleteness?:boolean;
+ preserveChapterContext?:boolean;strictCompleteness?:boolean;compactChapters?:boolean;
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
  groqEnabled?:boolean;groqKey?:string;groqModel?:string;
@@ -111,7 +111,7 @@ export async function generateFreeInterpretationDetailed(
     if(!permit()){reason='hourly_limit';continue;}
     const request=(formatMode:'strict'|'prompt'|'prose'|'consultation')=>generateOpenAiInterpretation(chart,lang,{
      provider:'openrouter',key:openrouterKey,model:openRouterModel,
-     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
+     formatMode,fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,compactChapters:opts.compactChapters,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
     try{
      // Long-form advice uses vetted paragraphs, not JSON: openrouter/free rotates models
