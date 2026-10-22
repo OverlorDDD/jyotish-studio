@@ -15,7 +15,7 @@ export async function generateResilientFreeConsultation(
  const specs=options.chapterSpecs;
  if(!specs||specs.length<=4)return generateFreeInterpretationDetailed(chart,lang,options);
  const groups:AiChapterSpec[][]=[];
- const groupSize=options.strictCompleteness?2:4;
+ const groupSize=options.strictCompleteness?1:4;
  for(let i=0;i<specs.length;i+=groupSize)groups.push(specs.slice(i,i+groupSize).map(ch=>({
   ...ch,
   // Only the narrow evidence and a sample of the authored prose are transmitted.
@@ -41,6 +41,7 @@ export async function generateResilientFreeConsultation(
     focus:(spec.focus||'')+' Previous accepted ideas (for continuity only): '+continuity+'. Extend the narrative without repeating them.'})):group;
    const result=await generateFreeInterpretationDetailed(chart,lang,{
     ...options,chapterSpecs:contextualGroup,reportMode:true,
+    compactChapters:options.strictCompleteness===true,
     order:options.strictCompleteness&&selectedProvider?
      [selectedProvider,...(options.order||(['gemini','groq','openrouter'] as FreeProvider[])).filter(p=>p!==selectedProvider)]:
      (selectedProvider?[selectedProvider]:options.order),
