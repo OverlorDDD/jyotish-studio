@@ -2,6 +2,10 @@ import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts'
 import {generateFreeInterpretationDetailed,type FreeAiOptions,type FreeAiOutcome,type FreeProvider} from './free-ai.ts';
 import type {AiConsultationChapter,AiChapterSpec} from './consultation-ai.ts';
 
+// Short-lived server-memory progress checkpoint; never returns an unfinished AI report.
+// Keyed by the calculated chart fingerprint (not personal birth identifiers).
+const a89Progress=new Map<string,{expires:number;chapters:AiConsultationChapter[];provider:FreeProvider;model:string}>();
+const progressTtlMs=45*60*1000;
 /**
  * A8.8: a full eight-chapter consultation is too expensive and fragile as a
  * single free Groq completion (25-second timeout, 8k TPM for GPT-OSS-120B).
@@ -31,10 +35,25 @@ export async function generateResilientFreeConsultation(
  const chapters:AiConsultationChapter[]=[];
  let selectedProvider:FreeProvider|undefined;
  let selectedModel='';
+ const key=options.strictCompleteness?options.continuationKey:undefined;
+ if(key){
+  const previous=a89Progress.get(key);
+  if(previous&&previous.expires>Date.now()){
+   chapters.push(...previous.chapters.filter(c=>specs.some(spec=>spec.id===c.id)));
+   selectedProvider=previous.provider;selectedModel=previous.model;
+   if(process.env.A89_DIAGNOSTICS==='1')console.warn('A8.9 resumed chapters='+chapters.length);
+  }else if(previous)a89Progress.delete(key);
+ }
+ const checkpoint=()=>{
+  if(!key||!selectedProvider)return;
+  if(a89Progress.size>=40&&!a89Progress.has(key))a89Progress.delete(a89Progress.keys().next().value!);
+  a89Progress.set(key,{expires:Date.now()+progressTtlMs,chapters:[...chapters],provider:selectedProvider,model:selectedModel});
+ };
  let lastReason:FreeAiOutcome['reason']='no_provider';
  try{
   for(const group of groups){
    if(controller.signal.aborted)break;
+   if(options.strictCompleteness&&group.every(spec=>chapters.some(c=>c.id===spec.id)))continue;
    const continuity=options.strictCompleteness&&chapters.length?
     chapters.slice(-2).map(ch=>ch.id+': '+ch.paragraphs.join(' ').slice(-220)).join(' | '):'';
    const contextualGroup=continuity?group.map(spec=>({...spec,
@@ -56,6 +75,7 @@ export async function generateResilientFreeConsultation(
     }
     if(options.strictCompleteness){selectedProvider=result.result.provider as FreeProvider;selectedModel=result.result.model;}
     chapters.push(...incoming.filter(c=>!chapters.some(existing=>existing.id===c.id)));
+    checkpoint();
    }else{
     lastReason=result.reason||'invalid_response';
     // Strict A8.9 cannot publish a report after a missing group. Stop now
@@ -71,6 +91,8 @@ export async function generateResilientFreeConsultation(
  }
  if(!chapters.length)return {result:null,reason:controller.signal.aborted?'timeout':lastReason};
  const ordered=specs.flatMap(spec=>chapters.filter(ch=>ch.id===spec.id));
+ if(options.strictCompleteness&&ordered.length!==specs.length)return {result:null,reason:controller.signal.aborted?'timeout':lastReason};
+ if(key)a89Progress.delete(key);
  const text=ordered.map(c=>'[['+c.id+']]\n'+c.paragraphs.join('\n\n')).join('\n\n');
  return {result:{
   provider:selectedProvider!,model:selectedModel,text,chapters:ordered
