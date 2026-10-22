@@ -73,7 +73,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   if(!incoming?.input||!Array.isArray(incoming.d1))return;
   setChart(incoming);
   setForm({...incoming.input,latitude:String(incoming.input.latitude),longitude:String(incoming.input.longitude)});
-  setReport(saved?.language===lang?saved:null);
+  setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'?saved:null);
   setInterpretation(lang==='uk'?'Збережену карту відкрито з кабінету.':'Saved chart opened from your account.');
   setError(false);
   setStatus(lang==='uk'?'Завантажено попередній розрахунок.':'Previous calculation restored.');
