@@ -110,6 +110,10 @@ export class JyotishController{
    const prepared=await this.reports.prepare(birth,birth.lang);
    chart=prepared.chart;report=prepared.report as ReturnType<typeof buildDetailedReport>;
   }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
+  // Explicit editorial preview: return the complete verified Reader v6 report immediately.
+  // Does not call a cloud provider, does not change stored settings, and never tries Ollama.
+  if(process.env.GALAXIORA_READER_ONLY==='1')
+   return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if(birth.preferred==='local'||process.env.AI_MODE==='local')
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
