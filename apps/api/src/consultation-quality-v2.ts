@@ -153,6 +153,8 @@ export function planConsultationQuality(chart:CalculatedChart,asOf:string):Quali
    (lords[10]===lords[1]?' — SAME planet rules both first and tenth houses':''),
   'D1 seventh lord '+lords[7]+' in H'+home(lords[7]),
   'Moon D1 H'+home('Moon')+' nakshatra '+find(chart,'Moon').nakshatra,
+  ...(major?['ACTIVE mahadasha '+major.subject+' '+major.value.start+' → '+major.value.end]:[]),
+  ...(minor?['ACTIVE antardasha '+minor.subject+' '+minor.value.start+' → '+minor.value.end]:[])
  ];
  return {version:CONSULTATION_QUALITY_VERSION,themes,anchorFacts,boundaries:[
   'Traditional Jyotish interpretation, not a documented life history or certainty of future events.',
@@ -161,20 +163,33 @@ export function planConsultationQuality(chart:CalculatedChart,asOf:string):Quali
   'D1 primary, D9 and D10 secondary; no western-only planets/aspects or unverified named yoga.'
  ]};
 }
+/** Keep EVERY theme in the brief, even under a strict budget.
+ * Add primary support/friction/mixed evidence before enriching any one theme. */
 export function compactQualityBrief(plan:QualityPlan,limit=5100):string{
  const lines=['CONSULTATION_QUALITY '+plan.version,
   ...plan.anchorFacts.map(x=>'ANCHOR: '+x)];
+ const primary:QualityFactor[]=[];
  for(const theme of plan.themes){
   lines.push('THEME '+theme.focus+' priority='+theme.priority);
-  for(const [tag,factors] of [['POTENTIAL',theme.supporting],['CHALLENGE',theme.challenging],['TENSION',theme.mixed]] as const)
-   for(const factor of factors.slice(0,2))
-    lines.push(tag+': '+factor.statement+' [evidence '+factor.evidence.join(',')+']');
+  for(const [label,items] of [
+   ['POTENTIAL',theme.supporting],['CHALLENGE',theme.challenging],['TENSION',theme.mixed]
+  ] as const){
+   if(items[0]){
+    const x=items[0];primary.push(x);
+    const statement=x.statement.length>205?x.statement.slice(0,202)+'…':x.statement;
+    lines.push(label+': '+statement+' [evidence '+x.evidence.slice(0,3).join(',')+']');
+   }
+  }
   lines.push('PRACTICE: '+theme.recommendation);
  }
+ // Safety notes only once, after the main themes so that budget pressure does
+ // not erase important chart-specific factors.
+ lines.push('BOUNDARIES: sign dignity alone does not prove Shadbala/neecha-bhanga/inevitable outcomes; D1 primary, D9/D10 secondary.');
  const included:string[]=[];
+ let used=0;
  for(const line of lines){
-  if(included.join('\n').length+line.length+1>limit)break;
-  included.push(line);
+  if(used+line.length+1>limit)break;
+  included.push(line);used+=line.length+1;
  }
  return included.join('\n');
 }
