@@ -5,9 +5,9 @@ $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $root
 $branch = (git branch --show-current).Trim()
-if ($branch -ne 'fix/jyotish-direct-llm-e2e') {
+if ($branch -ne 'feat/consultation-quality-v2') {
  Write-Host "Current branch: $branch" -ForegroundColor Yellow
- throw 'Switch to fix/jyotish-direct-llm-e2e before starting the Jyotish verification.'
+ throw 'Switch to feat/consultation-quality-v2 before starting the Jyotish verification.'
 }
 $sha=(git log -1 --format=%h).Trim()
 Write-Host "Galaxiora Jyotish / branch=$branch / commit=$sha"
@@ -29,5 +29,5 @@ foreach($port in @(3000,4000)){
 $env:AI_MODE='free'
 Remove-Item Env:GALAXIORA_A89_PREVIEW -ErrorAction SilentlyContinue
 if($ReaderOnly){$env:GALAXIORA_READER_ONLY='1'}else{Remove-Item Env:GALAXIORA_READER_ONLY -ErrorAction SilentlyContinue}
-Write-Host 'Ports 3000/4000 free; starting both servers with Reader v6 / direct-v1.' -ForegroundColor Green
+Write-Host 'Ports 3000/4000 free; starting both servers with Reader v6 / direct-v2 / CQv2.' -ForegroundColor Green
 npm run dev:full
