@@ -1,3 +1,4 @@
+import {generateResilientFreeConsultation} from '../apps/api/src/resilient-consultation.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
@@ -125,4 +126,26 @@ test('A8.9 stops after a failed required group instead of exhausting later free 
  });
  assert.equal(r.result,null);
  assert.equal(requests,1);
+});
+
+test('A8.9 reuses verified chapters after provider outage within the same API process',async()=>{
+ const specs=CHAPTER_IDS.map(id=>({id,title:id,focus:'Verified chart-specific life theme',facts:['Moon ascendant and Mars career role']}));
+ const providerResponse=(id)=>'[['+id+']]\n'+
+  ('The Moon as ascendant lord brings an intimate and reflective emphasis to '+id+' and connects it with a second verified chart factor. ').repeat(4)+
+  '\n\n'+('The second factor highlights another practical dimension of '+id+', adding a concrete interpretive counterweight without inventing events. ').repeat(4);
+ let calls=0,failed=false;
+ const opts={chapterSpecs:specs,reportMode:true,strictCompleteness:true,compactChapters:true,
+  continuationKey:'resume-test-eight-chapters',order:['groq'],groqEnabled:true,groqKey:'test-only',limit:()=>true,
+  fetcher:async(_url,init)=>{
+   calls++;
+   const chapter=JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs[0].id;
+   if(chapter==='configuration'&&!failed){failed=true;return new Response('{}',{status:503});}
+   return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content:providerResponse(chapter)}}]}));
+  }};
+ const first=await generateResilientFreeConsultation(chart(),'en',opts);
+ assert.equal(first.result,null);
+ assert.equal(calls,2);
+ const resumed=await generateResilientFreeConsultation(chart(),'en',opts);
+ assert.deepEqual(resumed.result?.chapters.map(c=>c.id),CHAPTER_IDS);
+ assert.equal(calls,9); // portrait is reused, not requested twice
 });
