@@ -1,9 +1,9 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-21"
+updated: "2026-10-22"
 verified_against:
-  branch: main
-  commit: "66ea0f18474d756d42e740e1242166cd861f256b"
+  branch: feat/reader-v6-editorial-consultation
+  commit: "969aa7183ace2b32197d3488830137e5ba9430d7"
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -32,11 +32,11 @@ modules:
     application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
     shared_saved_charts: "apps/api/src/chart-application.ts; apps/api/src/chart-prisma.ts"
     http: "apps/api/src/nest.ts"
-    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
+    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx; apps/web/app/components/NorthIndianChart.tsx; apps/web/app/components/DetailedReport.tsx"
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
-    interpretation_v3: "apps/api/src/interpretation-v3.ts v4.0.0; expanded classical lordship/yogakarakas and eight narrative chapters; semantic claim gate in consultation-ai.ts"
+    interpretation_v3: "apps/api/src/interpretation-v3.ts v6.0.0; authored chart-based eight-chapter narrative in reader-narrative-v6.ts; evidence kept in calculation layer"\n    reader_preview: "GALAXIORA_READER_ONLY=1; deterministic report response without cloud inference; validation of user-facing prose"
     interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
-    interpretation_release: "A7.3 AI-authored eight chapter overlays with verified per-chapter fallback; actual cloud use requires live PASS"
+    interpretation_release: "A8.10 Reader v6 editorial text independently useful offline; A8.9 external LLM follow-up paused until human acceptance"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
@@ -165,7 +165,7 @@ quality:
     a7_llm: "npm run test:a7:llm"
     a7_consultation: "npm run test:a7:consultation"
     a7_cloud: "npm run test:a7:cloud"
-    a8_reader: "npm run test:a8:reader"
+    a8_reader: "npm run test:a8:reader"\n    a8_reader_v6: "npm run test:a8:reader-v6"
     a8_quality: "npm run test:a8:quality"
     a8_resilience: "npm run test:a8:resilience"
     a8_cloud: "npm run test:a8:cloud"
@@ -184,8 +184,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A8.9 Consultation Intelligence preview: graph, calculated claims, global theme plan, atomic cloud author/editor gate; human review NOT complete"
-  next: "A8.9 real cloud UA/EN quality acceptance, JHora parity on consented real charts, expert review 10-20 cases; do not begin A9 until acceptance"
+  now: "A8.10 Reader v6 authored consultation in draft PR #40; 24 synthetic natal configurations, bilingual editorial acceptance pending"
+  next: "Human Reader v6 acceptance on actual D1/D9/D10; A8.9 cloud enrichment remains paused, JHora comparison still required before A9"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -198,7 +198,7 @@ docs:
   a7_llm: "docs/a7-llm-provenance-and-failover.md"
   a7_full_consultation: "docs/a7-3-professional-consultation.md"
   a8_classical_sources: "docs/research/a8-classical-source-registry.md"
-  a8_reader_v4: "docs/research/a8-professional-reader-v4.md"
+  a8_reader_v4: "docs/research/a8-professional-reader-v4.md"\n  a8_reader_v6: "docs/research/a8-10-reader-v6-editorial.md"
   a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
   classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"
