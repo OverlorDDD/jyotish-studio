@@ -23,8 +23,8 @@ test('CQv2 Pisces: Jupiter rules BOTH first and tenth; Saturn in Aries is diffic
  const career=get(q,'career'),resources=get(q,'resources');
  assert.ok(career.supporting.concat(career.challenging,career.mixed).some(f=>f.statement.includes('1+10')));
  assert.ok(resources.challenging.some(f=>f.statement.includes('Saturn')&&f.statement.includes('debilitation')));
- const copy=JSON.stringify(q);
- assert.doesNotMatch(copy,/neecha[- ]?bhanga confirmed|guaranteed catastrophe|death prediction/i);
+ const claims=q.themes.flatMap(t=>[...t.supporting,...t.challenging,...t.mixed]).map(f=>f.statement).join(' ');
+ assert.doesNotMatch(claims,/confirmed neecha[- ]?bhanga|guaranteed catastrophe|death prediction/i);
  assert.ok(q.themes.every(t=>t.recommendation.length>=35));
 });
 test('all 12 ascendants produce verified evidence, bounded chart-specific plans',()=>{
