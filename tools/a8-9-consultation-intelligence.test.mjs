@@ -79,8 +79,16 @@ test('A8.9 production path derives yoga approvals and preserves facts through wr
 test('A8.9 strict mode rejects partial Groq completions and retries Gemini per group',async()=>{
  const editorial={chapters:CHAPTER_IDS.map(id=>({id,title:id,evidence:[],paragraphs:[]})),findings:[]};
  const visited=[];
+ const anchors={portrait:'The ascendant Moon illuminates a personal orientation. ',
+ configuration:'The yogakaraka Mars carries relevant lordship. ',
+ tensions:'Mars and Saturn present two different rhythms. ',
+ relationships:'Venus and the seventh lord anchor relationships. ',
+ career:'The tenth lord and D10 Dashamsha guide vocation. ',
+ resources:'The second and eleventh lords concern resources. ',
+ timing:'The Saturn mahadasha provides a timing frame. ',
+ conclusion:'The ascendant Moon and Mars summarize this chart. '};
  const valid=(ids)=>ids.map((c,i)=>'[['+c.id+']]\n'+
-  'The ascendant Moon and Mars supply an individual reading for '+c.id+' based on verified chart factors. '.repeat(5)+
+  anchors[c.id]+'The ascendant Moon and Mars supply an individual reading for '+c.id+' based on verified chart factors. '.repeat(5)+
   '\n\n'+'Venus and Saturn provide a complementary perspective on '+c.id+' in the wider Jyotish interpretation. '.repeat(5)).join('\n\n');
  const result=await generateConsultationIntelligence(chart(),'en','2026-10-21',editorial,{
   order:['groq','gemini'],groqEnabled:true,groqKey:'test-only',
