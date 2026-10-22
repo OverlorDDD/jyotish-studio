@@ -2,7 +2,7 @@
 schema_version: 1
 updated: "2026-10-22"
 verified_against:
-  branch: fix/jyotish-direct-llm-e2e
+  branch: feat/consultation-quality-v2
   commit: "969aa7183ace2b32197d3488830137e5ba9430d7"
 product:
   brand: Galaxiora
@@ -37,7 +37,7 @@ modules:
     interpretation_v3: "apps/api/src/interpretation-v3.ts v6.0.0; authored chart-based eight-chapter narrative in reader-narrative-v6.ts; evidence kept in calculation layer"
     reader_preview: "GALAXIORA_READER_ONLY=1; deterministic report response without cloud inference; validation of user-facing prose"
     interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
-    interpretation_release: "Reader v6 deterministic; direct-v1 single-request LLM from compact verified facts; legacy A8.9 gated pipeline retired from reports"
+    interpretation_release: "Reader v6 deterministic; direct-v2 single LLM response + grounded six-theme CQv2 support/friction priorities; legacy A8.9 retired from reports"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
@@ -169,6 +169,7 @@ quality:
     a8_reader: "npm run test:a8:reader"
     a8_reader_v6: "npm run test:a8:reader-v6"
     jyotish_direct: "npm run test:jyotish:direct; npm run ai:verify-live"
+    jyotish_quality: "npm run test:jyotish:quality"
     a8_quality: "npm run test:a8:quality"
     a8_resilience: "npm run test:a8:resilience"
     a8_cloud: "npm run test:a8:cloud"
@@ -187,8 +188,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "Reader v6 plus direct-v1 fixed-prompt cloud path: PR #41; browser/API parity checks before acceptance"
-  next: "Real Windows site/cloud consultation acceptance and manual factual prose audit; JHora comparison still required before A9"
+  now: "Consultation Quality v2 evidence-backed single-call LLM; PR #42 based on PR #41; CI and real literary acceptance pending"
+  next: "12-ascendant CI + real Windows AI report evaluation, independent JHora accuracy, editorial QA; no PR merge before approval"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -204,6 +205,7 @@ docs:
   a8_reader_v4: "docs/research/a8-professional-reader-v4.md"
   a8_reader_v6: "docs/research/a8-10-reader-v6-editorial.md"
   jyotish_audit: "docs/research/jyotish-end-to-end-audit-2026-10-22.md"
+  cqv2_research: "docs/research/consultation-quality-v2.md"
   a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
   classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"
