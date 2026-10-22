@@ -908,3 +908,9 @@
 .jy-direct-article p{margin:0 0 21px;color:#d7e0ea;line-height:1.92}
 .jy-direct-section{border-top:1px solid #2c394b;padding-top:4px;margin-top:22px}
 @media(max-width:650px){.jy-direct-document{padding:19px}.jy-direct-article{font-size:15px;line-height:1.75}}
+
+/* CQv2: clear separate recommendations inside one consultation document. */
+.jy-direct-practice{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:start;gap:13px;margin:20px 0;padding:17px 19px;border-left:2px solid #bd9c66;background:#202c3a;border-radius:0 10px 10px 0}
+.jy-direct-practice-number{display:grid;place-items:center;width:30px;height:30px;border:1px solid #a08358;border-radius:50%;font:600 13px/1 Georgia,serif;color:#ecd3a5}
+.jy-direct-practice p{margin:0;line-height:1.8;color:#dde5ed}
+@media(max-width:620px){.jy-direct-practice{grid-template-columns:28px minmax(0,1fr);gap:10px;padding:12px 11px}.jy-direct-practice-number{width:25px;height:25px}}
