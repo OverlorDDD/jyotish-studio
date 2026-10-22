@@ -785,3 +785,76 @@
  .jy-dasha-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
  .jy-ai-launch-btn{grid-template-columns:auto 1fr}.jy-ai-launch-btn>svg{display:none}.jy-ai-status{padding-left:0}
 }
+
+/* Jyotish visual refinement: denser, document-like, reference-inspired */
+.jy-primary-grid{grid-template-columns:minmax(0,1.42fr) minmax(320px,.78fr);gap:16px}
+.jy-rashi-card,.jy-calc-data{padding:18px}
+.jy-primary-chart{min-height:0;padding:14px 8px 4px}
+.jy-rashi-card .jy-rashi-svg{width:min(100%,520px)}
+.jy-calc-data .jy-card-head{padding-bottom:12px}
+.jy-data-list>div{padding:10px 0}
+.jy-mini-legend{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px 9px;margin-top:14px}
+.jy-mini-legend b{width:24px;height:24px;border-radius:6px}
+.jy-ai-launch-btn{padding:14px 17px;border-color:#705f44;background:linear-gradient(90deg,#252724,#202a37 54%,#182433)}
+.jy-data-workspace{padding:24px 28px 28px}
+.jy-workspace-head{padding-bottom:4px}
+.jy-zodiac-strip{grid-template-columns:repeat(12,26px);gap:4px}
+.jy-zodiac-strip span{width:26px;height:26px;border-radius:6px;font-family:Georgia,'Times New Roman',serif;font-size:13px;background:#172231;border-color:#2c3949}
+.jy-key-facts{gap:0;margin-top:20px;border:1px solid #2f3c4b;border-radius:9px;overflow:hidden;background:#172231}
+.jy-key-facts>div{min-height:68px;border:0;border-right:1px solid #2a3746;border-radius:0;background:transparent;padding:10px 12px;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto}
+.jy-key-facts>div:last-child{border-right:0}
+.jy-fact-icon{width:28px;height:28px;border-radius:6px;background:#232b35;font-family:Georgia,'Times New Roman',serif;font-size:13px}
+.jy-key-facts small{font-size:7.5px;line-height:1.15}
+.jy-key-facts strong{font-size:10.5px;line-height:1.2;align-self:start}
+.jy-section-rule{margin:22px 0 19px}
+.jy-subhead{margin-bottom:12px}
+.jy-planet-table th{font-size:8px}.jy-planet-table td{font-size:10px}
+.jy-table-symbol{font-family:Georgia,'Times New Roman',serif}
+.jy-sign-cell{font-family:Georgia,'Times New Roman',serif}
+.jy-varga-grid{grid-template-columns:minmax(300px,.86fr) minmax(360px,1.14fr);gap:18px}
+.jy-varga-chart{padding:12px;min-height:0}
+.jy-varga-chart .jy-rashi-svg{width:min(100%,380px)}
+.jy-varga-data{padding:16px 18px}
+.jy-varga-list>div{padding:8px 0}
+.jy-dasha-strip{gap:5px}.jy-dasha-cell{min-height:74px;padding:8px}
+
+/* One coherent reading document instead of eight dashboard cards */
+.reading-editorial{border:1px solid #344355;border-radius:14px;background:#152235;overflow:hidden;margin-top:26px}
+.reading-editorial-opening{padding:28px 32px 20px;margin:0;border-bottom:1px solid #2b394a;background:linear-gradient(180deg,#18263a,#152235)}
+.reading-editorial-opening h3{font-family:'Playfair Display',Georgia,serif;font-size:30px;margin:8px 0 9px;color:#eed8ad;font-weight:500}
+.reading-editorial-opening p{max-width:920px;margin:0;color:#9cabbc;line-height:1.75}
+.reading-editorial-highlights{margin:0;padding:0 32px 18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:#152235;border-bottom:1px solid #2b394a}
+.reading-editorial-highlights>div{border:0;border-right:1px solid #2b394a;border-radius:0;background:transparent;padding:15px 18px 4px 0;margin-right:18px}
+.reading-editorial-highlights>div:nth-child(3n){border-right:0;margin-right:0}
+.reading-editorial-highlights span{display:inline-grid;width:25px;height:25px;place-items:center;border:1px solid #705c3a;border-radius:50%;color:#e2bf77;margin-right:8px}
+.reading-editorial-highlights strong{font-size:11px;line-height:1.55;color:#cbd4df;font-weight:500}
+.reading-editorial-chapters{display:block;margin:0;padding:0 32px}
+.reading-editorial-chapter{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:28px 0!important;margin:0!important;border-top:1px solid #2b394a!important}
+.reading-editorial-chapter:first-child{border-top:0!important}
+.reading-editorial-chapter-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.reading-editorial-chapter-header span{display:grid;place-items:center;width:31px;height:31px;border:1px solid #7d663f;border-radius:50%;color:#e6c27a;font-size:9px;flex:0 0 auto}
+.reading-editorial-chapter h3{font-family:'Playfair Display',Georgia,serif;font-size:26px;line-height:1.2;color:#f0ddba;margin:0;font-weight:500}
+.reading-editorial-chapter>p{max-width:1040px;font-size:15px;line-height:1.9;color:#d2d9e2;margin:14px 0}
+.reading-editorial-chapter .reading-provider{font-size:9px!important;line-height:1.4!important;color:#88a0ba!important;letter-spacing:.35px;text-transform:none}
+.reading-editorial .chapter-evidence,.reading-editorial details{max-width:1040px}
+.reading-editorial>.reading-glossary{margin:0 32px 28px;border-top:1px solid #2b394a;border-radius:0;background:transparent}
+.reading-editorial>.reading-glossary summary{padding-left:0}
+@media(max-width:1100px){
+ .jy-primary-grid{grid-template-columns:1fr}.jy-rashi-card .jy-rashi-svg{width:min(100%,500px)}
+ .jy-key-facts{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .jy-key-facts>div{border-bottom:1px solid #2a3746}
+ .jy-key-facts>div:nth-child(3n){border-right:0}
+ .jy-zodiac-strip{grid-template-columns:repeat(6,26px)}
+ .reading-editorial-highlights{grid-template-columns:1fr}
+ .reading-editorial-highlights>div,.reading-editorial-highlights>div:nth-child(3n){border-right:0;border-bottom:1px solid #2b394a;margin-right:0;padding-right:0}
+}
+@media(max-width:700px){
+ .reading-editorial-opening,.reading-editorial-highlights,.reading-editorial-chapters{padding-left:18px;padding-right:18px}
+ .reading-editorial>.reading-glossary{margin-left:18px;margin-right:18px}
+ .reading-editorial-opening h3{font-size:25px}
+ .reading-editorial-chapter h3{font-size:22px}
+ .reading-editorial-chapter>p{font-size:14px;line-height:1.75}
+ .jy-key-facts{grid-template-columns:1fr 1fr}
+ .jy-key-facts>div:nth-child(3n){border-right:1px solid #2a3746}
+ .jy-key-facts>div:nth-child(2n){border-right:0}
+}
