@@ -33,10 +33,12 @@ const CHAPTER_FOCUS:Record<string,string>={
 /** Plain section delimiters work with models that do not support JSON-schema mode.
  * The deterministic report retains the exact factual placements, houses and evidence. */
 export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec>,approvedYogas:ReadonlyArray<string>=[],houseLords?:Record<number,string>,compact=false):AiConsultationChapter[]{
- if(raw.length>24000)return [];
+ const diagnostic=(id:string,reason:string)=>{if(compact&&process.env.A89_DIAGNOSTICS==='1')console.warn('A8.9 chapter QA: '+id+' '+reason);};
+ if(raw.length>24000){diagnostic('response','too_long');return [];}
  const allowed=new Set(specs.map(c=>c.id));
  const markers=[...raw.matchAll(/\[\[([a-z][a-z-]*)\]\]/g)];
  const seen=new Set<string>(),chapters:AiConsultationChapter[]=[];
+ if(compact&&!markers.length)diagnostic('response','missing_chapter_markers');
  for(let i=0;i<markers.length;i++){
   const id=markers[i][1];
   if(!allowed.has(id)||seen.has(id))continue;
@@ -44,12 +46,15 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
   const body=raw.slice(markers[i].index!+markers[i][0].length,markers[i+1]?.index??raw.length).trim();
   const parts=body.replace(/^#{1,4} .+$/gm,'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
   const normalized=(parts.length===1?parts:parts.slice(0,3)).map(removeConsultationBoilerplate).filter(Boolean);
-  if(!normalized.length||normalized.some(p=>p.length<(compact?70:90)||p.length>1300||!verifyFreeProse(p,approvedYogas).ok))continue;
+  if(!normalized.length){diagnostic(id,'empty_body');continue;}
+  if(normalized.some(p=>p.length<(compact?70:90)||p.length>1300)){diagnostic(id,'paragraph_length');continue;}
+  const rejectedProse=normalized.map(p=>verifyFreeProse(p,approvedYogas)).find(r=>!r.ok);
+  if(rejectedProse){diagnostic(id,'factual_policy_'+rejectedProse.reason);continue;}
   const combined=normalized.join(' ');
   // Reject empty headings, a list of isolated keywords, generic short worksheet prompts.
   if(combined.length<(compact?160:145)||!/[\p{L}][^.!?]{12,}[.!?]/u.test(combined))continue;
-  if(/(?:гарантовано|неодмінно|точно передбачає|guarantees|will certainly|fatal disease|безумовно)/iu.test(combined))continue;
-  if(houseLords&&!checkNarrativeLordClaims(combined,houseLords).ok)continue;
+  if(/(?:гарантовано|неодмінно|точно передбачає|guarantees|will certainly|fatal disease|безумовно)/iu.test(combined)){diagnostic(id,'unfounded_certainty');continue;}
+  if(houseLords&&!checkNarrativeLordClaims(combined,houseLords).ok){diagnostic(id,'wrong_lordship');continue;}
   const spec=specs.find(spec=>spec.id===id);
   const enriched=spec?.focus;
   if(enriched){
@@ -58,7 +63,7 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
    // A model is an enrichment, not a replacement for a better-written
    // deterministic reading. A very short generic answer is never shown.
    const draftLength=(spec?.draft||[]).join(' ').length;
-   if(combined.length<(compact?200:440)||(!compact&&normalized.length<2)||(!compact&&combined.length<Math.min(850,Math.floor(draftLength*0.6))))continue;
+   if(combined.length<(compact?200:440)||(!compact&&normalized.length<2)||(!compact&&combined.length<Math.min(850,Math.floor(draftLength*0.6)))){diagnostic(id,'insufficient_substance');continue;}
    // Explicit domain-specific gate prevents 700 words of generic motivation from
    // displacing a calculation-grounded chapter. This is editorial, not a proof
    // that every natural-language statement is astrological truth.
@@ -72,8 +77,8 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
     timing:/махадаш|антардаш|сатурн|місяц|mahadasha|antardasha|saturn|moon/iu,
     conclusion:/лагн|управител|місяц|марс|ascendant|moon|mars|lordship/iu
    };
-   if(!compact&&cues[id]&&!cues[id].test(combined))continue;
-   if(['portrait','relationships','resources','timing'].includes(id)&&OUT_OF_SCOPE_CLUSTER.test(combined))continue;
+   if(!compact&&cues[id]&&!cues[id].test(combined)){diagnostic(id,'missing_domain_anchor');continue;}
+   if(['portrait','relationships','resources','timing'].includes(id)&&OUT_OF_SCOPE_CLUSTER.test(combined)){diagnostic(id,'out_of_scope_cluster');continue;}
   }
   chapters.push({id,paragraphs:normalized,source:'llm'});
  }
