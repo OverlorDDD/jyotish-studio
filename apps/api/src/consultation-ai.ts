@@ -53,7 +53,7 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
   if(!normalized.length){diagnostic(id,'empty_body');continue;}
   if(normalized.some(p=>p.length<(compact?70:90)||p.length>1300)){diagnostic(id,'paragraph_length');continue;}
   const rejectedProse=normalized.map(p=>verifyFreeProse(p,approvedYogas)).find(r=>!r.ok);
-  if(rejectedProse){diagnostic(id,'factual_policy_'+rejectedProse.reason);continue;}
+  if(rejectedProse&&!rejectedProse.ok){diagnostic(id,'factual_policy_'+rejectedProse.reason);continue;}
   const combined=normalized.join(' ');
   // Reject empty headings, a list of isolated keywords, generic short worksheet prompts.
   if(combined.length<(compact?160:145)||!/[\p{L}][^.!?]{12,}[.!?]/u.test(combined))continue;
