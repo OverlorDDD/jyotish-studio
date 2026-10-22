@@ -136,7 +136,7 @@ export async function generateFreeInterpretationDetailed(
     const result=await generateOpenAiInterpretation(chart,lang,{
      provider:'gemini',key:geminiKey,model:'gemini-3.1-flash-lite',formatMode:opts.chapterSpecs?'consultation':'prompt',
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,
-     approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
+     approvedYogas:opts.approvedYogas,compactChapters:opts.compactChapters,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
     return complete(result);
    }
@@ -146,7 +146,7 @@ export async function generateFreeInterpretationDetailed(
      provider:'groq',key:groqKey,model:groqModel,
      formatMode:opts.chapterSpecs?'consultation':'prompt',
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,
-     chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
+     chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,compactChapters:opts.compactChapters,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
     return complete(result);
    }
