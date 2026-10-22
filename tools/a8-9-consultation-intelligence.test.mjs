@@ -73,7 +73,7 @@ test('A8.9 production path derives yoga approvals and publishes complete verifie
    return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content}}]}));
   }
  });
- assert.equal(calls,4);
+ assert.equal(calls,8);
  assert.equal(result.result?.chapters.length,8);
  assert.match(result.result.text,/yogakaraka/);
 });
@@ -106,7 +106,7 @@ test('A8.9 strict mode rejects partial Groq completions and retries Gemini per g
  });
  assert.ok(visited.includes('gemini'));
  assert.ok(visited.includes('groq'));
- assert.ok(visited.length>=4);
+ assert.ok(visited.length>=8);
  assert.equal(result.result?.chapters.length,8);
 });
 
