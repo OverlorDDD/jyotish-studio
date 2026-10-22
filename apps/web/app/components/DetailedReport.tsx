@@ -110,15 +110,22 @@ function friendlyAiCards(text:string,lang:'uk'|'en'):AiCard[]{
  }).filter((item):item is AiCard=>!!item);
 }
 function DirectArticle({text,lang}:{text:string;lang:'uk'|'en'}){
- const blocks=text.trim().split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
+ // Free models may put numbered practices on the same line or escape the dot
+ // in Markdown. Preserve each practice as its own readable item.
+ const cleaned=text.trim().replace(/\\([1-9])\./g,'$1.')
+  .replace(/([^\n])\s+(?=[12]\.\s+(?:Практика|Практичн|Practice|Step)\b)/giu,'$1\n\n');
+ const blocks=cleaned.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
  return <div className="jy-direct-article">
   {blocks.map((block,i)=>{
-   const lines=block.split('\n');
-   const heading=lines[0].match(/^#{1,3}\s+(.+)$/);
+   const lines=block.split('\n'),heading=lines[0].match(/^#{1,3}\s+(.+)$/);
+   const numbered=block.match(/^([1-9])\.\s+([\s\S]+)$/);
    return heading?<section key={i} className="jy-direct-section">
     <h3>{heading[1].replace(/\*\*/g,'')}</h3>
     {lines.slice(1).join(' ').trim()&&<p><GlossaryText text={lines.slice(1).join(' ').trim()} locale={lang}/></p>}
-   </section>:<p key={i}><GlossaryText text={block.replace(/\*\*/g,'')} locale={lang}/></p>;
+   </section>:numbered?<div key={i} className="jy-direct-practice">
+    <span className="jy-direct-practice-number">{numbered[1]}</span>
+    <p><GlossaryText text={numbered[2].replace(/\*\*/g,'')} locale={lang}/></p>
+   </div>:<p key={i}><GlossaryText text={block.replace(/\*\*/g,'')} locale={lang}/></p>;
   })}
  </div>;
 }
