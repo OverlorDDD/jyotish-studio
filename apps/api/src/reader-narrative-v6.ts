@@ -83,14 +83,13 @@ const sayRulers=(name:string,lords:Record<number,string>,uk:boolean)=>{
  const houses=Array.from({length:12},(_,i)=>i+1).filter(h=>lords[h]===name);
  return houses.length?(uk?'управляє домами ':'rules houses ')+houses.join(', '):'';
 };
-const two=(a:string,b:string)=>a===b?a:b;
 export function authorConsultationV6(chart:CalculatedChart,lang:Language,asOf:string){
  const uk=lang==='uk',lords=classicalLordshipTable(chart.ascendant.sign);
  const P=(name:string)=>graha(name,uk),G=(name:string)=>gen(name,uk);
  const lord=(n:number)=>lords[n],place=(name:string)=>pos(chart,name),H=(name:string)=>place(name).house;
  const rulerHouse=(n:number)=>H(lord(n));
  const lagna=lord(1),moon=place('Moon'),sun=place('Sun'),mercury=place('Mercury');
- const mars=place('Mars'),saturn=place('Saturn'),venus=place('Venus'),jupiter=place('Jupiter');
+ const mars=place('Mars'),saturn=place('Saturn'),venus=place('Venus');
  const cluster=Array.from({length:12},(_,i)=>({house:i+1,names:CLASSICAL_GRAHAS.filter(name=>H(name)===i+1)}))
   .sort((a,b)=>b.names.length-a.names.length||a.house-b.house)[0];
  const hasCluster=cluster.names.length>=3;
