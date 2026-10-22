@@ -56,12 +56,24 @@ const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const [lang,setLang]=useState<'en'|'uk'>(initialLang),[form,setForm]=useState<Form>(CITY.delhi),[preset,setPreset]=useState('delhi'),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
+ const [runtimeMismatch,setRuntimeMismatch]=useState('');
+ useEffect(()=>{
+  let live=true;
+  fetch('/api/v1/jyotish/runtime',{cache:'no-store'}).then(async res=>{
+   const data=res.ok?await res.json():null;
+   if(!live)return;
+   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2')
+    setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
+   else setRuntimeMismatch('');
+  }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
+  return ()=>{live=false;};
+ },[lang]);
  const loadSaved=(loaded:unknown,saved:ReadingReport|null)=>{
   const incoming=loaded as Chart;
   if(!incoming?.input||!Array.isArray(incoming.d1))return;
   setChart(incoming);
   setForm({...incoming.input,latitude:String(incoming.input.latitude),longitude:String(incoming.input.longitude)});
-  setReport(saved?.language===lang?saved:null);
+  setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'?saved:null);
   setInterpretation(lang==='uk'?'Збережену карту відкрито з кабінету.':'Saved chart opened from your account.');
   setError(false);
   setStatus(lang==='uk'?'Завантажено попередній розрахунок.':'Previous calculation restored.');
@@ -71,15 +83,16 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>setForm(old=>({...old,[key]:value}));
  async function calculate(e:React.FormEvent){e.preventDefault();setBusy(true);setError(false);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);}catch(e){setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
- async function interpret(){
+ async function interpret(mode:'auto'|'local'='auto'){
   if(!chart)return;
   setAiBusy(true);setInterpretation(lang==='uk'?'Створюємо детальний звіт…':'Preparing a detailed report…');
   try{
    const response=await fetch(api+'/api/v1/reports',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...chart.input,lang,asOf:new Date().toISOString().slice(0,10)})
+    body:JSON.stringify({...chart.input,lang,preferred:mode,asOf:new Date().toISOString().slice(0,10)})
    });
    const data=await readApiJson<ReadingReport>(response);
+   if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    setReport(data);
    setInterpretation(lang==='uk'?'Звіт готовий ↓ Прокрутіть нижче':'Report ready ↓ Scroll below');
@@ -152,7 +165,9 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     </section>
 
     <section className="jy-ai-launch" id="interpretation">
-     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy} onClick={interpret}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Формуємо трактування…':'Generating reading…'):(lang==='uk'?'Створити AI-трактування':'Generate AI reading')}</strong><small>{lang==='uk'?'Окремий персональний розбір на основі цієї карти':'A separate personalized interpretation based on this chart'}</small></span><ArrowUpRight size={20}/></button>
+     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'Одна хмарна консультація за точно обчисленою картою. Якщо модель недоступна, Reader v6 залишається доступним.':'One cloud consultation grounded in the calculated chart. Reader v6 remains available if the provider is offline.'}</small></span><ArrowUpRight size={20}/></button>
+     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}</button>
+     {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
      {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
     </section>
 

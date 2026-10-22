@@ -6,7 +6,7 @@ export type ReadingSection={
  facts?:string[];image?:'cosmos'|'earth'|'nebula';
 };
 export type ReadingReport={
- sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';
+ sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';readerVersion?:string;
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
  editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[];sourceIds?:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
@@ -48,7 +48,8 @@ const FALLBACK_UK:Record<string,string>={
  invalid_response:'Не вдалося отримати повне AI-трактування, що відповідає вимогам формату та перевірки змісту. Розрахований звіт залишається доступним.',
  timeout:'Модель відповідала надто довго.',
  network:'Не вдалося підключитися до моделі.',
- local_only:'Обрано лише локальний звіт.'
+ local_only:'Обрано лише локальний звіт.',
+ reader_only:'Автономне прочитання Reader v6.'
 };
 const FALLBACK_EN:Record<string,string>={
  hourly_limit:'The hourly free AI limit was reached.',
@@ -59,7 +60,8 @@ const FALLBACK_EN:Record<string,string>={
  invalid_response:'A complete AI reading meeting format and content checks could not be obtained. The calculated report remains available.',
  timeout:'The model response timed out.',
  network:'Could not connect to the model.',
- local_only:'Offline report was requested.'
+ local_only:'Offline report was requested.',
+ reader_only:'Offline Reader v6 consultation.'
 };
 
 function ReportPhoto({kind,uk}:{kind:keyof typeof PHOTOS;uk:boolean}){
@@ -107,6 +109,26 @@ function friendlyAiCards(text:string,lang:'uk'|'en'):AiCard[]{
   return {heading,body};
  }).filter((item):item is AiCard=>!!item);
 }
+function DirectArticle({text,lang}:{text:string;lang:'uk'|'en'}){
+ // Free models may put numbered practices on the same line or escape the dot
+ // in Markdown. Preserve each practice as its own readable item.
+ const cleaned=text.trim().replace(/\\([1-9])\./g,'$1.')
+  .replace(/([^\n])\s+(?=[12]\.\s+(?:Практика|Практичний|Практична|Practice|Step)(?:\s|:))/giu,'$1\n\n');
+ const blocks=cleaned.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
+ return <div className="jy-direct-article">
+  {blocks.map((block,i)=>{
+   const lines=block.split('\n'),heading=lines[0].match(/^#{1,3}\s+(.+)$/);
+   const numbered=block.match(/^([1-9])\.\s+([\s\S]+)$/);
+   return heading?<section key={i} className="jy-direct-section">
+    <h3>{heading[1].replace(/\*\*/g,'')}</h3>
+    {lines.slice(1).join(' ').trim()&&<p><GlossaryText text={lines.slice(1).join(' ').trim()} locale={lang}/></p>}
+   </section>:numbered?<div key={i} className="jy-direct-practice">
+    <span className="jy-direct-practice-number">{numbered[1]}</span>
+    <p><GlossaryText text={numbered[2].replace(/\*\*/g,'')} locale={lang}/></p>
+   </div>:<p key={i}><GlossaryText text={block.replace(/\*\*/g,'')} locale={lang}/></p>;
+  })}
+ </div>;
+}
 function PlainLanguageGlossary({lang}:{lang:'uk'|'en'}){
  const uk=lang==='uk';
  return <details className="reading-glossary">
@@ -149,33 +171,35 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
  const fullConsultation=aiChapters.size>0;
   const unified=ai.documentMode==='unified'&&aiChapters.size===8;
+ const readerOnly=ai.fallbackReason==='reader_only';
  return <section className="reading-root" id="full-reading" aria-label={uk?'Детальне трактування карти':'Detailed chart interpretation'}>
   <div className="reading-kicker">{uk?'✧ ПЕРСОНАЛЬНЕ ТРАКТУВАННЯ':'✧ PERSONAL READING'}</div>
   <h2>{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
   
-  <p className="reading-provider" role="status" data-testid="reading-ai-provenance">{hasLlm?
-   (unified?(uk?'Єдина AI-консультація · ':'Unified AI consultation · '):(uk?'Основне трактування: Jyotish Reader v5. Додаткова LLM-інтерпретація: ':'Primary reading: Jyotish Reader v5. Additional LLM interpretation: '))+
+  <p className="reading-provider" role="status" data-testid="reading-ai-provenance">{readerOnly?
+   (uk?'Jyotish Reader v6 · цілісне традиційне прочитання на основі обчисленої карти.':'Jyotish Reader v6 · complete chart-grounded traditional reading.'):
+   hasLlm?
+   (unified?(uk?'Єдина AI-консультація · ':'Unified AI consultation · '):(uk?'Основне трактування: Jyotish Reader v6. Додаткова LLM-інтерпретація: ':'Primary reading: Jyotish Reader v6. Additional LLM interpretation: '))+
    (ai.provider==='openrouter'?'OpenRouter':ai.provider==='gemini'?'Google Gemini':ai.provider==='groq'?'GroqCloud':'Ollama')+' · '+(ai.model||'—')+
    (ai.cached?(uk?' · повторне використання перевіреної відповіді':' · cached verified response'):'')+
    (!unified&&fullConsultation?(uk?' · розділів AI: ':' · AI chapters: ')+aiChapters.size+'/8':''):
-   (uk?'Основне трактування сформував Jyotish Reader v5. Відповіді від зовнішньої LLM немає. Причина: ':'Primary reading generated by Jyotish Reader v5, not an LLM. Reason: ')+
+   (uk?'Основне трактування сформував Jyotish Reader v6. Відповіді від зовнішньої LLM немає. Причина: ':'Primary reading generated by Jyotish Reader v6, not an LLM. Reason: ')+
    (uk?(FALLBACK_UK[ai.fallbackReason||'']||'модель не використана'):(FALLBACK_EN[ai.fallbackReason||'']||'model not used'))}</p>
   <p className="reading-intro">{uk?
-   'Планетарні положення обчислено окремо; їхній життєвий сенс подано в традиції Джйотіш. Відкрийте астрологічні опори під розділами, якщо хочете побачити вихідні дані.' :
-   'Start with a plain-language summary. Detailed chapters follow for anyone who wants to explore further.'}</p>
+   'Спочатку — ваш цілісний портрет і головні життєві теми. Точні планетарні положення та методичні пояснення доступні під текстом.' :
+   'Begin with your personal narrative. Calculation details and source facts are available beneath each chapter.'}</p>
   {/* An accepted LLM interpretation is the reader's first substantive narrative, not a collapsed appendix. */}
-  {report.editorial?.chapters?.length&&hasLlm&&!fullConsultation&&friendlyAiCards(ai.text,lang).length>0?<section className="reading-editorial-ai" id="reading-ai">
-   <h3>{uk?'✧ Додаткове прочитання від AI-асистента':'✧ Additional AI interpretation'}</h3>
-   <p>{uk?'Це додатковий погляд у традиції Джйотіш на основі перевірених положень вашої карти. Генеративна модель не має права вигадувати нові йоги, даші або положення планет.':'This additional Jyotish interpretation is grounded in verified chart placements. The model must not invent yogas, dashas or planetary placements.'}</p>
-   <div className="reading-ai-text">{friendlyAiCards(ai.text,lang).map((item,i)=><article key={i} className="reading-ai-card">
-    <h4>{item.heading}</h4><p><GlossaryText text={item.body} locale={lang}/></p>
-   </article>)}</div>
-  </section>:null}
-  {report.editorial?.chapters?.length?<div className="reading-editorial">
+  {hasLlm&&ai.text&&(!ai.chapters||ai.chapters.length===0)?<article className="jy-direct-document" id="reading-ai" data-testid="jyotish-direct-consultation">
+   <div className="reading-chapter-kicker">{uk?'✦ ВАШЕ ПЕРСОНАЛЬНЕ AI-ПРОЧИТАННЯ':'✦ YOUR PERSONAL AI CONSULTATION'}</div>
+   <h2>{uk?'Ваш життєвий портрет за Джйотіш':'Your Jyotish life portrait'}</h2>
+   <p className="jy-direct-source">{uk?'Інтерпретація створена за перевіреними даними D1, D9, D10 та даш.':'Interpretation grounded in verified D1, D9, D10 and dasha calculations.'}</p>
+   <DirectArticle text={ai.text} lang={lang}/>
+  </article>:null}
+    {report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?<div className="reading-editorial">
    <div className="reading-editorial-opening">
     <div className="reading-chapter-kicker">{uk?'✦ ПЕРСОНАЛЬНЕ ПРОЧИТАННЯ':'✦ YOUR PERSONAL READING'}</div>
     <h3>{uk?'Про вашу особистість, стосунки, кар’єру та життєві орієнтири':'Personality, relationships, work and life direction'}</h3>
-    <p>{uk?'Перед вами персональне прочитання за традицією Джйотіш: лагна, положення грах, управителі домів, накшатра Місяця та поточна даша. Ми пояснюємо, звідки походить кожен висновок, відділяючи астрологічний розрахунок від традиційного тлумачення.':'A personal reading in the Jyotish tradition, following the ascendant, grahas, house rulers, Moon nakshatra and current dasha. Each conclusion is tied to the chart, distinguishing astronomical calculations from traditional interpretation.'}</p>
+    <p>{uk?'Ця карта — історія про ваші сили, вибори та внутрішній ритм. Ми читаємо її через лагну, управителів домів, планети й даші, поєднуючи їх у цілісне традиційне прочитання. Точні астрологічні опори можна розкрити під кожним розділом.':'Your chart tells a connected story of strengths, choices and inner rhythms. We read it through the ascendant, house rulers, planetary placements and dashas, with verifiable astrological details available beneath each chapter.'}</p>
    </div>
    <ol className="reading-principles" aria-label={uk?'Основні акценти карти':'Chart highlights'}>
     {report.editorial.highlights.map((h,i)=>{

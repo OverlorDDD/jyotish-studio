@@ -44,7 +44,7 @@ test('provider calls record usage fields and never log raw user prompts or keys'
  assert.ok(ai.includes('prompt_tokens'));
  assert.ok(ai.includes("reportUsage('provider_error')"));
  assert.ok(ai.includes("reportUsage('returned',result)"));
- assert.ok(nest.includes("recordAiUsage(event,'detailed_report')"));
+ assert.ok(nest.includes("recordAiUsage(event,'direct_jyotish')"));
  assert.ok(nest.includes("recordAiUsage(event,'short_reading')"));
  const admin=source('apps/api/src/admin.ts');
  assert.ok(admin.includes('requestsWithTokenUsage'));
