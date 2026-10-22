@@ -155,7 +155,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   const response=await (options.fetcher||fetch)(endpoint,{
    method:'POST',signal:controller.signal,
    headers:{'Content-Type':'application/json',...(provider==='ollama'?{}:{'Authorization':`Bearer ${options.key}`})},
-   body:JSON.stringify({model:configuredModel,temperature:options.reportMode?0.3:0.2,max_tokens:options.chapterSpecs?(options.chapterSpecs.length<=2?1950:options.chapterSpecs.length<=4?2300:provider==='groq'?3000:4400):options.reportMode?3500:provider==='openrouter'?1800:1000,
+   body:JSON.stringify({model:configuredModel,temperature:options.reportMode?0.3:0.2,max_tokens:options.chapterSpecs?(options.chapterSpecs.length<=2?1950:options.chapterSpecs.length<=4?1550:provider==='groq'?3000:4400):options.reportMode?3500:provider==='openrouter'?1800:1000,
     ...(provider==='groq'&&configuredModel.startsWith('openai/gpt-oss-')?{reasoning_effort:'low',include_reasoning:false}:{}),
     ...(options.formatMode==='prompt'||options.formatMode==='prose'||options.formatMode==='consultation'?{}:{response_format:{type:'json_schema',json_schema:{name:'jyotish_interpretation',strict:true,schema:{
       type:'object',additionalProperties:false,required:['sections'],properties:{sections:{type:'array',items:{type:'object',additionalProperties:false,required:['factId','text'],properties:{factId:{type:'string',enum:facts.map(f=>f.id)},text:{type:'string'}}}}}
