@@ -11,7 +11,7 @@ test('Jyotish opens calculator and delays saved-history network until account is
  const start=Date.now();
  await page.goto('/uk/astrology/jyotish');
  await expect(page.getByRole('heading',{level:1})).toBeVisible();
- await expect(page.locator('.chart-panel')).toBeVisible();
+ await expect(page.locator('.jy-rashi-card')).toBeVisible();
  const openedMs=Date.now()-start;
  console.info('[Jyotish-perf] production calculator UI ready ms:',openedMs);
  await expect(page.locator('button.account-trigger')).toContainText('Мій кабінет');
