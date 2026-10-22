@@ -39,7 +39,7 @@ test('Reader v6 generates eight substantial distinct editorial chapters in both 
   assert.ok(out.reduce((sum,c)=>sum+c.paragraphs.join(' ').length,0)>6000);
   const reading=out.map(x=>x.paragraphs.join(' ')).join('\n');
   if(lang==='uk'){
-   assert.match(reading,/Навамша D9/);
+   assert.match(reading,/Навамші D9/);
    assert.match(reading,/Дашамша D10/);
    assert.match(reading,/махадаша Сатурна/);
    assert.match(reading,/антардаша Місяця/);
