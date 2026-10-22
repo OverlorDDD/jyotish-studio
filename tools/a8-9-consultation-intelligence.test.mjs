@@ -71,7 +71,7 @@ test('A8.9 production path derives yoga approvals and preserves facts through wr
    return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content}}]}));
   }
  });
- assert.equal(calls,4);
+ assert.equal(calls,8);
  assert.equal(result.result?.chapters.length,8);
  assert.match(result.result.text,/yogakaraka/);
 });
