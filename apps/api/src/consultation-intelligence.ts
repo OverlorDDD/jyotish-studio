@@ -59,10 +59,12 @@ export function planConsultation(graph:ChartFactGraph,claims:readonly SupportedC
   resources:['configuration','vocation'],timing:['timing'],conclusion:['identity','vocation','relationships']};
  const chapterClaims=Object.fromEntries(Object.entries(mapping).map(([id,themeIds])=>
   [id,[...new Set(themeIds.flatMap(t=>themes.find(x=>x.id===t)?.claimIds||[]))]]));
+ chapterClaims.resources=[...new Set(['D1.house-lord.2','D1.house-lord.11',
+  'D1.'+lords[1],'D1.'+lords[10],...chapterClaims.resources])].filter(exists.has.bind(exists));
  const thesis=lang==='uk'?
   'Лагна у '+(['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козорозі','Водолії','Рибах'][asc-1])+
   ': особистий напрям пов’язаний з управителем '+(NAMES_UK[lords[0]]||lords[0])+
-  ', а головне скупчення класичних грах зосереджене в '+dominant.house+'-му домі.':
+  ', а '+(dominant.names.length>=2?'помітне поєднання класичних грах':'один із виразних акцентів карти')+' пов’язане з '+dominant.house+'-м домом.':
   'The ascendant ruler '+lords[0]+' and the strongest classical graha concentration in house '+dominant.house+
   ' provide two distinct angles on this chart.';
  return {fingerprint:graph.fingerprint,thesis,themes,chapterClaims};
