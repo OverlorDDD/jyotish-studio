@@ -1,9 +1,10 @@
+import {generateResilientFreeConsultation} from '../apps/api/src/resilient-consultation.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
 import {buildChartFactGraph} from '../apps/api/src/consultation-fact-graph.ts';
 import {buildSupportedClaims,planConsultation,verifyUnifiedConsultation,generateConsultationIntelligence} from '../apps/api/src/consultation-intelligence.ts';
-import {CHAPTER_IDS} from '../apps/api/src/consultation-ai.ts';
+import {CHAPTER_IDS,parseAiConsultation} from '../apps/api/src/consultation-ai.ts';
 const input={date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0};
 const positions=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
  .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}));
@@ -62,7 +63,7 @@ test('A8.9 production path derives yoga approvals and publishes complete verifie
    calls++;
    const body=JSON.parse(init.body);
    const specs=JSON.parse(body.messages[1].content).chapterSpecs;
-   if(calls===1){
+   if(calls===2){
     assert.ok(specs.find(c=>c.id==='configuration').verifiedContext.length>3);
     assert.match(body.messages[0].content,/WRITE exactly/);
    }
@@ -73,7 +74,7 @@ test('A8.9 production path derives yoga approvals and publishes complete verifie
    return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content}}]}));
   }
  });
- assert.equal(calls,4);
+ assert.equal(calls,8);
  assert.equal(result.result?.chapters.length,8);
  assert.match(result.result.text,/yogakaraka/);
 });
@@ -99,14 +100,15 @@ test('A8.9 strict mode rejects partial Groq completions and retries Gemini per g
    const group=JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs;
    visited.push(url.includes('groq')?'groq':'gemini');
    const isGroq=url.includes('groq');
-   const content=valid(isGroq?group.slice(0,1):group);
+   if(isGroq)return new Response('{}',{status:503});
+   const content=valid(group);
    return new Response(JSON.stringify({model:isGroq?'openai/gpt-oss-120b':'gemini-3.1-flash-lite',
     choices:[{message:{content}}]}),{status:200,headers:{'content-type':'application/json'}});
   }
  });
  assert.ok(visited.includes('gemini'));
  assert.ok(visited.includes('groq'));
- assert.ok(visited.length>=4);
+ assert.ok(visited.length>=8);
  assert.equal(result.result?.chapters.length,8);
 });
 
@@ -124,4 +126,33 @@ test('A8.9 stops after a failed required group instead of exhausting later free 
  });
  assert.equal(r.result,null);
  assert.equal(requests,1);
+});
+
+test('A8.9 reuses verified chapters after provider outage within the same API process',async()=>{
+ const specs=CHAPTER_IDS.map(id=>({id,title:id,focus:'Verified chart-specific life theme',facts:['Moon ascendant and Mars career role']}));
+ const providerResponse=(id)=>'[['+id+']]\n'+
+  ('The Moon as ascendant lord brings an intimate and reflective emphasis to '+id+' and connects it with a second verified chart factor. ').repeat(4)+
+  '\n\n'+('The second factor highlights another practical dimension of '+id+', adding a concrete interpretive counterweight without inventing events. ').repeat(4);
+ let calls=0,failed=false;
+ const opts={chapterSpecs:specs,reportMode:true,strictCompleteness:true,compactChapters:true,
+  continuationKey:'resume-test-eight-chapters',order:['groq'],groqEnabled:true,groqKey:'test-only',limit:()=>true,
+  fetcher:async(_url,init)=>{
+   calls++;
+   const chapter=JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs[0].id;
+   if(chapter==='configuration'&&!failed){failed=true;return new Response('{}',{status:503});}
+   return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content:providerResponse(chapter)}}]}));
+  }};
+ const first=await generateResilientFreeConsultation(chart(),'en',opts);
+ assert.equal(first.result,null);
+ assert.equal(calls,2);
+ const resumed=await generateResilientFreeConsultation(chart(),'en',opts);
+ assert.deepEqual(resumed.result?.chapters.map(c=>c.id),CHAPTER_IDS);
+ assert.equal(calls,9); // portrait is reused, not requested twice
+});
+
+test('A8.9 accepts genuine one-chapter prose without a redundant delimiter but keeps fact safety',()=>{
+ const spec=[{id:'portrait',title:'Identity',focus:'Moon as lagna lord',facts:['Verified Moon role']}];
+ const prose=('The lunar ruler of the ascendant can describe a complex balance between private emotional renewal and a visible contribution to other people. ').repeat(4);
+ assert.equal(parseAiConsultation(prose,spec,[],undefined,true).length,1);
+ assert.equal(parseAiConsultation(prose+' Mars is exalted.',spec,[],undefined,true).length,0);
 });

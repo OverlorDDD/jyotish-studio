@@ -119,7 +119,7 @@ export type AiUsageEvent={
 };
 
 /** A shared, schema-validated chat adapter. Provider URLs are hard-coded, never user supplied. */
-export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose'|'consultation';chapterSpecs?:ReadonlyArray<AiChapterSpec>;factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>Promise<void>|void}){
+export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'uk'|'en',options:{key:string;model?:string;provider?:ChatProvider;fetcher?:typeof fetch;signal?:AbortSignal;limit?:()=>boolean;now?:number;formatMode?:'strict'|'prompt'|'prose'|'consultation';chapterSpecs?:ReadonlyArray<AiChapterSpec>;factsOverride?:ReadonlyArray<{id:string;fact:string}>;reportMode?:boolean;approvedYogas?:ReadonlyArray<string>;compactChapters?:boolean;timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>Promise<void>|void}){
  const provider=options.provider||'openai';
  const configuredModel=options.model||(provider==='openrouter'?'openrouter/free':provider==='gemini'?'gemini-3.1-flash-lite':provider==='groq'?'openai/gpt-oss-120b':provider==='ollama'?'gemma3:1b':'gpt-4.1-mini');
  let usageReported=false;
@@ -228,7 +228,7 @@ export async function generateOpenAiInterpretation(chart:CalculatedChart,lang:'u
   const content=result.choices?.[0]?.message?.content;
   if(!content||result.choices?.[0]?.message?.refusal)throw new AiProviderError('format','OpenAI returned no interpretation');
   if(options.formatMode==='consultation'&&options.chapterSpecs){
-   const chapters=parseAiConsultation(content,options.chapterSpecs,options.approvedYogas,classicalLordshipTable(chart.ascendant.sign));
+   const chapters=parseAiConsultation(content,options.chapterSpecs,options.approvedYogas,classicalLordshipTable(chart.ascendant.sign),options.compactChapters===true);
    // A short, bounded request can validly return only part of its four chapters;
    // never throw away sound prose merely because one neighboring chapter failed QA.
    const minAccepted=options.chapterSpecs.length<=4?1:4;
