@@ -41,7 +41,7 @@ test('A8.9: cannot publish a mixed partial cloud result; no provider gives no re
  assert.equal(result.plan.fingerprint,g.fingerprint);
 });
 
-test('A8.9 production path derives yoga approvals and preserves facts through writer and editor',async()=>{
+test('A8.9 production path derives yoga approvals and publishes complete verified writer',async()=>{
  const editorial={chapters:CHAPTER_IDS.map(id=>({id,title:id,evidence:[],paragraphs:[]})),findings:[]};
  let calls=0;
  const anchors={
@@ -71,7 +71,7 @@ test('A8.9 production path derives yoga approvals and preserves facts through wr
    return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content}}]}));
   }
  });
- assert.equal(calls,8);
+ assert.equal(calls,4);
  assert.equal(result.result?.chapters.length,8);
  assert.match(result.result.text,/yogakaraka/);
 });
