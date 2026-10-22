@@ -82,7 +82,7 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
     conclusion:/лагн|управител|місяц|марс|ascendant|moon|mars|lordship/iu
    };
    if(!compact&&cues[id]&&!cues[id].test(combined)){diagnostic(id,'missing_domain_anchor');continue;}
-   if(['portrait','relationships','resources','timing'].includes(id)&&OUT_OF_SCOPE_CLUSTER.test(combined)){diagnostic(id,'out_of_scope_cluster');continue;}
+   if(!compact&&['portrait','relationships','resources','timing'].includes(id)&&OUT_OF_SCOPE_CLUSTER.test(combined)){diagnostic(id,'out_of_scope_cluster');continue;}
   }
   chapters.push({id,paragraphs:normalized,source:'llm'});
  }
