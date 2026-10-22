@@ -6,6 +6,8 @@ import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 import AccountPortal from '../../components/AccountPortal';
+import NorthIndianChart from '../../components/NorthIndianChart';
+import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
 type Graha={name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 type Period={lord:string;start:string;end:string;antardashas:{lord:string;start:string;end:string}[]};
@@ -33,12 +35,11 @@ const FREE_AI_FALLBACK_EN:Record<string,string>={
  timeout:'The free model did not respond before the timeout.',
  network:'The free AI provider could not be reached.'
 };
-const HOUSE_CENTERS:[number,number][]=[[180,90],[90,40],[45,90],[90,180],[45,270],[90,315],[180,270],[270,315],[315,270],[270,180],[315,90],[270,40]];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const GRAHA_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету',Ascendant:'Висхідний знак'};
-const SIGN_SYMBOL=['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
-const GRAHA_SYMBOL:Record<string,string>={Sun:'☉︎',Moon:'☽︎',Mars:'♂︎',Mercury:'☿︎',Jupiter:'♃︎',Venus:'♀︎',Saturn:'♄︎',Rahu:'☊︎',Ketu:'☋︎',Ascendant:'Lg'};
+const SIGN_SYMBOL=SIGN_GLYPHS;
+const GRAHA_SYMBOL=PLANET_GLYPHS;
 const two=(value:number)=>String(value).padStart(2,'0');
 const degreeLabel=(value:number)=>{const d=Math.floor(value),m=Math.floor((value-d)*60);return d+'°'+two(m)+'′';};
 const NAKSHATRA_UK:Record<string,string>={
@@ -50,44 +51,8 @@ const NAKSHATRA_UK:Record<string,string>={
  'Purva Bhadrapada':'Пурва Бхадрапада','Uttara Bhadrapada':'Уттара Бхадрапада',Revati:'Реваті'
 };
 const nakshatraName=(name:string,lang:'en'|'uk')=>lang==='uk'?(NAKSHATRA_UK[name]||name):name;
-function fitText(text:string,x:number,size:number){
- const maxWidth=x<=50||x>=310?76:x<=95||x>=265?96:145;
- return text.length*size*0.58>maxWidth?{textLength:maxWidth,lengthAdjust:'spacingAndGlyphs' as const}:{};
-}
 const grahaFull=(name:string,lang:'en'|'uk')=>lang==='uk'?(GRAHA_UK[name]||name):name;
 const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-1];
-function HouseIndex({grahas,lang,lagna}:{grahas:Graha[],lang:'en'|'uk',lagna:Graha}){
- return <section className="house-index" aria-label={lang==='uk'?'Планети та сфери життя':'Planets and life areas'}>
- <h3 className="house-index-title">{lang==='uk'?'Планети та сфери життя':'Planets and life areas'}</h3>
- <div className="house-index-grid">{HOUSE_CENTERS.map((_,i)=>{
-   const items=grahas.filter(g=>g.house===i+1); if(!items.length)return null;
-   return <div className="house-item" key={i}><strong>{i+1}. {signFull((lagna.sign-1+i)%12+1,lang)}</strong><span>{items.map(g=>grahaFull(g.name,lang)+(g.retrograde?' ℞':'')).join(' · ')}</span></div>;
- })}</div></section>;
-}
-function Wheel({grahas,which,lang,lagna}:{grahas:Graha[],which:string,lang:'en'|'uk',lagna:Graha}){
- return <svg viewBox="0 0 360 360" className="chart-svg jy-rashi-svg" role="img" aria-label={`${which.toUpperCase()} · 12 ${lang==='uk'?'домів':'houses'}`}>
-  <rect x="1" y="1" width="358" height="358" rx="10" fill="#111b2a" stroke="#c6a66d" strokeWidth="1.6"/>
-  <path d="M0 0 L360 360 M360 0 L0 360 M180 0 L360 180 L180 360 L0 180 Z" fill="none" stroke="#586577" strokeWidth="1"/>
-  <text x="180" y="173" textAnchor="middle" fill="#d7ba82" fontFamily="Playfair Display,Georgia,serif" fontSize="28" letterSpacing="5">{which.toUpperCase()}</text>
-  <text x="180" y="193" textAnchor="middle" fill="#78879a" fontSize="8" letterSpacing="2">{which==='d1'?'RASHI':which==='d9'?'NAVAMSA':'DASHAMSA'}</text>
-  {HOUSE_CENTERS.map(([x,y],i)=>{
-   const sign=(lagna.sign-1+i)%12+1,bodies=grahas.filter(p=>p.house===i+1&&p.name!=='Ascendant');
-   const maxVisible=(y<=42||y>=300)?3:4,shown=bodies.slice(0,maxVisible),extra=bodies.length-shown.length;
-   const top=y-(shown.length?13:2);
-   return <g key={i} className="vedic-house" data-house={i+1}>
-    <title>{i+1}. {signFull(sign,lang)}: {bodies.map(p=>grahaFull(p.name,lang)).join(', ')||(lang==='uk'?'немає планет':'no planets')}</title>
-    <text x={x} y={top} textAnchor="middle" fill="#8e9cad" fontSize="8" fontWeight="700">{i+1}</text>
-    <text x={x+17} y={top} textAnchor="middle" fill="#d8b875" fontFamily="Georgia,Times New Roman,serif" fontSize="13">{SIGN_SYMBOL[sign-1]}</text>
-    {shown.map((body,j)=><g key={body.name}>
-      <text x={x-14} y={top+15+j*13} textAnchor="middle" fill={body.name==='Sun'||body.name==='Moon'?'#f1d391':'#dce3ec'} fontFamily="Georgia,Times New Roman,serif" fontSize="12" fontWeight="700">{GRAHA_SYMBOL[body.name]||body.name.slice(0,2)}</text>
-      <text x={x+11} y={top+15+j*13} textAnchor="middle" fill="#b9c3cf" fontSize="7.5">{degreeLabel(body.degreesInSign)}{body.retrograde?' ℞':''}</text>
-    </g>)}
-    {extra>0&&<text x={x} y={top+15+shown.length*13} textAnchor="middle" fill="#d8b875" fontSize="7">+{extra}</text>}
-    {i===0&&<g><rect x={x-15} y={top-31} width="30" height="15" rx="7.5" fill="#2d3441" stroke="#aa8b59"/><text x={x} y={top-20} textAnchor="middle" fill="#e6ca91" fontSize="8" fontWeight="700">Lg</text></g>}
-   </g>;
-  })}
- </svg>;
-}
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const [lang,setLang]=useState<'en'|'uk'>(initialLang),[form,setForm]=useState<Form>(CITY.delhi),[preset,setPreset]=useState('delhi'),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
@@ -169,7 +134,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     <section className="jy-primary-grid">
      <div className="panel jy-rashi-card">
       <div className="jy-card-head"><div><span>{lang==='uk'?'РАШІ · ОСНОВНА КАРТА':'RASHI · MAIN CHART'}</span><h2>D1</h2></div>{chart&&<div className="jy-lagna-chip"><span>Lg</span><strong>{SIGN_SYMBOL[chart.ascendant.sign-1]} {signFull(chart.ascendant.sign,lang)}</strong><small>{degreeLabel(chart.ascendant.degreesInSign)}</small></div>}</div>
-      <div className="jy-primary-chart">{chart?<Wheel grahas={[...chart.d1,chart.ascendant]} which="d1" lang={lang} lagna={chart.ascendant}/>:<div className="jy-empty-chart"><span>☉</span><strong>{i.waiting}</strong><small>{lang==='uk'?'Після розрахунку тут зʼявиться D1':'Your D1 chart will appear here'}</small></div>}</div>
+      <div className="jy-primary-chart">{chart?<NorthIndianChart planets={chart.d1} division="d1" lang={lang} lagna={chart.ascendant}/>:<div className="jy-empty-chart"><span>☉</span><strong>{i.waiting}</strong><small>{lang==='uk'?'Після розрахунку тут зʼявиться D1':'Your D1 chart will appear here'}</small></div>}</div>
      </div>
      <aside className="panel jy-calc-data">
       <div className="jy-card-head"><div><span>{lang==='uk'?'РОЗРАХУНОК':'CALCULATION'}</span><h2>{lang==='uk'?'Ключові дані':'Key data'}</h2></div><span className="small-pill">D1</span></div>
@@ -210,7 +175,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <div className="jy-section-rule"/>
      <div className="jy-subhead"><div><span>{lang==='uk'?'ДРОБОВІ КАРТИ':'DIVISIONAL CHARTS'}</span><h3>{lang==='uk'?'Варги':'Vargas'}</h3></div><div className="tab-group jy-varga-tabs">{(['d1','d9','d10'] as const).map(type=><button key={type} className={'chart-tab '+(tab===type?'selected':'')} onClick={()=>setTab(type)}>{type.toUpperCase()}</button>)}</div></div>
      <div className="jy-varga-grid">
-      <div className="jy-varga-chart">{chart&&tabLagna?<Wheel grahas={[...placements,tabLagna]} which={tab} lang={lang} lagna={tabLagna}/>:<div className="jy-empty-chart small">{i.waiting}</div>}</div>
+      <div className="jy-varga-chart">{chart&&tabLagna?<NorthIndianChart planets={placements} division={tab} lang={lang} lagna={tabLagna}/>:<div className="jy-empty-chart small">{i.waiting}</div>}</div>
       <div className="jy-varga-data">
        <h4>{tab==='d1'?(lang==='uk'?'D1 · Раші':'D1 · Rashi'):tab==='d9'?(lang==='uk'?'D9 · Навамша':'D9 · Navamsa'):(lang==='uk'?'D10 · Дашамша':'D10 · Dashamsa')}</h4>
        <p>{tab==='d1'?(lang==='uk'?'Основна натальна карта та система дванадцяти домів.':'Primary natal chart and twelve-house structure.'):tab==='d9'?(lang==='uk'?'Додатковий зріз для зрілості цінностей, партнерства та внутрішньої сили планет.':'A divisional perspective used for values, partnership and maturation of planetary themes.'):(lang==='uk'?'Додатковий зріз професійної реалізації, відповідальності та ролі у світі.':'A divisional perspective used for vocation, responsibility and public contribution.')}</p>
