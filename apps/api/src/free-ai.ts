@@ -100,7 +100,7 @@ export async function generateFreeInterpretationDetailed(
     (result.chapters?.length!==opts.chapterSpecs.length||
      result.chapters.some((ch,i)=>ch.id!==opts.chapterSpecs![i].id)))
    throw new AiProviderError('format','incomplete_verified_chapters');
-  return complete(result);
+  return {result};
  };
  for(const provider of providers){
   if(provider==='openrouter'&&!openrouterKey)continue;
