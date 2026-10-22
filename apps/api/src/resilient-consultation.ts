@@ -35,8 +35,12 @@ export async function generateResilientFreeConsultation(
  try{
   for(const group of groups){
    if(controller.signal.aborted)break;
+   const continuity=options.strictCompleteness&&chapters.length?
+    chapters.slice(-2).map(ch=>ch.id+': '+ch.paragraphs.join(' ').slice(-220)).join(' | '):'';
+   const contextualGroup=continuity?group.map(spec=>({...spec,
+    focus:(spec.focus||'')+' Previous accepted ideas (for continuity only): '+continuity+'. Extend the narrative without repeating them.'})):group;
    const result=await generateFreeInterpretationDetailed(chart,lang,{
-    ...options,chapterSpecs:group,reportMode:true,
+    ...options,chapterSpecs:contextualGroup,reportMode:true,
     order:options.strictCompleteness&&selectedProvider?
      [selectedProvider,...(options.order||(['gemini','groq','openrouter'] as FreeProvider[])).filter(p=>p!==selectedProvider)]:
      (selectedProvider?[selectedProvider]:options.order),
