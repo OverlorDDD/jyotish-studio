@@ -19,7 +19,7 @@ test('compact facts include real planetary positions but no birth date, time, co
  assert.ok(!facts.includes('latitude'));
  assert.ok(!facts.includes('longitude'));
  assert.ok(facts.length<6000,'Compact payload must stay lean');
- assert.ok(DIRECT_JYOTISH_INSTRUCTION.includes('Only return finished Markdown consultation'));
+ assert.ok(DIRECT_JYOTISH_INSTRUCTION.includes('Only return the completed Markdown consultation'));
 });
 test('one call, one accepted consultation, no chapter or editor gate',async()=>{
  let requests=0;
