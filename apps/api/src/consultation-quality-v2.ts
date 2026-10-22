@@ -168,16 +168,15 @@ export function planConsultationQuality(chart:CalculatedChart,asOf:string):Quali
 export function compactQualityBrief(plan:QualityPlan,limit=5100):string{
  const lines=['CONSULTATION_QUALITY '+plan.version,
   ...plan.anchorFacts.map(x=>'ANCHOR: '+x)];
- const primary:QualityFactor[]=[];
  for(const theme of plan.themes){
   lines.push('THEME '+theme.focus+' priority='+theme.priority);
   for(const [label,items] of [
    ['POTENTIAL',theme.supporting],['CHALLENGE',theme.challenging],['TENSION',theme.mixed]
   ] as const){
    if(items[0]){
-    const x=items[0];primary.push(x);
-    const statement=x.statement.length>205?x.statement.slice(0,202)+'…':x.statement;
-    lines.push(label+': '+statement+' [evidence '+x.evidence.slice(0,3).join(',')+']');
+    const x=items[0];
+    const statement=x.statement.length>150?x.statement.slice(0,147)+'…':x.statement;
+    lines.push(label+': '+statement+' [evidence '+x.evidence.slice(0,2).join(',')+']');
    }
   }
   lines.push('PRACTICE: '+theme.recommendation);
