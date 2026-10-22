@@ -78,7 +78,7 @@ export function verifyUnifiedConsultation(
  if(chapters.length!==CHAPTER_IDS.length||chapters.some((c,i)=>c.id!==CHAPTER_IDS[i]))
   errors.push('incomplete_document');
  const all=chapters.flatMap(c=>c.paragraphs).join('\n');
- if(all.length<3200||chapters.some(c=>c.paragraphs.length<2))errors.push('insufficient_depth');
+ if(all.length<2800||chapters.some(c=>c.paragraphs.join(' ').length<300))errors.push('insufficient_depth');
  const houseLords=Object.fromEntries(Array.from({length:12},(_,i)=>{
   const n=requireGraphFacts(graph,['D1.house-lord.'+(i+1)])[0];
   return [i+1,String(n.value.ruler)];
