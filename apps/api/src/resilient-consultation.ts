@@ -26,7 +26,7 @@ export async function generateResilientFreeConsultation(
  const onAbort=()=>controller.abort();
  options.signal?.addEventListener('abort',onAbort,{once:true});
  // End-to-end deadline prevents HTTP request hang; successful portions survive.
- const clock=setTimeout(()=>controller.abort(),42000);
+ const clock=setTimeout(()=>controller.abort(),options.strictCompleteness?115000:42000);
  const chapters:AiConsultationChapter[]=[];
  let selectedProvider:FreeProvider|undefined;
  let selectedModel='';
@@ -36,8 +36,8 @@ export async function generateResilientFreeConsultation(
    if(controller.signal.aborted)break;
    const result=await generateFreeInterpretationDetailed(chart,lang,{
     ...options,chapterSpecs:group,reportMode:true,
-    order:selectedProvider?[selectedProvider]:options.order,
-    timeoutMs:16000,signal:controller.signal
+    order:options.strictCompleteness?options.order:(selectedProvider?[selectedProvider]:options.order),
+    timeoutMs:options.strictCompleteness?24000:16000,signal:controller.signal
    });
    if(result.result?.chapters?.length){
     const incoming=result.result.chapters;
