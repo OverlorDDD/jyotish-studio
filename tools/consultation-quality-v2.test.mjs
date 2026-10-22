@@ -42,7 +42,8 @@ test('all 12 ascendants produce verified evidence, bounded chart-specific plans'
   assert.ok(brief.includes('CONSULTATION_QUALITY cqv2.0'));
   assert.ok(brief.includes('D1 lagna sign '+i));
   assert.ok(brief.includes('D1 tenth lord'));
-  assert.ok(brief.includes('THEME'));
+  for(const topic of ['identity','relationships','career','resources','inner-life','timing'])
+   assert.ok(brief.includes('THEME '+topic),i+': missing '+topic);
   fingerprints.add(brief);
  }
  assert.equal(fingerprints.size,12);
