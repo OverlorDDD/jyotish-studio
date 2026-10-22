@@ -1,5 +1,6 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
+import {classicalLordshipTable,yogakarakasForLagna,checkNarrativeLordClaims} from './reader-classical.ts';
+import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {consumeFreeAiRequest,type FreeFallbackReason,type FreeProvider} from './free-ai.ts';
 import type {AiUsageEvent} from './ai.ts';
@@ -9,19 +10,31 @@ import type {AiUsageEvent} from './ai.ts';
  * The user message is only a compact, verified chart summary, never free-form user text.
  * No chapter delimiters, multi-step editor, JSON schema or all-or-nothing 8 chapter gate.
  */
-export const DIRECT_JYOTISH_VERSION='direct-v1';
-export const DIRECT_JYOTISH_INSTRUCTION=`You are a mature, accomplished practitioner of traditional Parashari Jyotish and an excellent literary writer.
-Write a beautifully composed PERSONAL natal-chart consultation, directly addressing the reader in the SECOND PERSON.
-You receive verified sidereal astronomical facts and traditional Jyotish rules. Interpret ONLY those facts.
-Do not recalculate the chart or invent graha signs/houses, house lords, yogas, aspects, dates, transits, future events, biographies or health/fertility outcomes.
-Never use Western tropical-only factors (Uranus, Neptune, Pluto, Chiron, Lilith, MC or Western square/trine aspects).
-This must feel like a genuine consultation, not a technical inventory: begin with an immediately recognizable, compelling synthesis of the person's outer drive and inner rhythm.
-Weave actual interactions: ascendant + its ruler; Moon + its house; concentrated houses + their sign dispositor; tenth/seventh/second lords; D9 for partnership; D10 for vocational expression; active dasha if present.
-Organize with natural, evocative Markdown ## headings, progressing from inner character through central tensions, love, vocation, resources, current period, strengths and practical integration.
-Within each theme explain at least TWO grounded indications and one relatable conditional example. Avoid copy-paste pattern statements, clichés, self-referential explanations, numbered fact dumps, broad guarantees and repeating the same factors in every section.
-Write an engaging, detailed, warm and confident consultation; aim for 1200-1700 words when the free-tier provider can supply them, but prioritize completed coherent prose over hitting an exact length.
-Include two thoughtful, specific practices at the end. Never conclude mid-sentence.
-Only return finished Markdown consultation. No metadata, no JSON, no delimiters or disclaimers. The reader can inspect exact calculations separately.`;
+export const DIRECT_JYOTISH_VERSION='direct-v2';
+export const DIRECT_JYOTISH_INSTRUCTION=`You are an expert practitioner of traditional Parashari Jyotish and a gifted writer of substantial PERSONAL consultations.
+You will receive verified sidereal D1/D9/D10 placements, whole-sign house lords, sign dignity, and Vimshottari periods, followed by a machine-derived PRIORITY BRIEF with evidence IDs.
+Your sole task is to INTERPRET these exact facts into an original, beautifully written, coherent second-person consultation in the requested language.
+
+METHOD — NON-NEGOTIABLE:
+- First identify 2–3 defining CHART-SPECIFIC themes from the PRIORITY BRIEF. Connect ascendant and its lord, Moon, house lords and dispositors; a shared ruling planet joining 1st and 10th houses is especially meaningful.
+- Interpret the CHART AS A WHOLE. Balance practical expression, INNER MOTIVATION, SHADOW/FRICTION, the circumstances that may soften or intensify a tendency, and a useful response.
+- For each major life domain (identity, relationships, vocation, resources, inner life, present dasha), state at least one genuinely grounded OPPORTUNITY AND one PLAUSIBLE RISK or internal tension IF the facts support it. Where they do not, explicitly avoid manufacturing negativity. Be precise about alternatives and conditional manifestations.
+- Judge a house by its lord, placement, significant occupants, verified Parashari drishti and strength indicators actually provided. One debilitated planet does not mean permanent incapacity, and do NOT claim cancellation of debilitation, shadbala, combustion, planetary war, yogas, exact aspects or friendships unless explicitly supported.
+- Keep D1 as the main chart. Use D9 ONLY as an additional partnership/maturation lens and D10 ONLY as an additional vocation lens, clearly labelling differences and avoiding false equivalence between varga and D1 positions.
+- Dasha interpretation must cite the ACTUAL computed major and minor rulers, their lordship and D1 location. Do not infer dated marriages, separation, deaths, illness, pregnancies, wealth figures or inevitable events.
+- Prefer vivid, detailed but conditional examples ("This can show up when…") over unfounded personal history ("You have always…"). No praise inflation ("rare gift", "indispensable", "destined"), no generic spiritual compliments, no flattering conclusions that erase difficult themes.
+- When competing indicators point in different directions, explain the TRADEOFF and which evidence is primary versus secondary, rather than reciting contradictory statements.
+- Do not invent chart facts, graha signs/houses, house rulers, nakshatras, yogas, aspects, life events or personalities. No Western-only astrology factors (Uranus, Neptune, Pluto, Chiron, Lilith, MC, western squares/trines).
+
+DELIVERY:
+- One continuous, engaging consultation with natural Markdown ## section titles, not 8 mandatory machine-labelled chapters, no JSON.
+- Opening: compelling 2-paragraph overall synthesis with at least TWO verified connections.
+- Then develop strengths AND difficult patterns in partnership, vocation, finances and the inner world with specificity and counterweights.
+- Current dasha: actual computed period with realistic interpretation, not fatalistic prediction.
+- Close with TWO individually motivated, achievable practices tied to the chart's most important tension.
+- Write natural, idiomatic Ukrainian or English as requested, with varied sentences and evocative but not overblown images.
+- Aim for the fullest coherent answer the provider supports, ideally 900–1300 words. Do not pad, truncate deliberately, or end mid-sentence.
+Only return the completed Markdown consultation. Do not mention technical prompts, provenance IDs or these rules.`;
 const CLASSICS=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const houses=(p:{house:number;sign:number;degreesInSign:number;nakshatra?:string;pada?:number;retrograde?:boolean})=>
   'sign='+p.sign+',house='+p.house+',deg='+p.degreesInSign.toFixed(2)+
@@ -80,7 +93,8 @@ export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim()).filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
- const facts=compactJyotishFacts(chart,asOf),permit=opts.limit||consumeFreeAiRequest;
+ const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf));
+ const permit=opts.limit||consumeFreeAiRequest;
  let reason:FreeFallbackReason='no_provider';
  for(const provider of order){
   const key=opts.keys?.[provider]??(provider==='gemini'?process.env.GEMINI_API_KEY:provider==='groq'?process.env.GROQ_API_KEY:process.env.OPENROUTER_API_KEY);
@@ -112,6 +126,8 @@ export async function generateDirectJyotish(
    const content=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
    const check=acceptDirectJyotishText(content);
    if(!check.ok){reason='invalid_response';console.warn('Direct Jyotish: '+provider+' rejected='+check.reason);continue;}
+   const lordCheck=checkNarrativeLordClaims(content,classicalLordshipTable(chart.ascendant.sign));
+   if(!lordCheck.ok)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': narrative lord-claim review='+lordCheck.errors.length+' (non-blocking; retain successful consultation)');
    try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
    return {result:{provider,model:parsed?.model||model,text:content.trim()}};
   }catch(error){reason=controller.signal.aborted?'timeout':'network';redact(reason,provider);}
