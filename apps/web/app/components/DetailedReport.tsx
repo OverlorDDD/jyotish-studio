@@ -113,7 +113,7 @@ function DirectArticle({text,lang}:{text:string;lang:'uk'|'en'}){
  // Free models may put numbered practices on the same line or escape the dot
  // in Markdown. Preserve each practice as its own readable item.
  const cleaned=text.trim().replace(/\\([1-9])\./g,'$1.')
-  .replace(/([^\n])\s+(?=[12]\.\s+(?:Практика|Практичн|Practice|Step)\b)/giu,'$1\n\n');
+  .replace(/([^\n])\s+(?=[12]\.\s+(?:Практика|Практичний|Практична|Practice|Step)(?:\s|:))/giu,'$1\n\n');
  const blocks=cleaned.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
  return <div className="jy-direct-article">
   {blocks.map((block,i)=>{
