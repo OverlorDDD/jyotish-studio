@@ -15,7 +15,8 @@ export async function generateResilientFreeConsultation(
  const specs=options.chapterSpecs;
  if(!specs||specs.length<=4)return generateFreeInterpretationDetailed(chart,lang,options);
  const groups:AiChapterSpec[][]=[];
- for(let i=0;i<specs.length;i+=4)groups.push(specs.slice(i,i+4).map(ch=>({
+ const groupSize=options.strictCompleteness?2:4;
+ for(let i=0;i<specs.length;i+=groupSize)groups.push(specs.slice(i,i+groupSize).map(ch=>({
   ...ch,
   // Only the narrow evidence and a sample of the authored prose are transmitted.
   // The server keeps the complete, trusted draft for rendering.
@@ -36,7 +37,9 @@ export async function generateResilientFreeConsultation(
    if(controller.signal.aborted)break;
    const result=await generateFreeInterpretationDetailed(chart,lang,{
     ...options,chapterSpecs:group,reportMode:true,
-    order:options.strictCompleteness?options.order:(selectedProvider?[selectedProvider]:options.order),
+    order:options.strictCompleteness&&selectedProvider?
+     [selectedProvider,...(options.order||(['gemini','groq','openrouter'] as FreeProvider[])).filter(p=>p!==selectedProvider)]:
+     (selectedProvider?[selectedProvider]:options.order),
     timeoutMs:options.strictCompleteness?24000:16000,signal:controller.signal
    });
    if(result.result?.chapters?.length){
@@ -46,6 +49,7 @@ export async function generateResilientFreeConsultation(
      selectedProvider=result.result.provider as FreeProvider;
      selectedModel=result.result.model;
     }
+    if(options.strictCompleteness){selectedProvider=result.result.provider as FreeProvider;selectedModel=result.result.model;}
     chapters.push(...incoming.filter(c=>!chapters.some(existing=>existing.id===c.id)));
    }else{
     lastReason=result.reason||'invalid_response';
