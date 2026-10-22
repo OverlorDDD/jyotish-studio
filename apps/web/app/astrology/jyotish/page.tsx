@@ -37,6 +37,10 @@ const HOUSE_CENTERS:[number,number][]=[[180,90],[90,40],[45,90],[90,180],[45,270
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const GRAHA_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету',Ascendant:'Висхідний знак'};
+const SIGN_SYMBOL=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+const GRAHA_SYMBOL:Record<string,string>={Sun:'☉',Moon:'☽',Mars:'♂',Mercury:'☿',Jupiter:'♃',Venus:'♀',Saturn:'♄',Rahu:'☊',Ketu:'☋',Ascendant:'Lg'};
+const two=(value:number)=>String(value).padStart(2,'0');
+const degreeLabel=(value:number)=>{const d=Math.floor(value),m=Math.floor((value-d)*60);return d+'°'+two(m)+'′';};
 const NAKSHATRA_UK:Record<string,string>={
  Ashwini:'Ашвіні',Bharani:'Бхарані',Krittika:'Кріттіка',Rohini:'Рохіні',Mrigashira:'Мрігашіра',Ardra:'Ардра',
  Punarvasu:'Пунарвасу',Pushya:'Пушʼя',Ashlesha:'Ашлеша',Magha:'Магха','Purva Phalguni':'Пурва Пхалгуні',
@@ -61,23 +65,25 @@ function HouseIndex({grahas,lang,lagna}:{grahas:Graha[],lang:'en'|'uk',lagna:Gra
  })}</div></section>;
 }
 function Wheel({grahas,which,lang,lagna}:{grahas:Graha[],which:string,lang:'en'|'uk',lagna:Graha}){
- return <svg viewBox="0 0 360 360" width="520" height="520" className="chart-svg" role="img" aria-label={`${which.toUpperCase()} · 12 ${lang==='uk'?'сфер життя':'life areas'}`}>
-  <rect x="1" y="1" width="358" height="358" rx="4" fill="#101b2b" stroke="#c6a66d" strokeWidth="2"/>
-  <path d="M0 0 L360 360 M360 0 L0 360 M180 0 L360 180 L180 360 L0 180 Z" fill="none" stroke="#7d725d" strokeWidth="1.4"/>
+ return <svg viewBox="0 0 360 360" className="chart-svg jy-rashi-svg" role="img" aria-label={`${which.toUpperCase()} · 12 ${lang==='uk'?'домів':'houses'}`}>
+  <rect x="1" y="1" width="358" height="358" rx="10" fill="#111b2a" stroke="#c6a66d" strokeWidth="1.6"/>
+  <path d="M0 0 L360 360 M360 0 L0 360 M180 0 L360 180 L180 360 L0 180 Z" fill="none" stroke="#586577" strokeWidth="1"/>
+  <text x="180" y="173" textAnchor="middle" fill="#d7ba82" fontFamily="Playfair Display,Georgia,serif" fontSize="28" letterSpacing="5">{which.toUpperCase()}</text>
+  <text x="180" y="193" textAnchor="middle" fill="#78879a" fontSize="8" letterSpacing="2">{which==='d1'?'RASHI':which==='d9'?'NAVAMSA':'DASHAMSA'}</text>
   {HOUSE_CENTERS.map(([x,y],i)=>{
-   const sign=(lagna.sign-1+i)%12+1,bodies=grahas.filter(p=>p.house===i+1);
-   const names=bodies.map(p=>grahaFull(p.name,lang)+(p.retrograde?' ℞':''));
-   const isTriangle=[1,2,4,5,7,8,10,11].includes(i);
-   const maxVisible=(y<=42||y>=300)?2:isTriangle?2:3;
-   const crowded=names.length>maxVisible, shown=names.slice(0,maxVisible);
-   const label=`${i+1} · ${signFull(sign,lang)}`;
-   const lines=1+shown.length+(crowded?1:0);
-   const firstBaseline=y-(lines-1)*7+3;
+   const sign=(lagna.sign-1+i)%12+1,bodies=grahas.filter(p=>p.house===i+1&&p.name!=='Ascendant');
+   const maxVisible=(y<=42||y>=300)?3:4,shown=bodies.slice(0,maxVisible),extra=bodies.length-shown.length;
+   const top=y-(shown.length?13:2);
    return <g key={i} className="vedic-house" data-house={i+1}>
-    <title>{label}: {names.join(', ')||(lang==='uk'?'немає планет':'no planets')}</title>
-    <text x={x} y={firstBaseline} textAnchor="middle" fill="#d8b875" fontSize={label.length>13?9:10} {...fitText(label,x,label.length>13?9:10)} fontWeight="700">{label}</text>
-    {shown.map((word,j)=><text key={j} x={x} y={firstBaseline+(j+1)*14} textAnchor="middle" fill={bodies[j]?.name==='Sun'||bodies[j]?.name==='Moon'?'#f4d493':'#e2e8f2'} fontSize={word.length>11?9:word.length>9?10:11} {...fitText(word,x,word.length>11?9:word.length>9?10:11)} fontWeight="600">{word}</text>)}
-    {crowded&&<text x={x} y={firstBaseline+(shown.length+1)*14} textAnchor="middle" fill="#d8b875" fontSize="9" {...fitText(lang==='uk'?`ще ${names.length-shown.length} ↓`:`+${names.length-shown.length} below`,x,9)}>{lang==='uk'?`ще ${names.length-shown.length} ↓`:`+${names.length-shown.length} below`}</text>}
+    <title>{i+1}. {signFull(sign,lang)}: {bodies.map(p=>grahaFull(p.name,lang)).join(', ')||(lang==='uk'?'немає планет':'no planets')}</title>
+    <text x={x} y={top} textAnchor="middle" fill="#8e9cad" fontSize="8" fontWeight="700">{i+1}</text>
+    <text x={x+17} y={top} textAnchor="middle" fill="#d8b875" fontSize="13">{SIGN_SYMBOL[sign-1]}</text>
+    {shown.map((body,j)=><g key={body.name}>
+      <text x={x-14} y={top+15+j*13} textAnchor="middle" fill={body.name==='Sun'||body.name==='Moon'?'#f1d391':'#dce3ec'} fontSize="12" fontWeight="700">{GRAHA_SYMBOL[body.name]||body.name.slice(0,2)}</text>
+      <text x={x+11} y={top+15+j*13} textAnchor="middle" fill="#b9c3cf" fontSize="7.5">{degreeLabel(body.degreesInSign)}{body.retrograde?' ℞':''}</text>
+    </g>)}
+    {extra>0&&<text x={x} y={top+15+shown.length*13} textAnchor="middle" fill="#d8b875" fontSize="7">+{extra}</text>}
+    {i===0&&<g><rect x={x-15} y={top-31} width="30" height="15" rx="7.5" fill="#2d3441" stroke="#aa8b59"/><text x={x} y={top-20} textAnchor="middle" fill="#e6ca91" fontSize="8" fontWeight="700">Lg</text></g>}
    </g>;
   })}
  </svg>;
