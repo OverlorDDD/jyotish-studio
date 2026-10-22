@@ -138,22 +138,9 @@ export async function generateConsultationIntelligence(chart:CalculatedChart,lan
   console.warn('A8.9 author rejected: '+check.errors.join(','));
   return {result:null,reason:free.reason||'invalid_response',plan};
  }
- // A single final editor sees EVERY chapter in order, the chart-wide thesis and the
- // same verified evidence. The draft set is never published as a partial patchwork.
- const fullDraft=specs.map(spec=>{
-  const chapter=chapters.find(c=>c.id===spec.id);
-  return {...spec,focus:'UNIFY ONE DOCUMENT: '+plan.thesis+' Do not repeat a motif; edit for vivid '+lang+
-   ' prose while preserving all named, verified factual anchors. '+spec.focus,
-   draft:chapter?.paragraphs||[]};
- });
- const review=await generateResilientFreeConsultation(chart,lang,{
-  ...options,chapterSpecs:fullDraft,reportMode:true,strictCompleteness:true
- });
- const finalChapters=review.result?.chapters||[];
- const finalCheck=verifyUnifiedConsultation(finalChapters,graph,lang);
- if(!review.result||!finalCheck.ok){
-  console.warn('A8.9 editor rejected: '+finalCheck.errors.join(','));
-  return {result:null,reason:review.reason||'invalid_response',plan};
- }
- return {...review,plan};
+ // The validated author document is the publishable artifact. A second full rewrite
+ // was a fragile single point of failure: it frequently lost chapters or facts.
+ // Editing is applied as a non-destructive deterministic quality gate above; an
+ // optional future stylistic revision must not erase a valid complete document.
+ return {...free,plan};
 }
