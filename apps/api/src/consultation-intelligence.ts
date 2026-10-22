@@ -130,7 +130,7 @@ export async function generateConsultationIntelligence(chart:CalculatedChart,lan
    '. Your chapter contributes uniquely to this global argument; never restate earlier chapters.';
   return {...spec,facts:[...facts,...spec.facts],focus:global+' '+(spec.focus||'')} as AiChapterSpec;
  });
- const free=await generateResilientFreeConsultation(chart,lang,{...options,chapterSpecs:specs});
+ const free=await generateResilientFreeConsultation(chart,lang,{...options,chapterSpecs:specs,strictCompleteness:true});
  // No patchwork: if one of eight chapters fails, the ENTIRE AI overlay is discarded.
  const chapters=free.result?.chapters||[];
  const check=verifyUnifiedConsultation(chapters,graph,lang);
@@ -146,9 +146,8 @@ export async function generateConsultationIntelligence(chart:CalculatedChart,lan
    ' prose while preserving all named, verified factual anchors. '+spec.focus,
    draft:chapter?.paragraphs||[]};
  });
- const review=await generateFreeInterpretationDetailed(chart,lang,{
-  ...options,chapterSpecs:fullDraft,reportMode:true,
-  order:[free.result.provider as 'groq'|'gemini'|'openrouter'],timeoutMs:25000
+ const review=await generateResilientFreeConsultation(chart,lang,{
+  ...options,chapterSpecs:fullDraft,reportMode:true,strictCompleteness:true
  });
  const finalChapters=review.result?.chapters||[];
  const finalCheck=verifyUnifiedConsultation(finalChapters,graph,lang);
