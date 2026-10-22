@@ -36,6 +36,10 @@ export function parseAiConsultation(raw:string,specs:ReadonlyArray<AiChapterSpec
  const diagnostic=(id:string,reason:string)=>{if(compact&&process.env.A89_DIAGNOSTICS==='1')console.warn('A8.9 chapter QA: '+id+' '+reason);};
  if(raw.length>24000){diagnostic('response','too_long');return [];}
  const allowed=new Set(specs.map(c=>c.id));
+ // A single-chapter response has an unambiguous server-selected identity.
+ // Missing decorative markers must not discard otherwise factual prose.
+ if(compact&&specs.length===1&&!/\[\[[a-z][a-z-]*\]\]/.test(raw))
+  raw='[['+specs[0].id+']]\n'+raw.replace(/^```(?:markdown|text)?\s*|```$/gm,'').trim();
  const markers=[...raw.matchAll(/\[\[([a-z][a-z-]*)\]\]/g)];
  const seen=new Set<string>(),chapters:AiConsultationChapter[]=[];
  if(compact&&!markers.length)diagnostic('response','missing_chapter_markers');
