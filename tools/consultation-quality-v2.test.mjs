@@ -51,7 +51,7 @@ test('one direct prompt remains the fixed only-writer contract without eight str
  assert.equal(DIRECT_JYOTISH_VERSION,'direct-v2');
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/SHADOW\/FRICTION/);
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/PLAUSIBLE RISK/);
- assert.match(DIRECT_JYOTISH_INSTRUCTION,/same ruling planet joining 1st and 10th/);
+ assert.match(DIRECT_JYOTISH_INSTRUCTION,/shared ruling planet joining 1st and 10th/);
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/Only return the completed Markdown consultation/);
  assert.doesNotMatch(DIRECT_JYOTISH_INSTRUCTION,/exactly eight|8 required chapters|editor call/i);
 });
