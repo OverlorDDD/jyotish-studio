@@ -786,75 +786,111 @@
  .jy-ai-launch-btn{grid-template-columns:auto 1fr}.jy-ai-launch-btn>svg{display:none}.jy-ai-status{padding-left:0}
 }
 
-/* Jyotish visual refinement: denser, document-like, reference-inspired */
-.jy-primary-grid{grid-template-columns:minmax(0,1.42fr) minmax(320px,.78fr);gap:16px}
-.jy-rashi-card,.jy-calc-data{padding:18px}
-.jy-primary-chart{min-height:0;padding:14px 8px 4px}
-.jy-rashi-card .jy-rashi-svg{width:min(100%,520px)}
-.jy-calc-data .jy-card-head{padding-bottom:12px}
-.jy-data-list>div{padding:10px 0}
-.jy-mini-legend{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px 9px;margin-top:14px}
-.jy-mini-legend b{width:24px;height:24px;border-radius:6px}
-.jy-ai-launch-btn{padding:14px 17px;border-color:#705f44;background:linear-gradient(90deg,#252724,#202a37 54%,#182433)}
-.jy-data-workspace{padding:24px 28px 28px}
-.jy-workspace-head{padding-bottom:4px}
-.jy-zodiac-strip{grid-template-columns:repeat(12,26px);gap:4px}
-.jy-zodiac-strip span{width:26px;height:26px;border-radius:6px;font-family:Georgia,'Times New Roman',serif;font-size:13px;background:#172231;border-color:#2c3949}
-.jy-key-facts{gap:0;margin-top:20px;border:1px solid #2f3c4b;border-radius:9px;overflow:hidden;background:#172231}
-.jy-key-facts>div{min-height:68px;border:0;border-right:1px solid #2a3746;border-radius:0;background:transparent;padding:10px 12px;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto}
-.jy-key-facts>div:last-child{border-right:0}
-.jy-fact-icon{width:28px;height:28px;border-radius:6px;background:#232b35;font-family:Georgia,'Times New Roman',serif;font-size:13px}
-.jy-key-facts small{font-size:7.5px;line-height:1.15}
-.jy-key-facts strong{font-size:10.5px;line-height:1.2;align-self:start}
-.jy-section-rule{margin:22px 0 19px}
-.jy-subhead{margin-bottom:12px}
-.jy-planet-table th{font-size:8px}.jy-planet-table td{font-size:10px}
-.jy-table-symbol{font-family:Georgia,'Times New Roman',serif}
-.jy-sign-cell{font-family:Georgia,'Times New Roman',serif}
-.jy-varga-grid{grid-template-columns:minmax(300px,.86fr) minmax(360px,1.14fr);gap:18px}
-.jy-varga-chart{padding:12px;min-height:0}
-.jy-varga-chart .jy-rashi-svg{width:min(100%,380px)}
-.jy-varga-data{padding:16px 18px}
-.jy-varga-list>div{padding:8px 0}
-.jy-dasha-strip{gap:5px}.jy-dasha-cell{min-height:74px;padding:8px}
 
-/* One coherent reading document instead of eight dashboard cards */
-.reading-editorial{border:1px solid #344355;border-radius:14px;background:#152235;overflow:hidden;margin-top:26px}
-.reading-editorial-opening{padding:28px 32px 20px;margin:0;border-bottom:1px solid #2b394a;background:linear-gradient(180deg,#18263a,#152235)}
-.reading-editorial-opening h3{font-family:'Playfair Display',Georgia,serif;font-size:30px;margin:8px 0 9px;color:#eed8ad;font-weight:500}
-.reading-editorial-opening p{max-width:920px;margin:0;color:#9cabbc;line-height:1.75}
-.reading-editorial-highlights{margin:0;padding:0 32px 18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:#152235;border-bottom:1px solid #2b394a}
-.reading-editorial-highlights>div{border:0;border-right:1px solid #2b394a;border-radius:0;background:transparent;padding:15px 18px 4px 0;margin-right:18px}
-.reading-editorial-highlights>div:nth-child(3n){border-right:0;margin-right:0}
-.reading-editorial-highlights span{display:inline-grid;width:25px;height:25px;place-items:center;border:1px solid #705c3a;border-radius:50%;color:#e2bf77;margin-right:8px}
-.reading-editorial-highlights strong{font-size:11px;line-height:1.55;color:#cbd4df;font-weight:500}
-.reading-editorial-chapters{display:block;margin:0;padding:0 32px}
-.reading-editorial-chapter{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:28px 0!important;margin:0!important;border-top:1px solid #2b394a!important}
+/* Jyotish workbench — editorial polish. This overrides the original dashboard
+   rules without changing the rest of Galaxiora's design system. */
+.jy-workbench,.jy-workbench .main,.jy-workbench .content{min-width:0}
+.jy-primary-grid{grid-template-columns:minmax(0,1.3fr) minmax(318px,.78fr);gap:18px;align-items:stretch}
+.jy-rashi-card,.jy-calc-data{padding:20px;min-width:0}
+.jy-primary-chart{min-height:0;padding:16px 4px 8px}
+.jy-primary-chart .jy-rashi-svg{display:block;width:min(100%,504px);max-width:100%;height:auto;margin-inline:auto}
+.jy-rashi-svg text,.jy-zodiac-strip span,.jy-table-symbol,.jy-sign-cell,.jy-lagna-chip strong{font-variant-emoji:text}
+.jy-chart-house text{paint-order:normal}
+.jy-chart-frame{vector-effect:non-scaling-stroke}
+.jy-lagna-chip strong{white-space:nowrap}
+.jy-calc-data .jy-card-head{padding-bottom:12px}
+.jy-data-list>div{padding:10px 0;grid-template-columns:minmax(105px,.85fr) minmax(0,1.25fr)}
+.jy-data-list strong{min-width:0;overflow-wrap:break-word;line-height:1.5}
+.jy-mini-legend{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}
+.jy-mini-legend b{width:24px;height:24px;border-radius:6px}
+.jy-ai-launch-btn{padding:16px 19px;border-color:#947c56;background:linear-gradient(95deg,#2a2928,#202d3b 64%,#1b2938)}
+.jy-ai-launch-btn:focus-visible,.jy-varga-tabs button:focus-visible{outline:2px solid #d6b77f;outline-offset:3px}
+.jy-data-workspace{padding:26px 29px 29px}
+.jy-workspace-head h2{font-size:clamp(22px,2vw,29px)}
+.jy-zodiac-strip{grid-template-columns:repeat(12,25px);gap:5px}
+.jy-zodiac-strip span{width:25px;height:25px;border-radius:6px;background:#172231;border-color:#344254;font-family:Georgia,serif;font-size:13px}
+.jy-key-facts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin-top:20px;border:1px solid #334052;border-radius:10px;overflow:hidden;background:#172332}
+.jy-key-facts>div{min-width:0;min-height:80px;display:grid;grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;align-content:center;align-items:start;gap:3px 9px;padding:12px 10px;border:0;border-right:1px solid #303d4e;border-radius:0;background:transparent}
+.jy-key-facts>div:last-child{border-right:0}
+.jy-key-facts .jy-fact-icon{grid-row:1/3;display:grid;place-items:center;width:30px;height:30px;margin-top:2px;border-radius:7px;background:#242e3b;border:1px solid #65563f;font-family:Georgia,serif;font-size:14px}
+.jy-key-facts small{display:block;line-height:1.4;font-size:8px;letter-spacing:.45px;white-space:normal;overflow-wrap:normal}
+.jy-key-facts strong{display:block;color:#e3e7ed;font-size:11px;line-height:1.45;font-weight:600;min-width:0;overflow-wrap:normal;hyphens:auto}
+.jy-section-rule{margin:24px 0 20px}
+.jy-subhead h3{letter-spacing:-.015em}
+.jy-planet-table td,.jy-planet-table th{padding-block:10px}
+.jy-planet-table th{font-size:9px}
+.jy-planet-table td{font-size:11px}
+.jy-varga-grid{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:20px;align-items:stretch}
+.jy-varga-chart{min-width:0;min-height:0;padding:14px;align-content:center}
+.jy-varga-chart .jy-rashi-svg{display:block;width:min(100%,402px);height:auto;margin:auto}
+.jy-varga-data{min-width:0;padding:19px 20px}
+.jy-varga-list>div{align-items:center;padding:9px 0;gap:12px}
+.jy-varga-list strong{max-width:57%;overflow-wrap:normal;line-height:1.5}
+.jy-dasha-strip{gap:7px}
+.jy-dasha-cell{min-width:0;min-height:78px}
+.jy-dasha-cell strong{overflow-wrap:normal;hyphens:auto}
+
+/* Reading is one continuous article — no nested boxed sections. */
+.reading-root{min-width:0}
+.reading-editorial{margin-top:25px;border:1px solid #39485c;border-radius:15px;overflow:hidden;background:#162438;box-shadow:none}
+.reading-editorial-opening{margin:0;padding:30px clamp(22px,4vw,45px) 26px;border:0;border-bottom:1px solid #314052;border-radius:0;background:linear-gradient(180deg,#1b2a3f 0%,#162438 100%)}
+.reading-editorial-opening h3{font-family:'Playfair Display',Georgia,serif;font-size:clamp(25px,2.6vw,34px);font-weight:500;line-height:1.3;max-width:850px;letter-spacing:-.015em}
+.reading-editorial-opening p{color:#b2c2d1;line-height:1.8;font-size:14px;max-width:85ch}
+
+/* Separate index and prose into explicit CSS grid columns. Tooltip spans
+   belong to the prose and must never inherit the numbered-circle styles. */
+.reading-principles{list-style:none;display:grid;grid-template-columns:1fr;gap:0;margin:0;padding:13px clamp(22px,4vw,45px) 18px;background:transparent;border-bottom:1px solid #314052;counter-reset:none}
+.reading-principle{display:grid;grid-template-columns:38px minmax(0,1fr);gap:14px;align-items:start;margin:0;padding:17px 0;border-bottom:1px solid #2c3b4d;min-width:0}
+.reading-principle:last-child{border-bottom:0}
+.reading-principle-number{display:grid;place-items:center;width:33px;height:33px;border:1px solid #90744c;border-radius:50%;color:#dfbc7d;font-family:Georgia,serif;font-size:11px;line-height:1}
+.reading-principle-content{min-width:0}
+.reading-principle-content h4{margin:0 0 5px;color:#ecd3a2;font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:19px;line-height:1.3}
+.reading-principle-content p{margin:0;max-width:82ch;color:#cfd9e5;font-size:14px;line-height:1.75;overflow-wrap:break-word}
+/* GlossaryText may wrap words in spans: never impose grid/circle styles on them. */
+.reading-principle-content :is(span,a,button){min-width:0;max-width:100%}
+.reading-editorial-chapters{display:block;margin:0;padding:0 clamp(22px,4vw,45px)}
+.reading-editorial-chapter{margin:0!important;padding:32px 0 28px!important;background:transparent!important;border:0!important;border-top:1px solid #304052!important;border-radius:0!important;box-shadow:none!important;min-width:0}
 .reading-editorial-chapter:first-child{border-top:0!important}
-.reading-editorial-chapter-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.reading-editorial-chapter-header span{display:grid;place-items:center;width:31px;height:31px;border:1px solid #7d663f;border-radius:50%;color:#e6c27a;font-size:9px;flex:0 0 auto}
-.reading-editorial-chapter h3{font-family:'Playfair Display',Georgia,serif;font-size:26px;line-height:1.2;color:#f0ddba;margin:0;font-weight:500}
-.reading-editorial-chapter>p{max-width:1040px;font-size:15px;line-height:1.9;color:#d2d9e2;margin:14px 0}
-.reading-editorial-chapter .reading-provider{font-size:9px!important;line-height:1.4!important;color:#88a0ba!important;letter-spacing:.35px;text-transform:none}
-.reading-editorial .chapter-evidence,.reading-editorial details{max-width:1040px}
-.reading-editorial>.reading-glossary{margin:0 32px 28px;border-top:1px solid #2b394a;border-radius:0;background:transparent}
-.reading-editorial>.reading-glossary summary{padding-left:0}
-@media(max-width:1100px){
- .jy-primary-grid{grid-template-columns:1fr}.jy-rashi-card .jy-rashi-svg{width:min(100%,500px)}
+.reading-editorial-chapter-header{display:grid;grid-template-columns:35px minmax(0,1fr);gap:14px;align-items:center;margin-bottom:17px}
+.reading-editorial-chapter-header span{width:33px;height:33px;display:grid;place-items:center;flex-shrink:0;color:#dbba7d;border:1px solid #806843;border-radius:50%;font-size:11px}
+.reading-editorial-chapter h3{font-family:'Playfair Display',Georgia,serif;font-size:clamp(23px,2.2vw,28px);font-weight:500;letter-spacing:-.01em;line-height:1.3;margin:0;color:#f1ddba}
+.reading-editorial-chapter>p{max-width:83ch;font-size:clamp(14px,1.06vw,16px);line-height:1.9;color:#d6dfe9;margin:0 0 17px;overflow-wrap:break-word}
+.reading-editorial-chapter .reading-provider{font-size:10px!important;line-height:1.6!important;color:#8ea3b9!important;letter-spacing:.2px!important;margin:0 0 17px!important}
+.reading-editorial-chapter .reading-portrait-evidence{max-width:83ch;margin-top:14px}
+.reading-editorial .reading-glossary{margin:0 clamp(22px,4vw,45px) 24px;border-top:1px solid #304052;border-radius:0;background:transparent}
+.reading-editorial .reading-glossary summary{padding-left:0}
+
+@media(max-width:1190px){
+ .jy-primary-grid{grid-template-columns:1fr}
+ .jy-primary-chart .jy-rashi-svg{width:min(100%,500px)}
+ .jy-varga-grid{grid-template-columns:1fr}
+ .jy-varga-chart .jy-rashi-svg{width:min(100%,450px)}
  .jy-key-facts{grid-template-columns:repeat(3,minmax(0,1fr))}
- .jy-key-facts>div{border-bottom:1px solid #2a3746}
+ .jy-key-facts>div{border-bottom:1px solid #303d4e}
  .jy-key-facts>div:nth-child(3n){border-right:0}
- .jy-zodiac-strip{grid-template-columns:repeat(6,26px)}
- .reading-editorial-highlights{grid-template-columns:1fr}
- .reading-editorial-highlights>div,.reading-editorial-highlights>div:nth-child(3n){border-right:0;border-bottom:1px solid #2b394a;margin-right:0;padding-right:0}
+ .jy-key-facts>div:nth-last-child(-n+3){border-bottom:0}
+ .jy-zodiac-strip{grid-template-columns:repeat(6,25px)}
 }
-@media(max-width:700px){
- .reading-editorial-opening,.reading-editorial-highlights,.reading-editorial-chapters{padding-left:18px;padding-right:18px}
- .reading-editorial>.reading-glossary{margin-left:18px;margin-right:18px}
- .reading-editorial-opening h3{font-size:25px}
+@media(max-width:660px){
+ .jy-rashi-card,.jy-calc-data,.jy-data-workspace{padding:15px}
+ .jy-primary-chart{padding:12px 0 4px}
+ .jy-key-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .jy-key-facts>div:nth-child(3n){border-right:1px solid #303d4e}
+ .jy-key-facts>div:nth-child(2n){border-right:0}
+ .jy-key-facts>div:nth-last-child(3){border-bottom:1px solid #303d4e}
+ .jy-workspace-head{display:grid}
+ .jy-zodiac-strip{grid-template-columns:repeat(6,25px)}
+ .jy-varga-data{padding:14px}
+ .jy-mini-legend{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .reading-editorial-opening{padding:22px 18px 20px}
+ .reading-principles{padding:5px 18px 10px}
+ .reading-principle{grid-template-columns:32px minmax(0,1fr);gap:11px;padding:14px 0}
+ .reading-principle-number{width:29px;height:29px}
+ .reading-principle-content h4{font-size:18px}
+ .reading-principle-content p{font-size:13px}
+ .reading-editorial-chapters{padding:0 18px}
+ .reading-editorial-chapter{padding:23px 0 20px!important}
  .reading-editorial-chapter h3{font-size:22px}
  .reading-editorial-chapter>p{font-size:14px;line-height:1.75}
- .jy-key-facts{grid-template-columns:1fr 1fr}
- .jy-key-facts>div:nth-child(3n){border-right:1px solid #2a3746}
- .jy-key-facts>div:nth-child(2n){border-right:0}
+ .reading-editorial .reading-glossary{margin:0 18px 18px}
 }
