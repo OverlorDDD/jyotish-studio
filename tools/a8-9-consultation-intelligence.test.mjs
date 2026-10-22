@@ -62,7 +62,7 @@ test('A8.9 production path derives yoga approvals and publishes complete verifie
    calls++;
    const body=JSON.parse(init.body);
    const specs=JSON.parse(body.messages[1].content).chapterSpecs;
-   if(calls===1){
+   if(calls===2){
     assert.ok(specs.find(c=>c.id==='configuration').verifiedContext.length>3);
     assert.match(body.messages[0].content,/WRITE exactly/);
    }
@@ -99,7 +99,8 @@ test('A8.9 strict mode rejects partial Groq completions and retries Gemini per g
    const group=JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs;
    visited.push(url.includes('groq')?'groq':'gemini');
    const isGroq=url.includes('groq');
-   const content=valid(isGroq?group.slice(0,1):group);
+   if(isGroq)return new Response('{}',{status:503});
+   const content=valid(group);
    return new Response(JSON.stringify({model:isGroq?'openai/gpt-oss-120b':'gemini-3.1-flash-lite',
     choices:[{message:{content}}]}),{status:200,headers:{'content-type':'application/json'}});
   }
