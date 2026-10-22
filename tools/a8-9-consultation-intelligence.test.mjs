@@ -107,3 +107,19 @@ test('A8.9 strict mode rejects partial Groq completions and retries Gemini per g
  assert.ok(visited.length>=4);
  assert.equal(result.result?.chapters.length,8);
 });
+
+test('A8.9 stops after a failed required group instead of exhausting later free calls',async()=>{
+ const editorial={chapters:CHAPTER_IDS.map(id=>({id,title:id,evidence:[],paragraphs:[]})),findings:[]};
+ let requests=0;
+ const r=await generateConsultationIntelligence(chart(),'uk','2026-10-21',editorial,{
+  order:['groq'],groqEnabled:true,groqKey:'test-only',limit:()=>true,
+  fetcher:async()=>{
+   requests++;
+   return new Response(JSON.stringify({model:'openai/gpt-oss-120b',
+    choices:[{message:{content:'[[portrait]]\\nЗанадто короткий текст.'}}]}),{status:200,
+    headers:{'content-type':'application/json'}});
+  }
+ });
+ assert.equal(r.result,null);
+ assert.equal(requests,1);
+});
