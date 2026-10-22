@@ -16,12 +16,16 @@ test('public homepage supports bilingual Galaxiora portal and retains root HTTP 
  assert.ok(shell.includes('aria-current'));
  assert.ok(home.includes('as-celestial'));
 });
-test('existing Jyotish app is moved intact and remains accessible under both locales',()=>{
+test('Jyotish calculator keeps bilingual routes, data flows and the shared geometric chart renderer',()=>{
  const old=code('apps/web/app/astrology/jyotish/page.tsx');
  const wrapper=code('apps/web/app/[locale]/astrology/jyotish/page.tsx');
- for(const token of ['const HOUSE_CENTERS','<Wheel','<AccountPortal','<DetailedReport','calculate','interpret']){
+ const renderer=code('apps/web/app/components/NorthIndianChart.tsx');
+ const layout=code('apps/web/lib/north-indian-layout.ts');
+ for(const token of ['<NorthIndianChart','<AccountPortal','<DetailedReport','calculate','interpret']){
   assert.ok(old.includes(token),token);
  }
+ assert.match(renderer,/layoutHouses\(planets\)/);
+ assert.match(layout,/CHART_HOUSES/);
  assert.match(wrapper,/JyotishCalculator initialLang/);
  assert.match(old,/as-back-link/);
 });

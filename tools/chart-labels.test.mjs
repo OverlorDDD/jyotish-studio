@@ -7,6 +7,8 @@ const source=readFileSync(new URL('../apps/web/public/demo.js',import.meta.url),
 const demoCss=readFileSync(new URL('../apps/web/public/demo.css',import.meta.url),'utf8');
 const appCss=readFileSync(new URL('../apps/web/app/globals.css',import.meta.url),'utf8');
 const appPage=readFileSync(new URL('../apps/web/app/astrology/jyotish/page.tsx',import.meta.url),'utf8');
+const geometricChart=readFileSync(new URL('../apps/web/app/components/NorthIndianChart.tsx',import.meta.url),'utf8');
+const report=readFileSync(new URL('../apps/web/app/components/DetailedReport.tsx',import.meta.url),'utf8');
 const start=source.indexOf('const xml =');
 const end=source.indexOf('\nfunction render()',start);
 assert.ok(start>0&&end>start,'Locate actual standalone chart renderer');
@@ -74,7 +76,17 @@ test('both web interfaces wrap the Ukrainian brand tag and constrain chart text'
   assert.ok(css.includes('.logo small{white-space:normal;'),'Brand tag may overflow');
   assert.ok(css.includes('.chart-svg{overflow:hidden}'),'SVG overflow must be clipped as a safety net');
  }
- assert.match(appPage,/const HOUSE_CENTERS:\[number,number\]\[\]=\[\[180,90\],\[90,40\],\[45,90\]/);
- assert.match(appPage,/maxVisible=\(y<=42\|\|y>=300\)\?2/);
- assert.match(appPage,/fitText\(word,x/);
+ assert.match(appPage,/NorthIndianChart planets=\{chart\.d1\}/);
+ assert.match(appPage,/NorthIndianChart planets=\{placements\}/);
+ assert.doesNotMatch(appPage,/function Wheel\(/);
+ assert.match(geometricChart,/className="jy-chart-house"/);
+ assert.match(geometricChart,/const houses=layoutHouses\(planets\)/);
+ assert.match(geometricChart,/textAnchor="middle" dominantBaseline="middle"/);
+ assert.match(geometricChart,/slot\.top-slot\.y/);
+ assert.match(geometricChart,/slot\.hidden>0/);
+ assert.match(report,/className="reading-principles"/);
+ assert.match(report,/className="reading-principle-number"/);
+ assert.doesNotMatch(report,/className="reading-editorial-highlights"/);
+ assert.match(appCss,/\.reading-principle\{display:grid;grid-template-columns:38px minmax\(0,1fr\)/);
+ assert.match(appCss,/\.reading-editorial-chapter\{margin:0!important;/);
 });
