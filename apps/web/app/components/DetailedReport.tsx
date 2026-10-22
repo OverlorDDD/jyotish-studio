@@ -48,7 +48,8 @@ const FALLBACK_UK:Record<string,string>={
  invalid_response:'Не вдалося отримати повне AI-трактування, що відповідає вимогам формату та перевірки змісту. Розрахований звіт залишається доступним.',
  timeout:'Модель відповідала надто довго.',
  network:'Не вдалося підключитися до моделі.',
- local_only:'Обрано лише локальний звіт.'
+ local_only:'Обрано лише локальний звіт.',
+ reader_only:'Автономне прочитання Reader v6.'
 };
 const FALLBACK_EN:Record<string,string>={
  hourly_limit:'The hourly free AI limit was reached.',
@@ -59,7 +60,8 @@ const FALLBACK_EN:Record<string,string>={
  invalid_response:'A complete AI reading meeting format and content checks could not be obtained. The calculated report remains available.',
  timeout:'The model response timed out.',
  network:'Could not connect to the model.',
- local_only:'Offline report was requested.'
+ local_only:'Offline report was requested.',
+ reader_only:'Offline Reader v6 consultation.'
 };
 
 function ReportPhoto({kind,uk}:{kind:keyof typeof PHOTOS;uk:boolean}){
@@ -149,11 +151,14 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
  const fullConsultation=aiChapters.size>0;
   const unified=ai.documentMode==='unified'&&aiChapters.size===8;
+ const readerOnly=ai.fallbackReason==='reader_only';
  return <section className="reading-root" id="full-reading" aria-label={uk?'Детальне трактування карти':'Detailed chart interpretation'}>
   <div className="reading-kicker">{uk?'✧ ПЕРСОНАЛЬНЕ ТРАКТУВАННЯ':'✧ PERSONAL READING'}</div>
   <h2>{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
   
-  <p className="reading-provider" role="status" data-testid="reading-ai-provenance">{hasLlm?
+  <p className="reading-provider" role="status" data-testid="reading-ai-provenance">{readerOnly?
+   (uk?'Jyotish Reader v6 · цілісне традиційне прочитання на основі обчисленої карти.':'Jyotish Reader v6 · complete chart-grounded traditional reading.'):
+   hasLlm?
    (unified?(uk?'Єдина AI-консультація · ':'Unified AI consultation · '):(uk?'Основне трактування: Jyotish Reader v6. Додаткова LLM-інтерпретація: ':'Primary reading: Jyotish Reader v6. Additional LLM interpretation: '))+
    (ai.provider==='openrouter'?'OpenRouter':ai.provider==='gemini'?'Google Gemini':ai.provider==='groq'?'GroqCloud':'Ollama')+' · '+(ai.model||'—')+
    (ai.cached?(uk?' · повторне використання перевіреної відповіді':' · cached verified response'):'')+
