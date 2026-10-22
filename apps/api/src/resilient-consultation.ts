@@ -53,6 +53,9 @@ export async function generateResilientFreeConsultation(
     chapters.push(...incoming.filter(c=>!chapters.some(existing=>existing.id===c.id)));
    }else{
     lastReason=result.reason||'invalid_response';
+    // Strict A8.9 cannot publish a report after a missing group. Stop now
+    // instead of burning the free quota on chapters we would discard.
+    if(options.strictCompleteness)return {result:null,reason:controller.signal.aborted?'timeout':lastReason};
     // Failure never discards earlier LLM content, and never replaces Reader V5.
     // Don't continue with more calls if the free budget is exhausted.
     if(lastReason==='hourly_limit'||lastReason==='rate_limited')break;
