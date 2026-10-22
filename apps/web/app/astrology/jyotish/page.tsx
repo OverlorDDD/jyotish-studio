@@ -37,8 +37,8 @@ const HOUSE_CENTERS:[number,number][]=[[180,90],[90,40],[45,90],[90,180],[45,270
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const GRAHA_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету',Ascendant:'Висхідний знак'};
-const SIGN_SYMBOL=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
-const GRAHA_SYMBOL:Record<string,string>={Sun:'☉',Moon:'☽',Mars:'♂',Mercury:'☿',Jupiter:'♃',Venus:'♀',Saturn:'♄',Rahu:'☊',Ketu:'☋',Ascendant:'Lg'};
+const SIGN_SYMBOL=['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
+const GRAHA_SYMBOL:Record<string,string>={Sun:'☉︎',Moon:'☽︎',Mars:'♂︎',Mercury:'☿︎',Jupiter:'♃︎',Venus:'♀︎',Saturn:'♄︎',Rahu:'☊︎',Ketu:'☋︎',Ascendant:'Lg'};
 const two=(value:number)=>String(value).padStart(2,'0');
 const degreeLabel=(value:number)=>{const d=Math.floor(value),m=Math.floor((value-d)*60);return d+'°'+two(m)+'′';};
 const NAKSHATRA_UK:Record<string,string>={
@@ -77,9 +77,9 @@ function Wheel({grahas,which,lang,lagna}:{grahas:Graha[],which:string,lang:'en'|
    return <g key={i} className="vedic-house" data-house={i+1}>
     <title>{i+1}. {signFull(sign,lang)}: {bodies.map(p=>grahaFull(p.name,lang)).join(', ')||(lang==='uk'?'немає планет':'no planets')}</title>
     <text x={x} y={top} textAnchor="middle" fill="#8e9cad" fontSize="8" fontWeight="700">{i+1}</text>
-    <text x={x+17} y={top} textAnchor="middle" fill="#d8b875" fontSize="13">{SIGN_SYMBOL[sign-1]}</text>
+    <text x={x+17} y={top} textAnchor="middle" fill="#d8b875" fontFamily="Georgia,Times New Roman,serif" fontSize="13">{SIGN_SYMBOL[sign-1]}</text>
     {shown.map((body,j)=><g key={body.name}>
-      <text x={x-14} y={top+15+j*13} textAnchor="middle" fill={body.name==='Sun'||body.name==='Moon'?'#f1d391':'#dce3ec'} fontSize="12" fontWeight="700">{GRAHA_SYMBOL[body.name]||body.name.slice(0,2)}</text>
+      <text x={x-14} y={top+15+j*13} textAnchor="middle" fill={body.name==='Sun'||body.name==='Moon'?'#f1d391':'#dce3ec'} fontFamily="Georgia,Times New Roman,serif" fontSize="12" fontWeight="700">{GRAHA_SYMBOL[body.name]||body.name.slice(0,2)}</text>
       <text x={x+11} y={top+15+j*13} textAnchor="middle" fill="#b9c3cf" fontSize="7.5">{degreeLabel(body.degreesInSign)}{body.retrograde?' ℞':''}</text>
     </g>)}
     {extra>0&&<text x={x} y={top+15+shown.length*13} textAnchor="middle" fill="#d8b875" fontSize="7">+{extra}</text>}
