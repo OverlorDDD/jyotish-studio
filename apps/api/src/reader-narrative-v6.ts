@@ -100,7 +100,7 @@ export function authorConsultationV6(chart:CalculatedChart,lang:Language,asOf:st
  const navVenus=pos(chart,'Venus','d9'),dashCareer=pos(chart,lord(10),'d10');
  const activeTime=Date.parse(asOf+'T12:00:00Z');
  const major=chart.dasha.find(period=>Date.parse(period.start)<=activeTime&&activeTime<Date.parse(period.end));
- const minor=major?.antardashas.find(period=>Date.parse(period.start)<=activeTime&&activeTime<Date.parse(period.end));
+ const minor=major?.antardashas?.find(period=>Date.parse(period.start)<=activeTime&&activeTime<Date.parse(period.end));
  const setting=hasCluster?area(cluster.house,uk):area(rulerHouse(1),uk);
  const summary=uk?
   (hasCluster?'Кілька важливих сил карти зустрічаються у сфері '+setting+'. ':'Ваша карта не зводиться до одного скупчення планет: її центр визначає шлях управителя лагни через сферу '+setting+'. ')+
