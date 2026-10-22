@@ -4,6 +4,9 @@
  * never API keys, user birth data, or unfiltered external provider output.
  */
 import {generateResilientFreeConsultation} from '../apps/api/src/resilient-consultation.ts';
+import {calculateChart} from '../packages/jyotish-core/src/index.ts';
+import {buildInterpretationV3} from '../apps/api/src/interpretation-v3.ts';
+import {generateConsultationIntelligence} from '../apps/api/src/consultation-intelligence.ts';
 import {CHAPTER_IDS} from '../apps/api/src/consultation-ai.ts';
 
 const fake={ascendant:{sign:4,signName:'Cancer'},d1:[],dasha:[],input:{
@@ -37,7 +40,16 @@ if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
  process.exitCode=2;
 }else{
  try{
-  const r=await generateResilientFreeConsultation(fake,'uk',{chapterSpecs:chapters,reportMode:true});
+  const preview=process.env.GALAXIORA_A89_PREVIEW==='1';
+  console.log('Mode='+(preview?'A8.9 unified author + editor':'Reader V5 enrichment'));
+  const asOf=new Date().toISOString().slice(0,10);
+  const synthetic=preview?calculateChart(fake.input,{
+   ayanamsa:23.8,ascendant:100,julianDay:2451545,backend:'synthetic',
+   positions:['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
+    .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}))
+  }):null;
+  const r=preview?await generateConsultationIntelligence(synthetic,'uk',asOf,buildInterpretationV3(synthetic,'uk',asOf)):
+   await generateResilientFreeConsultation(fake,'uk',{chapterSpecs:chapters,reportMode:true});
   if(!r.result){
    console.error('FAIL: no accepted external LLM consultation. Reason='+r.reason);
    console.error('Check provider READY/MISSING_KEY/FREE_TIER_NOT_CONFIRMED statuses above. Gemini uses gemini-3.1-flash-lite; Groq requires explicit FREE plan confirmation; OpenRouter long responses may time out.');
@@ -47,7 +59,7 @@ if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
    const count=r.result.chapters?.length||0;
    console.log('PASS: received and validated a real model consultation.');
    console.log('Provider='+r.result.provider+'; model='+r.result.model);
-   console.log('Accepted AI chapters='+count+'/8. Incomplete chapters retain their complete deterministic Reader V5 prose.');
+   console.log('Accepted AI chapters='+count+'/8. '+(preview?'Unified document passed author and editor gates.':'Incomplete chapters retain deterministic Reader V5 prose.'));
    console.log('No private birth information or provider response content was printed.');
   }
  }catch(error){

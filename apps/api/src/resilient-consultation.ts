@@ -19,7 +19,7 @@ export async function generateResilientFreeConsultation(
   ...ch,
   // Only the narrow evidence and a sample of the authored prose are transmitted.
   // The server keeps the complete, trusted draft for rendering.
-  facts:ch.facts.slice(0,3).map(f=>f.slice(0,210)),
+  facts:options.preserveChapterContext?ch.facts:ch.facts.slice(0,3).map(f=>f.slice(0,210)),
   draft:ch.draft?.map(p=>p.slice(0,165))
  })));
  const controller=new AbortController();

@@ -114,7 +114,7 @@ export class JyotishController{
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+(process.env.GALAXIORA_A89_PREVIEW==='1'?':a8.9-preview-1':':interpretation-v5-1-bounded-cloud-enrichment'),
+  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+(process.env.GALAXIORA_A89_PREVIEW==='1'?':a8.9-preview-2':':interpretation-v5-1-bounded-cloud-enrichment'),
    ()=>process.env.GALAXIORA_A89_PREVIEW==='1'?
      generateConsultationIntelligence(chart,birth.lang,report.asOf,report.editorial,{
       onUsage:event=>this.recordAiUsage(event,'detailed_report')

@@ -61,6 +61,8 @@ function failureReason(error:unknown):FreeFallbackReason{
  return 'provider_unavailable';
 }
 export type FreeAiOptions={
+ /** Keep complete server-verified evidence for the unified writer. */
+ preserveChapterContext?:boolean;
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
  groqEnabled?:boolean;groqKey?:string;groqModel?:string;

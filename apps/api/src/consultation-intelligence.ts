@@ -1,9 +1,9 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {CLASSICAL_RULERS,dignityFor} from '../../../packages/jyotish-core/src/rules.ts';
+import {CLASSICAL_RULERS,dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {buildChartFactGraph,requireGraphFacts,type ChartFactGraph} from './consultation-fact-graph.ts';
 import {buildAiChapterSpecs,CHAPTER_IDS,type AiChapterSpec} from './consultation-ai.ts';
 import {generateResilientFreeConsultation} from './resilient-consultation.ts';
-import {checkNarrativeLordClaims} from './reader-classical.ts';
+import {checkNarrativeLordClaims,yogakarakasForLagna} from './reader-classical.ts';
 import {generateFreeInterpretationDetailed,type FreeAiOptions,type FreeAiOutcome} from './free-ai.ts';
 
 /** A8.9 preview only: rules here are arithmetic facts, not unverified OCR interpretations. */
@@ -15,7 +15,7 @@ export type ConsultationPlan={
  fingerprint:string;thesis:string;themes:{id:string;weight:number;claimIds:string[];counterpoints:string[]}[];
  chapterClaims:Record<string,string[]>;
 };
-export const CONSULTATION_INTELLIGENCE_VERSION='a8.9-preview-1';
+export const CONSULTATION_INTELLIGENCE_VERSION='a8.9-preview-2';
 const NAMES_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн'};
 function position(graph:ChartFactGraph,scope:string,name:string){
  return requireGraphFacts(graph,[scope+'.'+name])[0];
@@ -112,6 +112,11 @@ export function verifyUnifiedConsultation(
 export async function generateConsultationIntelligence(chart:CalculatedChart,lang:'uk'|'en',asOf:string,
  editorial:{chapters:ReadonlyArray<{id:string;title:string;evidence:ReadonlyArray<string>;paragraphs?:ReadonlyArray<string>}>;findings:Parameters<typeof buildAiChapterSpecs>[0]['findings']},
  options:FreeAiOptions={}):Promise<FreeAiOutcome&{plan:ConsultationPlan}>{
+ // Approvals must come from this calculated chart, not from caller/model assertions.
+ options={...options,preserveChapterContext:true,approvedYogas:[
+  ...ruleFindings(chart).yogas.map(y=>y.name),
+  ...(yogakarakasForLagna(chart.ascendant.sign).length?['yogakaraka']:[])
+ ]};
  const graph=buildChartFactGraph(chart,asOf);
  const claims=buildSupportedClaims(graph);
  const plan=planConsultation(graph,claims,lang);
@@ -129,7 +134,10 @@ export async function generateConsultationIntelligence(chart:CalculatedChart,lan
  // No patchwork: if one of eight chapters fails, the ENTIRE AI overlay is discarded.
  const chapters=free.result?.chapters||[];
  const check=verifyUnifiedConsultation(chapters,graph,lang);
- if(!free.result||!check.ok)return {result:null,reason:free.reason||'invalid_response',plan};
+ if(!free.result||!check.ok){
+  console.warn('A8.9 author rejected: '+check.errors.join(','));
+  return {result:null,reason:free.reason||'invalid_response',plan};
+ }
  // A single final editor sees EVERY chapter in order, the chart-wide thesis and the
  // same verified evidence. The draft set is never published as a partial patchwork.
  const fullDraft=specs.map(spec=>{
@@ -143,7 +151,10 @@ export async function generateConsultationIntelligence(chart:CalculatedChart,lan
   order:[free.result.provider as 'groq'|'gemini'|'openrouter'],timeoutMs:25000
  });
  const finalChapters=review.result?.chapters||[];
- if(!review.result||!verifyUnifiedConsultation(finalChapters,graph,lang).ok)
+ const finalCheck=verifyUnifiedConsultation(finalChapters,graph,lang);
+ if(!review.result||!finalCheck.ok){
+  console.warn('A8.9 editor rejected: '+finalCheck.errors.join(','));
   return {result:null,reason:review.reason||'invalid_response',plan};
+ }
  return {...review,plan};
 }
