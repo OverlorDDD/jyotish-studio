@@ -177,9 +177,20 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     <h3>{uk?'Про вашу особистість, стосунки, кар’єру та життєві орієнтири':'Personality, relationships, work and life direction'}</h3>
     <p>{uk?'Перед вами персональне прочитання за традицією Джйотіш: лагна, положення грах, управителі домів, накшатра Місяця та поточна даша. Ми пояснюємо, звідки походить кожен висновок, відділяючи астрологічний розрахунок від традиційного тлумачення.':'A personal reading in the Jyotish tradition, following the ascendant, grahas, house rulers, Moon nakshatra and current dasha. Each conclusion is tied to the chart, distinguishing astronomical calculations from traditional interpretation.'}</p>
    </div>
-   <section className="reading-editorial-highlights" aria-label={uk?'Основні акценти карти':'Chart highlights'}>
-    {report.editorial.highlights.map((h,i)=><div key={i}><span>{String(i+1).padStart(2,'0')}</span><strong><GlossaryText text={h} locale={lang}/></strong></div>)}
-   </section>
+   <ol className="reading-principles" aria-label={uk?'Основні акценти карти':'Chart highlights'}>
+    {report.editorial.highlights.map((h,i)=>{
+     const separator=h.indexOf(':');
+     const title=separator>0?h.slice(0,separator):(uk?'Ключова тема':'Key theme');
+     const detail=separator>0?h.slice(separator+1).trim():h;
+     return <li className="reading-principle" key={i}>
+      <span className="reading-principle-number" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
+      <div className="reading-principle-content">
+       <h4>{title}</h4>
+       <p><GlossaryText text={detail} locale={lang}/></p>
+      </div>
+     </li>;
+    })}
+   </ol>
    <div className="reading-editorial-chapters">
     {report.editorial.chapters.map((chapter,i)=><article className="reading-editorial-chapter" key={chapter.id} id={'reading-story-'+chapter.id}>
       <div className="reading-editorial-chapter-header"><span>{String(i+1).padStart(2,'0')}</span><h3>{chapter.title}</h3></div>
