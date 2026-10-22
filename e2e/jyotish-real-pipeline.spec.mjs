@@ -7,7 +7,7 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(runtime.status()).toBe(200);
  const version=await runtime.json();
  expect(version.readerVersion).toBe('6.0.0');
- expect(version.pipeline).toBe('direct-v1');
+ expect(version.pipeline).toBe('direct-v2');
  await page.goto('/uk/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
