@@ -61,6 +61,8 @@ function failureReason(error:unknown):FreeFallbackReason{
  return 'provider_unavailable';
 }
 export type FreeAiOptions={
+ /** Keep complete server-verified evidence for the unified writer. */
+ preserveChapterContext?:boolean;strictCompleteness?:boolean;
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
  groqEnabled?:boolean;groqKey?:string;groqModel?:string;
@@ -93,6 +95,13 @@ export async function generateFreeInterpretationDetailed(
  // Permit ONLY explicitly free model slugs. Do not turn failover into paid inference.
  const openRouterModel=customOpenRouter&&/^[a-z0-9_.-]+\/[a-z0-9_.:-]+:free$/i.test(customOpenRouter)?customOpenRouter:'openrouter/free';
  let reason:FreeFallbackReason='no_provider';
+ const complete=(result:NonNullable<FreeAiOutcome['result']>)=>{
+  if(opts.strictCompleteness&&opts.chapterSpecs&&
+    (result.chapters?.length!==opts.chapterSpecs.length||
+     result.chapters.some((ch,i)=>ch.id!==opts.chapterSpecs![i].id)))
+   throw new AiProviderError('format','incomplete_verified_chapters');
+  return {result};
+ };
  for(const provider of providers){
   if(provider==='openrouter'&&!openrouterKey)continue;
   if(provider==='gemini'&&(!geminiEnabled||!geminiKey))continue;
@@ -107,7 +116,7 @@ export async function generateFreeInterpretationDetailed(
     try{
      // Long-form advice uses vetted paragraphs, not JSON: openrouter/free rotates models
      // which often cannot honour JSON-schema. Keep legacy short-reading strict.
-     return {result:await request(opts.chapterSpecs?'consultation':opts.reportMode?'prose':'strict')};
+     return complete(await request(opts.chapterSpecs?'consultation':opts.reportMode?'prose':'strict'));
     }catch(error){
      // Free routers may choose endpoints that ignore strict schemas.
      // Retry only malformed/unsupported format, never 401/403/429/5xx or network errors.
@@ -119,7 +128,7 @@ export async function generateFreeInterpretationDetailed(
      if(!rejected)throw error;
      if(!permit()){reason='hourly_limit';continue;}
      console.warn('Free AI: first response rejected'+(safeFormatDiagnostic(error)?' ('+safeFormatDiagnostic(error)+')':'')+'; retrying a fact-linked JSON prompt');
-     return {result:await request('prompt')};
+     return complete(await request('prompt'));
     }
    }
    if(provider==='gemini'){
@@ -129,7 +138,7 @@ export async function generateFreeInterpretationDetailed(
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,
      approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
-    return {result};
+    return complete(result);
    }
    if(provider==='groq'){
     if(!permit()){reason='hourly_limit';continue;}
@@ -139,7 +148,7 @@ export async function generateFreeInterpretationDetailed(
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,
      chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
-    return {result};
+    return complete(result);
    }
 
   }catch(error){

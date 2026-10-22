@@ -40,3 +40,70 @@ test('A8.9: cannot publish a mixed partial cloud result; no provider gives no re
  assert.equal(result.reason,'no_provider');
  assert.equal(result.plan.fingerprint,g.fingerprint);
 });
+
+test('A8.9 production path derives yoga approvals and preserves facts through writer and editor',async()=>{
+ const editorial={chapters:CHAPTER_IDS.map(id=>({id,title:id,evidence:[],paragraphs:[]})),findings:[]};
+ let calls=0;
+ const anchors={
+ portrait:'The ascendant Moon describes the need for privacy.',
+ configuration:'The yogakaraka Mars connects creative initiative with responsible action.',
+ tensions:'Mars and Saturn give different rhythms to personal effort.',
+ relationships:'Venus describes mutual affection and respect in partnership.',
+ career:'Mars connects vocation with the discipline of developing a craft.',
+ resources:'Sun and Venus connect resources with learning and social contribution.',
+ timing:'The mahadasha highlights patient reflection without forecasting events.',
+ conclusion:'The ascendant Moon and Mars bring together inward needs and outward action.'
+ };
+ const result=await generateConsultationIntelligence(chart(),'en','2026-10-21',editorial,{
+  order:['groq'],groqEnabled:true,groqKey:'test-only',limit:()=>true,
+  fetcher:async(_url,init)=>{
+   calls++;
+   const body=JSON.parse(init.body);
+   const specs=JSON.parse(body.messages[1].content).chapterSpecs;
+   if(calls===1){
+    assert.ok(specs.find(c=>c.id==='configuration').verifiedContext.length>3);
+    assert.match(body.messages[0].content,/Do not copy numeric house placements/);
+   }
+   const content=specs.map(c=>'[['+c.id+']]\n'+anchors[c.id]+
+    ' In the '+c.id+' theme, the verified factors describe a balance between personal initiative and the need to listen carefully to circumstances. You may recognize this in the way enthusiasm grows when the task carries meaning, while external pressure makes thoughtful pacing especially valuable.\n\n'+
+    'Another perspective on '+c.id+' is the relationship between inward priorities and shared commitments. Giving each of these a clear place can help translate intention into sustained practice. The strength of this pattern lies in bringing reflection into action without allowing one concern to displace every other part of life.'
+   ).join('\n\n');
+   return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content}}]}));
+  }
+ });
+ assert.equal(calls,8);
+ assert.equal(result.result?.chapters.length,8);
+ assert.match(result.result.text,/yogakaraka/);
+});
+
+test('A8.9 strict mode rejects partial Groq completions and retries Gemini per group',async()=>{
+ const editorial={chapters:CHAPTER_IDS.map(id=>({id,title:id,evidence:[],paragraphs:[]})),findings:[]};
+ const visited=[];
+ const anchors={portrait:'The ascendant Moon illuminates a personal orientation. ',
+ configuration:'The yogakaraka Mars carries relevant lordship. ',
+ tensions:'Mars and Saturn present two different rhythms. ',
+ relationships:'Venus and the seventh lord anchor relationships. ',
+ career:'The tenth lord and D10 Dashamsha guide vocation. ',
+ resources:'The second and eleventh lords concern resources. ',
+ timing:'The Saturn mahadasha provides a timing frame. ',
+ conclusion:'The ascendant Moon and Mars summarize this chart. '};
+ const valid=(ids)=>ids.map((c,i)=>'[['+c.id+']]\n'+
+  anchors[c.id]+'The ascendant Moon and Mars supply an individual reading for '+c.id+' based on verified chart factors. '.repeat(5)+
+  '\n\n'+'Venus and Saturn provide a complementary perspective on '+c.id+' in the wider Jyotish interpretation. '.repeat(5)).join('\n\n');
+ const result=await generateConsultationIntelligence(chart(),'en','2026-10-21',editorial,{
+  order:['groq','gemini'],groqEnabled:true,groqKey:'test-only',
+  geminiEnabled:true,geminiKey:'test-only',limit:()=>true,
+  fetcher:async(url,init)=>{
+   const group=JSON.parse(JSON.parse(init.body).messages[1].content).chapterSpecs;
+   visited.push(url.includes('groq')?'groq':'gemini');
+   const isGroq=url.includes('groq');
+   const content=valid(isGroq?group.slice(0,1):group);
+   return new Response(JSON.stringify({model:isGroq?'openai/gpt-oss-120b':'gemini-3.1-flash-lite',
+    choices:[{message:{content}}]}),{status:200,headers:{'content-type':'application/json'}});
+  }
+ });
+ assert.ok(visited.includes('gemini'));
+ assert.ok(visited.includes('groq'));
+ assert.ok(visited.length>=4);
+ assert.equal(result.result?.chapters.length,8);
+});

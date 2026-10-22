@@ -45,7 +45,7 @@ const FALLBACK_UK:Record<string,string>={
  rate_limited:'Безкоштовний провайдер тимчасово обмежив запити.',
  provider_rejected:'Провайдер відхилив запит до моделі.',
  provider_unavailable:'Безкоштовна модель наразі недоступна.',
- invalid_response:'AI-пояснення не пройшло перевірку точності. Поради та розрахований звіт залишаються доступними.',
+ invalid_response:'Не вдалося отримати повне AI-трактування, що відповідає вимогам формату та перевірки змісту. Розрахований звіт залишається доступним.',
  timeout:'Модель відповідала надто довго.',
  network:'Не вдалося підключитися до моделі.',
  local_only:'Обрано лише локальний звіт.'
@@ -56,7 +56,7 @@ const FALLBACK_EN:Record<string,string>={
  rate_limited:'The free provider temporarily limited requests.',
  provider_rejected:'The provider rejected the model request.',
  provider_unavailable:'The free model is temporarily unavailable.',
- invalid_response:'AI commentary did not pass factual checks. Practical suggestions and the calculated report remain available.',
+ invalid_response:'A complete AI reading meeting format and content checks could not be obtained. The calculated report remains available.',
  timeout:'The model response timed out.',
  network:'Could not connect to the model.',
  local_only:'Offline report was requested.'

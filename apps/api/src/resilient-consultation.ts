@@ -15,18 +15,19 @@ export async function generateResilientFreeConsultation(
  const specs=options.chapterSpecs;
  if(!specs||specs.length<=4)return generateFreeInterpretationDetailed(chart,lang,options);
  const groups:AiChapterSpec[][]=[];
- for(let i=0;i<specs.length;i+=4)groups.push(specs.slice(i,i+4).map(ch=>({
+ const groupSize=options.strictCompleteness?2:4;
+ for(let i=0;i<specs.length;i+=groupSize)groups.push(specs.slice(i,i+groupSize).map(ch=>({
   ...ch,
   // Only the narrow evidence and a sample of the authored prose are transmitted.
   // The server keeps the complete, trusted draft for rendering.
-  facts:ch.facts.slice(0,3).map(f=>f.slice(0,210)),
-  draft:ch.draft?.map(p=>p.slice(0,165))
+  facts:options.preserveChapterContext?ch.facts:ch.facts.slice(0,3).map(f=>f.slice(0,210)),
+  draft:options.strictCompleteness&&options.preserveChapterContext?ch.draft:ch.draft?.map(p=>p.slice(0,165))
  })));
  const controller=new AbortController();
  const onAbort=()=>controller.abort();
  options.signal?.addEventListener('abort',onAbort,{once:true});
  // End-to-end deadline prevents HTTP request hang; successful portions survive.
- const clock=setTimeout(()=>controller.abort(),42000);
+ const clock=setTimeout(()=>controller.abort(),options.strictCompleteness?115000:42000);
  const chapters:AiConsultationChapter[]=[];
  let selectedProvider:FreeProvider|undefined;
  let selectedModel='';
@@ -36,8 +37,10 @@ export async function generateResilientFreeConsultation(
    if(controller.signal.aborted)break;
    const result=await generateFreeInterpretationDetailed(chart,lang,{
     ...options,chapterSpecs:group,reportMode:true,
-    order:selectedProvider?[selectedProvider]:options.order,
-    timeoutMs:16000,signal:controller.signal
+    order:options.strictCompleteness&&selectedProvider?
+     [selectedProvider,...(options.order||(['gemini','groq','openrouter'] as FreeProvider[])).filter(p=>p!==selectedProvider)]:
+     (selectedProvider?[selectedProvider]:options.order),
+    timeoutMs:options.strictCompleteness?24000:16000,signal:controller.signal
    });
    if(result.result?.chapters?.length){
     const incoming=result.result.chapters;
@@ -46,6 +49,7 @@ export async function generateResilientFreeConsultation(
      selectedProvider=result.result.provider as FreeProvider;
      selectedModel=result.result.model;
     }
+    if(options.strictCompleteness){selectedProvider=result.result.provider as FreeProvider;selectedModel=result.result.model;}
     chapters.push(...incoming.filter(c=>!chapters.some(existing=>existing.id===c.id)));
    }else{
     lastReason=result.reason||'invalid_response';
