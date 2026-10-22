@@ -62,7 +62,7 @@ function failureReason(error:unknown):FreeFallbackReason{
 }
 export type FreeAiOptions={
  /** Keep complete server-verified evidence for the unified writer. */
- preserveChapterContext?:boolean;strictCompleteness?:boolean;compactChapters?:boolean;
+ preserveChapterContext?:boolean;strictCompleteness?:boolean;compactChapters?:boolean;continuationKey?:string;
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];key?:string;
  ollamaEnabled?:boolean;ollamaModel?:string;geminiEnabled?:boolean;geminiKey?:string;
  groqEnabled?:boolean;groqKey?:string;groqModel?:string;
