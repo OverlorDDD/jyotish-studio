@@ -63,7 +63,7 @@
     "test:glossary": "node --experimental-strip-types --test tools/glossary.test.mjs",
     "test:a7:llm": "node --experimental-strip-types --test tools/a7-llm-failover.test.mjs",
     "test:a7:consultation": "node --experimental-strip-types --test tools/a7-3-consultation.test.mjs",
-    "ai:verify-live": "node --env-file-if-exists=.env --experimental-strip-types tools/a7-live-llm-check.mjs",
+    "ai:verify-live": "node --env-file-if-exists=.env --experimental-strip-types tools/jyotish-direct-live-check.mjs",
     "ai:doctor": "node --env-file-if-exists=.env tools/openrouter-doctor.mjs",
     "test:ai:doctor": "node --test tools/openrouter-doctor.test.mjs",
     "test:a7:cloud": "node --experimental-strip-types --test tools/a7-cloud-providers.test.mjs",
