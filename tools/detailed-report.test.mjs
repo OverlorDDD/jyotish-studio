@@ -238,7 +238,7 @@ test('A7 reader never presents ninth-house Jupiter as the tenth-house ruler, inc
  for(const language of ['uk','en']){
   const report=buildDetailedReport(natal,language,'2026-10-20').editorial;
   const career=report.chapters.find(c=>c.id==='career').paragraphs.join(' ');
-  assert.ok(career.includes(language==='uk'?'дев’ятого дому Юпітер':'ninth lord Jupiter'),career);
+  assert.ok(career.includes(language==='uk'?'дев’ятого дому Юпітер':'ninth-house lord Jupiter'),career);
   assert.ok(career.includes(language==='uk'?'десятого дому Марс':'tenth-house lord Mars'),career);
  }
 });
