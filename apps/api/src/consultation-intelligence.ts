@@ -59,10 +59,12 @@ export function planConsultation(graph:ChartFactGraph,claims:readonly SupportedC
   resources:['configuration','vocation'],timing:['timing'],conclusion:['identity','vocation','relationships']};
  const chapterClaims=Object.fromEntries(Object.entries(mapping).map(([id,themeIds])=>
   [id,[...new Set(themeIds.flatMap(t=>themes.find(x=>x.id===t)?.claimIds||[]))]]));
+ chapterClaims.resources=[...new Set(['D1.house-lord.2','D1.house-lord.11',
+  'D1.'+lords[1],'D1.'+lords[10],...chapterClaims.resources])].filter(exists.has.bind(exists));
  const thesis=lang==='uk'?
   'Лагна у '+(['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козорозі','Водолії','Рибах'][asc-1])+
   ': особистий напрям пов’язаний з управителем '+(NAMES_UK[lords[0]]||lords[0])+
-  ', а головне скупчення класичних грах зосереджене в '+dominant.house+'-му домі.':
+  ', а '+(dominant.names.length>=2?'помітне поєднання класичних грах':'один із виразних акцентів карти')+' пов’язане з '+dominant.house+'-м домом.':
   'The ascendant ruler '+lords[0]+' and the strongest classical graha concentration in house '+dominant.house+
   ' provide two distinct angles on this chart.';
  return {fingerprint:graph.fingerprint,thesis,themes,chapterClaims};
@@ -138,22 +140,9 @@ export async function generateConsultationIntelligence(chart:CalculatedChart,lan
   console.warn('A8.9 author rejected: '+check.errors.join(','));
   return {result:null,reason:free.reason||'invalid_response',plan};
  }
- // A single final editor sees EVERY chapter in order, the chart-wide thesis and the
- // same verified evidence. The draft set is never published as a partial patchwork.
- const fullDraft=specs.map(spec=>{
-  const chapter=chapters.find(c=>c.id===spec.id);
-  return {...spec,focus:'UNIFY ONE DOCUMENT: '+plan.thesis+' Do not repeat a motif; edit for vivid '+lang+
-   ' prose while preserving all named, verified factual anchors. '+spec.focus,
-   draft:chapter?.paragraphs||[]};
- });
- const review=await generateResilientFreeConsultation(chart,lang,{
-  ...options,chapterSpecs:fullDraft,reportMode:true,strictCompleteness:true
- });
- const finalChapters=review.result?.chapters||[];
- const finalCheck=verifyUnifiedConsultation(finalChapters,graph,lang);
- if(!review.result||!finalCheck.ok){
-  console.warn('A8.9 editor rejected: '+finalCheck.errors.join(','));
-  return {result:null,reason:review.reason||'invalid_response',plan};
- }
- return {...review,plan};
+ // The validated author document is the publishable artifact. A second full rewrite
+ // was a fragile single point of failure: it frequently lost chapters or facts.
+ // Editing is applied as a non-destructive deterministic quality gate above; an
+ // optional future stylistic revision must not erase a valid complete document.
+ return {...free,plan};
 }

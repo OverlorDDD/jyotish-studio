@@ -41,7 +41,7 @@ if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
 }else{
  try{
   const preview=process.env.GALAXIORA_A89_PREVIEW==='1';
-  console.log('Mode='+(preview?'A8.9 unified author + editor':'Reader V5 enrichment'));
+  console.log('Mode='+(preview?'A8.9 complete author + semantic gate':'Reader V5 enrichment'));
   const asOf=new Date().toISOString().slice(0,10);
   const synthetic=preview?calculateChart(fake.input,{
    ayanamsa:23.8,ascendant:100,julianDay:2451545,backend:'synthetic',
@@ -59,7 +59,7 @@ if(process.env.AI_MODE==='local'||process.env.AI_MODE==='paid_openai'){
    const count=r.result.chapters?.length||0;
    console.log('PASS: received and validated a real model consultation.');
    console.log('Provider='+r.result.provider+'; model='+r.result.model);
-   console.log('Accepted AI chapters='+count+'/8. '+(preview?'Unified document passed author and editor gates.':'Incomplete chapters retain deterministic Reader V5 prose.'));
+   console.log('Accepted AI chapters='+count+'/8. '+(preview?'Complete eight-chapter narrative passed server validation; literary quality requires human review.':'Incomplete chapters retain deterministic Reader V5 prose.'));
    console.log('No private birth information or provider response content was printed.');
   }
  }catch(error){

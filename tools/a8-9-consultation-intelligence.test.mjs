@@ -18,6 +18,8 @@ test('A8.9: sourced calculations and one cross-chapter narrative plan',()=>{
  assert.ok(p.themes.length>=3&&p.themes.length<=5);
  assert.match(p.thesis,/Раку/);
  assert.equal(p.chapterClaims.career.includes('D1.house-lord.10'),true);
+ assert.ok(p.chapterClaims.resources.includes('D1.house-lord.2'));
+ assert.ok(p.chapterClaims.resources.includes('D1.house-lord.11'));
  assert.deepEqual(planConsultation(g,claims,'uk'),p);
  assert.notEqual(planConsultation(g,claims,'en').thesis,p.thesis);
 });
@@ -41,7 +43,7 @@ test('A8.9: cannot publish a mixed partial cloud result; no provider gives no re
  assert.equal(result.plan.fingerprint,g.fingerprint);
 });
 
-test('A8.9 production path derives yoga approvals and preserves facts through writer and editor',async()=>{
+test('A8.9 production path derives yoga approvals and publishes complete verified writer',async()=>{
  const editorial={chapters:CHAPTER_IDS.map(id=>({id,title:id,evidence:[],paragraphs:[]})),findings:[]};
  let calls=0;
  const anchors={
@@ -62,7 +64,7 @@ test('A8.9 production path derives yoga approvals and preserves facts through wr
    const specs=JSON.parse(body.messages[1].content).chapterSpecs;
    if(calls===1){
     assert.ok(specs.find(c=>c.id==='configuration').verifiedContext.length>3);
-    assert.match(body.messages[0].content,/Do not copy numeric house placements/);
+    assert.match(body.messages[0].content,/WRITE exactly/);
    }
    const content=specs.map(c=>'[['+c.id+']]\n'+anchors[c.id]+
     ' In the '+c.id+' theme, the verified factors describe a balance between personal initiative and the need to listen carefully to circumstances. You may recognize this in the way enthusiasm grows when the task carries meaning, while external pressure makes thoughtful pacing especially valuable.\n\n'+
@@ -71,7 +73,7 @@ test('A8.9 production path derives yoga approvals and preserves facts through wr
    return new Response(JSON.stringify({model:'openai/gpt-oss-120b',choices:[{message:{content}}]}));
   }
  });
- assert.equal(calls,8);
+ assert.equal(calls,4);
  assert.equal(result.result?.chapters.length,8);
  assert.match(result.result.text,/yogakaraka/);
 });
@@ -106,4 +108,20 @@ test('A8.9 strict mode rejects partial Groq completions and retries Gemini per g
  assert.ok(visited.includes('groq'));
  assert.ok(visited.length>=4);
  assert.equal(result.result?.chapters.length,8);
+});
+
+test('A8.9 stops after a failed required group instead of exhausting later free calls',async()=>{
+ const editorial={chapters:CHAPTER_IDS.map(id=>({id,title:id,evidence:[],paragraphs:[]})),findings:[]};
+ let requests=0;
+ const r=await generateConsultationIntelligence(chart(),'uk','2026-10-21',editorial,{
+  order:['groq'],groqEnabled:true,groqKey:'test-only',limit:()=>true,
+  fetcher:async()=>{
+   requests++;
+   return new Response(JSON.stringify({model:'openai/gpt-oss-120b',
+    choices:[{message:{content:'[[portrait]]\\nЗанадто короткий текст.'}}]}),{status:200,
+    headers:{'content-type':'application/json'}});
+  }
+ });
+ assert.equal(r.result,null);
+ assert.equal(requests,1);
 });

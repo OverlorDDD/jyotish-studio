@@ -35,8 +35,12 @@ export async function generateResilientFreeConsultation(
  try{
   for(const group of groups){
    if(controller.signal.aborted)break;
+   const continuity=options.strictCompleteness&&chapters.length?
+    chapters.slice(-2).map(ch=>ch.id+': '+ch.paragraphs.join(' ').slice(-220)).join(' | '):'';
+   const contextualGroup=continuity?group.map(spec=>({...spec,
+    focus:(spec.focus||'')+' Previous accepted ideas (for continuity only): '+continuity+'. Extend the narrative without repeating them.'})):group;
    const result=await generateFreeInterpretationDetailed(chart,lang,{
-    ...options,chapterSpecs:group,reportMode:true,
+    ...options,chapterSpecs:contextualGroup,reportMode:true,
     order:options.strictCompleteness&&selectedProvider?
      [selectedProvider,...(options.order||(['gemini','groq','openrouter'] as FreeProvider[])).filter(p=>p!==selectedProvider)]:
      (selectedProvider?[selectedProvider]:options.order),
@@ -53,6 +57,9 @@ export async function generateResilientFreeConsultation(
     chapters.push(...incoming.filter(c=>!chapters.some(existing=>existing.id===c.id)));
    }else{
     lastReason=result.reason||'invalid_response';
+    // Strict A8.9 cannot publish a report after a missing group. Stop now
+    // instead of burning the free quota on chapters we would discard.
+    if(options.strictCompleteness)return {result:null,reason:controller.signal.aborted?'timeout':lastReason};
     // Failure never discards earlier LLM content, and never replaces Reader V5.
     // Don't continue with more calls if the free budget is exhausted.
     if(lastReason==='hourly_limit'||lastReason==='rate_limited')break;
