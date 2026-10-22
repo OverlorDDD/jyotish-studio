@@ -138,7 +138,7 @@ export async function generateFreeInterpretationDetailed(
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,chapterSpecs:opts.chapterSpecs,
      approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
-    return {result};
+    return complete(result);
    }
    if(provider==='groq'){
     if(!permit()){reason='hourly_limit';continue;}
@@ -148,7 +148,7 @@ export async function generateFreeInterpretationDetailed(
      fetcher:opts.fetcher,limit:()=>true,factsOverride:opts.factsOverride,reportMode:opts.reportMode,
      chapterSpecs:opts.chapterSpecs,approvedYogas:opts.approvedYogas,onUsage:opts.onUsage,signal:opts.signal,timeoutMs:opts.timeoutMs
     });
-    return {result};
+    return complete(result);
    }
 
   }catch(error){
