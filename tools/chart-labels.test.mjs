@@ -75,6 +75,9 @@ test('both web interfaces wrap the Ukrainian brand tag and constrain chart text'
   assert.ok(css.includes('.chart-svg{overflow:hidden}'),'SVG overflow must be clipped as a safety net');
  }
  assert.match(appPage,/const HOUSE_CENTERS:\[number,number\]\[\]=\[\[180,90\],\[90,40\],\[45,90\]/);
- assert.match(appPage,/maxVisible=\(y<=42\|\|y>=300\)\?2/);
- assert.match(appPage,/fitText\(word,x/);
+ assert.match(appPage,/const SIGN_SYMBOL=\['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'\]/);
+ assert.match(appPage,/const GRAHA_SYMBOL:Record<string,string>/);
+ assert.match(appPage,/maxVisible=\(y<=42\|\|y>=300\)\?3:4/);
+ assert.match(appPage,/degreeLabel\(body\.degreesInSign\)/);
+ assert.match(appPage,/title>\{i\+1\}\. \{signFull\(sign,lang\)\}/);
 });
