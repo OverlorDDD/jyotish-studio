@@ -62,7 +62,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   fetch('/api/v1/jyotish/runtime',{cache:'no-store'}).then(async res=>{
    const data=res.ok?await res.json():null;
    if(!live)return;
-   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v1')
+   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2')
     setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
    else setRuntimeMismatch('');
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
