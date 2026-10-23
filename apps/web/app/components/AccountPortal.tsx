@@ -64,9 +64,9 @@ export default function AccountPortal({birth,report,lang,onOpenSaved}:{
    const ai=report?.ai;
    const r=await fetch('/api/v1/account/charts',{...json,method:'POST',body:JSON.stringify({
     ...birth,language:lang,asOf:report?.asOf||new Date().toISOString().slice(0,10),
-    aiProvider:ai?.provider==='openrouter'||ai?.provider==='ollama'?ai.provider:'local',
+    aiProvider:ai?.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)?ai.provider:'local',
     aiModel:ai?.model||'',
-    aiText:ai?.text?.slice(0,12000)||''
+    aiText:ai?.text?.slice(0,32000)||''
    })});
    await readApiJson(r);
    await loadHistory();
