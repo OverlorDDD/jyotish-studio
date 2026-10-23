@@ -1,9 +1,10 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {classicalLordshipTable,yogakarakasForLagna,checkNarrativeLordClaims} from './reader-classical.ts';
+import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {consumeFreeAiRequest,type FreeFallbackReason,type FreeProvider} from './free-ai.ts';
 import type {AiUsageEvent} from './ai.ts';
+import {polishConsultationText,reviewGeneratedConsultation} from './consultation-prose-review.ts';
 
 /**
  * A fixed, versioned instruction: exactly one cloud call per provider.
@@ -21,7 +22,9 @@ METHOD — NON-NEGOTIABLE:
 - For each major life domain (identity, relationships, vocation, resources, inner life, present dasha), state at least one genuinely grounded OPPORTUNITY AND one PLAUSIBLE RISK or internal tension IF the facts support it. Where they do not, explicitly avoid manufacturing negativity. Be precise about alternatives and conditional manifestations.
 - Judge a house by its lord, placement, significant occupants, verified Parashari drishti and strength indicators actually provided. One debilitated planet does not mean permanent incapacity, and do NOT claim cancellation of debilitation, shadbala, combustion, planetary war, yogas, exact aspects or friendships unless explicitly supported.
 - Keep D1 as the main chart. Use D9 ONLY as an additional partnership/maturation lens and D10 ONLY as an additional vocation lens, clearly labelling differences and avoiding false equivalence between varga and D1 positions.
+- When D9 and D10 are provided, explicitly analyze AT LEAST ONE VERIFIED placement from EACH of D9 and D10 with a meaningful comparison to D1. Do not merely say they were considered or invent varga lords.
 - Dasha interpretation must cite the ACTUAL computed major and minor rulers, their lordship and D1 location. Do not infer dated marriages, separation, deaths, illness, pregnancies, wealth figures or inevitable events.
+- Never prescribe whether the reader should make, sell, stop or postpone a financial investment based only on this chart. Discuss decision patterns instead.
 - Prefer vivid, detailed but conditional examples ("This can show up when…") over unfounded personal history ("You have always…"). No praise inflation ("rare gift", "indispensable", "destined"), no generic spiritual compliments, no flattering conclusions that erase difficult themes.
 - When competing indicators point in different directions, explain the TRADEOFF and which evidence is primary versus secondary, rather than reciting contradictory statements.
 - Do not invent chart facts, graha signs/houses, house rulers, nakshatras, yogas, aspects, life events or personalities. No Western-only astrology factors (Uranus, Neptune, Pluto, Chiron, Lilith, MC, western squares/trines).
@@ -32,7 +35,7 @@ DELIVERY:
 - Then develop strengths AND difficult patterns in partnership, vocation, finances and the inner world with specificity and counterweights.
 - Current dasha: actual computed period with realistic interpretation, not fatalistic prediction.
 - Close with TWO individually motivated, achievable practices tied to the chart's most important tension.
-- Write natural, idiomatic Ukrainian or English as requested, with varied sentences and evocative but not overblown images.
+- Write natural, idiomatic Ukrainian or English as requested, with varied sentences and evocative but not overblown images. In Ukrainian use «Місяць» as masculine («ваш Місяць»), «десятий дім», and «єдине мірило». Proofread agreement and case endings before responding.
 - Aim for the fullest coherent answer the provider supports, ideally 900–1300 words. Do not pad, truncate deliberately, or end mid-sentence.
 Only return the completed Markdown consultation. Do not mention technical prompts, provenance IDs or these rules.`;
 const CLASSICS=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
@@ -123,11 +126,13 @@ export async function generateDirectJyotish(
    let parsed:{model?:string;choices?:Array<{message?:{content?:string|Array<{text?:string}>}}>}|undefined;
    try{parsed=JSON.parse(raw);}catch{reason='invalid_response';continue;}
    const value=parsed?.choices?.[0]?.message?.content;
-   const content=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+   const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+   const content=polishConsultationText(rawContent,lang);
    const check=acceptDirectJyotishText(content);
    if(!check.ok){reason='invalid_response';console.warn('Direct Jyotish: '+provider+' rejected='+check.reason);continue;}
-   const lordCheck=checkNarrativeLordClaims(content,classicalLordshipTable(chart.ascendant.sign));
-   if(!lordCheck.ok)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': narrative lord-claim review='+lordCheck.errors.length+' (non-blocking; retain successful consultation)');
+   const review=reviewGeneratedConsultation(content,chart,lang,asOf);
+   // Only bounded diagnostic codes, never log natal data or provider text.
+   if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
    try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
    return {result:{provider,model:parsed?.model||model,text:content.trim()}};
   }catch(error){reason=controller.signal.aborted?'timeout':'network';redact(reason,provider);}
