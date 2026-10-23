@@ -6,6 +6,7 @@ import {runCalculation,interpretChart} from './logic.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
 import {buildDetailedReport} from './report.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts';
+import {SuccessfulConsultationCache} from './consultation-replay.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
@@ -28,7 +29,7 @@ import {cookieUser} from './auth.ts';
 const allowCalculation=createHourlyLimiter(120);
 const allowInterpretation=createHourlyLimiter(50);
 /** Bounded, successful-only AI consultation cache. No birth identifiers are stored. */
-const directCache=new Map<string,{expires:number;result:Awaited<ReturnType<typeof generateDirectJyotish>>}>();
+const directCache=new SuccessfulConsultationCache<Awaited<ReturnType<typeof generateDirectJyotish>>>();
 function owner(req:IncomingMessage){
  const id=cookieUser(req);
  if(!id)throw new UnauthorizedException('Sign in to access saved charts.');
@@ -97,18 +98,12 @@ export class JyotishController{
   if((process.env.AI_MODE||'free')!=='free')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
   const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION;
-  const cached=directCache.get(key);
-  if(cached&&cached.expires>Date.now()&&cached.result.result)
-   return {...base,ai:{...cached.result.result,source:'llm' as const,cached:true}};
-  const result=await generateDirectJyotish(chart,birth.lang,report.asOf,{
+  const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(chart,birth.lang,report.asOf,{
    onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
-  });
-  if(result.result){
-   if(directCache.size>=40)directCache.delete(directCache.keys().next().value!);
-   directCache.set(key,{expires:Date.now()+30*60*1000,result});
-   return {...base,ai:{...result.result,source:'llm' as const,cached:false}};
-  }
-  return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:result.reason||'no_provider'}};
+  }));
+  if(outcome.result)
+   return {...base,ai:{...outcome.result,source:'llm' as const,cached:reused}};
+  return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:outcome.reason||'no_provider'}};
 
  }
 
