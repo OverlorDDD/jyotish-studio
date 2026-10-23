@@ -173,6 +173,7 @@ quality:
     jyotish_acceptance: "npm run test:jyotish:acceptance; npm run test:reference"
     jyotish_independent_jhora: "npm run test:jhora:independent"
     jyotish_jqa2: "npm run test:jqa2:numerical; npm run test:jqa2:profiles"
+    jyotish_jqa3: "npm run test:jqa3:corpus; npm run jqa3:audit"
     a8_quality: "npm run test:a8:quality"
     a8_resilience: "npm run test:a8:resilience"
     a8_cloud: "npm run test:a8:cloud"
@@ -191,8 +192,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "Stage JQA-2 stacked on PR #45: 1 genuine JHora 8.0 export, Swiss profile diagnostics, 24 additional ephemeris stress cases (NOT JHora references), historical subminute IANA offset fix; full external certification remains unverified"
-  next: "Resolve JHora/Swiss ascendant and true-node discrepancies; source 10-20 genuine JHora exports with saved INI and dasha preferences; run matched-profile 1-arcsec acceptance then merge stacked PRs"
+  now: "JQA-3: JHora raw capture infrastructure and independent comparison evidence gate; one external JHora example only"
+  next: "Collect 10 to 20 real JHora 8 exports with original INI via Wine/AHK/JHoraKit and resolve angular and dasha discrepancies"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -213,6 +214,7 @@ docs:
   jyotish_acceptance: "docs/research/jyotish-quality-acceptance-v1.md"
   jyotish_jhora_reference: "docs/research/jhora-independent-parity-2026-10-23.md"
   jyotish_jqa2_numerical: "docs/research/jqa2-numerical-audit-2026-10-23.md"
+  jyotish_jqa3: "docs/research/jqa3-reproducible-reference-corpus.md"
   a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
   classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"

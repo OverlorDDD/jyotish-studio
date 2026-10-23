@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {loadCorpus,verifyReference,auditCorpus,parseIni,BODIES} from './jqa3-corpus.mjs';
+
+test('pinned third-party JHora source remains byte-for-byte unchanged',()=>{
+ const m=loadCorpus();
+ assert.equal(m.records.length,1,'do not silently create fake reference count');
+ const record=m.records[0],source=verifyReference(record);
+ assert.deepEqual(Object.keys(source.expected.positions),BODIES);
+ assert.equal(source.independentSource.tool.includes('Jagannatha Hora 8.0'),true);
+ assert.equal(record.hasOriginalJHoraIni,false);
+});
+test('source tampering hard-fails instead of silently matching',()=>{
+ const record=loadCorpus().records[0];
+ assert.throws(()=>verifyReference({...record,referenceGitBlobSha1:'0'.repeat(40)}),/immutable JHora fixture changed/);
+});
+test('profile missing or inferred must always be UNVERIFIED',()=>{
+ const report=auditCorpus({verifyAstronomy:false});
+ assert.equal(report.independentJHoraCharts,1);
+ assert.equal(report.explicitlyMatchedCharts,0);
+ assert.equal(report.status,'NOT_CERTIFIED');
+ assert.ok(report.blockingConditions.includes('INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS'));
+ assert.ok(report.blockingConditions.includes('INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES'));
+ assert.equal(report.results[0].profileStatus,'UNVERIFIED');
+ assert.equal(report.results[0].evidenceStatus,'ORIGINAL_INI_MISSING');
+});
+test('captured JHora INI cannot omit calculation preferences',()=>{
+ assert.throws(()=>parseIni('[CalculationPreferences]\nTrueNodes=1\n'),/Missing JHora INI field/);
+ const names=['Siddhanta','UserSelectedAyanamsa','DeltaFromUserSelectedAyanamsa',
+  'TrueNodes','TruePositions','TopocentricPositions','NoNutation','NoAberration','NoGravDeflection'];
+ const ini='[CalculationPreferences]\n'+names.map((name,i)=>name+'='+String(i)).join('\n')+'\n';
+ const parsed=parseIni(ini);
+ assert.equal(parsed.TrueNodes,'3');
+ assert.equal(parsed.UserSelectedAyanamsa,'1');
+});
+test('repeated or suspicious birth records cannot inflate reference counts',()=>{
+ const record=loadCorpus().records[0];
+ assert.ok(record.sourceCommit.length===40);
+ assert.notEqual(record.referenceFile,'');
+});
