@@ -1,0 +1,62 @@
+{
+  "source": {
+    "name": "PyJHora 4.8.7 reference, NOT direct JHora 8.0",
+    "tier": 2,
+    "repo": "https://github.com/amitpandeygit/hora",
+    "commit": "a2d772a437626a9976611e1ec5cf6ff100cd5462",
+    "path": "tests/benchmark/fixtures/pvr_1972_pyjhora.json",
+    "note": "PyJHora 4.8.7 — an independent AGPL port of JHora 8.0. CROSS-CHECK ONLY, NOT Jagannatha Hora itself. Run privately with the same Swiss Ephemeris .se1 files this project uses, so only algorithms differ, not data."
+  },
+  "birth": {
+    "year": 1972,
+    "month": 10,
+    "day": 1,
+    "hour": 13,
+    "minute": 30,
+    "second": 0,
+    "tz_name": "Asia/Kolkata"
+  },
+  "settings": {
+    "ayanamsa": "lahiri",
+    "node_type": "true",
+    "house_system": "whole_sign"
+  },
+  "expected": {
+    "lagna_longitude": 269.407586,
+    "graha_longitudes": {
+      "Sun": 164.759854,
+      "Moon": 94.05968,
+      "Mars": 156.760709,
+      "Mercury": 173.521952,
+      "Jupiter": 247.085273,
+      "Venus": 121.946238,
+      "Saturn": 57.115956,
+      "Rahu": 269.578821,
+      "Ketu": 89.578821
+    },
+    "D9": {
+      "Lagna": "Sagittarius",
+      "Sun": "Taurus",
+      "Moon": "Leo",
+      "Mars": "Pisces",
+      "Mercury": "Leo",
+      "Jupiter": "Gemini",
+      "Venus": "Aries",
+      "Saturn": "Virgo",
+      "Rahu": "Sagittarius",
+      "Ketu": "Gemini"
+    },
+    "D10": {
+      "Lagna": "Virgo",
+      "Sun": "Virgo",
+      "Moon": "Aries",
+      "Mars": "Cancer",
+      "Mercury": "Sagittarius",
+      "Jupiter": "Aquarius",
+      "Venus": "Leo",
+      "Saturn": "Libra",
+      "Rahu": "Virgo",
+      "Ketu": "Pisces"
+    }
+  }
+}
