@@ -1,8 +1,8 @@
 import type {BirthInput,CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {calculateChart,validateBirth} from '../../../packages/jyotish-core/src/index.ts';
 import {getEphemeris} from './ephemeris.ts';
-import {verifyCalculatedChart} from './jyotish-integrity.ts';
-export async function runCalculation(body:unknown):Promise<CalculatedChart>{
+import {verifyCalculatedChart,type ChartVerification} from './jyotish-integrity.ts';
+export async function runCalculation(body:unknown):Promise<CalculatedChart&{verification:ChartVerification}>{
  if(!body||typeof body!=='object')throw new Error('Invalid request body');
  const b=body as Record<string,unknown>;
  for(const k of ['date','time','timeZone'])if(typeof b[k]!=='string')throw new Error(`Invalid ${k}`);
