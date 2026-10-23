@@ -25,6 +25,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Verify immutable JHora corpus even on Windows
         run: npm run test:jqa3:corpus
+      - name: Verify JQA-2 cross-platform Python diagnostics
+        run: npm run test:jqa2:profiles
   test:
     runs-on: ubuntu-latest
     steps:
