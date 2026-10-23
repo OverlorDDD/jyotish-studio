@@ -44,7 +44,10 @@ jobs:
           find . -maxdepth 2 -type f -printf '%p %s bytes\n' | head -20
           JHORA_INSTALLER="$(find . -maxdepth 2 -type f -iname '*.exe' -print -quit)"
           test -n "$JHORA_INSTALLER"
-          curl --fail --location --retry 3 --max-time 150 -o AutoHotkey_v1.exe https://www.autohotkey.com/download/1.1/AutoHotkey_1.1.37.02_setup.exe
+          curl --fail --location --retry 3 --max-time 150 -o ahk_v1.zip https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip
+          echo "6f3663f7cdd25063c8c8728f5d9b07813ced8780522fd1f124ba539e2854215f  ahk_v1.zip" | sha256sum -c
+          mkdir -p ahk-unpacked
+          unzip -oq ahk_v1.zip -d ahk-unpacked
           xvfb-run -a wineboot --init
           timeout 180s xvfb-run -a wine "$JHORA_INSTALLER" /S || true
           if ! find "$WINEPREFIX/drive_c" -name jhora.exe | grep -q .; then
@@ -52,9 +55,11 @@ jobs:
           fi
           find "$WINEPREFIX/drive_c" -name jhora.exe -print
           test -f "$(find "$WINEPREFIX/drive_c" -name jhora.exe -print -quit)"
-          timeout 180s xvfb-run -a wine AutoHotkey_v1.exe /S || true
-          find "$WINEPREFIX/drive_c" -iname AutoHotkey.exe -print
-          test -f "$(find "$WINEPREFIX/drive_c" -iname AutoHotkey.exe -print -quit)"
+          AHK_PORTABLE="$(find ahk-unpacked -iname AutoHotkeyU32.exe -print -quit)"
+          test -n "$AHK_PORTABLE"
+          mkdir -p "$WINEPREFIX/drive_c/Program Files/AutoHotkey"
+          cp "$AHK_PORTABLE" "$WINEPREFIX/drive_c/Program Files/AutoHotkey/AutoHotkey.exe"
+          test -s "$WINEPREFIX/drive_c/Program Files/AutoHotkey/AutoHotkey.exe"
       - name: Check out pinned independent JHoraKit automation
         run: |
           git clone --quiet https://github.com/normalmystic/JHoraKit.git "$RUNNER_TEMP/JHoraKit"
