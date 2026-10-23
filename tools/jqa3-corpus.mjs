@@ -59,17 +59,21 @@ export function loadCorpus(path=MANIFEST){
  }
  return m;
 }
-export function verifyReference(record){
- const bytes=readFileSync(withinRoot(record.referenceFile));
- // Git for Windows can convert committed LF JSON to CRLF on checkout.
- // Hash the canonical Git-blob text; this accepts ONLY newline conversion
- // and still rejects every changed value, altered character or missing byte.
+/** Git SHA-1 is computed on repository LF bytes; Windows checkout may be CRLF.
+ * A successful check still requires an EXACT pinned Git blob after the only
+ * permitted transformation (CRLF→LF), never a regenerated reference value.
+ */
+export function verifyPinnedTextBlob(bytes,expectedHash,id='source'){
+ const actual=gitSha(bytes);
  const canonical=bytes.includes(Buffer.from('\r\n'))
   ?Buffer.from(bytes.toString('utf8').replace(/\r\n/g,'\n'),'utf8'):bytes;
- const originalHash=gitSha(bytes);
- assert.ok(originalHash===record.referenceGitBlobSha1||
-  (originalHash!==gitSha(canonical)&&gitSha(canonical)===record.referenceGitBlobSha1),
-  'immutable JHora fixture changed: '+record.id);
+ assert.ok(actual===expectedHash||gitSha(canonical)===expectedHash,
+  'immutable JHora fixture changed: '+id);
+ return canonical;
+}
+export function verifyReference(record){
+ const bytes=readFileSync(withinRoot(record.referenceFile));
+ const canonical=verifyPinnedTextBlob(bytes,record.referenceGitBlobSha1,record.id);
  const ref=JSON.parse(canonical.toString('utf8'));
  assert.ok(ref.civilTime?.birthUtc?.endsWith('Z'));
  assert.ok(Number.isFinite(ref.civilTime.latitude)&&Number.isFinite(ref.civilTime.longitude));
