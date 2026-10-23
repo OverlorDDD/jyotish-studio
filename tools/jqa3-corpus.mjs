@@ -117,10 +117,11 @@ function calcCurrent(ref){
  assert.equal(child.status,0,'Swiss ephemeris backend unavailable: '+(child.stderr||child.error?.message||''));
  const eph=JSON.parse(child.stdout);
  const p=new Map(eph.positions.map(x=>[x.name,x.longitude]));p.set('Lagna',eph.ascendant);
+ const speeds=new Map(eph.positions.map(x=>[x.name,x.speed]));
  assert.equal(p.size,10);
- return p;
+ return {positions:p,speeds};
 }
-function compare(ref,observed,comparable){
+function compare(ref,observed,comparable,speeds){
  const result={};
  const refPositions=ref.expected.positions,values=BODIES.map(name=>({name,reference:refPositions[name],computed:observed.get(name)}));
  const d10Profile=Number.isInteger(refPositions.Lagna.d10_1_9)?'1-9':'5-8';
@@ -130,6 +131,18 @@ function compare(ref,observed,comparable){
   D10:values.filter(v=>(d10Profile==='1-9'?sign(divisionalLongitude(v.computed,10)):d10JHoraFiveEight(v.computed))===(v.reference.d10_1_9??v.reference.d10_5_8)).length,
   longitude:values.filter(v=>Math.abs(deltaArcsec(v.computed,v.reference.longitude))<=1).length
  };
+ const validNak=values.every(v=>Number.isInteger(v.reference.nakshatraIndex)&&Number.isInteger(v.reference.pada));
+ const nakMatches=validNak?values.filter(v=>nakshatraOf(v.computed).index===v.reference.nakshatraIndex).length:0;
+ const padaMatches=validNak?values.filter(v=>nakshatraOf(v.computed).pada===v.reference.pada).length:0;
+ const seven=values.filter(v=>!['Lagna','Rahu','Ketu'].includes(v.name));
+ const validRetro=Boolean(speeds)&&seven.every(v=>typeof v.reference.retrograde==='boolean'&&Number.isFinite(speeds.get(v.name)));
+ const retroMatches=validRetro?seven.filter(v=>(speeds.get(v.name)<0)===v.reference.retrograde).length:0;
+ result.nakshatra={matches:nakMatches,total:10,status:comparable&&validNak?(nakMatches===10?'PASS':'FAIL'):'UNVERIFIED'};
+ result.pada={matches:padaMatches,total:10,status:comparable&&validNak?(padaMatches===10?'PASS':'FAIL'):'UNVERIFIED'};
+ result.retrograde={matches:retroMatches,total:7,status:comparable&&validRetro?(retroMatches===7?'PASS':'FAIL'):'UNVERIFIED'};
+ // House-lord parity must be backed by 12 independently captured house-lord entries.
+ // A matching ascendant alone cannot certify an implementation of all lord rules.
+ result.houseLords={matches:0,total:12,status:'UNVERIFIED'};
  for(const [name,n] of Object.entries(numerator))result[name]={
   matches:n,total:10,status:comparable?(n===10?'PASS':'FAIL'):(name==='D1'?'CONFIGURATION_DIFFERENCE':'UNVERIFIED')
  };
@@ -163,7 +176,8 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   assert.ok(!distinct.has(unique),'Repeated birth event does not count as independent second chart: '+record.id);
   distinct.add(unique);
   const comparable=hasComparableProfile(record,ref);
-  const comparison=verifyAstronomy?compare(ref,calcCurrent(ref),comparable):null;
+  const calc=verifyAstronomy?calcCurrent(ref):null;
+  const comparison=calc?compare(ref,calc.positions,comparable,calc.speeds):null;
   results.push({id:record.id,provenance:'PINNED_THIRD_PARTY_RECORD',profileStatus:comparable?'EXPLICIT_MATCH':'UNVERIFIED',
     evidenceStatus:record.hasOriginalJHoraIni?'CAPTURE_EVIDENCE_PRESENT':'ORIGINAL_INI_MISSING',
     result:comparison});
@@ -171,14 +185,14 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
  const count=results.length,matched=results.filter(x=>x.profileStatus==='EXPLICIT_MATCH').length;
  const required=minimum??manifest.minIndependentForCertification;
  const fullyPassed=count>=required&&matched>=required&&lagnaSigns.size===12&&results.every(x=>
-  ['D1','D9','D10','longitude','dasha'].every(k=>x.result?.[k]?.status==='PASS'));
+  ['D1','D9','D10','longitude','dasha','nakshatra','pada','retrograde','houseLords'].every(k=>x.result?.[k]?.status==='PASS'));
  return {stage:'JQA-3',independentJHoraCharts:count,explicitlyMatchedCharts:matched,required,
   distinctLagnaSigns:lagnaSigns.size,requiredLagnaSigns:12,
   status:fullyPassed?'CERTIFIED':'NOT_CERTIFIED',results,blockingConditions:[
    ...(count<required?['INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS']:[]),
    ...(matched<required?['INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES']:[]),
    ...(lagnaSigns.size<12?['NOT_ALL_12_LAGNA_SIGNS_COVERED']:[]),
-   ...(results.some(x=>x.result&&['D1','D9','D10','longitude','dasha'].some(k=>x.result[k].status!=='PASS'))?['UNVERIFIED_OR_DIFFERENT_VALUES']:[])
+   ...(results.some(x=>x.result&&['D1','D9','D10','longitude','dasha','nakshatra','pada','retrograde','houseLords'].some(k=>x.result[k].status!=='PASS'))?['UNVERIFIED_OR_DIFFERENT_VALUES']:[])
   ]};
 }
 const REQUIRED_INI=['Siddhanta','UserSelectedAyanamsa','DeltaFromUserSelectedAyanamsa','TrueNodes','TruePositions',
