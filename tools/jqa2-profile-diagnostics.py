@@ -33,7 +33,7 @@ baseline = compare(swe.SIDM_LAHIRI, baseline_flags)
 true_citra_true = compare(swe.SIDM_TRUE_CITRA, baseline_flags | swe.FLG_TRUEPOS)
 # The pinned JHora ayanamsa is an EXTERNAL number; using it to compute an
 # ascendant is a geometric cross-check, not an independently generated ayanamsa.
-ayan_dms = birth.get('irrelevant', record['independentSource']['extractedAyanamsaText'])
+ayan_dms = record['independentSource']['extractedAyanamsaText']
 deg, arcmin, arcsec = (float(x) for x in ayan_dms.split('-'))
 jhora_ayanamsa = deg + arcmin/60 + arcsec/3600
 tropical_asc = swe.houses(jd, birth['latitude'], birth['longitude'], b'P')[1][0]
