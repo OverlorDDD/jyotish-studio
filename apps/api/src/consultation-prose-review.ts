@@ -42,7 +42,7 @@ export function reviewGeneratedConsultation(
 export function polishConsultationText(text:string,lang:'uk'|'en'):string{
  if(lang!=='uk')return text.trim();
  return text.trim()
-  .replace(/\b[Вв]аша Місяць\b/gu,m=>m[0]==='В'?'Ваш Місяць':'ваш Місяць')
-  .replace(/\bдесята хапа\b/giu,'десятий дім')
-  .replace(/\bєдиний мірило\b/giu,'єдине мірило');
+  .replace(/[Вв]аша Місяць/gu,m=>m[0]==='В'?'Ваш Місяць':'ваш Місяць')
+  .replace(/десята хапа/giu,'десятий дім')
+  .replace(/єдиний мірило/giu,'єдине мірило');
 }
