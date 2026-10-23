@@ -8,10 +8,17 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  const version=await runtime.json();
  expect(version.readerVersion).toBe('6.0.0');
  expect(version.pipeline).toBe('direct-v2');
+ expect(version.referenceBenchmark?.version).toBe('jhora8-public-v1');
+ expect(version.referenceBenchmark?.cases).toBe(1);
+ expect(version.referenceBenchmark?.perUserJhoraVerified).toBe(false);
  await page.goto('/uk/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
  await expect(page.locator('.jy-primary-chart .jy-north-chart')).toBeVisible();
+ await expect(page.locator('.jy-reference-details')).toBeVisible();
+ await page.locator('.jy-reference-details summary').click();
+ await expect(page.locator('.jy-reference-details')).toContainText('JHora 8.0');
+ await expect(page.locator('.jy-reference-details')).toContainText('10/10');
  const actualChart=await (await page.request.post('/api/v1/charts/calculate',{data:{date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude:28.6139,longitude:77.209}})).json();
  expect(actualChart.verification?.status).toBe('verified_internal');
  expect(actualChart.verification?.version).toBe('jyotish-integrity-v1');
