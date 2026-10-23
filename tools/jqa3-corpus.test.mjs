@@ -21,7 +21,11 @@ test('profile missing or inferred must always be UNVERIFIED',()=>{
  assert.ok(report.independentJHoraCharts>=1);
  assert.ok(report.explicitlyMatchedCharts<=report.independentJHoraCharts);
  assert.equal(report.status,'NOT_CERTIFIED');
- assert.ok(report.blockingConditions.includes('INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS'));
+ if(report.independentJHoraCharts<report.required)
+  assert.ok(report.blockingConditions.includes('INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS'));
+ else
+  assert.ok(!report.blockingConditions.includes('INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS'),
+   'Real source corpus sufficiency is no longer a blocker');
  assert.ok(report.blockingConditions.includes('INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES'));
  assert.equal(report.results[0].profileStatus,'UNVERIFIED');
  assert.equal(report.results[0].evidenceStatus,'ORIGINAL_INI_MISSING');
