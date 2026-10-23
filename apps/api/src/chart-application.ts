@@ -3,7 +3,7 @@ import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts'
 export const CHART_USE_CASES='CHART_USE_CASES';
 export type SaveChartInput={
  date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string;
- asOf?:string;language?:'uk'|'en';aiProvider?:'local'|'openrouter'|'ollama';aiText?:string;aiModel?:string;
+ asOf?:string;language?:'uk'|'en';aiProvider?:'local'|'openrouter'|'ollama'|'gemini'|'groq';aiText?:string;aiModel?:string;
 };
 export type StoredChart={
  id:string;createdAt:Date;input:unknown;result:unknown;savedReport:unknown;
@@ -49,7 +49,7 @@ export class SavedChartUseCases{
   const ai=body.aiProvider&&body.aiProvider!=='local'&&body.aiText?
    {provider:body.aiProvider,model:body.aiModel||'',text:body.aiText}:
    {provider:'local',text:'',fallbackReason:'local_only'};
-  return this.store.create(ownerId,chart,{...(snapshot as object),ai});
+  return this.store.create(ownerId,chart,{...(snapshot as object),readerVersion:'6.0.0',ai:{...ai,source:ai.provider==='local'?'deterministic':'llm'}});
  }
  private async read(ownerId:string,chartId:string){
   const row=await this.store.find(ownerId,chartId);
