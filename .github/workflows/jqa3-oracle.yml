@@ -2,13 +2,10 @@ name: JQA-3 Real JHora Oracle (isolated, no fake fixtures)
 on:
   push:
     branches: [feat/jqa3-reference-corpus]
-  pull_request:
-    branches: [main]
-    paths:
-      - ".github/workflows/jqa3-oracle.yml"
-      - "tools/jqa3-*"
-      - "tests/fixtures/jhora-corpus/**"
   workflow_dispatch:
+concurrency:
+  group: jqa3-oracle-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -62,9 +59,9 @@ jobs:
           test -s "$WINEPREFIX/drive_c/Program Files/AutoHotkey/AutoHotkey.exe"
       - name: Check out pinned independent JHoraKit automation
         run: |
-          git clone --quiet https://github.com/normalmystic/JHoraKit.git "$RUNNER_TEMP/JHoraKit"
-          git -C "$RUNNER_TEMP/JHoraKit" checkout --quiet f63826b501eabe69c6b08c5365875e1e2f74c24a
-          git -C "$RUNNER_TEMP/JHoraKit" status --short
+          git clone --quiet https://github.com/normalmystic/JHoraKit.git /tmp/JHoraKit
+          git -C /tmp/JHoraKit checkout --quiet f63826b501eabe69c6b08c5365875e1e2f74c24a
+          git -C /tmp/JHoraKit status --short
       - name: Obtain twenty real JHora outputs (never replace with Swiss)
         env:
           JHORAKIT_DIR: /tmp/JHoraKit
