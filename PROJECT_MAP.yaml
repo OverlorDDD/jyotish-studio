@@ -2,7 +2,7 @@
 schema_version: 1
 updated: "2026-10-22"
 verified_against:
-  branch: feat/consultation-quality-v2
+  branch: fix/jyotish-quality-audit-hardening
   commit: "969aa7183ace2b32197d3488830137e5ba9430d7"
 product:
   brand: Galaxiora
@@ -188,8 +188,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "Consultation Quality v2 evidence-backed single-call LLM; PR #42 based on PR #41; CI and real literary acceptance pending"
-  next: "12-ascendant CI + real Windows AI report evaluation, independent JHora accuracy, editorial QA; no PR merge before approval"
+  now: "CQv2 intact; Jyotish module audit/hardening in PR #43: nonblocking prose QA, singleflight cache, saved Gemini/Groq provenance"
+  next: "Green CI on PR #43, JHora comparison, real cloud UA/EN editorial acceptance, then merge PR #41/#42/#43 into main"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -206,6 +206,7 @@ docs:
   a8_reader_v6: "docs/research/a8-10-reader-v6-editorial.md"
   jyotish_audit: "docs/research/jyotish-end-to-end-audit-2026-10-22.md"
   cqv2_research: "docs/research/consultation-quality-v2.md"
+  jyotish_module_audit: "docs/research/jyotish-module-audit-2026-10-23.md"
   a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
   classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"
