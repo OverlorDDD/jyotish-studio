@@ -189,7 +189,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
        <p>{lang==='uk'?'Внутрішні перевірки D1, D9, D10, управителів і даш пройдено.':'Internal D1, D9, D10, house-lord and dasha consistency checks passed.'}</p>
        {jhoraReference&&<p>{lang==='uk'?'Незалежний архів JHora 8.0:':'Recorded JHora 8.0 reference:'} {jhoraReference.cases} {lang==='uk'?'історична карта':'historical chart'}. D1 {jhoraReference.d1SignMatches}/{jhoraReference.d1Total}, D9 {jhoraReference.d9SignMatches}/{jhoraReference.d9Total}, D10 {jhoraReference.d10SignMatches}/{jhoraReference.d10Total}. {lang==='uk'?'Відмінності пояснюються різними аянамшами, типами вузлів і способом побудови D10.':'Differences reflect distinct ayanamsa, node and D10 methods.'}</p>}
        <p>{lang==='uk'?'Це тестова звірка одного незалежно збереженого еталона, а не перевірка вашої особистої карти безпосередньо у JHora.':'This benchmarks one separately captured reference, not a direct JHora verification of your personal chart.'}</p>
-      </details>
+      </details>}
      </aside>
     </section>
 
