@@ -8,6 +8,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  windows-fixture-integrity:
+    name: Windows JHora pinned fixture and CRLF regression
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependency graph
+        run: npm install --no-audit --no-fund
+      - name: Verify immutable JHora corpus even on Windows
+        run: npm run test:jqa3:corpus
   test:
     runs-on: ubuntu-latest
     steps:
