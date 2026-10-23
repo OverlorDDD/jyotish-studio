@@ -61,8 +61,16 @@ export function loadCorpus(path=MANIFEST){
 }
 export function verifyReference(record){
  const bytes=readFileSync(withinRoot(record.referenceFile));
- assert.equal(gitSha(bytes),record.referenceGitBlobSha1,'immutable JHora fixture changed: '+record.id);
- const ref=JSON.parse(bytes.toString('utf8'));
+ // Git for Windows can convert committed LF JSON to CRLF on checkout.
+ // Hash the canonical Git-blob text; this accepts ONLY newline conversion
+ // and still rejects every changed value, altered character or missing byte.
+ const canonical=bytes.includes(Buffer.from('\r\n'))
+  ?Buffer.from(bytes.toString('utf8').replace(/\r\n/g,'\n'),'utf8'):bytes;
+ const originalHash=gitSha(bytes);
+ assert.ok(originalHash===record.referenceGitBlobSha1||
+  (originalHash!==gitSha(canonical)&&gitSha(canonical)===record.referenceGitBlobSha1),
+  'immutable JHora fixture changed: '+record.id);
+ const ref=JSON.parse(canonical.toString('utf8'));
  assert.ok(ref.civilTime?.birthUtc?.endsWith('Z'));
  assert.ok(Number.isFinite(ref.civilTime.latitude)&&Number.isFinite(ref.civilTime.longitude));
  assert.deepEqual(Object.keys(ref.expected.positions),BODIES);
