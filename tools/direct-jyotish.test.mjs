@@ -117,3 +117,40 @@ test('an unsupported western planet cannot be salvaged by retries',async()=>{
  assert.equal(output.reason,'invalid_response');
  assert.equal(output.result,null);
 });
+
+test('live diagnostic exposes safe upstream numeric status per provider and no private response body',async()=>{
+ const events=[];
+ const calls=[];
+ const output=await generateDirectJyotish(chart,'uk','2026-10-22',{
+  order:['groq','gemini','openrouter'],
+  keys:{groq:'secret_groq',gemini:'secret_gemini',openrouter:'secret_router'},
+  freeConfirmed:{groq:true,gemini:true},
+  limit:()=>true,
+  onDiagnostic:event=>events.push(event),
+  fetcher:async url=>{
+   calls.push(url);
+   const status=[403,503,400][calls.length-1];
+   return new Response('SENSITIVE_NOT_TO_BE_LOGGED',{status});
+  }
+ });
+ assert.equal(output.result,null);
+ assert.equal(calls.length,3);
+ assert.deepEqual(events.map(e=>[e.provider,e.stage,e.httpStatus]),[
+  ['groq','http',403],['gemini','http',503],['openrouter','http',400]
+ ]);
+ const safe=JSON.stringify(events);
+ assert.ok(!safe.includes('SENSITIVE_NOT_TO_BE_LOGGED'));
+ assert.ok(!safe.includes('secret_'));
+});
+test('single-provider live mode cannot contact the two other free providers',async()=>{
+ const calls=[];
+ const output=await generateDirectJyotish(chart,'uk','2026-10-22',{
+  order:['gemini'],
+  keys:{gemini:'test',groq:'test',openrouter:'test'},
+  freeConfirmed:{gemini:true,groq:true},limit:()=>true,
+  fetcher:async url=>{calls.push(url);return success(prose);}
+ });
+ assert.equal(calls.length,1);
+ assert.ok(calls[0].includes('generativelanguage.googleapis.com'));
+ assert.equal(output.result?.provider,'gemini');
+});
