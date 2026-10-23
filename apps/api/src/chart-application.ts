@@ -49,7 +49,7 @@ export class SavedChartUseCases{
   const ai=body.aiProvider&&body.aiProvider!=='local'&&body.aiText?
    {provider:body.aiProvider,model:body.aiModel||'',text:body.aiText}:
    {provider:'local',text:'',fallbackReason:'local_only'};
-  return this.store.create(ownerId,chart,{...(snapshot as object),readerVersion:'6.0.0',ai:{...ai,source:ai.provider==='local'?'deterministic':'llm'}});
+  return this.store.create(ownerId,chart,{...(snapshot as object),readerVersion:'6.0.0',verification:(chart as CalculatedChart&{verification?:unknown}).verification,ai:{...ai,source:ai.provider==='local'?'deterministic':'llm'}});
  }
  private async read(ownerId:string,chartId:string){
   const row=await this.store.find(ownerId,chartId);
