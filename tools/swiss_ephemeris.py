@@ -12,10 +12,12 @@ def main():
     # Prefer the same official .se1 planetary data bundled with @swisseph/node.
     # swe.calc_ut silently falls back to Moshier when these files are missing;
     # never mislabel that fallback as verified Swiss-file numerical parity.
-    bundled=Path(__file__).resolve().parent.parent / 'node_modules' / '@swisseph' / 'node' / 'ephemeris'
+    # Keep development fallback reproducible: do not silently change its
+    # previously pinned reference vectors when node_modules has .se1 files.
+    # JQA-3 invokes this adapter with an EXPLICIT SWISSEPH_EPHE_PATH.
     configured=os.environ.get('SWISSEPH_EPHE_PATH')
-    ephe=Path(configured) if configured else bundled
-    if ephe.is_dir():
+    ephe=Path(configured) if configured else None
+    if ephe and ephe.is_dir():
         swe.set_ephe_path(str(ephe))
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
@@ -41,7 +43,7 @@ def main():
      'backend':'Swiss Ephemeris / pyswisseph ('+('SWIEPH source files' if source_complete else 'Moshier/other fallback')+')',
      'effectiveEphemerisSource':'SWIEPH' if source_complete else 'MIXED_OR_FALLBACK',
      'ephemerisSourcesByBody':source_by_body,
-     'ephemerisDataDir':str(ephe) if ephe.is_dir() else None,
+     'ephemerisDataDir':str(ephe) if ephe and ephe.is_dir() else None,
      'allSwissEphemerisFilesUsed':source_complete}))
 
 if __name__=='__main__':main()
