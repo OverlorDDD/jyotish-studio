@@ -54,6 +54,7 @@ test('short or unsupported outer planets are rejected, while full text is accept
  assert.equal(acceptDirectJyotishText('Short answer.').ok,false);
  assert.equal(acceptDirectJyotishText(prose+' Pluto certainly decides your marriage.').ok,false);
  assert.equal(acceptDirectJyotishText(prose).ok,true);
+ assert.equal(acceptDirectJyotishText(prose+'**').ok,true,'Markdown emphasis must not disguise a completed final sentence');
 });
 test('provider exhaustion returns a recoverable code, not a false AI completion',async()=>{
  const output=await generateDirectJyotish(chart,'uk','2026-10-22',{
