@@ -31,6 +31,15 @@ def encode_coordinate(value, east_inverted=False):
     if minutes==60:degrees+=1;minutes=0
     sign='-' if (value<0)^east_inverted else ''
     return f'{sign}{degrees}.{minutes:02}{seconds:02}00'
+def encoded_decimal_coordinate(value,east_inverted=False):
+    # Compare using the precise sexagesimal coordinate JHora actually receives,
+    # not the original higher-precision decimal (the JHD stores whole seconds).
+    token=encode_coordinate(value,east_inverted)
+    negative=token.startswith('-')
+    integer,fraction=token.lstrip('-').split('.')
+    degrees=int(integer)+int(fraction[:2])/60+int(fraction[2:4])/3600
+    # JHD longitude sign is inverted relative to east-positive GeoJSON.
+    return degrees*(-1 if negative else 1)*(-1 if east_inverted else 1)
 def build_jhd(row):
     ident,date,time,lat,lon,tz,place=row
     y,m,d=map(int,date.split('-'));hh,minute=map(int,time.split(':'))
@@ -112,7 +121,9 @@ def main():
         utc=wall-dt.timedelta(seconds=zone_seconds)
         capture={
          'id':ident,'birthLocal':wall.isoformat(),'utc':utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
-         'utcOffsetSeconds':zone_seconds,'latitude':float(lat),'longitude':float(lon),
+         'utcOffsetSeconds':zone_seconds,'latitude':encoded_decimal_coordinate(float(lat)),
+         'longitude':encoded_decimal_coordinate(float(lon),True),
+         'requestedLatitude':float(lat),'requestedLongitude':float(lon),
          'jhoraExeSha256':sha256(exe),'jhoraVersion':os.environ['JHORA_VERSION'],
          'sourceRepo':'https://github.com/normalmystic/JHoraKit','sourceCommit':COMMIT,
          'jhoraConfigurationCapturedBeforeRun':True,'jhoraConfigurationRestoredAfterRun':True,
