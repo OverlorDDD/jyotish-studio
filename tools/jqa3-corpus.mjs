@@ -285,6 +285,15 @@ function convertJhoraKit(chart,divisionalsRaw){
  });
  return {positions,vimshottari,d10Variant};
 }
+/** JHora omits the zero-padding on midnight hours (0:20:00 instead of 00:20:00).
+ * Compare validated wall-clock fields, never date/time strings or raw UTC guesses.
+ */
+export function normalizeJHoraClock(value){
+ assert.match(value??'',/^\d{1,2}:\d{2}:\d{2}$/,'Invalid JHora clock representation');
+ const [hour,minute,second]=value.split(':').map(Number);
+ assert.ok(hour>=0&&hour<=23&&minute>=0&&minute<=59&&second>=0&&second<=59,'Invalid JHora wall-clock time');
+ return [hour,minute,second].map(v=>String(v).padStart(2,'0')).join(':');
+}
 export function importCapture(captureDir,outputFile){
  const input=resolve(captureDir),out=withinRoot(outputFile),read=name=>readFileSync(resolve(input,name));
  for(const name of ['chart_data.txt','divisionals.txt','input.jhd','jhora.ini','capture.json']){
@@ -304,7 +313,8 @@ export function importCapture(captureDir,outputFile){
  const parsed=parseJHoraRaw(rawChart.toString('utf8'),rawDiv.toString('utf8'));
  const sourceDate=new Date(parsed.birth.date+' 00:00:00 GMT').toISOString().slice(0,10);
  assert.equal(sourceDate,meta.birthLocal.slice(0,10),'Original JHora date differs from requested input');
- assert.equal(parsed.birth.time,meta.birthLocal.slice(11),'Original JHora time differs from requested input');
+ assert.equal(normalizeJHoraClock(parsed.birth.time),normalizeJHoraClock(meta.birthLocal.slice(11)),
+  'Original JHora time differs from requested input');
  assert.equal(parsed.birth.utcOffsetSeconds,meta.utcOffsetSeconds,'Original JHora offset differs from input');
  assert.ok(Math.abs(parsed.birth.latitude-meta.latitude)<1e-7,'JHora encoded latitude differs from reported capture latitude');
  assert.ok(Math.abs(parsed.birth.longitude-meta.longitude)<1e-7,'JHora encoded longitude differs from reported capture longitude');
@@ -372,7 +382,8 @@ export function registerCapture(normalizedFile){
   id,evidenceKind:'RECORDED_JHORA_EXPORT',captureType:'JHORAKIT_DIRECT_CAPTURE',
   sourceRepo:reference.independentSource.captureRepository,
   sourceCommit:reference.independentSource.captureCommit,
-  originalRawPaths:['chart_data.txt','divisionals.txt','input.jhd','jhora.ini','chart.json'],
+  originalRawPaths:['chart_data.txt','divisionals.txt','input.jhd','jhora.ini',
+   ...(existsSync(withinRoot('tests/fixtures/jhora-corpus/captures/'+id+'/chart.json'))?['chart.json']:[])],
   captureDir:'tests/fixtures/jhora-corpus/captures/'+id,
   referenceFile:relative(ROOT,file),referenceGitBlobSha1:gitSha(readFileSync(file)),
   hasOriginalJHoraIni:true,configAssertion:'EXPLICIT_CAPTURED_INI',
