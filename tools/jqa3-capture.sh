@@ -63,8 +63,16 @@ while IFS='|' read -r id date localTime lat lon tz place; do
  mkdir -p "$dst"
  cp "$ini" "$dst/jhora.ini"
  export JHORA_OUT_DIR="$scratch"
- swift run --package-path "$JHORAKIT_DIR" jhora-extract --name "$id" \
-   --date "$date" --time "$localTime" --lat "$lat" --lon "$lon" --tz "$tz" --place "$place"
+ if ! swift run --package-path "$JHORAKIT_DIR" jhora-extract --name "$id" \
+   --date "$date" --time "$localTime" --lat "$lat" --lon "$lon" --tz "$tz" --place "$place"; then
+  echo "Strict JHoraKit full-chart parser rejected output: collecting original clipboard for independent diagnostics" >&2
+  for raw in chart_data.txt divisionals.txt; do
+   candidate="$WINE_PREFIX/drive_c/windows/temp/$raw"
+   if [[ -s "$candidate" ]]; then cp "$candidate" "$dst/$raw"; fi
+  done
+  echo "Raw source files retained for diagnosis; NO independent reference counted as passed" >&2
+  exit 3
+ fi
  mapfile -t captures < <(find "$scratch" -type f -name chart.json -print)
  [[ "${#captures[@]}" == 1 ]] || { echo "Exactly one chart.json required" >&2; exit 3; }
  sourceDir="$(dirname "${captures[0]}")"
