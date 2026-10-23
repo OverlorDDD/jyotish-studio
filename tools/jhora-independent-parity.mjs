@@ -32,11 +32,11 @@ export function readJhoraBenchmark(){
  assert.deepEqual(Object.keys(data.expected.positions),NAMES);
  return data;
 }
-function calcSwissExactReference(data){
+function calcSwissExactReference(data,nodeMode='mean'){
  const script=resolve(root,'tools/swiss_ephemeris.py');
  const cmd=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
  const result=spawnSync(cmd,[...(cmd==='py'?['-3']:[]),script],{
-  input:JSON.stringify({utc:data.civilTime.birthUtc,latitude:data.civilTime.latitude,longitude:data.civilTime.longitude}),
+  input:JSON.stringify({utc:data.civilTime.birthUtc,latitude:data.civilTime.latitude,longitude:data.civilTime.longitude,nodeMode}),
   encoding:'utf8',timeout:15000,maxBuffer:300000,cwd:root
  });
  if(result.status!==0)throw new Error('Independent benchmark requires real Swiss adapter: '+(result.stderr||result.error?.message||'unknown').slice(0,300));
@@ -45,7 +45,7 @@ function calcSwissExactReference(data){
  assert.match(resultJson.backend,/Swiss Ephemeris/);
  return resultJson;
 }
-export function compareJhoraFixture(source,swiss){
+export function compareJhoraFixture(source,swiss,{jhoraMatchedProfile=false}={}){
  const external=source.expected.positions;
  const observed=new Map(swiss.positions.map(p=>[p.name,p.longitude]));
  observed.set('Lagna',swiss.ascendant);
@@ -57,7 +57,7 @@ export function compareJhoraFixture(source,swiss){
   const original=external[name],computed=observed.get(name);
   assert.ok(Number.isFinite(computed),'missing computed '+name);
   const d1=sign(computed),d9=sign(divisionalLongitude(computed,9)),
-   d10=sign(divisionalLongitude(computed,10));
+   d10=jhoraMatchedProfile?d10JHoraFiveEight(computed):sign(divisionalLongitude(computed,10));
   const j9=sign(divisionalLongitude(original.longitude,9)),j10=d10JHoraFiveEight(original.longitude);
   const deltaArcMinutes=circular(computed,original.longitude)*60;
   const node=name==='Rahu'||name==='Ketu';
@@ -70,7 +70,7 @@ export function compareJhoraFixture(source,swiss){
   rows.push({name,d1Reference:original.d1,d1Observed:d1,d9Reference:original.d9,
    d9Observed:d9,d10JhoraFiveEight:original.d10_5_8,d10GalaxioraOneNine:d10,
    deltaArcMinutes:+deltaArcMinutes.toFixed(3),
-   comparableLongitude:node?'different_true_vs_mean_node': 'different_true_vs_traditional_lahiri'});
+   comparableLongitude:node?(jhoraMatchedProfile?'true_node_matching_source':'different_true_vs_mean_node'):'different_true_vs_traditional_lahiri'});
  }
  const moon=observed.get('Moon');
  const periods=vimshottari(moon,source.civilTime.birthUtc);
@@ -86,7 +86,7 @@ export function compareJhoraFixture(source,swiss){
   recordedCommit:source.independentSource.captureCommit,subject:source.title,
   inputUtc:source.civilTime.birthUtc,
   engine:swiss.backend,
-  result:'PASS_WITH_DOCUMENTED_METHOD_DIFFERENCES',
+  result:jhoraMatchedProfile?'JHORA_MATCHED_RULES_SIGNS_VERIFIED':'GALAXIORA_DEFAULT_METHOD_DIFFERENCES',
   counts:{referenceBodies:10,d1SignMatches:directSignMatch,classicalLongitudeWithin5Arcmin:classicalLongitudeToleranceMatch,
    d9GalaxioraSignMatches:d9Matches,d10GalaxioraVsJHora5_8SignMatches:d10Matches,
    d9IndependentSourceRuleMatches:d9RuleMatches,d10IndependentFiveEightRuleMatches:d10VariantRuleMatches},
@@ -95,26 +95,43 @@ export function compareJhoraFixture(source,swiss){
  };
 }
 export function runJhoraIndependentBenchmark(){
- const source=readJhoraBenchmark(),swiss=calcSwissExactReference(source);
- const result=compareJhoraFixture(source,swiss),n=result.counts;
- // Fail CI on regressions that cannot be explained by the pinned settings.
- assert.equal(n.referenceBodies,10);
- assert.equal(n.d1SignMatches,10,'JHora D1 signs unexpectedly changed in production Swiss calculation');
- assert.equal(n.classicalLongitudeWithin5Arcmin,8,'Classical sign coordinates are not close to independently recorded JHora chart');
- assert.equal(n.d9IndependentSourceRuleMatches,10,'D9 algorithm does not match the JHora-recorded longitudes');
- assert.equal(n.d10IndependentFiveEightRuleMatches,10,'Unmodified JHora source fails documented D-10 (5-8) variant');
- assert.equal(n.d9GalaxioraSignMatches,8,'Galaxiora D9 differs from expected mean-vs-true node signatures');
- assert.equal(n.d10GalaxioraVsJHora5_8SignMatches,7,'D10 mode mismatch signature has changed; investigate');
- return result;
+ const source=readJhoraBenchmark();
+ const mean=calcSwissExactReference(source,'mean');
+ const trueNode=calcSwissExactReference(source,'true');
+ const baseline=compareJhoraFixture(source,mean);
+ const matched=compareJhoraFixture(source,trueNode,{jhoraMatchedProfile:true});
+ const b=baseline.counts,m=matched.counts;
+ // Preserve the original result as a separate, labelled methodological control.
+ assert.equal(b.referenceBodies,10);
+ assert.equal(b.d1SignMatches,10);
+ assert.equal(b.classicalLongitudeWithin5Arcmin,8);
+ assert.equal(b.d9GalaxioraSignMatches,8,'Expected mean/true lunar node control changed');
+ assert.equal(b.d10GalaxioraVsJHora5_8SignMatches,7,'Expected D10 method control changed');
+ // The ACTUAL independent JHora screenshot/export, with the SAME node/D10
+ // convention, must match all 10 real observed body sign placements.
+ assert.equal(m.referenceBodies,10);
+ assert.equal(m.d1SignMatches,10,'JHora D1 signs do not match');
+ assert.equal(m.d9GalaxioraSignMatches,10,'JHora D9 did not reach real 10/10');
+ assert.equal(m.d10GalaxioraVsJHora5_8SignMatches,10,'JHora D10 did not reach real 10/10');
+ assert.equal(m.d9IndependentSourceRuleMatches,10,'D9 reference formula mismatch');
+ assert.equal(m.d10IndependentFiveEightRuleMatches,10,'D10 5-8 source rule mismatch');
+ return {version:'jhora8-profile-matched-v2',matched,baseline,
+  status:'TEN_OF_TEN_SIGN_AGREEMENT_UNDER_MATCHED_NODES_AND_D10',
+  restrictions:[
+   'Traditional Swiss Lahiri differs from JHora True Chitrapaksha: this is sign-level parity, not 1-arcsecond numeric parity.',
+   'Actual production charts deliberately continue with mean Rahu and D10 (1-9).',
+   'Only one independent recorded JHora output exists in this evidence set.',
+   'Vimshottari start dates still differ; JHora calendar convention not confirmed.'
+  ]};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{
   const x=runJhoraIndependentBenchmark();
-  console.log('INDEPENDENT JHORA 8.0 EVIDENCE: '+JSON.stringify(x.counts));
-  console.log('JHora config: True Chitrapaksha / true nodes / D10(5-8); Galaxiora: traditional Lahiri / mean nodes / D10(1-9)');
-  console.log('D10 mismatches (method only): '+x.rows.filter(y=>y.d10JhoraFiveEight!==y.d10GalaxioraOneNine).map(y=>y.name).join(','));
-  console.log('D9 mismatches (node model only): '+x.rows.filter(y=>y.d9Reference!==y.d9Observed).map(y=>y.name).join(','));
-  console.log('Dasha offsets, NOT proven parity: '+x.periodComparison.slice(0,3).map(y=>y.lord+' '+y.differenceDays+' days').join('; '));
-  console.log('PASS: JHora captured one real chart, method differences explicitly identified. No silent change to production engine.');
- }catch(error){console.error('FAIL JHora independent comparison: '+String(error));process.exitCode=1;}
+  const m=x.matched.counts,b=x.baseline.counts;
+  console.log('INDEPENDENT JHORA 8.0 PROFILE MATCHED: D1 '+m.d1SignMatches+'/10; D9 '+m.d9GalaxioraSignMatches+'/10; D10 '+m.d10GalaxioraVsJHora5_8SignMatches+'/10');
+  console.log('ALGORITHM REFERENCE from recorded longitudes: D9 '+m.d9IndependentSourceRuleMatches+'/10; D10 '+m.d10IndependentFiveEightRuleMatches+'/10');
+  console.log('PRODUCTION CONVENTION CROSS-METHOD (NOT ERRORS): D9 '+b.d9GalaxioraSignMatches+'/10; D10 '+b.d10GalaxioraVsJHora5_8SignMatches+'/10');
+  console.log('JHora matched method uses TRUE Rahu and D10 5-8; Galaxiora live uses MEAN Rahu and D10 1-9.');
+  console.log('MISSING FULL NUMERIC PARITY: JHora True Chitrapaksha vs Swiss Lahiri; dasha day convention, only one independent chart.');
+ }catch(error){console.error('FAIL JHora profile-matched comparison: '+String(error));process.exitCode=1;}
 }
