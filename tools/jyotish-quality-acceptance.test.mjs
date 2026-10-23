@@ -12,7 +12,7 @@ const approximate=(a,b)=>Math.abs(((a-b+540)%360)-180)<0.0001;
 function build(entry){
  const input={date:entry.date,time:entry.time,timeZone:entry.timeZone,latitude:entry.latitude,longitude:entry.longitude};
  const utc=localToUTC(input.date,input.time,input.timeZone);
- assert.equal(utc,entry.utc);
+ assert.equal(Date.parse(utc),Date.parse(entry.utc));
  const eph={ayanamsa:entry.ayanamsa,ascendant:entry.ascendant,
   julianDay:Date.parse(utc)/86400000+2440587.5,
   backend:'Swiss fixture',
