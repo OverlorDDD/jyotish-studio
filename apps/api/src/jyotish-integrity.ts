@@ -22,8 +22,10 @@ const finite=(n:number)=>Number.isFinite(n);
 const match=(a:number,b:number,eps=EPS)=>Math.abs(a-b)<=eps;
 
 export class ChartIntegrityError extends Error{
- constructor(readonly code:string){
+ readonly code:string;
+ constructor(code:string){
   super('Jyotish chart integrity check failed: '+code);
+  this.code=code;
   this.name='ChartIntegrityError';
  }
 }
