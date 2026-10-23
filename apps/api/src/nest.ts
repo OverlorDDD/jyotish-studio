@@ -92,7 +92,10 @@ export class JyotishController{
   }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
   // User intent is explicit: local Reader always responds without contacting providers.
   // Old A8.9 eight-chapter gate is RETIRED from this route.
-  const base={...report,readerVersion:'6.0.0'};
+  const verified=chart as CalculatedChart&{verification?:{status:string;version:string;digest:string}};
+  if(verified.verification?.status!=='verified_internal')
+   throw new ServiceUnavailableException('Jyotish verification missing. Report generation is blocked.');
+  const base={...report,readerVersion:'6.0.0',verification:verified.verification};
   if(birth.preferred==='local'||process.env.GALAXIORA_READER_ONLY==='1')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
