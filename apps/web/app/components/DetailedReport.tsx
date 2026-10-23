@@ -6,7 +6,7 @@ export type ReadingSection={
  facts?:string[];image?:'cosmos'|'earth'|'nebula';
 };
 export type ReadingReport={
- sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';readerVersion?:string;
+ sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';readerVersion?:string;verification?:{version:string;status:string;digest:string;checks:readonly string[];externalReferenceChecked:false};
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
  editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[];sourceIds?:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
