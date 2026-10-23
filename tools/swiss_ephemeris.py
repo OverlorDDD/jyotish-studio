@@ -10,9 +10,13 @@ def main():
     jd=swe.julday(dt.year,dt.month,dt.day,hour)
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
-    ayan=swe.get_ayanamsa_ut(jd)
-    # sidereal houses_ex returns sidereal ascendant (as opposed to tropical-minus-offset approximation)
-    cusps,angles=swe.houses_ex(jd, float(data['latitude']), float(data['longitude']), b'P', flags=swe.FLG_SIDEREAL)
+    # The native JS adapter uses getAyanamsaExUt (with nutation) and
+    # tropical Placidus ascendant minus that *same* true ayanamsa.
+    # get_ayanamsa_ut() returns MEAN ayanamsa, creating inconsistent
+    # metadata and a different basis from native. Match the actual mode.
+    _,ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH)
+    _,angles=swe.houses(jd,float(data['latitude']),float(data['longitude']),b'P')
+    ascendant=(angles[0]-ayan)%360
     body=[('Sun',swe.SUN),('Moon',swe.MOON),('Mars',swe.MARS),('Mercury',swe.MERCURY),('Jupiter',swe.JUPITER),('Venus',swe.VENUS),('Saturn',swe.SATURN),('Rahu',swe.MEAN_NODE)]
     positions=[]
     for name,planet in body:
@@ -20,6 +24,6 @@ def main():
        positions.append({'name':name,'longitude':xx[0]%360,'speed':xx[3]})
     rahu=positions[-1]
     positions.append({'name':'Ketu','longitude':(rahu['longitude']+180)%360,'speed':rahu['speed']})
-    print(json.dumps({'ayanamsa':ayan,'ascendant':angles[0]%360,'positions':positions,'julianDay':jd,'backend':'Swiss Ephemeris / pyswisseph (fallback)'}))
+    print(json.dumps({'ayanamsa':ayan,'ascendant':ascendant,'positions':positions,'julianDay':jd,'backend':'Swiss Ephemeris / pyswisseph (fallback)'}))
 
 if __name__=='__main__':main()
