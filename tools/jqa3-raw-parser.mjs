@@ -20,7 +20,7 @@ const verifyDate=date=>{assert.match(date,datePat);assert.equal(new Date(date+'T
 function sourcePositions(chartText){
  const block=chartText.split(/\r?\nBody\s+Longitude[^\n]*\n/);
  assert.equal(block.length,2,'Original JHora planet longitude table header absent');
- const lines=block[1].split(/\r?\n/).filter(Boolean);
+ const lines=block[1].split(/\r?\n/).slice(0,75).filter(Boolean);
  const result={};
  for(const name of NAMES){
   const candidates=lines.filter(l=>new RegExp('^'+name+'(?:\\s|$)').test(l));
