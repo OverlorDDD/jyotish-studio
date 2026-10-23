@@ -17,7 +17,7 @@
     "db:generate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:reference": "node --experimental-strip-types tools/reference-check.mjs",
-    "test:all": "npm test && npm run test:ui && npm run test:jyotish:layout && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3 && npm run test:tarot && npm run test:brand && npm run test:tarot:depth && npm run test:tarot:v2 && npm run test:tarot:session && npm run test:tarot:app && npm run test:architecture:a3 && npm run test:seo && npm run test:content:a5 && npm run test:breathing && npm run test:editorial:a6 && npm run test:glossary && npm run test:a7:llm && npm run test:a7:consultation && npm run test:ai:doctor && npm run test:a7:cloud && npm run test:a8:reader && npm run test:a8:reader-v6 && npm run test:jyotish:direct && npm run test:jyotish:quality && npm run test:jyotish:integrity && npm run research:verify-library && npm run test:a8:cloud && npm run test:a8:quality && npm run test:a8:substantive && npm run test:a8:resilience && npm run test:a8:graph && npm run test:a8:intelligence",
+    "test:all": "npm test && npm run test:ui && npm run test:jyotish:layout && npm run test:reference && npm run test:ai && npm run test:api-response && npm run test:access && npm run test:free-ai && npm run test:free-ai-retry && npm run test:report && npm run test:terminology && npm run test:engine2 && npm run test:portal && npm run test:platform && npm run test:stage3 && npm run test:tarot && npm run test:brand && npm run test:tarot:depth && npm run test:tarot:v2 && npm run test:tarot:session && npm run test:tarot:app && npm run test:architecture:a3 && npm run test:seo && npm run test:content:a5 && npm run test:breathing && npm run test:editorial:a6 && npm run test:glossary && npm run test:a7:llm && npm run test:a7:consultation && npm run test:ai:doctor && npm run test:a7:cloud && npm run test:a8:reader && npm run test:a8:reader-v6 && npm run test:jyotish:direct && npm run test:jyotish:quality && npm run test:jyotish:integrity && npm run test:jyotish:acceptance && npm run research:verify-library && npm run test:a8:cloud && npm run test:a8:quality && npm run test:a8:substantive && npm run test:a8:resilience && npm run test:a8:graph && npm run test:a8:intelligence",
     "test:full": "node tools/smoke-test.mjs --require-nest",
     "test:ui": "node --test tools/chart-labels.test.mjs",
     "preflight:full": "node tools/fullstack-preflight.mjs",
@@ -80,7 +80,8 @@
     "test:a8:reader-v6": "node --experimental-strip-types --test tools/a8-reader-v6-editorial.test.mjs",
     "test:jyotish:direct": "node --experimental-strip-types --test tools/direct-jyotish.test.mjs",
     "test:jyotish:quality": "node --experimental-strip-types --test tools/consultation-quality-v2.test.mjs",
-    "test:jyotish:integrity": "node --experimental-strip-types --test tools/jyotish-integrity-hardening.test.mjs"
+    "test:jyotish:integrity": "node --experimental-strip-types --test tools/jyotish-integrity-hardening.test.mjs",
+    "test:jyotish:acceptance": "node --experimental-strip-types --test tools/jyotish-quality-acceptance.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
