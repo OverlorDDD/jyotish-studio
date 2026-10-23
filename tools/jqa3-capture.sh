@@ -16,10 +16,20 @@ kitSha="$(git -C "$JHORAKIT_DIR" rev-parse HEAD)"
 installation=''
 for d in "Program Files (x86)" "Program Files"; do
  candidate="$WINE_PREFIX/drive_c/$d/Jagannatha Hora"
- if [[ -s "$candidate/jhcore/jhora.ini" && -s "$candidate/bin/jhora.exe" ]]; then installation="$candidate"; break; fi
+ if [[ -s "$candidate/bin/jhora.exe" ]]; then installation="$candidate"; break; fi
 done
 [[ -n "$installation" ]] || { echo "Installed official JHora not found" >&2; exit 2; }
 ini="$installation/jhcore/jhora.ini"
+if [[ ! -s "$ini" ]]; then
+ echo "JHora executable installed, but its INI was not initialized. Installing pinned JHoraKit 8.0 preference template."
+ test -s "$JHORAKIT_DIR/scripts/jhora.ini"
+ mkdir -p "$installation/jhcore"
+ cp "$JHORAKIT_DIR/scripts/jhora.ini" "$ini"
+ if [[ "$installation" == *"Program Files/Jagannatha Hora" ]]; then
+  sed -i 's@C:\\Program Files (x86)\\Jagannatha Hora@C:\\Program Files\\Jagannatha Hora@g' "$ini"
+ fi
+fi
+test -s "$ini"
 exeSha="$(sha256sum "$installation/bin/jhora.exe" | awk '{print $1}')"
 backup="$(mktemp)"
 cp "$ini" "$backup"
