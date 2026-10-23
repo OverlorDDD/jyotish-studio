@@ -17,7 +17,8 @@ import {createHash} from 'node:crypto';
 import {resolve,dirname,relative,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {divisionalLongitude,signIndex,nakshatraOf,vimshottari} from '../packages/jyotish-core/src/index.ts';
+import {divisionalLongitude,signIndex,nakshatraOf,vimshottari,graha} from '../packages/jyotish-core/src/index.ts';
+import {houseLordFacts} from '../packages/jyotish-core/src/rules.ts';
 import {d10JHoraFiveEight} from './jhora-independent-parity.mjs';
 import {parseJHoraRaw,JQA3_RAW_PARSER} from './jqa3-raw-parser.mjs';
 
@@ -27,6 +28,8 @@ const MANIFEST='tests/fixtures/jhora-corpus/manifest.json';
 export const BODIES=['Lagna','Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const SIGNS=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const NINE=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
+// Independently specified classical sign-lord truth table (not read from production rules).
+const REFERENCE_RULERS=['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
 const SHA=/^[a-f0-9]{40}$/;
 const SHA256=/^[a-f0-9]{64}$/;
 
@@ -142,7 +145,23 @@ function compare(ref,observed,comparable,speeds){
  result.retrograde={matches:retroMatches,total:7,status:comparable&&validRetro?(retroMatches===7?'PASS':'FAIL'):'UNVERIFIED'};
  // House-lord parity must be backed by 12 independently captured house-lord entries.
  // A matching ascendant alone cannot certify an implementation of all lord rules.
- result.houseLords={matches:0,total:12,status:'UNVERIFIED'};
+ const ascLon=observed.get('Lagna'),lagna=graha('Ascendant',ascLon,ascLon);
+ const chartForRules={ascendant:lagna,d1:NINE.map(name=>graha(name,observed.get(name),ascLon,speeds?.get(name)??0))};
+ const actualLordFacts=houseLordFacts(chartForRules);
+ let lordMatches=0;
+ for(let h=1;h<=12;h++){
+  const externalHouseSign=((refPositions.Lagna.d1+h-2)%12)+1;
+  const expectedRuler=REFERENCE_RULERS[externalHouseSign-1];
+  const externalRulerSign=refPositions[expectedRuler].d1;
+  const expectedLocatedHouse=((externalRulerSign-refPositions.Lagna.d1+12)%12)+1;
+  const actual=actualLordFacts.find(x=>x.values.house===h);
+  if(actual?.values.sign===externalHouseSign&&actual?.values.ruler===expectedRuler
+   &&actual?.values.locatedSign===externalRulerSign
+   &&actual?.values.locatedHouse===expectedLocatedHouse)lordMatches++;
+ }
+ result.houseLords={matches:lordMatches,total:12,
+  evidence:'JHora-recorded D1 signs + separately specified classical Parashari sign-ruler mapping',
+  status:comparable?(lordMatches===12?'PASS':'FAIL'):'UNVERIFIED'};
  for(const [name,n] of Object.entries(numerator))result[name]={
   matches:n,total:10,status:comparable?(n===10?'PASS':'FAIL'):(name==='D1'?'CONFIGURATION_DIFFERENCE':'UNVERIFIED')
  };
