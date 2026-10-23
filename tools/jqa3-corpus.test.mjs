@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {loadCorpus,verifyReference,auditCorpus,parseIni,BODIES} from './jqa3-corpus.mjs';
+import {loadCorpus,verifyReference,verifyPinnedTextBlob,auditCorpus,parseIni,BODIES} from './jqa3-corpus.mjs';
+import {readFileSync} from 'node:fs';
 
 test('pinned third-party JHora source remains byte-for-byte unchanged',()=>{
  const m=loadCorpus();
@@ -47,4 +48,14 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
   assert.equal(metrics[field].status,'UNVERIFIED',field+' must not be silently promoted');
  }
  assert.ok(report.blockingConditions.includes('UNVERIFIED_OR_DIFFERENT_VALUES'));
+});
+
+test('Windows CRLF checkout preserves pinned Git blob identity without allowing any edited content',()=>{
+ const record=loadCorpus().records[0];
+ const raw=readFileSync(new URL('../'+record.referenceFile,import.meta.url));
+ const windows=Buffer.from(raw.toString('utf8').replace(/\r?\n/g,'\r\n'),'utf8');
+ const canonical=verifyPinnedTextBlob(windows,record.referenceGitBlobSha1,record.id);
+ assert.deepEqual(canonical,Buffer.from(raw.toString('utf8').replace(/\r\n/g,'\n'),'utf8'));
+ const changed=Buffer.from(windows.toString('utf8').replace('Mahatma Gandhi','Fabricated Gandhi'),'utf8');
+ assert.throws(()=>verifyPinnedTextBlob(changed,record.referenceGitBlobSha1,record.id),/immutable JHora fixture changed/);
 });
