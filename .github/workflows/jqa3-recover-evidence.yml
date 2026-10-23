@@ -1,0 +1,85 @@
+name: JQA-3.2 Recover pinned original JHora evidence
+on:
+  push:
+    branches: [fix/jqa3-windows-and-llm-recovery]
+    paths:
+      - 'tools/jqa3-corpus.mjs'
+      - 'tools/jqa3-corpus.test.mjs'
+      - 'tools/jqa3-recover-archived.mjs'
+      - '.github/workflows/jqa3-recover-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  recover-original-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Read existing Galaxiora code (do not replace birth values)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify the immutable original JHora artifact exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(gh api 'repos/${{ github.repository }}/actions/artifacts/12505264277' --jq '.digest')"
+          test "$sha" = 'sha256:b937a0d9d7ccffda36cc3079fc608d8471b87855626cc588111e4b50d7924c0f'
+          echo "Pinned original artifact digest accepted"
+      - name: Download original 2026-10-23 JHora 8.0 exports (no Swiss-generated references)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/jhora-original"
+          gh run download 39962145837 --repo "${{ github.repository }}" \
+            --name jqa3-real-jhora-8-raw-evidence --dir "$RUNNER_TEMP/jhora-original"
+          test -s "$RUNNER_TEMP/jhora-original/captures/jqa3-01/chart_data.txt"
+      - name: Replay 20 authentic clipboard exports and restore all original INI and JHD files
+        shell: bash
+        run: node --experimental-strip-types tools/jqa3-recover-archived.mjs "$RUNNER_TEMP/jhora-original"
+      - name: Verify fail-closed JHora tests with 21 independent source records
+        shell: bash
+        run: npm run test:jqa3:corpus
+      - name: Independent data count and lagna coverage must equal source evidence
+        shell: bash
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const e=JSON.parse(fs.readFileSync("docs/research/jqa3-2-recovered-evidence.json","utf8"));
+            if(e.originalIndependentExports!==20||e.distinctLagnaSigns!==12||e.events.some(x=>x.maha!==9||x.antar!==81))process.exit(2);
+            const m=JSON.parse(fs.readFileSync("tests/fixtures/jhora-corpus/manifest.json","utf8"));
+            if(m.records.length!==21||m.records.filter(x=>x.hasOriginalJHoraIni).length!==20)process.exit(3);
+            console.log("20 real source exports, 12 distinct lagna signs, 20 original INI, 20×(9+81) dasha dates preserved");
+          '
+      - name: Commit immutable original JHora evidence for long-term use (never the proprietary exe)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- tests/fixtures/jhora-corpus/captures/ tests/fixtures/jhora-corpus/jqa3-*.json \
+            tests/fixtures/jhora-corpus/manifest.json docs/research/jqa3-2-recovered-evidence.json
+          git diff --cached --check
+          git diff --cached --quiet && { echo "Evidence already tracked"; exit 0; }
+          git commit -m "test(jqa3): preserve 20 genuine original JHora 8 charts and INI with provenance"
+          git push origin "HEAD:${{ github.ref_name }}"
+      - name: Preserve full original evidence as a downloadable fallback
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jqa3-2-authentic-recovered-evidence
+          path: |
+            tests/fixtures/jhora-corpus/captures/
+            tests/fixtures/jhora-corpus/jqa3-*.json
+            tests/fixtures/jhora-corpus/manifest.json
+            docs/research/jqa3-2-recovered-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
