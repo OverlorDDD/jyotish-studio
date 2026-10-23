@@ -108,33 +108,54 @@ export async function generateDirectJyotish(
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),opts.timeoutMs||38000);
   const model=pickModel(provider);
   try{
-   const response=await (opts.fetcher||fetch)(urlFor(provider),{
-    method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
-    body:JSON.stringify({model,max_tokens:provider==='groq'?3000:3800,temperature:0.7,
-     ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
-     messages:[{role:'system',content:DIRECT_JYOTISH_INSTRUCTION},
-      {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
-       '. Here are ONLY verified calculation facts:\n'+facts} ]})
-   });
-   if(!response.ok){
-    reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
-     response.status>=500?'provider_unavailable':'invalid_response';redact(reason,provider);continue;
+   // Free models frequently stop before a long requested consultation is complete.
+   // A single bounded corrective retry is allowed only for truncated/short prose.
+   // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
+   for(let attempt=0;attempt<2;attempt++){
+    if(attempt>0){
+     if(!permit()){reason='hourly_limit';break;}
+     console.warn('Direct Jyotish: '+provider+' retrying_incomplete_text');
+    }
+    const concise=attempt===1;
+    const response=await (opts.fetcher||fetch)(urlFor(provider),{
+     method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
+     body:JSON.stringify({model,max_tokens:provider==='groq'?3000:3800,temperature:concise?0.45:0.7,
+      ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
+      messages:[{role:'system',content:concise?
+       DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, actual D1/D9/D10 and the major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
+       DIRECT_JYOTISH_INSTRUCTION},
+       {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
+        '. Here are ONLY verified calculation facts:\n'+facts} ]})
+    });
+    if(!response.ok){
+     reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
+      response.status>=500?'provider_unavailable':'invalid_response';
+     redact(reason,provider);break;
+    }
+    const raw=await response.text();
+    if(raw.length>160000){reason='invalid_response';break;}
+    let parsed:{model?:string;choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>}|undefined;
+    try{parsed=JSON.parse(raw);}catch{reason='invalid_response';break;}
+    const choice=parsed?.choices?.[0];
+    const value=choice?.message?.content;
+    const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+    const content=polishConsultationText(rawContent,lang);
+    const check=acceptDirectJyotishText(content);
+    // Some providers stop at token budget after a grammatically complete sentence:
+    // finish_reason=length must still be treated as incomplete.
+    const incomplete=choice?.finish_reason==='length'||!check.ok;
+    if(incomplete){
+     reason='invalid_response';
+     const code=choice?.finish_reason==='length'?'token_limit':check.reason;
+     console.warn('Direct Jyotish: '+provider+' rejected='+code);
+     if(attempt===0&&(code==='too_short'||code==='unfinished'||code==='token_limit'))continue;
+     break;
+    }
+    const review=reviewGeneratedConsultation(content,chart,lang,asOf);
+    if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
+    try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
+    return {result:{provider,model:parsed?.model||model,text:content.trim()}};
    }
-   // Bound body size to avoid memory blowups on unusual free routing responses.
-   const raw=await response.text();
-   if(raw.length>160000){reason='invalid_response';continue;}
-   let parsed:{model?:string;choices?:Array<{message?:{content?:string|Array<{text?:string}>}}>}|undefined;
-   try{parsed=JSON.parse(raw);}catch{reason='invalid_response';continue;}
-   const value=parsed?.choices?.[0]?.message?.content;
-   const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
-   const content=polishConsultationText(rawContent,lang);
-   const check=acceptDirectJyotishText(content);
-   if(!check.ok){reason='invalid_response';console.warn('Direct Jyotish: '+provider+' rejected='+check.reason);continue;}
-   const review=reviewGeneratedConsultation(content,chart,lang,asOf);
-   // Only bounded diagnostic codes, never log natal data or provider text.
-   if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
-   try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
-   return {result:{provider,model:parsed?.model||model,text:content.trim()}};
   }catch(error){reason=controller.signal.aborted?'timeout':'network';redact(reason,provider);}
   finally{clearTimeout(timer);}
  }
