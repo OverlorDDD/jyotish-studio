@@ -62,3 +62,57 @@ test('provider exhaustion returns a recoverable code, not a false AI completion'
  assert.equal(output.result,null);
  assert.equal(output.reason,'rate_limited');
 });
+
+test('short but otherwise usable free reply triggers exactly one evidence-grounded corrective retry',async()=>{
+ let attempts=0;
+ const output=await generateDirectJyotish(chart,'uk','2026-10-22',{
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async(_url,req)=>{
+   attempts++;
+   const body=JSON.parse(req.body);
+   assert.ok(body.messages[1].content.includes('D9 lagna sign='));
+   if(attempts===1)return success('This response is unfinished');
+   assert.ok(body.messages[0].content.includes('corrective attempt'));
+   return success(prose);
+  }
+ });
+ assert.equal(attempts,2);
+ assert.equal(output.result?.provider,'groq');
+ assert.equal(output.result?.text,prose);
+});
+test('token-limit output is retried once even if its last sentence ends with punctuation',async()=>{
+ let attempts=0;
+ const output=await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['gemini'],keys:{gemini:'test'},freeConfirmed:{gemini:true},limit:()=>true,
+  fetcher:async()=>{
+   attempts++;
+   return new Response(JSON.stringify({choices:[{finish_reason:attempts===1?'length':'stop',message:{content:prose}}]}),{status:200});
+  }
+ });
+ assert.equal(attempts,2);
+ assert.equal(output.result?.text,prose);
+});
+test('an explicit 429 never retries the same provider and falls back to the next free provider',async()=>{
+ const calls=[];
+ const output=await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['groq','openrouter'],keys:{groq:'test',openrouter:'test'},freeConfirmed:{groq:true},
+  limit:()=>true,fetcher:async url=>{
+   calls.push(url);
+   return calls.length===1?new Response('{}',{status:429}):success(prose);
+  }
+ });
+ assert.equal(calls.length,2);
+ assert.equal(output.result?.provider,'openrouter');
+});
+test('an unsupported western planet cannot be salvaged by retries',async()=>{
+ let attempts=0;
+ const output=await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async()=>{
+   attempts++;return success(prose+' Pluto determines your marriage.');
+  }
+ });
+ assert.equal(attempts,1);
+ assert.equal(output.reason,'invalid_response');
+ assert.equal(output.result,null);
+});
