@@ -88,7 +88,9 @@ export function acceptDirectJyotishText(text:string):{ok:boolean;reason:string}{
  const clean=text.trim().replace(/^\`\`\`(?:markdown)?\s*/i,'').replace(/\s*\`\`\`$/,'');
  if(clean.length<900)return {ok:false,reason:'too_short'};
  if(clean.length>32000)return {ok:false,reason:'too_long'};
- if(!/[.!?…][\"”’')\]]?\s*$/.test(clean))return {ok:false,reason:'unfinished'};
+ // A complete sentence wrapped in Markdown bold/italic still ends in punctuation.
+ const proseTail=clean.replace(/(?:\*{1,3}|_{1,3})+\s*$/u,'').trim();
+ if(!/[.!?…][\"”’')\]]?\s*$/.test(proseTail))return {ok:false,reason:'unfinished'};
  if(/(?:\bPluto\b|\bUranus\b|\bNeptune\b|\bChiron\b|\bLilith\b|Плутон|Уран(?:а|ом|і)?|Нептун|Хірон|Ліліт)/iu.test(clean))return {ok:false,reason:'unsupported_western_factors'};
  return {ok:true,reason:'ok'};
 }
