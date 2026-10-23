@@ -1,12 +1,7 @@
 name: JQA-3.2 Recover pinned original JHora evidence
+# One-time archived proof has already been committed. Manual-only workflow:
+# further commits must not overwrite original evidence or depend on expiring artifacts.
 on:
-  push:
-    branches: [fix/jqa3-windows-and-llm-recovery]
-    paths:
-      - 'tools/jqa3-corpus.mjs'
-      - 'tools/jqa3-corpus.test.mjs'
-      - 'tools/jqa3-recover-archived.mjs'
-      - '.github/workflows/jqa3-recover-evidence.yml'
   workflow_dispatch:
 permissions:
   contents: write
