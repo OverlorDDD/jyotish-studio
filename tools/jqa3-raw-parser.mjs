@@ -101,10 +101,15 @@ export function parseJHoraRaw(chartText,divisionalsText){
  const offset=chartText.match(/^Time Zone:\s*(\d{1,2}):(\d{2}):(\d{2}) \((East|West) of GMT\)$/m);
  const ayanamsa=chartText.match(/^Ayanamsa:\s*(\d{1,2})-(\d{2})-(\d{2}(?:\.\d+)?)$/m);
  assert.ok(expectedDate&&expectedTime&&offset&&ayanamsa,'Missing original birth time/ayanamsa fields');
+ const place=chartText.match(/^Place:\s*(\d{1,3})\s+([EW])\s+(\d{1,2})'\s+(\d{1,2})",\s*(\d{1,2})\s+([NS])\s+(\d{1,2})'\s+(\d{1,2})"/m);
+ assert.ok(place,'Original JHora place longitude/latitude must be recorded');
+ const longitude=(+place[1]+(+place[3])/60+(+place[4])/3600)*(place[2]==='W'?-1:1);
+ const latitude=(+place[5]+(+place[7])/60+(+place[8])/3600)*(place[6]==='S'?-1:1);
+ assert.ok(Math.abs(latitude)<=90&&Math.abs(longitude)<=180,'Invalid JHora original place');
  const positions=sourcePositions(chartText),variant=divisionals(divisionalsText,positions);
  const vimsottari=parseDasha(chartText);
  const offsetSeconds=(+offset[1]*3600+ +offset[2]*60+ +offset[3])*(offset[4]==='West'?-1:1);
  return {birth:{date:expectedDate,time:expectedTime,utcOffsetSeconds:offsetSeconds,
-  ayanamsaDegrees:+ayanamsa[1]+(+ayanamsa[2])/60+(+ayanamsa[3])/3600},
+  ayanamsaDegrees:+ayanamsa[1]+(+ayanamsa[2])/60+(+ayanamsa[3])/3600,latitude,longitude},
   expected:{positions,vimshottari:vimsottari},d10Variant:variant,parser:JQA3_RAW_PARSER};
 }
