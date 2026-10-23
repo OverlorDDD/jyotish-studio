@@ -40,7 +40,7 @@ test('three pinned Swiss birth/ayanamsa/lagna and full D1/D9/D10 chart pass pre-
 test('tampered birth/UTC/Julian day does not produce a publishable chart',()=>{
  fails(x=>{x.chart.utc='2000-01-02T00:00:00Z'},'birth.utc');
  fails(x=>{x.eph.julianDay+=1},'astronomy.julian_day');
- fails(x=>{x.chart.input.latitude+=0.1},'birth.input_consistency');
+ fails(x=>{x.chart.input={...x.chart.input,latitude:x.chart.input.latitude+0.1}},'birth.input_consistency');
 });
 test('missing, duplicate, invalid graha or corrupted nodes always fail closed',()=>{
  fails(x=>{x.eph.positions.pop()},'planet_count');
@@ -51,7 +51,7 @@ test('missing, duplicate, invalid graha or corrupted nodes always fail closed',(
 });
 test('D1 nakshatra, pada, retrograde and sign/longitude tampering fail closed',()=>{
  fails(x=>{x.chart.d1[1].nakshatra='wrong'},'nakshatra_pada');
- fails(x=>{x.chart.d1[1].pada=4},'nakshatra_pada');
+ fails(x=>{x.chart.d1[1].pada=9},'nakshatra_pada');
  fails(x=>{x.chart.d1[4].longitude+=1},'longitude');
  fails(x=>{x.chart.d1[6].retrograde=false},'retrograde');
 });
