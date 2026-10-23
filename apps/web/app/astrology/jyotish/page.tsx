@@ -57,7 +57,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const [lang,setLang]=useState<'en'|'uk'>(initialLang),[form,setForm]=useState<Form>(CITY.delhi),[preset,setPreset]=useState('delhi'),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
- const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false}|null>(null);
+ const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false;matchedMethodD9?:{jhora:{matched:number;total:number};pyjhora:{matched:number;total:number}};matchedMethodD10?:{jhoraFiveEight:{matched:number;total:number};pyjhoraOneNine:{matched:number;total:number}}}|null>(null);
  useEffect(()=>{
   let live=true;
   fetch('/api/v1/jyotish/runtime',{cache:'no-store'}).then(async res=>{
@@ -187,7 +187,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       {chart?.verification?.status==='verified_internal'&&<details className="jy-reference-details">
        <summary>{lang==='uk'?'Перевірка розрахунків':'Calculation verification'}</summary>
        <p>{lang==='uk'?'Внутрішні перевірки D1, D9, D10, управителів і даш пройдено.':'Internal D1, D9, D10, house-lord and dasha consistency checks passed.'}</p>
-       {jhoraReference&&<p>{lang==='uk'?'Незалежний архів JHora 8.0:':'Recorded JHora 8.0 reference:'} {jhoraReference.cases} {lang==='uk'?'історична карта':'historical chart'}. D1 {jhoraReference.d1SignMatches}/{jhoraReference.d1Total}, D9 {jhoraReference.d9SignMatches}/{jhoraReference.d9Total}, D10 {jhoraReference.d10SignMatches}/{jhoraReference.d10Total}. {lang==='uk'?'Відмінності пояснюються різними аянамшами, типами вузлів і способом побудови D10.':'Differences reflect distinct ayanamsa, node and D10 methods.'}</p>}
+       {jhoraReference&&<p>{lang==='uk'?'Еталонні карти:':'External reference charts:'} {jhoraReference.cases}. {lang==='uk'?'За однакових довгот і варіантів розрахунку:':'Using identical longitudes and varga conventions:'} D9 {jhoraReference.matchedMethodD9?.jhora.matched||'—'}/10 (JHora), D10 {jhoraReference.matchedMethodD10?.jhoraFiveEight.matched||'—'}/10 (JHora 5–8), D9 {jhoraReference.matchedMethodD9?.pyjhora.matched||'—'}/10 (PyJHora), D10 {jhoraReference.matchedMethodD10?.pyjhoraOneNine.matched||'—'}/10 (PyJHora 1–9).</p>}
+       {jhoraReference&&<p>{lang==='uk'?'Пряме порівняння різних методів без узгодження:':'Direct comparison of unmatched calculation profiles:'} D9 {jhoraReference.d9SignMatches}/{jhoraReference.d9Total}, D10 {jhoraReference.d10SignMatches}/{jhoraReference.d10Total}. {lang==='uk'?'Це очікувані розбіжності вузлів і варіанта D10, а не результат контрольного тесту однакових методів.':'These reflect different node types and D10 variants, not a matched-method failure.'}</p>}
        <p>{lang==='uk'?'Це тестова звірка одного незалежно збереженого еталона, а не перевірка вашої особистої карти безпосередньо у JHora.':'This benchmarks one separately captured reference, not a direct JHora verification of your personal chart.'}</p>
       </details>}
      </aside>
