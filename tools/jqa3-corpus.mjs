@@ -260,6 +260,8 @@ export function importCapture(captureDir,outputFile){
  assert.equal(sourceDate,meta.birthLocal.slice(0,10),'Original JHora date differs from requested input');
  assert.equal(parsed.birth.time,meta.birthLocal.slice(11),'Original JHora time differs from requested input');
  assert.equal(parsed.birth.utcOffsetSeconds,meta.utcOffsetSeconds,'Original JHora offset differs from input');
+ assert.ok(Math.abs(parsed.birth.latitude-meta.latitude)<1e-7,'JHora encoded latitude differs from reported capture latitude');
+ assert.ok(Math.abs(parsed.birth.longitude-meta.longitude)<1e-7,'JHora encoded longitude differs from reported capture longitude');
  assert.equal(meta.jhoraConfigurationCapturedBeforeRun,true);
  assert.equal(meta.jhoraConfigurationRestoredAfterRun,true);
  const variant=parsed.d10Variant;
