@@ -18,7 +18,7 @@ const CHART={
 };
 const CHAPTERS=['portrait','configuration','tensions','relationships','career','resources','timing','conclusion'];
 function fixture(lang){
- return {language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
+ return {readerVersion:'6.0.0',language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
   editorial:{
    highlights:[
     lang==='uk'?'Головний акцент: зв’язок між навчанням, волею та відповідальністю':'Central theme: learning and responsibility',
@@ -54,7 +54,7 @@ for(const lang of ['uk','en']){
    });
    expect(inside,'House numbers, glyphs and degrees must remain within '+view+' frame').toBe(true);
   }
-  await page.getByRole('button',{name:lang==='uk'?'Створити AI-трактування':'Generate AI reading'}).click();
+  await page.getByRole('button',{name:lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}).click();
   const document=page.locator('.reading-editorial');
   await expect(document).toBeVisible();
   await expect(document.locator('.reading-principle')).toHaveCount(3);
