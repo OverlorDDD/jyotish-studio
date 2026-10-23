@@ -13,9 +13,9 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 90
     env:
-      JHORAKIT_DIR: ${{ runner.temp }}\\JHoraKit
+      JHORAKIT_DIR: ${{ github.workspace }}\jhorakit-upstream
       JHORA_VERSION: 8.0.0.0
-      JQA3_AHK_EXE: ${{ runner.temp }}\\ahk\\AutoHotkeyU32.exe
+      JQA3_AHK_EXE: ${{ github.workspace }}\ahk\AutoHotkeyU32.exe
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,8 +36,8 @@ jobs:
           if (!$setup) { throw 'Authentic JHora executable installer missing' }
           Invoke-WebRequest 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip' -OutFile "$p\ahk_v1.zip"
           if ((Get-FileHash "$p\ahk_v1.zip" -Algorithm SHA256).Hash.ToLower() -ne '6f3663f7cdd25063c8c8728f5d9b07813ced8780522fd1f124ba539e2854215f') { throw 'AHK v1 archive signature mismatch' }
-          Expand-Archive "$p\ahk_v1.zip" "$env:RUNNER_TEMP\ahk" -Force
-          if (!(Test-Path "$env:RUNNER_TEMP\ahk\AutoHotkeyU32.exe")) { throw 'AHK v1 32-bit executable missing' }
+          Expand-Archive "$p\ahk_v1.zip" "$env:GITHUB_WORKSPACE\ahk" -Force
+          if (!(Test-Path "$env:JQA3_AHK_EXE")) { throw 'AHK v1 32-bit executable missing' }
           $process=Start-Process $setup.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru -Wait
           Write-Host "JHora installer exit code: $($process.ExitCode)"
           $exe=@(
