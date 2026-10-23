@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     env:
-      WINEPREFIX: ${{ runner.temp }}/jhora-wine
-      WINE_PREFIX: ${{ runner.temp }}/jhora-wine
+      WINEPREFIX: /tmp/jqa3-jhora-wine
+      WINE_PREFIX: /tmp/jqa3-jhora-wine
       WINEARCH: win32
       JHORA_VERSION: 8.0.0.0
       DEBIAN_FRONTEND: noninteractive
@@ -62,7 +62,7 @@ jobs:
           git -C "$RUNNER_TEMP/JHoraKit" status --short
       - name: Obtain twenty real JHora outputs (never replace with Swiss)
         env:
-          JHORAKIT_DIR: ${{ runner.temp }}/JHoraKit
+          JHORAKIT_DIR: /tmp/JHoraKit
         run: |
           timeout 2100s xvfb-run -a bash tools/jqa3-capture.sh
           echo "Completed original JHoraKit evidence capture"
