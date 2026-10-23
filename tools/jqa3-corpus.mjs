@@ -122,7 +122,7 @@ function calcCurrent(ref){
  const p=new Map(eph.positions.map(x=>[x.name,x.longitude]));p.set('Lagna',eph.ascendant);
  const speeds=new Map(eph.positions.map(x=>[x.name,x.speed]));
  assert.equal(p.size,10);
- return {positions:p,speeds};
+ return {positions:p,speeds,effectiveEphemerisSource:eph.effectiveEphemerisSource,ephemerisSourcesByBody:eph.ephemerisSourcesByBody};
 }
 function compare(ref,observed,comparable,speeds){
  const result={};
@@ -194,10 +194,13 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   const unique=ref.civilTime.birthUtc+'|'+ref.civilTime.latitude+'|'+ref.civilTime.longitude;
   assert.ok(!distinct.has(unique),'Repeated birth event does not count as independent second chart: '+record.id);
   distinct.add(unique);
-  const comparable=hasComparableProfile(record,ref);
   const calc=verifyAstronomy?calcCurrent(ref):null;
+  const comparable=hasComparableProfile(record,ref)&&(!calc||calc.effectiveEphemerisSource==='SWIEPH');
   const comparison=calc?compare(ref,calc.positions,comparable,calc.speeds):null;
-  results.push({id:record.id,provenance:'PINNED_THIRD_PARTY_RECORD',profileStatus:comparable?'EXPLICIT_MATCH':'UNVERIFIED',
+  results.push({id:record.id,provenance:'PINNED_THIRD_PARTY_RECORD',
+    effectiveEphemerisSource:calc?.effectiveEphemerisSource??'NOT_RUN',
+    ephemerisSourcesByBody:calc?.ephemerisSourcesByBody??null,
+    profileStatus:comparable?'EXPLICIT_MATCH':'UNVERIFIED',
     evidenceStatus:record.hasOriginalJHoraIni?'CAPTURE_EVIDENCE_PRESENT':'ORIGINAL_INI_MISSING',
     result:comparison});
  }
@@ -210,6 +213,7 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   status:fullyPassed?'CERTIFIED':'NOT_CERTIFIED',results,blockingConditions:[
    ...(count<required?['INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS']:[]),
    ...(matched<required?['INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES']:[]),
+   ...(results.some(x=>x.effectiveEphemerisSource==='MIXED_OR_FALLBACK')?['SWISS_EPHEMERIS_FILES_NOT_USED']:[]),
    ...(lagnaSigns.size<12?['NOT_ALL_12_LAGNA_SIGNS_COVERED']:[]),
    ...(results.some(x=>x.result&&['D1','D9','D10','longitude','dasha','nakshatra','pada','retrograde','houseLords'].some(k=>x.result[k].status!=='PASS'))?['UNVERIFIED_OR_DIFFERENT_VALUES']:[])
   ]};
