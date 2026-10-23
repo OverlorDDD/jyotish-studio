@@ -16,8 +16,8 @@ export class CredentialsDto{
 export class SaveChartDto extends BirthDto{
  @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) asOf?:string;
  @IsOptional() @IsIn(['uk','en']) language?:'uk'|'en';
- @IsOptional() @IsIn(['local','openrouter','ollama']) aiProvider?:'local'|'openrouter'|'ollama';
- @IsOptional() @IsString() @MaxLength(12000) aiText?:string;
+ @IsOptional() @IsIn(['local','openrouter','ollama','gemini','groq']) aiProvider?:'local'|'openrouter'|'ollama'|'gemini'|'groq';
+ @IsOptional() @IsString() @MaxLength(32000) aiText?:string;
  @IsOptional() @IsString() @MaxLength(120) aiModel?:string;
 }
 const allowAuthAttempt=createHourlyLimiter(60);

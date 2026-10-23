@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "jqa3-jhora8-real-export-only",
+  "minIndependentForCertification": 12,
+  "provenancePolicy": "Never manufacture JHora data from Swiss / PyJHora; keep raw original output and exact capture settings.",
+  "records": [
+    {
+      "id": "jhora8-gandhi-1869-public",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "THIRD_PARTY_RECOPIED_WITHOUT_ORIGINAL_INI",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "sample-data/Mahatma_Gandhi/chart_data.txt",
+        "sample-data/Mahatma_Gandhi/divisionals.txt",
+        "sample-data/Mahatma_Gandhi/input.jhd"
+      ],
+      "referenceFile": "tests/fixtures/jhora-8-gandhi-public.json",
+      "referenceGitBlobSha1": "37bd5b215ed17ef68f0f42789a64c7034b8ddaf7",
+      "hasOriginalJHoraIni": false,
+      "configAssertion": "INFERRED_NOT_CERTIFIED",
+      "notes": "Only the saved signs/longitudes are independently evidenced. Settings and dasha year are not fully attested."
+    }
+  ]
+}

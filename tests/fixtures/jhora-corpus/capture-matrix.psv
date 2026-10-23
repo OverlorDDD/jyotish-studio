@@ -1,0 +1,23 @@
+# SYNTHETIC JQA-3 inputs only. Selected via Swiss for coverage, never JHora expected answers.
+# Fixed UTC offsets; not assertions about IANA historical timezone policy.
+# id|date|local_HH:mm|latitude|longitude|offset_hours_East_of_UTC|place
+jqa3-01|1980-01-11|12:25|64.1466|-21.9426|0|Reykjavik
+jqa3-02|1982-08-14|00:20|38.7223|-9.1393|0|Lisbon
+jqa3-03|1984-03-17|11:55|30.0444|31.2357|2|Cairo
+jqa3-04|1986-10-20|00:35|28.6139|77.209|5.5|Delhi
+jqa3-05|1988-05-23|11:55|35.6762|139.6503|9|Tokyo
+jqa3-06|1990-12-26|01:05|-33.8688|151.2093|11|Sydney
+jqa3-07|1992-07-13|13:05|-33.9249|18.4241|2|Cape Town
+jqa3-08|1994-02-16|00:35|-34.6037|-58.3816|-3|Buenos Aires
+jqa3-09|1996-09-19|13:50|25.2048|55.2708|4|Dubai
+jqa3-10|1998-04-22|01:45|19.4326|-99.1332|-6|Mexico City
+jqa3-11|2000-11-25|12:50|13.7563|100.5018|7|Bangkok
+jqa3-12|2002-06-12|01:05|47.6062|-122.3321|-8|Seattle
+jqa3-13|2004-01-15|13:10|19.076|72.8777|5.5|Mumbai
+jqa3-14|2006-08-18|01:20|-1.286|36.817|3|Nairobi
+jqa3-15|2008-03-21|11:35|39.9042|116.4074|8|Beijing
+jqa3-16|2010-10-24|00:00|27.7172|85.324|5.75|Kathmandu
+jqa3-17|2012-05-11|13:40|21.3099|-157.8583|-10|Honolulu
+jqa3-18|2014-12-14|02:35|-33.4489|-70.6693|-3|Santiago
+jqa3-19|2016-07-17|13:50|1.3521|103.8198|8|Singapore
+jqa3-20|2018-02-20|23:45|-31.9523|115.8613|8|Perth
