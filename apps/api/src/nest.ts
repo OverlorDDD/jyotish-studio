@@ -55,6 +55,8 @@ export class JyotishController{
   referenceBenchmark:{
    version:'jhora8-public-v1',source:'JHoraKit captured Jagannatha Hora 8.0 output',cases:2,
    status:'one_recorded_reference_with_method_differences',
+   matchedMethodD9:{jhora:{matched:10,total:10},pyjhora:{matched:10,total:10}},
+   matchedMethodD10:{jhoraFiveEight:{matched:10,total:10},pyjhoraOneNine:{matched:10,total:10}},
    d1SignMatches:10,d1Total:10,d9SignMatches:8,d9Total:10,
    d10SignMatches:7,d10Total:10,
    notes:['True Chitrapaksha vs traditional Lahiri','True versus mean lunar nodes','D10 (5-8) versus (1-9) variant'],
