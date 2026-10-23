@@ -1,9 +1,9 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-21"
+updated: "2026-10-22"
 verified_against:
-  branch: main
-  commit: "66ea0f18474d756d42e740e1242166cd861f256b"
+  branch: feat/jhora-independent-reference
+  commit: "969aa7183ace2b32197d3488830137e5ba9430d7"
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -29,14 +29,15 @@ modules:
     status: "implemented; CI tested; independent JHora sign-off pending"
     domain: "packages/jyotish-core/src/index.ts; packages/jyotish-core/src/rules.ts"
     adapter: "apps/api/src/ephemeris.ts"
-    application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
+    application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/direct-jyotish.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
     shared_saved_charts: "apps/api/src/chart-application.ts; apps/api/src/chart-prisma.ts"
     http: "apps/api/src/nest.ts"
-    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
+    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx; apps/web/app/components/NorthIndianChart.tsx; apps/web/app/components/DetailedReport.tsx"
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
-    interpretation_v3: "apps/api/src/interpretation-v3.ts v4.0.0; expanded classical lordship/yogakarakas and eight narrative chapters; semantic claim gate in consultation-ai.ts"
+    interpretation_v3: "apps/api/src/interpretation-v3.ts v6.0.0; authored chart-based eight-chapter narrative in reader-narrative-v6.ts; evidence kept in calculation layer"
+    reader_preview: "GALAXIORA_READER_ONLY=1; deterministic report response without cloud inference; validation of user-facing prose"
     interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
-    interpretation_release: "A7.3 AI-authored eight chapter overlays with verified per-chapter fallback; actual cloud use requires live PASS"
+    interpretation_release: "Reader v6 deterministic; direct-v2 single LLM response + grounded six-theme CQv2 support/friction priorities; legacy A8.9 retired from reports"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
@@ -166,6 +167,12 @@ quality:
     a7_consultation: "npm run test:a7:consultation"
     a7_cloud: "npm run test:a7:cloud"
     a8_reader: "npm run test:a8:reader"
+    a8_reader_v6: "npm run test:a8:reader-v6"
+    jyotish_direct: "npm run test:jyotish:direct; npm run ai:verify-live"
+    jyotish_quality: "npm run test:jyotish:quality"
+    jyotish_acceptance: "npm run test:jyotish:acceptance; npm run test:reference"
+    jyotish_independent_jhora: "npm run test:jhora:independent"
+    jyotish_jqa2: "npm run test:jqa2:numerical; npm run test:jqa2:profiles"
     a8_quality: "npm run test:a8:quality"
     a8_resilience: "npm run test:a8:resilience"
     a8_cloud: "npm run test:a8:cloud"
@@ -184,8 +191,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A8.9 Consultation Intelligence preview: graph, calculated claims, global theme plan, atomic cloud author/editor gate; human review NOT complete"
-  next: "A8.9 real cloud UA/EN quality acceptance, JHora parity on consented real charts, expert review 10-20 cases; do not begin A9 until acceptance"
+  now: "Stage JQA-2 stacked on PR #45: 1 genuine JHora 8.0 export, Swiss profile diagnostics, 24 additional ephemeris stress cases (NOT JHora references), historical subminute IANA offset fix; full external certification remains unverified"
+  next: "Resolve JHora/Swiss ascendant and true-node discrepancies; source 10-20 genuine JHora exports with saved INI and dasha preferences; run matched-profile 1-arcsec acceptance then merge stacked PRs"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -199,6 +206,13 @@ docs:
   a7_full_consultation: "docs/a7-3-professional-consultation.md"
   a8_classical_sources: "docs/research/a8-classical-source-registry.md"
   a8_reader_v4: "docs/research/a8-professional-reader-v4.md"
+  a8_reader_v6: "docs/research/a8-10-reader-v6-editorial.md"
+  jyotish_audit: "docs/research/jyotish-end-to-end-audit-2026-10-22.md"
+  cqv2_research: "docs/research/consultation-quality-v2.md"
+  jyotish_module_audit: "docs/research/jyotish-module-audit-2026-10-23.md"
+  jyotish_acceptance: "docs/research/jyotish-quality-acceptance-v1.md"
+  jyotish_jhora_reference: "docs/research/jhora-independent-parity-2026-10-23.md"
+  jyotish_jqa2_numerical: "docs/research/jqa2-numerical-audit-2026-10-23.md"
   a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
   classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"

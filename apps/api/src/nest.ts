@@ -4,13 +4,9 @@ import type {IncomingMessage} from 'node:http';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
-import {buildDetailedReport,detailedReportFacts} from './report.ts';
-import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
-import {generateFreeInterpretationDetailed} from './free-ai.ts';
-import {generateResilientFreeConsultation} from './resilient-consultation.ts';
-import {buildAiChapterSpecs} from './consultation-ai.ts';
-import {generateConsultationIntelligence} from './consultation-intelligence.ts';
-import {yogakarakasForLagna} from './reader-classical.ts';
+import {buildDetailedReport} from './report.ts';
+import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts';
+import {SuccessfulConsultationCache} from './consultation-replay.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
@@ -32,27 +28,8 @@ import {cookieUser} from './auth.ts';
 
 const allowCalculation=createHourlyLimiter(120);
 const allowInterpretation=createHourlyLimiter(50);
-/** Ephemeral, bounded replay cache: guests are NEVER stored in PostgreSQL.
- * Successful free-model prose is identical for repeated chart/lang/asOf in this process.
- * A restart drops the cache; the deterministic report remains identical. */
-type FreeReportAi=Awaited<ReturnType<typeof generateFreeInterpretationDetailed>>;
-const interpretationReplay=new Map<string,{expires:number;pending:Promise<FreeReportAi>}>();
-function replayFreeNarrative(key:string,generate:()=>Promise<FreeReportAi>){
- const now=Date.now(),existing=interpretationReplay.get(key);
- if(existing&&existing.expires>now)return existing.pending.then(outcome=>({outcome,cached:true}));
- if(interpretationReplay.size>=60){
-  const first=interpretationReplay.keys().next().value;
-  if(first)interpretationReplay.delete(first);
- }
- const pending=generate().then(result=>{
-  // Do not cache failures or quota exhaustion.
-  if(!result.result)interpretationReplay.delete(key);
-  return result;
- }).catch(error=>{interpretationReplay.delete(key);throw error;});
- interpretationReplay.set(key,{expires:now+30*60*1000,pending});
- return pending.then(outcome=>({outcome,cached:false}));
-}
-
+/** Bounded, successful-only AI consultation cache. No birth identifiers are stored. */
+const directCache=new SuccessfulConsultationCache<Awaited<ReturnType<typeof generateDirectJyotish>>>();
 function owner(req:IncomingMessage){
  const id=cookieUser(req);
  if(!id)throw new UnauthorizedException('Sign in to access saved charts.');
@@ -73,6 +50,17 @@ export class JyotishController{
    totalTokens:event.totalTokens,costUsd:event.costUsd
   }});
  }
+ @Get('v1/jyotish/runtime')
+ runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,mode:process.env.AI_MODE||'free',
+  referenceBenchmark:{
+   version:'jhora8-public-v1',source:'JHoraKit captured Jagannatha Hora 8.0 output',cases:1,
+   status:'one_recorded_reference_with_method_differences',
+   d1SignMatches:10,d1Total:10,d9SignMatches:8,d9Total:10,
+   d10SignMatches:7,d10Total:10,
+   notes:['True Chitrapaksha vs traditional Lahiri','True versus mean lunar nodes','D10 (5-8) versus (1-9) variant'],
+   perUserJhoraVerified:false
+  }};}
+
  @Get('health')
  async health(){
   try{await this.prisma.$queryRaw`SELECT 1`;return {status:'ok',service:'jyotish-nestjs',database:'connected'};}
@@ -110,25 +98,24 @@ export class JyotishController{
    const prepared=await this.reports.prepare(birth,birth.lang);
    chart=prepared.chart;report=prepared.report as ReturnType<typeof buildDetailedReport>;
   }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
-  if(birth.preferred==='local'||process.env.AI_MODE==='local')
-   return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
+  // User intent is explicit: local Reader always responds without contacting providers.
+  // Old A8.9 eight-chapter gate is RETIRED from this route.
+  const verified=chart as CalculatedChart&{verification?:{status:string;version:string;digest:string}};
+  if(verified.verification?.status!=='verified_internal')
+   throw new ServiceUnavailableException('Jyotish verification missing. Report generation is blocked.');
+  const base={...report,readerVersion:'6.0.0',verification:verified.verification};
+  if(birth.preferred==='local'||process.env.GALAXIORA_READER_ONLY==='1')
+   return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
-   return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+(process.env.GALAXIORA_A89_PREVIEW==='1'?':a8.9-preview-2':':interpretation-v5-1-bounded-cloud-enrichment'),
-   ()=>process.env.GALAXIORA_A89_PREVIEW==='1'?
-     generateConsultationIntelligence(chart,birth.lang,report.asOf,report.editorial,{
-      onUsage:event=>this.recordAiUsage(event,'detailed_report')
-     }):generateResilientFreeConsultation(chart,birth.lang,{
-    chapterSpecs:buildAiChapterSpecs(report.editorial),
-    factsOverride:report.editorial.findings.map(f=>({id:f.id,
-      fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
-       '. Supporting: '+f.supportingFactors.join('; ')+'. Limits: '+f.limitations.join('; ')})),reportMode:true,
-    onUsage:event=>this.recordAiUsage(event,'detailed_report'),
-    approvedYogas:[...ruleFindings(chart).yogas.map(y=>y.name),...(yogakarakasForLagna(chart.ascendant.sign).length?['yogakaraka']:[])]
-   }));
-  return {...report,ai:free.result?{...free.result,source:'llm' as const,cached,
-     ...(process.env.GALAXIORA_A89_PREVIEW==='1'?{documentMode:'unified' as const}:{} )}:
-   {provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:free.reason}};
+   return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
+  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION;
+  const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(chart,birth.lang,report.asOf,{
+   onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
+  }));
+  if(outcome.result)
+   return {...base,ai:{...outcome.result,source:'llm' as const,cached:reused}};
+  return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:outcome.reason||'no_provider'}};
+
  }
 
  /** Backward-compatible short reading: also stateless, no guest database write. */
