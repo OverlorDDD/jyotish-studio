@@ -5,8 +5,9 @@ const makePlanet=(name,house,sign,deg=12.3)=>({
  nakshatra:'Ashwini',pada:1,retrograde:name==='Saturn'
 });
 const LAGNA=makePlanet('Ascendant',1,4,17.2);
+const FIXTURE_VERIFICATION={version:'jyotish-integrity-v1',status:'verified_internal',digest:'a'.repeat(64),checks:['d1_longitudes_houses'],externalReferenceChecked:false};
 const CHART={
- id:'geometry-e2e',input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:47.9105,longitude:33.3918},
+ verification:FIXTURE_VERIFICATION,id:'geometry-e2e',input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:47.9105,longitude:33.3918},
  utc:'1996-03-27T10:58:00.000Z',ayanamsa:23.8,ephemeris:'Swiss Ephemeris',
  ascendant:LAGNA,lagnaD9:makePlanet('Ascendant',1,9,5.5),lagnaD10:makePlanet('Ascendant',1,5,6.1),
  d1:[makePlanet('Sun',9,12,13.2),makePlanet('Moon',12,3,17.3),makePlanet('Mars',9,12,8.2),
@@ -18,7 +19,7 @@ const CHART={
 };
 const CHAPTERS=['portrait','configuration','tensions','relationships','career','resources','timing','conclusion'];
 function fixture(lang){
- return {readerVersion:'6.0.0',language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
+ return {readerVersion:'6.0.0',verification:FIXTURE_VERIFICATION,language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
   editorial:{
    highlights:[
     lang==='uk'?'Головний акцент: зв’язок між навчанням, волею та відповідальністю':'Central theme: learning and responsibility',
