@@ -12,6 +12,11 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
  await expect(page.locator('.jy-primary-chart .jy-north-chart')).toBeVisible();
+ const actualChart=await (await page.request.post('/api/v1/charts/calculate',{data:{date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude:28.6139,longitude:77.209}})).json();
+ expect(actualChart.verification?.status).toBe('verified_internal');
+ expect(actualChart.verification?.version).toBe('jyotish-integrity-v1');
+ expect(actualChart.verification?.checks?.length).toBe(10);
+ expect(actualChart.verification?.externalReferenceChecked).toBe(false);
  const chartResponse=await page.request.post('/api/v1/reports',{
   data:{date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude:28.6139,longitude:77.209,
    asOf:'2026-10-22',lang:'uk',preferred:'local'}
@@ -19,6 +24,8 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(chartResponse.status()).toBe(201);
  const data=await chartResponse.json();
  expect(data.readerVersion).toBe('6.0.0');
+ expect(data.verification?.status).toBe('verified_internal');
+ expect(data.verification?.digest).toBe(actualChart.verification.digest);
  expect(data.editorial?.version).toBe('6.0.0');
  expect(data.editorial?.chapters?.length).toBe(8);
  expect(data.ai?.fallbackReason).toBe('reader_only');
