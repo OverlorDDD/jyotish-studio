@@ -68,10 +68,19 @@ export function compactJyotishFacts(chart:CalculatedChart,asOf:string):string{
     (minor?'; antardasha '+minor.lord+' '+minor.start.slice(0,10)+' to '+minor.end.slice(0,10):'')
  ].join('\n');
 }
+export type DirectDiagnostic={
+ provider:FreeProvider;
+ stage:'config'|'limit'|'http'|'response'|'validation'|'transport'|'success';
+ reason:string;
+ /** Status is numeric only: never expose headers, upstream body, prompt or API key. */
+ httpStatus?:number;
+};
 export type DirectOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];
  keys?:Partial<Record<FreeProvider,string>>;freeConfirmed?:Partial<Record<FreeProvider,boolean>>;
  timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>void|Promise<void>;
+ /** Optional safe, machine-readable diagnostics for local troubleshooting. */
+ onDiagnostic?:(diagnostic:DirectDiagnostic)=>void;
 };
 type Result={provider:FreeProvider;model:string;text:string};
 const PROVIDERS=new Set<FreeProvider>(['gemini','groq','openrouter']);
@@ -100,13 +109,20 @@ export async function generateDirectJyotish(
  const order=opts.order??(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim()).filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
  const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf));
  const permit=opts.limit||consumeFreeAiRequest;
+ // Diagnostics are opt-in, bounded and never receive credentials or response text.
+ const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
+  try{opts.onDiagnostic?.({provider,stage,reason:detail,...(httpStatus===undefined?{}:{httpStatus})});}catch{}
+ };
  let reason:FreeFallbackReason='no_provider';
  for(const provider of order){
   const key=opts.keys?.[provider]??(provider==='gemini'?process.env.GEMINI_API_KEY:provider==='groq'?process.env.GROQ_API_KEY:process.env.OPENROUTER_API_KEY);
   const confirmed=opts.freeConfirmed?.[provider]??(provider==='gemini'?process.env.GEMINI_FREE_TIER_CONFIRMED==='1':
    provider==='groq'?process.env.GROQ_FREE_TIER_CONFIRMED==='1':true);
-  if(!confirmed||!key?.trim())continue;
-  if(!permit()){reason='hourly_limit';break;}
+  if(!confirmed||!key?.trim()){
+   diagnostic(provider,'config',!key?.trim()?'missing_key':'free_tier_unconfirmed');
+   continue;
+  }
+  if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),opts.timeoutMs||38000);
   const model=pickModel(provider);
   try{
@@ -115,7 +131,7 @@ export async function generateDirectJyotish(
    // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
    for(let attempt=0;attempt<2;attempt++){
     if(attempt>0){
-     if(!permit()){reason='hourly_limit';break;}
+     if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
      console.warn('Direct Jyotish: '+provider+' retrying_incomplete_text');
     }
     const concise=attempt===1;
@@ -132,12 +148,13 @@ export async function generateDirectJyotish(
     if(!response.ok){
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
       response.status>=500?'provider_unavailable':'invalid_response';
+     diagnostic(provider,'http',reason,response.status);
      redact(reason,provider);break;
     }
     const raw=await response.text();
-    if(raw.length>160000){reason='invalid_response';break;}
+    if(raw.length>160000){reason='invalid_response';diagnostic(provider,'response','oversized_body');break;}
     let parsed:{model?:string;choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>}|undefined;
-    try{parsed=JSON.parse(raw);}catch{reason='invalid_response';break;}
+    try{parsed=JSON.parse(raw);}catch{reason='invalid_response';diagnostic(provider,'response','not_json');break;}
     const choice=parsed?.choices?.[0];
     const value=choice?.message?.content;
     const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
@@ -149,6 +166,7 @@ export async function generateDirectJyotish(
     if(incomplete){
      reason='invalid_response';
      const code=choice?.finish_reason==='length'?'token_limit':check.reason;
+     diagnostic(provider,'validation',code);
      console.warn('Direct Jyotish: '+provider+' rejected='+code);
      if(attempt===0&&(code==='too_short'||code==='unfinished'||code==='token_limit'))continue;
      break;
@@ -156,9 +174,14 @@ export async function generateDirectJyotish(
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
     if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
     try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
+    diagnostic(provider,'success','complete');
     return {result:{provider,model:parsed?.model||model,text:content.trim()}};
    }
-  }catch(error){reason=controller.signal.aborted?'timeout':'network';redact(reason,provider);}
+  }catch(error){
+   reason=controller.signal.aborted?'timeout':'network';
+   diagnostic(provider,'transport',reason);
+   redact(reason,provider);
+  }
   finally{clearTimeout(timer);}
  }
  return {result:null,reason};
