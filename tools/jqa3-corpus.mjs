@@ -115,6 +115,8 @@ function calcCurrent(ref){
  const cmd=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
  const child=spawnSync(cmd,[...(cmd==='py'?['-3']:[]),resolve(ROOT,'tools/swiss_ephemeris.py')],{
   cwd:ROOT,encoding:'utf8',timeout:15000,maxBuffer:300000,
+  // Only JQA-3 uses file-backed ephemerides; ordinary fallback vectors remain version-stable.
+  env:{...process.env,SWISSEPH_EPHE_PATH:resolve(ROOT,'node_modules/@swisseph/node/ephemeris')},
   input:JSON.stringify({utc:ref.civilTime.birthUtc,latitude:ref.civilTime.latitude,longitude:ref.civilTime.longitude})
  });
  assert.equal(child.status,0,'Swiss ephemeris backend unavailable: '+(child.stderr||child.error?.message||''));
