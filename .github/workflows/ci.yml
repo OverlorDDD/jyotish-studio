@@ -55,6 +55,7 @@ jobs:
         run: |
           node --check tools/public-launch.mjs
           node --check tools/next-launch.mjs
+          node --check tools/jyotish-direct-live-check.mjs
 
       - name: Browser JavaScript syntax
         run: node --check apps/web/public/demo.js
