@@ -1,7 +1,7 @@
 name: JQA-3 Real JHora Oracle (isolated, no fake fixtures)
 on:
   push:
-    branches: [feat/jqa3-reference-corpus]
+    branches: [feat/jqa3-reference-corpus, feat/jqa3-certification-hardening]
   workflow_dispatch:
 concurrency:
   group: jqa3-oracle-${{ github.ref }}
@@ -12,7 +12,7 @@ jobs:
   real-jhora:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/feat/jqa3-reference-corpus' || github.event.pull_request.head.ref == 'feat/jqa3-reference-corpus'
     runs-on: ubuntu-24.04
-    timeout-minutes: 50
+    timeout-minutes: 150
     env:
       WINEPREFIX: /tmp/jqa3-jhora-wine
       WINE_PREFIX: /tmp/jqa3-jhora-wine
@@ -63,7 +63,7 @@ jobs:
         env:
           JHORAKIT_DIR: /tmp/JHoraKit
         run: |
-          timeout 2100s xvfb-run -a bash tools/jqa3-capture.sh
+          timeout 7200s xvfb-run -a bash tools/jqa3-capture.sh
           echo "Completed original JHoraKit evidence capture"
           find tests/fixtures/jhora-corpus/captures -name chart_data.txt | wc -l
       - name: Validate captured original inputs and numerical results
