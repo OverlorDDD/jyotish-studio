@@ -28,7 +28,7 @@ export function d10JHoraFiveEight(longitude){
 export function readJhoraBenchmark(){
  const data=JSON.parse(readFileSync(resolve(root,'tests/fixtures/jhora-8-gandhi-public.json'),'utf8'));
  assert.equal(data.independentSource.captureCommit.length,40);
- assert.equal(data.independentSource.tool.includes('JHora 8.0'),true);
+ assert.match(data.independentSource.tool,/Jagannatha Hora 8\.0|JHora 8\.0/);
  assert.deepEqual(Object.keys(data.expected.positions),NAMES);
  return data;
 }
