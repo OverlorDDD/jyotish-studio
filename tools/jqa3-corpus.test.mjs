@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {spawnSync as importedSpawnSync} from 'node:child_process';
 import {loadCorpus,verifyReference,auditCorpus,parseIni,BODIES} from './jqa3-corpus.mjs';
 
 test('pinned third-party JHora source remains byte-for-byte unchanged',()=>{
@@ -48,3 +49,22 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
  }
  assert.ok(report.blockingConditions.includes('UNVERIFIED_OR_DIFFERENT_VALUES'));
 });
+
+
+test('Swiss adapter reports the ACTUAL planetary ephemeris backend, not just requested flags',()=>{
+ const {spawnSync}=requireForTest();
+ const cmd=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
+ const r=spawnSync(cmd,[...(cmd==='py'?['-3']:[]),'tools/swiss_ephemeris.py'],{
+  input:JSON.stringify({utc:'1980-01-11T12:25:00Z',latitude:64.1413888889,longitude:-21.9388888889}),
+  encoding:'utf8',timeout:15000
+ });
+ assert.equal(r.status,0,r.stderr||r.error?.message);
+ const data=JSON.parse(r.stdout);
+ const sources=Object.values(data.ephemerisSourcesByBody);
+ assert.equal(sources.length,9);
+ assert.ok(sources.every(x=>['SWIEPH','MOSEPH','OTHER'].includes(x)));
+ assert.equal(data.allSwissEphemerisFilesUsed,sources.every(x=>x==='SWIEPH'));
+ assert.equal(data.effectiveEphemerisSource,data.allSwissEphemerisFilesUsed?'SWIEPH':'MIXED_OR_FALLBACK');
+});
+// Lazy dynamic module use avoids changing runtime core import behavior.
+function requireForTest(){return {spawnSync:importedSpawnSync};}
