@@ -1,4 +1,4 @@
-/** One real cloud call using synthetic chart data and direct-v1, no LLM text or private inputs logged. */
+/** One real cloud call using synthetic chart data and current direct pipeline, no LLM text or private inputs logged. */
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION,compactJyotishFacts} from '../apps/api/src/direct-jyotish.ts';
 const input={date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0};
@@ -21,5 +21,5 @@ if(!result.result){
  const words=result.result.text.split(/\s+/).length;
  const headings=[...result.result.text.matchAll(/^#{1,3}\s+/gm)].length;
  console.log('PASS: provider='+result.result.provider+', model='+result.result.model+', words='+words+', headings='+headings+', finished=true.');
- console.log('Check the site's real birth chart separately for literary acceptance and factual alignment.');
+ console.log("Check the site's real birth chart separately for literary acceptance and factual alignment.");
 }
