@@ -11,7 +11,7 @@ const order=():FreeProvider[]=>{
  return [...new Set(configured.split(',').map(s=>s.trim()).filter((s):s is FreeProvider=>allowed.has(s as FreeProvider)))];
 };
 let budget:(()=>boolean)|undefined;
-function allowFreeRequest(){
+export function consumeFreeAiRequest(){
  if(!budget){
   const n=Number(process.env.FREE_AI_MAX_CALLS_PER_HOUR);
   budget=createHourlyLimiter(Number.isFinite(n)&&n>=1?Math.min(60,Math.floor(n)):10);
@@ -79,7 +79,7 @@ export type FreeAiOutcome={
 export async function generateFreeInterpretationDetailed(
  chart:CalculatedChart,lang:'uk'|'en',opts:FreeAiOptions={}
 ):Promise<FreeAiOutcome>{
- const permit=opts.limit||allowFreeRequest; // Count every free cloud attempt, including a JSON retry.
+ const permit=opts.limit||consumeFreeAiRequest; // Count every free cloud attempt, including a JSON retry.
  const providers=opts.order||order();
  const openrouterKey=opts.key??process.env.OPENROUTER_API_KEY?.trim()??'';
  const geminiKey=opts.geminiKey??process.env.GEMINI_API_KEY?.trim()??'';

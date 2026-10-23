@@ -13,7 +13,13 @@ def main():
     ayan=swe.get_ayanamsa_ut(jd)
     # sidereal houses_ex returns sidereal ascendant (as opposed to tropical-minus-offset approximation)
     cusps,angles=swe.houses_ex(jd, float(data['latitude']), float(data['longitude']), b'P', flags=swe.FLG_SIDEREAL)
-    body=[('Sun',swe.SUN),('Moon',swe.MOON),('Mars',swe.MARS),('Mercury',swe.MERCURY),('Jupiter',swe.JUPITER),('Venus',swe.VENUS),('Saturn',swe.SATURN),('Rahu',swe.MEAN_NODE)]
+    # Benchmark-only override. Production sends no nodeMode and always keeps MEAN_NODE.
+    # Never change client chart settings merely to satisfy a JHora comparison.
+    node_mode=data.get('nodeMode','mean')
+    if node_mode not in ('mean','true'):
+        raise ValueError('Invalid ephemeris nodeMode')
+    node_planet=swe.TRUE_NODE if node_mode=='true' else swe.MEAN_NODE
+    body=[('Sun',swe.SUN),('Moon',swe.MOON),('Mars',swe.MARS),('Mercury',swe.MERCURY),('Jupiter',swe.JUPITER),('Venus',swe.VENUS),('Saturn',swe.SATURN),('Rahu',node_planet)]
     positions=[]
     for name,planet in body:
        xx,ret=swe.calc_ut(jd,planet,flags)
