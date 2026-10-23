@@ -30,16 +30,21 @@ jobs:
           $ErrorActionPreference='Stop'
           $p=Join-Path $env:RUNNER_TEMP 'jhora-native'
           New-Item -ItemType Directory -Force $p | Out-Null
-          Invoke-WebRequest 'https://vedicastrologer.org/jh/jh_short_install.zip' -OutFile "$p\jhora.zip"
+          Invoke-WebRequest 'https://vedicastrologer.org/jh/jh_short_install.zip' -TimeoutSec 120 -OutFile "$p\jhora.zip"
           Expand-Archive "$p\jhora.zip" "$p\jhora" -Force
           $setup=Get-ChildItem "$p\jhora" -Filter *.exe -Recurse | Select-Object -First 1
           if (!$setup) { throw 'Authentic JHora executable installer missing' }
-          Invoke-WebRequest 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip' -OutFile "$p\ahk_v1.zip"
+          Invoke-WebRequest 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip' -TimeoutSec 120 -OutFile "$p\ahk_v1.zip"
           if ((Get-FileHash "$p\ahk_v1.zip" -Algorithm SHA256).Hash.ToLower() -ne '6f3663f7cdd25063c8c8728f5d9b07813ced8780522fd1f124ba539e2854215f') { throw 'AHK v1 archive signature mismatch' }
           Expand-Archive "$p\ahk_v1.zip" "$env:GITHUB_WORKSPACE\ahk" -Force
           if (!(Test-Path "$env:JQA3_AHK_EXE")) { throw 'AHK v1 32-bit executable missing' }
-          $process=Start-Process $setup.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru -Wait
-          Write-Host "JHora installer exit code: $($process.ExitCode)"
+          $process=Start-Process $setup.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (!$process.WaitForExit(150000)) {
+            Write-Warning 'JHora installer did not exit in 150s; checking whether installed binaries exist'
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "JHora installer exit code: $($process.ExitCode)"
+          }
           $exe=@(
             "${env:ProgramFiles(x86)}\Jagannatha Hora\bin\jhora.exe",
             "$env:ProgramFiles\Jagannatha Hora\bin\jhora.exe"
