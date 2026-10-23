@@ -1,0 +1,83 @@
+name: JQA-3 Real JHora Oracle (isolated, no fake fixtures)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/jqa3-oracle.yml"
+      - "tools/jqa3-*"
+      - "tests/fixtures/jhora-corpus/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-jhora:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feat/jqa3-reference-corpus'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      WINEPREFIX: ${{ runner.temp }}/jhora-wine
+      WINE_PREFIX: ${{ runner.temp }}/jhora-wine
+      WINEARCH: win32
+      JHORA_VERSION: 8.0.0.0
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.2'
+      - name: Install Wine and headless GUI libraries
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends wine wine32:i386 xvfb xauth unzip curl cabextract winbind
+          wine --version
+          swift --version
+      - name: Install authentic JHora from developer and AutoHotkey v1
+        run: |
+          mkdir -p "$WINEPREFIX"
+          mkdir -p "$RUNNER_TEMP/oracle-install"
+          cd "$RUNNER_TEMP/oracle-install"
+          curl --fail --location --retry 3 --max-time 150 -o jhora.zip https://vedicastrologer.org/jh/jh_short_install.zip
+          unzip -o -q jhora.zip
+          find . -maxdepth 2 -type f -printf '%p %s bytes\n' | head -20
+          JHORA_INSTALLER="$(find . -maxdepth 2 -type f -iname '*.exe' -print -quit)"
+          test -n "$JHORA_INSTALLER"
+          curl --fail --location --retry 3 --max-time 150 -o AutoHotkey_v1.exe https://www.autohotkey.com/download/1.1/AutoHotkey_1.1.37.02_setup.exe
+          xvfb-run -a wineboot --init
+          timeout 180s xvfb-run -a wine "$JHORA_INSTALLER" /S || true
+          if ! find "$WINEPREFIX/drive_c" -name jhora.exe | grep -q .; then
+            timeout 180s xvfb-run -a wine "$JHORA_INSTALLER" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART || true
+          fi
+          find "$WINEPREFIX/drive_c" -name jhora.exe -print
+          test -f "$(find "$WINEPREFIX/drive_c" -name jhora.exe -print -quit)"
+          timeout 180s xvfb-run -a wine AutoHotkey_v1.exe /S || true
+          find "$WINEPREFIX/drive_c" -iname AutoHotkey.exe -print
+          test -f "$(find "$WINEPREFIX/drive_c" -iname AutoHotkey.exe -print -quit)"
+      - name: Check out pinned independent JHoraKit automation
+        run: |
+          git clone --quiet https://github.com/normalmystic/JHoraKit.git "$RUNNER_TEMP/JHoraKit"
+          git -C "$RUNNER_TEMP/JHoraKit" checkout --quiet f63826b501eabe69c6b08c5365875e1e2f74c24a
+          git -C "$RUNNER_TEMP/JHoraKit" status --short
+      - name: Obtain twenty real JHora outputs (never replace with Swiss)
+        env:
+          JHORAKIT_DIR: ${{ runner.temp }}/JHoraKit
+        run: |
+          timeout 2100s xvfb-run -a bash tools/jqa3-capture.sh
+          echo "Completed original JHoraKit evidence capture"
+          find tests/fixtures/jhora-corpus/captures -name chart_data.txt | wc -l
+      - name: Validate captured original inputs and numerical results
+        run: |
+          python3 -m pip install --break-system-packages pyswisseph
+          npm run jqa3:audit
+          npm run jqa3:certify
+      - name: Publish original captures as workflow artifact on any outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jqa3-real-jhora-8-raw-evidence
+          path: |
+            tests/fixtures/jhora-corpus/captures/
+            tests/fixtures/jhora-corpus/jqa3-*.json
+            tests/fixtures/jhora-corpus/manifest.json
+          if-no-files-found: warn
+          retention-days: 7
