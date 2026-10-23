@@ -16,6 +16,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent Swiss reference fallback
+        run: python -m pip install pyswisseph
       - name: Install dependency graph
         run: npm install --no-audit --no-fund
       - name: Verify immutable JHora corpus even on Windows
