@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $root
 $branch = (git branch --show-current).Trim()
-if ($branch -notin @('feat/consultation-quality-v2','fix/jyotish-quality-audit-hardening','feat/jyotish-quality-acceptance-v1','feat/jhora-independent-reference')) {
+if ($branch -notin @('feat/consultation-quality-v2','fix/jyotish-quality-audit-hardening','feat/jyotish-quality-acceptance-v1','feat/jhora-independent-reference','feat/jhora-strict-10of10-matched-methods')) {
  Write-Host "Current branch: $branch" -ForegroundColor Yellow
  throw 'Switch to the Jyotish acceptance or JHora independent-reference branch before starting verification.'
 }
