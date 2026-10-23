@@ -1,5 +1,7 @@
 name: JQA-3 Real JHora Oracle (isolated, no fake fixtures)
 on:
+  push:
+    branches: [feat/jqa3-reference-corpus]
   pull_request:
     branches: [main]
     paths:
@@ -11,7 +13,7 @@ permissions:
   contents: read
 jobs:
   real-jhora:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feat/jqa3-reference-corpus'
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/feat/jqa3-reference-corpus' || github.event.pull_request.head.ref == 'feat/jqa3-reference-corpus'
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     env:
