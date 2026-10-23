@@ -1,0 +1,80 @@
+name: JQA-3 Genuine JHora (native Windows independent oracle)
+on:
+  push:
+    branches: [feat/jqa3-certification-hardening]
+  workflow_dispatch:
+concurrency:
+  group: jqa3-windows-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  actual-jhora:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      JHORAKIT_DIR: ${{ github.workspace }}\jhorakit-upstream
+      JHORA_VERSION: 8.0.0.0
+      JQA3_AHK_EXE: ${{ github.workspace }}\ahk\AutoHotkeyU32.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download developer-published original JHora installer and pinned AHK v1
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $p=Join-Path $env:RUNNER_TEMP 'jhora-native'
+          New-Item -ItemType Directory -Force $p | Out-Null
+          Invoke-WebRequest 'https://vedicastrologer.org/jh/jh_short_install.zip' -TimeoutSec 120 -OutFile "$p\jhora.zip"
+          Expand-Archive "$p\jhora.zip" "$p\jhora" -Force
+          $setup=Get-ChildItem "$p\jhora" -Filter *.exe -Recurse | Select-Object -First 1
+          if (!$setup) { throw 'Authentic JHora executable installer missing' }
+          Invoke-WebRequest 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip' -TimeoutSec 120 -OutFile "$p\ahk_v1.zip"
+          if ((Get-FileHash "$p\ahk_v1.zip" -Algorithm SHA256).Hash.ToLower() -ne '6f3663f7cdd25063c8c8728f5d9b07813ced8780522fd1f124ba539e2854215f') { throw 'AHK v1 archive signature mismatch' }
+          Expand-Archive "$p\ahk_v1.zip" "$env:GITHUB_WORKSPACE\ahk" -Force
+          if (!(Test-Path "$env:JQA3_AHK_EXE")) { throw 'AHK v1 32-bit executable missing' }
+          $process=Start-Process $setup.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (!$process.WaitForExit(150000)) {
+            Write-Warning 'JHora installer did not exit in 150s; checking whether installed binaries exist'
+            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "JHora installer exit code: $($process.ExitCode)"
+          }
+          $exe=@(
+            "${env:ProgramFiles(x86)}\Jagannatha Hora\bin\jhora.exe",
+            "$env:ProgramFiles\Jagannatha Hora\bin\jhora.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (!$exe) { throw 'Authentic installed JHora not found; do not substitute Swiss/other engines' }
+          Write-Host "Original JHora SHA256: $((Get-FileHash $exe).Hash)"
+      - name: Pinned independent GUI automation scripts
+        shell: pwsh
+        run: |
+          git clone --quiet https://github.com/normalmystic/JHoraKit.git "$env:JHORAKIT_DIR"
+          git -C "$env:JHORAKIT_DIR" checkout --quiet f63826b501eabe69c6b08c5365875e1e2f74c24a
+          if ((git -C "$env:JHORAKIT_DIR" rev-parse HEAD).Trim() -ne 'f63826b501eabe69c6b08c5365875e1e2f74c24a') { throw 'Unpinned JHoraKit' }
+      - name: Capture 20 distinct natal charts from genuine JHora Win32 clipboard
+        shell: pwsh
+        run: |
+          python tools/jqa3-windows-capture.py
+      - name: Cross-engine numeric audit; never certify missing or mismatched evidence
+        shell: pwsh
+        run: |
+          python -m pip install pyswisseph
+          npm run jqa3:audit
+          npm run jqa3:certify
+      - name: Keep raw independent results, including unsuccessful captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jqa3-native-windows-jhora8-evidence
+          path: |
+            tests/fixtures/jhora-corpus/captures/
+            tests/fixtures/jhora-corpus/jqa3-*.json
+            tests/fixtures/jhora-corpus/manifest.json
+          if-no-files-found: warn
+          retention-days: 14
