@@ -124,11 +124,26 @@ function hasComparableProfile(record,ref){
  && p.dashaYearVerified===true && p.ephemeris==='SWISS');
 }
 function calcCurrent(ref){
- const cmd=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
- const child=spawnSync(cmd,[...(cmd==='py'?['-3']:[]),resolve(ROOT,'tools/swiss_ephemeris.py')],{
-  cwd:ROOT,encoding:'utf8',timeout:15000,maxBuffer:300000,
-  input:JSON.stringify({utc:ref.civilTime.birthUtc,latitude:ref.civilTime.latitude,longitude:ref.civilTime.longitude})
- });
+ // GitHub Windows installs Python through setup-python while the py.exe launcher
+ // may select a different interpreter without pyswisseph. Probe the interpreter
+ // actually importing Swiss; do not confuse a missing package with bad JHora data.
+ const chosen=process.env.PYTHON_BIN;
+ const candidates=chosen?[{bin:chosen,args:chosen==='py'?['-3']:[]}]:
+  process.platform==='win32'?[{bin:'python',args:[]},{bin:'py',args:['-3']},{bin:'python3',args:[]}]:
+  [{bin:'python3',args:[]},{bin:'python',args:[]}];
+ let child;
+ for(const candidate of candidates){
+  const probe=spawnSync(candidate.bin,[...candidate.args,'-c','import swisseph'],{
+   cwd:ROOT,encoding:'utf8',timeout:5000
+  });
+  if(probe.status!==0)continue;
+  child=spawnSync(candidate.bin,[...candidate.args,resolve(ROOT,'tools/swiss_ephemeris.py')],{
+   cwd:ROOT,encoding:'utf8',timeout:15000,maxBuffer:300000,
+   input:JSON.stringify({utc:ref.civilTime.birthUtc,latitude:ref.civilTime.latitude,longitude:ref.civilTime.longitude})
+  });
+  break;
+ }
+ assert.ok(child,'Swiss Ephemeris Python package missing. Install pyswisseph into Python 3 or set PYTHON_BIN.');
  assert.equal(child.status,0,'Swiss ephemeris backend unavailable: '+(child.stderr||child.error?.message||''));
  const eph=JSON.parse(child.stdout);
  const p=new Map(eph.positions.map(x=>[x.name,x.longitude]));p.set('Lagna',eph.ascendant);
