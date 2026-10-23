@@ -38,3 +38,13 @@ test('repeated or suspicious birth records cannot inflate reference counts',()=>
  assert.ok(record.sourceCommit.length===40);
  assert.notEqual(record.referenceFile,'');
 });
+
+test('astronomical audit cannot certify unrecorded nakshatra, pada and house lords',()=>{
+ const report=auditCorpus({verifyAstronomy:true});
+ assert.equal(report.status,'NOT_CERTIFIED');
+ const metrics=report.results[0].result;
+ for(const field of ['nakshatra','pada','retrograde','houseLords']){
+  assert.equal(metrics[field].status,'UNVERIFIED',field+' must not be silently promoted');
+ }
+ assert.ok(report.blockingConditions.includes('UNVERIFIED_OR_DIFFERENT_VALUES'));
+});
