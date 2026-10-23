@@ -45,6 +45,8 @@ jobs:
       - name: Replay 20 authentic clipboard exports and restore all original INI and JHD files
         shell: bash
         run: node --experimental-strip-types tools/jqa3-recover-archived.mjs "$RUNNER_TEMP/jhora-original"
+      - name: Prepare independent Swiss backend for test-only numerical audits
+        run: python3 -m pip install pyswisseph
       - name: Verify fail-closed JHora tests with 21 independent source records
         shell: bash
         run: npm run test:jqa3:corpus
