@@ -9,7 +9,11 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(version.readerVersion).toBe('6.0.0');
  expect(version.pipeline).toBe('direct-v2');
  expect(version.referenceBenchmark?.version).toBe('jhora8-public-v1');
- expect(version.referenceBenchmark?.cases).toBe(1);
+ expect(version.referenceBenchmark?.cases).toBe(2);
+ expect(version.referenceBenchmark?.matchedMethodD9?.jhora?.matched).toBe(10);
+ expect(version.referenceBenchmark?.matchedMethodD10?.jhoraFiveEight?.matched).toBe(10);
+ expect(version.referenceBenchmark?.matchedMethodD9?.pyjhora?.matched).toBe(10);
+ expect(version.referenceBenchmark?.matchedMethodD10?.pyjhoraOneNine?.matched).toBe(10);
  expect(version.referenceBenchmark?.perUserJhoraVerified).toBe(false);
  await page.goto('/uk/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
