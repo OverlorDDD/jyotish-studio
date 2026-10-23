@@ -5,9 +5,9 @@ $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $root
 $branch = (git branch --show-current).Trim()
-if ($branch -ne 'feat/consultation-quality-v2') {
+if ($branch -notin @('feat/consultation-quality-v2','fix/jyotish-quality-audit-hardening')) {
  Write-Host "Current branch: $branch" -ForegroundColor Yellow
- throw 'Switch to feat/consultation-quality-v2 before starting the Jyotish verification.'
+ throw 'Switch to the Consultation Quality v2 or Jyotish audit branch before starting verification.'
 }
 $sha=(git log -1 --format=%h).Trim()
 Write-Host "Galaxiora Jyotish / branch=$branch / commit=$sha"
