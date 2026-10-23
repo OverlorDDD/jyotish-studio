@@ -315,7 +315,8 @@ export function importCapture(captureDir,outputFile){
  assert.equal(sourceDate,meta.birthLocal.slice(0,10),'Original JHora date differs from requested input');
  assert.equal(normalizeJHoraClock(parsed.birth.time),normalizeJHoraClock(meta.birthLocal.slice(11)),
   'Original JHora time differs from requested input');
- assert.equal(parsed.birth.utcOffsetSeconds,meta.utcOffsetSeconds,'Original JHora offset differs from input');
+ // JHora spells UTC zero as '0:00:00 (West of GMT)'; -0 and +0 denote the same exact offset.
+ assert.equal(parsed.birth.utcOffsetSeconds+0,meta.utcOffsetSeconds+0,'Original JHora offset differs from input');
  assert.ok(Math.abs(parsed.birth.latitude-meta.latitude)<1e-7,'JHora encoded latitude differs from reported capture latitude');
  assert.ok(Math.abs(parsed.birth.longitude-meta.longitude)<1e-7,'JHora encoded longitude differs from reported capture longitude');
  assert.equal(meta.jhoraConfigurationCapturedBeforeRun,true);
