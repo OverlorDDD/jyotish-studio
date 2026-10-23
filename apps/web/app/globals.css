@@ -914,3 +914,8 @@
 .jy-direct-practice-number{display:grid;place-items:center;width:30px;height:30px;border:1px solid #a08358;border-radius:50%;font:600 13px/1 Georgia,serif;color:#ecd3a5}
 .jy-direct-practice p{margin:0;line-height:1.8;color:#dde5ed}
 @media(max-width:620px){.jy-direct-practice{grid-template-columns:28px minmax(0,1fr);gap:10px;padding:12px 11px}.jy-direct-practice-number{width:25px;height:25px}}
+
+/* Historical JHora benchmark is explicitly distinct from personal-chart verification. */
+.jy-reference-details{margin-top:14px;padding:12px 14px;border:1px solid rgba(185,155,112,.25);border-radius:10px;background:rgba(25,35,48,.58);font-size:.83rem;line-height:1.65;color:#bdc9d5}
+.jy-reference-details summary{color:#dfc49b;font-weight:600;cursor:pointer}
+.jy-reference-details p{margin:9px 0 0}
