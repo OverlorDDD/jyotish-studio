@@ -1,15 +1,19 @@
 import type {BirthInput,CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {calculateChart,validateBirth} from '../../../packages/jyotish-core/src/index.ts';
 import {getEphemeris} from './ephemeris.ts';
+import {verifyCalculatedChart} from './jyotish-integrity.ts';
 export async function runCalculation(body:unknown):Promise<CalculatedChart>{
  if(!body||typeof body!=='object')throw new Error('Invalid request body');
  const b=body as Record<string,unknown>;
  for(const k of ['date','time','timeZone'])if(typeof b[k]!=='string')throw new Error(`Invalid ${k}`);
  if(typeof b.latitude!=='number'||typeof b.longitude!=='number')throw new Error('Coordinates must be numbers');
  const input:BirthInput={date:b.date as string,time:b.time as string,timeZone:b.timeZone as string,latitude:b.latitude,longitude:b.longitude,place:typeof b.place==='string'?b.place.slice(0,120):undefined};
- validateBirth(input);
+ const birthUtc=validateBirth(input);
  const eph=await getEphemeris(input);
- return calculateChart(input,eph);
+ const chart=calculateChart(input,eph);
+ // FAIL CLOSED before any chart, table, cached report, saved snapshot or LLM can use this chart.
+ const verification=verifyCalculatedChart(input,eph,chart,birthUtc);
+ return {...chart,verification};
 }
 const SIGN_NAMES_UK=["Овен","Телець","Близнюки","Рак","Лев","Діва","Терези","Скорпіон","Стрілець","Козоріг","Водолій","Риби"];
 const NAKSHATRA_NAMES_UK:Record<string,string>={"Ashwini":"Ашвіні","Bharani":"Бхарані","Krittika":"Кріттіка","Rohini":"Рохіні","Mrigashira":"Мрігашіра","Ardra":"Ардра","Punarvasu":"Пунарвасу","Pushya":"Пушʼя","Ashlesha":"Ашлеша","Magha":"Магха","Purva Phalguni":"Пурва Пхалгуні","Uttara Phalguni":"Уттара Пхалгуні","Hasta":"Хаста","Chitra":"Чітра","Swati":"Сваті","Vishakha":"Вішакха","Anuradha":"Анурадха","Jyeshtha":"Джʼєштха","Mula":"Мула","Purva Ashadha":"Пурва Ашадха","Uttara Ashadha":"Уттара Ашадха","Shravana":"Шравана","Dhanishta":"Дханіштха","Shatabhisha":"Шатабхіша","Purva Bhadrapada":"Пурва Бхадрапада","Uttara Bhadrapada":"Уттара Бхадрапада","Revati":"Реваті"};
