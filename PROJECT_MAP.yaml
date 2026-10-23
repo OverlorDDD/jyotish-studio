@@ -2,7 +2,7 @@
 schema_version: 1
 updated: "2026-10-22"
 verified_against:
-  branch: feat/jyotish-quality-acceptance-v1
+  branch: feat/jhora-independent-reference
   commit: "969aa7183ace2b32197d3488830137e5ba9430d7"
 product:
   brand: Galaxiora
@@ -171,6 +171,7 @@ quality:
     jyotish_direct: "npm run test:jyotish:direct; npm run ai:verify-live"
     jyotish_quality: "npm run test:jyotish:quality"
     jyotish_acceptance: "npm run test:jyotish:acceptance; npm run test:reference"
+    jyotish_independent_jhora: "npm run test:jhora:independent"
     a8_quality: "npm run test:a8:quality"
     a8_resilience: "npm run test:a8:resilience"
     a8_cloud: "npm run test:a8:cloud"
@@ -189,8 +190,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "Jyotish Quality Acceptance PR #44: fail-closed internal birth/ephemeris/D1/D9/D10/lords/dasha verification before SVG/table/LLM; Gemini CQv2 unchanged"
-  next: "Full CI+real browser certificate parity, independent JHora numeric oracle, actual UA/EN Gemini content check, merge accepted PR #41→#42→#43→#44"
+  now: "Independent JHora 8.0 recorded chart parity PR #45 over Jyotish Quality Acceptance PR #44: D1 sign 10/10; D9 nodes method difference; D10 (5-8)/(1-9) variant differences"
+  next: "Green CI plus documented method comparison; gather 10-20 genuine JHora exports with matched settings for full 1-arcsec parity, accept UA/EN and then merge stacked PRs"
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -209,6 +210,7 @@ docs:
   cqv2_research: "docs/research/consultation-quality-v2.md"
   jyotish_module_audit: "docs/research/jyotish-module-audit-2026-10-23.md"
   jyotish_acceptance: "docs/research/jyotish-quality-acceptance-v1.md"
+  jyotish_jhora_reference: "docs/research/jhora-independent-parity-2026-10-23.md"
   a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
   classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"
