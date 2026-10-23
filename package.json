@@ -84,7 +84,7 @@
     "test:jyotish:acceptance": "node --experimental-strip-types --test tools/jyotish-quality-acceptance.test.mjs",
     "test:jhora:independent": "node tools/jhora-independent-parity.mjs",
     "test:jqa2:numerical": "node --experimental-strip-types --test tools/jqa2-numerical.test.mjs",
-    "test:jqa2:profiles": "python3 tools/jqa2-profile-diagnostics.py",
+    "test:jqa2:profiles": "node tools/run-python.mjs tools/jqa2-profile-diagnostics.py",
     "test:jqa3:corpus": "node --experimental-strip-types --test tools/jqa3-corpus.test.mjs",
     "test:jqa3:ephemeris": "node --experimental-strip-types --test tools/jqa3-ephemeris-parity.test.mjs",
     "jqa3:audit": "node --experimental-strip-types tools/jqa3-corpus.mjs audit",
