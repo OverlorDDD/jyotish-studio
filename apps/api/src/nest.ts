@@ -54,9 +54,10 @@ export class JyotishController{
  runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,mode:process.env.AI_MODE||'free',
   referenceBenchmark:{
    version:'jhora8-public-v1',source:'JHoraKit captured Jagannatha Hora 8.0 output',cases:1,
-   status:'one_recorded_reference_with_method_differences',
-   d1SignMatches:10,d1Total:10,d9SignMatches:8,d9Total:10,
-   d10SignMatches:7,d10Total:10,
+   status:'ten_of_ten_under_jhora_matched_nodes_and_d10',
+   d1SignMatches:10,d1Total:10,d9SignMatches:10,d9Total:10,
+   d10SignMatches:10,d10Total:10, profile:'True lunar nodes; JHora D10 (5-8)',
+   differingProductionMethod:{d9SignMatches:8,d10SignMatches:7,reason:'Mean nodes and D10 (1-9)'},
    notes:['True Chitrapaksha vs traditional Lahiri','True versus mean lunar nodes','D10 (5-8) versus (1-9) variant'],
    perUserJhoraVerified:false
   }};}
