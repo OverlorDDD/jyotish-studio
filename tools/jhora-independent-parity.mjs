@@ -86,7 +86,15 @@ export function compareJhoraFixture(source,swiss){
   recordedCommit:source.independentSource.captureCommit,subject:source.title,
   inputUtc:source.civilTime.birthUtc,
   engine:swiss.backend,
-  result:'PASS_WITH_DOCUMENTED_METHOD_DIFFERENCES',
+  result:'CONFIGURATION_DIFFERENCE',
+  preciseCrossEngineNumericParity:'UNVERIFIED',
+  perDomainStatus:{d1Signs:directSignMatch===10?'PASS':'FAIL',
+   d1LongitudeArcseconds:'UNVERIFIED',
+   d9SameRecordedLongitudes:d9RuleMatches===10?'PASS':'FAIL',
+   d10SameRecordedLongitudesFiveEight:d10VariantRuleMatches===10?'PASS':'FAIL',
+   d9CrossEngine:d9Matches===10?'UNVERIFIED':'CONFIGURATION_DIFFERENCE',
+   d10CrossEngine:d10Matches===10?'UNVERIFIED':'CONFIGURATION_DIFFERENCE',
+   vimshottari:'UNVERIFIED'},
   counts:{referenceBodies:10,d1SignMatches:directSignMatch,classicalLongitudeWithin5Arcmin:classicalLongitudeToleranceMatch,
    d9GalaxioraSignMatches:d9Matches,d10GalaxioraVsJHora5_8SignMatches:d10Matches,
    d9IndependentSourceRuleMatches:d9RuleMatches,d10IndependentFiveEightRuleMatches:d10VariantRuleMatches},
@@ -115,6 +123,6 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   console.log('D10 mismatches (method only): '+x.rows.filter(y=>y.d10JhoraFiveEight!==y.d10GalaxioraOneNine).map(y=>y.name).join(','));
   console.log('D9 mismatches (node model only): '+x.rows.filter(y=>y.d9Reference!==y.d9Observed).map(y=>y.name).join(','));
   console.log('Dasha offsets, NOT proven parity: '+x.periodComparison.slice(0,3).map(y=>y.lord+' '+y.differenceDays+' days').join('; '));
-  console.log('PASS: JHora captured one real chart, method differences explicitly identified. No silent change to production engine.');
+  console.log('PASS: one recorded JHora chart and varga replay, with cross-engine configuration differences. Full numeric certification: UNVERIFIED.');
  }catch(error){console.error('FAIL JHora independent comparison: '+String(error));process.exitCode=1;}
 }
