@@ -46,10 +46,7 @@ jobs:
           mkdir -p ahk-unpacked
           unzip -oq ahk_v1.zip -d ahk-unpacked
           xvfb-run -a wineboot --init
-          timeout 180s xvfb-run -a wine "$JHORA_INSTALLER" /S || true
-          if ! find "$WINEPREFIX/drive_c" -name jhora.exe | grep -q .; then
-            timeout 180s xvfb-run -a wine "$JHORA_INSTALLER" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART || true
-          fi
+          timeout 180s xvfb-run -a wine "$JHORA_INSTALLER" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART || true
           find "$WINEPREFIX/drive_c" -name jhora.exe -print
           test -f "$(find "$WINEPREFIX/drive_c" -name jhora.exe -print -quit)"
           AHK_PORTABLE="$(find ahk-unpacked -iname AutoHotkeyU32.exe -print -quit)"
