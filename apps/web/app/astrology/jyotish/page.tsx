@@ -11,7 +11,7 @@ import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
 type Graha={name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 type Period={lord:string;start:string;end:string;antardashas:{lord:string;start:string;end:string}[]};
-type Chart={id?:string;input:{date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;ephemeris:string;d1:Graha[];d9:Graha[];d10:Graha[];dasha:Period[]};
+type Chart={verification?:{version:string;status:'verified_internal';digest:string;checks:string[];externalReferenceChecked:false};id?:string;input:{date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;ephemeris:string;d1:Graha[];d9:Graha[];d10:Graha[];dasha:Period[]};
 type Form={date:string;time:string;latitude:string;longitude:string;timeZone:string};
 const CITY:Record<string,Form>={delhi:{date:'2000-01-01',time:'12:00',latitude:'28.6139',longitude:'77.209',timeZone:'Asia/Kolkata'},kryvyi:{date:'2000-01-01',time:'12:00',latitude:'47.9105',longitude:'33.3918',timeZone:'Europe/Kyiv'},kyiv:{date:'2000-01-01',time:'12:00',latitude:'50.4501',longitude:'30.5234',timeZone:'Europe/Kyiv'},london:{date:'2000-01-01',time:'12:00',latitude:'51.5074',longitude:'-0.1278',timeZone:'Europe/London'}};
 const t={en:{title:'Your cosmic blueprint',subtitle:'Precision Vedic calculations. From planetary positions to symbolic interpretations — all in one place.',details:'Birth details',detail:'Enter date, exact local time and geographic coordinates.',date:'Date of birth',time:'Local time of birth',place:'Location preset',calculate:'Calculate birth chart',asc:'RISING SIGN',moon:'MOON SIGN',chart:'Natal chart',grahas:'Planetary positions',dasha:'Life cycles',dashadesc:'Traditional symbolic time cycles, not guaranteed predictions.',ai:'Chart reading',aidesc:'A clear explanation of the main themes in everyday language, followed by a detailed report.',aiButton:'Generate full reading',note:'Jyotish tradition',noteDesc:'A symbolic reading grounded in your calculated birth chart.',waiting:'Calculate a chart to begin.',working:'Calculating Swiss Ephemeris...',completed:'Calculated successfully.'},uk:{title:'Твоя космічна карта',subtitle:'Точні ведичні обчислення: від положень планет до символічних інтерпретацій.',details:'Дані народження',detail:'Введи дату, точний місцевий час і географічні координати.',date:'Дата народження',time:'Місцевий час',place:'Місце народження',calculate:'Розрахувати карту',asc:'ВИСХІДНИЙ ЗНАК',moon:'ЗНАК МІСЯЦЯ',chart:'Натальна карта',grahas:'Положення планет',dasha:'Життєві цикли',dashadesc:'Традиційні символічні періоди часу, а не гарантований прогноз.',ai:'Пояснення карти',aidesc:'Зрозуміле пояснення головних тем звичайною мовою, а нижче — детальний розбір карти.',aiButton:'Створити повне трактування',note:'Традиція Джйотіш',noteDesc:'Символічне трактування на основі розрахованої натальної карти.',waiting:'Спочатку розрахуй карту.',working:'Обчислюємо ефемериди...',completed:'Карту обчислено.'}};
@@ -68,21 +68,41 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
   return ()=>{live=false;};
  },[lang]);
- const loadSaved=(loaded:unknown,saved:ReadingReport|null)=>{
+ const verified=(value:Chart|null|undefined)=>value?.verification?.version==='jyotish-integrity-v1'&&
+  value.verification.status==='verified_internal'&&/^[a-f0-9]{64}$/.test(value.verification.digest);
+ const loadSaved=async(loaded:unknown,saved:ReadingReport|null)=>{
   const incoming=loaded as Chart;
   if(!incoming?.input||!Array.isArray(incoming.d1))return;
-  setChart(incoming);
   setForm({...incoming.input,latitude:String(incoming.input.latitude),longitude:String(incoming.input.longitude)});
-  setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'?saved:null);
-  setInterpretation(lang==='uk'?'Збережену карту відкрито з кабінету.':'Saved chart opened from your account.');
+  // Legacy records never become visible without a fresh server-side integrity check.
+  let ready=incoming;
+  if(!verified(incoming)){
+   setBusy(true);
+   setReport(null);setChart(null);
+   setStatus(lang==='uk'?'Перевіряємо старий збережений розрахунок…':'Revalidating an older saved calculation…');
+   try{
+    const response=await fetch('/api/v1/charts/calculate',{method:'POST',
+     headers:{'Content-Type':'application/json'},body:JSON.stringify(incoming.input)});
+    ready=await readApiJson<Chart>(response);
+   }catch(error){
+    setError(true);setStatus(error instanceof Error?error.message:String(error));setBusy(false);return;
+   }finally{setBusy(false);}
+  }
+  if(!verified(ready)){
+   setError(true);setStatus(lang==='uk'?'Перевірка натальної карти не пройдена.':'Natal chart integrity verification failed.');return;
+  }
+  setChart(ready);
+  setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
+   saved?.verification?.digest===ready.verification?.digest?saved:null);
+  setInterpretation(lang==='uk'?'Перевірену карту відкрито з кабінету.':'Verified saved chart loaded.');
   setError(false);
-  setStatus(lang==='uk'?'Завантажено попередній розрахунок.':'Previous calculation restored.');
+  setStatus(lang==='uk'?'Розрахунок перевірено.':'Calculation integrity verified.');
  };
 
  useEffect(()=>{if(report)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});},[report]);
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>setForm(old=>({...old,[key]:value}));
- async function calculate(e:React.FormEvent){e.preventDefault();setBusy(true);setError(false);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);}catch(e){setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
+ async function calculate(e:React.FormEvent){e.preventDefault();setBusy(true);setError(false);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'Сервер не підтвердив перевірку всіх даних карти.':'Server did not verify all chart calculations.');setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);}catch(e){setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
  async function interpret(mode:'auto'|'local'='auto'){
   if(!chart)return;
   setAiBusy(true);setInterpretation(lang==='uk'?'Створюємо детальний звіт…':'Preparing a detailed report…');
@@ -93,6 +113,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    });
    const data=await readApiJson<ReadingReport>(response);
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
+   if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==chart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    setReport(data);
    setInterpretation(lang==='uk'?'Звіт готовий ↓ Прокрутіть нижче':'Report ready ↓ Scroll below');
