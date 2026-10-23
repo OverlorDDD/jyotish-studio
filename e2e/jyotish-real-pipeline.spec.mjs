@@ -10,6 +10,10 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(version.pipeline).toBe('direct-v2');
  expect(version.referenceBenchmark?.version).toBe('jhora8-public-v1');
  expect(version.referenceBenchmark?.cases).toBe(1);
+ expect(version.referenceBenchmark?.d1SignMatches).toBe(10);
+ expect(version.referenceBenchmark?.d9SignMatches).toBe(10);
+ expect(version.referenceBenchmark?.d10SignMatches).toBe(10);
+ expect(version.referenceBenchmark?.profile).toMatch(/True lunar nodes/);
  expect(version.referenceBenchmark?.perUserJhoraVerified).toBe(false);
  await page.goto('/uk/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
