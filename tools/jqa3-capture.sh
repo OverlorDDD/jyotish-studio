@@ -31,10 +31,25 @@ if [[ ! -s "$ini" ]]; then
 fi
 test -s "$ini"
 exeSha="$(sha256sum "$installation/bin/jhora.exe" | awk '{print $1}')"
+
+# JHoraKit ships an AHK script pinned to the *x86* Program Files path.
+# Wine 9 installs the official short JHora under Program Files; adapt only the
+# executable locator, preserving the upstream AHK extraction logic.
+sourceAhk="$JHORAKIT_DIR/Sources/JHoraKit/Resources/extract_param.ahk"
+test -s "$sourceAhk"
+ahkOverride="$(mktemp --suffix=.ahk)"
+if [[ "$installation" == *"Program Files/Jagannatha Hora" ]]; then
+ sed 's@C:\\Program Files (x86)\\Jagannatha Hora@C:\\Program Files\\Jagannatha Hora@g' "$sourceAhk" > "$ahkOverride"
+else
+ cp "$sourceAhk" "$ahkOverride"
+fi
+grep -q 'Run, "C:' "$ahkOverride" || { echo "AHK JHora launch command not found" >&2; exit 2; }
+export JHORA_AHK_SCRIPT="$ahkOverride"
+
 backup="$(mktemp)"
 cp "$ini" "$backup"
 restore(){ cp "$backup" "$ini"; }
-finish(){ restore; rm -f "$backup"; }
+finish(){ restore; rm -f "$backup" "$ahkOverride"; }
 trap finish EXIT
 mkdir -p "$OUT"
 
