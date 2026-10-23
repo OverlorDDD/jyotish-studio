@@ -5,8 +5,14 @@
 export class SuccessfulConsultationCache<T extends {result:unknown|null}>{
  private readonly saved=new Map<string,{expires:number;outcome:T}>();
  private readonly running=new Map<string,Promise<T>>();
- constructor(private readonly ttlMs=30*60*1000,private readonly maxEntries=40,
-  private readonly now:()=>number=()=>Date.now()){}
+ private readonly ttlMs:number;
+ private readonly maxEntries:number;
+ private readonly now:()=>number;
+ constructor(ttlMs=30*60*1000,maxEntries=40,now:()=>number=()=>Date.now()){
+  this.ttlMs=ttlMs;
+  this.maxEntries=maxEntries;
+  this.now=now;
+ }
  async obtain(key:string,work:()=>Promise<T>):Promise<{outcome:T;reused:boolean}>{
   const existing=this.saved.get(key);
   if(existing&&existing.expires>this.now())
