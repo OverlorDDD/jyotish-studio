@@ -19,6 +19,8 @@ import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {divisionalLongitude,signIndex,nakshatraOf,vimshottari} from '../packages/jyotish-core/src/index.ts';
 import {d10JHoraFiveEight} from './jhora-independent-parity.mjs';
+import {parseJHoraRaw,JQA3_RAW_PARSER} from './jqa3-raw-parser.mjs';
+
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const MANIFEST='tests/fixtures/jhora-corpus/manifest.json';
@@ -79,12 +81,14 @@ export function verifyReference(record){
   assert.ok(ref.independentSource.capture?.jhoraExeSha256?.match(SHA256));
   assert.ok(ref.independentSource.capture?.rawChartSha256?.match(SHA256));
   assert.ok(ref.independentSource.capture?.rawDivisionalsSha256?.match(SHA256));
+  assert.equal(ref.independentSource.capture?.parser,JQA3_RAW_PARSER);
   assert.ok(record.captureDir,'Original JHora raw data directory required');
   const evidence={
    'jhora.ini':ref.independentSource.capture.iniSha256,
    'chart_data.txt':ref.independentSource.capture.rawChartSha256,
    'divisionals.txt':ref.independentSource.capture.rawDivisionalsSha256,
-   'chart.json':ref.independentSource.capture.parsedJsonSha256,
+   ...(ref.independentSource.capture.parsedJsonSha256?{'chart.json':ref.independentSource.capture.parsedJsonSha256}:{}),
+   'capture.json':ref.independentSource.capture.captureJsonSha256,
    'input.jhd':ref.independentSource.capture.inputJhdSha256
   };
   for(const [name,hash] of Object.entries(evidence)){
@@ -222,76 +226,75 @@ function convertJhoraKit(chart,divisionalsRaw){
  return {positions,vimshottari,d10Variant};
 }
 export function importCapture(captureDir,outputFile){
- const input=resolve(captureDir),out=withinRoot(outputFile);
- const read=name=>readFileSync(resolve(input,name));
- for(const name of ['chart.json','chart_data.txt','divisionals.txt','input.jhd','jhora.ini','capture.json'])
-  assert.ok(existsSync(resolve(input,name)),'Original capture evidence missing: '+name);
+ const input=resolve(captureDir),out=withinRoot(outputFile),read=name=>readFileSync(resolve(input,name));
+ for(const name of ['chart_data.txt','divisionals.txt','input.jhd','jhora.ini','capture.json']){
+  assert.ok(existsSync(resolve(input,name)),'Original independent JHora evidence missing: '+name);
+ }
  const rawChart=read('chart_data.txt'),rawDiv=read('divisionals.txt'),rawIni=read('jhora.ini');
- const chart=JSON.parse(read('chart.json')),meta=JSON.parse(read('capture.json'));
+ const meta=JSON.parse(read('capture.json'));
  const ini=parseIni(rawIni.toString('utf8'));
- assert.match(meta.jhoraExeSha256??'',SHA256,'Missing executable SHA-256 from original run');
- assert.match(meta.jhoraVersion??'',/^8\./,'Expected JHora 8.x');
- assert.match(meta.sourceCommit??'',SHA,'JHoraKit source commit is required');
+ assert.match(meta.jhoraExeSha256??'',SHA256);
+ assert.match(meta.jhoraVersion??'',/^8\./);
+ assert.match(meta.sourceCommit??'',SHA);
  assert.match(meta.utc??'',/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
- assert.ok(Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude));
  assert.match(meta.birthLocal??'',/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
+ assert.ok(Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude));
  assert.ok(Number.isInteger(meta.utcOffsetSeconds)&&Math.abs(meta.utcOffsetSeconds)<=14*3600);
- assert.equal(Date.parse(meta.birthLocal+'Z')-meta.utcOffsetSeconds*1000,Date.parse(meta.utc),
-   'Recorded birth time, UTC and fixed offset disagree');
- assert.equal(new Date(chart.birth.date+' 00:00:00 GMT').toISOString().slice(0,10),meta.birthLocal.slice(0,10),
-   'Original JHora birth date differs from captured input');
- assert.equal(chart.birth.time,meta.birthLocal.slice(11),'Original JHora local time differs');
- const offsetMatch=chart.birth.timezone?.match(/^([0-9]+):([0-9]{2}):([0-9]{2})\s*\((East|West) of GMT\)/);
- assert.ok(offsetMatch,'JHora original UTC offset missing');
- const originalOffset=(Number(offsetMatch[1])*3600+Number(offsetMatch[2])*60+Number(offsetMatch[3]))*(offsetMatch[4]==='West'?-1:1);
- assert.equal(originalOffset,meta.utcOffsetSeconds,'Original JHora fixed offset differs');
- assert.ok(rawChart.toString('utf8').includes('Ayanamsa:'));
- assert.ok(rawChart.toString('utf8').includes('Date:')&&rawChart.toString('utf8').includes('Time:'));
- assert.equal(chart.birth.ayanamsa.trim(),rawChart.toString('utf8').match(/Ayanamsa:\s*([0-9-]+)/)?.[1],
-   'raw clipboard and JHoraKit parsed ayanamsa must agree');
- const derived=convertJhoraKit(chart,rawDiv.toString('utf8'));
- // A fixed profile is classified only from saved INI and explicit references,
- // not from how closely the measured longitudes happen to match.
+ assert.equal(Date.parse(meta.birthLocal+'Z')-meta.utcOffsetSeconds*1000,Date.parse(meta.utc));
+ const parsed=parseJHoraRaw(rawChart.toString('utf8'),rawDiv.toString('utf8'));
+ const sourceDate=new Date(parsed.birth.date+' 00:00:00 GMT').toISOString().slice(0,10);
+ assert.equal(sourceDate,meta.birthLocal.slice(0,10),'Original JHora date differs from requested input');
+ assert.equal(parsed.birth.time,meta.birthLocal.slice(11),'Original JHora time differs from requested input');
+ assert.equal(parsed.birth.utcOffsetSeconds,meta.utcOffsetSeconds,'Original JHora offset differs from input');
+ assert.equal(meta.jhoraConfigurationCapturedBeforeRun,true);
+ assert.equal(meta.jhoraConfigurationRestoredAfterRun,true);
+ const variant=parsed.d10Variant;
  const explicitMatching=ini.Siddhanta==='0'&&ini.UserSelectedAyanamsa==='0'&&
-  Number(ini.DeltaFromUserSelectedAyanamsa)===0&&ini.TrueNodes==='0'&&
-  ini.TruePositions==='0'&&ini.TopocentricPositions==='0'&&
-  ini.NoNutation==='0'&&ini.NoAberration==='0'&&ini.NoGravDeflection==='0'&&
-  derived.d10Variant==='1-9';
+   Number(ini.DeltaFromUserSelectedAyanamsa)===0&&ini.TrueNodes==='0'&&
+   ini.TruePositions==='0'&&ini.TopocentricPositions==='0'&&
+   ini.NoNutation==='0'&&ini.NoAberration==='0'&&ini.NoGravDeflection==='0'&&
+   variant==='1-9';
+ const yearMatch=rawIni.toString('utf8').match(/^YearLength=0\s+([0-9.]+)$/m);
+ const rawDays=yearMatch?Number(yearMatch[1]):null;
+ const yearAttested=meta.dashaYearEvidence==='JHORA_PREFERENCES_RECORDER' &&
+  Number.isFinite(rawDays)&&rawDays===meta.dashaYearDays;
  const p={
   ayanamsa:explicitMatching?'SWISS_TRADITIONAL_LAHIRI':'OTHER_JHORA_CONFIG',
   nodes:ini.TrueNodes==='0'?'MEAN':'TRUE',positions:ini.TruePositions==='0'?'APPARENT':'TRUE',
   observer:ini.TopocentricPositions==='0'?'GEOCENTRIC':'TOPOCENTRIC',
   nutation:ini.NoNutation==='0'?'ON':'OFF',aberration:ini.NoAberration==='0'?'ON':'OFF',
   deflection:ini.NoGravDeflection==='0'?'ON':'OFF',ephemeris:ini.Siddhanta==='0'?'SWISS':'OTHER',
-  d10:derived.d10Variant,
-  dashaYearDays:meta.dashaYearDays??null,
-  dashaYearVerified:meta.dashaYearEvidence==='JHORA_PREFERENCES_RECORDER'
+  d10:variant,dashaYearDays:rawDays,dashaYearVerified:yearAttested
  };
- assert.ok(meta.jhoraConfigurationCapturedBeforeRun===true,'JHora INI must be captured BEFORE the actual run');
- assert.ok(meta.jhoraConfigurationRestoredAfterRun===true,'JHora INI backup must be restored after run');
+ assert.ok(relative(ROOT,out).startsWith('tests/fixtures/jhora-corpus/'),'Unsafe imported fixture path');
+ const chartJson=existsSync(resolve(input,'chart.json'))?read('chart.json'):null;
  const fixture={
   title:meta.id,
   independentSource:{
-   tool:'Jagannatha Hora 8.0 desktop via independent JHoraKit raw clipboard capture',
+   tool:'Jagannatha Hora 8.0: direct raw original JHora clipboard export via JHoraKit/AHK driver',
    captureRepository:meta.sourceRepo??'https://github.com/normalmystic/JHoraKit',
    captureCommit:meta.sourceCommit,
    capture:{
-    iniSha256:sha256(rawIni),rawChartSha256:sha256(rawChart),
-    rawDivisionalsSha256:sha256(rawDiv),
-    inputJhdSha256:sha256(read('input.jhd')),parsedJsonSha256:sha256(read('chart.json')),
+    parser:JQA3_RAW_PARSER,iniSha256:sha256(rawIni),rawChartSha256:sha256(rawChart),
+    rawDivisionalsSha256:sha256(rawDiv),inputJhdSha256:sha256(read('input.jhd')),
+    parsedJsonSha256:chartJson?sha256(chartJson):null,
+    captureJsonSha256:sha256(read('capture.json')),
     jhoraExeSha256:meta.jhoraExeSha256,jhoraVersion:meta.jhoraVersion,
-    profile:p,iniSettings:ini
+    profile:p,iniSettings:ini,
+    originalAyanamsaDegrees:parsed.birth.ayanamsaDegrees
    }
   },
   civilTime:{birthUtc:meta.utc,latitude:meta.latitude,longitude:meta.longitude},
-  expected:{positions:derived.positions,vimshottari:derived.vimshottari}
+  expected:parsed.expected
  };
- assert.ok(relative(ROOT,out).startsWith('tests/fixtures/jhora-corpus/'),'write imported fixture only into corpus');
  mkdirSync(dirname(out),{recursive:true});
  writeFileSync(out,JSON.stringify(fixture,null,2)+'\n');
  return {file:relative(ROOT,out),sha256:sha256(readFileSync(out)),
-  gitBlobSha1:gitSha(readFileSync(out)),rawDataHashes:fixture.independentSource.capture,
-  explicitMethodProfile:explicitMatching&&p.dashaYearVerified};
+  gitBlobSha1:gitSha(readFileSync(out)),
+  bodyCount:Object.keys(parsed.expected.positions).length,
+  mahaCount:parsed.expected.vimshottari.length,
+  antarCount:parsed.expected.vimshottari.reduce((n,p)=>n+Object.keys(p.antardashas).length,0),
+  sourceMode:variant,profileMatches:explicitMatching,yearAttested};
 }
 
 /** Register a complete original raw capture in the pinned corpus without hand-editing expected values. */
