@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import type {PrismaService} from './prisma.ts';
 import {runCalculation} from './logic.ts';
 import {CHART_VERIFICATION_VERSION} from './jyotish-integrity.ts';
-import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
+import {validateBirth,type CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 
 export const PERSONAL_RECOVERY_METHOD='personal-chart-recovery-v1';
 export const PERSONAL_ASCENDANT_CONVENTION='tropical-apparent-minus-mean-lahiri-v2';
@@ -28,14 +28,14 @@ export function originalSignsAgree(source:unknown,fresh:CalculatedChart):boolean
  const legacy=record(source);
  if(!legacy)return false;
  const asc=record(legacy.ascendant);
- if(!Number.isInteger(asc?.sign)||asc?.sign!==fresh.ascendant.sign)return false;
+ if(typeof asc?.sign!=='number'||!Number.isInteger(asc.sign)||asc.sign!==fresh.ascendant.sign)return false;
  for(const key of ['d1','d9','d10'] as const){
   const old=legacy[key];
   if(!Array.isArray(old)||old.length!==9)return false;
   const original=new Map<string,number>();
   for(const entry of old){
    const g=record(entry);
-   if(typeof g?.name!=='string'||!Number.isInteger(g.sign)||original.has(g.name))return false;
+   if(typeof g?.name!=='string'||(typeof g.sign!=='number'||!Number.isInteger(g.sign))||original.has(g.name))return false;
    original.set(g.name,g.sign as number);
   }
   if(!fresh[key].every(p=>original.get(p.name)===p.sign))return false;
@@ -60,6 +60,10 @@ export async function resolvePersonalChart(prisma:PrismaService,row:SourceChart)
      checkRecovered(stored.verifiedResult,row.result)){
     return {status:'recovered',chart:stored.verifiedResult};
    }
+   const birth=record(row.input);
+   if(!birth)return {status:'needs_review',chart:null};
+   try{validateBirth(birth as unknown as Parameters<typeof validateBirth>[0]);}
+   catch{return {status:'needs_review',chart:null};}
    const fresh=await runCalculation(row.input);
    if(!checkRecovered(fresh,row.result))return {status:'needs_review',chart:null};
    await prisma.personalChartRecovery.upsert({
@@ -75,8 +79,8 @@ export async function resolvePersonalChart(prisma:PrismaService,row:SourceChart)
    // ephemeris/database is retryable. Neither grants an unverified badge.
    const hasBirth=record(row.input);
    if(!hasBirth||typeof hasBirth.date!=='string'||typeof hasBirth.time!=='string'||
-      typeof hasBirth.timeZone!=='string'||!Number.isFinite(hasBirth.latitude)||
-      !Number.isFinite(hasBirth.longitude))return {status:'needs_review',chart:null};
+      typeof hasBirth.timeZone!=='string'||typeof hasBirth.latitude!=='number'||typeof hasBirth.longitude!=='number'||
+      !Number.isFinite(hasBirth.latitude)||!Number.isFinite(hasBirth.longitude))return {status:'needs_review',chart:null};
    return {status:'temporarily_unavailable',chart:null};
   }
  })();
