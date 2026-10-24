@@ -113,15 +113,16 @@ export function verifyReference(record){
  }else assert.equal(record.configAssertion,'INFERRED_NOT_CERTIFIED');
  return ref;
 }
-function hasComparableProfile(record,ref){
- // A source file with an inferred INI is never evidence for a matched calculation.
+export function hasComparableProfile(record,ref){
+ // Original INI is required; match the astronomical flags independently
+ // from Vimshottari's YEAR selection. Missing dasha-year attestation MUST
+ // NOT suppress observed D1/D9/D10 differences or apparent longitude drift.
  if(!record.hasOriginalJHoraIni||record.configAssertion!=='EXPLICIT_CAPTURED_INI')return false;
  const p=ref.independentSource.capture?.profile;
  return Boolean(p && p.ayanamsa==='SWISS_TRADITIONAL_LAHIRI'
  && p.nodes==='MEAN' && p.positions==='APPARENT' && p.observer==='GEOCENTRIC'
  && p.nutation==='ON' && p.aberration==='ON' && p.deflection==='ON'
- && p.d10==='1-9' && p.dashaYearDays===365.2425
- && p.dashaYearVerified===true && p.ephemeris==='SWISS');
+ && p.d10==='1-9' && p.ephemeris==='SWISS');
 }
 function calcCurrent(ref){
  // GitHub Windows installs Python through setup-python while the py.exe launcher
@@ -205,7 +206,10 @@ function compare(ref,observed,comparable,speeds){
  }
  result.dasha={
   matches:dashaMatches,total:dashaRef.length,antardashaMatches:subMatches,antardashaTotal:subTotal,
-  status:comparable&&dashaRef.length===9&&subTotal===81?(dashaMatches===9&&subMatches===81?'PASS':'FAIL'):'UNVERIFIED'
+  status:comparable&&ref.independentSource.capture?.profile?.dashaYearVerified===true
+   &&ref.independentSource.capture?.profile?.dashaYearDays===365.2425
+   &&dashaRef.length===9&&subTotal===81
+   ?(dashaMatches===9&&subMatches===81?'PASS':'FAIL'):'UNVERIFIED'
  };
  result.profile=comparable?'MATCHED_EXPLICIT_INI':'UNMATCHED_OR_NOT_ATTESTED';
  result.precision='1 arcsec where reference source reports hundredths of arcsecond';
