@@ -244,7 +244,8 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
  const required=minimum??manifest.minIndependentForCertification;
  const fullyPassed=count>=required&&matched>=required&&lagnaSigns.size===12&&results.every(x=>
   ['D1','D9','D10','longitude','dasha','nakshatra','pada','retrograde','houseLords'].every(k=>x.result?.[k]?.status==='PASS'));
- return {stage:'JQA-3',independentJHoraCharts:count,explicitlyMatchedCharts:matched,required,
+ return {stage:'JQA-3',independentJHoraCharts:count,explicitlyMatchedCharts:matched,
+  astronomicalProfileMatchedCharts:results.filter(x=>x.astronomicalProfileStatus==='EXPLICIT_ASTRONOMY_INI').length,required,
   distinctLagnaSigns:lagnaSigns.size,requiredLagnaSigns:12,
   status:fullyPassed?'CERTIFIED':'NOT_CERTIFIED',results,blockingConditions:[
    ...(count<required?['INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS']:[]),
