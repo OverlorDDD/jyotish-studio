@@ -5,8 +5,8 @@ import {readApiJson} from '../../lib/api-response';
 import type {PortalLocale} from '../../lib/brand';
 
 const TOPICS={en:[['relationships','Relationships'],['career','Work / purpose'],['growth','Personal growth'],['decision','A decision'],['other','Other']],uk:[['relationships','Стосунки'],['career','Робота / покликання'],['growth','Саморозвиток'],['decision','Важливе рішення'],['other','Інше']]} as const;
-type DraftReply={id:string;expiresAt:string;status:string;checkoutAvailable:boolean};
-type PrivateDraft={id:string;createdAt:string;expiresAt:string;topic:string;question:string;context:string;timeframe?:string|null};
+type DraftReply={id:string;createdAt:string;status:string;checkoutAvailable:boolean};
+type PrivateDraft={id:string;createdAt:string;topic:string;question:string;context:string;timeframe?:string|null};
 export default function DraftCheckout({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
  const [topic,setTopic]=useState('relationships'),[question,setQuestion]=useState(''),[context,setContext]=useState(''),[timeframe,setTimeframe]=useState('');
@@ -15,12 +15,12 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
  const ready=question.trim().length>=12&&context.trim().length>=20&&consent;
  async function loadDrafts(){
   try{
-   const list=await readApiJson<PrivateDraft[]>(await fetch('/api/v1/reading-orders/drafts',{credentials:'same-origin',cache:'no-store'}));
+   const list=await readApiJson<PrivateDraft[]>(await fetch('/api/v1/reading-orders/questions',{credentials:'same-origin',cache:'no-store'}));
    setSaved(list);setDraftMessage('');
   }catch{setSaved([]);setDraftMessage(uk?'Увійди, щоб переглянути приватні чернетки.':'Sign in to view private drafts.');}
  }
  async function deleteDraft(id:string){
-  try{await readApiJson(await fetch('/api/v1/reading-orders/drafts/'+id,{method:'DELETE',credentials:'same-origin'}));
+  try{await readApiJson(await fetch('/api/v1/reading-orders/questions/'+id,{method:'DELETE',credentials:'same-origin'}));
    setSaved(old=>old.filter(x=>x.id!==id));
   }catch{setDraftMessage(uk?'Не вдалося видалити чернетку.':'Could not delete draft.');}
  }
@@ -29,7 +29,7 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
   event.preventDefault();if(!ready)return;
   setSaving(true);setNotice('');
   try{
-   const response=await fetch('/api/v1/reading-orders/drafts',{
+   const response=await fetch('/api/v1/reading-orders/questions',{
     method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({topic,question,context,timeframe,privacyConsent:consent})
    });
@@ -66,7 +66,7 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
     <label htmlFor="draft-timeframe">{uk?'Часовий період (необов’язково)':'Timeframe (optional)'}</label>
     <input id="draft-timeframe" maxLength={140} value={timeframe} onChange={e=>setTimeframe(e.target.value)} placeholder={uk?'Наприклад, наступні 3 місяці':'For example, the next 3 months'}/>
     <label className="as-consent"><input type="checkbox" required checked={consent} onChange={e=>setConsent(e.target.checked)}/>
-      <span>{uk?'Погоджуюсь на тимчасове зберігання моєї приватної чернетки в акаунті до 7 днів. Я розумію, що розклад ще не замовлено і оплата недоступна.':'I consent to saving my private draft for up to 7 days. I understand this is not a paid order and checkout is not yet available.'}</span>
+      <span>{uk?'Погоджуюсь на зберігання мого приватного запитання в кабінеті, поки я не видалю його. Я розумію, що розклад ще не замовлено і оплата недоступна.':'I consent to saving my question privately until I delete it. I understand this is not a paid order and checkout is not yet available.'}</span>
     </label>
     <p className="as-muted">{uk?'Для відправлення потрібен акаунт. Якщо ще не увійшов, натисни «Увійти» у верхньому меню.':'You need to be signed in to save a draft. Use Sign in in the top navigation first.'}</p>
     <button className="as-button as-button-primary" disabled={!ready||saving} type="submit">{saving?(uk?'Зберігаємо…':'Saving…'):(uk?'Зберегти моє запитання':'Save my question')}</button>
@@ -81,7 +81,7 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
    {saved.map(item=><article className="as-expert-draft-card" key={item.id}>
     <span>{item.topic} · {uk?'не оплачено':'unpaid'}</span>
     <h4>{item.question}</h4><p>{item.context}</p>
-    <small>{uk?'До ':'Expires '}{new Date(item.expiresAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
+    <small>{uk?'Збережено: ':'Saved: '}{new Date(item.createdAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
     <button type="button" className="as-button as-button-secondary" onClick={()=>void deleteDraft(item.id)}>{uk?'Видалити чернетку':'Delete draft'}</button>
    </article>)}
   </section>
