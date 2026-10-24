@@ -6,3 +6,6 @@ tests/fixtures/jhora-corpus/captures/**/chart_data.txt -text
 tests/fixtures/jhora-corpus/captures/**/divisionals.txt -text
 tests/fixtures/jhora-corpus/captures/**/jhora.ini -text
 tests/fixtures/jhora-corpus/captures/**/input.jhd -text
+
+# Preserve source-specific JHora capture metadata byte for byte across Windows checkouts.
+tests/fixtures/jhora-corpus/captures/**/capture.json -text
