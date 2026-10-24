@@ -43,9 +43,9 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
  }
  return <section className="as-intake" id="reading-draft">
   <div className="as-section-heading"><div>
-   <span className="as-overline">{uk?'КРОК 1 · РОЗКАЖИ ПРО СВОЄ ПИТАННЯ':'STEP 1 · TELL US YOUR QUESTION'}</span>
-   <h2>{uk?'Спочатку питання — потім оплата':'Your question first. Checkout next.'}</h2>
-   <p>{uk?'Зараз доступне лише збереження приватного запитання. Оплати та передачі експерту немає. Чернетку можна переглянути або видалити нижче.':'You can currently save a private request only. There is no payment or practitioner access. You can review or delete your draft below.'}</p>
+   <span className="as-overline">{uk?'РОЗМОВА З ТАРОЛОГОМ':'YOUR TAROT QUESTION'}</span>
+   <h2>{uk?'Запитай таролога — збережи свою історію':'Ask a tarot reader — keep your story safe'}</h2>
+   <p>{uk?'Напиши запитання — воно збережеться у твоєму кабінеті. Нині це приватний запис: таролог ще не отримує повідомлень, а консультації не оформлюються.':'Save your question in your account. For now it remains private: no practitioner receives it and no consultation is booked.'}</p>
   </div></div>
   <div className="as-intake-columns">
    <aside className="as-examples">
@@ -69,13 +69,13 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
       <span>{uk?'Погоджуюсь на тимчасове зберігання моєї приватної чернетки в акаунті до 7 днів. Я розумію, що розклад ще не замовлено і оплата недоступна.':'I consent to saving my private draft for up to 7 days. I understand this is not a paid order and checkout is not yet available.'}</span>
     </label>
     <p className="as-muted">{uk?'Для відправлення потрібен акаунт. Якщо ще не увійшов, натисни «Увійти» у верхньому меню.':'You need to be signed in to save a draft. Use Sign in in the top navigation first.'}</p>
-    <button className="as-button as-button-primary" disabled={!ready||saving} type="submit">{saving?(uk?'Зберігаємо…':'Saving…'):(uk?'Зберегти приватну чернетку':'Save private draft')}</button>
+    <button className="as-button as-button-primary" disabled={!ready||saving} type="submit">{saving?(uk?'Зберігаємо…':'Saving…'):(uk?'Зберегти моє запитання':'Save my question')}</button>
     {notice&&<p className="as-account-error" role="alert"><AlertCircle size={16}/>{notice}</p>}
    </form>
   </div>
   <section className="as-expert-drafts" aria-label={uk?'Мої чернетки':'My saved drafts'}>
-   <h3>{uk?'Мої приватні запитання':'My private questions'}</h3>
-   <p>{uk?'Чернетки доступні лише власнику протягом 7 днів. Експерт їх не бачить.':'Only you can access your drafts for seven days. Practitioners cannot view them.'}</p>
+   <h3>{uk?'Мої запитання для таролога':'My private questions'}</h3>
+   <p>{uk?'Запитання доступні лише тобі у кабінеті. Наразі таролог не має до них доступу.':'Your questions stay in your private account. Practitioners cannot access them yet.'}</p>
    <button type="button" className="as-button as-button-secondary" onClick={()=>void loadDrafts()}>{uk?'Оновити список':'Refresh list'}</button>
    {draftMessage?<p role="status">{draftMessage}</p>:null}
    {saved.map(item=><article className="as-expert-draft-card" key={item.id}>
@@ -91,8 +91,9 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
     <CheckCircle2 size={35} className="as-modal-success"/>
     <h2 id="reading-payment-title">{uk?'Твоє питання збережено':'Your question was saved'}</h2>
     <p>{uk?'Запитання збережено у твоєму кабінеті, але це ще не замовлення. Експерт його не отримав.':'Your request remains a private draft, not a paid order. No practitioner has access to it.'}</p>
-    <div className="as-checkout-summary"><LockKeyhole size={20}/><span>{uk?'Оплата наразі не підключена. Гроші не списуються, і замовлення не створено.':'Checkout is not integrated yet. No money is charged, and no paid order has been created.'}</span></div>
-    <button className="as-button as-button-primary" type="button" disabled aria-disabled="true"><CreditCard size={18}/>{uk?'Оплатити — незабаром':'Pay — coming soon'}</button>
+    <div className="as-checkout-summary"><LockKeyhole size={20}/><span>{uk?'Добровільна підтримка нашого проєкту не впливає на відповідь таролога. Оплату консультацій ще не підключено.':'Optional support for our project is separate from any reading. Consultation payments are not available.'}</span></div>
+    <p className="as-muted">{uk?'Пожертва — тільки за бажанням, не умова отримання послуги. Посилання на банку додамо, коли власник надасть реквізити.':'Supporting us is entirely optional, never required for a service. A verified donation link will be added later.'}</p>
+    <button className="as-button as-button-primary" type="button" disabled aria-disabled="true"><CreditCard size={18}/>{uk?'Підтримати Galaxiora · посилання незабаром':'Support Galaxiora · link coming soon'}</button>
     <button className="as-button as-button-secondary" type="button" onClick={()=>setDraft(null)}>{uk?'Повернутися на сайт':'Return to website'}</button>
    </div>
   </div>}
