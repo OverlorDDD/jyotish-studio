@@ -1,9 +1,9 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-22"
+updated: "2026-10-24"
 verified_against:
-  branch: feat/jhora-independent-reference
-  commit: "969aa7183ace2b32197d3488830137e5ba9430d7"
+  branch: fix/jqa3-windows-and-llm-recovery
+  commit: "54ed714ca4faddb3f67f7cf38a7109e37200e2f1"
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -26,14 +26,14 @@ runtimes:
     warning: "in-memory preview, not production or DB-equivalent"
 modules:
   jyotish:
-    status: "implemented; CI tested; independent JHora sign-off pending"
+    status: "JQA-3 600/600 signs certified on 20 JHora 8 captures; precision 19/20 Lagna, Moon 18/20, exact dasha dates pending"
     domain: "packages/jyotish-core/src/index.ts; packages/jyotish-core/src/rules.ts"
     adapter: "apps/api/src/ephemeris.ts"
     application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/direct-jyotish.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
     shared_saved_charts: "apps/api/src/chart-application.ts; apps/api/src/chart-prisma.ts"
     http: "apps/api/src/nest.ts"
-    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx; apps/web/app/components/NorthIndianChart.tsx; apps/web/app/components/DetailedReport.tsx"
-    notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
+    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx; apps/web/app/components/NorthIndianChart.tsx (now South Indian fixed-sign Rashi layout); apps/web/app/components/DetailedReport.tsx"
+    notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic facts; new ascendantConvention versioned after mean Lahiri correction; old saved charts unchanged"
     interpretation_v3: "apps/api/src/interpretation-v3.ts v6.0.0; authored chart-based eight-chapter narrative in reader-narrative-v6.ts; evidence kept in calculation layer"
     reader_preview: "GALAXIORA_READER_ONLY=1; deterministic report response without cloud inference; validation of user-facing prose"
     interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
@@ -84,7 +84,7 @@ modules:
     web: "apps/web/app/components/ExpertOffer.tsx; apps/web/app/components/ReadingIntake.tsx"
     warning: "ReadingOrder DB skeleton is not a working commerce flow"
   yoga:
-    status: "Yoga v2: four guided practices; box visual 4-4-4-4 and two no-hold alternatives; reflection untimed"
+    status: "Yoga v2: four practices; breath pacer directly on Yoga landing; original guided detail routes remain"
     content: "apps/web/lib/yoga-content.ts"
     hub: "apps/web/app/components/YogaHub.tsx"
     player: "apps/web/app/components/YogaSession.tsx; apps/web/app/components/YogaBreathSession.tsx"
@@ -109,7 +109,7 @@ modules:
     public: "apps/web/lib/editorial-public.ts; EditorialPublishedCards.tsx; EditorialArticle.tsx"
     invariant: "only PUBLISHED visible to public; immutable versions; CAS expectedRevision; A5 slugs reserved"
   portal:
-    status: "implemented bilingual shell; Yoga and Academy live; News and Community placeholders"
+    status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and Community placeholders"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
     future: [western_astrology, panchang, news, community, mobile]
@@ -192,8 +192,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "JQA-3: JHora raw capture infrastructure and independent comparison evidence gate; one external JHora example only"
-  next: "Collect 10 to 20 real JHora 8 exports with original INI via Wine/AHK/JHoraKit and resolve angular and dasha discrepancies"
+  now: "JQA-3.4 fixed ascendant method and source metadata guard; 20 genuine JHora records, 600/600 signs PASS, remaining full 1-arcsecond and Vimshottari exact-date certificate blocked on source equivalence"
+  next: "Owner visual feedback acceptance; only after visual review start A9.1 Galaxiora Personal. Close precision/date certificate only with independent method-matched JHora evidence."
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
