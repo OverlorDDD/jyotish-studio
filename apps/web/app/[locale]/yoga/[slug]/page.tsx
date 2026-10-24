@@ -4,6 +4,7 @@ import {notFound} from 'next/navigation';
 import {ArrowLeft,ArrowUpRight,ShieldCheck} from 'lucide-react';
 import PortalShell from '../../../components/PortalShell';
 import YogaSession from '../../../components/YogaSession';
+import PracticeCompletionButton from '../../../components/PracticeCompletionButton';
 import GlossaryText from '../../../components/GlossaryText';
 import {YOGA_PRACTICES,yogaBySlug,say} from '../../../../lib/yoga-content';
 import {BREATHING_PATTERNS,sessionMs} from '../../../../lib/breathing-patterns';
@@ -46,6 +47,7 @@ export default async function YogaPracticePage({params}:Params){
    </header>
    <aside className="as-wellness-prep"><h2>{uk?'Перед початком':'Before you begin'}</h2><p><GlossaryText text={say(practice.preparation,locale)} locale={locale}/></p></aside>
    <YogaSession practice={practice} locale={locale}/>
+   <PracticeCompletionButton slug={practice.slug} locale={locale}/>
    <aside className="as-wellness-note"><ShieldCheck size={22} aria-hidden="true"/><div><strong>{uk?'Важливо':'Safety first'}</strong><p><GlossaryText text={say(practice.safety,locale)} locale={locale}/></p></div></aside>
    <div className="as-wellness-next"><Link href={'/'+locale+'/learn/yoga-roots-and-safety'}>{uk?'Більше про йогу в Академії':'Explore yoga in Academy'} <ArrowUpRight size={16}/></Link></div>
   </div></PortalShell>;
