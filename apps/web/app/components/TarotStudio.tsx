@@ -1,5 +1,5 @@
-import PersonalJournal from './PersonalJournal';
 'use client';
+import PersonalJournal from './PersonalJournal';
 import {useEffect,useState} from 'react';
 import {RefreshCcw,Sparkles,History,LockKeyhole} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
