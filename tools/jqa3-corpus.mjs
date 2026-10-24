@@ -279,6 +279,19 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
  const precise=['longitude','dasha'];
  const precisionCertified=signParityCertified
   &&comparableResults.every(x=>precise.every(k=>x.result?.[k]?.status==='PASS'));
+ // Separate sign correctness from sub-arcsecond astronomy and JHora calendar modes.
+ // A sidereal ascendant convention may differ by several arcseconds while keeping
+ // identical D1/D9/D10 signs. Do not hide this inside an all-or-nothing counter.
+ const bodyPrecision=Object.fromEntries(BODIES.map(body=>{
+  const cases=comparableResults.map(x=>x.result?.details?.find(d=>d.body===body)).filter(Boolean);
+  const passing=cases.filter(x=>Math.abs(x.arcseconds)<=1).length;
+  return [body,{passing,total:cases.length,maxAbsArcseconds:cases.length?
+   Math.max(...cases.map(x=>Math.abs(x.arcseconds))):null}];
+ }));
+ const planetaryLongitudeCertified=verifyAstronomy&&matched>=required
+  &&NINE.every(body=>bodyPrecision[body].passing===matched);
+ const lagnaLongitudeCertified=verifyAstronomy&&matched>=required
+  &&bodyPrecision.Lagna.passing===matched;
  const status=precisionCertified?'CERTIFIED'
   :signParityCertified?'SIGN_PARITY_CERTIFIED':'NOT_CERTIFIED';
  const blockers=[
@@ -294,6 +307,7 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   distinctLagnaSigns:lagnaSigns.size,requiredLagnaSigns:12,
   comparableLagnaSigns:covered.size,
   signParityCertified,dashaSequenceCertified,precisionCertified,
+  planetaryLongitudeCertified,lagnaLongitudeCertified,bodyPrecision,
   status,results,blockingConditions:blockers};
 }
 const REQUIRED_INI=['Siddhanta','UserSelectedAyanamsa','DeltaFromUserSelectedAyanamsa','TrueNodes','TruePositions',
