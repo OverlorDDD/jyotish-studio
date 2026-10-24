@@ -14,7 +14,7 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  await page.goto('/uk/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
- await expect(page.locator('.jy-primary-chart .jy-north-chart')).toBeVisible();
+ await expect(page.locator('.jy-primary-chart .jy-south-chart')).toBeVisible();
  await expect(page.locator('.jy-reference-details')).toBeVisible();
  await page.locator('.jy-reference-details summary').click();
  await expect(page.locator('.jy-reference-details')).toContainText('JHora 8.0');
@@ -53,7 +53,7 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  await page.goto('/en/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
  await page.getByRole('button',{name:'Calculate birth chart'}).click();
- await expect(page.locator('.jy-primary-chart .jy-north-chart')).toBeVisible();
+ await expect(page.locator('.jy-primary-chart .jy-south-chart')).toBeVisible();
  await page.getByRole('button',{name:'Read without AI — Reader v6'}).click();
  await expect(page.locator('.reading-editorial-chapter')).toHaveCount(8);
  await expect(page.getByTestId('reading-ai-provenance')).toContainText('Reader v6');

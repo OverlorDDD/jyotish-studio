@@ -8,7 +8,9 @@ test('Global shell is single in Jyotish and the local tool preserves saved-chart
  await expect(page.locator('.jy-workbench .lang-button')).toHaveCount(0);
  await expect(page.locator('button.as-account-trigger')).toHaveCount(1);
  await expect(page.locator('button.account-trigger')).toContainText('Зберегти карту');
- await expect(page.locator('.jy-section-nav')).toBeVisible();
+ // The section rail intentionally collapses in the narrow responsive layout.
+ if((page.viewportSize()?.width||0)<900)await expect(page.locator('.jy-section-nav')).toBeHidden();
+ else await expect(page.locator('.jy-section-nav')).toBeVisible();
  await expect(page.locator('.jy-portal-toolbar')).toContainText('GalaxiAstro');
 });
 test('Cosmic hero uses circular orbit tracks, fills viewport and honors reduced motion',async({page})=>{

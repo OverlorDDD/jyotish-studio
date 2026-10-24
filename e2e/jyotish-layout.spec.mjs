@@ -43,12 +43,12 @@ for(const lang of ['uk','en']){
   await expect(mainChart.locator('.jy-south-sign')).toHaveCount(12);
   for(const view of ['d1','d9','d10']){
    await page.getByRole('button',{name:view.toUpperCase(),exact:true}).click();
-   const varga=page.locator('.jy-varga-chart .jy-north-chart');
+   const varga=page.locator('.jy-varga-chart .jy-south-chart');
    await expect(varga).toBeVisible();
-   await expect(varga.locator('.jy-chart-house')).toHaveCount(12);
+   await expect(varga.locator('.jy-south-sign')).toHaveCount(12);
    const inside=await varga.evaluate(svg=>{
     const bounds=svg.getBoundingClientRect();
-    return [...svg.querySelectorAll('.jy-chart-house')].every(g=>{
+    return [...svg.querySelectorAll('.jy-south-sign')].every(g=>{
      const r=g.getBoundingClientRect();
      return r.left>=bounds.left-2&&r.right<=bounds.right+2&&r.top>=bounds.top-2&&r.bottom<=bounds.bottom+2;
     });
