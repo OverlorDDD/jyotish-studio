@@ -1,4 +1,4 @@
-import {BadRequestException,Body,ConflictException,Controller,Delete,Get,Header,Inject,Param,Patch,Post,Put,Query,Req,UnauthorizedException} from '@nestjs/common';
+import {BadRequestException,Body,ConflictException,Controller,Delete,Get,Header,Inject,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ServiceUnavailableException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {ArrayMaxSize,IsArray,IsIn,IsInt,IsOptional,IsString,IsUUID,Max,Min} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
@@ -6,6 +6,7 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
+import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 
 type ChartResult={verification?:{status?:string};ascendant?:{sign?:number;signName?:string};
  d1?:{name:string;sign:number}[];dasha?:{lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]}[]};
@@ -14,17 +15,19 @@ const PRACTICES=['box','equal','extended'] as const;
 const calendarLimiter=createKeyedHourlyLimiter(20);
 function owner(req:IncomingMessage){const id=cookieUser(req);if(!id)throw new UnauthorizedException('Sign in to your Personal space');return id;}
 function mutation(req:IncomingMessage){if(!sameOrigin(req))throw new BadRequestException('Cross-origin personal update denied');return owner(req);}
-function chartFacts(row:{id:string;createdAt:Date;input:unknown;result:unknown}|null){
+async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;input:unknown;result:unknown}|null){
  if(!row)return null;
- const result=row.result as ChartResult;
- const verified=result?.verification?.status==='verified_internal';
+ const recovery=await resolvePersonalChart(prisma,row);
+ const result=recovery.chart;
  const input=(row.input||{}) as {date?:string;place?:string};
- const moon=Array.isArray(result?.d1)?result.d1.find(x=>x.name==='Moon'):null;
+ const moon=result?.d1.find(x=>x.name==='Moon');
  const asc=result?.ascendant;
  return {id:row.id,createdAt:row.createdAt,date:input.date||'',place:input.place||'',
-  verified,lagnaSign:verified&&Number.isInteger(asc?.sign)?asc!.sign:null,
-  lagnaName:asc?.signName||'',moonSign:verified&&Number.isInteger(moon?.sign)?moon!.sign:null,
-  dasha:verified&&Array.isArray(result?.dasha)?result.dasha:[]};
+  verified:Boolean(result),recoveryStatus:recovery.status as RecoveryState,
+  lagnaSign:result&&Number.isInteger(asc?.sign)?asc!.sign:null,
+  lagnaName:asc?.signName||(row.result as ChartResult)?.ascendant?.signName||'',
+  moonSign:result&&Number.isInteger(moon?.sign)?moon!.sign:null,
+  dasha:result?.dasha||[]};
 }
 export class PersonalProfileDto{
  @IsOptional() @IsString() currentTimeZone?:string;
@@ -55,7 +58,7 @@ export class PersonalController{
   const source=record?.primaryChartId?await this.prisma.chart.findFirst({
    where:{id:record.primaryChartId,ownerId:uid},select:{id:true,createdAt:true,input:true,result:true}
   }):null;
-  const selected=chartFacts(source);
+  const selected=await chartFacts(this.prisma,source);
   return {profile:{primaryChartId:selected?.id||null,currentTimeZone:record?.currentTimeZone||'UTC',
    preferredLocale:record?.preferredLocale||'uk',favoritePractice:record?.favoritePractice||'box',newsTopics:record?.newsTopics||[]},
    charts,suggestedChartId:!record?.primaryChartId&&charts.length===1?charts[0].id:null,
@@ -105,11 +108,11 @@ export class PersonalController{
   const active=chart?.verified?chart.dasha.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end)):null;
   const sub=active?.antardashas?.find(x=>Date.parse(x.start)<=Date.now()&&Date.now()<Date.parse(x.end));
   let transit:null|Awaited<ReturnType<typeof dailyTransit>>=null;
-  let transitStatus:'available'|'no_verified_chart'|'ephemeris_unavailable'='no_verified_chart';
-  if(chart?.verified&&chart.lagnaSign&&chart.moonSign){
-   try{transit=await dailyTransit(today,profile.profile.currentTimeZone,chart.lagnaSign,chart.moonSign);transitStatus='available';}
-   catch{transitStatus='ephemeris_unavailable';}
-  }
+  let transitStatus:'available'|'general'|'ephemeris_unavailable'='general';
+  try{
+   transit=await dailyTransit(today,profile.profile.currentTimeZone,chart?.lagnaSign,chart?.moonSign);
+   transitStatus=chart?.verified?'available':'general';
+  }catch{transitStatus='ephemeris_unavailable';}
   return {...profile,today,activeDasha:active?{lord:active.lord,start:active.start,end:active.end,antardasha:sub||null}:null,
    transit,transitStatus,recentTarot:tarot,recentJournal:journal,privateQuestions:questions,
    recentPractices:practices,horoscope:{status:'planned_after_launch',personal:true},
@@ -118,10 +121,13 @@ export class PersonalController{
  @Get('transits') @Header('Cache-Control','private, no-store')
  async transits(@Req()req:IncomingMessage,@Query('date')date?:string){
   const uid=owner(req),p=await this.profile(uid),c=p.selected;
-  if(!c?.verified||!c.lagnaSign||!c.moonSign)return {status:'no_verified_chart',transit:null};
   const day=date||localToday(p.profile.currentTimeZone);
   if(!validLocalDay(day))throw new BadRequestException('Invalid YYYY-MM-DD');
-  return {status:'available',transit:await dailyTransit(day,p.profile.currentTimeZone,c.lagnaSign,c.moonSign)};
+  try{
+   return {status:c?.verified?'available':'general',
+    recoveryStatus:c?.recoveryStatus||'no_chart',
+    transit:await dailyTransit(day,p.profile.currentTimeZone,c?.lagnaSign,c?.moonSign)};
+  }catch{throw new ServiceUnavailableException('Astronomical ephemeris unavailable, retry later');}
  }
  @Get('calendar') @Header('Cache-Control','private, no-store')
  async calendar(@Req()req:IncomingMessage,@Query('days')days='7',@Query('from')from?:string){
@@ -132,17 +138,20 @@ export class PersonalController{
   const start=from||localToday(p.profile.currentTimeZone);
   if(!validLocalDay(start))throw new BadRequestException('Invalid YYYY-MM-DD');
   const dates=calendarDays(start,days==='30'?30:7);
-  if(!c?.verified||!c.lagnaSign||!c.moonSign)return {status:'no_verified_chart',dates,days:[],events:[],method:null};
+  const personalized=Boolean(c?.verified&&c.lagnaSign&&c.moonSign);
   const dateSet=new Set(dates);
   const events=[
-   ...c.dasha.map(d=>({type:'MAHADASHA_START',lord:d.lord,atUtc:d.start,date:localToday(p.profile.currentTimeZone,new Date(d.start))})),
-   ...c.dasha.flatMap(d=>(d.antardashas||[]).map(a=>({type:'ANTARDASHA_START',lord:a.lord,atUtc:a.start,date:localToday(p.profile.currentTimeZone,new Date(a.start))})))
+   ...(personalized?c!.dasha:[]).map(d=>({type:'MAHADASHA_START',lord:d.lord,atUtc:d.start,date:localToday(p.profile.currentTimeZone,new Date(d.start))})),
+   ...(personalized?c!.dasha:[]).flatMap(d=>(d.antardashas||[]).map(a=>({type:'ANTARDASHA_START',lord:a.lord,atUtc:a.start,date:localToday(p.profile.currentTimeZone,new Date(a.start))})))
   ].filter(e=>dateSet.has(e.date)).sort((a,b)=>a.atUtc.localeCompare(b.atUtc));
   const out:Awaited<ReturnType<typeof dailyTransit>>[]=[];
-  for(let i=0;i<dates.length;i+=3){
-   out.push(...await Promise.all(dates.slice(i,i+3).map(day=>dailyTransit(day,p.profile.currentTimeZone,c.lagnaSign!,c.moonSign!))));
-  }
-  return {status:'available',dates,days:out,events,method:out[0]?.method};
+  try{
+   for(let i=0;i<dates.length;i+=3){
+    out.push(...await Promise.all(dates.slice(i,i+3).map(day=>dailyTransit(day,p.profile.currentTimeZone,c?.lagnaSign,c?.moonSign))));
+   }
+  }catch{throw new ServiceUnavailableException('Astronomical calendar temporarily unavailable, retry later');}
+  return {status:personalized?'available':'general',recoveryStatus:c?.recoveryStatus||'no_chart',
+   dates,days:out,events,method:out[0]?.method};
  }
  @Get('practices') @Header('Cache-Control','private, no-store')
  async practices(@Req()req:IncomingMessage){

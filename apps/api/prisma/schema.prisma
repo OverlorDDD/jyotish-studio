@@ -63,6 +63,7 @@ model Chart {
  result     Json
  readings   Interpretation[]
  selectedAsPrimary PersonalProfile?
+ personalRecovery PersonalChartRecovery?
  @@index([ownerId])
 }
 model Interpretation {
@@ -268,4 +269,16 @@ model PersonalPracticeSession {
  durationSeconds Int
  completedAt DateTime @default(now())
  @@index([userId,completedAt])
+}
+
+/** Verified, immutable-by-source Personal projection.
+ * The original Chart.result and its historical interpretation are never rewritten.
+ */
+model PersonalChartRecovery {
+ chartId String @id
+ chart Chart @relation(fields:[chartId],references:[id],onDelete:Cascade)
+ sourceHash String @db.VarChar(64)
+ methodVersion String @db.VarChar(128)
+ verifiedResult Json
+ verifiedAt DateTime @default(now())
 }

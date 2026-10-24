@@ -38,9 +38,10 @@ async function sampleEphemeris(utc:string){
  }
  return cached;
 }
-export async function dailyTransit(day:string,zone:string,lagnaSign:number,moonSign:number){
+export async function dailyTransit(day:string,zone:string,lagnaSign?:number|null,moonSign?:number|null){
  if(!validLocalDay(day)||!validTimeZone(zone))throw Error('Invalid local day or time zone');
- if(!Number.isInteger(lagnaSign)||lagnaSign<1||lagnaSign>12||!Number.isInteger(moonSign)||moonSign<1||moonSign>12)throw Error('Invalid natal anchor');
+ if((lagnaSign!=null&&(!Number.isInteger(lagnaSign)||lagnaSign<1||lagnaSign>12))||
+  (moonSign!=null&&(!Number.isInteger(moonSign)||moonSign<1||moonSign>12)))throw Error('Invalid natal anchor');
  const utc=localToUTC(day,'12:00',zone);
  const eph=await sampleEphemeris(utc);
  const moon=eph.positions.find(p=>p.name==='Moon');
@@ -51,13 +52,16 @@ export async function dailyTransit(day:string,zone:string,lagnaSign:number,moonS
  const planets=eph.positions.filter(p=>['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'].includes(p.name)).map(p=>{
   const sign=signIndex(p.longitude)+1;
   return {name:p.name,sign,longitude:p.longitude,
-   houseFromLagna:houseFrom(lagnaSign,sign),houseFromMoon:houseFrom(moonSign,sign)};
+   houseFromLagna:lagnaSign==null?null:houseFrom(lagnaSign,sign),
+   houseFromMoon:moonSign==null?null:houseFrom(moonSign,sign)};
  });
  return {
   date:day,sampledAtUtc:utc,timeZone:zone,method:TRANSIT_METHOD,
+  personalized:lagnaSign!=null&&moonSign!=null,
   observationType:'SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON',
   moon:{longitude:moon.longitude,sign:moonTransitSign,nakshatra:nak.name,pada:nak.pada,
-   houseFromLagna:houseFrom(lagnaSign,moonTransitSign),houseFromMoon:houseFrom(moonSign,moonTransitSign)},
+   houseFromLagna:lagnaSign==null?null:houseFrom(lagnaSign,moonTransitSign),
+   houseFromMoon:moonSign==null?null:houseFrom(moonSign,moonTransitSign)},
   planets
  };
 }
