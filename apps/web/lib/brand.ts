@@ -19,6 +19,7 @@ export const BRAND = {
 } as const;
 export type PortalLocale = 'en' | 'uk';
 export type PortalModule = keyof typeof BRAND.moduleSuffixes;
-export const moduleTitle=(module:PortalModule)=>BRAND.name+' '+BRAND.moduleSuffixes[module];
+export const moduleTitle=(module:PortalModule):string=>module==='jyotish'?'GalaxiAstro · Jyotish':'Galaxi'+({astrology:'Astro',tarot:'Tarot',experts:'Experts',yoga:'Yoga',learn:'Learn',news:'News',community:'Com',account:'Account',admin:'Admin'} as const)[module];
+
 export const isPortalLocale = (value:string):value is PortalLocale => value==='en'||value==='uk';
-export const portalPath=(locale:PortalLocale,section='')=>'/'+locale+(section?'/'+section:'');
+export const portalPath=(locale:PortalLocale,section='')=>'/'+locale+(section?'/'+(section==='astrology'?'astrology/jyotish':section):'');
