@@ -25,7 +25,7 @@ CREATE TABLE "PracticeCompletion" (
   "completedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "PracticeCompletion_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "PracticeCompletion_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT "PracticeCompletion_known_slug" CHECK ("practiceSlug" IN ('gentle-breath','desk-mobility','grounding-meditation','evening-reflection'))
+  CONSTRAINT "PracticeCompletion_known_slug" CHECK ("practiceSlug" IN ('gentle-breath','desk-mobility','five-senses','evening-unwind'))
 );
 CREATE INDEX "PracticeCompletion_userId_completedAt_idx"
   ON "PracticeCompletion"("userId","completedAt");
