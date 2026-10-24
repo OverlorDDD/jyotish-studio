@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {calendarDays,validLocalDay,validTimeZone,localToday,TRANSIT_METHOD} from '../apps/api/src/personal-transits.ts';
+const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+test('personal civil calendars contain exact 7/30 dates across 23h and 25h daylight shifts',()=>{
+ assert.equal(calendarDays('2026-03-28',7).length,7);
+ assert.equal(calendarDays('2026-03-28',7)[2],'2026-03-30');
+ assert.equal(calendarDays('2026-10-24',30).at(-1),'2026-11-22');
+ assert.equal(localToday('Europe/Kyiv',new Date('2026-03-29T21:30:00.000Z')),'2026-03-30');
+ assert.equal(localToday('America/New_York',new Date('2026-03-08T05:30:00.000Z')),'2026-03-08');
+ assert.equal(validLocalDay('2026-02-29'),false);
+ assert.equal(validLocalDay('2028-02-29'),true);
+ assert.throws(()=>calendarDays('2026-02-30',7));
+ assert.equal(validTimeZone('Europe/Kyiv'),true);
+ assert.equal(validTimeZone('UTC'),true);
+ assert.equal(validTimeZone('Invalid/NoCity'),false);
+});
+test('astrological source is Swiss/Lahiri and sampled transit is not misrepresented as a precise ingress',()=>{
+ const code=read('apps/api/src/personal-transits.ts');
+ assert.match(code,/getEphemeris/);
+ assert.match(code,/localToUTC\(day,'12:00',zone\)/);
+ assert.match(code,/SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON/);
+ assert.match(TRANSIT_METHOD,/Lahiri sidereal/);
+ assert.doesNotMatch(code,/Date\.now\(\).*Math\.random|fakeTransit|mockPosition/);
+});
+test('saved chart ownership, private practices and news/horoscope deferred scope survive new Personal routes',()=>{
+ const schema=read('apps/api/prisma/schema.prisma');
+ const controller=read('apps/api/src/personal.ts');
+ const frontend=read('apps/web/app/components/personal/PersonalDashboard.tsx');
+ assert.match(schema,/model PersonalProfile/);
+ assert.match(schema,/model PersonalPracticeSession/);
+ assert.match(controller,/ownerId:uid/);
+ assert.match(controller,/userId:uid/);
+ assert.match(controller,/sameOrigin/);
+ assert.match(controller,/news:\{status:'planned_after_launch'/);
+ assert.match(frontend,/GALAXIHOROSCOPE/);
+ assert.match(frontend,/PERSONAL NEWS/);
+ assert.match(frontend,/ga[laxiora]*:auth-changed|galaxiora:auth-changed/);
+});
