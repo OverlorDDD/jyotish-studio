@@ -401,8 +401,12 @@ export function importCapture(captureDir,outputFile){
    variant==='1-9';
  const yearMatch=rawIni.toString('utf8').match(/^YearLength=0\s+([0-9.]+)$/m);
  const rawDays=yearMatch?Number(yearMatch[1]):null;
- const yearAttested=meta.dashaYearEvidence==='JHORA_PREFERENCES_RECORDER' &&
-  Number.isFinite(rawDays)&&rawDays===meta.dashaYearDays;
+ // YearLength=0 is an editable stored value, NOT the selected algorithm.
+ // The original JHora 8.0 exports selected YearDefinition=0 3; its verified
+ // numeric/solar-year semantics are unknown. Capture metadata cannot attest
+ // equivalence by merely echoing a matching number. Fail closed until an
+ // independently controlled JHora mode-to-method experiment is available.
+ const yearAttested=false;
  const p={
   ayanamsa:explicitMatching?'SWISS_TRADITIONAL_LAHIRI':'OTHER_JHORA_CONFIG',
   nodes:ini.TrueNodes==='0'?'MEAN':'TRUE',positions:ini.TruePositions==='0'?'APPARENT':'TRUE',
