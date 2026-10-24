@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {TAROT_DECK,drawCards} from '../apps/api/src/tarot-deck.ts';
+import {TAROT_DECK,drawCards,describeDraws} from '../apps/api/src/tarot-deck.ts';
 import {readerReading,TAROT_SCENARIO_CARD_COUNT} from '../apps/api/src/tarot-reader.ts';
 import {tarotArtFilename,tarotArtLocal,tarotArtRemote} from '../apps/web/lib/tarot-art.ts';
 import {validateNarrative,createHumanAiTarot,tarotAiConfig} from '../apps/api/src/tarot-ai.ts';
@@ -69,7 +69,9 @@ test('Tarot AI opt-in calls only a mocked endpoint and sends usage metadata, nev
   const content={
    directAnswer:'The first message could change your expectations tonight. Stay attentive to whether the plan matches what was actually agreed.',
    development:'There may be a new invitation or a small adjustment. This is a potential reading based solely on the card and position, not verified knowledge.',
-   cardExplanations:['In the focus position this card describes an unfolding conversation and one realistic response you could choose instead of making assumptions.'],
+   cardExplanations:[describeDraws(cards,'one')[0].name.uk+' у позиції '+describeDraws(cards,'one')[0].positionName.uk+
+    (cards[0].reversed?' перевернута. ':'. ')+
+    'У цій позиції карта описує можливу розмову й одну реалістичну реакцію, не гарантуючи результатів.'],
    caution:'Do not infer another person’s hidden feelings as certain facts.',
    advice:'Check the details of the invitation before committing your evening.'
   };
