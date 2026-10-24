@@ -468,6 +468,7 @@ if(isEntry){
      matchedProfileCharts:audit.explicitlyMatchedCharts,
      matchedLagnaSigns:audit.comparableLagnaSigns,
      status:audit.status,signParityCertified:audit.signParityCertified,
+     dashaSequenceCertified:audit.dashaSequenceCertified,
      precisionCertified:audit.precisionCertified,
      failures:audit.blockingConditions},null,2));
     if(!audit.signParityCertified)process.exitCode=2;
