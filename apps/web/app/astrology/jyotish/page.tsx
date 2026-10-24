@@ -6,6 +6,7 @@ import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 import AccountPortal from '../../components/AccountPortal';
+import PersonalJournal from '../../components/PersonalJournal';
 import NorthIndianChart from '../../components/NorthIndianChart';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
@@ -236,6 +237,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     </section>
 
     {report&&report.language===lang?<DetailedReport report={report} lang={lang}/>:null}
+    {chart&&<PersonalJournal locale={lang} kind="JYOTISH"/>}
     <footer>GALAXIORA · JYOTISH <span>•</span> {lang==='uk'?'СИДЕРИЧНИЙ РОЗРАХУНОК · LAHIRI':'SIDEREAL CALCULATION · LAHIRI'} <span>•</span> D1 / D9 / D10</footer>
    </div>
   </main>
