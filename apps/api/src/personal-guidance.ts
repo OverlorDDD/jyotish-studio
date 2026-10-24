@@ -7,7 +7,7 @@ type L={uk:string;en:string};
 type Transit=Awaited<ReturnType<typeof dailyTransit>>;
 type Period={lord:string;start:string;end:string;antardasha?:{lord:string;start:string;end:string}|null};
 type Natal={name:string;sign:number};
-type Event={type:'MAHADASHA_START'|'ANTARDASHA_START';lord:string;date:string;atUtc:string};
+type Event={type:string;lord:string;date:string;atUtc:string};
 type Brief={headline:L;description:L;action:L;evidence:{kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string}};
 const names:Record<string,L>={
  Sun:{uk:'Сонця',en:'Sun'},Moon:{uk:'Місяця',en:'Moon'},Mars:{uk:'Марса',en:'Mars'},
@@ -114,7 +114,7 @@ export function buildWeekHighlights(days:Transit[],events:Event[]=[]):WeekHighli
    moonSign:week[0].moon.sign,nakshatra:week[0].moon.nakshatra,date:week[0].date}});
  const knownDates=new Set(week.map(v=>v.date));
  for(const e of events){
-  if(!knownDates.has(e.date)||!names[e.lord])continue;
+  if(!knownDates.has(e.date)||!names[e.lord]||!['MAHADASHA_START','ANTARDASHA_START'].includes(e.type))continue;
   const major=e.type==='MAHADASHA_START';
   highlights.push({date:e.date,kind:'DASHA_START',
    headline:{uk:'Початок '+(major?'махадаші ':'антардаші ')+names[e.lord].uk,
