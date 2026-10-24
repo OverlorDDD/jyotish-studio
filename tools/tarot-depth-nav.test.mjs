@@ -54,7 +54,7 @@ test('Tarot experts are nested and legacy /experts links redirect correctly',()=
  const nav=read('apps/web/app/components/PortalShell.tsx');
  const profile=read('apps/web/app/components/AccountDashboard.tsx');
  assert.ok(section.includes('id="human-readings"'));
- assert.ok(section.includes("section==='tarot'&&<TarotStudio"));
+ assert.ok(section.includes("section==='tarot'")&&section.includes("<TarotStudio locale={locale}/>"));
  assert.ok(section.includes('<ExpertOffer locale={locale}/>'));
  assert.ok(route.includes("redirect(portalPath(locale,'tarot')+'#human-readings')"));
  assert.ok(profile.includes("portalPath(locale,'tarot')+'#human-readings'"));
