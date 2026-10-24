@@ -120,8 +120,11 @@ function hasComparableProfile(record,ref){
  return Boolean(p && p.ayanamsa==='SWISS_TRADITIONAL_LAHIRI'
  && p.nodes==='MEAN' && p.positions==='APPARENT' && p.observer==='GEOCENTRIC'
  && p.nutation==='ON' && p.aberration==='ON' && p.deflection==='ON'
- && p.d10==='1-9' && p.dashaYearDays===365.2425
- && p.dashaYearVerified===true && p.ephemeris==='SWISS');
+ && p.d10==='1-9' && p.ephemeris==='SWISS');
+ // Astronomy profile is independent of the separately selected Vimshottari
+ // year mode. The old gate demanded dasha-year attestation before it would
+ // even *measure* D1/D9/D10, so 20 fully captured JHora charts were all 0/20.
+
 }
 function calcCurrent(ref){
  // GitHub Windows installs Python through setup-python while the py.exe launcher
@@ -205,7 +208,11 @@ function compare(ref,observed,comparable,speeds){
  }
  result.dasha={
   matches:dashaMatches,total:dashaRef.length,antardashaMatches:subMatches,antardashaTotal:subTotal,
-  status:comparable&&dashaRef.length===9&&subTotal===81?(dashaMatches===9&&subMatches===81?'PASS':'FAIL'):'UNVERIFIED'
+  status:comparable&&ref.independentSource.capture?.profile?.dashaYearVerified===true
+   &&ref.independentSource.capture?.profile?.dashaYearDays===365.2425&&dashaRef.length===9&&subTotal===81
+    ?(dashaMatches===9&&subMatches===81?'PASS':'FAIL')
+    :'YEAR_MODE_UNATTESTED',
+  comparisonBasis:'same UTC, Swiss-derived Moon, production 365.2425-day calendar; JHora year setting not independently attested'
  };
  result.profile=comparable?'MATCHED_EXPLICIT_INI':'UNMATCHED_OR_NOT_ATTESTED';
  result.precision='1 arcsec where reference source reports hundredths of arcsecond';
@@ -228,18 +235,38 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
     evidenceStatus:record.hasOriginalJHoraIni?'CAPTURE_EVIDENCE_PRESENT':'ORIGINAL_INI_MISSING',
     result:comparison});
  }
- const count=results.length,matched=results.filter(x=>x.profileStatus==='EXPLICIT_MATCH').length;
+ const count=results.length;
  const required=minimum??manifest.minIndependentForCertification;
- const fullyPassed=count>=required&&matched>=required&&lagnaSigns.size===12&&results.every(x=>
-  ['D1','D9','D10','longitude','dasha','nakshatra','pada','retrograde','houseLords'].every(k=>x.result?.[k]?.status==='PASS'));
+ // The historical Gandhi record has NO original INI. It is valuable for
+ // regression diagnostics but can never sabotage a sufficient attested corpus.
+ const comparableResults=results.filter(x=>x.profileStatus==='EXPLICIT_MATCH');
+ const matched=comparableResults.length;
+ const covered=new Set();
+ for(const row of comparableResults){
+  const record=manifest.records.find(r=>r.id===row.id);
+  covered.add(verifyReference(record).expected.positions.Lagna.d1);
+ }
+ const signs=['D1','D9','D10','nakshatra','pada','retrograde','houseLords'];
+ const signParityCertified=verifyAstronomy&&matched>=required&&covered.size===12
+  &&comparableResults.every(x=>signs.every(k=>x.result?.[k]?.status==='PASS'));
+ const precise=['longitude','dasha'];
+ const precisionCertified=signParityCertified
+  &&comparableResults.every(x=>precise.every(k=>x.result?.[k]?.status==='PASS'));
+ const status=precisionCertified?'CERTIFIED'
+  :signParityCertified?'SIGN_PARITY_CERTIFIED':'NOT_CERTIFIED';
+ const blockers=[
+  ...(count<required?['INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS']:[]),
+  ...(matched<required?['INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES']:[]),
+  ...(covered.size<12?['MATCHED_PROFILE_DOES_NOT_COVER_12_LAGNA_SIGNS']:[]),
+  ...(matched>0&&verifyAstronomy&&comparableResults.some(x=>signs.some(k=>x.result?.[k]?.status!=='PASS'))?['UNMATCHED_ASTROLOGICAL_FACTS']:[]),
+  ...(matched>0&&verifyAstronomy&&comparableResults.some(x=>x.result?.longitude?.status!=='PASS')?['SUB_ARCSECOND_LONGITUDE_NOT_MATCHED']:[]),
+  ...(matched>0&&verifyAstronomy&&comparableResults.some(x=>x.result?.dasha?.status!=='PASS')?['VIMSHOTTARI_YEAR_MODE_OR_DATE_MISMATCH']:[])
+ ];
  return {stage:'JQA-3',independentJHoraCharts:count,explicitlyMatchedCharts:matched,required,
   distinctLagnaSigns:lagnaSigns.size,requiredLagnaSigns:12,
-  status:fullyPassed?'CERTIFIED':'NOT_CERTIFIED',results,blockingConditions:[
-   ...(count<required?['INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS']:[]),
-   ...(matched<required?['INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES']:[]),
-   ...(lagnaSigns.size<12?['NOT_ALL_12_LAGNA_SIGNS_COVERED']:[]),
-   ...(results.some(x=>x.result&&['D1','D9','D10','longitude','dasha','nakshatra','pada','retrograde','houseLords'].some(k=>x.result[k].status!=='PASS'))?['UNVERIFIED_OR_DIFFERENT_VALUES']:[])
-  ]};
+  comparableLagnaSigns:covered.size,
+  signParityCertified,precisionCertified,
+  status,results,blockingConditions:blockers};
 }
 const REQUIRED_INI=['Siddhanta','UserSelectedAyanamsa','DeltaFromUserSelectedAyanamsa','TrueNodes','TruePositions',
  'TopocentricPositions','NoNutation','NoAberration','NoGravDeflection'];
@@ -406,10 +433,20 @@ if(isEntry){
   }else if(command==='register'){
    assert.equal(process.argv.length,4,'usage: register <repo-relative-normalized-fixture>');
    console.log(JSON.stringify(registerCapture(process.argv[3]),null,2));
-  }else if(command==='audit'||command==='certify'){
+  }else if(command==='audit'||command==='certify'||command==='certify-signs'){
    const audit=auditCorpus();
-   console.log(JSON.stringify(audit,null,2));
-   if(command==='certify'&&audit.status!=='CERTIFIED')process.exitCode=2;
+   if(command==='certify-signs'){
+    console.log(JSON.stringify({stage:audit.stage,sourceCharts:audit.independentJHoraCharts,
+     matchedProfileCharts:audit.explicitlyMatchedCharts,
+     matchedLagnaSigns:audit.comparableLagnaSigns,
+     status:audit.status,signParityCertified:audit.signParityCertified,
+     precisionCertified:audit.precisionCertified,
+     failures:audit.blockingConditions},null,2));
+    if(!audit.signParityCertified)process.exitCode=2;
+   }else{
+    console.log(JSON.stringify(audit,null,2));
+    if(command==='certify'&&audit.status!=='CERTIFIED')process.exitCode=2;
+   }
   }else throw Error('Unknown JQA-3 command: '+command);
  }catch(error){console.error('JQA-3 evidence gate failed: '+String(error));process.exitCode=1;}
 }
