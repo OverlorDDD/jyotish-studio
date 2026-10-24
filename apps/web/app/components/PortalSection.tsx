@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {redirect} from 'next/navigation';
 import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles,Newspaper,MessagesSquare} from 'lucide-react';
 import PortalShell from './PortalShell';
 import ExpertOffer from './ExpertOffer';
@@ -32,6 +33,8 @@ export const SECTION_COPY={
 } as const;
 const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower2,learn:BookOpen,news:Newspaper,community:MessagesSquare};
 export default function PortalSection({locale,section}:{locale:PortalLocale;section:PortalSectionSlug}){
+ if(section==='astrology')redirect('/'+locale+'/astrology/jyotish');
+ if(section==='tarot')return <PortalShell locale={locale} active="tarot"><div className="as-subpage as-direct-module"><TarotStudio locale={locale}/><section id="human-readings" className="as-human-readings"><ExpertOffer locale={locale}/></section></div></PortalShell>;
  if(section==='yoga')return <YogaHub locale={locale}/>;
  if(section==='learn')return <AcademyHub locale={locale}/>;
  const t=SECTION_COPY[locale][section];
@@ -50,8 +53,6 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
     <h2>{locale==='uk'?'Що доступно':'What to expect'}</h2>
     <p>{t.sub}</p>
    </section>
-   {section==='tarot'&&<TarotStudio locale={locale}/>}
-   {section==='tarot'&&<section id="human-readings" className="as-human-readings"><ExpertOffer locale={locale}/></section>}
   </div>
  </PortalShell>;
 }
