@@ -20,8 +20,10 @@ test('Offline Ukrainian tarot prose uses natural accusative event phrases',()=>{
  const code=read('apps/api/src/tarot-reader.ts');
  assert.ok(code.includes('початок може принести '));
  assert.ok(code.includes('Далі розклад натякає на '));
- assert.ok(code.includes('Порада таролога: зосередься на посланні'));
- assert.ok(code.includes('Порівняй його з першою картою'));
+ assert.ok(code.includes('Порада таролога:'));
+ assert.ok(code.includes('Саме зв’язок між цими двома образами'));
+ assert.ok(!code.includes('Обери одну конкретну дію, яка відповідає цій темі.'));
+ assert.ok(!code.includes('Порівняй його з першою картою'));
  assert.ok(code.includes('difficult.reversed'));
  assert.ok(!code.includes('Карти не свідчать про буквальну катастрофу'));
  assert.ok(!code.includes('Пильнуй, щоб несподіванка'));
