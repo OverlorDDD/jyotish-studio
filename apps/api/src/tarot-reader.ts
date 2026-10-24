@@ -125,15 +125,15 @@ export function readerReading(raw:ReadonlyArray<Draw>,spread:Spread,question:str
  (uk?'карта звертає увагу на '+lastEvent+'.':'the most prominent theme is '+lastEvent+'.');
  const directAnswer=highStakes(q)?
  (uk?'Цей розклад не може встановити медичний факт, вагітність, тривалість життя чи іншу критичну подію. У символах читається тема '+lastEvent+', але за достовірною інформацією варто звернутися до відповідного джерела.':'A tarot spread cannot establish a medical fact, pregnancy, life expectancy, or other critical outcome. Its imagery suggests '+lastEvent+', but real-world evidence is needed.'):
- (uk?prefix+'За картами '+t+' '+strong+' Це лише один із можливих сценаріїв, а не достовірна подія.':
- prefix+'The cards lean toward this possibility '+t+': '+strong+' This is an interpretive possibility, not a guaranteed event.');
+ (uk?prefix+'За картами '+t+' '+strong+' Разом з іншими картами цей образ відкриває глибший сенс розкладу.':
+ prefix+'The cards lean toward this possibility '+t+': '+strong+' Read this image alongside the other cards for its fuller meaning.');
  const eventNames=cards.map((c,i)=>title(i)+' — '+scenario(i));
  const partsUk=cards.length===1?
  'Тут важлива не кількість подій, а їхній характер: '+firstEvent+'. Якщо ситуація ще не розгорнулася, зверни увагу на перший реальний сигнал, який підтвердить або спростує цю версію.':
- 'Початок показує '+firstEvent+'. '+(middle?'Далі розклад натякає на '+middle+'. ':'')+'А фінальна карта підкреслює '+lastEvent+'. Якщо плани зміняться, це не обов’язково буде катастрофою — важливо, як ти відреагуєш.';
+ 'Початок показує '+firstEvent+'. '+(middle?'Далі розклад натякає на '+middle+'. ':'')+'А фінальна карта підкреслює '+lastEvent+'. Завершення розкладу показує, де назріває вибір і що вже час побачити без прикрас.';
  const partsEn=cards.length===1?
  'The key is the character of the moment: '+firstEvent+'. Look for real evidence before deciding whether this reading fits.':
- 'The opening suggests '+firstEvent+'. '+(middle?'The middle stage may bring '+middle+'. ':'')+'The final card emphasizes '+lastEvent+'. A change of plans need not mean disaster; how you respond matters.';
+ 'The opening suggests '+firstEvent+'. '+(middle?'The middle stage may bring '+middle+'. ':'')+'The final card emphasizes '+lastEvent+'. The final image reveals where a choice is taking shape.';
  const cardExplanations=cards.map((c,i)=>{
   const position=c.positionName[lang].toLowerCase();
   const lead=uk?'У позиції «'+position+'» карта «'+title(i)+'» натякає на '+scenario(i)+'. ':
@@ -143,11 +143,12 @@ export function readerReading(raw:ReadonlyArray<Draw>,spread:Spread,question:str
    (i===0?(uk?'Це вихідна обставина, а не фінал.':'This sets the scene rather than the outcome.'):(uk?'Це можливий поворот, на який варто звернути увагу.':'This is a potential development worth watching.'));
   return lead+detail+' '+qualifier;
  });
- const caution=cards.some(c=>c.id==='major-tower'||c.id==='swords-three'||c.id==='swords-ten')?
- (uk?'Пильнуй, щоб несподіванка не перетворилася на конфлікт через різкі слова. Карти не свідчать про буквальну катастрофу.':'Be careful not to turn an unexpected moment into a conflict with sharp words. No card proves a literal catastrophe.'):
- (uk?'Не сприймай припущення про інших людей як факти. Краще запитай напряму, перш ніж реагувати.':'Do not treat assumptions about other people as facts. Ask directly before reacting.');
- const advice=uk?'Моя порада: залиш собі простір для зміни планів. Якщо помітиш '+lastEvent+', спершу з’ясуй подробиці, а тоді вирішуй, як діяти.':
- 'My advice: leave room for plans to change. If you encounter '+lastEvent+', get the details before choosing your response.';
+ const difficult=cards.find(c=>c.id==='major-tower'||c.id==='swords-three'||c.id==='swords-ten');
+ const caution=difficult?
+  (uk?'У розкладі звучить гостра нота «'+difficult.name.uk+'»: вона відкриває те, що давно вимагало чесної зміни. '+(difficult.reversed?'Перевернуте положення підкреслює внутрішній опір змінам.':'Пряме положення говорить про переломний момент — важливо зберегти ясність.'):'A sharper note comes from '+difficult.name.en+': something needs honest change. '+(difficult.reversed?'Reversed, it points to resistance to this shift.':'Upright, it marks a turning point that calls for clarity.')):
+  (uk?'Зверни увагу на прихований мотив «'+title(cards.length-1)+'»: '+lastEvent+'. Саме він задає тон завершенню розкладу.':'Notice the underlying theme of '+title(cards.length-1)+': '+lastEvent+'. It sets the tone of the outcome.');
+ const advice=uk?'Порада таролога: зосередься на посланні «'+title(cards.length-1)+'». '+(cards.length>1?'Порівняй його з першою картою «'+title(0)+'»: так стане зрозуміліше, що завершити, а що розпочати. ':'')+'Обери одну конкретну дію, яка відповідає цій темі.':
+  'The reader’s advice: follow the message of '+title(cards.length-1)+'. '+(cards.length>1?'Compare it with the opening '+title(0)+' to see what can end and what can begin. ':'')+'Choose one concrete action that reflects this theme.';
  return {directAnswer,development:uk?partsUk:partsEn,cardExplanations,caution,advice};
 }
 export const TAROT_SCENARIO_CARD_COUNT=Object.keys(MAJOR).length+Object.keys(MINOR).length;
