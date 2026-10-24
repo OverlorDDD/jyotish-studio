@@ -145,7 +145,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   </aside>
   <div className="main">
    <header className="topbar">
-    <span className="breadcrumbs">GALAXIORA <b>/</b> <strong>JYOTISH</strong></span>
+    <span className="breadcrumbs">GalaxiAstro <b>/</b> <strong>JYOTISH</strong></span>
     <div className="top-actions"><button className="lang-button" onClick={()=>setLang(lang==='en'?'uk':'en')}>{lang==='en'?<><b>EN</b> / УКР</>:<>EN / <b>УКР</b></>}</button><AccountPortal birth={chart?.input||null} report={report} lang={lang} onOpenSaved={loadSaved}/></div>
    </header>
    <div className="content" id="calculator">
