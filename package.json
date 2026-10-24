@@ -90,7 +90,8 @@
     "test:jqa3:ephemeris": "node --experimental-strip-types --test tools/jqa3-ephemeris-parity.test.mjs",
     "jqa3:audit": "node --experimental-strip-types tools/jqa3-corpus.mjs audit",
     "jqa3:certify": "node --experimental-strip-types tools/jqa3-corpus.mjs certify",
-    "jqa3:certify-signs": "node --experimental-strip-types tools/jqa3-corpus.mjs certify-signs"
+    "jqa3:certify-signs": "node --experimental-strip-types tools/jqa3-corpus.mjs certify-signs",
+    "jqa3:dasha-diagnostic": "node --experimental-strip-types tools/jqa3-dasha-year-diagnostic.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
