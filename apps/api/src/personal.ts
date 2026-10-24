@@ -7,6 +7,7 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
+import {buildDailyGuidance,buildPeriodGuidance,buildWeekHighlights} from './personal-guidance.ts';
 
 type ChartResult={verification?:{status?:string};ascendant?:{sign?:number;signName?:string};
  d1?:{name:string;sign:number}[];dasha?:{lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]}[]};
@@ -27,7 +28,7 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
   lagnaSign:result&&Number.isInteger(asc?.sign)?asc!.sign:null,
   lagnaName:asc?.signName||(row.result as ChartResult)?.ascendant?.signName||'',
   moonSign:result&&Number.isInteger(moon?.sign)?moon!.sign:null,
-  dasha:result?.dasha||[]};
+  dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
 }
 export class PersonalProfileDto{
  @IsOptional() @IsString() currentTimeZone?:string;
@@ -113,7 +114,10 @@ export class PersonalController{
    transit=await dailyTransit(today,profile.profile.currentTimeZone,chart?.lagnaSign,chart?.moonSign);
    transitStatus=chart?.verified?'available':'general';
   }catch{transitStatus='ephemeris_unavailable';}
-  return {...profile,today,activeDasha:active?{lord:active.lord,start:active.start,end:active.end,antardasha:sub||null}:null,
+  const currentPeriod=active?{lord:active.lord,start:active.start,end:active.end,antardasha:sub||null}:null;
+  return {...profile,today,activeDasha:currentPeriod,
+   journey:{period:chart?.verified?buildPeriodGuidance(currentPeriod,chart.lagnaSign,chart.natalPositions):null,
+    daily:buildDailyGuidance(transit)},
    transit,transitStatus,recentTarot:tarot,recentJournal:journal,privateQuestions:questions,
    recentPractices:practices,horoscope:{status:'planned_after_launch',personal:true},
    news:{status:'planned_after_launch',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
@@ -151,7 +155,7 @@ export class PersonalController{
    }
   }catch{throw new ServiceUnavailableException('Astronomical calendar temporarily unavailable, retry later');}
   return {status:personalized?'available':'general',recoveryStatus:c?.recoveryStatus||'no_chart',
-   dates,days:out,events,method:out[0]?.method};
+   dates,days:out,events,weekHighlights:buildWeekHighlights(out,events),method:out[0]?.method};
  }
  @Get('practices') @Header('Cache-Control','private, no-store')
  async practices(@Req()req:IncomingMessage){
