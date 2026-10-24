@@ -4,6 +4,7 @@ CREATE TABLE "PersonalProfile" (
  "primaryChartId" TEXT,
  "currentTimeZone" VARCHAR(64) NOT NULL DEFAULT 'UTC',
  "preferredLocale" VARCHAR(2) NOT NULL DEFAULT 'uk',
+ "favoritePractice" VARCHAR(32),
  "newsTopics" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
  "updatedAt" TIMESTAMP(3) NOT NULL,

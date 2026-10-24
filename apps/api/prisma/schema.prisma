@@ -62,7 +62,7 @@ model Chart {
  input      Json
  result     Json
  readings   Interpretation[]
- selectedAsPrimary PersonalProfile[]
+ selectedAsPrimary PersonalProfile?
  @@index([ownerId])
 }
 model Interpretation {
@@ -252,6 +252,7 @@ model PersonalProfile {
  primaryChart Chart? @relation(fields: [primaryChartId],references: [id],onDelete: SetNull)
  currentTimeZone String @default("UTC") @db.VarChar(64)
  preferredLocale String @default("uk") @db.VarChar(2)
+ favoritePractice String? @db.VarChar(32)
  newsTopics String[] @default([])
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt

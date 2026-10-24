@@ -29,6 +29,7 @@ function chartFacts(row:{id:string;createdAt:Date;input:unknown;result:unknown}|
 export class PersonalProfileDto{
  @IsOptional() @IsString() currentTimeZone?:string;
  @IsOptional() @IsIn(['uk','en']) preferredLocale?:'uk'|'en';
+ @IsOptional() @IsIn(PRACTICES) favoritePractice?:'box'|'equal'|'extended';
  @IsOptional() @IsArray() @ArrayMaxSize(6) @IsIn(TOPICS,{each:true}) newsTopics?:string[];
 }
 export class PrimaryChartDto{
@@ -51,7 +52,7 @@ export class PersonalController{
   const charts=rows.map(chartFacts).filter((x):x is NonNullable<typeof x>=>Boolean(x));
   const selected=charts.find(x=>x.id===record?.primaryChartId)||null;
   return {profile:{primaryChartId:selected?.id||null,currentTimeZone:record?.currentTimeZone||'UTC',
-   preferredLocale:record?.preferredLocale||'uk',newsTopics:record?.newsTopics||[]},
+   preferredLocale:record?.preferredLocale||'uk',favoritePractice:record?.favoritePractice||'box',newsTopics:record?.newsTopics||[]},
    charts:charts.map(({dasha,...c})=>c),suggestedChartId:!record?.primaryChartId&&charts.length===1?charts[0].id:null,
    selected,staleSelectedChart:Boolean(record?.primaryChartId&&!selected)};
  }
@@ -64,6 +65,7 @@ export class PersonalController{
   if(dto.newsTopics&&new Set(dto.newsTopics).size!==dto.newsTopics.length)throw new BadRequestException('Duplicate news interests');
   const fields={...(dto.currentTimeZone!==undefined?{currentTimeZone:dto.currentTimeZone}:{}),
    ...(dto.preferredLocale!==undefined?{preferredLocale:dto.preferredLocale}:{}),
+   ...(dto.favoritePractice!==undefined?{favoritePractice:dto.favoritePractice}:{}),
    ...(dto.newsTopics!==undefined?{newsTopics:dto.newsTopics}:{})};
   await this.prisma.personalProfile.upsert({where:{userId:uid},create:{userId:uid,...fields},update:fields});
   return this.profile(uid);
