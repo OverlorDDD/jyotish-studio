@@ -55,7 +55,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
  return <div className="as-tarot-studio">
   <section className="as-tarot-workspace">
    <div className="as-section-heading"><div>
-    <span className="as-overline">TAROT STUDIO · 78 CARDS</span>
+    <span className="as-overline">GalaxiTarot · 78 CARDS</span>
     <h2>{uk?'Твоє послання від карт':'Your message from the cards'}</h2>
     <p>{uk?'Колода готова розкрити свої таємниці. Обери розклад, постав запитання й відкривай карти — одну за одною.':'The deck is ready to reveal its secrets. Choose your spread, ask a question and turn the cards over one by one.'}</p>
    </div></div>
