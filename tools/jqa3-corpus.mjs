@@ -199,6 +199,10 @@ function compare(ref,observed,comparable,speeds){
  let dashaMatches=0,subMatches=0,subTotal=0;
  let maxMajorStartDeltaDays=0,maxAntardashaStartDeltaDays=0;
  const computed=vimshottari(observed.get('Moon'),ref.civilTime.birthUtc);
+ const correctMajorSequence=dashaRef.length===9&&dashaRef.every((p,i)=>computed[i]?.lord===p.lord);
+ const correctSubSequence=correctMajorSequence&&dashaRef.every((p,i)=>
+  Object.keys(p.antardashas||{}).length===9 &&
+  Object.keys(p.antardashas).every((lord,j)=>computed[i]?.antardashas?.[j]?.lord===lord));
  for(const p of dashaRef){
   const c=computed.find(x=>x.lord===p.lord);
   if(c){
@@ -217,6 +221,9 @@ function compare(ref,observed,comparable,speeds){
  result.dasha={
   matches:dashaMatches,total:dashaRef.length,antardashaMatches:subMatches,antardashaTotal:subTotal,
   maxMajorStartDeltaDays,maxAntardashaStartDeltaDays,
+  sequenceStatus:comparable&&correctMajorSequence&&correctSubSequence?'PASS':'FAIL',
+  matchedMahadashaSequence:correctMajorSequence,
+  matchedAntardashaSequence:correctSubSequence,
   status:comparable&&ref.independentSource.capture?.profile?.dashaYearVerified===true
    &&ref.independentSource.capture?.profile?.dashaYearDays===365.2425&&dashaRef.length===9&&subTotal===81
     ?(dashaMatches===9&&subMatches===81?'PASS':'FAIL')
@@ -265,6 +272,8 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   covered.add(verifyReference(record).expected.positions.Lagna.d1);
  }
  const signs=['D1','D9','D10','nakshatra','pada','retrograde','houseLords'];
+ const dashaSequenceCertified=verifyAstronomy&&matched>=required
+  &&comparableResults.every(x=>x.result?.dasha?.sequenceStatus==='PASS');
  const signParityCertified=verifyAstronomy&&matched>=required&&covered.size===12
   &&comparableResults.every(x=>signs.every(k=>x.result?.[k]?.status==='PASS'));
  const precise=['longitude','dasha'];
@@ -284,7 +293,7 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
  return {stage:'JQA-3',independentJHoraCharts:count,explicitlyMatchedCharts:matched,required,
   distinctLagnaSigns:lagnaSigns.size,requiredLagnaSigns:12,
   comparableLagnaSigns:covered.size,
-  signParityCertified,precisionCertified,
+  signParityCertified,dashaSequenceCertified,precisionCertified,
   status,results,blockingConditions:blockers};
 }
 const REQUIRED_INI=['Siddhanta','UserSelectedAyanamsa','DeltaFromUserSelectedAyanamsa','TrueNodes','TruePositions',
