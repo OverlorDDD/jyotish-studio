@@ -9,7 +9,7 @@ export type Position = {name:string;longitude:number;speed?:number};
 export type EphemerisData = {ayanamsa:number;ascendant:number;positions:Position[];julianDay:number;backend:string};
 export type Graha = {name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 export type DashaPeriod = {lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]};
-export type CalculatedChart = {input:BirthInput;utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;d1:Graha[];d9:Graha[];d10:Graha[];dasha:DashaPeriod[];config:{ayanamsa:string;houses:string;nodes:string;dashaYearDays:number};ephemeris:string};
+export type CalculatedChart = {input:BirthInput;utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;d1:Graha[];d9:Graha[];d10:Graha[];dasha:DashaPeriod[];config:{ayanamsa:string;houses:string;nodes:string;dashaYearDays:number;ascendantConvention?:string};ephemeris:string};
 const NAK_LEN = 360/27;
 export const mod = (x:number,n=360)=>((x%n)+n)%n;
 export function signIndex(lon:number):number { return Math.min(11,Math.floor(mod(lon)/30)); }
@@ -85,5 +85,5 @@ export function calculateChart(input:BirthInput,eph:EphemerisData):CalculatedCha
     const a=n===1?eph.ascendant:divisionalLongitude(eph.ascendant,n);
     return positions.map(p=>{const result=graha(p.name,n===1?p.longitude:divisionalLongitude(p.longitude,n),a,p.speed);return n===1?result:{...result,nakshatra:'—',pada:0};});
   };
-  return {input,utc,ayanamsa:eph.ayanamsa,ascendant:asc,lagnaD9:graha('Ascendant',divisionalLongitude(eph.ascendant,9),divisionalLongitude(eph.ascendant,9)),lagnaD10:graha('Ascendant',divisionalLongitude(eph.ascendant,10),divisionalLongitude(eph.ascendant,10)),d1:convert(1),d9:convert(9),d10:convert(10),dasha:vimshottari(byName.get('Moon')!.longitude,utc),ephemeris:eph.backend,config:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu',dashaYearDays:DASHA_YEAR_DAYS}};
+  return {input,utc,ayanamsa:eph.ayanamsa,ascendant:asc,lagnaD9:graha('Ascendant',divisionalLongitude(eph.ascendant,9),divisionalLongitude(eph.ascendant,9)),lagnaD10:graha('Ascendant',divisionalLongitude(eph.ascendant,10),divisionalLongitude(eph.ascendant,10)),d1:convert(1),d9:convert(9),d10:convert(10),dasha:vimshottari(byName.get('Moon')!.longitude,utc),ephemeris:eph.backend,config:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu',dashaYearDays:DASHA_YEAR_DAYS,ascendantConvention:'tropical-apparent-minus-mean-lahiri-v2'}};
 }
