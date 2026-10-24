@@ -10,13 +10,14 @@ def main():
     jd=swe.julday(dt.year,dt.month,dt.day,hour)
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
-    # The native JS adapter uses getAyanamsaExUt (with nutation) and
-    # tropical Placidus ascendant minus that *same* true ayanamsa.
-    # get_ayanamsa_ut() returns MEAN ayanamsa, creating inconsistent
-    # metadata and a different basis from native. Match the actual mode.
+    # Planetary metadata is the nutated apparent ayanamsa (unchanged).
+    # Separately use mean Lahiri for the ascendant: 20 preserved JHora 8.0
+    # rising longitudes support this convention (19/20 within 1 arcsec).
+    # Do not replace planetary coordinates/ayanamsa metadata with mean values.
     _,ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH)
+    _,lagna_ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH|swe.FLG_NONUT)
     _,angles=swe.houses(jd,float(data['latitude']),float(data['longitude']),b'P')
-    ascendant=(angles[0]-ayan)%360
+    ascendant=(angles[0]-lagna_ayan)%360
     body=[('Sun',swe.SUN),('Moon',swe.MOON),('Mars',swe.MARS),('Mercury',swe.MERCURY),('Jupiter',swe.JUPITER),('Venus',swe.VENUS),('Saturn',swe.SATURN),('Rahu',swe.MEAN_NODE)]
     positions=[]
     for name,planet in body:
