@@ -79,7 +79,7 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
    <button type="button" className="as-button as-button-secondary" onClick={()=>void loadDrafts()}>{uk?'Оновити список':'Refresh list'}</button>
    {draftMessage?<p role="status">{draftMessage}</p>:null}
    {saved.map(item=><article className="as-expert-draft-card" key={item.id}>
-    <span>{item.topic} · {uk?'не оплачено':'unpaid'}</span>
+    <span>{item.topic} · {uk?'особисте запитання':'private question'}</span>
     <h4>{item.question}</h4><p>{item.context}</p>
     <small>{uk?'Збережено: ':'Saved: '}{new Date(item.createdAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
     <button type="button" className="as-button as-button-secondary" onClick={()=>void deleteDraft(item.id)}>{uk?'Видалити запитання':'Delete question'}</button>
