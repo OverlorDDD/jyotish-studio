@@ -1,5 +1,5 @@
-import PersonalJournal from './PersonalJournal';
 'use client';
+import PersonalJournal from './PersonalJournal';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {Trash2} from 'lucide-react';
