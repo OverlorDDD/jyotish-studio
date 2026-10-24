@@ -1,9 +1,9 @@
 # JQA-3 final acceptance lock
 
-**Current decision: NO MANUAL SITE ACCEPTANCE.** The normal unit/build/DB/browser CI validates engineering integrity only; it is not independent numerical certification.
+**Current decision: D1/D9/D10 same-profile sign verification is independently CERTIFIED on 20 original JHora charts; full high-resolution coordinates and Vimshottari calendar parity remain separately under review.** Standard CI also validates engineering integrity; these are distinct certificates.
 
-Manual Galaxiora user acceptance is enabled **only after**:
-1. `npm run jqa3:certify` succeeds with a pinned corpus of at least twelve distinct authentic JHora 8.x exports, each with original JHora INI, raw clipboard results, exact UTC and executable provenance, covering all twelve lagna signs.
+**Visual design, navigation and content placement MAY be accepted independently** of numerical ephemeris certification. User acceptance of the *full Jyotish high-resolution/date parity claim* is enabled only after:
+1. `npm run jqa3:certify-signs` already passes on 20 independent originals. For the higher-resolution numerical/date claim, `npm run jqa3:certify` must separately succeed with a pinned corpus of at least twelve distinct authentic JHora 8.x exports, each with original JHora INI, raw clipboard results, exact UTC and executable provenance, covering all twelve lagna signs.
 2. Same-method D1, D9, D10 and all ten raw longitudes match on every chart, including lagna and nodes, within the documented one-arcsecond tolerance.
 3. Ten independent nakshatras and padas, seven classical-planet retrograde states, twelve house lords, nine Mahadashas and 81 Antardashas per case have explicit PASS with recorded source evidence.
 4. Core and Python/Node Swiss adapter parity are independently checked, and existing persisted charts/interpretations are versioned or invalidated after any production calculation change.
@@ -19,4 +19,4 @@ A green application CI alone must never remove `NOT_CERTIFIED` from the numerica
 - Verify anonymous access, authenticated save/reload, invalid birth time and DST-gap/fold errors, and responsive mobile layout.
 - Accept only if exact observed output matches the signed-off acceptance snapshot; report differences with the request ID and no sensitive personal birth information.
 
-Until the independent release gate is green, **do not ask the owner to test manually**.
+Until full numerical/date parity is demonstrated, **do not claim those domains certified**. This does **not** prevent the owner from reviewing an independent visual UX update, nor prevent non-Jyotish feature development.
