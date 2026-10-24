@@ -77,7 +77,7 @@
     "a8:preview": "node --experimental-strip-types tools/a8-7-reader-preview.mjs",
     "test:a8:graph": "node --experimental-strip-types --test tools/a8-9-fact-graph.test.mjs",
     "test:a8:intelligence": "node --experimental-strip-types --test tools/a8-9-consultation-intelligence.test.mjs",
-    "test:jyotish:layout": "node --experimental-strip-types --test tools/north-indian-layout.test.mjs",
+    "test:jyotish:layout": "node --experimental-strip-types --test tools/north-indian-layout.test.mjs tools/rashi-grid.test.mjs",
     "test:a8:reader-v6": "node --experimental-strip-types --test tools/a8-reader-v6-editorial.test.mjs",
     "test:jyotish:direct": "node --experimental-strip-types --test tools/direct-jyotish.test.mjs",
     "test:jyotish:quality": "node --experimental-strip-types --test tools/consultation-quality-v2.test.mjs",
