@@ -1,6 +1,6 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-22"
+updated: "2026-10-24"
 verified_against:
   branch: feat/jhora-independent-reference
   commit: "969aa7183ace2b32197d3488830137e5ba9430d7"
@@ -241,3 +241,35 @@ docs:
 # apps/api/src/consultation-intelligence.ts => calculated claim ledger, global motifs, atomic eight-chapter writer/reviewer and partial factual gate.
 # IMPORTANT: classical OCR rules are NOT certified; semantic/human quality gate remains OPEN.
 # npm run test:a8:graph; npm run test:a8:intelligence.
+
+# A9 priority: accuracy -> trustworthy personal continuity -> A9.1 dashboard.
+a9:
+  roadmap: "docs/research/a9-release-plan.md"
+  stage_a9_0:
+    status: "in_progress; 20 original JHora INI and 12 lagna sources acquired; numeric / dasha certification NOT_CERTIFIED"
+    evidence: "docs/research/jqa3-2-recovered-evidence.json"
+    windows_fix: ".gitattributes: JHora original capture.json -text"
+    numerical_script: "npm run jqa3:diagnose"
+    acceptance: "Do not label any diagram, dasha or product CERTIFIED until external matched settings and values pass"
+  stage_a9_2:
+    status: "implemented on feature branch; CI and production acceptance pending"
+    domain: "apps/api/src/personal-journal-policy.ts"
+    controller: "apps/api/src/personal-journal.ts"
+    migration: "apps/api/prisma/migrations/20261024110000_a9_personal_journal/migration.sql"
+    frontend: "JournalNoteEditor, SavedChartJournal, PersonalHistory, PracticeCompletionButton"
+    privacy: "owner-only references, same-origin writes, private notes never sent to AI, explicit practice completion"
+  tarot_quality_v1:
+    status: "implemented on feature branch; CI and real-text acceptance pending"
+    audit: "apps/api/src/tarot-quality.ts"
+    gateway: "apps/api/src/tarot-ai.ts"
+    policy: "Validate factual card name/position and reversal, otherwise use deterministic Reader"
+  stage_a9_1_galaxiora_personal:
+    status: "APPROVED_ROADMAP_NOT_IMPLEMENTED"
+    concept: "Private natal-and-transit dashboard, verified dasha calendar 7/30 days, return-daily experience, journal and yoga links"
+    dependency: "A9.0 independently verified time and varga calculation before personalized forecasts"
+  tests:
+    - "npm run test:a9:personal"
+    - "npm run test:tarot:quality"
+    - "npm run test:jqa3:corpus"
+    - "npm run jqa3:diagnose"
+    - "npm run test:integration against disposable database"
