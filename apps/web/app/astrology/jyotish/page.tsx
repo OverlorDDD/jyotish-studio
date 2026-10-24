@@ -64,7 +64,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   fetch('/api/v1/jyotish/runtime',{cache:'no-store'}).then(async res=>{
    const data=res.ok?await res.json():null;
    if(!live)return;
-   setJhoraReference(data?.referenceBenchmark?.version==='jhora8-public-v1'?data.referenceBenchmark:null);
+   setJhoraReference(data?.referenceBenchmark?.version==='jhora8-same-profile-v2'?data.referenceBenchmark:null);
    if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2')
     setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
    else setRuntimeMismatch('');
@@ -188,8 +188,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       {chart?.verification?.status==='verified_internal'&&<details className="jy-reference-details">
        <summary>{lang==='uk'?'Перевірка розрахунків':'Calculation verification'}</summary>
        <p>{lang==='uk'?'Внутрішні перевірки D1, D9, D10, управителів і даш пройдено.':'Internal D1, D9, D10, house-lord and dasha consistency checks passed.'}</p>
-       {jhoraReference&&<p>{lang==='uk'?'Незалежний архів JHora 8.0:':'Recorded JHora 8.0 reference:'} {jhoraReference.cases} {lang==='uk'?'історична карта':'historical chart'}. D1 {jhoraReference.d1SignMatches}/{jhoraReference.d1Total}, D9 {jhoraReference.d9SignMatches}/{jhoraReference.d9Total}, D10 {jhoraReference.d10SignMatches}/{jhoraReference.d10Total}. {lang==='uk'?'Відмінності пояснюються різними аянамшами, типами вузлів і способом побудови D10.':'Differences reflect distinct ayanamsa, node and D10 methods.'}</p>}
-       <p>{lang==='uk'?'Це тестова звірка одного незалежно збереженого еталона, а не перевірка вашої особистої карти безпосередньо у JHora.':'This benchmarks one separately captured reference, not a direct JHora verification of your personal chart.'}</p>
+       {jhoraReference&&<p>{lang==='uk'?'Незалежний корпус JHora 8.0:':'Independent JHora 8.0 corpus:'} {jhoraReference.cases} {lang==='uk'?'карт з однаковою методикою':'same-method charts'}. D1 {jhoraReference.d1SignMatches}/{jhoraReference.d1Total}, D9 {jhoraReference.d9SignMatches}/{jhoraReference.d9Total}, D10 {jhoraReference.d10SignMatches}/{jhoraReference.d10Total}. {lang==='uk'?'Збіг знаків підтверджено. Точність довгот до 1″ та календарні дати Vimshottari перевіряються окремо.':'Sign parity is certified. One-arcsecond longitude precision and Vimshottari calendar dates have separate pending checks.'}</p>}
+       <p>{lang==='uk'?'Це незалежна звірка еталонних карт за узгодженим профілем, а не індивідуальна перевірка вашої карти в JHora.':'This is an independent same-profile reference check, not direct JHora verification of your individual chart.'}</p>
       </details>}
      </aside>
     </section>
