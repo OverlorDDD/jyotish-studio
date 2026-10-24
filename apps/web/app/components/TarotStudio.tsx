@@ -1,3 +1,4 @@
+import PersonalJournal from './PersonalJournal';
 'use client';
 import {useEffect,useState} from 'react';
 import {RefreshCcw,Sparkles,History,LockKeyhole} from 'lucide-react';
@@ -122,6 +123,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
     <a href="#human-readings" className="as-button as-button-secondary">{uk?'Замовити персональне відео у живої експертки':'Get a personal video from a human reader'}</a>
    </article>}
 
+   {revealed.length===reading.cards.length&&<PersonalJournal key={reading.id} locale={locale} kind="TAROT" sourceId={reading.id}/>}
    {revealed.length!==reading.cards.length&&<p className="as-tarot-hint">{uk?'Відкрий усі карти, щоб побачити їхній спільний підсумок і відповідь на запитання.':'Reveal all cards to see their combined narrative and answer.'}</p>}
    <p className="as-muted">{uk?'Ілюстрації: Pamela Colman Smith, класична колода Rider–Waite–Smith (1909). Таро не замінює медичних, юридичних або фінансових рішень.':'Artwork: Pamela Colman Smith, Rider–Waite–Smith (1909). Tarot does not replace medical, legal or financial advice.'}</p>
   </section>}
