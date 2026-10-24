@@ -3,11 +3,15 @@
 Do not ask the site owner to manually update/test the local project until there is a meaningful acceptance candidate.
 
 ## A9.0 — Independent astrology correctness and technical stability (P0)
-- 20 original JHora 8.0 exports with raw INI/JHD/clipboard preserved: JQA-3.2 DONE as source collection, NOT numeric certification.
+- 20 original JHora 8.0 exports with raw INI/JHD/clipboard preserved: JQA-3.2 DONE.
+- **JQA-3 same-method D1/D9/D10 SIGN PARITY CERTIFIED**: 20/20 charts, all 12 lagna signs, 600/600 matching signs with independent source; CLI `npm run jqa3:certify-signs` is a blocking CI release gate.
+- **Still separate:** arcsecond longitudes and precise Vimshottari dates (original JHora `YearDefinition=0 3` is NOT the same proof as `YearLength=0 365.242500`). Details in `docs/research/jqa3-certification-review-2026-10-24.md`.
 - Compare the same UTC, longitude/latitude, ayanamsa, true/mean nodes, D10 convention, and dasha-year setting; never silently reinterpret a different JHora configuration as a regression.
-- Required: 12 lagna signs, all ten recorded positions per chart D1/D9/D10, <=1 arcsecond with identical ephemeris/config, 9 mahadashas and 81 antardashas, nakshatra/pada/retrograde, lord outcomes.
+- Completed D1/D9/D10 requirement: 20 attested same-method original charts, 10 positions per chart and varga, 12 lagna signs, nakshatra/pada/retrograde and lord outcomes.
+- Separate precision/dasha requirement: compare <=1 arcsecond only when ephemeris version and ascendant convention actually match; the existing differences must remain explicitly visible. Exact 9 Mahadasha and 81 Antardasha *date* parity requires JHora's selected year-definition mode to be attested, not inferred from its raw fixed-length field.
 - Fail closed: any unknown original setting or missing external evidence remains NOT_CERTIFIED. Improve Windows CRLF preservation for SHA256-attested original `capture.json` without rewriting its bytes.
-- All 4 CI checks (Windows fixtures, Node build/tests, PostgreSQL, browser) PASS. The relevant PR remains DRAFT until numerical acceptance, not marked RELEASE.
+- All 4 CI checks (Windows fixtures, Node build/tests, PostgreSQL, browser) PASS on updated branch; release sign-off for subarcsecond/date parity is separate.
+- Planned site visual arrangement and navigation review can proceed now without claiming the separately open precision/date gates are complete.
 - Not in scope: changing production astro formula to game the reference score; merging unverified settings; UI forecasts while astronomical backend has no numerical certificate.
 
 ## A9.2 — Private Personal Journal (P1; initial implementation on current branch)
