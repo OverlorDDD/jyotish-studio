@@ -4,6 +4,9 @@ test('Personal: styled and accessible dashboard, responsive grid and settings',a
  const account='personal-visual-'+randomUUID().slice(0,12)+'@example.invalid';
  const register=await page.request.post('/api/v1/account/register',{data:{email:account,password:'Personal-visual-test-2026-strong'}});
  expect(register.status()).toBe(201);
+ // Both Playwright projects must first inspect the same explicit desktop width;
+ // subsequently assert single-column behavior in the same browser at 390px.
+ await page.setViewportSize({width:1440,height:900});
  await page.goto('/uk/personal');
  const hero=page.locator('[data-testid="personal-dashboard"] header').first();
  await expect(hero).toBeVisible();
