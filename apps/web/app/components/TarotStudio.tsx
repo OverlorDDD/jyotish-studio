@@ -56,8 +56,8 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
   <section className="as-tarot-workspace">
    <div className="as-section-heading"><div>
     <span className="as-overline">TAROT STUDIO · 78 CARDS</span>
-    <h2>{uk?'Твоє символічне читання':'Your symbolic reading'}</h2>
-    <p>{uk?'Карти обираються випадково на сервері. Трактування описують можливі теми для роздумів, а не гарантовані події.':'Cards are selected randomly by the server. Meanings are prompts for reflection, not certain predictions.'}</p>
+    <h2>{uk?'Твоє послання від карт':'Your message from the cards'}</h2>
+    <p>{uk?'Колода готова розкрити свої таємниці. Обери розклад, постав запитання й відкривай карти — одну за одною.':'The deck is ready to reveal its secrets. Choose your spread, ask a question and turn the cards over one by one.'}</p>
    </div></div>
    <form className="as-tarot-form" onSubmit={draw}>
     <fieldset><legend>{uk?'Обери розклад':'Choose your spread'}</legend>
@@ -66,8 +66,8 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
       <strong>{uk?v.uk:v.en}</strong><small>{v.count} {uk?'карт':'cards'}</small>
      </label>)}</div>
     </fieldset>
-    <label htmlFor="as-tarot-question">{uk?'Твоє питання (необов’язково)':'Your question (optional)'}</label>
-    <textarea id="as-tarot-question" rows={2} maxLength={600} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={uk?'Про що я хочу сьогодні подумати?':'What would I like to reflect on today?'}/>
+    <label htmlFor="as-tarot-question">{uk?'Твоє запитання до карт (необов’язково)':'Your question (optional)'}</label>
+    <textarea id="as-tarot-question" rows={2} maxLength={600} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={uk?'Яку таємницю відкриє для мене цей розклад?':'What would I like to reflect on today?'}/>
     {aiAvailable&&<label className="as-tarot-ai-consent">
      <input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/>
      <span>{uk?'Хочу розгорнуту AI-трактовку в стилі живого таролога. Дозволяю передати це питання і назви витягнутих карт підключеному AI-провайдеру.':'Generate an extended AI tarot reading. I consent to sending this question and drawn card details to the connected AI provider.'}</span>
@@ -118,7 +118,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
     <p><GlossaryText text={narrative.advice} locale={locale}/></p>
     <p className="as-muted">{aiWasUsed?
       (uk?'AI-інтерпретація за згодою користувача · модель: ':'AI interpretation with your consent · model: ')+reading.aiReading?.model:
-      (uk?'Авторська сценарна інтерпретація без AI. Події — можливі символічні сценарії, а не гарантоване майбутнє.':'Original rule-based reading without AI. Scenarios are symbolic possibilities, not known future events.')}
+      (uk?'Авторська сценарна інтерпретація без AI. Прочитання ґрунтується на значеннях і взаємодії карт у розкладі.':'Original rule-based reading without AI. The reading follows the cards and their positions in the spread.')}
     </p>
     <a href="#human-readings" className="as-button as-button-secondary">{uk?'Замовити персональне відео у живої експертки':'Get a personal video from a human reader'}</a>
    </article>}
