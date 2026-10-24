@@ -35,3 +35,11 @@ test('Recovery cache is source-bound, versioned, never silently rewrites snapsho
  const changed={...row,input:{...input,time:'12:59'}};
  assert.notEqual(sourceFingerprint(changed),saved.sourceHash);
 });
+
+test('Changed source sign cannot reuse a previously verified personal projection',()=>{
+ const good={...original,verification:{status:'verified_internal',version:'jyotish-integrity-v1',digest:'test'}};
+ const bad=structuredClone(original);
+ bad.d1[0].sign=bad.d1[0].sign===12?1:bad.d1[0].sign+1;
+ assert.equal(isCurrentVerifiedChart(good),true);
+ assert.equal(originalSignsAgree(bad,good),false);
+});

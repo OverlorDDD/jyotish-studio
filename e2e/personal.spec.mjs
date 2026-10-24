@@ -69,3 +69,45 @@ test('Personal: primary chart ownership, private calendar, local journal editing
   expect((await other.get('/api/v1/personal/practices').then(r=>r.json())).length).toBe(0);
  }finally{await other.dispose();}
 });
+
+test('Legacy saved chart is recovered without overwriting history, and divergent snapshots fail closed',async({page})=>{
+ test.setTimeout(120000);
+ if(!process.env.DATABASE_URL)test.skip();
+ const {PrismaClient}=await import('@prisma/client');
+ const prisma=new PrismaClient();
+ try{
+  const email='personal-legacy-'+unique()+'@example.invalid';
+  expect((await page.request.post('/api/v1/account/register',{data:{email,password:'Personal-strong-test-password-2026'}})).status()).toBe(201);
+  const response=await page.request.post('/api/v1/account/charts',{data:birth});
+  expect(response.status()).toBe(201);
+  const {id}=await response.json();
+  const source=await prisma.chart.findUniqueOrThrow({where:{id}});
+  const legacy=structuredClone(source.result);
+  delete legacy.verification;
+  await prisma.chart.update({where:{id},data:{result:legacy}});
+  expect((await page.request.put('/api/v1/personal/primary-chart',{data:{chartId:id}})).status()).toBe(200);
+  const overview=await (await page.request.get('/api/v1/personal/overview')).json();
+  expect(overview.selected.verified).toBe(true);
+  expect(overview.selected.recoveryStatus).toBe('recovered');
+  expect(overview.activeDasha?.lord).toBeTruthy();
+  expect(overview.transitStatus).toBe('available');
+  const calendar=await (await page.request.get('/api/v1/personal/calendar?days=7')).json();
+  expect(calendar.status).toBe('available');
+  expect(calendar.days).toHaveLength(7);
+  expect(await prisma.personalChartRecovery.findUnique({where:{chartId:id}})).toBeTruthy();
+  const original=await prisma.chart.findUniqueOrThrow({where:{id}});
+  expect(original.result).toEqual(legacy);
+  expect(original.savedReport).toEqual(source.savedReport);
+  // A mismatch in even one divisional sign invalidates cached projection.
+  legacy.d10[0].sign=legacy.d10[0].sign===12?1:legacy.d10[0].sign+1;
+  await prisma.chart.update({where:{id},data:{result:legacy}});
+  const mismatch=await (await page.request.get('/api/v1/personal/overview')).json();
+  expect(mismatch.selected.verified).toBe(false);
+  expect(mismatch.selected.recoveryStatus).toBe('needs_review');
+  expect(mismatch.transitStatus).toBe('general');
+  const general=await (await page.request.get('/api/v1/personal/calendar?days=7')).json();
+  expect(general.status).toBe('general');
+  expect(general.days).toHaveLength(7);
+  expect(general.days[0].moon.houseFromLagna).toBeNull();
+ }finally{await prisma.$disconnect();}
+});
