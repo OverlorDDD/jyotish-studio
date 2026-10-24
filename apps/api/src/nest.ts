@@ -53,11 +53,15 @@ export class JyotishController{
  @Get('v1/jyotish/runtime')
  runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,mode:process.env.AI_MODE||'free',
   referenceBenchmark:{
-   version:'jhora8-public-v1',source:'JHoraKit captured Jagannatha Hora 8.0 output',cases:1,
-   status:'one_recorded_reference_with_method_differences',
-   d1SignMatches:10,d1Total:10,d9SignMatches:8,d9Total:10,
-   d10SignMatches:7,d10Total:10,
-   notes:['True Chitrapaksha vs traditional Lahiri','True versus mean lunar nodes','D10 (5-8) versus (1-9) variant'],
+   // Versioned CI-pinned result, NOT a live JHora check of the current visitor.
+   // The CI release gate runs jqa3:certify-signs against all raw source hashes.
+   version:'jhora8-same-profile-v2',source:'20 original JHora 8.0 exports with captured INIs',cases:20,
+   status:'SIGN_PARITY_CERTIFIED',
+   d1SignMatches:200,d1Total:200,d9SignMatches:200,d9Total:200,
+   d10SignMatches:200,d10Total:200,
+   notes:['Same-method D1/D9/D10 sign parity is independently checked',
+    'Sub-arcsecond longitude and Vimshottari calendar dates remain separate quality gates',
+    'Legacy Gandhi reference uses different settings and is excluded from same-profile totals'],
    perUserJhoraVerified:false
   }};}
 
