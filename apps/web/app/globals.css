@@ -1111,3 +1111,10 @@
 .gp-planet-highlights span{font-size:13px;color:#e1e8f2}
 .gp-event-tag{display:inline-block;border-radius:6px;border:1px solid #c9ac754d;background:#d1ac6530;color:#f5d9a4;font-size:10px;font-style:normal;line-height:1.4;padding:4px}
 @media(max-width:460px){.gp-planet-highlights{grid-template-columns:1fr}.gp-planet-highlights>div{flex-direction:row;align-items:center;justify-content:space-between}}
+
+/* Personal release QA: the fixed-sign chart must contain all 4 grid rows.
+   Previously 4 × minmax(105px,1fr) could exceed the aspect-ratio box in a
+   402px-wide varga chart, clipping the last sign cells. Keep the full frame. */
+.as-shell .jy-south-chart{grid-template-rows:repeat(4,minmax(0,1fr));min-height:420px;aspect-ratio:auto}
+@media(max-width:800px){.as-shell .jy-south-chart{min-height:410px}}
+@media(max-width:490px){.as-shell .jy-south-chart{min-height:390px}}
