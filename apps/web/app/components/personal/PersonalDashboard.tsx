@@ -2,6 +2,7 @@
 import {useCallback,useEffect,useState} from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import styles from './PersonalDashboard.module.css';
 import {Activity,ArrowRight,BookOpen,CalendarDays,CheckCircle2,Compass,Feather,Heart,History,MoonStar,Orbit,RefreshCcw,Settings2,Sparkles,Sun,Wind} from 'lucide-react';
 import {readApiJson} from '../../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../../lib/brand';
@@ -37,7 +38,7 @@ const copy={
   tarot:'Моє Таро',tarotAction:'Зробити розклад',questions:'Приватні запитання тарологу',
   yoga:'Моя практика',practiceAction:'Відкрити дихальні практики',recent:'Остання практика',never:'Ще не було',
   journal:'Мій журнал',openJournal:'Відкрити приватні записи',closeJournal:'Сховати журнал',
-  horoscope:'Мій персональний гороскоп',later:'Майбутній модуль — після публічного запуску',news:'Мої новини',
+  horoscope:'Мій персональний гороскоп',later:'Незабаром у Galaxiora',news:'Мої новини',
   newsDescription:'Майбутня добірка перевірених матеріалів за обраними темами, з посиланнями на першоджерела. Особисті записи не використовуються для добору.',
   themes:'Цікаві мені теми',settings:'Налаштування Personal',tz:'Мій поточний часовий пояс (IANA)',
   favorite:'Улюблена дихальна практика',saveSettings:'Зберегти налаштування',
@@ -56,7 +57,7 @@ const copy={
   tarot:'My Tarot',tarotAction:'Draw cards',questions:'Private questions for a reader',
   yoga:'My practice',practiceAction:'Open breathing practices',recent:'Recent practice',never:'Not yet',
   journal:'My journal',openJournal:'Open private notes',closeJournal:'Hide journal',
-  horoscope:'My personal horoscope',later:'Future module — after public launch',news:'My news',
+  horoscope:'My personal horoscope',later:'Coming soon to Galaxiora',news:'My news',
   newsDescription:'A future source-linked collection of verified articles based on your chosen topics. Private journal notes never select news.',
   themes:'My interests',settings:'Personal settings',tz:'My current time zone (IANA)',
   favorite:'Favorite breathing practice',saveSettings:'Save preferences',
@@ -119,113 +120,112 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
  const sign=(value:number)=>SIGNS[locale][value-1]||'—';
  const lord=(name:string)=>PLANETS[name]?.[uk?0:1]||name;
  const highlight=overview?.transit,chosen=overview?.selected;
- return <section className="gp-layout" data-testid="personal-dashboard" aria-label="Galaxiora Personal">
-  <header className="gp-hero">
-   <div><span className="gp-eyebrow">GALAXIORA · PERSONAL</span><h1>{t.title}</h1><p>{t.intro}</p>
-    {overview&&<small className="gp-hero-date">{overview.today} · {overview.profile.currentTimeZone}</small>}</div>
-   <div className="gp-hero-ornament" aria-hidden="true"><Orbit size={100} strokeWidth={.55}/><MoonStar size={31}/></div>
+ return <section className={styles['gp-layout']} data-testid="personal-dashboard" aria-label="Galaxiora Personal">
+  <header className={styles['gp-hero']}>
+   <div><span className={styles['gp-eyebrow']}>GALAXIORA · PERSONAL</span><h1>{t.title}</h1><p>{t.intro}</p>
+    {overview&&<small className={styles['gp-hero-date']}>{overview.today} · {overview.profile.currentTimeZone}</small>}</div>
+   <div className={styles['gp-hero-ornament']} aria-hidden="true"><Orbit size={100} strokeWidth={.55}/><MoonStar size={31}/></div>
   </header>
-  {!loaded?<div className="gp-panel gp-loading" role="status">{uk?'Відкриваємо твій простір…':'Opening your space…'}</div>:null}
-  {signedOut?<div className="gp-panel" data-testid="personal-sign-in"><h2>{uk?'Ласкаво просимо':'Welcome'}</h2><p>{t.signedOut}</p></div>:null}
-  {error&&<div role="alert" className="gp-error">{error} <button type="button" onClick={()=>void refresh()}><RefreshCcw size={16}/>{t.retry}</button></div>}
-  {message&&<p role="status" className="gp-success"><CheckCircle2 size={18}/>{message}</p>}
+  {!loaded?<div className={[styles['gp-panel'],styles['gp-loading']].join(' ')} role="status">{uk?'Відкриваємо твій простір…':'Opening your space…'}</div>:null}
+  {signedOut?<div className={styles['gp-panel']} data-testid="personal-sign-in"><h2>{uk?'Ласкаво просимо':'Welcome'}</h2><p>{t.signedOut}</p></div>:null}
+  {error&&<div role="alert" className={styles['gp-error']}>{error} <button type="button" onClick={()=>void refresh()}><RefreshCcw size={16}/>{t.retry}</button></div>}
+  {message&&<p role="status" className={styles['gp-success']}><CheckCircle2 size={18}/>{message}</p>}
   {overview&&<>
-   <section className="gp-panel gp-primary" aria-label={t.choose}>
-    <div className="gp-panel-heading"><div><span className="gp-eyebrow">01 / NATAL</span><h2>{t.choose}</h2></div><Compass size={25}/></div>
-    {chosen?<p className="gp-chart-summary"><strong>{chosen.place||chosen.date||t.choose}</strong> · {uk?'Лагна':'Lagna'} {chosen.lagnaName}</p>:<p>{t.noChart}</p>}
-    <div className="gp-form-inline">
+   <div className={styles['gp-overview-grid']} data-testid="personal-overview-grid"><section className={[styles['gp-panel'],styles['gp-primary']].join(' ')} aria-label={t.choose}>
+    <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>01 / NATAL</span><h2>{t.choose}</h2></div><Compass size={25}/></div>
+    {chosen?<p className={styles['gp-chart-summary']}><strong>{chosen.place||chosen.date||t.choose}</strong> · {uk?'Лагна':'Lagna'} {chosen.lagnaName}</p>:<p>{t.noChart}</p>}
+    <div className={styles['gp-form-inline']}>
      <label htmlFor="gp-primary-select">{t.start}
       <select id="gp-primary-select" data-testid="primary-chart-select" value={chartChoice} onChange={e=>setChartChoice(e.target.value)}>
        <option value="">{t.select}</option>
        {overview.charts.map(c=><option key={c.id} value={c.id}>{c.place||c.date||c.id.slice(0,8)} · {c.date}</option>)}
       </select></label>
-     <button className="gp-button" type="button" disabled={busy||chartChoice===overview.profile.primaryChartId} onClick={()=>void saveChart()}>{t.save}</button>
+     <button className={styles['gp-button']} type="button" disabled={busy||chartChoice===overview.profile.primaryChartId} onClick={()=>void saveChart()}>{t.save}</button>
     </div>
-    <Link href={portalPath(locale,'astrology/jyotish')} className="gp-text-link">{t.newChart} <ArrowRight size={15}/></Link>
-    {overview.staleSelectedChart&&<p className="gp-notice">{uk?'Обрану карту видалено. Вибери іншу.':'Your selected chart was removed. Choose another.'}</p>}
+    <Link href={portalPath(locale,'astrology/jyotish')} className={styles['gp-text-link']}>{t.newChart} <ArrowRight size={15}/></Link>
+    {overview.staleSelectedChart&&<p className={styles['gp-notice']}>{uk?'Обрану карту видалено. Вибери іншу.':'Your selected chart was removed. Choose another.'}</p>}
    </section>
-   <div className="gp-grid">
-    <section className="gp-panel" data-testid="current-dasha">
-     <div className="gp-panel-heading"><div><span className="gp-eyebrow">VIMSHOTTARI</span><h2>{t.current}</h2></div><Sun size={26}/></div>
-     {overview.activeDasha?<><strong className="gp-feature-name">{lord(overview.activeDasha.lord)}</strong>
+    <section className={styles['gp-panel']} data-testid="current-dasha">
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>VIMSHOTTARI</span><h2>{t.current}</h2></div><Sun size={26}/></div>
+     {overview.activeDasha?<><strong className={styles['gp-feature-name']}>{lord(overview.activeDasha.lord)}</strong>
       <p>{date(overview.activeDasha.start)} — {date(overview.activeDasha.end)}</p>
-      {overview.activeDasha.antardasha&&<p className="gp-pill">{lord(overview.activeDasha.antardasha.lord)} · {date(overview.activeDasha.antardasha.start)} — {date(overview.activeDasha.antardasha.end)}</p>}
+      {overview.activeDasha.antardasha&&<p className={styles['gp-pill']}>{lord(overview.activeDasha.antardasha.lord)} · {date(overview.activeDasha.antardasha.start)} — {date(overview.activeDasha.antardasha.end)}</p>}
       <small>{t.asof} · 365.2425 {uk?'днів/рік':'days/year'}</small>
      </>:<p>{t.noDasha}</p>}
-     <Link href={portalPath(locale,'astrology/jyotish')+'#timeline'} className="gp-text-link">{uk?'Детальніше про даші':'Explore Dashas'} <ArrowRight size={14}/></Link>
+     <Link href={portalPath(locale,'astrology/jyotish')+'#timeline'} className={styles['gp-text-link']}>{uk?'Детальніше про даші':'Explore Dashas'} <ArrowRight size={14}/></Link>
     </section>
-    <section className="gp-panel" data-testid="moon-transit">
-     <div className="gp-panel-heading"><div><span className="gp-eyebrow">GOCHARA</span><h2>{t.moon}</h2></div><MoonStar size={26}/></div>
-     {highlight?<><strong className="gp-feature-name">{sign(highlight.moon.sign)}</strong>
+    <section className={styles['gp-panel']} data-testid="moon-transit">
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>GOCHARA</span><h2>{t.moon}</h2></div><MoonStar size={26}/></div>
+     {highlight?<><strong className={styles['gp-feature-name']}>{sign(highlight.moon.sign)}</strong>
       <p>{highlight.moon.nakshatra} · {uk?'пада':'pada'} {highlight.moon.pada}</p>
-      <p className="gp-pill">{t.house}: {highlight.moon.houseFromLagna}</p>
+      <p className={styles['gp-pill']}>{t.house}: {highlight.moon.houseFromLagna}</p>
       <small>{t.method}</small>
-      <div className="gp-planet-highlights">{highlight.planets.filter(p=>['Sun','Jupiter','Saturn'].includes(p.name)).map(p=>
+      <div className={styles['gp-planet-highlights']}>{highlight.planets.filter(p=>['Sun','Jupiter','Saturn'].includes(p.name)).map(p=>
        <div key={p.name}><strong>{lord(p.name)}</strong><span>{sign(p.sign)}</span><small>{t.house}: {p.houseFromLagna}</small></div>)}</div>
      </>:<p>{overview.transitStatus==='ephemeris_unavailable'?t.ephUnavailable:t.noTransit}</p>}
     </section>
    </div>
-   <section className="gp-panel" data-testid="personal-calendar">
-    <div className="gp-panel-heading"><div><span className="gp-eyebrow">LUNAR PATH</span><h2>{t.calendar}</h2></div><CalendarDays size={26}/></div>
-    <div className="gp-tabs" role="group" aria-label={t.calendar}>
+   <section className={styles['gp-panel']} data-testid="personal-calendar">
+    <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>LUNAR PATH</span><h2>{t.calendar}</h2></div><CalendarDays size={26}/></div>
+    <div className={styles['gp-tabs']} role="group" aria-label={t.calendar}>
      {([7,30] as const).map(n=><button type="button" key={n} aria-pressed={days===n} onClick={()=>setDays(n)}>{n===7?t.seven:t.thirty}</button>)}
     </div>
     {calendarBusy?<p role="status">{t.calendarLoading}</p>:!calendar.length?<p>{t.noDates}</p>:
-     <div className="gp-calendar-grid">{calendar.map(day=><div className="gp-calendar-day" key={day.date} title={t.method}>
+     <div className={styles['gp-calendar-grid']}>{calendar.map(day=><div className={styles['gp-calendar-day']} key={day.date} title={t.method}>
       <small>{day.date.slice(5)}</small><MoonStar size={18}/><strong>{sign(day.moon.sign)}</strong>
       <span>{day.moon.nakshatra}</span>
-      {events.filter(e=>e.date===day.date).map((e,i)=><em className="gp-event-tag" key={e.type+i}>{e.type==='MAHADASHA_START'?(uk?'Махадаша':'Major period'):(uk?'Антардаша':'Subperiod')} · {lord(e.lord)}</em>)}
+      {events.filter(e=>e.date===day.date).map((e,i)=><em className={styles['gp-event-tag']} key={e.type+i}>{e.type==='MAHADASHA_START'?(uk?'Махадаша':'Major period'):(uk?'Антардаша':'Subperiod')} · {lord(e.lord)}</em>)}
      </div>)}</div>}
-    <p className="gp-microcopy">{t.method}</p>
+    <p className={styles['gp-microcopy']}>{t.method}</p>
    </section>
-   <div className="gp-grid">
-    <section className="gp-panel">
-     <div className="gp-panel-heading"><div><span className="gp-eyebrow">TAROT</span><h2>{t.tarot}</h2></div><Sparkles size={26}/></div>
-     {overview.recentTarot.length?<ul className="gp-reading-list">{overview.recentTarot.map(x=><li key={x.id}>
-       <strong>{x.spread}</strong> · {date(x.createdAt)} {x.question&&<small>{x.question}</small>}</li>)}</ul>:<p>{t.noTarot}</p>}
-     <Link href={portalPath(locale,'tarot')} className="gp-text-link">{t.tarotAction} <ArrowRight size={14}/></Link>
-     <p className="gp-microcopy">{t.questions}: {overview.privateQuestions} · {uk?'Щоденний ліміт не витрачається автоматично.':'Daily limits are never used automatically.'}</p>
+   <div className={styles['gp-grid']}>
+    <section className={styles['gp-panel']}>
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>TAROT</span><h2>{t.tarot}</h2></div><Sparkles size={26}/></div>
+     {overview.recentTarot.length?<ul className={styles['gp-reading-list']}>{overview.recentTarot.map(x=><li key={x.id}>
+       <span className={styles['gp-reading-meta']}>{x.spread} · {date(x.createdAt)}</span>{x.question&&<strong>{x.question}</strong>}</li>)}</ul>:<p>{t.noTarot}</p>}
+     <Link href={portalPath(locale,'tarot')} className={styles['gp-text-link']}>{t.tarotAction} <ArrowRight size={14}/></Link>
+     <p className={styles['gp-microcopy']}>{t.questions}: {overview.privateQuestions} · {uk?'Щоденний ліміт не витрачається автоматично.':'Daily limits are never used automatically.'}</p>
     </section>
-    <section className="gp-panel">
-     <div className="gp-panel-heading"><div><span className="gp-eyebrow">YOGA</span><h2>{t.yoga}</h2></div><Wind size={26}/></div>
-     <p>{t.favorite}: {PRACTICES.find(p=>p[0]===overview.profile.favoritePractice)?.[uk?1:2]}</p>
-     <p className="gp-microcopy">{t.recent}: {overview.recentPractices.length?date(overview.recentPractices[0].completedAt):t.never}</p>
-     {overview.recentPractices.length>0&&<ul className="gp-practice-list">{overview.recentPractices.map(s=>
+    <section className={styles['gp-panel']}>
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>YOGA</span><h2>{t.yoga}</h2></div><Wind size={26}/></div>
+     <p className={styles['gp-practice-feature']}>{PRACTICES.find(p=>p[0]===overview.profile.favoritePractice)?.[uk?1:2]||t.never}</p>
+     <p className={styles['gp-microcopy']}>{t.recent}: {overview.recentPractices.length?date(overview.recentPractices[0].completedAt):t.never}</p>
+     {overview.recentPractices.length>0&&<ul className={styles['gp-practice-list']}>{overview.recentPractices.map(s=>
       <li key={s.id}><span>{s.practiceId} · {Math.round(s.durationSeconds/60)} {uk?'хв':'min'} · {date(s.completedAt)}</span>
        <button type="button" disabled={busy} aria-label={uk?'Видалити запис практики':'Delete practice record'} onClick={()=>void removePractice(s.id)}>{uk?'Видалити':'Delete'}</button></li>)}</ul>}
-     <Link href={portalPath(locale,'yoga/gentle-breath')} className="gp-text-link">{t.practiceAction} <ArrowRight size={14}/></Link>
+     <Link href={portalPath(locale,'yoga/gentle-breath')} className={styles['gp-text-link']}>{t.practiceAction} <ArrowRight size={14}/></Link>
     </section>
    </div>
-   <section className="gp-panel gp-journal-preview">
-    <div className="gp-panel-heading"><div><span className="gp-eyebrow">REFLECTION</span><h2>{t.journal}</h2></div><BookOpen size={26}/></div>
+   <section className={[styles['gp-panel'],styles['gp-journal-preview']].join(' ')}>
+    <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>REFLECTION</span><h2>{t.journal}</h2></div><BookOpen size={26}/></div>
     <p>{overview.recentJournal.length?overview.recentJournal.map(x=>x.title).join(' · '):(uk?'Перший запис може початися сьогодні.':'Your first entry can begin today.')}</p>
-    <button type="button" className="gp-button" onClick={()=>setJournalOpen(v=>!v)} aria-expanded={journalOpen}>
+    <button type="button" className={styles['gp-button']} onClick={()=>setJournalOpen(v=>!v)} aria-expanded={journalOpen}>
      {journalOpen?t.closeJournal:t.openJournal}</button>
     {journalOpen&&<PersonalJournal locale={locale}/>}
    </section>
-   <div className="gp-grid gp-future-grid">
-    <section className="gp-panel gp-future" aria-label={t.horoscope}>
-     <div className="gp-panel-heading"><div><span className="gp-eyebrow">GALAXIHOROSCOPE</span><h2>{t.horoscope}</h2></div><Orbit size={25}/></div>
-     <p>{t.later}</p><span className="gp-future-status">{uk?'Місце зарезервовано':'Reserved for a future module'}</span>
+   <div className={[styles['gp-grid'],styles['gp-future-grid']].join(' ')}>
+    <section className={[styles['gp-panel'],styles['gp-future']].join(' ')} aria-label={t.horoscope}>
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>GALAXIHOROSCOPE</span><h2>{t.horoscope}</h2></div><Orbit size={25}/></div>
+     <p>{t.later}</p><span className={styles['gp-future-status']}>{uk?'Місце зарезервовано':'Reserved for a future module'}</span>
     </section>
-    <section className="gp-panel gp-future">
-     <div className="gp-panel-heading"><div><span className="gp-eyebrow">PERSONAL NEWS</span><h2>{t.news}</h2></div><Feather size={25}/></div>
-     <p>{t.newsDescription}</p><p className="gp-microcopy">{t.later}</p>
+    <section className={[styles['gp-panel'],styles['gp-future']].join(' ')}>
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>PERSONAL NEWS</span><h2>{t.news}</h2></div><Feather size={25}/></div>
+     <p>{t.newsDescription}</p><p className={styles['gp-microcopy']}>{t.later}</p>
     </section>
    </div>
-   <section className="gp-panel gp-settings">
-    <div className="gp-panel-heading"><div><span className="gp-eyebrow">PREFERENCES</span><h2>{t.settings}</h2></div><Settings2 size={26}/></div>
-    <div className="gp-settings-fields">
+   <details className={[styles['gp-panel'],styles['gp-settings']].join(' ')} data-testid="personal-settings">
+    <summary className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>PREFERENCES</span><h2>{t.settings}</h2></div><Settings2 size={26}/></summary>
+    <div className={styles['gp-settings-fields']}>
      <label htmlFor="gp-zone">{t.tz}<input id="gp-zone" value={zone} maxLength={64} onChange={e=>setZone(e.target.value)} placeholder="Europe/Kyiv"/></label>
      <label htmlFor="gp-practice">{t.favorite}<select id="gp-practice" value={practice} onChange={e=>setPractice(e.target.value)}>
       {PRACTICES.map(p=><option value={p[0]} key={p[0]}>{p[uk?1:2]}</option>)}</select></label>
     </div>
-    <fieldset className="gp-interests"><legend>{t.themes}</legend>
+    <fieldset className={styles['gp-interests']}><legend>{t.themes}</legend>
      {NEWS.map(([id,ua,en])=><label key={id}><input type="checkbox" checked={topics.includes(id)} onChange={e=>setTopics(v=>e.target.checked?[...v,id]:v.filter(x=>x!==id))}/>{uk?ua:en}</label>)}
     </fieldset>
-    <div className="gp-settings-actions"><button type="button" disabled={busy} className="gp-button" onClick={()=>void saveSettings()}>{t.saveSettings}</button>
-     <Link href={portalPath(locale,'account')} className="gp-text-link">{t.account} <ArrowRight size={14}/></Link></div>
-   </section>
+    <div className={styles['gp-settings-actions']}><button type="button" disabled={busy} className={styles['gp-button']} onClick={()=>void saveSettings()}>{t.saveSettings}</button>
+     <Link href={portalPath(locale,'account')} className={styles['gp-text-link']}>{t.account} <ArrowRight size={14}/></Link></div>
+   </details>
   </>}
  </section>;
 }
