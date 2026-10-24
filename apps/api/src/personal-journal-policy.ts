@@ -2,8 +2,10 @@
 export const PRACTICE_SLUGS=['gentle-breath','desk-mobility','five-senses','evening-unwind'] as const;
 export const JOURNAL_KINDS=['TAROT','CHART','PRACTICE'] as const;
 export type JournalKind=(typeof JOURNAL_KINDS)[number];
-type Counter={count(args:{where:Record<string,string>}):Promise<number>};
-export type JournalReferenceLookup={tarotReading:Counter;chart:Counter};
+export type JournalReferenceLookup={
+ tarotReading:{count(args:{where:{id:string;userId:string}}):Promise<number>};
+ chart:{count(args:{where:{id:string;ownerId:string}}):Promise<number>};
+};
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function isPublishedPractice(slug:string):boolean{
  return (PRACTICE_SLUGS as readonly string[]).includes(slug);
