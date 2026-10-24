@@ -7,10 +7,8 @@ import {IsIn,IsString,Length,MaxLength} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
+import {PRACTICE_SLUGS,JOURNAL_KINDS,normalizedJournalText,isPublishedPractice,ownsJournalReference,type JournalKind} from './personal-journal-policy.ts';
 
-export const PRACTICE_SLUGS=['gentle-breath','desk-mobility','five-senses','evening-unwind'] as const;
-export type JournalKind='TAROT'|'CHART'|'PRACTICE';
-export const JOURNAL_KINDS=['TAROT','CHART','PRACTICE'] as const;
 const MAX_ENTRIES=60;
 const MAX_COMPLETIONS=60;
 
@@ -22,11 +20,6 @@ export class JournalNoteDto {
 export class PracticeCompleteDto {
  @ApiProperty({enum:PRACTICE_SLUGS}) @IsString() @IsIn(PRACTICE_SLUGS) practiceSlug!:string;
 }
-export function journalText(value:string){
- const result=value.trim();
- if(!result||result.length>2000)throw new BadRequestException('A journal note must contain 1–2000 characters.');
- return result;
-}
 function signedIn(req:IncomingMessage){
  const id=cookieUser(req);
  if(!id)throw new UnauthorizedException('Sign in to use your private journal.');
@@ -35,15 +28,6 @@ function signedIn(req:IncomingMessage){
 function ensureOrigin(req:IncomingMessage){
  if(!sameOrigin(req))throw new BadRequestException('Cross-origin private journal request rejected.');
 }
-/** An arbitrary UUID from another user must never be used to create cross-account references. */
-export async function canLinkJournal(prisma:PrismaService,userId:string,kind:JournalKind,ref:string){
- if(kind==='PRACTICE')return (PRACTICE_SLUGS as readonly string[]).includes(ref);
- if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref))return false;
- if(kind==='TAROT')return (await prisma.tarotReading.count({where:{id:ref,userId}}))===1;
- if(kind==='CHART')return (await prisma.chart.count({where:{id:ref,ownerId:userId}}))===1;
- return false;
-}
-
 @ApiTags('Personal Journal')
 @Controller('api/v1/personal')
 export class PersonalJournalController{
@@ -61,8 +45,9 @@ export class PersonalJournalController{
   ensureOrigin(req);const ownerId=signedIn(req);
   if(!JOURNAL_KINDS.includes(body.kind)||typeof body.referenceId!=='string'||body.referenceId.length>120)
    throw new BadRequestException('Unknown journal reference.');
-  const note=journalText(body.note);
-  if(!await canLinkJournal(this.prisma,ownerId,body.kind,body.referenceId))
+  const note=normalizedJournalText(body.note);
+  if(!note)throw new BadRequestException('A journal note must contain 1–2000 characters.');
+  if(!await ownsJournalReference(this.prisma,ownerId,body.kind,body.referenceId))
    throw new BadRequestException('Unknown or inaccessible journal reference.');
   const existing=await this.prisma.personalJournalEntry.count({where:{ownerId}});
   const match=await this.prisma.personalJournalEntry.findUnique({
@@ -93,7 +78,7 @@ export class PersonalJournalController{
  @Post('practices')
  async complete(@Body()body:PracticeCompleteDto,@Req()req:IncomingMessage){
   ensureOrigin(req);const userId=signedIn(req);
-  if(!(PRACTICE_SLUGS as readonly string[]).includes(body.practiceSlug))
+  if(!isPublishedPractice(body.practiceSlug))
    throw new BadRequestException('Unknown practice.');
   const latest=await this.prisma.practiceCompletion.findFirst({
    where:{userId,practiceSlug:body.practiceSlug},orderBy:{completedAt:'desc'},select:{completedAt:true}
