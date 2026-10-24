@@ -26,7 +26,11 @@ test('profile missing or inferred must always be UNVERIFIED',()=>{
  else
   assert.ok(!report.blockingConditions.includes('INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS'),
    'Real source corpus sufficiency is no longer a blocker');
- assert.ok(report.blockingConditions.includes('INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES'));
+ assert.equal(report.explicitlyMatchedCharts,20,'twenty original INIs attest compatible astronomy');
+ assert.equal(report.comparableLagnaSigns,12);
+ assert.equal(report.signParityCertified,false,'cannot certify without running independent astronomy');
+ assert.ok(!report.blockingConditions.includes('INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES'),
+  'Missing dasha-year setting must not conceal an attested astronomy profile');
  assert.equal(report.results[0].profileStatus,'UNVERIFIED');
  assert.equal(report.results[0].evidenceStatus,'ORIGINAL_INI_MISSING');
 });
@@ -47,12 +51,23 @@ test('repeated or suspicious birth records cannot inflate reference counts',()=>
 
 test('astronomical audit cannot certify unrecorded nakshatra, pada and house lords',()=>{
  const report=auditCorpus({verifyAstronomy:true});
- assert.equal(report.status,'NOT_CERTIFIED');
+ assert.equal(report.status,'SIGN_PARITY_CERTIFIED',
+  '20 original JHora charts must pass every attested D1/D9/D10 sign and fact check');
+ assert.equal(report.signParityCertified,true);
+ assert.equal(report.precisionCertified,false);
+ assert.equal(report.explicitlyMatchedCharts,20);
+ for(const item of report.results.slice(1)){
+  assert.equal(item.profileStatus,'EXPLICIT_MATCH',item.id);
+  for(const field of ['D1','D9','D10','nakshatra','pada','retrograde','houseLords'])
+   assert.equal(item.result[field].status,'PASS',item.id+' '+field);
+ }
  const metrics=report.results[0].result;
  for(const field of ['nakshatra','pada','retrograde','houseLords']){
   assert.equal(metrics[field].status,'UNVERIFIED',field+' must not be silently promoted');
  }
- assert.ok(report.blockingConditions.includes('UNVERIFIED_OR_DIFFERENT_VALUES'));
+ assert.ok(report.blockingConditions.includes('VIMSHOTTARI_YEAR_MODE_OR_DATE_MISMATCH'));
+ assert.ok(report.blockingConditions.includes('SUB_ARCSECOND_LONGITUDE_NOT_MATCHED'));
+ assert.ok(!report.blockingConditions.includes('UNMATCHED_ASTROLOGICAL_FACTS'));
 });
 
 test('Windows CRLF checkout preserves pinned Git blob identity without allowing any edited content',()=>{
@@ -72,4 +87,12 @@ test('JHora genuine midnight clock 0:20:00 equals ISO 00:20:00, but different ho
  assert.notEqual(normalizeJHoraClock('1:05:00'),normalizeJHoraClock('01:06:00'));
  assert.throws(()=>normalizeJHoraClock('25:20:00'),/Invalid JHora wall-clock time/);
  assert.throws(()=>normalizeJHoraClock('1:20'),/Invalid JHora clock representation/);
+});
+
+test('date precision and D1/D9/D10 sign accuracy have independent certification statuses',()=>{
+ const a=auditCorpus({verifyAstronomy:false});
+ assert.equal(a.signParityCertified,false,'no astronomy run may produce a certificate');
+ assert.ok(!a.blockingConditions.includes('INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES'));
+ assert.equal(a.explicitlyMatchedCharts,20);
+ assert.equal(a.results[0].profileStatus,'UNVERIFIED','the Gandhi missing-INI reference stays diagnostic');
 });
