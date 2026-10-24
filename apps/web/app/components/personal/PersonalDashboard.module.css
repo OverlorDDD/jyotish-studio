@@ -84,3 +84,28 @@
 @media(max-width:720px){.gp-layout{padding:16px 15px 48px;gap:15px}.gp-hero{min-height:205px;border-radius:18px;padding:27px 21px}.gp-hero-ornament{flex-basis:72px;height:85px;opacity:.65}.gp-hero-ornament svg:first-child{width:74px}.gp-hero-ornament svg+svg{width:23px}.gp-overview-grid,.gp-grid,.gp-settings-fields{grid-template-columns:minmax(0,1fr)}.gp-overview-grid>.gp-primary{grid-column:auto}.gp-panel{padding:20px;border-radius:16px}.gp-calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gp-calendar-day{min-height:104px}.gp-planet-highlights{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:400px){.gp-hero-ornament{display:none}.gp-planet-highlights{grid-template-columns:1fr}.gp-planet-highlights>div{flex-direction:row;align-items:center;justify-content:space-between}.gp-settings-actions>.gp-button{width:100%}}
 @media(prefers-reduced-motion:reduce){.gp-layout *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Astrological Path — restrained Galaxiora navy/gold visual hierarchy. */
+.gp-path{background:radial-gradient(ellipse at 89% 10%,#94705222,transparent 46%),linear-gradient(135deg,#21324c,#14233a 75%);border-color:#9d825f83;gap:18px}
+.gp-path>.gp-panel-heading p{max-width:680px;margin-top:10px;color:#b7c8de}
+.gp-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.gp-path-article{display:flex;flex-direction:column;gap:11px;padding:clamp(20px,2.3vw,30px);border:1px solid #566985;border-radius:16px;background:linear-gradient(151deg,#182b45,#0e1d31)}
+.gp-path-article h3{font:500 clamp(21px,2vw,29px)/1.25 Georgia,'Playfair Display',serif;color:#f7dcad;margin:0;overflow-wrap:anywhere}
+.gp-path-article>p{margin:0;line-height:1.8;font-size:14px;color:#e4e8ef}
+.gp-path-article>small{margin-top:auto;color:#aabed0}
+.gp-advice{margin-top:auto;padding:15px 17px;border-left:3px solid #d8b178;background:linear-gradient(90deg,#bc914824,transparent);border-radius:0 12px 12px 0}
+.gp-advice span{display:block;color:#f3d29c;font-size:11px;letter-spacing:.11em;font-weight:800;text-transform:uppercase}
+.gp-advice p{margin:6px 0 0;color:#f0ebdf;font-size:14px;line-height:1.65}
+.gp-week-section{margin-top:19px;border-top:1px solid #566781;padding-top:23px;display:flex;flex-direction:column;gap:16px}
+.gp-week-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px 18px}
+.gp-week-heading h3{font:500 clamp(20px,2vw,27px)/1.3 Georgia,'Playfair Display',serif;margin:0;color:#f2d6a8}
+.gp-week-heading small{max-width:370px}
+.gp-week-list{display:grid;gap:10px;padding:0;list-style:none;margin:0}
+.gp-week-list li{display:grid;grid-template-columns:67px minmax(0,1fr);gap:16px;padding:16px;border-radius:14px;border:1px solid #445a74;background:#0d1d32}
+.gp-week-list time{align-self:start;justify-self:start;border-radius:9px;border:1px solid #a68d6588;background:#b9966022;color:#f1d8aa;padding:8px 10px;font-weight:750;font-size:12px}
+.gp-week-list strong{display:block;font-size:15px;color:#f2dfc4;margin-bottom:5px}
+.gp-week-list p{margin:0 0 9px;font-size:13px;color:#d4dce8;line-height:1.62}
+.gp-week-list small{color:#bdcad9;font-size:12px}
+.gp-week-list b{color:#ebc894}
+@media(max-width:900px){.gp-path-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.gp-path-article{padding:19px}.gp-week-list li{grid-template-columns:1fr;gap:8px}.gp-week-list time{font-size:11px}}
