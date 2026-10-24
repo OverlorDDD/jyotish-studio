@@ -79,8 +79,8 @@ modules:
       admin: 10
     privacy: "authenticated draw, user-private history, explicit AI consent"
   experts:
-    status: "private pre-checkout drafts implemented; payments/expert video delivery NOT live"
-    http: "apps/api/src/reading-orders.ts"
+    status: "permanent owner-only Tarot questions plus legacy 7-day drafts; payments/expert video delivery NOT live"
+    http: "apps/api/src/reading-orders.ts (owner-only /questions CRUD, legacy temporary /drafts)"
     web: "apps/web/app/components/ExpertOffer.tsx; apps/web/app/components/ReadingIntake.tsx"
     warning: "ReadingOrder DB skeleton is not a working commerce flow"
   yoga:
@@ -123,7 +123,7 @@ modules:
 persistence:
   schema: "apps/api/prisma/schema.prisma"
   migrations: "apps/api/prisma/migrations/"
-  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, RoleChange, TarotReading, EditorialEntry, EditorialVersion]
+  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, TarotQuestion, PersonalJournalEntry, RoleChange, TarotReading, EditorialEntry, EditorialVersion]
 routes:
   web:
     home: "/uk | /en"
