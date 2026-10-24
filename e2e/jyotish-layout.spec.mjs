@@ -5,8 +5,9 @@ const makePlanet=(name,house,sign,deg=12.3)=>({
  nakshatra:'Ashwini',pada:1,retrograde:name==='Saturn'
 });
 const LAGNA=makePlanet('Ascendant',1,4,17.2);
+const FIXTURE_VERIFICATION={version:'jyotish-integrity-v1',status:'verified_internal',digest:'a'.repeat(64),checks:['d1_longitudes_houses'],externalReferenceChecked:false};
 const CHART={
- id:'geometry-e2e',input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:47.9105,longitude:33.3918},
+ verification:FIXTURE_VERIFICATION,id:'geometry-e2e',input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:47.9105,longitude:33.3918},
  utc:'1996-03-27T10:58:00.000Z',ayanamsa:23.8,ephemeris:'Swiss Ephemeris',
  ascendant:LAGNA,lagnaD9:makePlanet('Ascendant',1,9,5.5),lagnaD10:makePlanet('Ascendant',1,5,6.1),
  d1:[makePlanet('Sun',9,12,13.2),makePlanet('Moon',12,3,17.3),makePlanet('Mars',9,12,8.2),
@@ -18,7 +19,7 @@ const CHART={
 };
 const CHAPTERS=['portrait','configuration','tensions','relationships','career','resources','timing','conclusion'];
 function fixture(lang){
- return {language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
+ return {readerVersion:'6.0.0',verification:FIXTURE_VERIFICATION,language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
   editorial:{
    highlights:[
     lang==='uk'?'Головний акцент: зв’язок між навчанням, волею та відповідальністю':'Central theme: learning and responsibility',
@@ -30,16 +31,16 @@ function fixture(lang){
   };
 }
 for(const lang of ['uk','en']){
- test('Jyotish '+lang+' keeps all chart labels inside the SVG and presents one reading document',async({page})=>{
+ test('Jyotish '+lang+' keeps all twelve sign cells inside their frame and presents one reading document',async({page})=>{
   await page.route('**/api/v1/charts/calculate',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(CHART)}));
   await page.route('**/api/v1/reports',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(fixture(lang))}));
   await page.goto('/'+lang+'/astrology/jyotish');
   await page.getByRole('button',{name:lang==='uk'?'Розрахувати карту':'Calculate birth chart'}).click();
-  const mainChart=page.locator('.jy-primary-chart .jy-north-chart');
+  const mainChart=page.locator('.jy-primary-chart .jy-south-chart');
   await expect(mainChart).toBeVisible();
-  await expect(mainChart.locator('.jy-chart-house')).toHaveCount(12);
+  await expect(mainChart.locator('.jy-south-sign')).toHaveCount(12);
   for(const view of ['d1','d9','d10']){
    await page.getByRole('button',{name:view.toUpperCase(),exact:true}).click();
    const varga=page.locator('.jy-varga-chart .jy-north-chart');
@@ -54,7 +55,7 @@ for(const lang of ['uk','en']){
    });
    expect(inside,'House numbers, glyphs and degrees must remain within '+view+' frame').toBe(true);
   }
-  await page.getByRole('button',{name:lang==='uk'?'Створити AI-трактування':'Generate AI reading'}).click();
+  await page.getByRole('button',{name:lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}).click();
   const document=page.locator('.reading-editorial');
   await expect(document).toBeVisible();
   await expect(document.locator('.reading-principle')).toHaveCount(3);

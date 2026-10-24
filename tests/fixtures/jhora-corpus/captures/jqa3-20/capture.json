@@ -1,0 +1,18 @@
+{
+  "id": "jqa3-20",
+  "utc": "2018-02-20T15:45:00Z",
+  "birthLocal": "2018-02-20T23:45:00",
+  "utcOffsetSeconds": 28800,
+  "latitude": -31.95138888888889,
+  "longitude": 115.85694444444444,
+  "requestedLatitude": -31.9523,
+  "requestedLongitude": 115.8613,
+  "jhoraExeSha256": "3ddbe5fb0458ad1f0ad91b002c7efb8bba9f08891d3f46190aba97d570b17908",
+  "jhoraVersion": "8.0.0.0",
+  "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+  "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+  "jhoraConfigurationCapturedBeforeRun": true,
+  "jhoraConfigurationRestoredAfterRun": true,
+  "dashaYearDays": null,
+  "dashaYearEvidence": "NOT_YET_ATTESTED"
+}

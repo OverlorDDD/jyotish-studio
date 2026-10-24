@@ -8,6 +8,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  windows-fixture-integrity:
+    name: Windows JHora pinned fixture and CRLF regression
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent Swiss reference fallback
+        run: python -m pip install pyswisseph
+      - name: Install dependency graph
+        run: npm install --no-audit --no-fund
+      - name: Verify immutable JHora corpus even on Windows
+        run: npm run test:jqa3:corpus
+      - name: Verify JQA-2 cross-platform Python diagnostics
+        run: npm run test:jqa2:profiles
   test:
     runs-on: ubuntu-latest
     steps:
@@ -28,6 +47,10 @@ jobs:
         run: python -m pip install pyswisseph
       - name: Unit tests
         run: npm run test:all
+      - name: Independently certify JHora D1 D9 D10 sign parity (20 attested profiles)
+        run: npm run jqa3:certify-signs
+      - name: Diagnose historical JHora Vimshottari calendar (informational; never certifies dates)
+        run: npm run jqa3:dasha-diagnostic
       - name: Full NestJS and Next.js production build
         run: npm run build
       - name: Swagger metadata and controller routes
@@ -36,6 +59,7 @@ jobs:
         run: |
           node --check tools/public-launch.mjs
           node --check tools/next-launch.mjs
+          node --check tools/jyotish-direct-live-check.mjs
 
       - name: Browser JavaScript syntax
         run: node --check apps/web/public/demo.js

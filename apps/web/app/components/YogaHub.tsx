@@ -4,17 +4,17 @@ import PortalShell from './PortalShell';
 import {YOGA_PRACTICES,say,type ContentLocale} from '../../lib/yoga-content';
 import {BREATHING_PATTERNS,sessionMs} from '../../lib/breathing-patterns';
 import EditorialPublishedCards from './EditorialPublishedCards';
+import YogaBreathSession from './YogaBreathSession';
 const Icon={wind:Wind,sun:Sun,leaf:Leaf,moon:Moon};
 export default function YogaHub({locale}:{locale:ContentLocale}){
  const uk=locale==='uk';
  return <PortalShell locale={locale} active="yoga"><div className="as-wellness">
-  <section className="as-wellness-hero yoga-hero">
-   <span className="as-overline">{uk?'GALAXIORA YOGA · ПРАКТИКИ':'GALAXIORA YOGA · PRACTICE LIBRARY'}</span>
-   <h1>{uk?'Повернись у свій ритм.':'Find your own rhythm.'}</h1>
-   <p>{uk?'Дихання по квадрату з анімованим провідником, два ритми без затримок та практики руху й уважності. Обирай, що підходить саме сьогодні: без оцінок, змагання і поспіху.':'Animated box breathing, two gentle hold-free patterns and accessible movement and mindfulness sessions. Choose what feels useful today, at your own pace.'}</p>
-   <div className="as-wellness-tags"><span>{uk?'4 практики':'4 sessions'}</span><span>{uk?'4–7 хвилин':'4–7 minutes'}</span><span>{uk?'Без реєстрації':'No account needed'}</span></div>
-   <a className="as-button as-button-primary" href="#practice-library">{uk?'Обрати практику':'Explore sessions'} <ArrowUpRight size={17}/></a>
-  </section>
+  <header className="as-yoga-immediate-heading">
+   <span className="as-overline">{uk?'GalaxiYoga · ДИХАЛЬНА ПРАКТИКА':'GalaxiYoga · BREATHING PRACTICE'}</span>
+   <h1>{uk?'Дихай у ритмі Всесвіту':'Breathe in harmony'}</h1>
+   <p>{uk?'Квадрат дихання вже перед тобою. Обери ритм і розпочни практику. Інші заняття — нижче.':'Your breathing square is ready. Choose a rhythm and begin. More practices are below.'}</p>
+  </header>
+  <YogaBreathSession locale={locale}/>
   <section className="as-wellness-section" id="practice-library">
    <div className="as-wellness-section-header"><span className="as-overline">{uk?'БІБЛІОТЕКА ПРАКТИК':'THE PRACTICE LIBRARY'}</span><h2>{uk?'Із чого хочеться почати?':'Where would you like to begin?'}</h2></div>
    <div className="as-wellness-grid">{YOGA_PRACTICES.map(practice=>{

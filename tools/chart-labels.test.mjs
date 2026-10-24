@@ -79,11 +79,12 @@ test('both web interfaces wrap the Ukrainian brand tag and constrain chart text'
  assert.match(appPage,/NorthIndianChart planets=\{chart\.d1\}/);
  assert.match(appPage,/NorthIndianChart planets=\{placements\}/);
  assert.doesNotMatch(appPage,/function Wheel\(/);
- assert.match(geometricChart,/className="jy-chart-house"/);
- assert.match(geometricChart,/const houses=layoutHouses\(planets\)/);
- assert.match(geometricChart,/textAnchor="middle" dominantBaseline="middle"/);
- assert.match(geometricChart,/slot\.top-slot\.y/);
- assert.match(geometricChart,/slot\.hidden>0/);
+ assert.match(geometricChart,/className="jy-south-chart"/);
+ assert.match(geometricChart,/SOUTH_SIGN_GRID\.map/);
+ assert.match(geometricChart,/jy-south-planet/);
+ assert.match(geometricChart,/chartHouseForSign/);
+ assert.match(geometricChart,/jy-south-ascendant/);
+ assert.match(appCss,/\.jy-south-chart\{display:grid/);
  assert.match(report,/className="reading-principles"/);
  assert.match(report,/className="reading-principle-number"/);
  assert.doesNotMatch(report,/className="reading-editorial-highlights"/);

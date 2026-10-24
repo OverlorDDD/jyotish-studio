@@ -6,7 +6,7 @@ import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 const COPY={
  en:{
   eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Explore the unseen.',emphasis:'Connect with your universe.',
-  intro:'Explore astrology, tarot, mindfulness and the wisdom of living traditions. Start with free tools, learn at your own pace, and connect with real practitioners when you want a personal perspective.',
+  intro:'Jyotish reveals the rhythms of destiny, Tarot speaks through symbols, and yoga brings you back to the power of breath. Explore your natal chart, draw the cards and find your practice today.',
   explore:'Explore the space',jyotish:'Open Vedic birth chart',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
   status:'Coming next',ready:'Available now',
   cards:[
@@ -17,12 +17,12 @@ const COPY={
    {slug:'news',icon:'news',title:'Daily cosmic news',description:'A future sourced editorial feed about astronomy, traditions and platform discoveries.',live:false},
    {slug:'community',icon:'community',title:'Community forum',description:'A future home for respectful discussion, experience sharing and questions.',live:false}
   ],
-  quote:'Grounded calculations. Human perspectives. Room for your own interpretation.',
+  quote:'The language of the stars, the wisdom of cards, a space for living practice.',
   disclaimer:'Our readings are reflective and educational, not medical, legal or financial advice.'
  },
  uk:{
   eyebrow:'GALAXIORA · ПРОСТІР КОСМІЧНОГО ПІЗНАННЯ',headline:'Досліджуй невидиме.',emphasis:'Відчуй зв’язок зі Всесвітом.',
-  intro:'Досліджуй астрологію, Таро, медитацію та духовні традиції. Починай із безкоштовних інструментів, навчайся у своєму ритмі й звертайся до реальних практиків за персональним поглядом.',
+  intro:'Джйотіш відкриває ритми долі, Таро говорить мовою символів, а йога повертає до сили дихання. Відкрий свою натальну карту, обери розклад і знайди практику, що відгукнеться саме сьогодні.',
   explore:'Дослідити платформу',jyotish:'Відкрити натальну карту Джйотіш',choose:'З чого почнеться твій шлях?',sectionSub:'Одна платформа, багато шляхів для навчання та рефлексії.',
   status:'Незабаром',ready:'Уже працює',
   cards:[
@@ -33,7 +33,7 @@ const COPY={
    {slug:'news',icon:'news',title:'Космічні новини',description:'Майбутня щоденна стрічка з достовірними джерелами та редакційними матеріалами.',live:false},
    {slug:'community',icon:'community',title:'Спільнота та форум',description:'Майбутній простір обговорень, досвіду, запитань та підтримки.',live:false}
   ],
-  quote:'Точні розрахунки. Людські погляди. Простір для власного розуміння.',
+  quote:'Мова зірок, мудрість карт і простір живої практики.',
   disclaimer:'Трактування призначені для рефлексії та навчання, не замінюють медичних, юридичних чи фінансових консультацій.'
  }
 } as const;
@@ -48,7 +48,14 @@ function IconFor({name}:{name:string}){
 export default function PortalHome({locale}: {locale:PortalLocale}){
  const t=COPY[locale];
  return <PortalShell locale={locale}>
-  <section className="as-hero">
+  <section className="as-hero as-cosmic-hero">
+   <div className="as-constellation-field" aria-hidden="true">
+    {Array.from({length:56},(_,i)=><i key={i} className="as-stardust" style={{
+     left:((i*73+19)%97)+'%',top:((i*41+13)%91)+'%',
+     width:i%7===0?3:1.5,height:i%7===0?3:1.5,
+     animationDelay:'-'+((i*7)%17)+'s',animationDuration:(4+i%9)+'s'
+    }}/>)}
+   </div>
    <div className="as-hero-copy">
     <div className="as-eyebrow"><MoonStar size={16} /> {t.eyebrow}</div>
     <h1>{t.headline}<br/><em>{t.emphasis}</em></h1>
@@ -58,7 +65,15 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
      <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{t.jyotish}</Link>
     </div>
    </div>
-   <div className="as-celestial" aria-hidden="true"><div className="as-orbit as-orbit-outer"/><div className="as-orbit as-orbit-mid"/><div className="as-orbit as-orbit-inner"/><span>✦</span><i>☽</i></div>
+   <div className="as-celestial as-celestial-vfx" aria-hidden="true">
+    <span className="as-cosmic-core">☉</span>
+    <span className="as-orbit-ring as-orbit-ring-inner"/>
+    <span className="as-orbit-ring as-orbit-ring-mid"/>
+    <span className="as-orbit-ring as-orbit-ring-outer"/>
+    <span className="as-orbit-track as-track-inner"><i className="as-orbit-body as-planet-azure"/></span>
+    <span className="as-orbit-track as-track-mid"><i className="as-orbit-body as-planet-gold"/></span>
+    <span className="as-orbit-track as-track-outer"><i className="as-orbit-body as-moon-orb">☽</i></span>
+   </div>
   </section>
   <section className="as-section" id="explore">
    <div className="as-section-heading"><div><span className="as-overline">DISCOVER</span><h2>{t.choose}</h2><p>{t.sectionSub}</p></div></div>

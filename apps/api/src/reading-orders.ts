@@ -23,7 +23,7 @@ export class NewReadingDraftDto {
  @IsString() @Length(20,2000) context!:string;
  @ApiProperty({type:String,required:false})
  @IsOptional() @IsString() @MaxLength(140) timeframe?:string;
- @ApiProperty({type:Boolean,description:'Explicit consent to temporarily store personal precheckout draft'})
+ @ApiProperty({type:Boolean,description:'Explicit consent to save an owner-controlled private question or temporary draft'})
  @IsBoolean() privacyConsent!:boolean;
 }
 const allowDraft=createHourlyLimiter(80);
@@ -71,6 +71,43 @@ export class ReadingOrdersController{
   return {deleted:result.count===1};
  }
 
+ /** Persistent, author-owned question inbox; donation and paid checkout never gate access. */
+ @Post('questions')
+ async saveQuestion(@Body()body:NewReadingDraftDto,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
+  const userId=cookieUser(req);
+  if(!userId)throw new UnauthorizedException('Sign in to keep your Tarot question');
+  if(body.privacyConsent!==true)throw new BadRequestException('Consent required to save your private question');
+  if(!allowDraft())throw new HttpException('Too many questions',HttpStatus.TOO_MANY_REQUESTS);
+  const question=body.question.trim(),context=body.context.trim();
+  if(question.length<12||context.length<20)throw new BadRequestException('Please provide a question and context');
+  const createdAt=new Date(),dayAgo=new Date(createdAt.getTime()-86400000);
+  const recent=await this.prisma.tarotQuestion.count({where:{userId,createdAt:{gte:dayAgo}}});
+  if(recent>=5)throw new HttpException('Daily question limit reached',HttpStatus.TOO_MANY_REQUESTS);
+  const saved=await this.prisma.tarotQuestion.create({
+   data:{userId,topic:body.topic,question,context,timeframe:body.timeframe?.trim()||null,consentAt:createdAt},
+   select:{id:true,createdAt:true}
+  });
+  return {...saved,status:'SAVED_PRIVATE',checkoutAvailable:false};
+ }
+ @Get('questions')
+ async myQuestions(@Req()req:IncomingMessage){
+  const userId=cookieUser(req);
+  if(!userId)throw new UnauthorizedException('Sign in required');
+  return this.prisma.tarotQuestion.findMany({
+   where:{userId},orderBy:{createdAt:'desc'},take:100,
+   select:{id:true,createdAt:true,topic:true,question:true,context:true,timeframe:true}
+  });
+ }
+ @Delete('questions/:id')
+ async deleteQuestion(@Param('id')id:string,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
+  const userId=cookieUser(req);
+  if(!userId)throw new UnauthorizedException('Sign in required');
+  const result=await this.prisma.tarotQuestion.deleteMany({where:{id,userId}});
+  return {deleted:result.count===1};
+ }
+
  @Post(':id/brief')
  async submitBrief(@Param('id')id:string,@Body()body:ReadingBriefDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
@@ -92,3 +129,7 @@ Reflect.defineMetadata('design:paramtypes',[String,ReadingBriefDto,Object],Readi
 Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'saveDraft');
 Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'myDrafts');
 Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteDraft');
+
+Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'saveQuestion');
+Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'myQuestions');
+Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteQuestion');

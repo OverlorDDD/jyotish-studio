@@ -54,7 +54,7 @@ test('Tarot experts are nested and legacy /experts links redirect correctly',()=
  const nav=read('apps/web/app/components/PortalShell.tsx');
  const profile=read('apps/web/app/components/AccountDashboard.tsx');
  assert.ok(section.includes('id="human-readings"'));
- assert.ok(section.includes("section==='tarot'&&<TarotStudio"));
+ assert.ok(section.includes("section==='tarot'")&&section.includes("<TarotStudio locale={locale}/>"));
  assert.ok(section.includes('<ExpertOffer locale={locale}/>'));
  assert.ok(route.includes("redirect(portalPath(locale,'tarot')+'#human-readings')"));
  assert.ok(profile.includes("portalPath(locale,'tarot')+'#human-readings'"));
@@ -72,4 +72,22 @@ test('News and community hubs are discoverable and explicitly not functional yet
  }
  assert.ok(sections.includes('Жива новинна стрічка ще не працює'));
  assert.ok(sections.includes('Дописи поки не приймаються'));
+});
+
+test('Tarologist advice is grounded in card sequence, not repeated generic instructions',async()=>{
+ const {readerReading}=await import('../apps/api/src/tarot-reader.ts');
+ const examples=[
+  {spread:'one',cards:[{id:'major-star',position:0,reversed:false}]},
+  {spread:'three',cards:[{id:'major-star',position:0,reversed:false},{id:'major-tower',position:1,reversed:true},{id:'major-sun',position:2,reversed:false}]}
+ ];
+ for(const {spread,cards} of examples){
+  for(const lang of ['uk','en']){
+   const response=readerReading(cards,spread,'Що показує цей розклад?',lang);
+   assert.ok(response.advice.length>90);
+   assert.ok(!response.advice.includes('Обери одну конкретну дію'));
+   assert.ok(!response.advice.includes('Choose one concrete action'));
+   if(cards.length>1)assert.ok(response.advice.includes(lang==='uk'?'Сонце':'Sun'));
+   assert.ok(response.caution.length>20);
+  }
+ }
 });
