@@ -54,12 +54,15 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
  assert.equal(report.status,'SIGN_PARITY_CERTIFIED',
   '20 original JHora charts must pass every attested D1/D9/D10 sign and fact check');
  assert.equal(report.signParityCertified,true);
+ assert.equal(report.dashaSequenceCertified,true,'all original JHora mahadasha/antardasha lords must retain their order');
  assert.equal(report.precisionCertified,false);
  assert.equal(report.explicitlyMatchedCharts,20);
  for(const item of report.results.slice(1)){
   assert.equal(item.profileStatus,'EXPLICIT_MATCH',item.id);
   for(const field of ['D1','D9','D10','nakshatra','pada','retrograde','houseLords'])
    assert.equal(item.result[field].status,'PASS',item.id+' '+field);
+  assert.equal(item.result.dasha.sequenceStatus,'PASS',item.id+' authentic dasha lord sequence');
+  assert.equal(item.result.dasha.jhoraYearDefinitionCode,3,'original JHora selected year option');
  }
  const metrics=report.results[0].result;
  for(const field of ['nakshatra','pada','retrograde','houseLords']){
