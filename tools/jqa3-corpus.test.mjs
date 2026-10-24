@@ -59,8 +59,12 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
  assert.equal(report.lagnaLongitudeCertified,false,'JHora and Swiss ascendant differ beyond 1 arcsecond');
  assert.equal(report.planetaryLongitudeCertified,false,'do not declare all nine graha precision matches');
  assert.equal(report.bodyPrecision.Lagna.total,20);
- assert.equal(report.bodyPrecision.Lagna.passing,0);
- assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds>18,'show actual maximum arcsec mismatch');
+ assert.equal(report.bodyPrecision.Lagna.passing,19,
+  'mean Lahiri Lagna must independently match 19/20 original JHora arcs to 1 arcsecond');
+ assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds>1,
+  'the 2002 Seattle residual is still above strict 1 arcsecond; never round to PASS');
+ assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds<1.1,
+  'unexpected systematic change to the corrected ascendant convention');
  for(const body of BODIES)assert.equal(report.bodyPrecision[body].total,20,'no silently dropped chart');
 
  assert.equal(report.explicitlyMatchedCharts,20);
