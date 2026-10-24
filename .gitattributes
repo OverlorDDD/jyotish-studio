@@ -6,3 +6,6 @@ tests/fixtures/jhora-corpus/captures/**/chart_data.txt -text
 tests/fixtures/jhora-corpus/captures/**/divisionals.txt -text
 tests/fixtures/jhora-corpus/captures/**/jhora.ini -text
 tests/fixtures/jhora-corpus/captures/**/input.jhd -text
+
+# Provenance metadata is SHA256-pinned original raw bytes, never CRLF-rewritten.
+tests/fixtures/jhora-corpus/captures/**/capture.json -text
