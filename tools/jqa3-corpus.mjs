@@ -37,6 +37,8 @@ const sign=lon=>signIndex(lon)+1;
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const gitSha=bytes=>createHash('sha1').update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex');
 const deltaArcsec=(a,b)=>((a-b+540)%360-180)*3600;
+// Judge the UNROUNDED difference; printed decimals must never grant a false PASS.
+export const withinOneArcsecond=(a,b)=>Math.abs(deltaArcsec(a,b))<=1;
 function withinRoot(path){
  const absolute=resolve(ROOT,path), rel=relative(ROOT,absolute);
  assert.ok(rel!==''&&!rel.startsWith('..')&&!isAbsolute(rel),'JQA3: path must remain inside repository');
@@ -162,7 +164,7 @@ function compare(ref,observed,comparable,speeds){
   D1:values.filter(v=>sign(v.computed)===v.reference.d1).length,
   D9:values.filter(v=>sign(divisionalLongitude(v.computed,9))===v.reference.d9).length,
   D10:values.filter(v=>(d10Profile==='1-9'?sign(divisionalLongitude(v.computed,10)):d10JHoraFiveEight(v.computed))===(v.reference.d10_1_9??v.reference.d10_5_8)).length,
-  longitude:values.filter(v=>Math.abs(deltaArcsec(v.computed,v.reference.longitude))<=1).length
+  longitude:values.filter(v=>withinOneArcsecond(v.computed,v.reference.longitude)).length
  };
  const validNak=values.every(v=>Number.isInteger(v.reference.nakshatraIndex)&&Number.isInteger(v.reference.pada));
  const nakMatches=validNak?values.filter(v=>nakshatraOf(v.computed).index===v.reference.nakshatraIndex).length:0;
@@ -233,7 +235,8 @@ function compare(ref,observed,comparable,speeds){
  result.profile=comparable?'MATCHED_EXPLICIT_INI':'UNMATCHED_OR_NOT_ATTESTED';
  result.precision='1 arcsec where reference source reports hundredths of arcsecond';
  result.details=values.map(v=>({body:v.name,jhoraLongitude:v.reference.longitude,galaxioraLongitude:v.computed,
-  arcseconds:+deltaArcsec(v.computed,v.reference.longitude).toFixed(4)}));
+  arcseconds:deltaArcsec(v.computed,v.reference.longitude),
+  withinOneArcsecond:withinOneArcsecond(v.computed,v.reference.longitude)}));
  return result;
 }
 export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=true}={}){
@@ -284,7 +287,7 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
  // identical D1/D9/D10 signs. Do not hide this inside an all-or-nothing counter.
  const bodyPrecision=Object.fromEntries(BODIES.map(body=>{
   const cases=comparableResults.map(x=>x.result?.details?.find(d=>d.body===body)).filter(Boolean);
-  const passing=cases.filter(x=>Math.abs(x.arcseconds)<=1).length;
+  const passing=cases.filter(x=>x.withinOneArcsecond===true).length;
   return [body,{passing,total:cases.length,maxAbsArcseconds:cases.length?
    Math.max(...cases.map(x=>Math.abs(x.arcseconds))):null}];
  }));
