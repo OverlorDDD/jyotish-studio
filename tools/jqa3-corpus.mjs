@@ -197,17 +197,26 @@ function compare(ref,observed,comparable,speeds){
  };
  const dashaRef=ref.expected.vimshottari||[];
  let dashaMatches=0,subMatches=0,subTotal=0;
+ let maxMajorStartDeltaDays=0,maxAntardashaStartDeltaDays=0;
  const computed=vimshottari(observed.get('Moon'),ref.civilTime.birthUtc);
  for(const p of dashaRef){
   const c=computed.find(x=>x.lord===p.lord);
-  if(c&&c.start.slice(0,10)===p.start)dashaMatches++;
+  if(c){
+   const dayDiff=Math.abs((Date.parse(c.start.slice(0,10)+'T00:00:00Z')-Date.parse(p.start+'T00:00:00Z'))/86400000);
+   maxMajorStartDeltaDays=Math.max(maxMajorStartDeltaDays,dayDiff);
+   if(c.start.slice(0,10)===p.start)dashaMatches++;
+  }
   for(const [lord,date] of Object.entries(p.antardashas||{})){
    subTotal++;
-   if(c?.antardashas?.find(x=>x.lord===lord)?.start.slice(0,10)===date)subMatches++;
+   const own=c?.antardashas?.find(x=>x.lord===lord)?.start.slice(0,10);
+   if(own===date)subMatches++;
+   if(own)maxAntardashaStartDeltaDays=Math.max(maxAntardashaStartDeltaDays,
+    Math.abs((Date.parse(own+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/86400000));
   }
  }
  result.dasha={
   matches:dashaMatches,total:dashaRef.length,antardashaMatches:subMatches,antardashaTotal:subTotal,
+  maxMajorStartDeltaDays,maxAntardashaStartDeltaDays,
   status:comparable&&ref.independentSource.capture?.profile?.dashaYearVerified===true
    &&ref.independentSource.capture?.profile?.dashaYearDays===365.2425&&dashaRef.length===9&&subTotal===81
     ?(dashaMatches===9&&subMatches===81?'PASS':'FAIL')
@@ -231,6 +240,15 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   const comparable=hasComparableProfile(record,ref);
   const calc=verifyAstronomy?calcCurrent(ref):null;
   const comparison=calc?compare(ref,calc.positions,comparable,calc.speeds):null;
+  if(comparison&&record.hasOriginalJHoraIni){
+   const rawIni=readFileSync(withinRoot(record.captureDir+'/jhora.ini'),'utf8');
+   const definition=rawIni.match(/^YearDefinition=0\\s+(\\d+)$/m);
+   // JHora separately records YearDefinition=0 3 and YearLength=0 365.242500.
+   // The *latter* is not proof of the selected definition's numerical duration.
+   // Retain the original code without inventing a mapping of option 3.
+   assert.ok(definition,'No indexed JHora dasha-year definition in recorded INI');
+   comparison.dasha.jhoraYearDefinitionCode=Number(definition[1]);
+  }
   results.push({id:record.id,provenance:'PINNED_THIRD_PARTY_RECORD',profileStatus:comparable?'EXPLICIT_MATCH':'UNVERIFIED',
     evidenceStatus:record.hasOriginalJHoraIni?'CAPTURE_EVIDENCE_PRESENT':'ORIGINAL_INI_MISSING',
     result:comparison});
