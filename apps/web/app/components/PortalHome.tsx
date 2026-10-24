@@ -48,7 +48,14 @@ function IconFor({name}:{name:string}){
 export default function PortalHome({locale}: {locale:PortalLocale}){
  const t=COPY[locale];
  return <PortalShell locale={locale}>
-  <section className="as-hero">
+  <section className="as-hero as-cosmic-hero">
+   <div className="as-constellation-field" aria-hidden="true">
+    {Array.from({length:56},(_,i)=><i key={i} className="as-stardust" style={{
+     left:((i*73+19)%97)+'%',top:((i*41+13)%91)+'%',
+     width:i%7===0?3:1.5,height:i%7===0?3:1.5,
+     animationDelay:'-'+((i*7)%17)+'s',animationDuration:(4+i%9)+'s'
+    }}/>)}
+   </div>
    <div className="as-hero-copy">
     <div className="as-eyebrow"><MoonStar size={16} /> {t.eyebrow}</div>
     <h1>{t.headline}<br/><em>{t.emphasis}</em></h1>
@@ -58,7 +65,7 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
      <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{t.jyotish}</Link>
     </div>
    </div>
-   <div className="as-celestial" aria-hidden="true"><div className="as-orbit as-orbit-outer"/><div className="as-orbit as-orbit-mid"/><div className="as-orbit as-orbit-inner"/><span>✦</span><i>☽</i></div>
+   <div className="as-celestial as-celestial-vfx" aria-hidden="true"><div className="as-orbit as-orbit-outer"/><div className="as-orbit as-orbit-mid"/><div className="as-orbit as-orbit-inner"/><span>☉</span><i>☽</i><b className="as-orbit-planet as-orbit-planet-1"/><b className="as-orbit-planet as-orbit-planet-2"/></div>
   </section>
   <section className="as-section" id="explore">
    <div className="as-section-heading"><div><span className="as-overline">DISCOVER</span><h2>{t.choose}</h2><p>{t.sectionSub}</p></div></div>
