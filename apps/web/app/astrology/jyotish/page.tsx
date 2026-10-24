@@ -143,7 +143,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    </nav>
    <div className="side-bottom"><span className="live-dot"/>{lang==='uk'?'Обчислювальне ядро Джйотіш':'Deterministic Jyotish Core'}<p>LAHIRI · D1 / D9 / D10</p></div>
   </aside>
-  <main className="main">
+  <div className="main">
    <header className="topbar">
     <span className="breadcrumbs">GALAXIORA <b>/</b> <strong>JYOTISH</strong></span>
     <div className="top-actions"><button className="lang-button" onClick={()=>setLang(lang==='en'?'uk':'en')}>{lang==='en'?<><b>EN</b> / УКР</>:<>EN / <b>УКР</b></>}</button><AccountPortal birth={chart?.input||null} report={report} lang={lang} onOpenSaved={loadSaved}/></div>
@@ -173,6 +173,21 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       <div className="jy-card-head"><div><span>{lang==='uk'?'РАШІ · ОСНОВНА КАРТА':'RASHI · MAIN CHART'}</span><h2>D1</h2></div>{chart&&<div className="jy-lagna-chip"><span>Lg</span><strong>{SIGN_SYMBOL[chart.ascendant.sign-1]} {signFull(chart.ascendant.sign,lang)}</strong><small>{degreeLabel(chart.ascendant.degreesInSign)}</small></div>}</div>
       <div className="jy-primary-chart">{chart?<NorthIndianChart planets={chart.d1} division="d1" lang={lang} lagna={chart.ascendant}/>:<div className="jy-empty-chart"><span>☉</span><strong>{i.waiting}</strong><small>{lang==='uk'?'Після розрахунку тут зʼявиться D1':'Your D1 chart will appear here'}</small></div>}</div>
      </div>
+
+    </section>
+
+    <section className="jy-ai-launch">
+     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'Одна хмарна консультація за точно обчисленою картою. Якщо модель недоступна, Reader v6 залишається доступним.':'One cloud consultation grounded in the calculated chart. Reader v6 remains available if the provider is offline.'}</small></span><ArrowUpRight size={20}/></button>
+     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}</button>
+     {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
+     {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
+    </section>
+
+    <div id="interpretation" className="jy-reading-result-anchor">
+     {report&&report.language===lang?<DetailedReport report={report} lang={lang}/>:null}
+    </div>
+
+    <section className="panel jy-data-workspace" id="chart-data">
      <aside className="panel jy-calc-data">
       <div className="jy-card-head"><div><span>{lang==='uk'?'РОЗРАХУНОК':'CALCULATION'}</span><h2>{lang==='uk'?'Ключові дані':'Key data'}</h2></div><span className="small-pill">D1</span></div>
       <div className="jy-data-list">
@@ -192,16 +207,6 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
        <p>{lang==='uk'?'Це незалежна звірка еталонних карт за узгодженим профілем, а не індивідуальна перевірка вашої карти в JHora.':'This is an independent same-profile reference check, not direct JHora verification of your individual chart.'}</p>
       </details>}
      </aside>
-    </section>
-
-    <section className="jy-ai-launch" id="interpretation">
-     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'Одна хмарна консультація за точно обчисленою картою. Якщо модель недоступна, Reader v6 залишається доступним.':'One cloud consultation grounded in the calculated chart. Reader v6 remains available if the provider is offline.'}</small></span><ArrowUpRight size={20}/></button>
-     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}</button>
-     {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
-     {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
-    </section>
-
-    <section className="panel jy-data-workspace" id="chart-data">
      <div className="jy-workspace-head"><div><div className="eyebrow">{lang==='uk'?'ДАНІ НАТАЛЬНОЇ КАРТИ':'NATAL CHART DATA'}</div><h2>{lang==='uk'?'Усі основні показники':'All core indicators'}</h2><p>{lang==='uk'?'Один блок для положень планет, дробових карт і часових циклів.':'One workspace for planetary positions, divisional charts and timing cycles.'}</p></div>{chart&&<div className="jy-zodiac-strip">{SIGN_SYMBOL.map((symbol,idx)=><span key={symbol} className={chart.ascendant.sign===idx+1?'active':''} title={signFull(idx+1,lang)}>{symbol}</span>)}</div>}</div>
 
      <div className="jy-key-facts">
@@ -236,7 +241,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <div className="jy-dasha-strip">{chart?chart.dasha.map((d,ix)=>{const active=Date.parse(d.start)<=now&&Date.parse(d.end)>now;return <div className={'jy-dasha-cell '+(active?'current':'')} key={ix}><span>{GRAHA_SYMBOL[d.lord]||'•'}</span><strong>{grahaFull(d.lord,lang)}</strong><small>{d.start.slice(0,4)}–{d.end.slice(0,4)}</small>{active&&<b>{lang==='uk'?'ЗАРАЗ':'NOW'}</b>}</div>}):<div className="jy-dasha-empty">{i.waiting}</div>}</div>
     </section>
 
-    {report&&report.language===lang?<DetailedReport report={report} lang={lang}/>:null}
+
     {chart&&<PersonalJournal locale={lang} kind="JYOTISH"/>}
     <footer>GALAXIORA · JYOTISH <span>•</span> {lang==='uk'?'СИДЕРИЧНИЙ РОЗРАХУНОК · LAHIRI':'SIDEREAL CALCULATION · LAHIRI'} <span>•</span> D1 / D9 / D10</footer>
    </div>
