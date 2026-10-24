@@ -61,7 +61,7 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
      <textarea required maxLength={2000} rows={4} value={body} onChange={e=>setBody(e.target.value)}/></label>
     <button type="submit" className="as-button as-button-primary" disabled={busy||!title.trim()||!body.trim()}>
      <Save size={17}/>{uk?'Зберегти запис':'Save entry'}</button>
-   </form>}
+   </form>:null}
   {note&&<p role="status">{note}</p>}
   {error&&<div className="as-journal-error" role="alert"><p className="as-account-error">{error}</p><button type="button" className="as-button as-button-secondary" onClick={()=>void load()} disabled={loading}><RefreshCcw size={16}/>{uk?'Повторити':'Retry'}</button></div>}
   <div className="as-profile as-journal-entries">
