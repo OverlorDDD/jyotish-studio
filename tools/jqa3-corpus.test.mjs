@@ -85,7 +85,7 @@ test('twenty genuine JHora INIs allow astronomy comparison but not unverified da
   assert.equal(hasComparableAstronomyProfile(record,original),true);
  }
  const audit=auditCorpus({verifyAstronomy:false});
- assert.equal(audit.astronomicalProfileMatchedCharts,undefined); // no fabricated all-clear summary
+ assert.equal(audit.astronomicalProfileMatchedCharts,20,'original INI astronomical flags match');
  assert.equal(audit.explicitlyMatchedCharts,0,'full JHora method attestation remains incomplete');
  assert.equal(audit.distinctLagnaSigns,12);
  assert.equal(audit.status,'NOT_CERTIFIED');
