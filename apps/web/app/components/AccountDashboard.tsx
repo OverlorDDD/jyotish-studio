@@ -42,7 +42,8 @@ export default function AccountDashboard({locale}:{locale:PortalLocale}){
     <p>{uk?'Підписка':'Subscription'}: <strong>{user.subscription?.tier==='PREMIUM'?'Premium':(uk?'Безкоштовна (Free)':'Free')}</strong></p>
     {user.subscription?.tier==='PREMIUM'&&user.subscription.currentPeriodEnd&&<p>{uk?'Активна до':'Active until'}: {new Date(user.subscription.currentPeriodEnd).toLocaleDateString(uk?'uk-UA':'en-US')}</p>}
     <p className="as-muted">{uk?'Підписка не змінює права адміністратора або експерта. Оплата підписки ще не підключена.':'Subscription is separate from staff roles. Subscription checkout has not launched yet.'}</p>
-    <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{uk?'Мої натальні карти — відкрити Джйотіш':'Saved birth charts — open Jyotish'}</Link>
+    <Link className="as-button as-button-primary" href={portalPath(locale,'personal')}>{uk?'Перейти до Galaxiora Personal':'Open Galaxiora Personal'}</Link>
+     <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{uk?'Мої натальні карти — відкрити Джйотіш':'Saved birth charts — open Jyotish'}</Link>
     {user.role==='ADMIN'&&<Link className="as-button as-button-primary" href={portalPath(locale,'admin')}>{uk?'Панель адміністратора':'Administrator dashboard'}</Link>}
     <h2>{uk?'Мої запитання тарологу':'My Tarot questions'} · {drafts.length}</h2>
     {drafts.length?drafts.map(d=><article className="as-draft-row" key={d.id}>

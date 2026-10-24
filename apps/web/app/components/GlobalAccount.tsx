@@ -47,7 +47,8 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
    {!loaded?<p>{uk?'Завантаження…':'Loading…'}</p>:user?<div className="as-account-signed">
     <strong>{user.email}</strong>
     <small>{user.role} · {user.subscription?.tier==='PREMIUM'?'Premium':'Free'}</small>
-    <Link href={portalPath(locale,'account')} onClick={()=>setOpen(false)}>{uk?'Мій кабінет':'My account'}</Link>
+    <Link href={portalPath(locale,'personal')} onClick={()=>setOpen(false)}>{uk?'Galaxiora Personal — Мій Всесвіт':'Galaxiora Personal — My Universe'}</Link>
+     <Link href={portalPath(locale,'account')} onClick={()=>setOpen(false)}>{uk?'Акаунт і запитання':'Account & questions'}</Link>
     {user.role==='ADMIN'&&<Link href={portalPath(locale,'admin')} onClick={()=>setOpen(false)}><Shield size={15}/>{uk?'Панель адміністратора':'Admin overview'}</Link>}
     <button type="button" onClick={logout} disabled={busy}><LogOut size={15}/>{uk?'Вийти':'Sign out'}</button>
    </div>:<form onSubmit={authenticate} className="as-account-form">
