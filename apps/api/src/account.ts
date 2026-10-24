@@ -104,6 +104,24 @@ export class AccountController{
    select:{id:true,kind:true,sourceId:true,title:true,body:true,createdAt:true,updatedAt:true}
   })};
  }
+ @Get('journal/pages')
+ @Header('Cache-Control','private, no-store')
+ async journalPages(@Req()req:IncomingMessage,@Query('cursor')cursor?:string,@Query('kind')kind?:string){
+  const userId=currentUser(req);
+  if(cursor&&!/^[a-z0-9-]{10,60}$/i.test(cursor))throw new BadRequestException('Invalid journal cursor');
+  if(kind&&!['TAROT','JYOTISH','PRACTICE','REFLECTION'].includes(kind))throw new BadRequestException('Invalid journal category');
+  if(cursor){
+   const owned=await this.prisma.personalJournalEntry.findFirst({where:{id:cursor,userId},select:{id:true}});
+   if(!owned)throw new UnauthorizedException('Journal cursor not in your account');
+  }
+  const rows=await this.prisma.personalJournalEntry.findMany({
+   where:{userId,...(kind?{kind}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:51,
+   ...(cursor?{cursor:{id:cursor},skip:1}:{}),
+   select:{id:true,kind:true,sourceId:true,title:true,body:true,createdAt:true,updatedAt:true}
+  });
+  const entries=rows.slice(0,50);
+  return {entries,nextCursor:rows.length>50?entries[entries.length-1]?.id:null};
+ }
  @Post('journal')
  async addJournal(@Body()body:JournalEntryDto,@Req()req:IncomingMessage){
   checkRequest(req);
@@ -196,6 +214,7 @@ for(const [method,types]of [
  ['me',[Object]],
  ['logout',[Object,Object]],
  ['journal',[Object]],
+ ['journalPages',[Object,String,String]],
  ['updateJournal',[String,JournalEditDto,Object]],
  ['exportJournal',[Object,String]],
  ['addJournal',[JournalEntryDto,Object]],

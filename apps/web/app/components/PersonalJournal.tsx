@@ -10,16 +10,17 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
  const uk=locale==='uk', [entries,setEntries]=useState<Entry[]>([]),[title,setTitle]=useState(''),
  [body,setBody]=useState(''),[error,setError]=useState(''),[note,setNote]=useState(''),
  [busy,setBusy]=useState(false),[signedIn,setSignedIn]=useState(false),[loading,setLoading]=useState(true);
- const [filter,setFilter]=useState<Kind|'ALL'>('ALL'),[search,setSearch]=useState(''),[editing,setEditing]=useState<string|null>(null);
+ const [filter,setFilter]=useState<Kind|'ALL'>('ALL'),[search,setSearch]=useState(''),[olderCursor,setOlderCursor]=useState<string|null>(null),[editing,setEditing]=useState<string|null>(null);
  const [editTitle,setEditTitle]=useState(''),[editBody,setEditBody]=useState('');
  async function load(){
   setLoading(true);setError('');
   try{
    const me=await readApiJson<{user:{id:string}|null}>(await fetch('/api/v1/account/me',{credentials:'same-origin',cache:'no-store'}));
    setSignedIn(!!me.user);
-   if(!me.user){setEntries([]);return;}
+   if(!me.user){setEntries([]);setOlderCursor(null);return;}
    const data=await readApiJson<{entries:Entry[]}>(await fetch('/api/v1/account/journal',{credentials:'same-origin',cache:'no-store'}));
    setEntries(data.entries);
+   setOlderCursor(data.entries.length===100?data.entries[data.entries.length-1]?.id||null:null);
   }catch{
    setError(uk?'Журнал зараз не відповідає. Перевір підключення API й спробуй ще раз.':'Journal is not responding. Check the API connection and retry.');
   }finally{setLoading(false);}
@@ -79,6 +80,16 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
   }catch(e){setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false);}
  }
+ async function loadOlder(){
+  if(!olderCursor||busy)return;
+  setBusy(true);setError('');
+  try{
+   const page=await readApiJson<{entries:Entry[];nextCursor:string|null}>(await fetch(
+    '/api/v1/account/journal/pages?cursor='+encodeURIComponent(olderCursor),{credentials:'same-origin',cache:'no-store'}));
+   setEntries(current=>[...current,...page.entries.filter(item=>!current.some(x=>x.id===item.id))]);
+   setOlderCursor(page.nextCursor);
+  }catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false);}
+ }
  const shown=sourceId?entries.filter(x=>x.kind===kind&&x.sourceId===sourceId):entries.filter(x=>(filter==='ALL'||x.kind===filter)&&(!search.trim()||(x.title+' '+x.body).toLocaleLowerCase().includes(search.toLocaleLowerCase().trim())));
  return <section id="personal-journal" className="as-profile-card as-journal-card" aria-label={uk?'Особистий журнал':'Personal journal'}>
   <div className="as-journal-head"><h2><BookOpen size={21}/>{uk?'Мій особистий журнал':'My personal journal'}</h2><span>{uk?'ПРИВАТНИЙ ПРОСТІР':'PRIVATE SPACE'}</span></div>
@@ -118,6 +129,8 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
       <button className="as-button as-button-secondary" type="button" disabled={busy} onClick={()=>{setEditing(entry.id);setEditTitle(entry.title);setEditBody(entry.body);}}>{uk?'Редагувати':'Edit'}</button></>}</div>
     <button type="button" disabled={busy} onClick={()=>void remove(entry.id)} aria-label={uk?'Видалити запис':'Delete note'}><Trash2 size={18}/></button>
    </article>)}
+   {signedIn&&olderCursor&&<button type="button" className="as-button as-button-secondary" disabled={busy} onClick={()=>void loadOlder()}>
+    {uk?'Завантажити давніші записи':'Load older notes'}</button>}
    {signedIn&&!shown.length&&<p className="as-muted">{uk?'Поки немає записів.':'No notes yet.'}</p>}
   </div>
  </section>;
