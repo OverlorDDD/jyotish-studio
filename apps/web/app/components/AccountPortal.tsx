@@ -98,7 +98,7 @@ export default function AccountPortal({birth,report,lang,onOpenSaved}:{
  return <div className="account-widget">
   <button type="button" className="account-trigger" onClick={()=>setOpen(!open)} aria-expanded={open}>
    {user?<BookMarked size={16}/>:<UserRound size={16}/>}
-   {user?(uk?'Мій кабінет':'My account'):(uk?'Увійти / Реєстрація':'Sign in / Register')}
+   {user?(uk?'Збережені карти':'Saved charts'):(uk?'Зберегти карту':'Save a chart')}
   </button>
   {open?<section className="account-popover" aria-label={uk?'Кабінет користувача':'User account'}>
    <div className="account-heading">

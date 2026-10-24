@@ -89,8 +89,8 @@ export default function YogaBreathSession({locale}:{locale:ContentLocale}){
   </div>
   <div className="as-breath-selector" role="group" aria-label={uk?'Техніка дихання':'Breathing technique'}>
    {BREATHING_PATTERNS.map(p=><button key={p.id} type="button" data-testid={'pattern-'+p.id}
-    disabled={!ready} aria-pressed={mode===p.id} className={'as-breath-mode '+(mode===p.id?'is-selected':'')}
-    onClick={()=>setMode(p.id)}>
+    aria-pressed={mode===p.id} className={'as-breath-mode '+(mode===p.id?'is-selected':'')}
+    onClick={()=>{if(p.id!==mode){reset();setMode(p.id);}}}>
     <strong>{p.title[locale]}</strong><span>{p.summary[locale]}</span>
    </button>)}
   </div>

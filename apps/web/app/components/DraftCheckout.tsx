@@ -44,8 +44,8 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
  return <section className="as-intake" id="reading-draft">
   <div className="as-section-heading"><div>
    <span className="as-overline">{uk?'РОЗМОВА З ТАРОЛОГОМ':'YOUR TAROT QUESTION'}</span>
-   <h2>{uk?'Запитай таролога — збережи свою історію':'Ask a tarot reader — keep your story safe'}</h2>
-   <p>{uk?'Напиши запитання — воно збережеться у твоєму кабінеті. Нині це приватний запис: таролог ще не отримує повідомлень, а консультації не оформлюються.':'Save your question in your account. For now it remains private: no practitioner receives it and no consultation is booked.'}</p>
+   <h2>{uk?'Постав особисте запитання тарологу':'Ask a tarot reader about your life question'}</h2>
+   <p>{uk?'Розкажи, що тебе хвилює: стосунки, важливий вибір чи життєвий поворот. Поки консультації готуються до запуску, запитання зберігається приватно й ще не передається тарологу.':'Share what matters: relationships, a difficult decision, or a turning point. Until consultations launch, the question remains private and is not yet delivered to a reader.'}</p>
   </div></div>
   <div className="as-intake-columns">
    <aside className="as-examples">

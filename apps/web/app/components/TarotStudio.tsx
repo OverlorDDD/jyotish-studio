@@ -74,7 +74,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
     </label>}
     <div className="as-tarot-actions">
      <button className="as-button as-button-primary" type="submit" disabled={busy||remaining===0||loading}><Sparkles size={17}/>{busy?(uk?'Перемішуємо…':'Shuffling…'):(uk?'Розкласти карти':'Draw the cards')}</button>
-     <span className="as-tarot-counter">{remaining===null?(uk?'Для розкладів потрібен акаунт':'Account required'):(uk?'Безкоштовних розкладів сьогодні: ':'Free draws left today: ')+remaining+' / '+limit}</span>
+     <a className="as-tarot-live-link" href="#human-readings">{uk?'Маєш важливе запитання? Звернись до таролога →':'A personal question? Ask our tarot practitioner →'}</a><span className="as-tarot-counter">{remaining===null?(uk?'Для розкладів потрібен акаунт':'Account required'):(uk?'Безкоштовних розкладів сьогодні: ':'Free draws left today: ')+remaining+' / '+limit}</span>
     </div>
     <p className="as-muted">{uk?'Ліміт оновлюється о 00:00 UTC. Для адміністратора — до 100 розкладів на добу. AI викликається тільки за згодою та якщо його налаштовано на сервері.':'Limits reset at midnight UTC. Administrators have up to 100 draws daily. AI runs only with consent and server configuration.'}</p>
    </form>

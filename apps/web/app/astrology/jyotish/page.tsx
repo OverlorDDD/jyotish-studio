@@ -6,7 +6,6 @@ import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 import AccountPortal from '../../components/AccountPortal';
-import PersonalJournal from '../../components/PersonalJournal';
 import NorthIndianChart from '../../components/NorthIndianChart';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
@@ -55,7 +54,7 @@ const nakshatraName=(name:string,lang:'en'|'uk')=>lang==='uk'?(NAKSHATRA_UK[name
 const grahaFull=(name:string,lang:'en'|'uk')=>lang==='uk'?(GRAHA_UK[name]||name):name;
 const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-1];
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
- const [lang,setLang]=useState<'en'|'uk'>(initialLang),[form,setForm]=useState<Form>(CITY.delhi),[preset,setPreset]=useState('delhi'),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
+ const lang=initialLang; const [form,setForm]=useState<Form>(CITY.delhi),[preset,setPreset]=useState('delhi'),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
  const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false}|null>(null);
@@ -130,10 +129,9 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const activeDasha=chart?.dasha.find(d=>Date.parse(d.start)<=now&&Date.parse(d.end)>now);
  const activeAntar=activeDasha?.antardashas.find(a=>Date.parse(a.start)<=now&&Date.parse(a.end)>now);
  const tabLagna=tab==='d1'?chart?.ascendant:tab==='d9'?chart?.lagnaD9:chart?.lagnaD10;
- return <div className="app-shell jy-workbench">
-  <aside className="sidebar">
-   <div className="logo"><span className="logo-mark">✧</span><span>GALAXI<span className="logo-light">ORA</span><small>{lang==='uk'?'РУШІЙ ВЕДИЧНОЇ АСТРОЛОГІЇ':'VEDIC ASTROLOGY ENGINE'}</small></span></div>
-   <a className="as-back-link" href={"/"+lang}>← {lang==='uk'?'Головна Galaxiora':'Galaxiora home'}</a>
+ return <div className="jy-workbench jy-portal-workbench">
+  <aside className="sidebar jy-section-nav" aria-label={lang==='uk'?'Навігація Джйотіш':'Jyotish navigation'}>
+
    <div className="side-section">{lang==='uk'?'ДЖЙОТІШ':'JYOTISH'}</div>
    <nav className="side-nav">
     <a href="#calculator" className="active"><Compass size={17}/> {lang==='uk'?'Карта D1':'D1 chart'}</a>
@@ -144,11 +142,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    <div className="side-bottom"><span className="live-dot"/>{lang==='uk'?'Обчислювальне ядро Джйотіш':'Deterministic Jyotish Core'}<p>LAHIRI · D1 / D9 / D10</p></div>
   </aside>
   <div className="main">
-   <header className="topbar">
-    <span className="breadcrumbs">GalaxiAstro <b>/</b> <strong>JYOTISH</strong></span>
-    <div className="top-actions"><button className="lang-button" onClick={()=>setLang(lang==='en'?'uk':'en')}>{lang==='en'?<><b>EN</b> / УКР</>:<>EN / <b>УКР</b></>}</button><AccountPortal birth={chart?.input||null} report={report} lang={lang} onOpenSaved={loadSaved}/></div>
-   </header>
    <div className="content" id="calculator">
+    <div className="jy-portal-toolbar"><span>GalaxiAstro <b>/</b> JYOTISH</span><AccountPortal birth={chart?.input||null} report={report} lang={lang} onOpenSaved={loadSaved}/></div>
     <div className="jy-title-row">
      <div><div className="eyebrow"><span className="accent-line"/> {lang==='uk'?'НАТАЛЬНИЙ РОЗРАХУНОК ДЖЙОТІШ':'JYOTISH NATAL CALCULATION'}</div><h1>{lang==='uk'?'Натальна карта':'Natal chart'}<span className="gold">.</span></h1><p>{lang==='uk'?'Сидеричний розрахунок Лахірі, дробові карти та Вімшоттарі-даша в одному робочому просторі.':'Lahiri sidereal chart, divisional charts and Vimshottari dasha in one workspace.'}</p></div>
      <div className="jy-title-symbol">☉</div>
@@ -243,7 +238,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
 
 
     {chart&&<a className="as-button as-button-secondary jy-journal-link" href={'/'+lang+'/account#personal-journal'}>{lang==='uk'?'Мій особистий журнал — у кабінеті':'My personal journal — open account'}</a>}
-    <footer>GALAXIORA · JYOTISH <span>•</span> {lang==='uk'?'СИДЕРИЧНИЙ РОЗРАХУНОК · LAHIRI':'SIDEREAL CALCULATION · LAHIRI'} <span>•</span> D1 / D9 / D10</footer>
+
    </div>
   </div>
  </div>;

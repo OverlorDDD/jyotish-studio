@@ -16,7 +16,7 @@ export default function ExpertOffer({locale}:{locale:PortalLocale}){
  ];
  return <section className="as-expert-offer">
   <span className="as-overline">HUMAN VIDEO TAROT</span>
-  <h2>{uk?'Чому варто замовити розклад у живої людини?':'What makes a human reading different?'}</h2>
+  <h2>{uk?'Що дає особистий розклад із тарологом?':'Explore your question with a real tarot practitioner'}</h2>
   <div className="as-benefits">{benefits.map(b=><article className="as-benefit" key={b.title}><b.icon size={22}/><h3>{b.title}</h3><p>{b.text}</p></article>)}</div>
   <div className="as-offer-process">
    <h3>{uk?'Як це працюватиме':'How this will work'}</h3>
