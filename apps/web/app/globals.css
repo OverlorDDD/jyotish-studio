@@ -968,3 +968,22 @@
 @keyframes as-orbital-spin{to{transform:rotate(360deg)}}
 @keyframes as-planet-float{from{transform:translate3d(-14px,11px,0)}to{transform:translate3d(17px,-13px,0)}}
 @media(prefers-reduced-motion:reduce){.as-stardust,.as-celestial-vfx .as-orbit,.as-orbit-planet{animation:none!important;will-change:auto}.as-stardust{opacity:.7}}
+
+
+/* Show the breathing tool above all Yoga navigation, without a teaser detour. */
+.as-yoga-immediate-heading{max-width:880px;padding:clamp(17px,3vw,28px) 0 12px}
+.as-yoga-immediate-heading h1{font:500 clamp(28px,4vw,48px)/1.2 'Playfair Display',Georgia,serif;color:#e8d2a4;margin:10px 0}
+.as-yoga-immediate-heading p{max-width:68ch;line-height:1.75;color:#b4c0cc;margin:0 0 12px}
+.as-wellness>.as-breath-player{max-width:1080px;margin:0 auto 36px;scroll-margin-top:100px}
+.as-wellness-section{scroll-margin-top:90px}
+.as-journal-card{scroll-margin-top:95px;max-width:1150px;width:100%;margin:32px auto 20px;border:1px solid #80694965;background:linear-gradient(145deg,#1c2b3d,#142033);border-radius:19px;padding:clamp(18px,2.8vw,32px)}
+.as-journal-head{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:12px}
+.as-journal-head h2{display:flex;align-items:center;gap:10px;margin:0;font:500 clamp(19px,2.4vw,27px)/1.3 'Playfair Display',Georgia,serif}
+.as-journal-head span{font-size:10px;letter-spacing:.14em;color:#dbbe83;border:1px solid #9c815b;border-radius:40px;padding:7px 11px}
+.as-journal-card form{margin:12px 0 22px;max-width:760px}
+.as-journal-card textarea{width:100%;resize:vertical;background:#121b29;border:1px solid #445168;border-radius:8px;color:#f0e4d0;padding:12px;font:inherit}
+.as-journal-entries{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:14px;margin-top:20px}
+.as-journal-entries .as-draft-row{background:#101927;border:1px solid #39475c;border-radius:12px;padding:15px;overflow-wrap:anywhere}
+.as-journal-error{padding:10px;border:1px solid #89605b;border-radius:10px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.as-journal-error .as-button{width:auto}
+.jy-journal-link{display:inline-flex;margin:20px 0}
