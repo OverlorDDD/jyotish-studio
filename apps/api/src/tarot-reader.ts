@@ -147,8 +147,11 @@ export function readerReading(raw:ReadonlyArray<Draw>,spread:Spread,question:str
  const caution=difficult?
   (uk?'У розкладі звучить гостра нота «'+difficult.name.uk+'»: вона відкриває те, що давно вимагало чесної зміни. '+(difficult.reversed?'Перевернуте положення підкреслює внутрішній опір змінам.':'Пряме положення говорить про переломний момент — важливо зберегти ясність.'):'A sharper note comes from '+difficult.name.en+': something needs honest change. '+(difficult.reversed?'Reversed, it points to resistance to this shift.':'Upright, it marks a turning point that calls for clarity.')):
   (uk?'Зверни увагу на прихований мотив «'+title(cards.length-1)+'»: '+lastEvent+'. Саме він задає тон завершенню розкладу.':'Notice the underlying theme of '+title(cards.length-1)+': '+lastEvent+'. It sets the tone of the outcome.');
- const advice=uk?'Порада таролога: зосередься на посланні «'+title(cards.length-1)+'». '+(cards.length>1?'Порівняй його з першою картою «'+title(0)+'»: так стане зрозуміліше, що завершити, а що розпочати. ':'')+'Обери одну конкретну дію, яка відповідає цій темі.':
-  'The reader’s advice: follow the message of '+title(cards.length-1)+'. '+(cards.length>1?'Compare it with the opening '+title(0)+' to see what can end and what can begin. ':'')+'Choose one concrete action that reflects this theme.';
+ const advice=uk?
+  (cards.length===1?'Порада таролога: «'+title(0)+'» підкреслює тему '+scenario(0)+'. Придивися, як вона проявляється в твоїй ситуації.':
+  'Порада таролога: «'+title(0)+'» відкриває сюжет через '+scenario(0)+', а «'+title(cards.length-1)+'» веде до '+scenario(cards.length-1)+'. Саме зв’язок між цими двома образами розкриває головний рух розкладу.'):
+  (cards.length===1?'The reader’s insight: '+title(0)+' highlights '+scenario(0)+'. Notice how this theme appears in your situation.':
+  'The reader’s insight: '+title(0)+' opens through '+scenario(0)+', while '+title(cards.length-1)+' moves toward '+scenario(cards.length-1)+'. The thread between them reveals the central movement of the spread.');
  return {directAnswer,development:uk?partsUk:partsEn,cardExplanations,caution,advice};
 }
 export const TAROT_SCENARIO_CARD_COUNT=Object.keys(MAJOR).length+Object.keys(MINOR).length;
