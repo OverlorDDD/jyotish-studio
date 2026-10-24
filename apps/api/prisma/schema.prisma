@@ -42,6 +42,7 @@ model User {
  editorialCreated EditorialEntry[] @relation("EditorialCreator")
  readingDrafts ReadingDraft[]
  tarotReadings TarotReading[]
+ journalEntries PersonalJournalEntry[]
  roleChangesAsTarget RoleChange[] @relation("RoleChangeTarget")
  roleChangesAsActor RoleChange[] @relation("RoleChangeActor")
  charts Chart[]
@@ -204,4 +205,21 @@ model EditorialVersion {
  createdAt DateTime @default(now())
  @@unique([entryId,revision])
  @@index([entryId,createdAt])
+}
+
+/** A9.2: private, user-authored notes, optionally linked to an existing chart
+ * or tarot draw. No AI provider receives these notes.
+ */
+model PersonalJournalEntry {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ kind String @db.VarChar(20)
+ sourceId String? @db.VarChar(60)
+ title String @db.VarChar(120)
+ body String @db.VarChar(2000)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([userId,createdAt])
+ @@index([userId,kind,sourceId])
 }
