@@ -47,10 +47,15 @@ export class PersonalController{
  private async profile(uid:string){
   const [record,rows]=await Promise.all([
    this.prisma.personalProfile.findUnique({where:{userId:uid}}),
-   this.prisma.chart.findMany({where:{ownerId:uid},select:{id:true,createdAt:true,input:true,result:true},orderBy:{createdAt:'desc'},take:100})
+   // Avoid transferring up to 100 large natal + dasha JSON blobs on every dashboard visit.
+   this.prisma.chart.findMany({where:{ownerId:uid},select:{id:true,createdAt:true,input:true},orderBy:{createdAt:'desc'},take:100})
   ]);
-  const charts=rows.map(chartFacts).filter((x):x is NonNullable<typeof x>=>Boolean(x));
-  const selected=charts.find(x=>x.id===record?.primaryChartId)||null;
+  const charts=rows.map(row=>{const input=(row.input||{}) as {date?:string;place?:string};
+   return {id:row.id,createdAt:row.createdAt,date:input.date||'',place:input.place||''};});
+  const source=record?.primaryChartId?await this.prisma.chart.findFirst({
+   where:{id:record.primaryChartId,ownerId:uid},select:{id:true,createdAt:true,input:true,result:true}
+  }):null;
+  const selected=chartFacts(source);
   return {profile:{primaryChartId:selected?.id||null,currentTimeZone:record?.currentTimeZone||'UTC',
    preferredLocale:record?.preferredLocale||'uk',favoritePractice:record?.favoritePractice||'box',newsTopics:record?.newsTopics||[]},
    charts:charts.map(({dasha,...c})=>c),suggestedChartId:!record?.primaryChartId&&charts.length===1?charts[0].id:null,
