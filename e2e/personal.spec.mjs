@@ -32,6 +32,10 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  expect(response.news.status).toBe('planned_after_launch');
  expect(response.horoscope.status).toBe('planned_after_launch');
  expect(response.transit?.observationType).toBe('SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON');
+ expect(response.journey?.daily?.headline?.uk).toBeTruthy();
+ expect(response.journey?.daily?.description?.en).toContain('Moon');
+ expect(response.journey?.daily?.evidence?.sampledAtUtc).toBe(response.transit.sampledAtUtc);
+ expect(response.journey?.period?.evidence?.kind).toBe('VIMSHOTTARI_NATAL_HOUSE');
  const week=await page.request.get('/api/v1/personal/calendar?days=7&from=2026-10-24');
  expect(week.status()).toBe(200);
  const calendar=await week.json();
@@ -39,6 +43,14 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  expect(calendar.days).toHaveLength(7);
  expect(calendar.days[0].moon.sign).toBeGreaterThanOrEqual(1);
  expect(calendar.days[0].moon.sign).toBeLessThanOrEqual(12);
+ expect(calendar.weekHighlights.length).toBeGreaterThan(0);
+ expect(calendar.weekHighlights.length).toBeLessThanOrEqual(5);
+ expect(calendar.weekHighlights[0].evidence.method).toBeTruthy();
+ expect(calendar.weekHighlights[0].headline.uk).toBeTruthy();
+ const month=await (await page.request.get('/api/v1/personal/calendar?days=30&from=2026-10-24')).json();
+ expect(month.days).toHaveLength(30);
+ expect(month.weekHighlights.length).toBeGreaterThan(0);
+ expect(month.weekHighlights.every(h=>h.date>='2026-10-24'&&h.date<='2026-10-30')).toBe(true);
  const token=randomUUID();
  const done=await page.request.post('/api/v1/personal/practices',{data:{eventId:token,practiceId:'box',durationSeconds:240}});
  expect(done.status()).toBe(201);
@@ -58,6 +70,11 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  await expect(page.getByTestId('personal-dashboard')).toBeVisible();
  await expect(page.getByTestId('current-dasha')).toBeVisible();
  await expect(page.getByTestId('personal-calendar')).toBeVisible();
+ await expect(page.getByTestId('astrological-path')).toBeVisible();
+ await expect(page.getByTestId('journey-period')).toBeVisible();
+ await expect(page.getByTestId('journey-daily')).toBeVisible();
+ await expect(page.getByTestId('daily-advice')).toBeVisible();
+ await expect(page.getByTestId('week-highlights')).toBeVisible();
  const other=await apiRequest.newContext({baseURL:process.env.PLAYWRIGHT_BASE_URL||'http://127.0.0.1:3000'});
  try{
   expect((await other.post('/api/v1/account/register',{data:{email:emailB,password:'Personal-strong-test-password-2026'}})).status()).toBe(201);
