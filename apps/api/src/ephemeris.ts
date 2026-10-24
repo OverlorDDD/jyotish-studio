@@ -14,11 +14,16 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   const jd=sw.julianDay(date.getUTCFullYear(),date.getUTCMonth()+1,date.getUTCDate(),hour);
   sw.setSiderealMode(sw.SiderealMode.Lahiri);
   const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536; // SEFLG_SIDEREAL, upstream numeric flag
+  // Planetary metadata retains the apparent (nutated) ayanamsa; do not change
+  // it or the nine graha positions when fixing the JHora ascendant convention.
   const ayanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris);
+  // Swiss SEFLG_NONUT=64. Across 20 original JHora 8.0 exports the rising
+  // longitude agrees with tropical ASC minus MEAN Lahiri (19/20 within 1\"),
+  // rather than tropical ASC minus nutated Lahiri (0/20 within 1\").
+  // This is an observational convention match, not proof of JHora internals.
+  const lagnaAyanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris|64);
   const houses=sw.calculateHouses(jd,input.latitude,input.longitude,sw.HouseSystem.Placidus);
-  // The Node wrapper exposes tropical houses; applying Lahiri yields a traditional
-  // sidereal ascendant accurate to a few arcseconds (vs houses_ex sidereal mode).
-  const ascendant=mod(houses.ascendant-ayanamsa);
+  const ascendant=mod(houses.ascendant-lagnaAyanamsa);
   const bodies:[string,number][]=[['Sun',sw.Planet.Sun],['Moon',sw.Planet.Moon],['Mars',sw.Planet.Mars],['Mercury',sw.Planet.Mercury],['Jupiter',sw.Planet.Jupiter],['Venus',sw.Planet.Venus],['Saturn',sw.Planet.Saturn],['Rahu',sw.LunarPoint.MeanNode]];
   const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);return {name,longitude:mod(p.longitude),speed:p.longitudeSpeed};});
   const rahu=positions.find(p=>p.name==='Rahu')!;
