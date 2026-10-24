@@ -1104,3 +1104,10 @@
 @media(max-width:940px){.gp-calendar-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.gp-grid{gap:14px}}
 @media(max-width:720px){.gp-layout{padding:15px;gap:15px}.gp-hero{min-height:210px}.gp-hero-ornament{width:72px;height:72px}.gp-hero-ornament>svg:first-child{width:65px}.gp-grid,.gp-settings-fields{grid-template-columns:1fr}.gp-calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gp-panel{padding:17px}.gp-form-inline{align-items:stretch}.gp-form-inline>.gp-button{width:100%}.gp-calendar-day{min-height:100px}.gp-interests{gap:6px}.gp-interests label{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.gp-layout *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+.gp-planet-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:17px}
+.gp-planet-highlights>div{display:flex;flex-direction:column;gap:4px;padding:11px;border:1px solid #57647c;border-radius:10px;background:#09192e}
+.gp-planet-highlights strong{color:#efd3a1;font-size:12px}
+.gp-planet-highlights span{font-size:13px;color:#e1e8f2}
+.gp-event-tag{display:inline-block;border-radius:6px;border:1px solid #c9ac754d;background:#d1ac6530;color:#f5d9a4;font-size:10px;font-style:normal;line-height:1.4;padding:4px}
+@media(max-width:460px){.gp-planet-highlights{grid-template-columns:1fr}.gp-planet-highlights>div{flex-direction:row;align-items:center;justify-content:space-between}}

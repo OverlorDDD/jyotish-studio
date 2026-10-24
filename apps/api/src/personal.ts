@@ -127,12 +127,17 @@ export class PersonalController{
   const start=from||localToday(p.profile.currentTimeZone);
   if(!validLocalDay(start))throw new BadRequestException('Invalid YYYY-MM-DD');
   const dates=calendarDays(start,days==='30'?30:7);
-  if(!c?.verified||!c.lagnaSign||!c.moonSign)return {status:'no_verified_chart',dates,days:[],method:null};
+  if(!c?.verified||!c.lagnaSign||!c.moonSign)return {status:'no_verified_chart',dates,days:[],events:[],method:null};
+  const dateSet=new Set(dates);
+  const events=[
+   ...c.dasha.map(d=>({type:'MAHADASHA_START',lord:d.lord,atUtc:d.start,date:localToday(p.profile.currentTimeZone,new Date(d.start))})),
+   ...c.dasha.flatMap(d=>(d.antardashas||[]).map(a=>({type:'ANTARDASHA_START',lord:a.lord,atUtc:a.start,date:localToday(p.profile.currentTimeZone,new Date(a.start))})))
+  ].filter(e=>dateSet.has(e.date)).sort((a,b)=>a.atUtc.localeCompare(b.atUtc));
   const out:Awaited<ReturnType<typeof dailyTransit>>[]=[];
   for(let i=0;i<dates.length;i+=3){
    out.push(...await Promise.all(dates.slice(i,i+3).map(day=>dailyTransit(day,p.profile.currentTimeZone,c.lagnaSign!,c.moonSign!))));
   }
-  return {status:'available',dates,days:out,method:out[0]?.method};
+  return {status:'available',dates,days:out,events,method:out[0]?.method};
  }
  @Get('practices') @Header('Cache-Control','private, no-store')
  async practices(@Req()req:IncomingMessage){

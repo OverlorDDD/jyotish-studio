@@ -9,6 +9,7 @@ const PersonalJournal=dynamic(()=>import('../PersonalJournal'),{loading:()=>null
 type ChartSummary={id:string;createdAt:string;date:string;place:string;verified:boolean;lagnaSign:number|null;lagnaName:string;moonSign:number|null};
 type Transit={date:string;sampledAtUtc:string;timeZone:string;method:string;moon:{sign:number;nakshatra:string;pada:number;houseFromLagna:number;houseFromMoon:number};planets:{name:string;sign:number;houseFromLagna:number;houseFromMoon:number}[]};
 type Day={date:string;moon:Transit['moon'];sampledAtUtc:string};
+type TimelineEvent={type:'MAHADASHA_START'|'ANTARDASHA_START';lord:string;atUtc:string;date:string};
 type Overview={
  profile:{primaryChartId:string|null;currentTimeZone:string;preferredLocale:string;favoritePractice:string;newsTopics:string[]};
  charts:ChartSummary[];selected:ChartSummary|null;suggestedChartId:string|null;staleSelectedChart:boolean;
@@ -73,7 +74,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
  const [overview,setOverview]=useState<Overview|null>(null),[loaded,setLoaded]=useState(false),[signedOut,setSignedOut]=useState(false);
  const [message,setMessage]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [chartChoice,setChartChoice]=useState(''),[zone,setZone]=useState('UTC'),[practice,setPractice]=useState('box'),[topics,setTopics]=useState<string[]>([]);
- const [days,setDays]=useState<7|30>(7),[calendar,setCalendar]=useState<Day[]>([]),[calendarBusy,setCalendarBusy]=useState(false),[journalOpen,setJournalOpen]=useState(false);
+ const [days,setDays]=useState<7|30>(7),[calendar,setCalendar]=useState<Day[]>([]),[events,setEvents]=useState<TimelineEvent[]>([]),[calendarBusy,setCalendarBusy]=useState(false),[journalOpen,setJournalOpen]=useState(false);
  const refresh=useCallback(async()=>{
   setError('');setLoaded(false);
   try{
@@ -89,11 +90,11 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
  useEffect(()=>{void refresh();const onAuth=()=>{setOverview(null);setCalendar([]);void refresh();};window.addEventListener('galaxiora:auth-changed',onAuth);return()=>window.removeEventListener('galaxiora:auth-changed',onAuth);},[refresh]);
  useEffect(()=>{
   let active=true;
-  if(!overview?.selected?.verified){setCalendar([]);return;}
+  if(!overview?.selected?.verified){setCalendar([]);setEvents([]);return;}
   setCalendarBusy(true);setCalendar([]);
-  void api<{status:string;days:Day[]}>('/api/v1/personal/calendar?days='+days)
-   .then(value=>{if(active)setCalendar(value.days||[]);})
-   .catch(()=>{if(active)setCalendar([]);})
+  void api<{status:string;days:Day[];events:TimelineEvent[]}>('/api/v1/personal/calendar?days='+days)
+   .then(value=>{if(active){setCalendar(value.days||[]);setEvents(value.events||[]);}})
+   .catch(()=>{if(active){setCalendar([]);setEvents([]);}})
    .finally(()=>{if(active)setCalendarBusy(false);});
   return()=>{active=false;};
  },[overview?.profile.primaryChartId,overview?.profile.currentTimeZone,overview?.selected?.verified,days]);
@@ -151,7 +152,10 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      {highlight?<><strong className="gp-feature-name">{sign(highlight.moon.sign)}</strong>
       <p>{highlight.moon.nakshatra} · {uk?'пада':'pada'} {highlight.moon.pada}</p>
       <p className="gp-pill">{t.house}: {highlight.moon.houseFromLagna}</p>
-      <small>{t.method}</small></>:<p>{overview.transitStatus==='ephemeris_unavailable'?t.ephUnavailable:t.noTransit}</p>}
+      <small>{t.method}</small>
+      <div className="gp-planet-highlights">{highlight.planets.filter(p=>['Sun','Jupiter','Saturn'].includes(p.name)).map(p=>
+       <div key={p.name}><strong>{lord(p.name)}</strong><span>{sign(p.sign)}</span><small>{t.house}: {p.houseFromLagna}</small></div>)}</div>
+     </>:<p>{overview.transitStatus==='ephemeris_unavailable'?t.ephUnavailable:t.noTransit}</p>}
     </section>
    </div>
    <section className="gp-panel" data-testid="personal-calendar">
@@ -163,6 +167,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      <div className="gp-calendar-grid">{calendar.map(day=><div className="gp-calendar-day" key={day.date} title={t.method}>
       <small>{day.date.slice(5)}</small><MoonStar size={18}/><strong>{sign(day.moon.sign)}</strong>
       <span>{day.moon.nakshatra}</span>
+      {events.filter(e=>e.date===day.date).map((e,i)=><em className="gp-event-tag" key={e.type+i}>{e.type==='MAHADASHA_START'?(uk?'Махадаша':'Major period'):(uk?'Антардаша':'Subperiod')} · {lord(e.lord)}</em>)}
      </div>)}</div>}
     <p className="gp-microcopy">{t.method}</p>
    </section>
