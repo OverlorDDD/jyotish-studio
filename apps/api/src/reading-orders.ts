@@ -23,7 +23,7 @@ export class NewReadingDraftDto {
  @IsString() @Length(20,2000) context!:string;
  @ApiProperty({type:String,required:false})
  @IsOptional() @IsString() @MaxLength(140) timeframe?:string;
- @ApiProperty({type:Boolean,description:'Explicit consent to temporarily store personal precheckout draft'})
+ @ApiProperty({type:Boolean,description:'Explicit consent to save an owner-controlled private question or temporary draft'})
  @IsBoolean() privacyConsent!:boolean;
 }
 const allowDraft=createHourlyLimiter(80);
