@@ -5,7 +5,7 @@ import {readApiJson} from '../../../lib/api-response';
 import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
-import AccountPortal from '../../components/AccountPortal';
+const AccountPortal=dynamic(()=>import('../../components/AccountPortal'),{loading:()=>null});
 import NorthIndianChart from '../../components/NorthIndianChart';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';

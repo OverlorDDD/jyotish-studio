@@ -31,7 +31,9 @@ test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-
  assert.match(wrapper,/PortalShell/);
  assert.match(layout,/CHART_HOUSES/);
  assert.match(wrapper,/JyotishCalculator initialLang/);
- assert.match(old,/as-back-link/);
+ assert.match(old,/jy-section-nav/);
+ assert.doesNotMatch(old,/as-back-link|className="topbar"|className="lang-button"/);
+ assert.match(wrapper,/PortalShell/);
 });
 test('expert intake is never submitted to a fake API or payment system',()=>{
  const intake=code('apps/web/app/components/ReadingIntake.tsx');

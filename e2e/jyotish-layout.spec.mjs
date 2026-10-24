@@ -31,16 +31,16 @@ function fixture(lang){
   };
 }
 for(const lang of ['uk','en']){
- test('Jyotish '+lang+' keeps all chart labels inside the SVG and presents one reading document',async({page})=>{
+ test('Jyotish '+lang+' keeps all twelve sign cells inside their frame and presents one reading document',async({page})=>{
   await page.route('**/api/v1/charts/calculate',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(CHART)}));
   await page.route('**/api/v1/reports',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(fixture(lang))}));
   await page.goto('/'+lang+'/astrology/jyotish');
   await page.getByRole('button',{name:lang==='uk'?'Розрахувати карту':'Calculate birth chart'}).click();
-  const mainChart=page.locator('.jy-primary-chart .jy-north-chart');
+  const mainChart=page.locator('.jy-primary-chart .jy-south-chart');
   await expect(mainChart).toBeVisible();
-  await expect(mainChart.locator('.jy-chart-house')).toHaveCount(12);
+  await expect(mainChart.locator('.jy-south-sign')).toHaveCount(12);
   for(const view of ['d1','d9','d10']){
    await page.getByRole('button',{name:view.toUpperCase(),exact:true}).click();
    const varga=page.locator('.jy-varga-chart .jy-north-chart');

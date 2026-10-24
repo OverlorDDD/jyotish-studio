@@ -99,3 +99,20 @@ test('A5 SEO and 360px layout: hubs and all lesson/practice details indexed with
  const notFound=await request.get('/uk/yoga/unknown-program');
  expect(notFound.status()).toBe(404);
 });
+
+test('Breathing modes can switch while running without overlapping clocks',async({page})=>{
+ await page.goto('/uk/yoga');
+ await page.getByTestId('pattern-box').click();
+ await page.getByTestId('breath-start').click();
+ await expect(page.getByRole('button',{name:'Пауза',exact:true})).toBeVisible();
+ await page.getByTestId('pattern-equal').click();
+ await expect(page.getByTestId('pattern-equal')).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByTestId('pattern-box')).toHaveAttribute('aria-pressed','false');
+ await expect(page.getByTestId('breath-start')).toBeVisible();
+ await expect(page.getByRole('timer')).not.toHaveText('00:00');
+ await page.getByTestId('breath-start').click();
+ await expect(page.getByRole('button',{name:'Пауза',exact:true})).toBeVisible();
+ await page.getByTestId('pattern-extended').click();
+ await expect(page.getByTestId('breath-start')).toBeVisible();
+ await expect(page.getByTestId('breathing-square')).toHaveAttribute('data-phase','inhale');
+});
