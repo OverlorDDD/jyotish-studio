@@ -41,6 +41,7 @@ model User {
  subscriptionEndsAt DateTime?
  editorialCreated EditorialEntry[] @relation("EditorialCreator")
  readingDrafts ReadingDraft[]
+ tarotQuestions TarotQuestion[]
  tarotReadings TarotReading[]
  journalEntries PersonalJournalEntry[]
  roleChangesAsTarget RoleChange[] @relation("RoleChangeTarget")
@@ -130,6 +131,22 @@ model ReadingDraft {
  consentAt DateTime
  @@index([customerId,createdAt])
  @@index([expiresAt])
+}
+
+/** Authenticated person's private Tarot questions, independent of any checkout or work order.
+ * The question stays until the owner deletes it. No expert access is implied.
+ */
+model TarotQuestion {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ topic String
+ question String @db.Text
+ context String @db.Text
+ timeframe String? @db.VarChar(140)
+ consentAt DateTime
+ @@index([userId,createdAt])
 }
 
 /** Audit trail of permissions changed through authenticated admin API. */
