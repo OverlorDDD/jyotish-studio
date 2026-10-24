@@ -23,7 +23,7 @@ export default function ExpertOffer({locale}:{locale:PortalLocale}){
    <ol>
     <li>{uk?'Сформулюй питання й коротко опиши ситуацію':'Submit your question and the relevant context'}</li>
     <li>{uk?'Збережеш запитання у своєму особистому кабінеті':'Keep your question in your personal account'}</li>
-    <li>{uk?'Доступ до живого таролога з'явиться після окремого запуску консультацій':'Consultations will become available when the human-reader service launches'}</li>
+    <li>{uk?'Доступ до живого таролога зʼявиться після окремого запуску консультацій':'Consultations will become available when the human-reader service launches'}</li>
     <li>{uk?'Експертка виконає розклад і передасть приватне відео':'Your reader records and privately delivers your video'}</li>
    </ol>
    <p className="as-muted"><LockKeyhole size={15}/> {uk?'Запитання зберігаються приватно. Добровільна підтримка платформи не означає оплату або замовлення консультації.':'Checkout is not connected yet; currently you can only save a private draft.'}</p>
