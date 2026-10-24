@@ -48,6 +48,16 @@ jobs:
         run: python -m pip install pyswisseph
       - name: Unit tests
         run: npm run test:all
+      - name: JQA-3 numeric evidence report (NOT_CERTIFIED until genuine parity)
+        run: npm run jqa3:diagnose > "$RUNNER_TEMP/jqa3-numeric-report.json"
+      - name: Save per-chart numerical deviations as CI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jqa3-numeric-diagnostics
+          path: ${{ runner.temp }}/jqa3-numeric-report.json
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Full NestJS and Next.js production build
         run: npm run build
       - name: Swagger metadata and controller routes
