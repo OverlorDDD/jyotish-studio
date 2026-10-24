@@ -214,6 +214,42 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
    assert.equal(yoga.status,201,JSON.stringify(yoga.data).slice(0,450));
    assert.equal(yoga.data.document.safety,undefined);
   });
+  await t.test('A9.2 private journal and yoga progress enforce actual ownership, CSRF, deletion and persistence',async()=>{
+   const reading=(await request('/api/v1/tarot/readings',{cookie:a.cookie})).data.readings[0];
+   const chart=await prisma.chart.findFirst({where:{ownerId:a.id},select:{id:true}});
+   assert.ok(reading?.id&&chart?.id);
+   const endpoint='/api/v1/personal/journal';
+   const payload={kind:'TAROT',referenceId:reading.id,note:'  Мій власний запис після розкладу.  '};
+   assert.equal((await request(endpoint)).status,401);
+   assert.equal((await request(endpoint,{method:'PUT',cookie:a.cookie,origin:'https://evil.example',body:payload})).status,400);
+   assert.equal((await request(endpoint,{method:'PUT',cookie:b.cookie,origin:base,body:payload})).status,400);
+   const saved=await request(endpoint,{method:'PUT',cookie:a.cookie,origin:base,body:payload});
+   assert.equal(saved.status,200,JSON.stringify(saved.data));
+   assert.equal(saved.data.note,'Мій власний запис після розкладу.');
+   const same=await request(endpoint,{method:'PUT',cookie:a.cookie,origin:base,body:{...payload,note:'Новий текст'}});
+   assert.equal(same.status,200);assert.equal(same.data.id,saved.data.id);
+   assert.equal((await request(endpoint,{method:'PUT',cookie:a.cookie,origin:base,body:{...payload,note:'   '}})).status,400);
+   assert.equal((await request(endpoint,{method:'PUT',cookie:a.cookie,origin:base,body:{...payload,note:'x'.repeat(2001)}})).status,400);
+   const chartNote=await request(endpoint,{method:'PUT',cookie:a.cookie,origin:base,
+    body:{kind:'CHART',referenceId:chart.id,note:'Повернуся до цього трактування пізніше.'}});
+   assert.equal(chartNote.status,200,JSON.stringify(chartNote.data));
+   assert.equal((await request(endpoint,{cookie:b.cookie})).data.length,0);
+   const mine=await request(endpoint,{cookie:a.cookie});
+   assert.equal(mine.status,200);assert.equal(mine.data.length,2);
+   assert.equal((await request(endpoint+'/'+saved.data.id,{method:'DELETE',cookie:b.cookie,origin:base})).data.deleted,false);
+   assert.equal((await request(endpoint+'/'+saved.data.id,{method:'DELETE',cookie:a.cookie,origin:'https://evil.example'})).status,400);
+   assert.equal((await request(endpoint+'/'+saved.data.id,{method:'DELETE',cookie:a.cookie,origin:base})).data.deleted,true);
+   const practice='/api/v1/personal/practices';
+   assert.equal((await post(practice,{practiceSlug:'gentle-breath'},a.cookie,'https://evil.example')).status,400);
+   assert.equal((await post(practice,{practiceSlug:'fake-practice'},a.cookie)).status,400);
+   const completed=await post(practice,{practiceSlug:'gentle-breath'},a.cookie);
+   assert.equal(completed.status,201,JSON.stringify(completed.data));
+   assert.equal(completed.data.practiceSlug,'gentle-breath');
+   const duplicate=await post(practice,{practiceSlug:'gentle-breath'},a.cookie);
+   assert.equal(duplicate.status,201);assert.equal(duplicate.data.idempotent,true);
+   assert.equal((await request(practice,{cookie:b.cookie})).data.length,0);
+   assert.equal((await request(practice,{cookie:a.cookie})).data.length,1);
+  });
   await t.test('logout clears browser cookie',async()=>{
    const out=await post('/api/v1/account/logout',{},b.cookie);
    assert.equal(out.status,201);assert.equal(out.cookie,'jyotish_session=');

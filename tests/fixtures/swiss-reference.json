@@ -1,6 +1,6 @@
 {
-  "source": "Swiss Ephemeris / PySwissEph; pinned LOCAL Swiss test vectors, not JHora. True ayanamsa (includes nutation) aligned with native JS; mean Rahu/Ketu.",
-  "method": "Sidereal FLG_SIDEREAL, Swiss true ayanamsa via get_ayanamsa_ex_ut, Placidus tropical ascendant minus same true ayanamsa.",
+  "source": "Swiss Ephemeris / PySwissEph, pinned LOCAL Swiss test vectors (NOT JHora). Mean Lahiri ayanamsa (NONUT), mean lunar nodes.",
+  "method": "Sidereal FLG_SIDEREAL; mean Lahiri with SEFLG_NONUT; Placidus tropical ascendant minus same mean ayanamsa. Version-corrected after 20 original JHora 8.0 exports exposed nutation mixing.",
   "toleranceDegrees": 0.0001,
   "cases": [
     {
@@ -10,8 +10,8 @@
       "latitude": 28.6139,
       "longitude": 77.209,
       "utc": "2000-01-01T06:30:00Z",
-      "ayanamsa": 23.8532135057568,
-      "ascendant": 343.189124024,
+      "ayanamsa": 23.85708358929668,
+      "ascendant": 343.1852539407908,
       "positions": {
         "Sun": 256.282088628,
         "Moon": 196.71168769,
@@ -31,8 +31,8 @@
       "latitude": 51.5074,
       "longitude": -0.1278,
       "utc": "2012-06-15T08:30:00Z",
-      "ayanamsa": 24.035305859673947,
-      "ascendant": 114.858921693,
+      "ayanamsa": 24.03106671489985,
+      "ascendant": 114.86316083737321,
       "positions": {
         "Sun": 60.606941924,
         "Moon": 13.902425163,
@@ -52,8 +52,8 @@
       "latitude": 50.4501,
       "longitude": 30.5234,
       "utc": "2024-02-29T14:45:00Z",
-      "ayanamsa": 24.193382960430164,
-      "ascendant": 127.80407021,
+      "ayanamsa": 24.194624209538063,
+      "ascendant": 127.80282896052955,
       "positions": {
         "Sun": 316.309261666,
         "Moon": 191.62119524,

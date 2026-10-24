@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {loadCorpus,verifyReference,verifyPinnedTextBlob,auditCorpus,parseIni,BODIES,normalizeJHoraClock} from './jqa3-corpus.mjs';
+import {loadCorpus,verifyReference,verifyPinnedTextBlob,auditCorpus,parseIni,BODIES,normalizeJHoraClock,hasComparableAstronomyProfile} from './jqa3-corpus.mjs';
 import {readFileSync} from 'node:fs';
 
 test('pinned third-party JHora source remains byte-for-byte unchanged',()=>{
@@ -72,4 +72,22 @@ test('JHora genuine midnight clock 0:20:00 equals ISO 00:20:00, but different ho
  assert.notEqual(normalizeJHoraClock('1:05:00'),normalizeJHoraClock('01:06:00'));
  assert.throws(()=>normalizeJHoraClock('25:20:00'),/Invalid JHora wall-clock time/);
  assert.throws(()=>normalizeJHoraClock('1:20'),/Invalid JHora clock representation/);
+});
+
+test('twenty genuine JHora INIs allow astronomy comparison but not unverified dasha-year certification',()=>{
+ const m=loadCorpus();
+ const recorded=m.records.filter(x=>x.hasOriginalJHoraIni);
+ assert.equal(recorded.length,20,'exact authentic JHora batch');
+ assert.equal(new Set(recorded.map(x=>x.id)).size,20);
+ for(const record of recorded){
+  const original=verifyReference(record);
+  assert.equal(original.independentSource.capture?.profile?.dashaYearVerified,false);
+  assert.equal(hasComparableAstronomyProfile(record,original),true);
+ }
+ const audit=auditCorpus({verifyAstronomy:false});
+ assert.equal(audit.astronomicalProfileMatchedCharts,20,'original INI astronomical flags match');
+ assert.equal(audit.explicitlyMatchedCharts,0,'full JHora method attestation remains incomplete');
+ assert.equal(audit.distinctLagnaSigns,12);
+ assert.equal(audit.status,'NOT_CERTIFIED');
+ assert.ok(audit.blockingConditions.includes('INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES'));
 });

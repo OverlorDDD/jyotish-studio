@@ -113,15 +113,21 @@ export function verifyReference(record){
  }else assert.equal(record.configAssertion,'INFERRED_NOT_CERTIFIED');
  return ref;
 }
-function hasComparableProfile(record,ref){
- // A source file with an inferred INI is never evidence for a matched calculation.
+export function hasComparableAstronomyProfile(record,ref){
+ // Original INI is required; match the astronomical flags independently
+ // from Vimshottari's YEAR selection. Missing dasha-year attestation MUST
+ // NOT suppress observed D1/D9/D10 differences or apparent longitude drift.
  if(!record.hasOriginalJHoraIni||record.configAssertion!=='EXPLICIT_CAPTURED_INI')return false;
  const p=ref.independentSource.capture?.profile;
  return Boolean(p && p.ayanamsa==='SWISS_TRADITIONAL_LAHIRI'
  && p.nodes==='MEAN' && p.positions==='APPARENT' && p.observer==='GEOCENTRIC'
  && p.nutation==='ON' && p.aberration==='ON' && p.deflection==='ON'
- && p.d10==='1-9' && p.dashaYearDays===365.2425
- && p.dashaYearVerified===true && p.ephemeris==='SWISS');
+ && p.d10==='1-9' && p.ephemeris==='SWISS');
+}
+function hasComparableProfile(record,ref){
+ const p=ref.independentSource.capture?.profile;
+ return hasComparableAstronomyProfile(record,ref) &&
+  p?.dashaYearDays===365.2425 && p?.dashaYearVerified===true;
 }
 function calcCurrent(ref){
  // GitHub Windows installs Python through setup-python while the py.exe launcher
@@ -205,9 +211,12 @@ function compare(ref,observed,comparable,speeds){
  }
  result.dasha={
   matches:dashaMatches,total:dashaRef.length,antardashaMatches:subMatches,antardashaTotal:subTotal,
-  status:comparable&&dashaRef.length===9&&subTotal===81?(dashaMatches===9&&subMatches===81?'PASS':'FAIL'):'UNVERIFIED'
+  status:comparable&&ref.independentSource.capture?.profile?.dashaYearVerified===true
+   &&ref.independentSource.capture?.profile?.dashaYearDays===365.2425
+   &&dashaRef.length===9&&subTotal===81
+   ?(dashaMatches===9&&subMatches===81?'PASS':'FAIL'):'UNVERIFIED'
  };
- result.profile=comparable?'MATCHED_EXPLICIT_INI':'UNMATCHED_OR_NOT_ATTESTED';
+ result.profile=comparable?'MATCHED_ASTRONOMICAL_INI':'UNMATCHED_OR_NOT_ATTESTED';
  result.precision='1 arcsec where reference source reports hundredths of arcsecond';
  result.details=values.map(v=>({body:v.name,jhoraLongitude:v.reference.longitude,galaxioraLongitude:v.computed,
   arcseconds:+deltaArcsec(v.computed,v.reference.longitude).toFixed(4)}));
@@ -221,10 +230,13 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   const unique=ref.civilTime.birthUtc+'|'+ref.civilTime.latitude+'|'+ref.civilTime.longitude;
   assert.ok(!distinct.has(unique),'Repeated birth event does not count as independent second chart: '+record.id);
   distinct.add(unique);
-  const comparable=hasComparableProfile(record,ref);
+  const comparable=hasComparableAstronomyProfile(record,ref);
+  const fullyMatched=hasComparableProfile(record,ref);
   const calc=verifyAstronomy?calcCurrent(ref):null;
   const comparison=calc?compare(ref,calc.positions,comparable,calc.speeds):null;
-  results.push({id:record.id,provenance:'PINNED_THIRD_PARTY_RECORD',profileStatus:comparable?'EXPLICIT_MATCH':'UNVERIFIED',
+  results.push({id:record.id,provenance:'PINNED_THIRD_PARTY_RECORD',
+  profileStatus:fullyMatched?'EXPLICIT_MATCH':'UNVERIFIED',
+  astronomicalProfileStatus:comparable?'EXPLICIT_ASTRONOMY_INI':'UNVERIFIED',
     evidenceStatus:record.hasOriginalJHoraIni?'CAPTURE_EVIDENCE_PRESENT':'ORIGINAL_INI_MISSING',
     result:comparison});
  }
@@ -232,7 +244,8 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
  const required=minimum??manifest.minIndependentForCertification;
  const fullyPassed=count>=required&&matched>=required&&lagnaSigns.size===12&&results.every(x=>
   ['D1','D9','D10','longitude','dasha','nakshatra','pada','retrograde','houseLords'].every(k=>x.result?.[k]?.status==='PASS'));
- return {stage:'JQA-3',independentJHoraCharts:count,explicitlyMatchedCharts:matched,required,
+ return {stage:'JQA-3',independentJHoraCharts:count,explicitlyMatchedCharts:matched,
+  astronomicalProfileMatchedCharts:results.filter(x=>x.astronomicalProfileStatus==='EXPLICIT_ASTRONOMY_INI').length,required,
   distinctLagnaSigns:lagnaSigns.size,requiredLagnaSigns:12,
   status:fullyPassed?'CERTIFIED':'NOT_CERTIFIED',results,blockingConditions:[
    ...(count<required?['INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS']:[]),

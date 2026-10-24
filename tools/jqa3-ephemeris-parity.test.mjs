@@ -11,7 +11,7 @@ const cases=[
  {date:'2000-07-15',time:'21:05',timeZone:'Etc/UTC',latitude:28.6139,longitude:77.209},
  {date:'2026-10-23',time:'11:00',timeZone:'Etc/UTC',latitude:-33.8688,longitude:151.2093}
 ];
-test('Python Swiss fallback reports the ACTUAL true ayanamsa used for sidereal ascendant and planets',async()=>{
+test('Python Swiss fallback reports the actual mean Lahiri ayanamsa used for sidereal ascendant and planets',async()=>{
  const py=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
  const script=resolve('tools/swiss_ephemeris.py');
  for(const input of cases){
@@ -24,7 +24,7 @@ test('Python Swiss fallback reports the ACTUAL true ayanamsa used for sidereal a
   const p=JSON.parse(cp.stdout);
   const helper=spawnSync(py,[...(py==='py'?['-3']:[]),'-c',`import swisseph as s,json,sys
 p=json.load(sys.stdin); jd=p['jd']; s.set_sid_mode(s.SIDM_LAHIRI)
-ayan=s.get_ayanamsa_ex_ut(jd,s.FLG_SWIEPH)[1]
+ayan=s.get_ayanamsa_ex_ut(jd,s.FLG_SWIEPH|s.FLG_NONUT)[1]
 trop=s.houses(jd,p['latitude'],p['longitude'],b'P')[1][0]
 print(json.dumps({'ayanamsa':ayan,'ascendant':(trop-ayan)%360}))
 `],{input:JSON.stringify({jd:p.julianDay,latitude:input.latitude,longitude:input.longitude}),encoding:'utf8',timeout:12000});

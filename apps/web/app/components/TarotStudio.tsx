@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {RefreshCcw,Sparkles,History,LockKeyhole} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
 import TarotCardArt from './TarotCardArt';
+import JournalNoteEditor from './JournalNoteEditor';
 import GlossaryText from './GlossaryText';
 import type {PortalLocale} from '../../lib/brand';
 
@@ -119,6 +120,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
       (uk?'AI-інтерпретація за згодою користувача · модель: ':'AI interpretation with your consent · model: ')+reading.aiReading?.model:
       (uk?'Авторська сценарна інтерпретація без AI. Події — можливі символічні сценарії, а не гарантоване майбутнє.':'Original rule-based reading without AI. Scenarios are symbolic possibilities, not known future events.')}
     </p>
+    <JournalNoteEditor key={reading.id} referenceId={reading.id} kind="TAROT" locale={locale}/>
     <a href="#human-readings" className="as-button as-button-secondary">{uk?'Замовити персональне відео у живої експертки':'Get a personal video from a human reader'}</a>
    </article>}
 
