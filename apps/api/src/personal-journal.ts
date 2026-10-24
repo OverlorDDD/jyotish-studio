@@ -1,6 +1,6 @@
 /** A9.2 small private continuity API. No AI transport and no anonymous storage. */
 import {
- BadRequestException,Body,Controller,Delete,Get,HttpException,HttpStatus,Param,Post,Put,Req,UnauthorizedException,
+ BadRequestException,Body,Controller,Delete,Get,Inject,HttpException,HttpStatus,Param,Post,Put,Req,UnauthorizedException,
 } from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsIn,IsString,Length,MaxLength} from 'class-validator';
@@ -31,7 +31,7 @@ function ensureOrigin(req:IncomingMessage){
 @ApiTags('Personal Journal')
 @Controller('api/v1/personal')
 export class PersonalJournalController{
- constructor(private readonly prisma:PrismaService){}
+ constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
  @Get('journal')
  list(@Req()req:IncomingMessage){
   const ownerId=signedIn(req);
