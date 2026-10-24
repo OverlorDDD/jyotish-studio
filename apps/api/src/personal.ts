@@ -58,7 +58,7 @@ export class PersonalController{
   const selected=chartFacts(source);
   return {profile:{primaryChartId:selected?.id||null,currentTimeZone:record?.currentTimeZone||'UTC',
    preferredLocale:record?.preferredLocale||'uk',favoritePractice:record?.favoritePractice||'box',newsTopics:record?.newsTopics||[]},
-   charts:charts.map(({dasha,...c})=>c),suggestedChartId:!record?.primaryChartId&&charts.length===1?charts[0].id:null,
+   charts,suggestedChartId:!record?.primaryChartId&&charts.length===1?charts[0].id:null,
    selected,staleSelectedChart:Boolean(record?.primaryChartId&&!selected)};
  }
  @Get('profile') @Header('Cache-Control','private, no-store')
