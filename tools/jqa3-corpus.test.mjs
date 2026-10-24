@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {loadCorpus,verifyReference,verifyPinnedTextBlob,auditCorpus,parseIni,BODIES,normalizeJHoraClock} from './jqa3-corpus.mjs';
+import {loadCorpus,verifyReference,verifyPinnedTextBlob,auditCorpus,parseIni,BODIES,normalizeJHoraClock,withinOneArcsecond} from './jqa3-corpus.mjs';
 import {readFileSync} from 'node:fs';
 
 test('pinned third-party JHora source remains byte-for-byte unchanged',()=>{
@@ -109,4 +109,12 @@ test('date precision and D1/D9/D10 sign accuracy have independent certification 
  assert.ok(!a.blockingConditions.includes('INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES'));
  assert.equal(a.explicitlyMatchedCharts,20);
  assert.equal(a.results[0].profileStatus,'UNVERIFIED','the Gandhi missing-INI reference stays diagnostic');
+});
+
+test('one-arcsecond acceptance rejects a displayed 1.0000 rounded from 1.00004; wrap remains circular',()=>{
+ const base=15;
+ assert.equal(withinOneArcsecond(base,base+0.99996/3600),true);
+ assert.equal(withinOneArcsecond(base,base+1.00004/3600),false);
+ assert.equal(withinOneArcsecond(359.9999,0.0001),true);
+ assert.equal(withinOneArcsecond(359.9999,0.0003),false);
 });
