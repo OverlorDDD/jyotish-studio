@@ -249,7 +249,7 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
   const comparison=calc?compare(ref,calc.positions,comparable,calc.speeds):null;
   if(comparison&&record.hasOriginalJHoraIni){
    const rawIni=readFileSync(withinRoot(record.captureDir+'/jhora.ini'),'utf8');
-   const definition=rawIni.match(/^YearDefinition=0\\s+(\\d+)$/m);
+   const definition=rawIni.match(/^YearDefinition=0\s+(\d+)$/m);
    // JHora separately records YearDefinition=0 3 and YearLength=0 365.242500.
    // The *latter* is not proof of the selected definition's numerical duration.
    // Retain the original code without inventing a mapping of option 3.
