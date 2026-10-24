@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {Trash2} from 'lucide-react';
+import PersonalHistory from './PersonalHistory';
 import {readApiJson} from '../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../lib/brand';
 type User={id:string;email:string;role:string;subscription:{tier:'FREE'|'PREMIUM';currentPeriodEnd:string|null}};
@@ -52,6 +53,7 @@ export default function AccountDashboard({locale}:{locale:PortalLocale}){
      <button type="button" disabled={busy} onClick={()=>removeDraft(d.id)} aria-label={uk?'Видалити чернетку':'Delete draft'}><Trash2 size={18}/></button>
     </article>):<p className="as-muted">{uk?'Чернеток поки немає.':'No drafts yet.'}</p>}
     <Link className="as-button as-button-secondary" href={portalPath(locale,'tarot')+'#human-readings'}>{uk?'Створити питання для експертки':'Ask a human reader'}</Link>
+    <PersonalHistory locale={locale}/>
     {error&&<p role="alert" className="as-account-error">{error}</p>}
    </div>}
  </section>;
