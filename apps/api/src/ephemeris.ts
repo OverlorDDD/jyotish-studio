@@ -14,10 +14,13 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   const jd=sw.julianDay(date.getUTCFullYear(),date.getUTCMonth()+1,date.getUTCDate(),hour);
   sw.setSiderealMode(sw.SiderealMode.Lahiri);
   const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536; // SEFLG_SIDEREAL, upstream numeric flag
-  const ayanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris);
+  // Original JHora INI uses mean Lahiri. Without SEFLG_NONUT=64 the
+  // true ayanamsa introduces nutation (~18 arcseconds) into the tropical
+  // Ascendant while Swiss sidereal grahas use mean Lahiri.
+  const ayanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris|64);
   const houses=sw.calculateHouses(jd,input.latitude,input.longitude,sw.HouseSystem.Placidus);
-  // The Node wrapper exposes tropical houses; applying Lahiri yields a traditional
-  // sidereal ascendant accurate to a few arcseconds (vs houses_ex sidereal mode).
+  // Tropical Asc minus the same mean Lahiri used by planets avoids mixed
+  // nutation conventions; exact original-JHora residual remains in JQA3 audit.
   const ascendant=mod(houses.ascendant-ayanamsa);
   const bodies:[string,number][]=[['Sun',sw.Planet.Sun],['Moon',sw.Planet.Moon],['Mars',sw.Planet.Mars],['Mercury',sw.Planet.Mercury],['Jupiter',sw.Planet.Jupiter],['Venus',sw.Planet.Venus],['Saturn',sw.Planet.Saturn],['Rahu',sw.LunarPoint.MeanNode]];
   const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);return {name,longitude:mod(p.longitude),speed:p.longitudeSpeed};});
