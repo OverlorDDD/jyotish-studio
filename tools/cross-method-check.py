@@ -19,7 +19,11 @@ for case in cases:
         assert abs(difference)<0.006, (case['date'],name,difference)
         deviation=(direct[0]-case['positions'][name]+540)%360-180
         assert abs(deviation)<0.0001,(case['date'],name,'fixture mismatch')
-    houses,angles=swe.houses_ex(jd,case['latitude'],case['longitude'],b'P',flags=swe.FLG_SIDEREAL)
-    assert abs((angles[0]-case['ascendant']+540)%360-180)<0.0001
+    # JQA3 source-attested sidereal Lagna = tropical ascendant minus
+    # mean Lahiri. Swiss houses_ex(SIDEREAL) instead includes nutation in
+    # its internal ayanamsa, and is not equivalent to the JHora convention.
+    tropical_asc=swe.houses(jd,case['latitude'],case['longitude'],b'P')[1][0]
+    expected_asc=(tropical_asc-ayan)%360
+    assert abs((expected_asc-case['ascendant']+540)%360-180)<0.0001
     print(f"PASS {case['date']} sidereal vs tropical correction; ayanamsha={ayan:.6f}")
 print('PASS: Swiss cross-method checks; external JHora numeric comparison still required.')
