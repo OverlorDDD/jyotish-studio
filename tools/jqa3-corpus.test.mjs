@@ -56,6 +56,13 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
  assert.equal(report.signParityCertified,true);
  assert.equal(report.dashaSequenceCertified,true,'all original JHora mahadasha/antardasha lords must retain their order');
  assert.equal(report.precisionCertified,false);
+ assert.equal(report.lagnaLongitudeCertified,false,'JHora and Swiss ascendant differ beyond 1 arcsecond');
+ assert.equal(report.planetaryLongitudeCertified,false,'do not declare all nine graha precision matches');
+ assert.equal(report.bodyPrecision.Lagna.total,20);
+ assert.equal(report.bodyPrecision.Lagna.passing,0);
+ assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds>18,'show actual maximum arcsec mismatch');
+ for(const body of BODIES)assert.equal(report.bodyPrecision[body].total,20,'no silently dropped chart');
+
  assert.equal(report.explicitlyMatchedCharts,20);
  for(const item of report.results.slice(1)){
   assert.equal(item.profileStatus,'EXPLICIT_MATCH',item.id);
