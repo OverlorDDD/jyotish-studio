@@ -27,14 +27,15 @@ export default function AccountPortal({birth,report,lang,onOpenSaved}:{
   const res=await fetch('/api/v1/account/charts',{credentials:'same-origin',cache:'no-store'});
   setHistory(await readApiJson<SavedSummary[]>(res));
  }
- useEffect(()=>{
-  let canceled=false;
-  fetch('/api/v1/account/me',{credentials:'same-origin',cache:'no-store'})
-   .then(r=>readApiJson<{user:User|null}>(r))
-   .then(data=>{if(!canceled){setUser(data.user);setReady(true);}})
-   .catch(()=>{if(!canceled)setReady(true);});
-  return()=>{canceled=true};
- },[]);
+ // Avoid a second account API request during the first Jyotish render.
+ async function checkSession(){
+  setReady(false);setMessage('');
+  try{
+   const result=await readApiJson<{user:User|null}>(await fetch('/api/v1/account/me',{credentials:'same-origin',cache:'no-store'}));
+   setUser(result.user);
+  }catch{setUser(null);setMessage(uk?'Не вдалося перевірити сесію.':'Could not check your session.');}
+  finally{setReady(true);}
+ }
  // Deferred: only fetch saved charts after the user opens the account popover.
  useEffect(()=>{if(user&&open)loadHistory().catch(()=>setMessage(uk?'Не вдалося завантажити історію.':'Could not load history.'));else if(!user)setHistory([]);},[user?.id,open]);
  const safeError=(error:unknown)=>error instanceof Error?error.message:String(error);
@@ -96,7 +97,7 @@ export default function AccountPortal({birth,report,lang,onOpenSaved}:{
   finally{setWorking(false);}
  }
  return <div className="account-widget">
-  <button type="button" className="account-trigger" onClick={()=>setOpen(!open)} aria-expanded={open}>
+  <button type="button" className="account-trigger" onClick={()=>{if(!open)void checkSession();setOpen(!open);}} aria-expanded={open}>
    {user?<BookMarked size={16}/>:<UserRound size={16}/>}
    {user?(uk?'Збережені карти':'Saved charts'):(uk?'Зберегти карту':'Save a chart')}
   </button>
