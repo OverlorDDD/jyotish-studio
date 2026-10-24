@@ -1,4 +1,4 @@
-import {BadRequestException,ConflictException,Controller,Delete,Get,Post,Param,Body,Req,Res,Inject,HttpException,HttpStatus,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import {BadRequestException,ConflictException,Controller,Delete,Get,Post,Patch,Header,Query,Param,Body,Req,Res,Inject,HttpException,HttpStatus,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsEmail,IsIn,IsOptional,IsString,Length,MaxLength,Matches,IsUUID} from 'class-validator';
 import type {IncomingMessage,ServerResponse} from 'node:http';
@@ -26,6 +26,10 @@ export class JournalEntryDto{
  @IsOptional() @IsUUID() sourceId?:string;
  @IsString() @Length(1,120) title!:string;
  @IsString() @Length(1,2000) body!:string;
+}
+export class JournalEditDto {
+ @IsOptional() @IsString() @Length(1,120) title?:string;
+ @IsOptional() @IsString() @Length(1,2000) body?:string;
 }
 const allowJournalWrites=createKeyedHourlyLimiter(45);
 const allowAuthAttempt=createHourlyLimiter(60);
@@ -121,6 +125,35 @@ export class AccountController{
    select:{id:true,kind:true,sourceId:true,title:true,body:true,createdAt:true,updatedAt:true}
   });
  }
+ @Patch('journal/:id')
+ @Header('Cache-Control','private, no-store')
+ async updateJournal(@Param('id')entryId:string,@Body()body:JournalEditDto,@Req()req:IncomingMessage){
+  checkRequest(req);const userId=currentUser(req);
+  if(!allowJournalWrites(userId))throw new HttpException('Too many journal updates',HttpStatus.TOO_MANY_REQUESTS);
+  const title=body.title?.trim(),text=body.body?.trim();
+  if(title===undefined&&text===undefined)throw new BadRequestException('Provide title or body');
+  if(title!==undefined&&!title)throw new BadRequestException('Empty title');
+  if(text!==undefined&&!text)throw new BadRequestException('Empty body');
+  const updated=await this.prisma.personalJournalEntry.updateMany({
+   where:{id:entryId,userId},data:{...(title!==undefined?{title}:{}),...(text!==undefined?{body:text}:{})}
+  });
+  if(updated.count!==1)throw new UnauthorizedException('Entry not in your account');
+  return this.prisma.personalJournalEntry.findFirst({where:{id:entryId,userId},
+   select:{id:true,kind:true,sourceId:true,title:true,body:true,createdAt:true,updatedAt:true}});
+ }
+ @Get('journal/export')
+ @Header('Cache-Control','private, no-store')
+ async exportJournal(@Req()req:IncomingMessage,@Query('cursor')cursor?:string){
+  const userId=currentUser(req);
+  if(cursor&&!/^[a-z0-9-]{10,60}$/i.test(cursor))throw new BadRequestException('Invalid cursor');
+  const page=await this.prisma.personalJournalEntry.findMany({
+   where:{userId},orderBy:[{createdAt:'asc'},{id:'asc'}],take:501,
+   ...(cursor?{cursor:{id:cursor},skip:1}:{}),
+   select:{id:true,kind:true,sourceId:true,title:true,body:true,createdAt:true,updatedAt:true}
+  });
+  const entries=page.slice(0,500);
+  return {format:'galaxiora-journal-v1',entries,nextCursor:page.length>500?entries[entries.length-1]?.id:null};
+ }
  @Delete('journal/:id')
  async removeJournal(@Param('id')entryId:string,@Req()req:IncomingMessage){
   checkRequest(req);
@@ -159,6 +192,8 @@ for(const [method,types]of [
  ['me',[Object]],
  ['logout',[Object,Object]],
  ['journal',[Object]],
+ ['updateJournal',[String,JournalEditDto,Object]],
+ ['exportJournal',[Object,String]],
  ['addJournal',[JournalEntryDto,Object]],
  ['removeJournal',[String,Object]],
  ['charts',[Object]],
