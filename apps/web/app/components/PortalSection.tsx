@@ -39,8 +39,9 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
  if(section==='learn')return <AcademyHub locale={locale}/>;
  const t=SECTION_COPY[locale][section];
  const Icon=iconMap[section];
- const href=section==='astrology'?portalPath(locale,'astrology/jyotish'):section==='tarot'?'#human-readings':portalPath(locale,'tarot');
- const working=section==='astrology'||section==='tarot';
+ // The live modules returned above; remaining sections are informational.
+ const href=portalPath(locale,'tarot');
+ const working=false;
  return <PortalShell locale={locale} active={section}>
   <div className="as-subpage">
    <section className="as-subpage-intro">
