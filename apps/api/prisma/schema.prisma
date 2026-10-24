@@ -42,6 +42,8 @@ model User {
  editorialCreated EditorialEntry[] @relation("EditorialCreator")
  readingDrafts ReadingDraft[]
  tarotReadings TarotReading[]
+ journalEntries PersonalJournalEntry[]
+ practiceCompletions PracticeCompletion[]
  roleChangesAsTarget RoleChange[] @relation("RoleChangeTarget")
  roleChangesAsActor RoleChange[] @relation("RoleChangeActor")
  charts Chart[]
@@ -204,4 +206,28 @@ model EditorialVersion {
  createdAt DateTime @default(now())
  @@unique([entryId,revision])
  @@index([entryId,createdAt])
+}
+
+/** A9.2 private reflection; never submitted to an LLM or visible to another user. */
+model PersonalJournalEntry {
+ id String @id @default(uuid())
+ ownerId String
+ owner User @relation(fields:[ownerId],references:[id],onDelete:Cascade)
+ kind String @db.VarChar(16)
+ referenceId String @db.VarChar(120)
+ note String @db.VarChar(2000)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([ownerId,kind,referenceId])
+ @@index([ownerId,updatedAt])
+}
+
+/** A9.2 explicit voluntary completion, never inferred from reading guidance. */
+model PracticeCompletion {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ practiceSlug String @db.VarChar(80)
+ completedAt DateTime @default(now())
+ @@index([userId,completedAt])
 }
