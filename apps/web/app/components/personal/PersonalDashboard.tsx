@@ -11,11 +11,14 @@ type ChartSummary={id:string;createdAt:string;date:string;place:string;verified:
 type Transit={date:string;sampledAtUtc:string;timeZone:string;method:string;moon:{sign:number;nakshatra:string;pada:number;houseFromLagna:number|null;houseFromMoon:number|null};planets:{name:string;sign:number;houseFromLagna:number|null;houseFromMoon:number|null}[]};
 type Day={date:string;moon:Transit['moon'];sampledAtUtc:string};
 type TimelineEvent={type:'MAHADASHA_START'|'ANTARDASHA_START';lord:string;atUtc:string;date:string};
+type Localized={uk:string;en:string};
+type Guidance={headline:Localized;description:Localized;action:Localized;evidence:{kind:string;method:string;sampledAtUtc?:string;house?:number|null}};
+type WeekHighlight={date:string;kind:string;headline:Localized;summary:Localized;action:Localized;evidence:{method:string;sampledAtUtc?:string}};
 type Overview={
  profile:{primaryChartId:string|null;currentTimeZone:string;preferredLocale:string;favoritePractice:string;newsTopics:string[]};
  charts:ChartSummary[];selected:ChartSummary|null;suggestedChartId:string|null;staleSelectedChart:boolean;
  today:string;activeDasha:null|{lord:string;start:string;end:string;antardasha:null|{lord:string;start:string;end:string}};
- transit:Transit|null;transitStatus:string;
+ transit:Transit|null;transitStatus:string;journey?:{period:Guidance|null;daily:Guidance|null};
  recentTarot:{id:string;createdAt:string;spread:string;question:string|null}[];
  recentJournal:{id:string;kind:string;title:string;createdAt:string}[];
  recentPractices:{id:string;practiceId:string;durationSeconds:number;completedAt:string}[];
@@ -50,7 +53,14 @@ const copy={
   signedOut:'Увійди через кнопку у шапці, щоб відкрити свій персональний простір.',
   lastTarot:'Останній розклад',noTarot:'Ти ще не робив розкладів.',error:'Не вдалося завантажити Personal. Перевір API й повтори.',
   retry:'Повторити',moonSign:'Знак Місяця',house:'Дім від лагни',asof:'За календарем Galaxiora',
-  noDates:'Календар поки недоступний.',calendarLoading:'Обчислюємо положення планет…',calendarError:'Не вдалося отримати календар. Повтори запит.',general:'Загальні положення Місяця; персональні події з’являться після вибору основної карти.'},
+  path:'Мій астрологічний шлях',pathIntro:'Життєвий цикл і сьогоднішній ритм неба — дві опори для щоденної практики.',
+   pathPeriod:'Мій життєвий цикл',pathDaily:'Мій орієнтир на сьогодні',
+   pathMissing:'Обери перевірену основну натальну карту, щоб відкрити трактування твого періоду.',
+   pathDailyMissing:'Положення Місяця сьогодні тимчасово недоступне.',
+   advice:'Порада дня',reflect:'Записати спостереження',observe:'Традиційне тлумачення за астрологічними даними, не гарантія майбутніх подій.',
+   weekTitle:'Астрологічні акценти тижня',weekSub:'Зміни між полуденними спостереженнями та переходи даш.',
+   weekMissing:'Цього тижня нових акцентів не виявлено.',weeklyAction:'Що спробувати',
+   noDates:'Календар поки недоступний.',calendarLoading:'Обчислюємо положення планет…',calendarError:'Не вдалося отримати календар. Повтори запит.',general:'Загальні положення Місяця; персональні події з’являться після вибору основної карти.'},
  en:{title:'Your Universe. Your path.',intro:'Your private space for a birth chart, astrological cycles, Tarot and daily practices.',
   start:'Choose your primary birth chart',noChart:'Save a natal chart in GalaxiAstro first, then select it here. Charts for relatives and friends can stay separate.',
   newChart:'Create a birth chart',choose:'My primary chart',select:'Select a saved chart',save:'Save selection',current:'My astrological period',
@@ -72,7 +82,14 @@ const copy={
   signedOut:'Sign in using the header to access your private personal space.',
   lastTarot:'Most recent reading',noTarot:'No readings yet.',error:'Could not load Personal. Check your API connection and retry.',
   retry:'Retry',moonSign:'Moon sign',house:'House from Lagna',asof:'According to Galaxiora calendar',
-  noDates:'Calendar temporarily unavailable.',calendarLoading:'Calculating planetary positions…',calendarError:'Could not load the calendar. Please retry.',general:'General Moon positions; personal events appear after selecting a verified primary chart.'}
+  path:'My astrological path',pathIntro:'Your life cycle and the daily sky — two perspectives for meaningful practice.',
+   pathPeriod:'My life-cycle theme',pathDaily:'My orientation for today',
+   pathMissing:'Choose a verified primary birth chart to unlock your period interpretation.',
+   pathDailyMissing:'Today’s lunar positions are temporarily unavailable.',
+   advice:'Today’s suggestion',reflect:'Record an observation',observe:'A traditional interpretation grounded in astrological facts, not a guarantee of future events.',
+   weekTitle:'Astrological highlights of the week',weekSub:'Changes between noon observations and Dasha transitions.',
+   weekMissing:'No new highlighted transitions this week.',weeklyAction:'Something to try',
+   noDates:'Calendar temporarily unavailable.',calendarLoading:'Calculating planetary positions…',calendarError:'Could not load the calendar. Please retry.',general:'General Moon positions; personal events appear after selecting a verified primary chart.'}
 } as const;
 const api=async<T,>(url:string,init?:RequestInit)=>readApiJson<T>(await fetch(url,{credentials:'same-origin',cache:'no-store',...init}));
 const json=(body:unknown,method='PATCH'):RequestInit=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -81,7 +98,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
  const [overview,setOverview]=useState<Overview|null>(null),[loaded,setLoaded]=useState(false),[signedOut,setSignedOut]=useState(false);
  const [message,setMessage]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [chartChoice,setChartChoice]=useState(''),[zone,setZone]=useState('UTC'),[practice,setPractice]=useState('box'),[topics,setTopics]=useState<string[]>([]);
- const [days,setDays]=useState<7|30>(7),[calendar,setCalendar]=useState<Day[]>([]),[events,setEvents]=useState<TimelineEvent[]>([]),[calendarError,setCalendarError]=useState(''),[calendarStatus,setCalendarStatus]=useState(''),[calendarRetry,setCalendarRetry]=useState(0),[calendarBusy,setCalendarBusy]=useState(false),[journalOpen,setJournalOpen]=useState(false);
+ const [days,setDays]=useState<7|30>(7),[calendar,setCalendar]=useState<Day[]>([]),[events,setEvents]=useState<TimelineEvent[]>([]),[weekHighlights,setWeekHighlights]=useState<WeekHighlight[]>([]),[calendarError,setCalendarError]=useState(''),[calendarStatus,setCalendarStatus]=useState(''),[calendarRetry,setCalendarRetry]=useState(0),[calendarBusy,setCalendarBusy]=useState(false),[journalOpen,setJournalOpen]=useState(false);
  const refresh=useCallback(async()=>{
   setError('');setLoaded(false);
   try{
@@ -97,11 +114,11 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
  useEffect(()=>{void refresh();const onAuth=()=>{setOverview(null);setCalendar([]);void refresh();};window.addEventListener('galaxiora:auth-changed',onAuth);return()=>window.removeEventListener('galaxiora:auth-changed',onAuth);},[refresh]);
  useEffect(()=>{
   let active=true;
-  if(!overview){setCalendar([]);setEvents([]);setCalendarError('');return;}
+  if(!overview){setCalendar([]);setEvents([]);setWeekHighlights([]);setCalendarError('');return;}
   setCalendarBusy(true);setCalendar([]);setCalendarError('');
-  void api<{status:string;days:Day[];events:TimelineEvent[]}>('/api/v1/personal/calendar?days='+days)
-   .then(value=>{if(active){setCalendar(value.days||[]);setEvents(value.events||[]);setCalendarStatus(value.status);}})
-   .catch(()=>{if(active){setCalendar([]);setEvents([]);setCalendarError(t.calendarError);}})
+  void api<{status:string;days:Day[];events:TimelineEvent[];weekHighlights:WeekHighlight[]}>('/api/v1/personal/calendar?days='+days)
+   .then(value=>{if(active){setCalendar(value.days||[]);setEvents(value.events||[]);setWeekHighlights(value.weekHighlights||[]);setCalendarStatus(value.status);}})
+   .catch(()=>{if(active){setCalendar([]);setEvents([]);setWeekHighlights([]);setCalendarError(t.calendarError);}})
    .finally(()=>{if(active)setCalendarBusy(false);});
   return()=>{active=false;};
  },[overview?.profile.primaryChartId,overview?.profile.currentTimeZone,overview?.selected?.verified,overview?.selected?.recoveryStatus,overview?.today,days,calendarRetry,t.calendarError]);
