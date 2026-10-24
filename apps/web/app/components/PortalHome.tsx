@@ -6,7 +6,7 @@ import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 const COPY={
  en:{
   eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Explore the unseen.',emphasis:'Connect with your universe.',
-  intro:'Explore astrology, tarot, mindfulness and the wisdom of living traditions. Start with free tools, learn at your own pace, and connect with real practitioners when you want a personal perspective.',
+  intro:'Jyotish reveals the rhythms of destiny, Tarot speaks through symbols, and yoga brings you back to the power of breath. Explore your natal chart, draw the cards and find your practice today.',
   explore:'Explore the space',jyotish:'Open Vedic birth chart',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
   status:'Coming next',ready:'Available now',
   cards:[
@@ -17,12 +17,12 @@ const COPY={
    {slug:'news',icon:'news',title:'Daily cosmic news',description:'A future sourced editorial feed about astronomy, traditions and platform discoveries.',live:false},
    {slug:'community',icon:'community',title:'Community forum',description:'A future home for respectful discussion, experience sharing and questions.',live:false}
   ],
-  quote:'Grounded calculations. Human perspectives. Room for your own interpretation.',
+  quote:'The language of the stars, the wisdom of cards, a space for living practice.',
   disclaimer:'Our readings are reflective and educational, not medical, legal or financial advice.'
  },
  uk:{
   eyebrow:'GALAXIORA · ПРОСТІР КОСМІЧНОГО ПІЗНАННЯ',headline:'Досліджуй невидиме.',emphasis:'Відчуй зв’язок зі Всесвітом.',
-  intro:'Досліджуй астрологію, Таро, медитацію та духовні традиції. Починай із безкоштовних інструментів, навчайся у своєму ритмі й звертайся до реальних практиків за персональним поглядом.',
+  intro:'Джйотіш відкриває ритми долі, Таро говорить мовою символів, а йога повертає до сили дихання. Відкрий свою натальну карту, обери розклад і знайди практику, що відгукнеться саме сьогодні.',
   explore:'Дослідити платформу',jyotish:'Відкрити натальну карту Джйотіш',choose:'З чого почнеться твій шлях?',sectionSub:'Одна платформа, багато шляхів для навчання та рефлексії.',
   status:'Незабаром',ready:'Уже працює',
   cards:[
@@ -33,7 +33,7 @@ const COPY={
    {slug:'news',icon:'news',title:'Космічні новини',description:'Майбутня щоденна стрічка з достовірними джерелами та редакційними матеріалами.',live:false},
    {slug:'community',icon:'community',title:'Спільнота та форум',description:'Майбутній простір обговорень, досвіду, запитань та підтримки.',live:false}
   ],
-  quote:'Точні розрахунки. Людські погляди. Простір для власного розуміння.',
+  quote:'Мова зірок, мудрість карт і простір живої практики.',
   disclaimer:'Трактування призначені для рефлексії та навчання, не замінюють медичних, юридичних чи фінансових консультацій.'
  }
 } as const;
