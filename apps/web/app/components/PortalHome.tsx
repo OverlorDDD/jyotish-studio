@@ -65,7 +65,15 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
      <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{t.jyotish}</Link>
     </div>
    </div>
-   <div className="as-celestial as-celestial-vfx" aria-hidden="true"><div className="as-orbit as-orbit-outer"/><div className="as-orbit as-orbit-mid"/><div className="as-orbit as-orbit-inner"/><span>☉</span><i>☽</i><b className="as-orbit-planet as-orbit-planet-1"/><b className="as-orbit-planet as-orbit-planet-2"/></div>
+   <div className="as-celestial as-celestial-vfx" aria-hidden="true">
+    <span className="as-cosmic-core">☉</span>
+    <span className="as-orbit-ring as-orbit-ring-inner"/>
+    <span className="as-orbit-ring as-orbit-ring-mid"/>
+    <span className="as-orbit-ring as-orbit-ring-outer"/>
+    <span className="as-orbit-track as-track-inner"><i className="as-orbit-body as-planet-azure"/></span>
+    <span className="as-orbit-track as-track-mid"><i className="as-orbit-body as-planet-gold"/></span>
+    <span className="as-orbit-track as-track-outer"><i className="as-orbit-body as-moon-orb">☽</i></span>
+   </div>
   </section>
   <section className="as-section" id="explore">
    <div className="as-section-heading"><div><span className="as-overline">DISCOVER</span><h2>{t.choose}</h2><p>{t.sectionSub}</p></div></div>

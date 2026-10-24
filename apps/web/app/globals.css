@@ -987,3 +987,58 @@
 .as-journal-error{padding:10px;border:1px solid #89605b;border-radius:10px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .as-journal-error .as-button{width:auto}
 .jy-journal-link{display:inline-flex;margin:20px 0}
+
+/* A9 visual system: Jyotish lives in the same shell as all Galaxiora sections. */
+.as-shell .jy-portal-workbench{display:grid;grid-template-columns:minmax(190px,224px) minmax(0,1fr);gap:clamp(20px,3vw,40px);max-width:1440px;margin:0 auto;padding:30px clamp(18px,3vw,46px) 58px;background:transparent;min-height:0}
+.as-shell .jy-portal-workbench>.main{background:transparent;min-width:0;max-width:none;min-height:0}
+.as-shell .jy-portal-workbench>.main>.content{max-width:1150px;padding:0 0 38px;margin:0 auto}
+.as-shell .jy-portal-workbench>.jy-section-nav{position:sticky;top:105px;align-self:start;width:100%;height:auto;min-height:0;max-height:calc(100vh - 124px);overflow:auto;padding:23px 14px;border:1px solid #37455b;border-radius:15px;background:linear-gradient(160deg,#18263a,#101d2e);box-shadow:0 12px 44px #060e1a30}
+.as-shell .jy-portal-workbench .jy-section-nav .side-section{margin:0 12px 16px;color:#dfc592}
+.as-shell .jy-portal-workbench .jy-section-nav .side-nav{gap:6px}
+.as-shell .jy-portal-workbench .jy-section-nav .side-nav a{padding:12px 10px;border-radius:9px}
+.as-shell .jy-portal-workbench .jy-section-nav .side-bottom{margin-top:24px}
+.as-shell .jy-portal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #354258;margin-bottom:20px;color:#cfb789;font-size:11px;letter-spacing:.17em}
+.as-shell .jy-portal-toolbar b{color:#7f95ac;margin:0 13px}
+.as-shell .jy-portal-toolbar .account-trigger{border:1px solid #8f744e;background:#223249;color:#ead3a6;font-size:12px}
+.as-shell .jy-portal-workbench .jy-rashi-card,.as-shell .jy-portal-workbench .jy-data-workspace{border-color:#44536a;background:linear-gradient(145deg,#1b2a3f,#132033)}
+@media(max-width:900px){.as-shell .jy-portal-workbench{display:block;padding:14px 16px 32px}.as-shell .jy-portal-workbench>.jy-section-nav{position:relative;top:auto;max-height:none;overflow:visible;margin-bottom:16px;padding:12px}.as-shell .jy-portal-workbench .jy-section-nav .side-nav{display:flex;flex-wrap:wrap;gap:5px}.as-shell .jy-portal-workbench .jy-section-nav .side-section{margin:0 0 7px}.as-shell .jy-portal-workbench .jy-section-nav .side-bottom{display:none}}
+/* Retain original twelve-cell topology; use only the Galaxiora navy/gold visual language. */
+.as-shell .jy-south-chart{aspect-ratio:1.13;background:#0f1e32;color:#e7dfd2;border:1px solid #a78a58;box-shadow:inset 0 0 0 2px #23334a,0 22px 60px #060d1b88}
+.as-shell .jy-south-center{background:radial-gradient(ellipse at 50% 40%,#273750,#132136 76%);border:1px solid #4a5c73}
+.as-shell .jy-south-center strong{color:#e8bf7c;text-shadow:0 0 24px #bd904048}
+.as-shell .jy-south-center span{color:#a9b8cb}
+.as-shell .jy-south-sign{background:#142338;border-color:#35465c}
+.as-shell .jy-south-sign.jy-south-lagna{background:radial-gradient(ellipse at 42% 38%,#31405a,#1b2c42)}
+.as-shell .jy-south-name{color:#d4dfed}
+.as-shell .jy-south-symbol{color:#d8ac69}
+.as-shell .jy-south-house{background:#24344c;border-color:#967b54;color:#ebcd9f}
+.as-shell .jy-south-ascendant{color:#f2d49d;background:#4b3b26;border-color:#e7b75f}
+.as-shell .jy-south-planet{color:#f4ece0}
+.as-shell .jy-south-planet span{color:#aebed0}
+/* Full-width celestial stage; rotation of an orbital track is circular by construction. */
+.as-shell .as-cosmic-hero{max-width:none;width:100%;min-height:610px;border-radius:0;margin:0;background:radial-gradient(ellipse 50% 75% at 79% 44%,#39426d80,transparent 73%),radial-gradient(ellipse 60% 80% at 20% 85%,#6e4b7450,transparent 75%);box-shadow:none;isolation:isolate}
+.as-shell .as-cosmic-hero:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 76%,#111a2b 100%);z-index:0}
+.as-shell .as-cosmic-hero .as-hero-copy{z-index:3}
+.as-shell .as-cosmic-hero .as-constellation-field{background:transparent}
+.as-shell .as-cosmic-hero .as-celestial-vfx{width:min(40vw,470px);max-width:100%;aspect-ratio:1;z-index:2;filter:none;background:radial-gradient(circle,#ccac5e26 0%,#8891d21c 28%,transparent 67%);box-shadow:0 0 130px #6e68b532}
+.as-shell .as-cosmic-hero .as-celestial-vfx:before,.as-shell .as-cosmic-hero .as-celestial-vfx:after{display:none}
+.as-shell .as-cosmic-hero .as-cosmic-core{position:absolute;inset:0;display:grid;place-items:center;font:300 86px/1 Georgia,serif;color:#f0d39e;text-shadow:0 0 45px #ffdb817c;opacity:1}
+.as-orbit-ring,.as-orbit-track{position:absolute;display:block;border-radius:50%;transform-origin:center}
+.as-orbit-ring{border:1px solid #c6a97b55;pointer-events:none}
+.as-orbit-ring-inner{inset:30%;border-color:#9caed288}
+.as-orbit-ring-mid{inset:16%}
+.as-orbit-ring-outer{inset:2%;border-style:dashed;border-color:#bfa16b77}
+.as-orbit-track{border:0;inset:0;animation:galaxi-orbit 40s linear infinite;will-change:transform}
+.as-track-inner{inset:30%;animation-duration:18s}
+.as-track-mid{inset:16%;animation-duration:31s;animation-direction:reverse}
+.as-track-outer{inset:2%;animation-duration:47s}
+.as-orbit-body{position:absolute;display:block;left:50%;top:0;transform:translate(-50%,-50%);width:17px;height:17px;border-radius:50%;box-shadow:0 0 19px #d3ad75a9}
+.as-planet-azure{background:radial-gradient(circle at 32% 25%,#daecfc,#7b9ac8 60%,#354b85)}
+.as-planet-gold{width:21px;height:21px;background:radial-gradient(circle at 25% 26%,#ffe2a4,#d59a55 58%,#805438)}
+.as-moon-orb{width:35px;height:35px;background:transparent;box-shadow:none;color:#e8d5b0;font:34px/1 Georgia,serif;text-shadow:0 0 22px #d6b48d8c}
+@keyframes galaxi-orbit{to{transform:rotate(360deg)}}
+.as-cosmic-hero .as-stardust{animation:as-starlight 8s ease-in-out infinite alternate}
+@media(max-width:760px){.as-shell .as-cosmic-hero .as-celestial-vfx{width:min(67vw,300px)}.as-shell .as-cosmic-hero{min-height:540px;padding:40px 22px 55px}}
+@media(prefers-reduced-motion:reduce){.as-orbit-track{animation:none!important;will-change:auto}}
+.as-tarot-live-link{display:inline-flex;align-items:center;color:#eed4a4!important;max-width:34ch;font-size:13px;line-height:1.5;text-decoration:underline!important;text-underline-offset:4px}
+.as-tarot-live-link:hover{color:#ffe6b7!important}
