@@ -192,6 +192,28 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
       </>:<p>{overview.transitStatus==='ephemeris_unavailable'?t.ephUnavailable:t.noTransit}</p>}
     </section>
    </div>
+
+   <section className={[styles['gp-panel'],styles['gp-path']].join(' ')} data-testid="astrological-path" aria-label={t.path}>
+    <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>YOUR COSMIC PATH</span><h2>{t.path}</h2><p>{t.pathIntro}</p></div><Orbit size={30}/></div>
+    <div className={styles['gp-path-grid']}>
+     <article className={styles['gp-path-article']} data-testid="journey-period">
+      <span className={styles['gp-eyebrow']}>VIMSHOTTARI · {t.pathPeriod}</span>
+      {overview.journey?.period?<><h3>{overview.journey.period.headline[locale]}</h3>
+       <p>{overview.journey.period.description[locale]}</p>
+       <div className={styles['gp-advice']}><span>{t.weeklyAction}</span><p>{overview.journey.period.action[locale]}</p></div>
+       <small>{uk?'Основа: натальна карта, доми та даша Galaxiora.':'Basis: natal houses and the Galaxiora Dasha.'}</small>
+      </>:<p>{t.pathMissing}</p>}
+     </article>
+     <article className={styles['gp-path-article']} data-testid="journey-daily">
+      <span className={styles['gp-eyebrow']}>GOCHARA · {overview.today}</span>
+      <h3>{overview.journey?.daily?.headline[locale]||t.pathDaily}</h3>
+      <p>{overview.journey?.daily?.description[locale]||t.pathDailyMissing}</p>
+      {overview.journey?.daily&&<div className={styles['gp-advice']} data-testid="daily-advice"><span>{t.advice}</span><p>{overview.journey.daily.action[locale]}</p></div>}
+      <a href="#personal-journal" className={styles['gp-text-link']} onClick={()=>setJournalOpen(true)}>{t.reflect} <ArrowRight size={15}/></a>
+     </article>
+    </div>
+    <p className={styles['gp-microcopy']}>{t.observe}</p>
+   </section>
    <section className={styles['gp-panel']} data-testid="personal-calendar">
     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>LUNAR PATH</span><h2>{t.calendar}</h2></div><CalendarDays size={26}/></div>
     <div className={styles['gp-tabs']} role="group" aria-label={t.calendar}>
@@ -203,6 +225,14 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
       <span>{day.moon.nakshatra}</span>
       {events.filter(e=>e.date===day.date).map((e,i)=><em className={styles['gp-event-tag']} key={e.type+i}>{e.type==='MAHADASHA_START'?(uk?'Махадаша':'Major period'):(uk?'Антардаша':'Subperiod')} · {lord(e.lord)}</em>)}
      </div>)}</div>}
+
+    {!calendarBusy&&!calendarError&&calendar.length>0&&<section className={styles['gp-week-section']} data-testid="week-highlights" aria-label={t.weekTitle}>
+     <div className={styles['gp-week-heading']}><h3>{t.weekTitle}</h3><small>{t.weekSub}</small></div>
+     {weekHighlights.length?<ol className={styles['gp-week-list']}>{weekHighlights.map((h,i)=><li key={h.date+h.kind+i}>
+      <time dateTime={h.date}>{h.date.slice(5)}</time><div><strong>{h.headline[locale]}</strong><p>{h.summary[locale]}</p>
+      <small><b>{t.weeklyAction}: </b>{h.action[locale]}</small></div>
+     </li>)}</ol>:<p>{t.weekMissing}</p>}
+    </section>}
     <p className={styles['gp-microcopy']}>{calendarStatus==='general'?t.general:t.method}</p>
    </section>
    <div className={styles['gp-grid']}>
@@ -223,7 +253,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      <Link href={portalPath(locale,'yoga/gentle-breath')} className={styles['gp-text-link']}>{t.practiceAction} <ArrowRight size={14}/></Link>
     </section>
    </div>
-   <section className={[styles['gp-panel'],styles['gp-journal-preview']].join(' ')}>
+   <section id="personal-journal" className={[styles['gp-panel'],styles['gp-journal-preview']].join(' ')}>
     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>REFLECTION</span><h2>{t.journal}</h2></div><BookOpen size={26}/></div>
     <p>{overview.recentJournal.length?overview.recentJournal.map(x=>x.title).join(' · '):(uk?'Перший запис може початися сьогодні.':'Your first entry can begin today.')}</p>
     <button type="button" className={styles['gp-button']} onClick={()=>setJournalOpen(v=>!v)} aria-expanded={journalOpen}>
