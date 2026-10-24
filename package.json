@@ -90,7 +90,8 @@
     "jqa3:audit": "node --experimental-strip-types tools/jqa3-corpus.mjs audit",
     "jqa3:certify": "node --experimental-strip-types tools/jqa3-corpus.mjs certify",
     "test:a9:personal": "node --experimental-strip-types --test tools/a9-personal.test.mjs",
-    "test:tarot:quality": "node --experimental-strip-types --test tools/tarot-quality.test.mjs"
+    "test:tarot:quality": "node --experimental-strip-types --test tools/tarot-quality.test.mjs",
+    "jqa3:diagnose": "node --experimental-strip-types tools/jqa3-numerical-report.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
