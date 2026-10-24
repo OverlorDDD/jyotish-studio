@@ -273,6 +273,7 @@ export function auditCorpus({manifestPath=MANIFEST,minimum=null,verifyAstronomy=
  const status=precisionCertified?'CERTIFIED'
   :signParityCertified?'SIGN_PARITY_CERTIFIED':'NOT_CERTIFIED';
  const blockers=[
+  ...(!verifyAstronomy?['ASTRONOMY_NOT_RUN']:[]),
   ...(count<required?['INSUFFICIENT_INDEPENDENT_JHORA_EXPORTS']:[]),
   ...(matched<required?['INSUFFICIENT_INI_ATTESTED_IDENTICAL_PROFILES']:[]),
   ...(covered.size<12?['MATCHED_PROFILE_DOES_NOT_COVER_12_LAGNA_SIGNS']:[]),
