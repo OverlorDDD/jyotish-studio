@@ -146,6 +146,10 @@ export class AccountController{
  async exportJournal(@Req()req:IncomingMessage,@Query('cursor')cursor?:string){
   const userId=currentUser(req);
   if(cursor&&!/^[a-z0-9-]{10,60}$/i.test(cursor))throw new BadRequestException('Invalid cursor');
+  if(cursor){
+   const ownCursor=await this.prisma.personalJournalEntry.findFirst({where:{id:cursor,userId},select:{id:true}});
+   if(!ownCursor)throw new UnauthorizedException('Invalid journal export cursor');
+  }
   const page=await this.prisma.personalJournalEntry.findMany({
    where:{userId},orderBy:[{createdAt:'asc'},{id:'asc'}],take:501,
    ...(cursor?{cursor:{id:cursor},skip:1}:{}),

@@ -172,6 +172,9 @@ export class PersonalController{
  }
 }
 for(const [name,types]of [
+ ['getProfile',[Object]],
+ ['overview',[Object]],
+ ['practices',[Object]],
  ['updateProfile',[Object,PersonalProfileDto]],
  ['setPrimaryChart',[Object,PrimaryChartDto]],
  ['completedPractice',[Object,CompletedPracticeDto]],

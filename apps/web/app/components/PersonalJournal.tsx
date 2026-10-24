@@ -66,8 +66,8 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
   try{
    const all:Entry[]=[];let cursor:string|null=null;
    for(let page=0;page<100;page++){
-    const url='/api/v1/account/journal/export'+(cursor?'?cursor='+encodeURIComponent(cursor):'');
-    const result=await readApiJson<{entries:Entry[];nextCursor:string|null}>(await fetch(url,{credentials:'same-origin',cache:'no-store'}));
+    const endpoint:string='/api/v1/account/journal/export'+(cursor?'?cursor='+encodeURIComponent(cursor):'');
+    const result:{entries:Entry[];nextCursor:string|null}=await readApiJson<{entries:Entry[];nextCursor:string|null}>(await fetch(endpoint,{credentials:'same-origin',cache:'no-store'}));
     all.push(...result.entries);cursor=result.nextCursor;
     if(!cursor)break;
    }
