@@ -10,11 +10,10 @@ def main():
     jd=swe.julday(dt.year,dt.month,dt.day,hour)
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
-    # The native JS adapter uses getAyanamsaExUt (with nutation) and
-    # tropical Placidus ascendant minus that *same* true ayanamsa.
-    # get_ayanamsa_ut() returns MEAN ayanamsa, creating inconsistent
-    # metadata and a different basis from native. Match the actual mode.
-    _,ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH)
+    # JQA3: Original JHora INI and 20 saved longitudes use mean Lahiri.
+    # ExUt without FLG_NONUT would include nutation (up to ~18 arcseconds),
+    # inconsistent with the nine sidereal positions. Use mean for Lagna too.
+    _,ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH|swe.FLG_NONUT)
     _,angles=swe.houses(jd,float(data['latitude']),float(data['longitude']),b'P')
     ascendant=(angles[0]-ayan)%360
     body=[('Sun',swe.SUN),('Moon',swe.MOON),('Mars',swe.MARS),('Mercury',swe.MERCURY),('Jupiter',swe.JUPITER),('Venus',swe.VENUS),('Saturn',swe.SATURN),('Rahu',swe.MEAN_NODE)]
