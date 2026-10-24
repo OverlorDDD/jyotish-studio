@@ -144,6 +144,13 @@ export class PersonalController{
   return this.prisma.personalPracticeSession.findMany({where:{userId:owner(req)},orderBy:{completedAt:'desc'},take:100,
    select:{id:true,eventId:true,practiceId:true,durationSeconds:true,completedAt:true}});
  }
+ @Delete('practices/:id') @Header('Cache-Control','private, no-store')
+ async removePractice(@Req()req:IncomingMessage,@Param('id')id:string){
+  const uid=mutation(req);
+  const result=await this.prisma.personalPracticeSession.deleteMany({where:{id,userId:uid}});
+  if(!result.count)throw new UnauthorizedException('Practice does not belong to your account');
+  return {deleted:true};
+ }
  @Post('practices') @Header('Cache-Control','private, no-store')
  async completedPractice(@Req()req:IncomingMessage,@Body()body:CompletedPracticeDto){
   const uid=mutation(req);
@@ -168,6 +175,7 @@ for(const [name,types]of [
  ['updateProfile',[Object,PersonalProfileDto]],
  ['setPrimaryChart',[Object,PrimaryChartDto]],
  ['completedPractice',[Object,CompletedPracticeDto]],
+ ['removePractice',[Object,String]],
  ['calendar',[Object,String,String]],
  ['transits',[Object,String]]
 ] as const)Reflect.defineMetadata('design:paramtypes',types,PersonalController.prototype,name);

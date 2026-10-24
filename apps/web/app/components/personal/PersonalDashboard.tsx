@@ -98,6 +98,13 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
    .finally(()=>{if(active)setCalendarBusy(false);});
   return()=>{active=false;};
  },[overview?.profile.primaryChartId,overview?.profile.currentTimeZone,overview?.selected?.verified,days]);
+ const removePractice=async(id:string)=>{
+  if(!confirm(uk?'Видалити запис про завершену практику?':'Delete this completed-practice record?'))return;
+  setBusy(true);setError('');
+  try{await api('/api/v1/personal/practices/'+encodeURIComponent(id),{method:'DELETE'});await refresh();}
+  catch(e){setError(e instanceof Error?e.message:t.error)}
+  finally{setBusy(false);}
+ };
  const saveChart=async()=>{
   setBusy(true);setError('');setMessage('');
   try{await api('/api/v1/personal/primary-chart',json({chartId:chartChoice||null},'PUT'));await refresh();setMessage(t.profileSaved);}
@@ -174,7 +181,8 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
    <div className="gp-grid">
     <section className="gp-panel">
      <div className="gp-panel-heading"><div><span className="gp-eyebrow">TAROT</span><h2>{t.tarot}</h2></div><Sparkles size={26}/></div>
-     {overview.recentTarot.length?<p>{t.lastTarot}: {date(overview.recentTarot[0].createdAt)} · {overview.recentTarot[0].spread}</p>:<p>{t.noTarot}</p>}
+     {overview.recentTarot.length?<ul className="gp-reading-list">{overview.recentTarot.map(x=><li key={x.id}>
+       <strong>{x.spread}</strong> · {date(x.createdAt)} {x.question&&<small>{x.question}</small>}</li>)}</ul>:<p>{t.noTarot}</p>}
      <Link href={portalPath(locale,'tarot')} className="gp-text-link">{t.tarotAction} <ArrowRight size={14}/></Link>
      <p className="gp-microcopy">{t.questions}: {overview.privateQuestions} · {uk?'Щоденний ліміт не витрачається автоматично.':'Daily limits are never used automatically.'}</p>
     </section>
@@ -182,6 +190,9 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      <div className="gp-panel-heading"><div><span className="gp-eyebrow">YOGA</span><h2>{t.yoga}</h2></div><Wind size={26}/></div>
      <p>{t.favorite}: {PRACTICES.find(p=>p[0]===overview.profile.favoritePractice)?.[uk?1:2]}</p>
      <p className="gp-microcopy">{t.recent}: {overview.recentPractices.length?date(overview.recentPractices[0].completedAt):t.never}</p>
+     {overview.recentPractices.length>0&&<ul className="gp-practice-list">{overview.recentPractices.map(s=>
+      <li key={s.id}><span>{s.practiceId} · {Math.round(s.durationSeconds/60)} {uk?'хв':'min'} · {date(s.completedAt)}</span>
+       <button type="button" disabled={busy} aria-label={uk?'Видалити запис практики':'Delete practice record'} onClick={()=>void removePractice(s.id)}>{uk?'Видалити':'Delete'}</button></li>)}</ul>}
      <Link href={portalPath(locale,'yoga/gentle-breath')} className="gp-text-link">{t.practiceAction} <ArrowRight size={14}/></Link>
     </section>
    </div>

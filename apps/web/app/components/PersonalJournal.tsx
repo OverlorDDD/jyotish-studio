@@ -10,7 +10,7 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
  const uk=locale==='uk', [entries,setEntries]=useState<Entry[]>([]),[title,setTitle]=useState(''),
  [body,setBody]=useState(''),[error,setError]=useState(''),[note,setNote]=useState(''),
  [busy,setBusy]=useState(false),[signedIn,setSignedIn]=useState(false),[loading,setLoading]=useState(true);
- const [filter,setFilter]=useState<Kind|'ALL'>('ALL'),[editing,setEditing]=useState<string|null>(null);
+ const [filter,setFilter]=useState<Kind|'ALL'>('ALL'),[search,setSearch]=useState(''),[editing,setEditing]=useState<string|null>(null);
  const [editTitle,setEditTitle]=useState(''),[editBody,setEditBody]=useState('');
  async function load(){
   setLoading(true);setError('');
@@ -79,7 +79,7 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
   }catch(e){setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false);}
  }
- const shown=sourceId?entries.filter(x=>x.kind===kind&&x.sourceId===sourceId):entries.filter(x=>filter==='ALL'||x.kind===filter);
+ const shown=sourceId?entries.filter(x=>x.kind===kind&&x.sourceId===sourceId):entries.filter(x=>(filter==='ALL'||x.kind===filter)&&(!search.trim()||(x.title+' '+x.body).toLocaleLowerCase().includes(search.toLocaleLowerCase().trim())));
  return <section id="personal-journal" className="as-profile-card as-journal-card" aria-label={uk?'Особистий журнал':'Personal journal'}>
   <div className="as-journal-head"><h2><BookOpen size={21}/>{uk?'Мій особистий журнал':'My personal journal'}</h2><span>{uk?'ПРИВАТНИЙ ПРОСТІР':'PRIVATE SPACE'}</span></div>
   <p className="as-muted">{uk?'Ці нотатки бачиш лише ти. Вони не передаються AI-провайдерам.':'Only you can view these notes. They are never sent to AI providers.'}</p>
@@ -99,6 +99,8 @@ export default function PersonalJournal({locale,sourceId,kind='REFLECTION'}:{
      <option value="ALL">{uk?'Усі записи':'All entries'}</option>
      {(['TAROT','JYOTISH','PRACTICE','REFLECTION'] as Kind[]).map(v=><option value={v} key={v}>{v}</option>)}
     </select></label>
+   <label htmlFor="as-journal-search">{uk?'Пошук':'Search'}
+    <input id="as-journal-search" type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder={uk?'Назва або текст':'Title or text'}/></label>
    <button className="as-button as-button-secondary" type="button" onClick={()=>void exportPrivate()} disabled={busy}>
     {uk?'Експорт JSON':'Export JSON'}</button>
   </div>}
