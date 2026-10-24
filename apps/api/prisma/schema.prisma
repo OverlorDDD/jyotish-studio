@@ -47,6 +47,8 @@ model User {
  roleChangesAsTarget RoleChange[] @relation("RoleChangeTarget")
  roleChangesAsActor RoleChange[] @relation("RoleChangeActor")
  charts Chart[]
+ personalProfile PersonalProfile?
+ practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
 }
@@ -60,6 +62,7 @@ model Chart {
  input      Json
  result     Json
  readings   Interpretation[]
+ selectedAsPrimary PersonalProfile[]
  @@index([ownerId])
 }
 model Interpretation {
@@ -239,4 +242,29 @@ model PersonalJournalEntry {
  updatedAt DateTime @updatedAt
  @@index([userId,createdAt])
  @@index([userId,kind,sourceId])
+}
+
+/** One personal home per user; selected chart must belong to the same user. */
+model PersonalProfile {
+ userId String @id
+ user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+ primaryChartId String? @unique
+ primaryChart Chart? @relation(fields: [primaryChartId],references: [id],onDelete: SetNull)
+ currentTimeZone String @default("UTC") @db.VarChar(64)
+ preferredLocale String @default("uk") @db.VarChar(2)
+ newsTopics String[] @default([])
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+
+/** Explicitly completed sessions only; eventId makes client retries idempotent. */
+model PersonalPracticeSession {
+ id String @id @default(uuid())
+ eventId String @unique @db.Uuid
+ userId String
+ user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+ practiceId String @db.VarChar(32)
+ durationSeconds Int
+ completedAt DateTime @default(now())
+ @@index([userId,completedAt])
 }
