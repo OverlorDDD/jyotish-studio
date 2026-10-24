@@ -17,12 +17,12 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
   try{
    const list=await readApiJson<PrivateDraft[]>(await fetch('/api/v1/reading-orders/questions',{credentials:'same-origin',cache:'no-store'}));
    setSaved(list);setDraftMessage('');
-  }catch{setSaved([]);setDraftMessage(uk?'Увійди, щоб переглянути приватні чернетки.':'Sign in to view private drafts.');}
+  }catch{setSaved([]);setDraftMessage(uk?'Увійди, щоб побачити свої запитання.':'Sign in to view your questions.');}
  }
  async function deleteDraft(id:string){
   try{await readApiJson(await fetch('/api/v1/reading-orders/questions/'+id,{method:'DELETE',credentials:'same-origin'}));
    setSaved(old=>old.filter(x=>x.id!==id));
-  }catch{setDraftMessage(uk?'Не вдалося видалити чернетку.':'Could not delete draft.');}
+  }catch{setDraftMessage(uk?'Не вдалося видалити запитання.':'Could not delete question.');}
  }
  useEffect(()=>{void loadDrafts();},[]);
  async function submit(event:React.FormEvent){
@@ -52,7 +52,7 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
     <h3>{uk?'Як ставити питання':'Question guidance'}</h3>
     <div className="as-example"><p className="as-less">{uk?'Менш корисно: «Чи буде все добре?»':'Less helpful: “Will everything be fine?”'}</p><p className="as-better">{uk?'Краще: «Що я можу зробити, щоб краще зрозуміти ситуацію і свій наступний крок?»':'Better: “What might help me understand this situation and choose my next step?”'}</p></div>
     <div className="as-example"><p className="as-less">{uk?'Менш корисно: «Коли я стану багатим?»':'Less helpful: “When will I become rich?”'}</p><p className="as-better">{uk?'Краще: «Які можливості та обмеження мені варто обдумати при зміні роботи?»':'Better: “Which possibilities and limitations could I reflect on before changing jobs?”'}</p></div>
-    <p className="as-privacy"><LockKeyhole size={18}/>{uk?'Достатньо псевдоніма чи контексту без імен. Не вказуй чужі особисті дані, адреси чи документи. Чернетку можна видалити у кабінеті.':'Avoid IDs, addresses and third-party private details. Your draft can be deleted in your account.'}</p>
+    <p className="as-privacy"><LockKeyhole size={18}/>{uk?'Можна використати псевдонім. Не вказуй паспортні дані або чужі приватні відомості. Запитання залишиться в кабінеті, доки ти його не видалиш.':'Avoid IDs, addresses and third-party private details. You can delete your saved question at any time.'}</p>
    </aside>
    <form className="as-intake-form" onSubmit={submit}>
     <label htmlFor="draft-topic">{uk?'Тема':'Topic'}</label>
@@ -68,12 +68,12 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
     <label className="as-consent"><input type="checkbox" required checked={consent} onChange={e=>setConsent(e.target.checked)}/>
       <span>{uk?'Погоджуюсь на зберігання мого приватного запитання в кабінеті, поки я не видалю його. Я розумію, що розклад ще не замовлено і оплата недоступна.':'I consent to saving my question privately until I delete it. I understand this is not a paid order and checkout is not yet available.'}</span>
     </label>
-    <p className="as-muted">{uk?'Для відправлення потрібен акаунт. Якщо ще не увійшов, натисни «Увійти» у верхньому меню.':'You need to be signed in to save a draft. Use Sign in in the top navigation first.'}</p>
+    <p className="as-muted">{uk?'Для відправлення потрібен акаунт. Якщо ще не увійшов, натисни «Увійти» у верхньому меню.':'You need to be signed in to save your question. Use Sign in in the top navigation first.'}</p>
     <button className="as-button as-button-primary" disabled={!ready||saving} type="submit">{saving?(uk?'Зберігаємо…':'Saving…'):(uk?'Зберегти моє запитання':'Save my question')}</button>
     {notice&&<p className="as-account-error" role="alert"><AlertCircle size={16}/>{notice}</p>}
    </form>
   </div>
-  <section className="as-expert-drafts" aria-label={uk?'Мої чернетки':'My saved drafts'}>
+  <section className="as-expert-drafts" aria-label={uk?'Мої збережені запитання':'My saved questions'}>
    <h3>{uk?'Мої запитання для таролога':'My private questions'}</h3>
    <p>{uk?'Запитання доступні лише тобі у кабінеті. Наразі таролог не має до них доступу.':'Your questions stay in your private account. Practitioners cannot access them yet.'}</p>
    <button type="button" className="as-button as-button-secondary" onClick={()=>void loadDrafts()}>{uk?'Оновити список':'Refresh list'}</button>
@@ -82,7 +82,7 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
     <span>{item.topic} · {uk?'не оплачено':'unpaid'}</span>
     <h4>{item.question}</h4><p>{item.context}</p>
     <small>{uk?'Збережено: ':'Saved: '}{new Date(item.createdAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
-    <button type="button" className="as-button as-button-secondary" onClick={()=>void deleteDraft(item.id)}>{uk?'Видалити чернетку':'Delete draft'}</button>
+    <button type="button" className="as-button as-button-secondary" onClick={()=>void deleteDraft(item.id)}>{uk?'Видалити запитання':'Delete question'}</button>
    </article>)}
   </section>
   {draft&&<div className="as-modal-overlay" role="presentation" onClick={()=>setDraft(null)}>
@@ -90,7 +90,7 @@ export default function DraftCheckout({locale}:{locale:PortalLocale}){
     <button type="button" className="as-modal-close" aria-label={uk?'Закрити':'Close'} onClick={()=>setDraft(null)}><X size={20}/></button>
     <CheckCircle2 size={35} className="as-modal-success"/>
     <h2 id="reading-payment-title">{uk?'Твоє питання збережено':'Your question was saved'}</h2>
-    <p>{uk?'Запитання збережено у твоєму кабінеті, але це ще не замовлення. Експерт його не отримав.':'Your request remains a private draft, not a paid order. No practitioner has access to it.'}</p>
+    <p>{uk?'Запитання збережено у твоєму кабінеті, але це ще не замовлення. Експерт його не отримав.':'Your question is saved privately, not submitted as a paid order. No practitioner has access to it.'}</p>
     <div className="as-checkout-summary"><LockKeyhole size={20}/><span>{uk?'Добровільна підтримка нашого проєкту не впливає на відповідь таролога. Оплату консультацій ще не підключено.':'Optional support for our project is separate from any reading. Consultation payments are not available.'}</span></div>
     <p className="as-muted">{uk?'Пожертва — тільки за бажанням, не умова отримання послуги. Посилання на банку додамо, коли власник надасть реквізити.':'Supporting us is entirely optional, never required for a service. A verified donation link will be added later.'}</p>
     <button className="as-button as-button-primary" type="button" disabled aria-disabled="true"><CreditCard size={18}/>{uk?'Підтримати Galaxiora · посилання незабаром':'Support Galaxiora · link coming soon'}</button>
