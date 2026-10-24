@@ -13,12 +13,12 @@ const MAX_ENTRIES=60;
 const MAX_COMPLETIONS=60;
 
 export class JournalNoteDto {
- @ApiProperty({enum:JOURNAL_KINDS}) @IsString() @IsIn(JOURNAL_KINDS) kind!:JournalKind;
- @ApiProperty({maxLength:120}) @IsString() @Length(1,120) referenceId!:string;
- @ApiProperty({minLength:1,maxLength:2000}) @IsString() @Length(1,2000) note!:string;
+ @ApiProperty({type:String,enum:JOURNAL_KINDS}) @IsString() @IsIn(JOURNAL_KINDS) kind!:JournalKind;
+ @ApiProperty({type:String,maxLength:120}) @IsString() @Length(1,120) referenceId!:string;
+ @ApiProperty({type:String,minLength:1,maxLength:2000}) @IsString() @Length(1,2000) note!:string;
 }
 export class PracticeCompleteDto {
- @ApiProperty({enum:PRACTICE_SLUGS}) @IsString() @IsIn(PRACTICE_SLUGS) practiceSlug!:string;
+ @ApiProperty({type:String,enum:PRACTICE_SLUGS}) @IsString() @IsIn(PRACTICE_SLUGS) practiceSlug!:string;
 }
 function signedIn(req:IncomingMessage){
  const id=cookieUser(req);
