@@ -1,90 +1,95 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildDailyGuidance,buildPeriodGuidance,buildWeekHighlights,natalPeriodContext} from '../apps/api/src/personal-guidance.ts';
+
 const natal=[{name:'Saturn',sign:9},{name:'Moon',sign:3},{name:'Jupiter',sign:6}];
+const period={lord:'Saturn',start:'2015-01-01T00:00:00.000Z',end:'2034-01-01T00:00:00.000Z',
+ antardasha:{lord:'Moon',start:'2026-06-20T00:00:00.000Z',end:'2028-01-19T00:00:00.000Z'}};
+const context={lagnaSign:4,moonSign:3,natalPositions:natal,period};
 const moon=(date,sign,nakshatra,house)=>({
- date,sampledAtUtc:date+'T10:00:00.000Z',timeZone:'Europe/Kyiv',method:'Swiss Ephemeris / Lahiri sidereal / local-noon-sample-v1',
- observationType:'SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON',personalized:house!=null,
- moon:{longitude:sign*30,sign,nakshatra,pada:2,houseFromLagna:house,houseFromMoon:house},
+ date,sampledAtUtc:date+'T10:00:00.000Z',timeZone:'Europe/Kyiv',
+ method:'Swiss Ephemeris / Lahiri sidereal / local-noon-sample-v1',
+ personalized:house!=null,observationType:'SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON',
+ moon:{longitude:(sign-1)*30+5,sign,nakshatra,pada:2,houseFromLagna:house,houseFromMoon:house},
  planets:[]
 });
-test('Dasha guidance is anchored in natal houses and does not fabricate event dates',()=>{
- const period={lord:'Saturn',start:'2015-01-01T00:00:00.000Z',end:'2034-01-01T00:00:00.000Z',
-  antardasha:{lord:'Moon',start:'2026-06-20T00:00:00.000Z',end:'2028-01-19T00:00:00.000Z'}};
- const result=buildPeriodGuidance(period,4,natal);
- assert.ok(result);
- assert.equal(natalPeriodContext(4,natal,'Saturn').house,6);
- assert.equal(result.evidence.house,6);
- assert.equal(result.evidence.major,'Saturn');
- assert.equal(result.evidence.minor,'Moon');
- assert.match(result.description.uk,/6-му домі/);
- assert.match(result.description.en,/house 6/);
- assert.match(result.headline.uk,/антардаша Місяця/);
- assert.ok(result.action.en.length>20);
+const week=[
+ moon('2026-10-25',12,'Revati',9),moon('2026-10-26',1,'Ashwini',10),
+ moon('2026-10-27',1,'Krittika',10),moon('2026-10-28',2,'Rohini',11),
+ moon('2026-10-29',2,'Mrigashira',11),moon('2026-10-30',3,'Ardra',12),
+ moon('2026-10-31',3,'Punarvasu',12)
+];
+test('Dasha interpretation remains grounded in verified natal house positions',()=>{
+ const res=buildPeriodGuidance(period,4,natal);
+ assert.ok(res);assert.equal(natalPeriodContext(4,natal,'Saturn').house,6);
+ assert.equal(res.evidence.house,6);assert.equal(res.evidence.major,'Saturn');
+ assert.equal(res.evidence.minor,'Moon');assert.match(res.description.en,/house 6/);
  assert.equal(buildPeriodGuidance(null,4,natal),null);
 });
-test('Daily advice is consistent, bilingual, fact-backed and safe without primary chart',()=>{
- const day=moon('2026-10-24',7,'Swati',4);
- const a=buildDailyGuidance(day),b=buildDailyGuidance(day);
- assert.deepEqual(a,b);
- assert.equal(a.evidence.kind,'PERSONAL_MOON_HOUSE');
- assert.equal(a.evidence.house,4);
- assert.equal(a.evidence.nakshatra,'Swati');
- assert.equal(a.evidence.sampledAtUtc,day.sampledAtUtc);
- assert.match(a.description.uk,/4-й дім/);
- assert.match(a.description.en,/house 4/);
- assert.ok(a.action.uk.length>35);
- assert.match(a.goodFor.uk,/домашні/);
- assert.match(a.caution.en,/work frustration/);
- assert.doesNotMatch(a.description.uk,/Зверни увагу, як ця тема проявляється сьогодні/);
- assert.doesNotMatch(a.action.uk,/Прочитай кілька сторінок/);
- assert.ok(a.description.uk.includes('Swati'));
- assert.notEqual(buildDailyGuidance(moon('2026-10-24',7,'Swati',4)).goodFor.uk,buildDailyGuidance(moon('2026-10-25',7,'Swati',10)).goodFor.uk);
- const general=buildDailyGuidance(moon('2026-10-24',7,'Swati',null));
- assert.equal(general.evidence.kind,'GENERAL_MOON_SKY');
- assert.equal(general.evidence.house,null);
- assert.doesNotMatch(general.description.uk,/для твоєї лагни це/);
- assert.equal(buildDailyGuidance(null),null);
+test('One personal reading uses natal Lagna, natal Moon, Dasha and same noon transit',()=>{
+ const reading=buildDailyGuidance(week[0],context);
+ assert.ok(reading);assert.deepEqual(reading,buildDailyGuidance(week[0],context));
+ assert.equal(reading.evidence.kind,'VERIFIED_NATAL_TRANSIT_DASHA');
+ assert.equal(reading.evidence.natalLagnaSign,4);
+ assert.equal(reading.evidence.natalMoonSign,3);
+ assert.equal(reading.evidence.natalMoonHouse,12);
+ assert.equal(reading.evidence.major,'Saturn');
+ assert.equal(reading.evidence.minor,'Moon');
+ assert.equal(reading.evidence.majorNatalHouse,6);
+ assert.equal(reading.evidence.minorNatalHouse,12);
+ assert.equal(reading.evidence.house,9);
+ assert.equal(reading.evidence.sampledAtUtc,week[0].sampledAtUtc);
+ assert.match(reading.description.uk,/натальн/);
+ assert.match(reading.description.uk,/махадаша Сатурна/);
+ assert.match(reading.description.en,/natal Moon/);
+ assert.match(reading.action.uk,/принцип/);
+ assert.doesNotMatch(reading.action.uk,/навчальну програму|вступ|наставник|вакансі/);
+ assert.doesNotMatch(reading.goodFor.uk,/вступ|наставник/);
+ assert.notEqual(buildDailyGuidance(week[0],{...context,period:null}).description.uk,reading.description.uk);
 });
-test('Weekly highlights use only supplied noon observations or actual Dasha boundary events',()=>{
- const days=[
-  moon('2026-10-24',7,'Swati',4),moon('2026-10-25',7,'Vishakha',4),
-  moon('2026-10-26',8,'Vishakha',5),moon('2026-10-27',8,'Anuradha',5),
-  moon('2026-10-28',9,'Mula',6),moon('2026-10-29',9,'Mula',6),
-  moon('2026-10-30',10,'Uttara Ashadha',7),moon('2026-10-31',10,'Shravana',7)
- ];
- const events=[{date:'2026-10-26',type:'ANTARDASHA_START',lord:'Moon',atUtc:'2026-10-26T07:00:00Z'}];
- const highlights=buildWeekHighlights(days,events);
+test('A missing, unverified or mismatched birth chart never triggers personal advice',()=>{
+ assert.equal(buildDailyGuidance(week[0],null),null);
+ assert.equal(buildDailyGuidance(moon('2026-10-25',12,'Revati',null),context),null);
+ assert.equal(buildDailyGuidance(week[0],{...context,lagnaSign:5}),null);
+ assert.equal(buildDailyGuidance(week[0],{...context,moonSign:11}),null);
+ assert.equal(buildWeekHighlights(week,[],()=>null).length,0);
+ assert.equal(buildWeekHighlights(week,[]).length,0);
+});
+test('Calendar today references precisely the same reading, not a complementary substitute',()=>{
+ const events=[{date:'2026-10-28',type:'ANTARDASHA_START',lord:'Moon',atUtc:'2026-10-28T08:00:00Z'}];
+ const highlights=buildWeekHighlights(week,events,()=>context);
+ assert.ok(highlights.length>=2&&highlights.length<=4);
+ const daily=buildDailyGuidance(week[0],context);
  assert.equal(highlights[0].kind,'TODAY');
- assert.equal(highlights[0].date,'2026-10-24');
- assert.equal(highlights[0].headline.uk.startsWith('Сьогодні'),true);
- assert.equal(new Set(highlights.map(h=>h.goodFor.uk+'|'+h.action.uk)).size,highlights.length);
- assert.ok(highlights.every(h=>h.kind!=='WEEK_OPENING'));
- assert.ok(highlights.some(h=>h.kind==='DASHA_START'&&h.date==='2026-10-26'));
- assert.ok(highlights.some(h=>h.kind==='MOON_SIGN_SAMPLE_CHANGE'));
- assert.ok(highlights.every(h=>h.goodFor.uk.length>20&&h.caution.en.length>15&&h.action.uk.length>20));
- assert.ok(highlights.length<=4);
- assert.ok(highlights.every(h=>h.date<='2026-10-30'&&h.evidence.method));
- assert.ok(highlights.filter(h=>h.kind!=='DASHA_START').every(h=>h.evidence.sampledAtUtc));
- assert.equal(buildWeekHighlights([],events).length,0);
- const noEvents=buildWeekHighlights([moon('2026-10-24',1,'Ashwini',null)],[]);
- assert.equal(noEvents.length,1);
- assert.equal(noEvents[0].kind,'TODAY');
- assert.equal(noEvents[0].date,'2026-10-24');
+ assert.equal(highlights[0].date,week[0].date);
+ assert.deepEqual(highlights[0].action,daily.action);
+ assert.deepEqual(highlights[0].goodFor,daily.goodFor);
+ assert.deepEqual(highlights[0].caution,daily.caution);
+ assert.deepEqual(highlights[0].summary,daily.description);
+ assert.equal(highlights[0].evidence.sampledAtUtc,daily.evidence.sampledAtUtc);
+ assert.equal(highlights.filter(h=>h.kind==='TODAY').length,1);
+ assert.equal(new Set(highlights.map(h=>h.action.uk)).size,highlights.length);
+ assert.ok(highlights.every(h=>h.evidence.method));
+ assert.ok(highlights.some(h=>h.date==='2026-10-26'));
+ assert.ok(highlights.some(h=>h.date==='2026-10-28'));
+ assert.equal(buildWeekHighlights([],events,()=>context).length,0);
 });
-
-test('Adjacent Moon samples do not recycle career-focused guidance and cover personal life too',()=>{
- const week=[moon('2026-10-25',12,'Revati',9),moon('2026-10-26',1,'Ashwini',10),
-  moon('2026-10-27',1,'Krittika',10),moon('2026-10-28',2,'Rohini',11),
-  moon('2026-10-29',2,'Mrigashira',11),moon('2026-10-30',3,'Ardra',12),
-  moon('2026-10-31',3,'Punarvasu',12)];
- const result=buildWeekHighlights(week);
- assert.equal(result[0].date,'2026-10-25');
- assert.equal(result[0].kind,'TODAY');
- assert.ok(result.some(x=>x.date==='2026-10-26'));
- assert.ok(result.some(x=>x.date==='2026-10-28'));
- assert.ok(result.every(x=>x.action.uk&&!/конкретний наступний крок/i.test(x.action.uk)));
- assert.equal(new Set(result.map(x=>x.action.uk)).size,result.length);
- assert.ok(result.some(x=>/дру|колег|особист|відпоч|сон|меж|навчан/i.test(x.action.uk+' '+x.goodFor.uk)));
- assert.ok(result.every(x=>x.evidence.method));
+test('Natal anchors meaningfully change texts, while no life circumstances are invented',()=>{
+ const sameTransit=moon('2026-10-25',12,'Revati',9);
+ const cancer=buildDailyGuidance(sameTransit,context);
+ const ariesContext={lagnaSign:1,moonSign:3,natalPositions:natal,period};
+ const aries=buildDailyGuidance({...sameTransit,moon:{...sameTransit.moon,houseFromLagna:12}},ariesContext);
+ assert.ok(cancer&&aries);
+ assert.notEqual(cancer.headline.uk,aries.headline.uk);
+ assert.notEqual(cancer.action.uk,aries.action.uk);
+ for(let h=1;h<=12;h++){
+  const sign=((context.lagnaSign+h-2)%12)+1;
+  const transit=moon('2026-10-25',sign,'Revati',h);
+  const value=buildDailyGuidance(transit,context);
+  assert.ok(value,'missing house '+h);
+  assert.ok(value.action.uk.length>40);
+  assert.ok(value.action.en.length>35);
+  assert.doesNotMatch(value.action.uk,/вступ|наставнику|вакансію|керівництв|дитин|школу|навчальну програму/);
+  assert.doesNotMatch(value.action.en,/enrolment|apply to a school|mentor|manager|children/i);
+ }
 });
