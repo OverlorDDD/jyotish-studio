@@ -39,7 +39,7 @@ const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
  private timer?:ReturnType<typeof setInterval>;
  private running=false;
- constructor(private readonly prisma:PrismaService){}
+ constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
  onModuleInit(){
   if(process.env.NEWS_INGESTION_ENABLED!=='1')return;
   this.timer=setInterval(()=>{void this.refresh().catch(e=>console.warn('[news]',e));},15*60*1000);
