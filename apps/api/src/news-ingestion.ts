@@ -3,6 +3,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
 import {classifyWithReason,parseXml,type Candidate,type Topic} from './news-domain.ts';
 import {GDELT_QUERIES,RSS_SOURCES} from './news-sources.ts';
+import {enrichPendingNews} from './news-editorial.ts';
 const PERIOD_MS=15*60*1000,LEASE_MS=12*60*1000;
 type Job={key:string;run:()=>Promise<Candidate[]>;hint:Topic;allowSnippet:boolean;isGdelt:boolean};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
@@ -87,7 +88,9 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
        try{
         const inserted=await this.prisma.newsArticle.createMany({data:[{
          urlHash,url:c.url,title:c.title,source:c.source,language:c.language,topic:c.topic,
-         tags:c.tags,score:c.score,summary:c.summary.slice(0,500),
+         tags:c.tags,score:c.score,summary:c.summary||null,
+         feedDescription:item.description?.slice(0,1200)||null,
+         imageUrl:c.imageUrl||null,imageCredit:c.imageCredit||null,
          summaryUk:c.ukFallback||null,summaryEn:c.enFallback||null,
          summaryKind:c.summaryKind,publishedAccuracy:c.publishedAccuracy||'published',publishedAt:c.publishedAt
         }],skipDuplicates:true});
@@ -95,10 +98,14 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
         else{
          duplicates++;duplicatesAll++;
          // Can enrich old rows, but do not change their visibility/moderation.
-         if(c.summaryKind==='source_excerpt')await this.prisma.newsArticle.updateMany({
-          where:{urlHash,summaryKind:'title_context'},data:{summary:c.summary.slice(0,500),
-           summaryKind:'source_excerpt',lastSeenAt:new Date()}
-         });
+         // New publisher metadata can enhance existing legacy rows and trigger translation.
+         await this.prisma.newsArticle.updateMany({where:{urlHash},data:{
+          lastSeenAt:new Date(),
+          ...(item.description?{feedDescription:item.description.slice(0,1200)}:{}),
+          ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit}:{}),
+          ...(item.description?{titleUk:null}:{}),
+          ...(c.summaryKind==='source_excerpt'?{summary:c.summary,summaryKind:'source_excerpt'}:{})
+         }});
         }
        }catch(e){errors++;console.warn('[news] item rejected',String(e));}
       }
@@ -111,6 +118,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
      if(job.isGdelt)await sleep(6500);
     }
     await this.prisma.newsScan.create({data:{sources,accepted:added,errors:errorsAll}});
+    try{await enrichPendingNews(this.prisma);}catch(e){console.warn('[news] editorial queue failed',String(e));}
     return {sources,newArticles:added,duplicates:duplicatesAll,rejected:rejectedAll,errors:errorsAll,backfill};
    }finally{
     await this.prisma.newsIngestionLease.updateMany({where:{id:'world',token},

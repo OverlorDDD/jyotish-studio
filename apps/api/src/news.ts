@@ -36,7 +36,8 @@ export class NewsController {
    where:{status:'PUBLISHED',...(topic!=='all'?{topic}:{}),...(tag?{tags:{has:tag}}:selectedTags.length?{tags:{hasSome:selectedTags}}:{})},
    take:600,orderBy:{publishedAt:'desc'},select:{
     id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
-    publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true
+    publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true,
+    titleUk:true,imageUrl:true,imageCredit:true
    }
   });
   const ordered=articles.map(a=>({...a,relevance:rank(a.score,a.publishedAt)}))
