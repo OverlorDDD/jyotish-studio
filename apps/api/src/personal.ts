@@ -7,7 +7,7 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
-import {buildDailyGuidance,buildPeriodGuidance,buildWeekHighlights} from './personal-guidance.ts';
+import {buildDailyGuidance,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
 
 type ChartResult={verification?:{status?:string};ascendant?:{sign?:number;signName?:string};
  d1?:{name:string;sign:number}[];dasha?:{lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]}[]};
@@ -29,6 +29,17 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
   lagnaName:asc?.signName||(row.result as ChartResult)?.ascendant?.signName||'',
   moonSign:result&&Number.isInteger(moon?.sign)?moon!.sign:null,
   dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
+}
+/** Shared verified natal context for both Personal's main card and the calendar. */
+function verifiedContextAt(chart:Awaited<ReturnType<typeof chartFacts>>,utc:string):VerifiedNatalContext|null{
+ if(!chart?.verified||!chart.lagnaSign||!chart.moonSign||
+ !chart.natalPositions.some(n=>n.name==='Moon'&&n.sign===chart.moonSign))return null;
+ const now=Date.parse(utc);
+ if(!Number.isFinite(now))return null;
+ const d=chart.dasha.find(x=>Date.parse(x.start)<=now&&now<Date.parse(x.end));
+ const a=d?.antardashas?.find(x=>Date.parse(x.start)<=now&&now<Date.parse(x.end));
+ return {lagnaSign:chart.lagnaSign,moonSign:chart.moonSign,natalPositions:chart.natalPositions,
+  period:d?{lord:d.lord,start:d.start,end:d.end,antardasha:a||null}:null};
 }
 export class PersonalProfileDto{
  @IsOptional() @IsString() currentTimeZone?:string;
@@ -104,20 +115,20 @@ export class PersonalController{
    this.prisma.personalPracticeSession.findMany({where:{userId:uid},orderBy:{completedAt:'desc'},take:5,
     select:{id:true,practiceId:true,durationSeconds:true,completedAt:true}})
   ]);
-  const today=localToday(profile.profile.currentTimeZone);
-  const chart=profile.selected;
-  const active=chart?.verified?chart.dasha.find(d=>Date.parse(d.start)<=Date.now()&&Date.now()<Date.parse(d.end)):null;
-  const sub=active?.antardashas?.find(x=>Date.parse(x.start)<=Date.now()&&Date.now()<Date.parse(x.end));
+  const today=localToday(profile.profile.currentTimeZone),chart=profile.selected;
+  const verified=Boolean(chart?.verified&&chart.lagnaSign&&chart.moonSign);
   let transit:null|Awaited<ReturnType<typeof dailyTransit>>=null;
   let transitStatus:'available'|'general'|'ephemeris_unavailable'='general';
   try{
-   transit=await dailyTransit(today,profile.profile.currentTimeZone,chart?.lagnaSign,chart?.moonSign);
-   transitStatus=chart?.verified?'available':'general';
+   transit=await dailyTransit(today,profile.profile.currentTimeZone,
+    verified?chart!.lagnaSign:null,verified?chart!.moonSign:null);
+   transitStatus=verified?'available':'general';
   }catch{transitStatus='ephemeris_unavailable';}
-  const currentPeriod=active?{lord:active.lord,start:active.start,end:active.end,antardasha:sub||null}:null;
+  const context=verifiedContextAt(chart,transit?.sampledAtUtc||new Date().toISOString());
+  const currentPeriod=context?.period||null;
   return {...profile,today,activeDasha:currentPeriod,
-   journey:{period:chart?.verified?buildPeriodGuidance(currentPeriod,chart.lagnaSign,chart.natalPositions):null,
-    daily:buildDailyGuidance(transit)},
+   journey:{period:context?buildPeriodGuidance(currentPeriod,context.lagnaSign,context.natalPositions):null,
+    daily:buildDailyGuidance(transit,context)},
    transit,transitStatus,recentTarot:tarot,recentJournal:journal,privateQuestions:questions,
    recentPractices:practices,horoscope:{status:'planned_after_launch',personal:true},
    news:{status:'planned_after_launch',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
@@ -130,7 +141,7 @@ export class PersonalController{
   try{
    return {status:c?.verified?'available':'general',
     recoveryStatus:c?.recoveryStatus||'no_chart',
-    transit:await dailyTransit(day,p.profile.currentTimeZone,c?.lagnaSign,c?.moonSign)};
+    transit:await dailyTransit(day,p.profile.currentTimeZone,c?.verified?c.lagnaSign:null,c?.verified?c.moonSign:null)};
   }catch{throw new ServiceUnavailableException('Astronomical ephemeris unavailable, retry later');}
  }
  @Get('calendar') @Header('Cache-Control','private, no-store')
@@ -151,11 +162,11 @@ export class PersonalController{
   const out:Awaited<ReturnType<typeof dailyTransit>>[]=[];
   try{
    for(let i=0;i<dates.length;i+=3){
-    out.push(...await Promise.all(dates.slice(i,i+3).map(day=>dailyTransit(day,p.profile.currentTimeZone,c?.lagnaSign,c?.moonSign))));
+    out.push(...await Promise.all(dates.slice(i,i+3).map(day=>dailyTransit(day,p.profile.currentTimeZone,personalized?c!.lagnaSign:null,personalized?c!.moonSign:null))));
    }
   }catch{throw new ServiceUnavailableException('Astronomical calendar temporarily unavailable, retry later');}
   return {status:personalized?'available':'general',recoveryStatus:c?.recoveryStatus||'no_chart',
-   dates,days:out,events,weekHighlights:buildWeekHighlights(out,events),method:out[0]?.method};
+   dates,days:out,events,weekHighlights:buildWeekHighlights(out,events,utc=>verifiedContextAt(c,utc)),method:out[0]?.method};
  }
  @Get('practices') @Header('Cache-Control','private, no-store')
  async practices(@Req()req:IncomingMessage){
