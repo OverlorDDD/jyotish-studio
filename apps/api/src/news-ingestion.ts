@@ -71,7 +71,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    if(!lease.count)return {skipped:true,reason:'database_lease_held'};
    let sources=0,added=0,duplicatesAll=0,rejectedAll=0,errorsAll=0;
    try{
-    const previous=await this.prisma.newsScan.count();
+    const previous=await this.prisma.newsSourceScan.count();
     const backfill=options.backfill===true||previous===0;
     for(const job of this.jobs(backfill)){
      const began=Date.now(),reasonCounts:Record<string,number>={};
