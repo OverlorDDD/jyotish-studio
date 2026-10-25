@@ -103,7 +103,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
           lastSeenAt:new Date(),
           ...(item.description?{feedDescription:item.description.slice(0,1200)}:{}),
           ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit}:{}),
-          ...(item.description?{titleUk:null}:{}),
+          ...{},
           ...(c.summaryKind==='source_excerpt'?{summary:c.summary,summaryKind:'source_excerpt'}:{})
          }});
         }

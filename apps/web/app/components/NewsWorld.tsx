@@ -7,7 +7,7 @@ import type {PortalLocale} from '../../lib/brand';
 
 const TOPICS=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'] as const;
 type Topic=typeof TOPICS[number];
-type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:Topic[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null};
+type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:Topic[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null};
 type Feed={items:Story[];total:number;lastScan:{createdAt:string;errors:number;sources:number}|null;intervalMinutes:number};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
@@ -29,7 +29,7 @@ const COPY={
   zero:'Поки немає підтверджених матеріалів за цим фільтром.',
   bootstrap:'Стрічка ще наповнюється перевіреними джерелами. Ми не створюємо вигаданих заголовків.',
   offline:'Не вдалося завантажити стрічку. Перевір з’єднання й спробуй знову.',
-  more:'Показати ще',retry:'Спробувати ще раз',original:'Читати в першоджерелі',observed:'Знайдено',sourceExcerpt:'Опис джерела',titleBased:'Орієнтир за заголовком',refresh:'Оновити стрічку',
+  more:'Показати ще',retry:'Спробувати ще раз',original:'Читати в першоджерелі',observed:'Знайдено',refresh:'Оновити стрічку',
   interesting:'Вам цікава ця публікація?',yes:'Так, цікаво',no:'Не для мене',thanks:'Враховано у вашій локальній добірці',
   chosen:'Обрані теми',reset:'Очистити вибір',external:'Зовнішня публікація',
   attribution:'Заголовки належать відповідним видавцям. Galaxiora показує посилання на першоджерела; текст статті залишається на сайті автора.',
@@ -48,7 +48,7 @@ const COPY={
   zero:'No verified source articles match this filter yet.',
   bootstrap:'The feed is still collecting verified sources. We never invent headlines.',
   offline:'The news feed could not load. Check your connection and try again.',
-  more:'Load more',retry:'Try again',original:'Read original story',observed:'Discovered',sourceExcerpt:'Source description',titleBased:'Headline-based preview',refresh:'Refresh feed',
+  more:'Load more',retry:'Try again',original:'Read original story',observed:'Discovered',refresh:'Refresh feed',
   interesting:'Was this publication interesting?',yes:'Yes, interested',no:'Not for me',thanks:'Applied to your browser-only feed',
   chosen:'Selected topics',reset:'Clear selection',external:'External publication',
   attribution:'Headlines belong to their publishers. Galaxiora links to original sources; article bodies remain with their authors.',
@@ -60,6 +60,19 @@ const COPY={
 const STORAGE='galaxiora:news-world:v1';
 const validTag=(t:unknown):t is Topic=>typeof t==='string'&&(TOPICS as readonly string[]).includes(t);
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
+/** An authorized publisher thumbnail; broken external images fall back to site artwork. */
+function StoryArtwork({imageUrl,credit,title,topic,art}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;art:string}){
+ const [broken,setBroken]=useState(false);
+ useEffect(()=>setBroken(false),[imageUrl]);
+ let allowed=false;
+ try{const u=new URL(imageUrl||'');allowed=u.protocol==='https:';}catch{}
+ return <div className={styles.illustration} data-topic={topic}>
+  {allowed&&!broken?<img className={styles.storyImage} src={imageUrl!} alt={title} loading="lazy"
+   referrerPolicy="no-referrer" onError={()=>setBroken(true)}/>:
+   <div className={styles.fallbackArt} aria-hidden="true"><span>{art}</span><i/></div>}
+  {allowed&&!broken&&credit&&<small className={styles.imageCredit}>{credit}</small>}
+ </div>;
+}
 export default function NewsWorld({locale}:{locale:PortalLocale}){
  const t=COPY[locale],[view,setView]=useState<View>('all'),[category,setCategory]=useState<string>('all');
  const [selected,setSelected]=useState<Topic[]>([]),[votes,setVotes]=useState<Record<string,Vote>>({});
@@ -119,12 +132,9 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const date=(iso:string)=>{const d=new Date(iso);return Number.isFinite(d.getTime())?
   new Intl.DateTimeFormat(locale==='uk'?'uk-UA':'en-GB',{day:'numeric',month:'short',year:'numeric'}).format(d):'';};
  const preview=(story:Story)=>{
-  if(story.summaryKind==='source_excerpt'&&story.summary)return story.summary;
-  if(locale==='uk')return story.summaryUk||'Матеріал джерела «'+story.source+'» присвячений темі «'+LABELS[story.topic][locale]+
-   '» та питанню, винесеному в заголовок: «'+story.title+'». Детальні пояснення містяться в оригінальній публікації.';
-  return story.summaryEn||story.summary||'This publication by '+story.source+' covers '+
-   LABELS[story.topic][locale].toLowerCase()+' and the subject in its headline: “'+story.title+
-   '”. Read the original article for details and context.';
+  const candidate=locale==='uk'?(story.summaryUk||((story.language==='uk'||story.language==='uk-UA')?story.summary:null)):(story.summaryEn||story.summary);
+  if(!candidate||/Це орієнтир за назвою|Публікація джерела|Матеріал джерела|Орієнтир за заголовком|Read the original article|This publication by|This article from/i.test(candidate))return null;
+  return candidate;
  };
  const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
  return <PortalShell locale={locale} active="news">
@@ -172,14 +182,13 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
         return <article className={i===0&&view!=='mine'?styles.lead:styles.card} key={story.id}>
-         <div className={styles.illustration} data-topic={story.topic} aria-hidden="true">
-          <span>{art(story.topic)}</span><i/></div>
+         <StoryArtwork imageUrl={story.imageUrl} credit={story.imageCredit} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} art={art(story.topic)}/>
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
-          <h3>{story.title}</h3>
-          <p className={styles.summary} data-testid="news-summary">{preview(story)}</p>
-          <p className={styles.source}>{story.source} · {story.summaryKind==='source_excerpt'?t.sourceExcerpt:t.titleBased}</p>
+          <h3>{locale==='uk'&&story.titleUk?story.titleUk:story.title}</h3>
+          {preview(story)&&<p className={styles.summary} data-testid="news-summary">{preview(story)}</p>}
+          <p className={styles.source}>{story.source}</p>
           <div className={styles.storyEnd}>
            {url&&<a href={url} target="_blank" rel="noopener noreferrer" aria-label={t.original+': '+story.title}>
             {t.original}<ArrowUpRight size={16}/></a>}
