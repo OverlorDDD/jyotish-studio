@@ -41,11 +41,18 @@ for(const lang of ['uk','en']){
   const mainChart=page.locator('.jy-primary-chart .jy-south-chart');
   await expect(mainChart).toBeVisible();
   await expect(mainChart.locator('.jy-south-sign')).toHaveCount(12);
+  const mainFrame=await mainChart.boundingBox();
+  expect(mainFrame).toBeTruthy();
+  expect(Math.abs(mainFrame.width-mainFrame.height),'D1 must be a square').toBeLessThanOrEqual(2);
+  await expect(mainChart.locator('.jy-south-center')).not.toContainText('RASHI');
   for(const view of ['d1','d9','d10']){
    await page.getByRole('button',{name:view.toUpperCase(),exact:true}).click();
    const varga=page.locator('.jy-varga-chart .jy-south-chart');
    await expect(varga).toBeVisible();
    await expect(varga.locator('.jy-south-sign')).toHaveCount(12);
+   const frame=await varga.boundingBox();
+   expect(frame).toBeTruthy();
+   expect(Math.abs(frame.width-frame.height),'Every varga must stay square at '+view).toBeLessThanOrEqual(2);
    const inside=await varga.evaluate(svg=>{
     const bounds=svg.getBoundingClientRect();
     return [...svg.querySelectorAll('.jy-south-sign')].every(g=>{

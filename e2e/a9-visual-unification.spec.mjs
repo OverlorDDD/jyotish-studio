@@ -16,6 +16,10 @@ test('Global shell is single in Jyotish and the local tool preserves saved-chart
 test('Cosmic hero uses circular orbit tracks, fills viewport and honors reduced motion',async({page})=>{
  await page.goto('/uk');
  await expect(page.locator('.as-orbit-track')).toHaveCount(3);
+ const moon=page.locator('.as-moon-orb');
+ await expect(moon).toHaveCount(1);
+ await expect(moon).toBeEmpty();
+ expect(await moon.evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('radial-gradient');
  const geometry=await page.evaluate(()=>{
   const hero=document.querySelector('.as-cosmic-hero').getBoundingClientRect();
   const style=getComputedStyle(document.querySelector('.as-track-inner'));

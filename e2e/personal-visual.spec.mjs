@@ -18,12 +18,15 @@ test('Personal: styled and accessible dashboard, responsive grid and settings',a
   const card=grid.querySelector('section');
   return {heroBg:getComputedStyle(hero).backgroundImage,heroRadius:parseFloat(getComputedStyle(hero).borderTopLeftRadius),
    display:getComputedStyle(grid).display,columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,
+   foundationColumns:getComputedStyle(document.querySelector('[data-testid="personal-foundation"] > div:last-of-type')).gridTemplateColumns.split(' ').length,
    cardBg:getComputedStyle(card).backgroundImage,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth};
  });
  expect(desktop.heroBg).not.toBe('none');
  expect(desktop.heroRadius).toBeGreaterThan(10);
  expect(desktop.display).toBe('grid');
- expect(desktop.columns).toBeGreaterThanOrEqual(2);
+ expect(desktop.columns).toBe(1);
+ expect(desktop.foundationColumns).toBeGreaterThanOrEqual(3);
+ await expect(page.getByTestId('astrological-path')).toBeVisible();
  expect(desktop.cardBg).not.toBe('none');
  expect(desktop.overflow).toBeLessThanOrEqual(2);
  const settings=page.getByTestId('personal-settings');
@@ -36,8 +39,10 @@ test('Personal: styled and accessible dashboard, responsive grid and settings',a
  await expect(grid).toBeVisible();
  const mobile=await page.evaluate(()=>({
   columns:getComputedStyle(document.querySelector('[data-testid="personal-overview-grid"]')).gridTemplateColumns.split(' ').length,
+  foundationColumns:getComputedStyle(document.querySelector('[data-testid="personal-foundation"] > div:last-of-type')).gridTemplateColumns.split(' ').length,
   overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
  }));
  expect(mobile.columns).toBe(1);
+ expect(mobile.foundationColumns).toBe(1);
  expect(mobile.overflow).toBeLessThanOrEqual(2);
 });

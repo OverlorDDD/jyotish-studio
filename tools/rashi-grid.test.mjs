@@ -35,3 +35,11 @@ test('Rashi grid clips at the frame, keeps its center empty and adapts at mobile
  assert.match(css,/@media\(max-width:490px\)/);
  assert.match(src,/className="jy-south-center"/);
 });
+
+test('Chart uses a single square geometric contract and localized center instead of borrowed RASHI lettering',()=>{
+ assert.match(css,/\.as-shell \.jy-south-chart\{[\s\S]*?aspect-ratio:1 \/ 1/);
+ assert.match(css,/grid-template-rows:repeat\(4,minmax\(0,1fr\)\)/);
+ assert.match(src,/jy-south-center-index/);
+ assert.doesNotMatch(src,/'RASHI'/);
+ assert.match(src,/Натальна карта/);
+});
