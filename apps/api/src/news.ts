@@ -11,7 +11,7 @@ class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
 @Controller('api/v1/news')
 export class NewsController {
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService,
-  private readonly ingestion:NewsIngestionService){}
+  @Inject(NewsIngestionService)private readonly ingestion:NewsIngestionService){}
  @Get('topics') @Header('Cache-Control','public,max-age=300')
  topics(){return TOPIC_LABELS;}
  @Get('feed') @Header('Cache-Control','public,max-age=60')
@@ -51,4 +51,8 @@ export class NewsController {
    last:await this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'}})};
  }
 }
-Reflect.defineMetadata('design:paramtypes',[ModerateDto],NewsController.prototype,'moderate');
+for(const [method,types] of [
+ ['feed',[String,String,String,String]],
+ ['moderate',[Object,String,ModerateDto]],
+ ['health',[Object]]
+] as const){Reflect.defineMetadata('design:paramtypes',types,NewsController.prototype,method);}
