@@ -108,6 +108,17 @@ modules:
     user_interface: "apps/web/app/components/EditorialWorkspace.tsx"
     public: "apps/web/lib/editorial-public.ts; EditorialPublishedCards.tsx; EditorialArticle.tsx"
     invariant: "only PUBLISHED visible to public; immutable versions; CAS expectedRevision; A5 slugs reserved"
+  news_world:
+    status: "Stage 1 implemented in branch; live ingestion requires NEWS_INGESTION_ENABLED=1 and verified reachable sources"
+    http: "apps/api/src/news.ts; /api/v1/news/feed, /topics, admin moderation and health"
+    ingestion: "apps/api/src/news-ingestion.ts (15-minute polling, PostgreSQL lease, RSS/GDELT source discovery)"
+    ranking: "apps/api/src/news-domain.ts (safe URL, strict category matching, recency-aware rank)"
+    persistence: "NewsArticle, NewsScan, NewsIngestionLease; additive 20261025150000_galaxinews_world"
+    web: "apps/web/app/components/NewsWorld.tsx; NewsWorld.module.css; /{locale}/news"
+    interests: "browser-local tag cloud and yes/no feedback; no natal data or account-based recommendations yet"
+    safeguard: "source-linked metadata only; no full article bodies or externally licensed images; astronomy separate"
+    tests: "npm run test:news; e2e/news-world.spec.mjs"
+    documentation: "docs/research/galaxinews-world-implementation-2026-10-25.md"
   portal:
     status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and Community placeholders"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
