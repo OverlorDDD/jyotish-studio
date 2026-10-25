@@ -12,8 +12,8 @@ type Transit={date:string;sampledAtUtc:string;timeZone:string;method:string;moon
 type Day={date:string;moon:Transit['moon'];sampledAtUtc:string};
 type TimelineEvent={type:'MAHADASHA_START'|'ANTARDASHA_START';lord:string;atUtc:string;date:string};
 type Localized={uk:string;en:string};
-type Guidance={headline:Localized;description:Localized;action:Localized;evidence:{kind:string;method:string;sampledAtUtc?:string;house?:number|null}};
-type WeekHighlight={date:string;kind:string;headline:Localized;summary:Localized;action:Localized;evidence:{method:string;sampledAtUtc?:string}};
+type Guidance={headline:Localized;description:Localized;action:Localized;goodFor:Localized;caution:Localized;evidence:{kind:string;method:string;sampledAtUtc?:string;house?:number|null}};
+type WeekHighlight={date:string;kind:string;headline:Localized;summary:Localized;action:Localized;goodFor:Localized;caution:Localized;evidence:{method:string;sampledAtUtc?:string}};
 type Overview={
  profile:{primaryChartId:string|null;currentTimeZone:string;preferredLocale:string;favoritePractice:string;newsTopics:string[]};
  charts:ChartSummary[];selected:ChartSummary|null;suggestedChartId:string|null;staleSelectedChart:boolean;
@@ -48,6 +48,7 @@ const copy={
   newsDescription:'Майбутня добірка перевірених матеріалів за обраними темами, з посиланнями на першоджерела. Особисті записи не використовуються для добору.',
   themes:'Цікаві мені теми',settings:'Налаштування Personal',tz:'Мій поточний часовий пояс (IANA)',
   favorite:'Улюблена дихальна практика',saveSettings:'Зберегти налаштування',
+  foundation:'Моя астрологічна основа',goodFor:'Сприятливий фокус',caution:'Не поспішай із',step:'Твій конкретний крок',todayTitle:'Астрологічний орієнтир на сьогодні',periodDetail:'Про життєвий цикл',weekFocus:'Три-чотири найпомітніші зміни наступних семи днів',weekEmpty:'Цього тижня значущих змін даш та місячних положень не зафіксовано.',
   profileSaved:'Налаштування збережено',questionCount:'збережених приватних запитань',account:'Параметри акаунта',
   noTransit:'Це загальні положення Місяця. Для персональних домів обери основну перевірену карту.',ephUnavailable:'Зараз не вдалося отримати астрономічні дані; інші особисті розділи доступні.',
   signedOut:'Увійди через кнопку у шапці, щоб відкрити свій персональний простір.',
@@ -77,6 +78,7 @@ const copy={
   newsDescription:'A future source-linked collection of verified articles based on your chosen topics. Private journal notes never select news.',
   themes:'My interests',settings:'Personal settings',tz:'My current time zone (IANA)',
   favorite:'Favorite breathing practice',saveSettings:'Save preferences',
+  foundation:'My astrological foundation',goodFor:'Useful focus',caution:'Be careful about',step:'Your concrete step',todayTitle:'Today’s astrological orientation',periodDetail:'About your life cycle',weekFocus:'The three or four most meaningful shifts over seven days',weekEmpty:'No significant Dasha or sampled lunar changes were detected in the next seven days.',
   profileSaved:'Preferences saved',questionCount:'private saved questions',account:'Account settings',
   noTransit:'These are general Moon positions. Select a verified chart for personalized houses.',ephUnavailable:'Astronomical data is temporarily unavailable; the other personal tools remain accessible.',
   signedOut:'Sign in using the header to access your private personal space.',
@@ -154,65 +156,62 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
   {error&&<div role="alert" className={styles['gp-error']}>{error} <button type="button" onClick={()=>void refresh()}><RefreshCcw size={16}/>{t.retry}</button></div>}
   {message&&<p role="status" className={styles['gp-success']}><CheckCircle2 size={18}/>{message}</p>}
   {overview&&<>
-   <div className={styles['gp-overview-grid']} data-testid="personal-overview-grid"><section className={[styles['gp-panel'],styles['gp-primary']].join(' ')} aria-label={t.choose}>
-    <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>01 / NATAL</span><h2>{t.choose}</h2></div><Compass size={25}/></div>
-    {chosen?<p className={styles['gp-chart-summary']}><strong>{chosen.place||chosen.date||t.choose}</strong> · {uk?'Лагна':'Lagna'} {chosen.lagnaName}</p>:<p>{t.noChart}</p>}
-    <div className={styles['gp-form-inline']}>
-     <label htmlFor="gp-primary-select">{t.start}
-      <select id="gp-primary-select" data-testid="primary-chart-select" value={chartChoice} onChange={e=>setChartChoice(e.target.value)}>
-       <option value="">{t.select}</option>
-       {overview.charts.map(c=><option key={c.id} value={c.id}>{c.place||c.date||c.id.slice(0,8)} · {c.date}</option>)}
-      </select></label>
-     <button className={styles['gp-button']} type="button" disabled={busy||chartChoice===overview.profile.primaryChartId} onClick={()=>void saveChart()}>{t.save}</button>
-    </div>
-    <Link href={portalPath(locale,'astrology/jyotish')} className={styles['gp-text-link']}>{t.newChart} <ArrowRight size={15}/></Link>
-    {chosen?.recoveryStatus==='recovered'&&<small>{t.recovered}</small>}
-    {chosen?.recoveryStatus==='needs_review'&&<p role="status" className={styles['gp-notice']}>{t.review}</p>}
-    {chosen?.recoveryStatus==='temporarily_unavailable'&&<p role="status" className={styles['gp-notice']}>{t.recoveryUnavailable}</p>}
-    {overview.staleSelectedChart&&<p className={styles['gp-notice']}>{uk?'Обрану карту видалено. Вибери іншу.':'Your selected chart was removed. Choose another.'}</p>}
-   </section>
-    <section className={styles['gp-panel']} data-testid="current-dasha">
-     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>VIMSHOTTARI</span><h2>{t.current}</h2></div><Sun size={26}/></div>
-     {overview.activeDasha?<><strong className={styles['gp-feature-name']}>{lord(overview.activeDasha.lord)}</strong>
-      <p>{date(overview.activeDasha.start)} — {date(overview.activeDasha.end)}</p>
-      {overview.activeDasha.antardasha&&<p className={styles['gp-pill']}>{lord(overview.activeDasha.antardasha.lord)} · {date(overview.activeDasha.antardasha.start)} — {date(overview.activeDasha.antardasha.end)}</p>}
-      <small>{t.asof} · 365.2425 {uk?'днів/рік':'days/year'}</small>
-     </>:<p>{chosen?(chosen.recoveryStatus==='needs_review'?t.review:chosen.recoveryStatus==='temporarily_unavailable'?t.recoveryUnavailable:chosen.verified?t.outOfRange:t.noDasha):t.noDasha}</p>}
-     <Link href={portalPath(locale,'astrology/jyotish')+'#timeline'} className={styles['gp-text-link']}>{uk?'Детальніше про даші':'Explore Dashas'} <ArrowRight size={14}/></Link>
-    </section>
-    <section className={styles['gp-panel']} data-testid="moon-transit">
-     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>GOCHARA</span><h2>{t.moon}</h2></div><MoonStar size={26}/></div>
-     {highlight?<><strong className={styles['gp-feature-name']}>{sign(highlight.moon.sign)}</strong>
-      <p>{highlight.moon.nakshatra} · {uk?'пада':'pada'} {highlight.moon.pada}</p>
-      {highlight.moon.houseFromLagna!=null&&<p className={styles['gp-pill']}>{t.house}: {highlight.moon.houseFromLagna}</p>}
-      <small>{t.method}</small>
-      <div className={styles['gp-planet-highlights']}>{highlight.planets.filter(p=>['Sun','Jupiter','Saturn'].includes(p.name)).map(p=>
-       <div key={p.name}><strong>{lord(p.name)}</strong><span>{sign(p.sign)}</span>{p.houseFromLagna!=null&&<small>{t.house}: {p.houseFromLagna}</small>}</div>)}</div>
-     {overview.transitStatus==='general'&&<small>{t.noTransit}</small>}
-      </>:<p>{overview.transitStatus==='ephemeris_unavailable'?t.ephUnavailable:t.noTransit}</p>}
+
+   <div className={styles['gp-overview-grid']} data-testid="personal-overview-grid">
+    <section className={[styles['gp-panel'],styles['gp-primary'],styles['gp-foundation']].join(' ')} data-testid="personal-foundation" aria-label={t.foundation}>
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>NATAL · VIMSHOTTARI · GOCHARA</span><h2>{t.foundation}</h2></div><Compass size={25}/></div>
+     <div className={styles['gp-foundation-grid']}>
+      <div className={styles['gp-foundation-part']}>
+       {chosen?<p className={styles['gp-chart-summary']}><strong>{chosen.place||chosen.date||t.choose}</strong>{uk?'Лагна':'Lagna'}: {chosen.lagnaName}</p>:<p>{t.noChart}</p>}
+       <label htmlFor="gp-primary-select">{t.start}
+        <select id="gp-primary-select" data-testid="primary-chart-select" value={chartChoice} onChange={e=>setChartChoice(e.target.value)}>
+         <option value="">{t.select}</option>
+         {overview.charts.map(chart=><option key={chart.id} value={chart.id}>{chart.place||chart.date||chart.id.slice(0,8)} · {chart.date}</option>)}
+        </select>
+       </label>
+       <div className={styles['gp-foundation-actions']}>
+        <button className={styles['gp-button']} type="button" disabled={busy||chartChoice===overview.profile.primaryChartId} onClick={()=>void saveChart()}>{t.save}</button>
+        <Link href={portalPath(locale,'astrology/jyotish')} className={styles['gp-text-link']}>{t.newChart}<ArrowRight size={14}/></Link>
+       </div>
+      </div>
+      <div className={styles['gp-foundation-part']} data-testid="current-dasha">
+       <span className={styles['gp-eyebrow']}>VIMSHOTTARI</span>
+       {overview.activeDasha?<><strong className={styles['gp-foundation-value']}>{lord(overview.activeDasha.lord)}{overview.activeDasha.antardasha?' · '+lord(overview.activeDasha.antardasha.lord):''}</strong>
+        <small>{date(overview.activeDasha.start)} — {date(overview.activeDasha.end)}</small>
+        <Link href={portalPath(locale,'astrology/jyotish')+'#timeline'} className={styles['gp-text-link']}>{t.periodDetail}<ArrowRight size={14}/></Link>
+       </>:<p>{chosen?(chosen.recoveryStatus==='needs_review'?t.review:chosen.recoveryStatus==='temporarily_unavailable'?t.recoveryUnavailable:chosen.verified?t.outOfRange:t.noDasha):t.noDasha}</p>}
+      </div>
+      <div className={styles['gp-foundation-part']} data-testid="moon-transit">
+       <span className={styles['gp-eyebrow']}>GOCHARA · {overview.today}</span>
+       {highlight?<><strong className={styles['gp-foundation-value']}>{sign(highlight.moon.sign)}</strong>
+        <small>{highlight.moon.nakshatra} · {uk?'пада':'pada'} {highlight.moon.pada}{highlight.moon.houseFromLagna!=null?' · '+t.house+': '+highlight.moon.houseFromLagna:''}</small>
+        <a href="#astrological-path" className={styles['gp-text-link']}>{t.todayTitle}<ArrowRight size={14}/></a>
+       </>:<p>{overview.transitStatus==='ephemeris_unavailable'?t.ephUnavailable:t.noTransit}</p>}
+      </div>
+     </div>
+     {chosen?.recoveryStatus==='recovered'&&<small>{t.recovered}</small>}
+     {chosen?.recoveryStatus==='needs_review'&&<p role="status" className={styles['gp-notice']}>{t.review}</p>}
+     {chosen?.recoveryStatus==='temporarily_unavailable'&&<p role="status" className={styles['gp-notice']}>{t.recoveryUnavailable}</p>}
+     {overview.staleSelectedChart&&<p className={styles['gp-notice']}>{uk?'Обрану карту видалено. Вибери іншу.':'Your selected chart was removed. Choose another.'}</p>}
     </section>
    </div>
-
-   <section className={[styles['gp-panel'],styles['gp-path']].join(' ')} data-testid="astrological-path" aria-label={t.path}>
-    <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>YOUR COSMIC PATH</span><h2>{t.path}</h2><p>{t.pathIntro}</p></div><Orbit size={30}/></div>
-    <div className={styles['gp-path-grid']}>
-     <article className={styles['gp-path-article']} data-testid="journey-period">
-      <span className={styles['gp-eyebrow']}>VIMSHOTTARI · {t.pathPeriod}</span>
-      {overview.journey?.period?<><h3>{overview.journey.period.headline[locale]}</h3>
-       <p>{overview.journey.period.description[locale]}</p>
-       <div className={styles['gp-advice']}><span>{t.weeklyAction}</span><p>{overview.journey.period.action[locale]}</p></div>
-       <small>{uk?'Основа: натальна карта, доми та даша Galaxiora.':'Basis: natal houses and the Galaxiora Dasha.'}</small>
-      </>:<p>{t.pathMissing}</p>}
-     </article>
-     <article className={styles['gp-path-article']} data-testid="journey-daily">
-      <span className={styles['gp-eyebrow']}>GOCHARA · {overview.today}</span>
-      <h3>{overview.journey?.daily?.headline[locale]||t.pathDaily}</h3>
-      <p>{overview.journey?.daily?.description[locale]||t.pathDailyMissing}</p>
-      {overview.journey?.daily&&<div className={styles['gp-advice']} data-testid="daily-advice"><span>{t.advice}</span><p>{overview.journey.daily.action[locale]}</p></div>}
-      <a href="#personal-journal" className={styles['gp-text-link']} onClick={()=>setJournalOpen(true)}>{t.reflect} <ArrowRight size={15}/></a>
-     </article>
-    </div>
-    <p className={styles['gp-microcopy']}>{t.observe}</p>
+   <section id="astrological-path" className={[styles['gp-panel'],styles['gp-path']].join(' ')} data-testid="astrological-path" aria-label={t.path}>
+    <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>TODAY · GOCHARA</span><h2>{t.todayTitle}</h2></div><MoonStar size={27}/></div>
+    <article className={styles['gp-daily-focus']} data-testid="journey-daily">
+     {overview.journey?.daily?<><h3>{overview.journey.daily.headline[locale]}</h3>
+      <p>{overview.journey.daily.description[locale]}</p>
+      <div className={styles['gp-daily-matrix']} data-testid="daily-advice">
+       <div><span>{t.goodFor}</span><p>{overview.journey.daily.goodFor[locale]}</p></div>
+       <div><span>{t.caution}</span><p>{overview.journey.daily.caution[locale]}</p></div>
+       <div className={styles['gp-daily-step']}><span>{t.step}</span><p>{overview.journey.daily.action[locale]}</p></div>
+      </div>
+      <a href="#personal-journal" className={styles['gp-text-link']} onClick={()=>setJournalOpen(true)}>{t.reflect}<ArrowRight size={15}/></a>
+     </>:<p>{t.pathDailyMissing}</p>}
+    </article>
+    {overview.journey?.period&&<details className={styles['gp-period-detail']} data-testid="journey-period">
+     <summary>{t.periodDetail} · {overview.journey.period.headline[locale]}</summary>
+     <p>{overview.journey.period.description[locale]}</p>
+    </details>}
    </section>
    <section className={styles['gp-panel']} data-testid="personal-calendar">
     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>LUNAR PATH</span><h2>{t.calendar}</h2></div><CalendarDays size={26}/></div>
@@ -226,14 +225,17 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
       {events.filter(e=>e.date===day.date).map((e,i)=><em className={styles['gp-event-tag']} key={e.type+i}>{e.type==='MAHADASHA_START'?(uk?'Махадаша':'Major period'):(uk?'Антардаша':'Subperiod')} · {lord(e.lord)}</em>)}
      </div>)}</div>}
 
-    {!calendarBusy&&!calendarError&&calendar.length>0&&<section className={styles['gp-week-section']} data-testid="week-highlights" aria-label={t.weekTitle}>
-     <div className={styles['gp-week-heading']}><h3>{t.weekTitle}</h3><small>{t.weekSub}</small></div>
-     {weekHighlights.length?<ol className={styles['gp-week-list']}>{weekHighlights.map((h,i)=><li key={h.date+h.kind+i}>
-      <time dateTime={h.date}>{h.date.slice(5)}</time><div><strong>{h.headline[locale]}</strong><p>{h.summary[locale]}</p>
-      <small><b>{t.weeklyAction}: </b>{h.action[locale]}</small></div>
-     </li>)}</ol>:<p>{t.weekMissing}</p>}
-    </section>}
-    <p className={styles['gp-microcopy']}>{calendarStatus==='general'?t.general:t.method}</p>
+ 
+   {!calendarBusy&&!calendarError&&calendar.length>0&&<section className={styles['gp-week-section']} data-testid="week-highlights" aria-label={t.weekTitle}>
+    <div className={styles['gp-week-heading']}><h3>{t.weekTitle}</h3><small>{t.weekFocus}</small></div>
+    {weekHighlights.length?<ol className={styles['gp-week-list']}>{weekHighlights.map((h,i)=><li key={h.date+h.kind+i}>
+     <time dateTime={h.date}>{h.date.slice(5)}</time><div><strong>{h.headline[locale]}</strong><p>{h.summary[locale]}</p>
+      <div className={styles['gp-week-insights']}><p><b>{t.goodFor}: </b>{h.goodFor[locale]}</p><p><b>{t.caution}: </b>{h.caution[locale]}</p></div>
+      <small><b>{t.step}: </b>{h.action[locale]}</small>
+     </div>
+    </li>)}</ol>:<p>{t.weekEmpty}</p>}
+   </section>}
+   <p className={styles['gp-microcopy']}>{calendarStatus==='general'?t.general:t.method}</p>
    </section>
    <div className={styles['gp-grid']}>
     <section className={styles['gp-panel']}>
