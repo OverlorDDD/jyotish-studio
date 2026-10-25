@@ -1,4 +1,4 @@
-import {Injectable,OnModuleDestroy,OnModuleInit} from '@nestjs/common';
+import {Inject,Injectable,OnModuleDestroy,OnModuleInit} from '@nestjs/common';
 import {createHash,randomUUID} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
 import {classify,parseXml,type Candidate} from './news-domain.ts';

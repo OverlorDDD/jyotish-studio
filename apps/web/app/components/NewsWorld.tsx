@@ -1,5 +1,5 @@
 'use client';
-import {useCallback,useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit} from 'lucide-react';
 import PortalShell from './PortalShell';
 import styles from './NewsWorld.module.css';
