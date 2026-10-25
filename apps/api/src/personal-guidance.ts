@@ -8,8 +8,9 @@ type Transit=Awaited<ReturnType<typeof dailyTransit>>;
 type Period={lord:string;start:string;end:string;antardasha?:{lord:string;start:string;end:string}|null};
 type Natal={name:string;sign:number};
 type Event={type:string;lord:string;date:string;atUtc:string};
-type Evidence={kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string};
+type Evidence={kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string;natalLagnaSign?:number;natalMoonSign?:number;natalMoonHouse?:number|null;majorNatalHouse?:number|null;minorNatalHouse?:number|null};
 type Brief={headline:L;description:L;action:L;goodFor:L;caution:L;evidence:Evidence};
+export type VerifiedNatalContext={lagnaSign:number;moonSign:number;natalPositions:Natal[];period:Period|null};
 const l=(uk:string,en:string):L=>({uk,en});
 const names:Record<string,L>={
  Sun:l('Сонця','Sun'),Moon:l('Місяця','Moon'),Mars:l('Марса','Mars'),Mercury:l('Меркурія','Mercury'),
@@ -30,18 +31,18 @@ const qualities:Record<string,L>={
 // Whole-sign house contexts, not fortune scores or muhurta recommendations.
 // Each instruction has an observable, finite action and a meaningful trade-off.
 const houses:{topic:L;goodFor:L;caution:L;action:L}[]=[
- {topic:l('власна позиція','personal direction'),goodFor:l('переглянути особисті пріоритети та власний план','review your priorities and personal plan'),caution:l('не приймати імпульсивних рішень лише через настрій','avoid making impulsive mood-driven decisions'),action:l('Сформулюй одне рішення на найближчі сім днів і запиши, чому воно важливе.','Write one decision for the next seven days and why it matters.')},
- {topic:l('гроші й домовленості з родиною','money and family agreements'),goodFor:l('звірити витрати, бюджет і спільні домовленості','review expenses, budget and shared agreements'),caution:l('не обіцяти коштів, не перевіривши можливості','do not commit money without checking your capacity'),action:l('Перевір три найбільші витрати місяця й обери одну, яку можна скоротити.','Review your three largest monthly expenses and find one to reduce.')},
- {topic:l('навички, листування та короткі поїздки','skills, messages and short trips'),goodFor:l('написати важливе повідомлення та відпрацювати навичку','send an important message and practise a skill'),caution:l('не плутати швидкість відповіді з точністю','do not confuse a quick reply with a correct one'),action:l('Напиши чернетку потрібного листа, перевір факти й надішли його.','Draft an important email, check the facts and send it.')},
- {topic:l('дім і внутрішня опора','home and inner stability'),goodFor:l('налагодити домашні справи або розмову в родині','sort out a home task or family conversation'),caution:l('не переносити робоче роздратування на близьких','avoid taking work frustration out on loved ones'),action:l('Визнач одну домашню справу, що забирає увагу, і доведи її до кінця.','Complete one household task that has been weighing on you.')},
- {topic:l('творчість, навчання та діти','creativity, learning and children'),goodFor:l('показати власну ідею, навчити або навчитись','share an idea, teach or study'),caution:l('не відкладати завершення роботи заради нескінченних правок','avoid endless revisions instead of finishing'),action:l('Оформи одну ідею у завершену сторінку, ескіз або коротку презентацію.','Turn one idea into a complete page, sketch or short presentation.')},
- {topic:l('праця, звички та щоденні обов’язки','work, habits and daily responsibilities'),goodFor:l('закрити накопичені завдання та впорядкувати графік','clear a backlog and organise your schedule'),caution:l('не перевантажувати день обіцянками','avoid overcommitting your schedule'),action:l('Випиши три незавершені задачі й закрий найкоротшу до обіду.','List three outstanding tasks and finish the shortest before lunch.')},
- {topic:l('партнерство й домовленості','partnerships and agreements'),goodFor:l('погодити очікування з партнером чи клієнтом','align expectations with a partner or client'),caution:l('не трактувати мовчання іншої людини як згоду','do not mistake silence for agreement'),action:l('Постав одне конкретне запитання, яке давно лишалось без чіткої відповіді.','Ask one specific question that has lacked a clear answer.')},
- {topic:l('спільні фінанси та складні зміни','shared finances and difficult changes'),goodFor:l('розібрати незрозумілі умови, борги або спільні ресурси','review unclear terms, debts or shared resources'),caution:l('не підписувати незрозумілих умов та не поспішати з ризиком','avoid signing unclear terms or rushing into risk'),action:l('Перевір одну фінансову умову або підписку, якої досі не розумів повністю.','Review one financial term or subscription you have not fully understood.')},
- {topic:l('освіта, наставники та далекий горизонт','education, mentors and long-range plans'),goodFor:l('подати заявку, сформулювати запит наставнику, спланувати навчання','apply, consult a mentor or plan a course of study'),caution:l('не обіцяти більше, ніж дозволяють час і ресурси','avoid promises exceeding your time and resources'),action:l('Обери одну навчальну програму, перевір умови вступу й занеси в календар дату подачі заявки.','Choose one course, check the entry requirements and add the application deadline to your calendar.')},
- {topic:l('кар’єра, репутація та відповідальність','career, reputation and responsibility'),goodFor:l('представити результат, завершити робочу домовленість','present a result and finalise a work agreement'),caution:l('не плутати наполегливість із різким тоном','do not confuse determination with a harsh tone'),action:l('Заверши одну видиму робочу задачу й надішли результат тому, хто його очікує.','Finish one visible work item and send the result to its recipient.')},
- {topic:l('команди, спільноти та довгострокові цілі','teams, communities and long-term goals'),goodFor:l('узгодити спільний план або відновити корисний контакт','align a shared plan or reconnect with a useful contact'),caution:l('не покладатися на неозвучені очікування інших','do not rely on others understanding unspoken expectations'),action:l('Напиши одній людині зі своєї професійної спільноти з конкретною пропозицією.','Message one person in your professional network with a concrete proposal.')},
- {topic:l('відновлення сил, усамітнення та завершення','rest, solitude and closure'),goodFor:l('закінчити непомітну роботу й зняти зайве навантаження','finish behind-the-scenes work and reduce overload'),caution:l('не приймати важливих рішень у стані виснаження','avoid major decisions when exhausted'),action:l('Прибери одне необов’язкове завдання з вечора та залиш час для сну.','Remove one optional evening task and make space for sleep.')}
+ {topic:l("особистий напрям","personal direction"),goodFor:l("перевірити свій план","review your personal plan"),caution:l("не порівнювати свій темп із чужим","avoid comparing your pace with others"),action:l("Запиши одне особисте рішення на цей тиждень і визнач, що допоможе його виконати.","Write one personal decision for this week and what would help you follow it.")},
+ {topic:l("матеріальні пріоритети","material priorities"),goodFor:l("звірити бажання й ресурси","review wishes against resources"),caution:l("не купувати з імпульсу","avoid impulse spending"),action:l("Пригадай останню покупку і виріши, чи відповідала вона твоїм пріоритетам.","Reflect on your latest purchase and whether it matched your priorities.")},
+ {topic:l("спілкування й власний голос","communication and your voice"),goodFor:l("прояснити незрозуміле запитання","clarify an unresolved question"),caution:l("не підміняти факти здогадами","avoid substituting assumptions for facts"),action:l("Сформулюй одне запитання, на яке хочеш отримати відповідь, замість припускати її.","Formulate one question you want answered rather than assuming the answer.")},
+ {topic:l("дім і відчуття опори","home and stability"),goodFor:l("зробити звичний простір спокійнішим","make your familiar surroundings calmer"),caution:l("не ігнорувати потребу у відпочинку","avoid ignoring your need for rest"),action:l("Звільни одну невелику ділянку свого простору або двадцять хвилин від зайвих справ.","Clear a small space or free twenty minutes from unnecessary tasks.")},
+ {topic:l("творчість та особиста радість","creativity and personal joy"),goodFor:l("повернутись до приємного заняття","return to something enjoyable"),caution:l("не оцінювати творчість лише результатом","avoid judging creativity only by its result"),action:l("Виділи п’ятнадцять хвилин на заняття, яке обираєш лише для себе.","Make fifteen minutes for an activity you choose for yourself.")},
+ {topic:l("повсякденні зобов’язання","everyday commitments"),goodFor:l("спростити власний розклад","simplify your schedule"),caution:l("не навантажувати день зайвими обіцянками","avoid overloading your day with promises"),action:l("Обери одну невелику справу, яку можеш завершити сьогодні, й визнач для неї час.","Choose one small task you can finish today and set a time for it.")},
+ {topic:l("стосунки й особисті межі","relationships and boundaries"),goodFor:l("усвідомити власні потреби у спілкуванні","notice your own needs in interactions"),caution:l("не погоджуватись лише через незручність","avoid agreeing solely from discomfort"),action:l("Запиши одну межу, яку хочеш захищати в спілкуванні, та коротку фразу для цього.","Write one boundary you want to keep in your interactions and a short phrase to explain it.")},
+ {topic:l("спільні зобов’язання і зміни","shared commitments and change"),goodFor:l("уточнити незрозумілу умову","clarify an unclear condition"),caution:l("не діяти без потрібної інформації","avoid acting without enough information"),action:l("Перевір одну умову, платіж або домовленість, яку варто зрозуміти перед рішенням.","Check a term, payment or agreement worth understanding before deciding.")},
+ {topic:l("переконання й життєвий напрям","beliefs and life direction"),goodFor:l("співвіднести цінності з планами","align values with plans"),caution:l("не приймати чужі очікування за свої","avoid confusing others’ expectations with your own"),action:l("Запиши один принцип, який важливий для тебе, і перевір, чи відповідає йому твій теперішній план.","Write one principle that matters to you and check whether your current plan reflects it.")},
+ {topic:l("відповідальність і завершення справ","responsibility and completing tasks"),goodFor:l("визначити зрозумілий результат справи","define a clear result for a task"),caution:l("не тиснути на себе через чужий темп","avoid pressuring yourself to match others’ pace"),action:l("Обери незавершену справу — навіть особисту — й запиши критерій її готовності.","Choose an unfinished task, even a personal one, and define what finished means.")},
+ {topic:l("спільнота й особисті цілі","community and personal goals"),goodFor:l("визначити важливу ціль","identify a meaningful goal"),caution:l("не будувати план лише на підтримці інших","avoid a plan that depends solely on others"),action:l("Запиши одну мету на три місяці й одну дію, яку здатна чи здатен виконати самостійно.","Write one goal for three months and an action you can do independently.")},
+ {topic:l("відновлення сил і завершення зайвого","rest and releasing excess"),goodFor:l("залишити простір для відпочинку","make room for rest"),caution:l("не плутати зайнятість із прогресом","avoid confusing busyness with progress"),action:l("Прибери одну необов’язкову справу зі свого вечора й залиш час для себе.","Remove one optional evening task and keep some time for yourself.")}
 ];
 const signs:L[]=[
  l('Овні','Aries'),l('Тельці','Taurus'),l('Близнюках','Gemini'),l('Раку','Cancer'),
@@ -110,114 +111,79 @@ export function buildPeriodGuidance(period:Period|null,lagna:number|null,natal:N
    major:period.lord,minor:minor||undefined,house:a?.house??null}
  };
 }
-export function buildDailyGuidance(t:Transit|null):Brief|null{
- if(!t||!Number.isInteger(t.moon.sign)||t.moon.sign<1||t.moon.sign>12)return null;
- const h=t.moon.houseFromLagna;
- const focus=h!=null&&h>=1&&h<=12?houses[h-1]:null;
- const nak=mansions[t.moon.nakshatra],zodiac=signs[t.moon.sign-1];
- const domain=focus?focus.topic:l('загальну місячну динаміку','the general lunar rhythm');
+/**
+ * One canonical personal reading. Its entire chain of evidence comes from a
+ * verified saved chart and the matching Swiss/Lahiri observation.
+ * It never assumes jobs, formal education, children or mentors.
+ */
+export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|null):Brief|null{
+ if(!t||!context||context.lagnaSign<1||context.lagnaSign>12||context.moonSign<1||context.moonSign>12||
+ !t.personalized||!Number.isInteger(t.moon.sign)||t.moon.sign<1||t.moon.sign>12)return null;
+ const house=houseFrom(t.moon.sign,context.lagnaSign);
+ if(t.moon.houseFromLagna!==house||
+  !context.natalPositions.some(p=>p.name==='Moon'&&p.sign===context.moonSign))return null;
+ const focus=houses[house-1],zodiac=signs[t.moon.sign-1],nak=mansions[t.moon.nakshatra];
+ const natalMoonHouse=houseFrom(context.moonSign,context.lagnaSign);
+ const major=context.period?.lord,minor=context.period?.antardasha?.lord;
+ const majorNatalHouse=major?natalPeriodContext(context.lagnaSign,context.natalPositions,major)?.house??null:null;
+ const minorNatalHouse=minor?natalPeriodContext(context.lagnaSign,context.natalPositions,minor)?.house??null:null;
+ const periodUk=major&&names[major]?' На довший ритм впливає махадаша '+names[major].uk+
+  (majorNatalHouse?' ('+majorNatalHouse+'-й натальний дім)':'')+
+  (minor&&names[minor]?' та антардаша '+names[minor].uk+(minorNatalHouse?' ('+minorNatalHouse+'-й натальний дім)':''):'')+'.':'';
+ const periodEn=major&&names[major]?' The longer cycle is '+names[major].en+' Mahadasha'+
+  (majorNatalHouse?' (natal house '+majorNatalHouse+')':'')+
+  (minor&&names[minor]?' and '+names[minor].en+' Antardasha'+(minorNatalHouse?' (natal house '+minorNatalHouse+')':''):'')+'.':'';
  return {
-  headline:l(focus?'У фокусі: '+domain.uk:'Місяць у '+zodiac.uk,
-    focus?'Today: '+domain.en:'Moon in '+zodiac.en),
-  description:l('Місяць у '+zodiac.uk+' · '+t.moon.nakshatra+', пада '+t.moon.pada+'. '+
-   (focus?'Від лагни це '+h+'-й дім — '+domain.uk+'. ':'')+
-   (nak?'Накшатра традиційно наголошує на '+nak.uk+'.':''),
-   'Moon in '+zodiac.en+' · '+t.moon.nakshatra+', pada '+t.moon.pada+'. '+
-   (focus?'From your Lagna this is house '+h+' — '+domain.en+'. ':'')+
-   (nak?'Traditionally, this nakshatra highlights '+nak.en+'.':'')),
-  goodFor:focus?focus.goodFor:l('уточнити плани й поточні зобов’язання','review plans and current commitments'),
-  caution:focus?focus.caution:l('не робити особистих висновків без натальної карти','avoid personal predictions without a verified birth chart'),
-  action:focus?focus.action:l('Перевір найближчу домовленість: запиши відповідального, термін і наступну дію.','Check your next commitment: write down the owner, deadline and next step.'),
-  evidence:{kind:focus?'PERSONAL_MOON_HOUSE':'GENERAL_MOON_SKY',method:t.method,
-   day:t.date,sampledAtUtc:t.sampledAtUtc,planet:'Moon',sign:t.moon.sign,house:h??null,nakshatra:t.moon.nakshatra}
+  headline:l('Тема дня: '+focus.topic.uk,'Today’s theme: '+focus.topic.en),
+  description:l('Транзитний Місяць у '+zodiac.uk+' · '+t.moon.nakshatra+', пада '+t.moon.pada+'. У твоїй збереженій натальній карті це '+house+'-й дім від лагни; натальний Місяць розташований у '+natalMoonHouse+'-му домі.'+periodUk+
+   (nak?' Традиційна тема накшатри — '+nak.uk+'.':''),
+   'The transiting Moon is in '+zodiac.en+' · '+t.moon.nakshatra+', pada '+t.moon.pada+'. From your verified natal Lagna this is house '+house+'; your natal Moon occupies house '+natalMoonHouse+'.'+periodEn+
+   (nak?' The traditional nakshatra theme is '+nak.en+'.':'')),
+  goodFor:focus.goodFor,caution:focus.caution,action:focus.action,
+  evidence:{kind:'VERIFIED_NATAL_TRANSIT_DASHA',method:t.method,day:t.date,sampledAtUtc:t.sampledAtUtc,
+   planet:'Moon',sign:t.moon.sign,house,nakshatra:t.moon.nakshatra,natalLagnaSign:context.lagnaSign,
+   natalMoonSign:context.moonSign,natalMoonHouse,major,minor,majorNatalHouse,minorNatalHouse}
  };
 }
-
-/** Companion actions when a neighbouring day falls in the same natal house.
- * Practical themes are not inferred from gender or presumed family situation.
- * The same input always produces the same guidance, irrespective of account data.
- */
-const complementary:ReadonlyArray<{goodFor:L;caution:L;action:L}>=[
- {goodFor:l('перевірити власні межі та розклад','review boundaries and your schedule'),caution:l('не брати нові обов’язки автоматично','avoid accepting more responsibilities automatically'),action:l('Скасуй одну необов’язкову справу в календарі й звільни час для важливої.','Cancel one nonessential calendar item to make time for what matters.')},
- {goodFor:l('спокійно обговорити спільні покупки','discuss shared purchases calmly'),caution:l('не приймати фінансових рішень із почуття провини','avoid money decisions driven by guilt'),action:l('Запиши два пріоритети бюджету і погодь один з тим, кого це стосується.','Write two budget priorities and agree on one with whoever is affected.')},
- {goodFor:l('прояснити непорозуміння без довгого листування','clear up a misunderstanding without lengthy messaging'),caution:l('не надсилати емоційний текст без перечитування','do not send an emotional message before rereading it'),action:l('Замінюй довгий ланцюжок повідомлень однією короткою розмовою з чіткою метою.','Replace a long message thread with one focused conversation.')},
- {goodFor:l('облаштувати простір для спокійного вечора','make space for a calmer evening'),caution:l('не намагатися зробити все за інших','avoid taking on everybody else’s tasks'),action:l('Домовся, хто відповідає за одну спільну справу, і не роби її замість усіх.','Agree who owns one shared task instead of doing everything yourself.')},
- {goodFor:l('повернутись до улюбленого заняття без оцінювання результату','return to a favourite activity without judging the result'),caution:l('не порівнювати свій темп із чужим','avoid comparing your pace to somebody else’s'),action:l('Виділи двадцять хвилин на творчість без телефону та багатозадачності.','Set aside twenty phone-free minutes for something creative.')},
- {goodFor:l('спростити рутину й делегувати частину справ','simplify routines and delegate a task'),caution:l('не оцінювати себе лише за продуктивністю','do not measure your worth only by output'),action:l('Прибери один непотрібний пункт зі списку завдань і повідом про новий пріоритет.','Remove one unnecessary task and communicate your new priority.')},
- {goodFor:l('назвати свої потреби у важливих стосунках','name your needs in an important relationship'),caution:l('не погоджуватись лише заради уникнення конфлікту','avoid agreement solely to escape conflict'),action:l('Скажи близькій людині одним реченням, що тобі потрібно цього тижня.','Tell someone close in one sentence what you need this week.')},
- {goodFor:l('перевірити межі відповідальності у спільній справі','clarify responsibility in a shared commitment'),caution:l('не залишати незручне питання без відповіді','do not leave an uncomfortable question unresolved'),action:l('Запиши, хто, за що й до якої дати відповідає в одній спільній домовленості.','Write down who is responsible for what and by when in one shared agreement.')},
- {goodFor:l('знайти підтримку досвідченої людини','seek support from someone experienced'),caution:l('не будувати план на ідеальному сценарії','avoid plans based only on best-case assumptions'),action:l('Сформулюй наставнику одне запитання з конкретними обмеженнями за часом і ресурсами.','Ask a mentor one question that includes your real time and resource limits.')},
- {goodFor:l('визначити здорову межу робочого дня','set a sustainable end to the workday'),caution:l('не переносити робоче напруження у спілкування вдома','avoid carrying work tension into conversations at home'),action:l('Познач час завершення роботи й попередь команду, коли повернешся до запитів.','Set an end time for work and tell colleagues when you will respond next.')},
- {goodFor:l('зустрітись із людьми, які підтримують твої цілі','connect with people who support your aims'),caution:l('не брати на себе весь організаційний тягар','avoid carrying all the planning work alone'),action:l('Запропонуй подрузі або колезі коротку зустріч із однією зрозумілою метою.','Suggest a short meeting with a friend or colleague around one clear purpose.')},
- {goodFor:l('захистити відпочинок та особистий час','protect rest and personal time'),caution:l('не відкладати сон заради ще однієї задачі','avoid postponing sleep for one more task'),action:l('Встанови вечірню межу для повідомлень і вимкни одне зайве сповіщення.','Set an evening messaging boundary and turn off one unnecessary notification.')}
-];
-const distinctFields=(t:Transit,base:Brief)=>{
- const h=t.moon.houseFromLagna;
- const alternative=h!=null&&h>=1&&h<=12?complementary[h-1]:null;
- return alternative??{goodFor:base.goodFor,caution:base.caution,action:base.action};
-};
 
 export type WeekHighlight={date:string;kind:'TODAY'|'MOON_SIGN_SAMPLE_CHANGE'|'NAKSHATRA_SAMPLE_CHANGE'|'DASHA_START';
  headline:L;summary:L;action:L;goodFor:L;caution:L;
  evidence:{sampledAtUtc?:string;method:string;moonSign?:number;nakshatra?:string;lord?:string;date:string}};
-export function buildWeekHighlights(days:Transit[],events:Event[]=[]):WeekHighlight[]{
- const week=days.slice(0,7),valid=new Set(week.map(x=>x.date));
- if(!week.length)return [];
- const first=buildDailyGuidance(week[0]);
- if(!first)return [];
- // Today must be present, even when no zodiac sign or mansion changes.
- // Its companion action deliberately differs from the prominent daily card.
- const companion=distinctFields(week[0],first);
- const today:WeekHighlight={
-  date:week[0].date,kind:'TODAY',
-  headline:l('Сьогодні · '+first.headline.uk,'Today · '+first.headline.en),
-  summary:first.description,goodFor:companion.goodFor,caution:companion.caution,action:companion.action,
-  evidence:{date:week[0].date,method:week[0].method,sampledAtUtc:week[0].sampledAtUtc,
-   moonSign:week[0].moon.sign,nakshatra:week[0].moon.nakshatra}
+/** Week summaries share the EXACT same daily reading, never alternate advice. */
+export function buildWeekHighlights(days:Transit[],events:Event[]=[],contextAt?:(utc:string)=>VerifiedNatalContext|null):WeekHighlight[]{
+ const week=days.slice(0,7),validDates=new Set(week.map(d=>d.date));
+ if(!week.length||!contextAt)return [];
+ const summary=(t:Transit,kind:WeekHighlight['kind']):WeekHighlight|null=>{
+  const g=buildDailyGuidance(t,contextAt(t.sampledAtUtc));
+  return g?{date:t.date,kind,headline:g.headline,summary:g.description,goodFor:g.goodFor,
+   caution:g.caution,action:g.action,evidence:{date:t.date,method:t.method,
+    sampledAtUtc:t.sampledAtUtc,moonSign:t.moon.sign,nakshatra:t.moon.nakshatra}}:null;
  };
- const candidates:Array<WeekHighlight&{priority:number;house:number|null}>=[];
+ const first=summary(week[0],'TODAY');if(!first)return [];
+ const possibilities:Array<WeekHighlight&{priority:number;house:number|null}>=[];
+ for(let i=1;i<week.length;i++){
+  const day=week[i],previous=week[i-1],signChanged=day.moon.sign!==previous.moon.sign;
+  const nakChanged=day.moon.nakshatra!==previous.moon.nakshatra;
+  if(!signChanged&&!nakChanged)continue;
+  const v=summary(day,signChanged?'MOON_SIGN_SAMPLE_CHANGE':'NAKSHATRA_SAMPLE_CHANGE');
+  if(v)possibilities.push({...v,priority:signChanged?5:2,house:day.moon.houseFromLagna});
+ }
  for(const e of events){
-  if(!valid.has(e.date)||!names[e.lord]||!['MAHADASHA_START','ANTARDASHA_START'].includes(e.type))continue;
-  const major=e.type==='MAHADASHA_START';
-  candidates.push({priority:10,house:null,date:e.date,kind:'DASHA_START',
-   headline:l('Новий '+(major?'великий період: ':'підперіод: ')+names[e.lord].uk,
-    'New '+(major?'major period: ':'subperiod: ')+names[e.lord].en),
-   summary:l('За календарем Vimshottari починається новий планетарний етап; звернись до трактування своєї даші.',
-    'Your Vimshottari calendar enters a new period; review your personal Dasha interpretation.'),
-   goodFor:l('узгодити довгострокові пріоритети','aligning long-term priorities'),
-   caution:l('не сприймати зміну даші як гарантію певної події','not treating a Dasha shift as a guaranteed event'),
-   action:l('Переглянь два плани наступного місяця й обери той, який має чіткий термін.','Review two plans for next month and choose the one with a clear deadline.'),
+  if(!validDates.has(e.date)||!names[e.lord]||
+   !['MAHADASHA_START','ANTARDASHA_START'].includes(e.type)||e.date===first.date)continue;
+  const day=week.find(d=>d.date===e.date),ctx=contextAt(e.atUtc);
+  if(!day||!ctx)continue;
+  const v=summary(day,'DASHA_START');if(!v)continue;
+  possibilities.push({...v,priority:9,house:null,headline:l(
+   'Перехід Vimshottari: '+names[e.lord].uk,'Vimshottari transition: '+names[e.lord].en),
    evidence:{date:e.date,method:'GALAXIORA_DOCUMENTED_DASHA_YEAR',lord:e.lord}});
  }
- for(let i=1;i<week.length;i++){
-  const t=week[i],prev=week[i-1];
-  const changedSign=t.moon.sign!==prev.moon.sign;
-  const changedNak=t.moon.nakshatra!==prev.moon.nakshatra;
-  if(!changedSign&&!changedNak)continue;
-  const guidance=buildDailyGuidance(t);
-  if(!guidance)continue;
-  const sameHouse=t.moon.houseFromLagna===prev.moon.houseFromLagna;
-  const fields=sameHouse?distinctFields(t,guidance):guidance;
-  candidates.push({priority:changedSign?5:2,house:t.moon.houseFromLagna,date:t.date,
-   kind:changedSign?'MOON_SIGN_SAMPLE_CHANGE':'NAKSHATRA_SAMPLE_CHANGE',
-   headline:l(changedSign?guidance.headline.uk:'Накшатра '+t.moon.nakshatra,
-    changedSign?guidance.headline.en:'Nakshatra '+t.moon.nakshatra),
-   summary:guidance.description,goodFor:fields.goodFor,caution:fields.caution,action:fields.action,
-   evidence:{date:t.date,method:t.method,sampledAtUtc:t.sampledAtUtc,
-    moonSign:t.moon.sign,nakshatra:t.moon.nakshatra}});
+ const picked=[first],usedHouses=new Set([week[0].moon.houseFromLagna]),usedActions=new Set([first.action.uk]);
+ for(const h of possibilities.sort((a,b)=>b.priority-a.priority||a.date.localeCompare(b.date))){
+  if(picked.length>=4)break;
+  if(h.date===first.date||usedActions.has(h.action.uk)||
+    (h.house!=null&&usedHouses.has(h.house)))continue;
+  picked.push(h);usedActions.add(h.action.uk);usedHouses.add(h.house);
  }
- // Prefer a different natal-house topic over several adjacent days about
- // the same topic. Avoid repeated guidance sentences even across houses.
- const chosen=[today],used=new Set([JSON.stringify([today.goodFor,today.caution,today.action])]);
- const houseSeen=new Set<number>();
- if(week[0].moon.houseFromLagna!=null)houseSeen.add(week[0].moon.houseFromLagna!);
- for(const next of candidates.sort((a,b)=>b.priority-a.priority||a.date.localeCompare(b.date))){
-  if(chosen.length>=4)break;
-  if(next.kind!=='DASHA_START'&&next.house!=null&&houseSeen.has(next.house))continue;
-  const signature=JSON.stringify([next.goodFor,next.caution,next.action]);
-  if(used.has(signature))continue;
-  chosen.push(next);used.add(signature);
-  if(next.house!=null)houseSeen.add(next.house);
- }
- return [today,...chosen.slice(1).sort((a,b)=>a.date.localeCompare(b.date))];
+ return [first,...picked.slice(1).sort((a,b)=>a.date.localeCompare(b.date))];
 }
