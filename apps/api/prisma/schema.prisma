@@ -295,6 +295,11 @@ model NewsArticle {
  topic String
  tags String[] @default([])
  score Float @default(0)
+ summary String? @db.VarChar(500)
+ summaryKind String @default("title_context") @db.VarChar(32)
+ summaryUk String? @db.VarChar(700)
+ summaryEn String? @db.VarChar(700)
+ publishedAccuracy String @default("published") @db.VarChar(16)
  status String @default("PUBLISHED")
  publishedAt DateTime
  discoveredAt DateTime @default(now())
@@ -313,4 +318,23 @@ model NewsIngestionLease {
  id String @id
  token String
  expiresAt DateTime
+}
+
+/** One record per source attempt, including rejection reasons and failures. */
+model NewsSourceScan {
+ id String @id @default(uuid())
+ sourceKey String @db.VarChar(128)
+ scanToken String @db.VarChar(64)
+ createdAt DateTime @default(now())
+ status String @db.VarChar(24)
+ candidates Int @default(0)
+ accepted Int @default(0)
+ duplicates Int @default(0)
+ rejected Int @default(0)
+ errors Int @default(0)
+ rejectionReasons Json?
+ failure String? @db.VarChar(300)
+ durationMs Int @default(0)
+ @@index([createdAt])
+ @@index([sourceKey,createdAt])
 }
