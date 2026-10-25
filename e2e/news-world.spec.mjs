@@ -19,5 +19,5 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  expect(bad.status()).toBe(400);
  await page.goto('/en/news');
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
- await expect(page.getByRole('heading',{name:'Your constellation of interests'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Your constellation of interests'})).toBeVisible();
 });
