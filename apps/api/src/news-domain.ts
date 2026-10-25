@@ -2,7 +2,7 @@
 export const TOPICS=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'] as const;
 export type Topic=typeof TOPICS[number];
 export type Candidate={url:string;title:string;publishedAt:Date;source:string;language:string;
- description?:string;publishedAccuracy?:'published'|'observed';hint?:Topic;allowSnippet?:boolean};
+ description?:string;imageUrl?:string;imageLicense?:string;imageCredit?:string;publishedAccuracy?:'published'|'observed';hint?:Topic;allowSnippet?:boolean};
 const terms:Record<Topic,RegExp>={
  jyotish:/jyotish|vedic astrolog|nakshatra|vimshottari|navamsha|dasha|сидерич|джйотіш|накшатр/i,
  astrology:/astrolog|horoscope|zodiac|birth chart|natal chart|retrograde|гороскоп|астролог|зодіак|натальн/i,
@@ -55,20 +55,28 @@ export function classifyWithReason(c:Candidate):{article:ReturnType<typeof class
  * When a publisher explicitly allows RSS previews, use a short, attributed snippet.
  * Otherwise explain only the observable headline/topic and mark it title-based.
  */
+/** Article-level media metadata is not a blanket publishing licence.
+ * Only explicit CC0/CC-BY metadata, or a publisher approved via env, can render. */
+export function safeImageUrl(raw:string,license='',publisher=''):string|null{
+ const url=canonicalUrl(raw);
+ if(!url||!/\.(?:jpe?g|png|webp)(?:\?|$)/i.test(url))return null;
+ try{
+  const host=new URL(url).hostname;
+  const grant=(process.env.NEWS_IMAGE_ALLOWED_HOSTS||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  const allowedHost=grant.some(x=>x===host);
+  const explicitLicense=/creativecommons\.org\/licenses\/by(?:-sa)?\/|creativecommons\.org\/publicdomain\/|(?:^|\s)(?:CC0|CC-BY(?:-SA)?)(?:\s|$)/i.test(license);
+  if(!allowedHost&&!explicitLicense)return null;
+  return url;
+ }catch{return null;}
+}
+/** No boilerplate, guessed article detail or fake one-paragraph summaries. */
 export function articlePreview(c:Candidate,topic:Topic){
  const desc=cleanDescription(c.description||'');
- const sourceExcerpt=Boolean(c.allowSnippet&&desc.length>=45);
- if(sourceExcerpt){
+ if(c.allowSnippet&&desc.length>=45){
   const excerpt=desc.slice(0,285).replace(/\s+\S*$/,'').trim();
   return {summary:excerpt,summaryKind:'source_excerpt' as const};
  }
- const title=c.title.replace(/\s+/g,' ').trim();
- // Use the headline as the sole factual basis; any context beyond it is explicitly tentative.
- const en='This publication from '+c.source+' concerns '+TOPIC_LABELS[topic].en.toLowerCase()+
-  ' and the subject described in its headline: “'+title+'”. Open the original source to read the author’s full explanation and context.';
- const uk='Публікація джерела «'+c.source+'» стосується теми «'+TOPIC_LABELS[topic].uk+
-  '» та питання, зазначеного в заголовку: «'+title+'». Це орієнтир за назвою матеріалу; подробиці й контекст можна прочитати в першоджерелі.';
- return {summary:c.language.toLowerCase().startsWith('uk')?uk:en,summaryKind:'title_context' as const,ukFallback:uk,enFallback:en};
+ return {summary:'',summaryKind:'needs_editorial' as const};
 }
 export function classify(c:Candidate){
  const url=canonicalUrl(c.url),title=c.title.replace(/\s+/g,' ').trim();
@@ -86,7 +94,10 @@ export function classify(c:Candidate){
  const quality=c.description?.length&&cleanDescription(c.description).length>=70?8:0;
  const topicWeight=primary==='astronomy'?12:primary==='self-development'?24:42;
  const score=Math.round((35*Math.max(0,1-Math.max(age,0)/(24*30))+topicWeight+quality)*100)/100;
- return {...c,url,title,topic:primary,tags,score,...articlePreview(c,primary)};
+ return {...c,url,title,topic:primary,tags,score,
+  imageUrl:c.imageUrl?safeImageUrl(c.imageUrl,c.imageLicense,c.source):null,
+  imageCredit:cleanDescription(c.imageCredit||c.source).slice(0,160),
+  ...articlePreview(c,primary)};
 }
 export function rank(score:number,date:Date,now=Date.now()){
  return score+Math.max(0,40-5*Math.log2(1+Math.max(0,(now-date.getTime())/3600000)));
@@ -113,8 +124,18 @@ export function parseXml(xml:string,source:string):Candidate[]{
   const when=cleanDescription(field(node,'pubDate')||field(node,'published')||field(node,'updated'));
   const publishedAt=new Date(when);
   if(!title||!url||!when||!Number.isFinite(publishedAt.getTime()))return [];
-  // Use ONLY the short RSS description / summary; do not read content:encoded (full text).
-  const description=cleanDescription(field(node,'description')||field(node,'summary')).slice(0,500);
-  return [{url:cleanDescription(url),title,publishedAt,source,description,language:'en',publishedAccuracy:'published' as const}];
+  // Parse only metadata, not content:encoded or full HTML bodies.
+  const description=cleanDescription(field(node,'description')||field(node,'summary')).slice(0,1100);
+  const mediaTags=[...node.matchAll(/<(?:media:thumbnail|media:content|enclosure)\b[^>]*>/gi)];
+  const attr=(tag:string,name:string)=>tag.match(new RegExp('\\b'+name+'=["\\x27]([^"\\x27]+)["\\x27]','i'))?.[1]||'';
+  const found=mediaTags.find(t=>{
+   const u=attr(t[0],'url'),kind=attr(t[0],'type');
+   return u&&(/\.(?:jpe?g|png|webp)(?:\?|$)/i.test(u)||/^image\/(?:jpe?g|png|webp)$/i.test(kind));
+  });
+  const imageLicense=cleanDescription(field(node,'license')||field(node,'media:license'));
+  const imageUrl=found?attr(found[0],'url'):'';
+  const imageCredit=cleanDescription(field(node,'media:credit')||source).slice(0,150);
+  return [{url:cleanDescription(url),title,publishedAt,source,description,
+   imageUrl,imageLicense,imageCredit,language:'en',publishedAccuracy:'published' as const}];
  });
 }
