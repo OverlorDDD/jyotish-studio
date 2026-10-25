@@ -44,6 +44,10 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   expect(response.status()).toBe(200);
   const data=await response.json();
   expect(data.items.some(x=>x.title.includes(prefix)&&x.summary?.includes('Tarot spread'))).toBe(true);
+  await page.route('https://images.example.org/news-cover.jpg',route=>route.fulfill({
+   status:200,contentType:'image/png',
+   body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jlhQAAAAASUVORK5CYII=','base64')
+  }));
   await page.goto('/uk/news');
   await page.locator('#news-topic-filter').selectOption('tarot');
   await expect(page.getByTestId('news-summary').first()).toBeVisible();
