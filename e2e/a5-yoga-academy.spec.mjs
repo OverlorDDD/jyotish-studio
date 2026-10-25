@@ -59,9 +59,9 @@ test('Mindfulness and evening reflection have no timer or fake exercise completi
   await expect(page.getByRole('heading',{name:'Практику завершено'})).toHaveCount(0);
  }
 });
-test('Academy hub: seven original lessons, topic anchors, deep link EN/UK',async({page})=>{
+test('Academy hub: eight original lessons, topic anchors, deep link EN/UK',async({page})=>{
  await page.goto('/uk/learn');
- await expect(page.locator('[data-lesson]')).toHaveCount(7);
+ await expect(page.locator('[data-lesson]')).toHaveCount(8);
  await page.getByRole('link',{name:'Символіка Таро',exact:true}).click();
  await expect(page).toHaveURL(/#topic-tarot$/);
  await page.locator('[data-lesson="sidereal-and-tropical"]').click();
