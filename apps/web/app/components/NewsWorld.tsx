@@ -186,7 +186,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
            {v&&<span className={styles.voteMarked}>{v==='yes'?<Heart size={13}/>:<HeartOff size={13}/>} {t.thanks}</span>}
           </div>
          </div>
-         {(i+1)%5===0&&<div className={styles.feedback} data-testid="news-feedback">
+         {(i===0||(i+1)%5===0)&&<div className={styles.feedback} data-testid="news-feedback">
           <p>{t.interesting}</p><div><button type="button" aria-pressed={v==='yes'} onClick={()=>answer(story,'yes')}><Heart size={14}/>{t.yes}</button>
            <button type="button" aria-pressed={v==='no'} onClick={()=>answer(story,'no')}><HeartOff size={14}/>{t.no}</button></div>
          </div>}
