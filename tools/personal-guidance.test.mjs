@@ -66,12 +66,16 @@ test('Calendar today references precisely the same reading, not a complementary 
  assert.deepEqual(highlights[0].goodFor,daily.goodFor);
  assert.deepEqual(highlights[0].caution,daily.caution);
  assert.deepEqual(highlights[0].summary,daily.description);
- assert.equal(highlights[0].evidence.sampledAtUtc,daily.evidence.sampledAtUtc);
+ assert.deepEqual(highlights[0].evidence,daily.evidence);
  assert.equal(highlights.filter(h=>h.kind==='TODAY').length,1);
  assert.equal(new Set(highlights.map(h=>h.action.uk)).size,highlights.length);
  assert.ok(highlights.every(h=>h.evidence.method));
  assert.ok(highlights.some(h=>h.date==='2026-10-26'));
- assert.ok(highlights.some(h=>h.date==='2026-10-28'));
+ const transition=highlights.find(h=>h.kind==='DASHA_START');
+ assert.ok(transition);assert.equal(transition.evidence.transition?.lord,'Moon');
+ assert.equal(transition.evidence.transition?.atUtc,events[0].atUtc);
+ assert.equal(transition.evidence.natalLagnaSign,context.lagnaSign);
+ assert.equal(transition.evidence.major,'Saturn');
  assert.equal(buildWeekHighlights([],events,()=>context).length,0);
 });
 test('Natal anchors meaningfully change texts, while no life circumstances are invented',()=>{
@@ -92,4 +96,16 @@ test('Natal anchors meaningfully change texts, while no life circumstances are i
   assert.doesNotMatch(value.action.uk,/вступ|наставнику|вакансію|керівництв|дитин|школу|навчальну програму/);
   assert.doesNotMatch(value.action.en,/enrolment|apply to a school|mentor|manager|children/i);
  }
+});
+
+test('A real Dasha start remains visible even if its day reuses today’s house action',()=>{
+ const quietWeek=[moon('2026-10-25',12,'Revati',9),moon('2026-10-26',12,'Revati',9)];
+ const event={date:'2026-10-26',type:'MAHADASHA_START',lord:'Jupiter',atUtc:'2026-10-26T18:00:00.000Z'};
+ const highlights=buildWeekHighlights(quietWeek,[event],()=>context);
+ assert.equal(highlights.length,2);
+ assert.equal(highlights[0].kind,'TODAY');
+ assert.equal(highlights[1].kind,'DASHA_START');
+ assert.equal(highlights[1].evidence.transition?.lord,'Jupiter');
+ assert.equal(highlights[1].evidence.transition?.atUtc,event.atUtc);
+ assert.deepEqual(highlights[0].evidence,buildDailyGuidance(quietWeek[0],context).evidence);
 });
