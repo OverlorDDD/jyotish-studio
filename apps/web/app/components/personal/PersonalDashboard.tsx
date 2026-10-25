@@ -6,6 +6,7 @@ import styles from './PersonalDashboard.module.css';
 import {Activity,ArrowRight,BookOpen,CalendarDays,CheckCircle2,Compass,Feather,Heart,History,MoonStar,Orbit,RefreshCcw,Settings2,Sparkles,Sun,Wind} from 'lucide-react';
 import {readApiJson} from '../../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../../lib/brand';
+import {calendarDayLabel} from '../../../lib/personal-date-label';
 const PersonalJournal=dynamic(()=>import('../PersonalJournal'),{loading:()=>null});
 type ChartSummary={id:string;createdAt:string;date:string;place:string;verified:boolean;recoveryStatus?:'current'|'recovered'|'needs_review'|'temporarily_unavailable';lagnaSign:number|null;lagnaName:string;moonSign:number|null};
 type Transit={date:string;sampledAtUtc:string;timeZone:string;method:string;moon:{sign:number;nakshatra:string;pada:number;houseFromLagna:number|null;houseFromMoon:number|null};planets:{name:string;sign:number;houseFromLagna:number|null;houseFromMoon:number|null}[]};
@@ -48,7 +49,7 @@ const copy={
   newsDescription:'Майбутня добірка перевірених матеріалів за обраними темами, з посиланнями на першоджерела. Особисті записи не використовуються для добору.',
   themes:'Цікаві мені теми',settings:'Налаштування Personal',tz:'Мій поточний часовий пояс (IANA)',
   favorite:'Улюблена дихальна практика',saveSettings:'Зберегти налаштування',
-  foundation:'Моя астрологічна основа',goodFor:'Сприятливий фокус',caution:'Не поспішай із',step:'Твій конкретний крок',todayTitle:'Астрологічний орієнтир на сьогодні',periodDetail:'Про життєвий цикл',weekFocus:'Три-чотири найпомітніші зміни наступних семи днів',weekEmpty:'Цього тижня значущих змін даш та місячних положень не зафіксовано.',
+  foundation:'Моя астрологічна основа',goodFor:'Сприятливий фокус',caution:'Не поспішай із',step:'Що зробити сьогодні',todayTitle:'Астрологічний орієнтир на сьогодні',periodDetail:'Як читати свій життєвий цикл',weekFocus:'Сьогодні та ключові теми найближчих семи днів',weekEmpty:'Цього тижня значущих змін даш та місячних положень не зафіксовано.',
   profileSaved:'Налаштування збережено',questionCount:'збережених приватних запитань',account:'Параметри акаунта',
   noTransit:'Це загальні положення Місяця. Для персональних домів обери основну перевірену карту.',ephUnavailable:'Зараз не вдалося отримати астрономічні дані; інші особисті розділи доступні.',
   signedOut:'Увійди через кнопку у шапці, щоб відкрити свій персональний простір.',
@@ -78,7 +79,7 @@ const copy={
   newsDescription:'A future source-linked collection of verified articles based on your chosen topics. Private journal notes never select news.',
   themes:'My interests',settings:'Personal settings',tz:'My current time zone (IANA)',
   favorite:'Favorite breathing practice',saveSettings:'Save preferences',
-  foundation:'My astrological foundation',goodFor:'Useful focus',caution:'Be careful about',step:'Your concrete step',todayTitle:'Today’s astrological orientation',periodDetail:'About your life cycle',weekFocus:'The three or four most meaningful shifts over seven days',weekEmpty:'No significant Dasha or sampled lunar changes were detected in the next seven days.',
+  foundation:'My astrological foundation',goodFor:'Useful focus',caution:'Be careful about',step:'What to do today',todayTitle:'Today’s astrological orientation',periodDetail:'Understand your life cycle',weekFocus:'Today and key themes for the next seven days',weekEmpty:'No significant Dasha or sampled lunar changes were detected in the next seven days.',
   profileSaved:'Preferences saved',questionCount:'private saved questions',account:'Account settings',
   noTransit:'These are general Moon positions. Select a verified chart for personalized houses.',ephUnavailable:'Astronomical data is temporarily unavailable; the other personal tools remain accessible.',
   signedOut:'Sign in using the header to access your private personal space.',
@@ -178,7 +179,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
        <span className={styles['gp-eyebrow']}>VIMSHOTTARI</span>
        {overview.activeDasha?<><strong className={styles['gp-foundation-value']}>{lord(overview.activeDasha.lord)}{overview.activeDasha.antardasha?' · '+lord(overview.activeDasha.antardasha.lord):''}</strong>
         <small>{date(overview.activeDasha.start)} — {date(overview.activeDasha.end)}</small>
-        <Link href={portalPath(locale,'astrology/jyotish')+'#timeline'} className={styles['gp-text-link']}>{t.periodDetail}<ArrowRight size={14}/></Link>
+        <Link href={portalPath(locale,'learn/vimshottari-life-cycle')} className={styles['gp-text-link']}>{t.periodDetail}<ArrowRight size={14}/></Link>
        </>:<p>{chosen?(chosen.recoveryStatus==='needs_review'?t.review:chosen.recoveryStatus==='temporarily_unavailable'?t.recoveryUnavailable:chosen.verified?t.outOfRange:t.noDasha):t.noDasha}</p>}
       </div>
       <div className={styles['gp-foundation-part']} data-testid="moon-transit">
@@ -219,8 +220,8 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      {([7,30] as const).map(n=><button type="button" key={n} aria-pressed={days===n} onClick={()=>setDays(n)}>{n===7?t.seven:t.thirty}</button>)}
     </div>
     {calendarBusy?<p role="status">{t.calendarLoading}</p>:calendarError?<p role="alert">{calendarError} <button type="button" onClick={()=>setCalendarRetry(x=>x+1)}>{t.retry}</button></p>:!calendar.length?<p>{t.noDates}</p>:
-     <div className={styles['gp-calendar-grid']}>{calendar.map(day=><div className={styles['gp-calendar-day']} key={day.date} title={t.method}>
-      <small>{day.date.slice(5)}</small><MoonStar size={18}/><strong>{sign(day.moon.sign)}</strong>
+     <div className={styles['gp-calendar-grid']}>{calendar.map(day=><div className={[styles['gp-calendar-day'],day.date===overview.today?styles['gp-calendar-today']:''].filter(Boolean).join(' ')} key={day.date} data-today={day.date===overview.today?'true':undefined} aria-current={day.date===overview.today?'date':undefined} title={t.method}>
+      <small>{calendarDayLabel(day.date,overview.today,locale)}</small><MoonStar size={18}/><strong>{sign(day.moon.sign)}</strong>
       <span>{day.moon.nakshatra}</span>
       {events.filter(e=>e.date===day.date).map((e,i)=><em className={styles['gp-event-tag']} key={e.type+i}>{e.type==='MAHADASHA_START'?(uk?'Махадаша':'Major period'):(uk?'Антардаша':'Subperiod')} · {lord(e.lord)}</em>)}
      </div>)}</div>}
@@ -229,9 +230,9 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
    {!calendarBusy&&!calendarError&&calendar.length>0&&<section className={styles['gp-week-section']} data-testid="week-highlights" aria-label={t.weekTitle}>
     <div className={styles['gp-week-heading']}><h3>{t.weekTitle}</h3><small>{t.weekFocus}</small></div>
     {weekHighlights.length?<ol className={styles['gp-week-list']}>{weekHighlights.map((h,i)=><li key={h.date+h.kind+i}>
-     <time dateTime={h.date}>{h.date.slice(5)}</time><div><strong>{h.headline[locale]}</strong><p>{h.summary[locale]}</p>
+     <time dateTime={h.date} className={h.date===overview.today?styles['gp-week-today']:undefined}>{calendarDayLabel(h.date,overview.today,locale)}</time><div><strong>{h.headline[locale]}</strong><p>{h.summary[locale]}</p>
       <div className={styles['gp-week-insights']}><p><b>{t.goodFor}: </b>{h.goodFor[locale]}</p><p><b>{t.caution}: </b>{h.caution[locale]}</p></div>
-      <small><b>{t.step}: </b>{h.action[locale]}</small>
+      <small><b>{h.date===overview.today?t.step:(uk?'Порада дня':'Day’s suggestion')}: </b>{h.action[locale]}</small>
      </div>
     </li>)}</ol>:<p>{t.weekEmpty}</p>}
    </section>}

@@ -1164,3 +1164,23 @@
   background:radial-gradient(circle at 64% 49%,#161f35 0%,#161f35 48%,transparent 51%);
   opacity:.88;
 }
+
+/* Smooth lunar terminator: no opaque hard-edged dark circle.
+   Matching spherical palette with neighbouring orbital bodies. */
+.as-shell .as-moon-orb{
+ width:35px;height:35px;border-radius:50%;
+ background:radial-gradient(circle at 29% 27%,#fbf6e8 0%,#d5caba 24%,#a4acb8 53%,#647088 83%,#45516a 100%);
+ box-shadow:0 0 13px #f2e6d64f,0 0 28px #d6c8b320,inset -3px -2px 6px #24304c55;
+ overflow:hidden;
+}
+.as-shell .as-moon-orb::before{
+ content:'';position:absolute;inset:-1px;border-radius:50%;
+ background:linear-gradient(110deg,transparent 11%,#1a294010 35%,#18263b67 69%,#10182ca3 100%);
+ filter:blur(5px);transform:translateX(3px);
+}
+.as-shell .as-moon-orb::after{
+ content:'';position:absolute;inset:0;border-radius:50%;
+ border:1px solid #fff9e94d;
+ background:radial-gradient(circle at 25% 20%,#fff6df6a,transparent 42%);
+ opacity:.68;
+}

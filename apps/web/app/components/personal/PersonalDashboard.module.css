@@ -165,3 +165,12 @@
  .gp-daily-matrix>div:last-child{grid-column:auto}
  .gp-daily-matrix>div{min-height:0}
 }
+
+/* Calendar uses explicit, timezone-safe local dates received from the server. */
+.gp-calendar-day.gp-calendar-today{
+ border:2px solid #e3b36b;background:linear-gradient(145deg,#3a3643,#1b304b);
+ box-shadow:0 0 0 3px #e7bd6b22,0 0 22px #edb96018;
+}
+.gp-calendar-day.gp-calendar-today small{color:#ffe1a5;font-weight:800}
+.gp-week-today{background:#72552b66!important;border-color:#efbe73!important;color:#ffe4aa!important}
+.gp-week-list time{min-width:68px;max-width:130px;white-space:normal;text-align:center}
