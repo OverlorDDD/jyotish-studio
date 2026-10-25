@@ -78,7 +78,8 @@ export class NewsController {
    this.prisma.newsArticle.groupBy({by:['topic'],where:{status:'PUBLISHED'},_count:{_all:true}}),
    this.prisma.newsArticle.groupBy({by:['source'],where:{status:'PUBLISHED'},_count:{_all:true}})
   ]);
-  const latest=[...new Map(scans.map(row=>[row.sourceKey,row])).values()];
+  const seen=new Set<string>(),latest:typeof scans=[];
+  for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
   return {enabled:process.env.NEWS_INGESTION_ENABLED==='1',last,
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
    articleCount,publishers:byPublisher.length,
