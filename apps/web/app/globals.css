@@ -1153,17 +1153,6 @@
  .jy-south-planet strong{font-size:clamp(10px,2.5cqw,16px)}
  .jy-south-planet span{font-size:clamp(7px,1.4cqw,9px)}
 }
-/* Moon and neighbouring planets now share shaded volumetric surfaces. */
-.as-shell .as-moon-orb{
-  width:32px;height:32px;border-radius:50%;color:transparent;font-size:0;
-  background:radial-gradient(circle at 28% 26%,#f6eee2 0%,#bbb4a5 34%,#645e65 65%,#262b3d 90%);
-  box-shadow:inset -7px -4px 9px #101a2bd9,0 0 20px #d6c8b389;
-}
-.as-shell .as-moon-orb:after{
-  content:'';position:absolute;inset:-1px;border-radius:50%;
-  background:radial-gradient(circle at 64% 49%,#161f35 0%,#161f35 48%,transparent 51%);
-  opacity:.88;
-}
 
 /* Smooth lunar terminator: no opaque hard-edged dark circle.
    Matching spherical palette with neighbouring orbital bodies. */

@@ -46,6 +46,9 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  expect(calendar.weekHighlights.length).toBeGreaterThan(0);
  expect(calendar.weekHighlights.length).toBeLessThanOrEqual(5);
  expect(calendar.weekHighlights[0].evidence.method).toBeTruthy();
+ expect(calendar.weekHighlights[0].kind).toBe('TODAY');
+ expect(calendar.weekHighlights[0].date).toBe(calendar.dates[0]);
+ expect(new Set(calendar.weekHighlights.map(x=>x.action.uk)).size).toBe(calendar.weekHighlights.length);
  expect(calendar.weekHighlights[0].headline.uk).toBeTruthy();
  const month=await (await page.request.get('/api/v1/personal/calendar?days=30&from=2026-10-24')).json();
  expect(month.days).toHaveLength(30);
@@ -75,6 +78,14 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  await expect(page.getByTestId('journey-daily')).toBeVisible();
  await expect(page.getByTestId('daily-advice')).toBeVisible();
  await expect(page.getByTestId('week-highlights')).toBeVisible();
+ await expect(page.getByTestId('personal-calendar').locator('[data-today="true"]')).toHaveCount(1);
+ await expect(page.getByTestId('personal-calendar').locator('[data-today="true"]')).toContainText('Сьогодні');
+ const periodHelp=page.getByTestId('current-dasha').getByRole('link',{name:/Як читати свій життєвий цикл/i});
+ await expect(periodHelp).toHaveAttribute('href','/uk/learn/vimshottari-life-cycle');
+ await page.goto('/uk/learn/vimshottari-life-cycle');
+ await expect(page.getByRole('heading',{name:'Як читати свій життєвий цикл у Джйотіш'})).toBeVisible();
+ await page.goto('/en/learn/vimshottari-life-cycle');
+ await expect(page.getByRole('heading',{name:'How to understand your Jyotish life cycle'})).toBeVisible();
  const other=await apiRequest.newContext({baseURL:process.env.PLAYWRIGHT_BASE_URL||'http://127.0.0.1:3000'});
  try{
   expect((await other.post('/api/v1/account/register',{data:{email:emailB,password:'Personal-strong-test-password-2026'}})).status()).toBe(201);

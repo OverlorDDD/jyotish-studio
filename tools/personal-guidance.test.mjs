@@ -55,6 +55,10 @@ test('Weekly highlights use only supplied noon observations or actual Dasha boun
  ];
  const events=[{date:'2026-10-26',type:'ANTARDASHA_START',lord:'Moon',atUtc:'2026-10-26T07:00:00Z'}];
  const highlights=buildWeekHighlights(days,events);
+ assert.equal(highlights[0].kind,'TODAY');
+ assert.equal(highlights[0].date,'2026-10-24');
+ assert.equal(highlights[0].headline.uk.startsWith('Сьогодні'),true);
+ assert.equal(new Set(highlights.map(h=>h.goodFor.uk+'|'+h.action.uk)).size,highlights.length);
  assert.ok(highlights.every(h=>h.kind!=='WEEK_OPENING'));
  assert.ok(highlights.some(h=>h.kind==='DASHA_START'&&h.date==='2026-10-26'));
  assert.ok(highlights.some(h=>h.kind==='MOON_SIGN_SAMPLE_CHANGE'));
@@ -64,5 +68,23 @@ test('Weekly highlights use only supplied noon observations or actual Dasha boun
  assert.ok(highlights.filter(h=>h.kind!=='DASHA_START').every(h=>h.evidence.sampledAtUtc));
  assert.equal(buildWeekHighlights([],events).length,0);
  const noEvents=buildWeekHighlights([moon('2026-10-24',1,'Ashwini',null)],[]);
- assert.equal(noEvents.length,0);
+ assert.equal(noEvents.length,1);
+ assert.equal(noEvents[0].kind,'TODAY');
+ assert.equal(noEvents[0].date,'2026-10-24');
+});
+
+test('Adjacent Moon samples do not recycle career-focused guidance and cover personal life too',()=>{
+ const week=[moon('2026-10-25',12,'Revati',9),moon('2026-10-26',1,'Ashwini',10),
+  moon('2026-10-27',1,'Krittika',10),moon('2026-10-28',2,'Rohini',11),
+  moon('2026-10-29',2,'Mrigashira',11),moon('2026-10-30',3,'Ardra',12),
+  moon('2026-10-31',3,'Punarvasu',12)];
+ const result=buildWeekHighlights(week);
+ assert.equal(result[0].date,'2026-10-25');
+ assert.equal(result[0].kind,'TODAY');
+ assert.ok(result.some(x=>x.date==='2026-10-26'));
+ assert.ok(result.some(x=>x.date==='2026-10-28'));
+ assert.ok(result.every(x=>x.action.uk&&!/конкретний наступний крок/i.test(x.action.uk)));
+ assert.equal(new Set(result.map(x=>x.action.uk)).size,result.length);
+ assert.ok(result.some(x=>/дру|колег|особист|відпоч|сон|меж|навчан/i.test(x.action.uk+' '+x.goodFor.uk)));
+ assert.ok(result.every(x=>x.evidence.method));
 });
