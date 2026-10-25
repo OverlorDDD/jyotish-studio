@@ -29,3 +29,6 @@ In repository root, pull branch, start Docker database, run npm install, npm run
 - Live: inspect ADMIN source breakdown; resolve 403/429, empty feeds, topical false exclusions. Target >=30 relevant materials, >=8 independent working publishers and >=5 active topical categories before declaring content quality PASS.
 - Copyright/terms: no source excerpt published without clearance; remove excerpt flag when unverified.
 - Browser: each card has a paragraph and a provenance distinction; accurate observed/published time; feedback and filters work without account; changing categories reloads correctly.
+
+## Editorial image / translation follow-up
+Image candidates are extracted only from RSS metadata; display requires CC0/CC-BY rights in item metadata or a publisher host explicitly approved via NEWS_IMAGE_ALLOWED_HOSTS (comma-separated *exact* hosts, only after permission review). Broken images fall back to native Galaxiora covers. NEWS_EDITORIAL_AI_ENABLED=0 disables model editorial; with an available GROQ_API_KEY/GEMINI_API_KEY/OPENROUTER_API_KEY, the metadata-only batch translator handles up to 12 unlocalized records per scan. This is a controlled *translation*, never a license to republish full articles. Generic legacy title-context boilerplate is removed via migration; no sourced facts means no fabricated paragraph.

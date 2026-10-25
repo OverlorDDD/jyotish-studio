@@ -91,7 +91,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
          tags:c.tags,score:c.score,summary:c.summary||null,
          feedDescription:item.description?.slice(0,1200)||null,
          imageUrl:c.imageUrl||null,imageCredit:c.imageCredit||null,
-         summaryUk:c.ukFallback||null,summaryEn:c.enFallback||null,
+         summaryUk:null,summaryEn:null,
          summaryKind:c.summaryKind,publishedAccuracy:c.publishedAccuracy||'published',publishedAt:c.publishedAt
         }],skipDuplicates:true});
         if(inserted.count){accepted++;added++;}
@@ -103,7 +103,6 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
           lastSeenAt:new Date(),
           ...(item.description?{feedDescription:item.description.slice(0,1200)}:{}),
           ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit}:{}),
-          ...{},
           ...(c.summaryKind==='source_excerpt'?{summary:c.summary,summaryKind:'source_excerpt'}:{})
          }});
         }

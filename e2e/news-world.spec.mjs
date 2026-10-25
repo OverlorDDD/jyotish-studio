@@ -37,7 +37,7 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
     id,urlHash:prefix+'-'+i,url:'https://example.org/editorial/'+prefix+'-'+i,title,
     source:'CI Tarot Publisher',language:'en',topic:'tarot',tags:['tarot'],
     score:200,summary:'This article introduces the structure of a Tarot spread and explains why each position matters to the interpretation.',
-    summaryKind:'source_excerpt',publishedAt:new Date(),publishedAccuracy:'published'
+    summaryKind:'source_excerpt',titleUk:'Значення символів у розкладах Таро',summaryUk:'Матеріал пояснює структуру розкладу Таро та призначення кожної позиції.',imageUrl:'https://images.example.org/news-cover.jpg',imageCredit:'CI Image',publishedAt:new Date(),publishedAccuracy:'published'
    }});
   }
   const response=await page.request.get('/api/v1/news/feed?topic=tarot&limit=48');
@@ -47,7 +47,11 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   await page.goto('/uk/news');
   await page.locator('#news-topic-filter').selectOption('tarot');
   await expect(page.getByTestId('news-summary').first()).toBeVisible();
-  await expect(page.getByText(/This article introduces the structure of a Tarot spread/).first()).toBeVisible();
+  await expect(page.getByText(/Матеріал пояснює структуру розкладу Таро/).first()).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible();
+  await expect(page.getByText('Орієнтир за заголовком')).toHaveCount(0);
+  await expect(page.getByText(/Це орієнтир за назвою матеріалу/)).toHaveCount(0);
+  await expect(page.locator('img[src="https://images.example.org/news-cover.jpg"]').first()).toHaveCount(1);
   await expect(page.getByTestId('news-feedback').first()).toBeVisible();
   await page.getByTestId('news-feedback').first().getByRole('button',{name:/Так, цікаво/}).click();
   await expect(page.getByTestId('news-feedback').first().getByRole('button',{name:/Так, цікаво/})).toHaveAttribute('aria-pressed','true');
