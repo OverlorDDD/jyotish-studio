@@ -35,7 +35,18 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  expect(response.journey?.daily?.headline?.uk).toBeTruthy();
  expect(response.journey?.daily?.description?.en).toContain('Moon');
  expect(response.journey?.daily?.evidence?.sampledAtUtc).toBe(response.transit.sampledAtUtc);
+ expect(response.journey?.daily?.evidence?.kind).toBe('VERIFIED_NATAL_TRANSIT_DASHA');
+ expect(response.journey?.daily?.evidence?.natalLagnaSign).toBe(response.selected.lagnaSign);
+ expect(response.journey?.daily?.evidence?.natalMoonSign).toBe(response.selected.moonSign);
+ expect(response.journey?.daily?.evidence?.major).toBe(response.activeDasha?.lord);
  expect(response.journey?.period?.evidence?.kind).toBe('VIMSHOTTARI_NATAL_HOUSE');
+ const currentWeek=await (await page.request.get('/api/v1/personal/calendar?days=7')).json();
+ expect(currentWeek.days[0].date).toBe(response.today);
+ expect(currentWeek.weekHighlights[0].kind).toBe('TODAY');
+ expect(currentWeek.weekHighlights[0].action).toEqual(response.journey.daily.action);
+ expect(currentWeek.weekHighlights[0].goodFor).toEqual(response.journey.daily.goodFor);
+ expect(currentWeek.weekHighlights[0].caution).toEqual(response.journey.daily.caution);
+ expect(currentWeek.weekHighlights[0].summary).toEqual(response.journey.daily.description);
  const week=await page.request.get('/api/v1/personal/calendar?days=7&from=2026-10-24');
  expect(week.status()).toBe(200);
  const calendar=await week.json();
@@ -78,6 +89,10 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  await expect(page.getByTestId('journey-daily')).toBeVisible();
  await expect(page.getByTestId('daily-advice')).toBeVisible();
  await expect(page.getByTestId('week-highlights')).toBeVisible();
+ await expect(page.getByTestId('week-today-link')).toHaveCount(1);
+ await expect(page.getByText('Що зробити сьогодні',{exact:true})).toHaveCount(1);
+ await expect(page.getByTestId('week-today-link').getByRole('link')).toHaveAttribute('href','#astrological-path');
+ await expect(page.getByText(/Обери одну навчальну програму|Сформулюй наставнику/i)).toHaveCount(0);
  await expect(page.getByTestId('personal-calendar').locator('[data-today="true"]')).toHaveCount(1);
  await expect(page.getByTestId('personal-calendar').locator('[data-today="true"]')).toContainText('Сьогодні');
  const periodHelp=page.getByTestId('current-dasha').getByRole('link',{name:/Як читати свій життєвий цикл/i});
@@ -133,9 +148,12 @@ test('Legacy saved chart is recovered without overwriting history, and divergent
   expect(mismatch.selected.verified).toBe(false);
   expect(mismatch.selected.recoveryStatus).toBe('needs_review');
   expect(mismatch.transitStatus).toBe('general');
+   expect(mismatch.journey.daily).toBeNull();
+   expect(mismatch.journey.period).toBeNull();
   const general=await (await page.request.get('/api/v1/personal/calendar?days=7')).json();
   expect(general.status).toBe('general');
   expect(general.days).toHaveLength(7);
   expect(general.days[0].moon.houseFromLagna).toBeNull();
+   expect(general.weekHighlights).toEqual([]);
  }finally{await prisma.$disconnect();}
 });
