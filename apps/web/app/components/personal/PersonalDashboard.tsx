@@ -49,7 +49,7 @@ const copy={
   newsDescription:'Майбутня добірка перевірених матеріалів за обраними темами, з посиланнями на першоджерела. Особисті записи не використовуються для добору.',
   themes:'Цікаві мені теми',settings:'Налаштування Personal',tz:'Мій поточний часовий пояс (IANA)',
   favorite:'Улюблена дихальна практика',saveSettings:'Зберегти налаштування',
-  foundation:'Моя астрологічна основа',goodFor:'Сприятливий фокус',caution:'Не поспішай із',step:'Що зробити сьогодні',todayTitle:'Астрологічний орієнтир на сьогодні',periodDetail:'Як читати свій життєвий цикл',weekFocus:'Сьогодні та ключові теми найближчих семи днів',weekEmpty:'Цього тижня значущих змін даш та місячних положень не зафіксовано.',
+  foundation:'Моя астрологічна основа',goodFor:'Сприятливий фокус',caution:'Не поспішай із',step:'Що зробити сьогодні',todayTitle:'Астрологічний орієнтир на сьогодні',todayLink:'Читати одну пораду на сьогодні',periodDetail:'Як читати свій життєвий цикл',weekFocus:'Сьогодні — в основному орієнтирі; далі — зміни від твоєї натальної карти',weekEmpty:'Немає нових акцентів на цей тиждень.',
   profileSaved:'Налаштування збережено',questionCount:'збережених приватних запитань',account:'Параметри акаунта',
   noTransit:'Це загальні положення Місяця. Для персональних домів обери основну перевірену карту.',ephUnavailable:'Зараз не вдалося отримати астрономічні дані; інші особисті розділи доступні.',
   signedOut:'Увійди через кнопку у шапці, щоб відкрити свій персональний простір.',
@@ -57,7 +57,7 @@ const copy={
   retry:'Повторити',moonSign:'Знак Місяця',house:'Дім від лагни',asof:'За календарем Galaxiora',
   path:'Мій астрологічний шлях',pathIntro:'Життєвий цикл і сьогоднішній ритм неба — дві опори для щоденної практики.',
    pathPeriod:'Мій життєвий цикл',pathDaily:'Мій орієнтир на сьогодні',
-   pathMissing:'Обери перевірену основну натальну карту, щоб відкрити трактування твого періоду.',
+   pathMissing:'Для особистого орієнтиру спочатку обери перевірену натальну карту. Без неї ми показуємо лише астрономічний календар, а не персональні поради.',
    pathDailyMissing:'Положення Місяця сьогодні тимчасово недоступне.',
    advice:'Порада дня',reflect:'Записати спостереження',observe:'Традиційне тлумачення за астрологічними даними, не гарантія майбутніх подій.',
    weekTitle:'Астрологічні акценти тижня',weekSub:'Зміни між полуденними спостереженнями та переходи даш.',
@@ -79,7 +79,7 @@ const copy={
   newsDescription:'A future source-linked collection of verified articles based on your chosen topics. Private journal notes never select news.',
   themes:'My interests',settings:'Personal settings',tz:'My current time zone (IANA)',
   favorite:'Favorite breathing practice',saveSettings:'Save preferences',
-  foundation:'My astrological foundation',goodFor:'Useful focus',caution:'Be careful about',step:'What to do today',todayTitle:'Today’s astrological orientation',periodDetail:'Understand your life cycle',weekFocus:'Today and key themes for the next seven days',weekEmpty:'No significant Dasha or sampled lunar changes were detected in the next seven days.',
+  foundation:'My astrological foundation',goodFor:'Useful focus',caution:'Be careful about',step:'What to do today',todayTitle:'Today’s astrological orientation',todayLink:'Open today’s single reading',periodDetail:'Understand your life cycle',weekFocus:'Today has one reading above; upcoming shifts use your saved chart',weekEmpty:'No new highlights for the coming week.',
   profileSaved:'Preferences saved',questionCount:'private saved questions',account:'Account settings',
   noTransit:'These are general Moon positions. Select a verified chart for personalized houses.',ephUnavailable:'Astronomical data is temporarily unavailable; the other personal tools remain accessible.',
   signedOut:'Sign in using the header to access your private personal space.',
@@ -87,7 +87,7 @@ const copy={
   retry:'Retry',moonSign:'Moon sign',house:'House from Lagna',asof:'According to Galaxiora calendar',
   path:'My astrological path',pathIntro:'Your life cycle and the daily sky — two perspectives for meaningful practice.',
    pathPeriod:'My life-cycle theme',pathDaily:'My orientation for today',
-   pathMissing:'Choose a verified primary birth chart to unlock your period interpretation.',
+   pathMissing:'Select a verified primary birth chart for your personal reading. Without one, we show astronomical calendar positions only, not personal advice.',
    pathDailyMissing:'Today’s lunar positions are temporarily unavailable.',
    advice:'Today’s suggestion',reflect:'Record an observation',observe:'A traditional interpretation grounded in astrological facts, not a guarantee of future events.',
    weekTitle:'Astrological highlights of the week',weekSub:'Changes between noon observations and Dasha transitions.',
@@ -207,7 +207,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
        <div className={styles['gp-daily-step']}><span>{t.step}</span><p>{overview.journey.daily.action[locale]}</p></div>
       </div>
       <a href="#personal-journal" className={styles['gp-text-link']} onClick={()=>setJournalOpen(true)}>{t.reflect}<ArrowRight size={15}/></a>
-     </>:<p>{t.pathDailyMissing}</p>}
+     </>:<p>{!chosen?.verified?t.pathMissing:t.pathDailyMissing}</p>}
     </article>
     {overview.journey?.period&&<details className={styles['gp-period-detail']} data-testid="journey-period">
      <summary>{t.periodDetail} · {overview.journey.period.headline[locale]}</summary>
@@ -230,11 +230,17 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
    {!calendarBusy&&!calendarError&&calendar.length>0&&<section className={styles['gp-week-section']} data-testid="week-highlights" aria-label={t.weekTitle}>
     <div className={styles['gp-week-heading']}><h3>{t.weekTitle}</h3><small>{t.weekFocus}</small></div>
     {weekHighlights.length?<ol className={styles['gp-week-list']}>{weekHighlights.map((h,i)=><li key={h.date+h.kind+i}>
-     <time dateTime={h.date} className={h.date===overview.today?styles['gp-week-today']:undefined}>{calendarDayLabel(h.date,overview.today,locale)}</time><div><strong>{h.headline[locale]}</strong><p>{h.summary[locale]}</p>
-      <div className={styles['gp-week-insights']}><p><b>{t.goodFor}: </b>{h.goodFor[locale]}</p><p><b>{t.caution}: </b>{h.caution[locale]}</p></div>
-      <small><b>{h.date===overview.today?t.step:(uk?'Порада дня':'Day’s suggestion')}: </b>{h.action[locale]}</small>
-     </div>
-    </li>)}</ol>:<p>{t.weekEmpty}</p>}
+     <time dateTime={h.date} className={h.date===overview.today?styles['gp-week-today']:undefined}>{calendarDayLabel(h.date,overview.today,locale)}</time>
+     {h.date===overview.today?<div data-testid="week-today-link">
+       <strong>{h.headline[locale]}</strong>
+       <a href="#astrological-path" className={styles['gp-text-link']}>{t.todayLink}<ArrowRight size={15}/></a>
+      </div>:<div>
+       <strong>{h.headline[locale]}</strong><p>{h.summary[locale]}</p>
+       {h.kind==='DASHA_START'?<p className={styles['gp-microcopy']}>{uk?'Перехід даші за перевіреною картою.':'Dasha transition according to your verified chart.'}</p>:
+        <div className={styles['gp-week-insights']}><p><b>{t.goodFor}: </b>{h.goodFor[locale]}</p><p><b>{t.caution}: </b>{h.caution[locale]}</p></div>}
+       {h.kind!=='DASHA_START'&&<small><b>{uk?'Ідея на цей день':'An idea for this day'}: </b>{h.action[locale]}</small>}
+      </div>}
+    </li>)}</ol>:<p>{!chosen?.verified?t.pathMissing:t.weekEmpty}</p>}
    </section>}
    <p className={styles['gp-microcopy']}>{calendarStatus==='general'?t.general:t.method}</p>
    </section>
