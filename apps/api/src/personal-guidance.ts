@@ -148,7 +148,7 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
 
 export type WeekHighlight={date:string;kind:'TODAY'|'MOON_SIGN_SAMPLE_CHANGE'|'NAKSHATRA_SAMPLE_CHANGE'|'DASHA_START';
  headline:L;summary:L;action:L;goodFor:L;caution:L;
- evidence:{sampledAtUtc?:string;method:string;moonSign?:number;nakshatra?:string;lord?:string;date:string}};
+ evidence:Evidence & {transition?:{lord:string;atUtc:string;method:string}}};
 /** Week summaries share the EXACT same daily reading, never alternate advice. */
 export function buildWeekHighlights(days:Transit[],events:Event[]=[],contextAt?:(utc:string)=>VerifiedNatalContext|null):WeekHighlight[]{
  const week=days.slice(0,7),validDates=new Set(week.map(d=>d.date));
@@ -156,8 +156,7 @@ export function buildWeekHighlights(days:Transit[],events:Event[]=[],contextAt?:
  const summary=(t:Transit,kind:WeekHighlight['kind']):WeekHighlight|null=>{
   const g=buildDailyGuidance(t,contextAt(t.sampledAtUtc));
   return g?{date:t.date,kind,headline:g.headline,summary:g.description,goodFor:g.goodFor,
-   caution:g.caution,action:g.action,evidence:{date:t.date,method:t.method,
-    sampledAtUtc:t.sampledAtUtc,moonSign:t.moon.sign,nakshatra:t.moon.nakshatra}}:null;
+   caution:g.caution,action:g.action,evidence:g.evidence}:null;
  };
  const first=summary(week[0],'TODAY');if(!first)return [];
  const possibilities:Array<WeekHighlight&{priority:number;house:number|null}>=[];
@@ -176,13 +175,15 @@ export function buildWeekHighlights(days:Transit[],events:Event[]=[],contextAt?:
   const v=summary(day,'DASHA_START');if(!v)continue;
   possibilities.push({...v,priority:9,house:null,headline:l(
    'Перехід Vimshottari: '+names[e.lord].uk,'Vimshottari transition: '+names[e.lord].en),
-   evidence:{date:e.date,method:'GALAXIORA_DOCUMENTED_DASHA_YEAR',lord:e.lord}});
+   evidence:{...v.evidence,transition:{lord:e.lord,atUtc:e.atUtc,method:'GALAXIORA_DOCUMENTED_DASHA_YEAR'}}});
  }
  const picked=[first],usedHouses=new Set([week[0].moon.houseFromLagna]),usedActions=new Set([first.action.uk]);
  for(const h of possibilities.sort((a,b)=>b.priority-a.priority||a.date.localeCompare(b.date))){
   if(picked.length>=4)break;
-  if(h.date===first.date||usedActions.has(h.action.uk)||
-    (h.house!=null&&usedHouses.has(h.house)))continue;
+  // A Dasha change is a real event, not a second actionable recommendation.
+  // Do not suppress it just because its noon reading reuses a house action.
+  if(h.date===first.date||(h.kind!=='DASHA_START'&&
+    (usedActions.has(h.action.uk)||(h.house!=null&&usedHouses.has(h.house)))))continue;
   picked.push(h);usedActions.add(h.action.uk);usedHouses.add(h.house);
  }
  return [first,...picked.slice(1).sort((a,b)=>a.date.localeCompare(b.date))];
