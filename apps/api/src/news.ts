@@ -23,14 +23,17 @@ export class NewsController {
  topics(){return TOPIC_LABELS;}
  @Get('feed') @Header('Cache-Control','public,max-age=60')
  async feed(@Query('topic')topic='all',@Query('tag')tag='',@Query('limit')limit='24',
-  @Query('page')page='1',@Query('sort')sort='relevance'){
+  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags=''){
   if(topic!=='all'&&!TOPICS.includes(topic as typeof TOPICS[number])||
    tag&&!TOPICS.includes(tag as typeof TOPICS[number]))throw new BadRequestException('Invalid category');
   if(!/^\d{1,2}$/.test(limit)||Number(limit)<1||Number(limit)>48||
    !/^\d{1,3}$/.test(page)||Number(page)<1||Number(page)>20)throw new BadRequestException('Invalid pagination');
   if(!['relevance','latest'].includes(sort))throw new BadRequestException('Invalid sort');
+  const selectedTags=tags?tags.split(','):[];
+  if(selectedTags.length>8||selectedTags.some(x=>!TOPICS.includes(x as typeof TOPICS[number])))
+   throw new BadRequestException('Invalid tags');
   const articles=await this.prisma.newsArticle.findMany({
-   where:{status:'PUBLISHED',...(topic!=='all'?{topic}:{}),...(tag?{tags:{has:tag}}:{})},
+   where:{status:'PUBLISHED',...(topic!=='all'?{topic}:{}),...(tag?{tags:{has:tag}}:selectedTags.length?{tags:{hasSome:selectedTags}}:{})},
    take:600,orderBy:{publishedAt:'desc'},select:{
     id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
     publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true
@@ -92,7 +95,7 @@ export class NewsController {
  }
 }
 for(const [method,types] of [
- ['feed',[String,String,String,String,String]],
+ ['feed',[String,String,String,String,String,String]],
  ['moderate',[Object,String,ModerateDto]],
  ['health',[Object]],
  ['refresh',[Object,String]]

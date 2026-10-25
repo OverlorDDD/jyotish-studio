@@ -65,3 +65,9 @@
 .footnote{border-top:1px solid rgba(224,196,143,.2);margin-top:32px;padding-top:20px;color:#a9b5cc;font-size:12px;line-height:1.6}
 @media(max-width:950px){.feedLayout{grid-template-columns:1fr}.sidebar{display:none}}
 @media(max-width:640px){.world{padding:18px 14px 52px}.hero{grid-template-columns:1fr;padding:29px 24px;min-height:0}.hero h1{font-size:39px}.cosmos{display:none}.tagSection{padding:20px}.sectionTitle{display:block}.sectionTitle small{display:block;margin-top:11px}.cards{grid-template-columns:1fr}.lead{grid-column:span 1;display:flex}.lead .illustration{min-height:0;height:180px}.lead .story{padding:21px}.lead .story h3{font-size:22px}.feedHeader{align-items:center}.feedHeader h2{font-size:24px}.filters{min-width:120px}}
+
+/* News World 1.1: readable source-grounded article previews. */
+.summary{font-size:14px;line-height:1.67;color:#cbd4e6;margin:8px 0 10px;overflow-wrap:anywhere}
+.lead .summary{font-size:15px;line-height:1.73}
+.refreshButton{border:1px solid #596785;background:#1a2947;border-radius:12px;padding:10px;color:#e7c98c;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.refreshButton:hover{border-color:#ddbd7b}
