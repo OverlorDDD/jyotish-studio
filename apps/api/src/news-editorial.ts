@@ -11,7 +11,7 @@ const providers=[
 const good=(v:unknown,max:number):v is string=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!boiler.test(v)&&!/<[^>]*>/.test(v);
 const context=(x:Draft)=>cleanDescription(x.feedDescription||(x.summaryKind==='source_excerpt'?x.summary:'')||'').slice(0,700);
 export async function generateNewsMicrocopy(items:Draft[],fetcher:typeof fetch=fetch):Promise<Output[]>{
- const options=providers.map(p=>p()).filter((p):p is NonNullable<ReturnType<typeof p>>=>p!==null);
+ const options=providers.map(p=>p()).filter((p):p is {key:string;url:string;model:string}=>p!==null);
  if(!options.length||!items.length)return [];
  const records=items.map(x=>({id:x.id,title:x.title.slice(0,240),description:context(x)}));
  const prompt=[
