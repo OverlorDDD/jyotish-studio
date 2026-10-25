@@ -290,12 +290,16 @@ model NewsArticle {
  urlHash String @unique
  url String
  title String
+ titleUk String? @db.VarChar(300)
  source String
  language String
  topic String
  tags String[] @default([])
  score Float @default(0)
  summary String? @db.VarChar(500)
+ feedDescription String? @db.VarChar(1200)
+ imageUrl String? @db.VarChar(1000)
+ imageCredit String? @db.VarChar(160)
  summaryKind String @default("title_context") @db.VarChar(32)
  summaryUk String? @db.VarChar(700)
  summaryEn String? @db.VarChar(700)
