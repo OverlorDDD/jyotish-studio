@@ -47,6 +47,8 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  expect(currentWeek.weekHighlights[0].goodFor).toEqual(response.journey.daily.goodFor);
  expect(currentWeek.weekHighlights[0].caution).toEqual(response.journey.daily.caution);
  expect(currentWeek.weekHighlights[0].summary).toEqual(response.journey.daily.description);
+ expect(currentWeek.weekHighlights[0].headline).toEqual(response.journey.daily.headline);
+ expect(currentWeek.weekHighlights[0].evidence).toEqual(response.journey.daily.evidence);
  const week=await page.request.get('/api/v1/personal/calendar?days=7&from=2026-10-24');
  expect(week.status()).toBe(200);
  const calendar=await week.json();
