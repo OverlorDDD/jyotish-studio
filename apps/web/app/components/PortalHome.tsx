@@ -72,7 +72,7 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
     <span className="as-orbit-ring as-orbit-ring-outer"/>
     <span className="as-orbit-track as-track-inner"><i className="as-orbit-body as-planet-azure"/></span>
     <span className="as-orbit-track as-track-mid"><i className="as-orbit-body as-planet-gold"/></span>
-    <span className="as-orbit-track as-track-outer"><i className="as-orbit-body as-moon-orb">☽</i></span>
+    <span className="as-orbit-track as-track-outer"><i className="as-orbit-body as-moon-orb"/></span>
    </div>
   </section>
   <section className="as-section" id="explore">

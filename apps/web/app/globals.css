@@ -1118,3 +1118,49 @@
 .as-shell .jy-south-chart{grid-template-rows:repeat(4,minmax(0,1fr));min-height:420px;aspect-ratio:auto}
 @media(max-width:800px){.as-shell .jy-south-chart{min-height:410px}}
 @media(max-width:490px){.as-shell .jy-south-chart{min-height:390px}}
+
+/* Geometry invariant for all D1 / D9 / D10 charts: exactly square.
+   This intentionally overrides historical min-height / ratio declarations. */
+.jy-south-chart,.as-shell .jy-south-chart{
+  width:100%;height:auto;min-height:0;max-width:780px;
+  aspect-ratio:1 / 1;grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:repeat(4,minmax(0,1fr));container-type:inline-size;
+}
+.jy-primary-chart .jy-south-chart,.jy-varga-chart .jy-south-chart{flex-shrink:1;min-width:0}
+.jy-south-center,.as-shell .jy-south-center{gap:6px;justify-content:center;padding:clamp(5px,1.4cqw,14px)}
+.jy-south-center strong,.as-shell .jy-south-center strong{
+  font:500 clamp(11px,3.8cqw,28px)/1.2 Georgia,'Playfair Display',serif;
+  letter-spacing:.02em;text-align:center;overflow-wrap:anywhere;
+}
+.jy-south-center .jy-south-center-index{
+  font:700 clamp(9px,1.8cqw,13px)/1.2 'DM Sans',Inter,sans-serif;
+  letter-spacing:.14em;color:#c9a56e;
+}
+.jy-south-name{font-size:clamp(8px,1.4cqw,12px);line-height:1.25}
+.jy-south-symbol{font-size:clamp(15px,4cqw,29px);flex:none}
+.jy-south-sign{padding:clamp(2px,.9cqw,9px);gap:clamp(1px,.6cqw,4px)}
+.jy-south-positions{gap:clamp(1px,.7cqw,7px);align-items:center}
+.jy-south-planet{min-width:0}
+.jy-south-planet strong{font-size:clamp(11px,2.8cqw,22px)}
+.jy-south-planet span{font-size:clamp(7px,1.45cqw,10px)}
+.jy-south-ascendant{padding:clamp(2px,.7cqw,5px) clamp(5px,1.2cqw,11px);font-size:clamp(9px,1.7cqw,13px)}
+@media(max-width:490px){
+ .jy-south-chart,.as-shell .jy-south-chart{min-height:0;aspect-ratio:1 / 1}
+ .jy-south-heading{gap:1px}
+ .jy-south-house{min-width:14px;height:14px;font-size:8px}
+ .jy-south-name{font-size:clamp(7px,1.55cqw,10px)}
+ .jy-south-symbol{font-size:clamp(13px,3.7cqw,20px)}
+ .jy-south-planet strong{font-size:clamp(10px,2.5cqw,16px)}
+ .jy-south-planet span{font-size:clamp(7px,1.4cqw,9px)}
+}
+/* Moon and neighbouring planets now share shaded volumetric surfaces. */
+.as-shell .as-moon-orb{
+  width:32px;height:32px;border-radius:50%;color:transparent;font-size:0;
+  background:radial-gradient(circle at 28% 26%,#f6eee2 0%,#bbb4a5 34%,#645e65 65%,#262b3d 90%);
+  box-shadow:inset -7px -4px 9px #101a2bd9,0 0 20px #d6c8b389;
+}
+.as-shell .as-moon-orb:after{
+  content:'';position:absolute;inset:-1px;border-radius:50%;
+  background:radial-gradient(circle at 64% 49%,#161f35 0%,#161f35 48%,transparent 51%);
+  opacity:.88;
+}

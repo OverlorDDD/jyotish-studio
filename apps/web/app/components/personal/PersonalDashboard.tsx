@@ -147,7 +147,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
   <header className={styles['gp-hero']}>
    <div><span className={styles['gp-eyebrow']}>GALAXIORA · PERSONAL</span><h1>{t.title}</h1><p>{t.intro}</p>
     {overview&&<small className={styles['gp-hero-date']}>{overview.today} · {overview.profile.currentTimeZone}</small>}</div>
-   <div className={styles['gp-hero-ornament']} aria-hidden="true"><Orbit size={100} strokeWidth={.55}/><MoonStar size={31}/></div>
+   <div className={styles['gp-hero-ornament']} aria-hidden="true"><Sparkles size={88} strokeWidth={.8}/></div>
   </header>
   {!loaded?<div className={[styles['gp-panel'],styles['gp-loading']].join(' ')} role="status">{uk?'Відкриваємо твій простір…':'Opening your space…'}</div>:null}
   {signedOut?<div className={styles['gp-panel']} data-testid="personal-sign-in"><h2>{uk?'Ласкаво просимо':'Welcome'}</h2><p>{t.signedOut}</p></div>:null}

@@ -109,3 +109,9 @@
 .gp-week-list b{color:#ebc894}
 @media(max-width:900px){.gp-path-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:480px){.gp-path-article{padding:19px}.gp-week-list li{grid-template-columns:1fr;gap:8px}.gp-week-list time{font-size:11px}}
+
+/* Single, non-overlapping mark replaces stacked orbital/glyph icons. */
+.gp-hero-ornament{flex:0 0 125px;height:125px;width:125px;border:1px solid #cdaa7566;
+ border-radius:50%;background:radial-gradient(circle,#e7bc7540,transparent 73%);opacity:.9}
+.gp-hero-ornament svg{display:block;position:static;filter:drop-shadow(0 0 12px #d6a3654d)}
+@media(max-width:720px){.gp-hero-ornament{flex-basis:75px;width:75px;height:75px}.gp-hero-ornament svg{width:52px;height:52px}}

@@ -18,9 +18,10 @@ type Props={planets:PlanetPosition[];lagna:{sign:number};division:'d1'|'d9'|'d10
  * Rashi-style perimeter instead of cramped/crossing SVG triangle labels. */
 export default function NorthIndianChart({planets,lagna,division,lang}:Props){
  const names=lang==='uk'?UK:EN;
- const label=division==='d1'?'RASHI':division==='d9'?'NAVAMSHA':'DASHAMSHA';
+ const label=division==='d1'?(lang==='uk'?'Натальна карта':'Birth chart'):
+  division==='d9'?(lang==='uk'?'Навамша':'Navamsha'):(lang==='uk'?'Дашамша':'Dashamsha');
  return <div className="jy-south-chart" role="img" aria-label={division.toUpperCase()+' · '+(lang==='uk'?'натальна карта дванадцяти знаків':'twelve-sign natal chart')}>
-  <div className="jy-south-center" aria-hidden="true"><strong>{label}</strong><span>{division.toUpperCase()} · {lang==='uk'?'Натальна карта':'Birth chart'}</span></div>
+  <div className="jy-south-center" aria-hidden="true"><span className="jy-south-center-index">{division.toUpperCase()}</span><strong>{label}</strong></div>
   {SOUTH_SIGN_GRID.map((sign,i)=>{
    const [column,row]=cellCoordinates[i],house=chartHouseForSign(sign,lagna.sign);
    const occupants=planets.filter(p=>p.sign===sign&&p.name!=='Ascendant');
