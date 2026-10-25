@@ -11,8 +11,8 @@ export default function AcademyHub({locale}:{locale:ContentLocale}){
   <section className="as-wellness-hero academy-hero">
    <span className="as-overline">{uk?'GalaxiLearn · БІБЛІОТЕКА':'GalaxiLearn · LEARNING LIBRARY'}</span>
    <h1>{uk?'Знання, які стають твоєю опорою.':'Learn beyond the surface.'}</h1>
-   <p>{uk?'Сім повноцінних уроків про Джйотіш, символіку Таро та йогу. Пояснення, приклади й самоперевірка після кожної теми — вільно, без акаунта.':'Seven complete lessons exploring Jyotish, Tarot symbolism and yoga. Explanations, examples and a knowledge check at the end of each topic — free without an account.'}</p>
-   <div className="as-wellness-tags"><span>{uk?'7 уроків':'7 lessons'}</span><span>{uk?'3 теми':'3 topics'}</span><span>UA / EN</span></div>
+   <p>{uk?'Вісім повноцінних уроків про Джйотіш, символіку Таро та йогу. Пояснення, приклади й самоперевірка після кожної теми — вільно, без акаунта.':'Eight complete lessons exploring Jyotish, Tarot symbolism and yoga. Explanations, examples and a knowledge check at the end of each topic — free without an account.'}</p>
+   <div className="as-wellness-tags"><span>{ACADEMY_LESSONS.length} {uk?'уроків':'lessons'}</span><span>{uk?'3 теми':'3 topics'}</span><span>UA / EN</span></div>
    <a className="as-button as-button-primary" href="#academy-library">{uk?'Перейти до уроків':'Explore lessons'} <ArrowUpRight size={17}/></a>
   </section>
   <nav className="as-academy-jump" aria-label={uk?'Теми бібліотеки':'Library topics'}>
