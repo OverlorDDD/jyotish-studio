@@ -1,0 +1,23 @@
+import {test,expect} from '@playwright/test';
+test('GalaxiNews World is a public bilingual editorial feed with tag preferences',async({page})=>{
+ await page.goto('/uk/news');
+ await expect(page.getByTestId('galaxinews-world')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
+ await expect(page.locator('header.as-header')).toHaveCount(1);
+ await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','false');
+ await page.getByRole('button',{name:'Таро',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.reload();
+ await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:/Для мене/}).click();
+ await expect(page.getByText('Добірка за твоїми інтересами')).toBeVisible();
+ const feed=await page.request.get('/api/v1/news/feed?limit=12');
+ expect(feed.status()).toBe(200);
+ const data=await feed.json();expect(Array.isArray(data.items)).toBe(true);
+ expect(data.personalized).toBe(false);
+ const bad=await page.request.get('/api/v1/news/feed?topic=invalid');
+ expect(bad.status()).toBe(400);
+ await page.goto('/en/news');
+ await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
+ await expect(page.getByText('Your constellation of interests')).toBeVisible();
+});
