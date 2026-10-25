@@ -1,6 +1,6 @@
-/** Galaxiora Jyotish Journey v1.
- * Deterministic practitioner-authored text from actual Dasha and Swiss/Lahiri
- * local-noon transit samples. No fabricated events, AI chart facts or times.
+/** Galaxiora Personal: fact-bound daily/weekly Jyotish editorial rules.
+ * Practical guidance is interpretive, never an objectively guaranteed outcome.
+ * Natal facts are verified separately; no invented ingress moments.
  */
 import type {dailyTransit} from './personal-transits.ts';
 type L={uk:string;en:string};
@@ -8,141 +8,168 @@ type Transit=Awaited<ReturnType<typeof dailyTransit>>;
 type Period={lord:string;start:string;end:string;antardasha?:{lord:string;start:string;end:string}|null};
 type Natal={name:string;sign:number};
 type Event={type:string;lord:string;date:string;atUtc:string};
-type Brief={headline:L;description:L;action:L;evidence:{kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string}};
+type Evidence={kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string};
+type Brief={headline:L;description:L;action:L;goodFor:L;caution:L;evidence:Evidence};
+const l=(uk:string,en:string):L=>({uk,en});
 const names:Record<string,L>={
- Sun:{uk:'Сонця',en:'Sun'},Moon:{uk:'Місяця',en:'Moon'},Mars:{uk:'Марса',en:'Mars'},
- Mercury:{uk:'Меркурія',en:'Mercury'},Jupiter:{uk:'Юпітера',en:'Jupiter'},
- Venus:{uk:'Венери',en:'Venus'},Saturn:{uk:'Сатурна',en:'Saturn'},
- Rahu:{uk:'Раху',en:'Rahu'},Ketu:{uk:'Кету',en:'Ketu'}
+ Sun:l('Сонця','Sun'),Moon:l('Місяця','Moon'),Mars:l('Марса','Mars'),Mercury:l('Меркурія','Mercury'),
+ Jupiter:l('Юпітера','Jupiter'),Venus:l('Венери','Venus'),Saturn:l('Сатурна','Saturn'),
+ Rahu:l('Раху','Rahu'),Ketu:l('Кету','Ketu')
 };
-const planetary:Record<string,L>={
- Sun:{uk:'відповідальність і власний голос',en:'responsibility and personal direction'},
- Moon:{uk:'внутрішній стан і близькі зв’язки',en:'inner life and close relationships'},
- Mars:{uk:'дію й рішучість',en:'action and initiative'},
- Mercury:{uk:'знання й діалог',en:'learning and communication'},
- Jupiter:{uk:'мудрість та наставництво',en:'wisdom and mentorship'},
- Venus:{uk:'стосунки, красу й цінності',en:'connection, beauty and values'},
- Saturn:{uk:'витримку та довгі зобов’язання',en:'discipline and long commitments'},
- Rahu:{uk:'нові бажання й незвіданий шлях',en:'new ambitions and unfamiliar paths'},
- Ketu:{uk:'відпускання зайвого і внутрішній пошук',en:'simplification and inner exploration'}
+const qualities:Record<string,L>={
+ Sun:l('самовизначення й відповідальності','identity and responsibility'),
+ Moon:l('побуту й емоційних зв’язків','daily life and emotional bonds'),
+ Mars:l('ініціативи й особистих зусиль','initiative and focused effort'),
+ Mercury:l('письма, переговорів і навчання','writing, negotiation and learning'),
+ Jupiter:l('освіти, наставництва й переконань','education, mentorship and beliefs'),
+ Venus:l('партнерства й особистих цінностей','relationships and personal values'),
+ Saturn:l('довгострокових обов’язків і витримки','long-term commitments and endurance'),
+ Rahu:l('амбітних проєктів і нових підходів','ambitious projects and unconventional approaches'),
+ Ketu:l('перегляду пріоритетів і завершення зайвого','reviewing priorities and letting go of excess')
 };
-const houses:{topic:L;action:L}[]=[
- {topic:{uk:'самовизначення',en:'identity'},action:{uk:'Запиши одне рішення, яке відображає твої цінності.',en:'Write down one choice aligned with your values.'}},
- {topic:{uk:'ресурси, родину та мову',en:'resources, family and speech'},action:{uk:'Поговори з близькою людиною про те, що для тебе цінне.',en:'Talk with someone close about what you value.'}},
- {topic:{uk:'навички й сміливість',en:'skills and courage'},action:{uk:'Присвяти п’ятнадцять хвилин розвитку навички.',en:'Spend fifteen minutes developing a skill.'}},
- {topic:{uk:'дім та внутрішню опору',en:'home and inner steadiness'},action:{uk:'Створи тихий простір і побудь у ньому без поспіху.',en:'Make a quiet space and spend a few unhurried minutes there.'}},
- {topic:{uk:'навчання й творчість',en:'learning and creativity'},action:{uk:'Повернись до творчої ідеї, яку відкладав.',en:'Return to a creative idea you put aside.'}},
- {topic:{uk:'звички та щоденну працю',en:'habits and daily work'},action:{uk:'Зроби маленький крок у корисній звичці.',en:'Take a small step with a useful habit.'}},
- {topic:{uk:'партнерство й рівновагу',en:'partnership and balance'},action:{uk:'Постав важливе питання близькій людині й уважно вислухай.',en:'Ask a meaningful question and listen carefully.'}},
- {topic:{uk:'зміни та спільні ресурси',en:'change and shared resources'},action:{uk:'Визнач, що вже можна відпустити без зайвого контролю.',en:'Identify something you can release without excessive control.'}},
- {topic:{uk:'знання, віру та наставників',en:'learning, faith and mentors'},action:{uk:'Прочитай кілька сторінок духовного або філософського тексту.',en:'Read a few pages of a spiritual or philosophical text.'}},
- {topic:{uk:'покликання й відповідальність',en:'vocation and responsibility'},action:{uk:'Визнач перший крок у важливій професійній справі.',en:'Choose a first step in meaningful work.'}},
- {topic:{uk:'спільноти й довгострокові цілі',en:'communities and long-term goals'},action:{uk:'Зв’яжися з людиною, що поділяє твою мету.',en:'Connect with someone who shares your goal.'}},
- {topic:{uk:'відпочинок та усамітнення',en:'rest and solitude'},action:{uk:'Залиши десять хвилин для тиші без екранів.',en:'Set aside ten screen-free minutes for quiet.'}}
+// Whole-sign house contexts, not fortune scores or muhurta recommendations.
+// Each instruction has an observable, finite action and a meaningful trade-off.
+const houses:{topic:L;goodFor:L;caution:L;action:L}[]=[
+ {topic:l('власна позиція','personal direction'),goodFor:l('переглянути особисті пріоритети та власний план','review your priorities and personal plan'),caution:l('не приймати імпульсивних рішень лише через настрій','avoid making impulsive mood-driven decisions'),action:l('Сформулюй одне рішення на найближчі сім днів і запиши, чому воно важливе.','Write one decision for the next seven days and why it matters.')},
+ {topic:l('гроші й домовленості з родиною','money and family agreements'),goodFor:l('звірити витрати, бюджет і спільні домовленості','review expenses, budget and shared agreements'),caution:l('не обіцяти коштів, не перевіривши можливості','do not commit money without checking your capacity'),action:l('Перевір три найбільші витрати місяця й обери одну, яку можна скоротити.','Review your three largest monthly expenses and find one to reduce.')},
+ {topic:l('навички, листування та короткі поїздки','skills, messages and short trips'),goodFor:l('написати важливе повідомлення та відпрацювати навичку','send an important message and practise a skill'),caution:l('не плутати швидкість відповіді з точністю','do not confuse a quick reply with a correct one'),action:l('Напиши чернетку потрібного листа, перевір факти й надішли його.','Draft an important email, check the facts and send it.')},
+ {topic:l('дім і внутрішня опора','home and inner stability'),goodFor:l('налагодити домашні справи або розмову в родині','sort out a home task or family conversation'),caution:l('не переносити робоче роздратування на близьких','avoid taking work frustration out on loved ones'),action:l('Визнач одну домашню справу, що забирає увагу, і доведи її до кінця.','Complete one household task that has been weighing on you.')},
+ {topic:l('творчість, навчання та діти','creativity, learning and children'),goodFor:l('показати власну ідею, навчити або навчитись','share an idea, teach or study'),caution:l('не відкладати завершення роботи заради нескінченних правок','avoid endless revisions instead of finishing'),action:l('Оформи одну ідею у завершену сторінку, ескіз або коротку презентацію.','Turn one idea into a complete page, sketch or short presentation.')},
+ {topic:l('праця, звички та щоденні обов’язки','work, habits and daily responsibilities'),goodFor:l('закрити накопичені завдання та впорядкувати графік','clear a backlog and organise your schedule'),caution:l('не перевантажувати день обіцянками','avoid overcommitting your schedule'),action:l('Випиши три незавершені задачі й закрий найкоротшу до обіду.','List three outstanding tasks and finish the shortest before lunch.')},
+ {topic:l('партнерство й домовленості','partnerships and agreements'),goodFor:l('погодити очікування з партнером чи клієнтом','align expectations with a partner or client'),caution:l('не трактувати мовчання іншої людини як згоду','do not mistake silence for agreement'),action:l('Постав одне конкретне запитання, яке давно лишалось без чіткої відповіді.','Ask one specific question that has lacked a clear answer.')},
+ {topic:l('спільні фінанси та складні зміни','shared finances and difficult changes'),goodFor:l('розібрати незрозумілі умови, борги або спільні ресурси','review unclear terms, debts or shared resources'),caution:l('не підписувати незрозумілих умов та не поспішати з ризиком','avoid signing unclear terms or rushing into risk'),action:l('Перевір одну фінансову умову або підписку, якої досі не розумів повністю.','Review one financial term or subscription you have not fully understood.')},
+ {topic:l('освіта, наставники та далекий горизонт','education, mentors and long-range plans'),goodFor:l('подати заявку, сформулювати запит наставнику, спланувати навчання','apply, consult a mentor or plan a course of study'),caution:l('не обіцяти більше, ніж дозволяють час і ресурси','avoid promises exceeding your time and resources'),action:l('Знайди вимоги до однієї програми чи вакансії та зроби конкретний наступний крок.','Check the requirements of one course or role and take the next concrete step.')},
+ {topic:l('кар’єра, репутація та відповідальність','career, reputation and responsibility'),goodFor:l('представити результат, завершити робочу домовленість','present a result and finalise a work agreement'),caution:l('не плутати наполегливість із різким тоном','do not confuse determination with a harsh tone'),action:l('Заверши одну видиму робочу задачу й надішли результат тому, хто його очікує.','Finish one visible work item and send the result to its recipient.')},
+ {topic:l('команди, спільноти та довгострокові цілі','teams, communities and long-term goals'),goodFor:l('узгодити спільний план або відновити корисний контакт','align a shared plan or reconnect with a useful contact'),caution:l('не покладатися на неозвучені очікування інших','do not rely on others understanding unspoken expectations'),action:l('Напиши одній людині зі своєї професійної спільноти з конкретною пропозицією.','Message one person in your professional network with a concrete proposal.')},
+ {topic:l('відновлення сил, усамітнення та завершення','rest, solitude and closure'),goodFor:l('закінчити непомітну роботу й зняти зайве навантаження','finish behind-the-scenes work and reduce overload'),caution:l('не приймати важливих рішень у стані виснаження','avoid major decisions when exhausted'),action:l('Прибери одне необов’язкове завдання з вечора та залиш час для сну.','Remove one optional evening task and make space for sleep.')}
 ];
 const signs:L[]=[
- {uk:'Овні',en:'Aries'},{uk:'Тельці',en:'Taurus'},{uk:'Близнюках',en:'Gemini'},
- {uk:'Раку',en:'Cancer'},{uk:'Леві',en:'Leo'},{uk:'Діві',en:'Virgo'},
- {uk:'Терезах',en:'Libra'},{uk:'Скорпіоні',en:'Scorpio'},{uk:'Стрільці',en:'Sagittarius'},
- {uk:'Козорозі',en:'Capricorn'},{uk:'Водолії',en:'Aquarius'},{uk:'Рибах',en:'Pisces'}
+ l('Овні','Aries'),l('Тельці','Taurus'),l('Близнюках','Gemini'),l('Раку','Cancer'),
+ l('Леві','Leo'),l('Діві','Virgo'),l('Терезах','Libra'),l('Скорпіоні','Scorpio'),
+ l('Стрільці','Sagittarius'),l('Козорозі','Capricorn'),l('Водолії','Aquarius'),l('Рибах','Pisces')
 ];
-const ruler=['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
+const rulers=['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
 const houseFrom=(sign:number,lagna:number)=>((sign-lagna+12)%12)+1;
+// Traditional lunar-mansion associations: used for context, not mathematical proof
+// of a predicted event. No generic filler fallback for unknown nakshatras.
+const mansions:Record<string,L>={
+ Ashwini:l('швидкий початок і відновлення','swift starts and recovery'),
+ Bharani:l('межі й відповідальність за вибір','boundaries and ownership of decisions'),
+ Krittika:l('відділення головного від зайвого','discernment and cutting away excess'),
+ Rohini:l('вирощування й послідовність','steady growth and cultivation'),
+ Mrigashira:l('пошук фактів і уточнення','investigation and asking better questions'),
+ Ardra:l('прояснення складного через зміни','working through difficult change'),
+ Punarvasu:l('повернення до основ','returning to essentials'),
+ Pushya:l('підтримку й навчання','support and learning'),
+ Ashlesha:l('складні мотиви й кордони','complex motives and boundaries'),
+ Magha:l('спадщину й відповідальність','heritage and responsibility'),
+ 'Purva Phalguni':l('творчість і відновлення радості','creativity and joyful renewal'),
+ 'Uttara Phalguni':l('надійні союзи й домовленості','reliable alliances and commitments'),
+ Hasta:l('майстерність і вправні руки','craft and skilled practice'),
+ Chitra:l('проєктування й виразну форму','design and thoughtful form'),
+ Swati:l('самостійність і гнучкість','independence and flexibility'),
+ Vishakha:l('мету й дисципліну вибору','goals and disciplined choices'),
+ Anuradha:l('дружбу й вірність домовленостям','friendship and loyalty to agreements'),
+ Jyeshtha:l('захист і мудре управління','protection and mature leadership'),
+ Mula:l('пошук причини, а не симптомів','finding root causes rather than symptoms'),
+ 'Purva Ashadha':l('стійкість переконань','conviction and resilience'),
+ 'Uttara Ashadha':l('тривале зусилля й результати','lasting effort and results'),
+ Shravana:l('слухання та обмін знаннями','listening and shared knowledge'),
+ Dhanishta:l('ритм і координацію з іншими','rhythm and coordination'),
+ Shatabhisha:l('дослідження й потребу в просторі','investigation and personal space'),
+ 'Purva Bhadrapada':l('переосмислення цінностей','reconsidering values'),
+ 'Uttara Bhadrapada':l('терпіння та внутрішню глибину','patience and depth'),
+ Revati:l('завершення й підготовку наступного шляху','completion and preparing the next journey')
+};
 export function natalPeriodContext(lagna:number|null,natal:Natal[],name:string){
  if(!lagna||lagna<1||lagna>12)return null;
  const p=natal.find(v=>v.name===name);
  if(!p||!Number.isInteger(p.sign)||p.sign<1||p.sign>12)return null;
  const house=houseFrom(p.sign,lagna);
- return {house,ruledHouses:ruler.flatMap((lord,i)=>lord===name?[houseFrom(i+1,lagna)]:[])};
+ return {house,ruledHouses:rulers.flatMap((lord,i)=>lord===name?[houseFrom(i+1,lagna)]:[])};
 }
 export function buildPeriodGuidance(period:Period|null,lagna:number|null,natal:Natal[]):Brief|null{
  if(!period||!names[period.lord])return null;
  const a=natalPeriodContext(lagna,natal,period.lord),minor=period.antardasha?.lord;
  const b=minor?natalPeriodContext(lagna,natal,minor):null;
- const title:L={uk:'Махадаша '+names[period.lord].uk+(minor&&names[minor]?' · антардаша '+names[minor].uk:''),
-  en:names[period.lord].en+' Mahadasha'+(minor&&names[minor]?' · '+names[minor].en+' Antardasha':'')};
- const ma=a?'; у натальній карті її положення в '+a.house+'-му домі пов’язує період зі сферою '+houses[a.house-1].topic.uk:'';
- const mb=b?'; у твоїй карті вона перебуває у '+b.house+'-му домі ('+houses[b.house-1].topic.uk+')':'';
- const ea=a?'; in your birth chart house '+a.house+' links the cycle to '+houses[a.house-1].topic.en:'';
- const eb=b?'; in your chart it occupies house '+b.house+' ('+houses[b.house-1].topic.en+')':'';
- return {headline:title,description:{
-  uk:'У традиції Джйотіш цей довгий цикл підкреслює '+planetary[period.lord].uk+ma+'.'+
-   (minor&&planetary[minor]?' Підперіод '+names[minor].uk+' додає тему: '+planetary[minor].uk+mb+'.':''),
-  en:'In Jyotish this longer cycle highlights '+planetary[period.lord].en+ea+'.'+
-   (minor&&planetary[minor]?' The '+names[minor].en+' subperiod adds '+planetary[minor].en+eb+'.':'')
- },action:a?houses[a.house-1].action:{
-  uk:'Спостерігай за повторюваними подіями цього періоду й занотовуй їх.',
-  en:'Observe recurring experiences during this period and record them.'
- },evidence:{kind:'VIMSHOTTARI_NATAL_HOUSE',method:'GALAXIORA_DOCUMENTED_DASHA_YEAR',
-  major:period.lord,minor:minor||undefined,house:a?.house??null}};
+ const focus=a?houses[a.house-1]:null;
+ const headline=l('Махадаша '+names[period.lord].uk+(minor&&names[minor]?' · антардаша '+names[minor].uk:''),
+  names[period.lord].en+' Mahadasha'+(minor&&names[minor]?' · '+names[minor].en+' Antardasha':''));
+ return {
+  headline,
+  description:l('Період '+names[period.lord].uk+' у традиції Джйотіш пов’язаний із темами '+qualities[period.lord].uk+
+   (a?'. У твоїй карті планета у '+a.house+'-му домі ('+focus!.topic.uk+')':'')+
+   (b&&minor?' ; підперіод '+names[minor].uk+' додає теми '+houses[b.house-1].topic.uk+' ('+b.house+'-й дім).':'.'),
+   names[period.lord].en+' period in Jyotish relates to '+qualities[period.lord].en+
+   (a?'. In your chart its placement in house '+a.house+' adds '+focus!.topic.en:'')+
+   (b&&minor?'; the '+names[minor].en+' subperiod relates to '+houses[b.house-1].topic.en+' in house '+b.house+'.':'.')),
+  goodFor:focus?focus.goodFor:l('звірити довгострокові плани з можливостями','review long-term plans against available resources'),
+  caution:focus?focus.caution:l('не робити висновків лише за назвою планети','avoid conclusions based on the planet name alone'),
+  action:focus?focus.action:l('Порівняй дві найближчі цілі зі своїм реальним графіком.','Compare your next two goals with your actual schedule.'),
+  evidence:{kind:'VIMSHOTTARI_NATAL_HOUSE',method:'GALAXIORA_DOCUMENTED_DASHA_YEAR',
+   major:period.lord,minor:minor||undefined,house:a?.house??null}
+ };
 }
 export function buildDailyGuidance(t:Transit|null):Brief|null{
  if(!t||!Number.isInteger(t.moon.sign)||t.moon.sign<1||t.moon.sign>12)return null;
- const house=t.moon.houseFromLagna,topic=house&&house>=1&&house<=12?houses[house-1]:null;
- const sign=signs[t.moon.sign-1];
+ const h=t.moon.houseFromLagna;
+ const focus=h!=null&&h>=1&&h<=12?houses[h-1]:null;
+ const nak=mansions[t.moon.nakshatra],zodiac=signs[t.moon.sign-1];
+ const domain=focus?focus.topic:l('загальну місячну динаміку','the general lunar rhythm');
  return {
-  headline:{uk:topic?'Місяць у '+house+'-му домі':'Місяць у '+sign.uk,
-    en:topic?'Moon in house '+house:'Moon in '+sign.en},
-  description:{
-   uk:'За полуденним положенням Місяць перебуває в '+sign.uk+', накшатрі '+t.moon.nakshatra+
-     ' (пада '+t.moon.pada+').'+(topic?' Для твоєї лагни це '+house+'-й дім: '+topic.topic.uk+'. Зверни увагу, як ця тема проявляється сьогодні.':
-     ' Це загальний рух неба; для персонального прочитання обери основну натальну карту.'),
-   en:'At local noon the Moon is in '+sign.en+', nakshatra '+t.moon.nakshatra+' (pada '+t.moon.pada+').'+
-     (topic?' From your Lagna this is house '+house+': '+topic.topic.en+'. Notice how this theme appears today.':
-     ' This is the shared sky; choose your primary chart for a personal interpretation.')
-  },
-  action:topic?topic.action:{
-   uk:'Запиши свій настрій і одну важливу подію дня — так зростатиме твій щоденник спостережень.',
-   en:'Note your mood and one meaningful event; build your personal observation journal.'
-  },
-  evidence:{kind:topic?'PERSONAL_MOON_HOUSE':'GENERAL_MOON_SKY',method:t.method,
-   day:t.date,sampledAtUtc:t.sampledAtUtc,planet:'Moon',sign:t.moon.sign,
-   house:house??null,nakshatra:t.moon.nakshatra}
+  headline:l(focus?'У фокусі: '+domain.uk:'Місяць у '+zodiac.uk,
+    focus?'Today: '+domain.en:'Moon in '+zodiac.en),
+  description:l('Місяць у '+zodiac.uk+' · '+t.moon.nakshatra+', пада '+t.moon.pada+'. '+
+   (focus?'Від лагни це '+h+'-й дім — '+domain.uk+'. ':'')+
+   (nak?'Накшатра традиційно наголошує на '+nak.uk+'.':''),
+   'Moon in '+zodiac.en+' · '+t.moon.nakshatra+', pada '+t.moon.pada+'. '+
+   (focus?'From your Lagna this is house '+h+' — '+domain.en+'. ':'')+
+   (nak?'Traditionally, this nakshatra highlights '+nak.en+'.':'')),
+  goodFor:focus?focus.goodFor:l('уточнити плани й поточні зобов’язання','review plans and current commitments'),
+  caution:focus?focus.caution:l('не робити особистих висновків без натальної карти','avoid personal predictions without a verified birth chart'),
+  action:focus?focus.action:l('Перевір найближчу домовленість: запиши відповідального, термін і наступну дію.','Check your next commitment: write down the owner, deadline and next step.'),
+  evidence:{kind:focus?'PERSONAL_MOON_HOUSE':'GENERAL_MOON_SKY',method:t.method,
+   day:t.date,sampledAtUtc:t.sampledAtUtc,planet:'Moon',sign:t.moon.sign,house:h??null,nakshatra:t.moon.nakshatra}
  };
 }
-export type WeekHighlight={date:string;kind:'WEEK_OPENING'|'MOON_SIGN_SAMPLE_CHANGE'|'NAKSHATRA_SAMPLE_CHANGE'|'DASHA_START';
- headline:L;summary:L;action:L;evidence:{sampledAtUtc?:string;method:string;moonSign?:number;nakshatra?:string;lord?:string;date:string}};
+export type WeekHighlight={date:string;kind:'MOON_SIGN_SAMPLE_CHANGE'|'NAKSHATRA_SAMPLE_CHANGE'|'DASHA_START';
+ headline:L;summary:L;action:L;goodFor:L;caution:L;
+ evidence:{sampledAtUtc?:string;method:string;moonSign?:number;nakshatra?:string;lord?:string;date:string}};
 export function buildWeekHighlights(days:Transit[],events:Event[]=[]):WeekHighlight[]{
- const week=days.slice(0,7);
+ const week=days.slice(0,7),valid=new Set(week.map(x=>x.date));
  if(!week.length)return [];
- const first=buildDailyGuidance(week[0]);
- const highlights:WeekHighlight[]=[];
- if(first)highlights.push({date:week[0].date,kind:'WEEK_OPENING',
-  headline:{uk:'Початок тижня · твій астрологічний орієнтир',en:'Start of the week · your sky orientation'},
-  summary:first.description,action:first.action,
-  evidence:{sampledAtUtc:week[0].sampledAtUtc,method:week[0].method,
-   moonSign:week[0].moon.sign,nakshatra:week[0].moon.nakshatra,date:week[0].date}});
- const knownDates=new Set(week.map(v=>v.date));
+ const hits:Array<WeekHighlight&{priority:number}>=[];
  for(const e of events){
-  if(!knownDates.has(e.date)||!names[e.lord]||!['MAHADASHA_START','ANTARDASHA_START'].includes(e.type))continue;
+  if(!valid.has(e.date)||!names[e.lord]||!['MAHADASHA_START','ANTARDASHA_START'].includes(e.type))continue;
   const major=e.type==='MAHADASHA_START';
-  highlights.push({date:e.date,kind:'DASHA_START',
-   headline:{uk:'Початок '+(major?'махадаші ':'антардаші ')+names[e.lord].uk,
-    en:names[e.lord].en+(major?' Mahadasha begins':' Antardasha begins')},
-   summary:{uk:'Початок планетарного періоду у Vimshottari, за методом Galaxiora.',
-    en:'A Vimshottari planetary period begins, according to the Galaxiora method.'},
-   action:{uk:'Запиши свої наміри на новий період.',en:'Record your intentions for the new period.'},
+  hits.push({priority:5,date:e.date,kind:'DASHA_START',
+   headline:l('Новий '+(major?'великий період: ':'підперіод: ')+names[e.lord].uk,
+    'New '+(major?'major period: ':'subperiod: ')+names[e.lord].en),
+   summary:l('За календарем Vimshottari починається інший планетарний етап. Перевір пов’язані з ним натальні доми перед довгостроковими рішеннями.',
+    'Your Vimshottari calendar enters a new planetary period. Review its natal-house context before making long-term commitments.'),
+   goodFor:l('перегляд річного плану й пріоритетів','reviewing annual goals and priorities'),
+   caution:l('не вважати зміну даші обіцянкою конкретної події','do not treat a Dasha change as a guaranteed event'),
+   action:l('Переглянь два найбільші плани наступного місяця й уточни їхні терміни.','Review your two biggest plans for next month and refine their deadlines.'),
    evidence:{date:e.date,method:'GALAXIORA_DOCUMENTED_DASHA_YEAR',lord:e.lord}});
  }
  for(let i=1;i<week.length;i++){
-  const day=week[i],yesterday=week[i-1],note=buildDailyGuidance(day);
-  if(day.moon.sign!==yesterday.moon.sign){
-   highlights.push({date:day.date,kind:'MOON_SIGN_SAMPLE_CHANGE',
-    headline:{uk:'Місяць спостерігається в '+signs[day.moon.sign-1].uk,
-     en:'Moon observed in '+signs[day.moon.sign-1].en},
-    summary:{uk:'Знак відрізняється від попереднього полуденного спостереження; це не точний час входження. '+(note?.description.uk||''),
-     en:'The sign differs from yesterday’s noon sample, not an exact ingress instant. '+(note?.description.en||'')},
-    action:note?.action||{uk:'Запиши спостереження.',en:'Record an observation.'},
-    evidence:{date:day.date,method:day.method,sampledAtUtc:day.sampledAtUtc,moonSign:day.moon.sign}});
-  }else if(day.moon.nakshatra!==yesterday.moon.nakshatra){
-   highlights.push({date:day.date,kind:'NAKSHATRA_SAMPLE_CHANGE',
-    headline:{uk:'Місяць спостерігається в '+day.moon.nakshatra,
-     en:'Moon observed in '+day.moon.nakshatra},
-    summary:{uk:'Накшатра змінилася між полуденними спостереженнями; точний час переходу тут не обчислено.',
-     en:'Nakshatra differs between the two local-noon observations; exact ingress time was not calculated.'},
-    action:note?.action||{uk:'Зроби запис у журналі.',en:'Make a journal note.'},
-    evidence:{date:day.date,method:day.method,sampledAtUtc:day.sampledAtUtc,nakshatra:day.moon.nakshatra}});
-  }
+  const t=week[i],previous=week[i-1];
+  const newSign=t.moon.sign!==previous.moon.sign;
+  const newNak=t.moon.nakshatra!==previous.moon.nakshatra;
+  if(!newSign&&!newNak)continue;
+  const guidance=buildDailyGuidance(t);
+  if(!guidance)continue;
+  hits.push({priority:newSign?3:1,date:t.date,kind:newSign?'MOON_SIGN_SAMPLE_CHANGE':'NAKSHATRA_SAMPLE_CHANGE',
+   headline:l(newSign?guidance.headline.uk:'Акцент накшатри: '+t.moon.nakshatra,
+    newSign?guidance.headline.en:'Nakshatra focus: '+t.moon.nakshatra),
+   // The observational caveat is retained in evidence + UI methodology, not repeated as filler.
+   summary:guidance.description,
+   goodFor:guidance.goodFor,caution:guidance.caution,action:guidance.action,
+   evidence:{date:t.date,method:t.method,sampledAtUtc:t.sampledAtUtc,
+    moonSign:t.moon.sign,nakshatra:t.moon.nakshatra}});
  }
- return highlights.sort((a,b)=>a.date.localeCompare(b.date)||(a.kind==='DASHA_START'?-1:1)).slice(0,5);
+ // Show significant shifts, not an almost-duplicate of today's orientation.
+ return hits.sort((a,b)=>b.priority-a.priority||a.date.localeCompare(b.date)).slice(0,4)
+  .sort((a,b)=>a.date.localeCompare(b.date))
+  .map(({priority,...rest})=>rest);
 }
