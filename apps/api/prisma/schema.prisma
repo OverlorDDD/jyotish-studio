@@ -282,3 +282,35 @@ model PersonalChartRecovery {
  verifiedResult Json
  verifiedAt DateTime @default(now())
 }
+
+
+/** GalaxiNews World. Only linked metadata; no third-party article bodies. */
+model NewsArticle {
+ id String @id @default(uuid())
+ urlHash String @unique
+ url String
+ title String
+ source String
+ language String
+ topic String
+ tags String[] @default([])
+ score Float @default(0)
+ status String @default("PUBLISHED")
+ publishedAt DateTime
+ discoveredAt DateTime @default(now())
+ lastSeenAt DateTime @default(now())
+ @@index([status,publishedAt])
+ @@index([topic,publishedAt])
+}
+model NewsScan {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ sources Int
+ accepted Int
+ errors Int
+}
+model NewsIngestionLease {
+ id String @id
+ token String
+ expiresAt DateTime
+}
