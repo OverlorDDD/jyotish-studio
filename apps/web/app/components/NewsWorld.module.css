@@ -108,3 +108,9 @@
 .accountSync>span{display:inline-flex;align-items:center;gap:6px}
 .accountSync small{color:#f4ab9f}
 .localHint{display:block;margin-top:12px;color:#c1cee0;font-size:12px}
+
+/* News Relevance v2 — quiet and explainable personalization. */
+.personalReason{display:inline-flex;align-items:center;margin:5px 0 12px;border:1px solid rgba(217,185,115,.4);
+ padding:5px 9px;border-radius:12px;color:#e6d3af;font-size:12px;letter-spacing:.01em}
+.feedback small[role="alert"]{color:#f6aea4;font-size:12px}
+.feedback button:disabled{opacity:.55;cursor:wait}

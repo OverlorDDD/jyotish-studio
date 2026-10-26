@@ -10,7 +10,7 @@ type Topic=typeof TOPICS[number];
 const EXTRA_INTEREST_TAGS=['natal-charts','nakshatras','mantras','pranayama'] as const;
 const INTEREST_TAGS=[...TOPICS,...EXTRA_INTEREST_TAGS] as const;
 type InterestTag=typeof INTEREST_TAGS[number];
-type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null};
+type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null;personalReason?:'selected_topic'|'similar_to_liked'|'fresh_discovery'|'world_highlight';matchingTag?:InterestTag|null};
 type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
@@ -34,7 +34,11 @@ const COPY={
   bootstrap:'Стрічка ще наповнюється перевіреними джерелами. Ми не створюємо вигаданих заголовків.',
   offline:'Новини зараз недоступні. Спробуй оновити стрічку трохи пізніше.',
   more:'Показати ще',retry:'Спробувати ще раз',original:'Читати в першоджерелі',observed:'Знайдено',refresh:'Оновити стрічку',
-  interesting:'Вам цікава ця публікація?',yes:'Так, цікаво',no:'Не для мене',thanks:'Враховано у вашій локальній добірці',
+  interesting:'Вам цікава ця публікація?',yes:'Так, цікаво',no:'Не для мене',thanks:'Враховано у твоїй стрічці',
+  feedbackSaved:'Реакцію збережено в кабінеті',feedbackLocal:'Враховано в цьому браузері',
+  feedbackError:'Не вдалося зберегти реакцію. Повтори спробу.',
+  reasonChosen:'За обраним інтересом',reasonLiked:'Схоже на те, що тобі сподобалося',
+  reasonFresh:'Нова тема для відкриття',reasonWorld:'Важлива світова публікація',
   chosen:'Обрані теми',reset:'Очистити вибір',external:'Зовнішня публікація',
   attribution:'Заголовки належать відповідним видавцям. Galaxiora показує посилання на першоджерела; текст статті залишається на сайті автора.',
   yourFeed:'Добірка за твоїми інтересами',noPersonal:'Обери хоча б один тег, щоб налаштувати стрічку.',
@@ -56,7 +60,11 @@ const COPY={
   bootstrap:'The feed is still collecting verified sources. We never invent headlines.',
   offline:'News are temporarily unavailable. Please try refreshing shortly.',
   more:'Load more',retry:'Try again',original:'Read original story',observed:'Discovered',refresh:'Refresh feed',
-  interesting:'Was this publication interesting?',yes:'Yes, interested',no:'Not for me',thanks:'Applied to your browser-only feed',
+  interesting:'Was this publication interesting?',yes:'Yes, interested',no:'Not for me',thanks:'Taken into account',
+  feedbackSaved:'Reaction saved to account',feedbackLocal:'Applied in this browser',
+  feedbackError:'Could not save reaction. Try again.',
+  reasonChosen:'Based on your selected interest',reasonLiked:'Similar to stories you liked',
+  reasonFresh:'Discover something new',reasonWorld:'World highlight',
   chosen:'Selected topics',reset:'Clear selection',external:'External publication',
   attribution:'Headlines belong to their publishers. Galaxiora links to original sources; article bodies remain with their authors.',
   yourFeed:'Stories based on your interests',noPersonal:'Choose at least one tag to personalize this feed.',
@@ -87,6 +95,8 @@ function StoryArtwork({imageUrl,credit,title,topic,art}:{imageUrl?:string|null;c
 export default function NewsWorld({locale}:{locale:PortalLocale}){
  const t=COPY[locale],[view,setView]=useState<View>('all'),[category,setCategory]=useState<string>('all');
  const [selected,setSelected]=useState<InterestTag[]>([]),[votes,setVotes]=useState<Record<string,Vote>>({});
+ const [votePending,setVotePending]=useState<string|null>(null);
+ const [voteError,setVoteError]=useState<string|null>(null);
  const [ready,setReady]=useState(false),[items,setItems]=useState<Story[]>([]),[total,setTotal]=useState(0);
  const [lastScan,setLastScan]=useState<Feed['lastScan']>(null),[page,setPage]=useState(1);
  const [articleCount,setArticleCount]=useState<number|null>(null);
@@ -96,6 +106,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const [accountTags,setAccountTags]=useState<InterestTag[]>([]);
  const [syncing,setSyncing]=useState(false),[syncError,setSyncError]=useState(false);
  const guestTopics=useRef<InterestTag[]>([]);
+ const guestVotes=useRef<Record<string,Vote>>({});
  const [pendingGuest,setPendingGuest]=useState<InterestTag[]>([]);
  // Only a changed search term may start a new feed request.
  // Never clear fetched stories from a timer: on the initial mount that raced
@@ -112,8 +123,10 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   try{
    const saved=JSON.parse(localStorage.getItem(STORAGE)||'{}');
    if(Array.isArray(saved.tags)){const tags=saved.tags.filter(validTag);guestTopics.current=tags;setSelected(tags);}
-   if(saved.votes&&typeof saved.votes==='object'&&!Array.isArray(saved.votes))
-    setVotes(Object.fromEntries(Object.entries(saved.votes).filter(([key,value])=>key.length<160&&['yes','no'].includes(String(value))).slice(-200)) as Record<string,Vote>);
+   if(saved.votes&&typeof saved.votes==='object'&&!Array.isArray(saved.votes)){
+    const guest=Object.fromEntries(Object.entries(saved.votes).filter(([key,value])=>key.length<160&&['yes','no'].includes(String(value))).slice(-200)) as Record<string,Vote>;
+    guestVotes.current=guest;setVotes(guest);
+   }
   }catch{}
   setReady(true);
  },[]);
@@ -128,17 +141,29 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   void fetch('/api/v1/news/interests',{
    credentials:'same-origin',cache:'no-store',signal:controller.signal
   }).then(async response=>{
-   if(response.status===401){setAccountStatus('guest');return;}
+   if(response.status===401){setAccountStatus('guest');setVotes(guestVotes.current);return;}
    if(!response.ok)throw Error('News account interests HTTP '+response.status);
    const data=await response.json() as {tags?:unknown};
    if(controller.signal.aborted)return;
    const saved=Array.isArray(data.tags)?data.tags.filter(validTag):[];
+   // The account's votes are private and must never reuse another account's local votes.
+   const feedbackResponse=await fetch('/api/v1/news/reactions',{
+    credentials:'same-origin',cache:'no-store',signal:controller.signal
+   });
+   if(!feedbackResponse.ok)throw Error('News reactions HTTP '+feedbackResponse.status);
+   const feedback=await feedbackResponse.json() as {items?:Array<{articleId:string;vote:'YES'|'NO'}>};
+   if(controller.signal.aborted)return;
+   setVotes(Object.fromEntries((feedback.items||[]).filter(x=>x.articleId&&['YES','NO'].includes(x.vote))
+    .map(x=>[x.articleId,x.vote==='YES'?'yes':'no'])) as Record<string,Vote>);
    setAccountTags(saved);
    setAccountStatus('member');
    // Stored account preferences win on sign-in. Guest choices remain optional.
    setPendingGuest(guestTopics.current.filter(tag=>!saved.includes(tag)));
    setSelected(saved);
-  }).catch(()=>{if(!controller.signal.aborted)setAccountStatus('guest');});
+  }).catch(()=>{if(!controller.signal.aborted){
+   // Fail closed: do not mistake an account API error for permission to upload guest votes.
+   setAccountStatus('loading');setVotes({});
+  }});
   return()=>controller.abort();
  },[ready]);
  const accountTagsDiffer=selected.length!==accountTags.length||
@@ -162,7 +187,8 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  useEffect(()=>{
   const controller=new AbortController();
   setBusy(true);setError(false);
-  const params=new URLSearchParams({limit:'48',page:String(page),sort:view==='latest'?'latest':'relevance'});
+  const params=new URLSearchParams({limit:'48',page:String(page),
+   sort:view==='latest'?'latest':view==='mine'&&accountStatus==='member'?'personal':'relevance'});
   if(category!=='all')params.set('topic',category);
   if(view==='mine'&&selected.length)params.set('tags',selected.join(','));
   if(query.length>=2)params.set('q',query);
@@ -178,19 +204,39 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    .catch(()=>{if(!controller.signal.aborted)setError(true);})
    .finally(()=>{if(!controller.signal.aborted)setBusy(false);});
   return()=>controller.abort();
- },[category,page,reload,view,selected,query]);
+ },[category,page,reload,view,selected,query,accountStatus]);
  const resetCategory=(value:string)=>{setCategory(value);setPage(1);setItems([]);};
  const toggleTag=(tag:InterestTag)=>setSelected(old=>old.includes(tag)?old.filter(t=>t!==tag):[...old,tag]);
- const answer=(story:Story,vote:Vote)=>{
-  setVotes(old=>({...old,[story.id]:vote}));
-  if(vote==='yes')setSelected(old=>old.includes(story.topic)?old:[...old,story.topic]);
+ const answer=async(story:Story,vote:Vote)=>{
+  if(votePending===story.id||accountStatus==='loading')return;
+  const before=votes[story.id];
+  const next=before===vote?undefined:vote;
+  setVoteError(null);setVotePending(story.id);
+  setVotes(old=>{const changed={...old};if(next)changed[story.id]=next;else delete changed[story.id];return changed;});
+  if(accountStatus==='member'){
+   try{
+    const response=await fetch('/api/v1/news/reactions/'+encodeURIComponent(story.id),{
+     method:next?'PUT':'DELETE',credentials:'same-origin',
+     ...(next?{headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({vote:next==='yes'?'YES':'NO'})}:{})
+    });
+    if(!response.ok)throw Error('Vote HTTP '+response.status);
+    if(view==='mine'){setPage(1);setReload(x=>x+1);}
+   }catch{
+    setVotes(old=>{const recovered={...old};if(before)recovered[story.id]=before;else delete recovered[story.id];return recovered;});
+    setVoteError(story.id);
+   }
+  }
+  setVotePending(null);
  };
  const visible=useMemo(()=>{
   let list=items.filter(story=>!(view==='mine'&&votes[story.id]==='no'));
-  if(view==='mine')list=selected.length?list.filter(story=>story.tags.some(tag=>selected.includes(tag))):[];
+  if(view==='mine'&&accountStatus!=='member')
+   list=selected.length?list.filter(story=>story.tags.some(tag=>selected.includes(tag))):[];
+  // The authenticated personal feed already applies ranked interests + discoveries server-side.
   if(view==='latest')list=[...list].sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
   return list;
- },[items,view,selected,votes]);
+ },[items,view,selected,votes,accountStatus]);
  useEffect(()=>{
   const timer=setInterval(()=>{if(document.visibilityState==='visible'){
    setPage(1);setReload(x=>x+1);
@@ -271,7 +317,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
      </div>
      {error?<div className={styles.empty} role="alert"><p>{t.offline}</p><button type="button" onClick={()=>setReload(x=>x+1)}>{t.retry}</button></div>:
       busy&&page===1?<div className={styles.empty} role="status"><RefreshCw size={24}/><p>{t.loading}</p></div>:
-      view==='mine'&&!selected.length?<div className={styles.empty}><Tags size={28}/><p>{t.noPersonal}</p></div>:
+      view==='mine'&&!selected.length&&accountStatus!=='member'?<div className={styles.empty}><Tags size={28}/><p>{t.noPersonal}</p></div>:
       visible.length===0?<div className={styles.empty}><BookOpen size={28}/><p>{view==='mine'?t.nothingPersonal:lastScan?t.zero:t.bootstrap}</p></div>:
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
@@ -283,15 +329,27 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
           <h3>{locale==='uk'&&story.titleUk?story.titleUk:story.title}</h3>
           {preview(story)&&<p className={styles.summary} data-testid="news-summary">{preview(story)}</p>}
           <p className={styles.source}>{story.source}</p>
+          {view==='mine'&&accountStatus==='member'&&story.personalReason&&
+           <small className={styles.personalReason} data-testid="news-why">
+            {story.personalReason==='selected_topic'?t.reasonChosen+
+             (story.matchingTag?': '+LABELS[story.matchingTag]?.[locale]:''):
+             story.personalReason==='similar_to_liked'?t.reasonLiked:
+             story.personalReason==='fresh_discovery'?t.reasonFresh:t.reasonWorld}
+           </small>}
           <div className={styles.storyEnd}>
            {url&&<a href={url} target="_blank" rel="noopener noreferrer" aria-label={t.original+': '+story.title}>
             {t.original}<ArrowUpRight size={16}/></a>}
-           {v&&<span className={styles.voteMarked}>{v==='yes'?<Heart size={13}/>:<HeartOff size={13}/>} {t.thanks}</span>}
+           {v&&<span className={styles.voteMarked}>{v==='yes'?<Heart size={13}/>:<HeartOff size={13}/>} {accountStatus==='member'?t.feedbackSaved:t.feedbackLocal}</span>}
           </div>
          </div>
          {(i===0||(i+1)%5===0)&&<div className={styles.feedback} data-testid="news-feedback">
-          <p>{t.interesting}</p><div><button type="button" aria-pressed={v==='yes'} onClick={()=>answer(story,'yes')}><Heart size={14}/>{t.yes}</button>
-           <button type="button" aria-pressed={v==='no'} onClick={()=>answer(story,'no')}><HeartOff size={14}/>{t.no}</button></div>
+          <p>{t.interesting}</p><div><button type="button" data-testid="news-vote-yes"
+            aria-pressed={v==='yes'} disabled={votePending===story.id||accountStatus==='loading'}
+            onClick={()=>void answer(story,'yes')}><Heart size={14}/>{t.yes}</button>
+           <button type="button" data-testid="news-vote-no"
+            aria-pressed={v==='no'} disabled={votePending===story.id||accountStatus==='loading'}
+            onClick={()=>void answer(story,'no')}><HeartOff size={14}/>{t.no}</button></div>
+          {voteError===story.id&&<small role="alert">{t.feedbackError}</small>}
          </div>}
         </article>;
        })}
