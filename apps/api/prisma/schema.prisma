@@ -299,6 +299,9 @@ model NewsArticle {
  summary String? @db.VarChar(500)
  feedDescription String? @db.VarChar(1200)
  metadataCheckedAt DateTime?
+ editorialAttemptedAt DateTime?
+ editorialNextAttemptAt DateTime?
+ editorialAttempts Int @default(0)
  imageUrl String? @db.VarChar(1000)
  imageCredit String? @db.VarChar(160)
  summaryKind String @default("title_context") @db.VarChar(32)
@@ -311,6 +314,7 @@ model NewsArticle {
  lastSeenAt DateTime @default(now())
  @@index([status,publishedAt])
  @@index([topic,publishedAt])
+ @@index([editorialNextAttemptAt])
 }
 model NewsScan {
  id String @id @default(uuid())
