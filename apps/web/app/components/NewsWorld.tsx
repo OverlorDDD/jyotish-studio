@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit,Search,X} from 'lucide-react';
+import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit,Search,X,Settings2,Download,Trash2,Undo2,ShieldCheck} from 'lucide-react';
 import PortalShell from './PortalShell';
 import styles from './NewsWorld.module.css';
 import type {PortalLocale} from '../../lib/brand';
@@ -14,6 +14,7 @@ type Story={id:string;url:string;title:string;source:string;language:string;topi
 type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
+type ReactionRow={articleId:string;vote:'YES'|'NO';updatedAt:string;article:{title:string;titleUk?:string|null;url:string;source:string;topic:string}};
 const LABELS:Record<InterestTag,{uk:string;en:string}>={
  jyotish:{uk:'Джйотіш',en:'Jyotish'},astrology:{uk:'Астрологія',en:'Astrology'},tarot:{uk:'Таро',en:'Tarot'},
  yoga:{uk:'Йога',en:'Yoga'},meditation:{uk:'Медитація',en:'Meditation'},
@@ -47,7 +48,17 @@ const COPY={
   saveAccount:'Зберегти інтереси в кабінеті',savedAccount:'Інтереси збережено',
   guestLocal:'Увійди, щоб синхронізувати інтереси.',
   saveFailed:'Не вдалося синхронізувати інтереси. Спробуй ще раз.',
-  importGuest:'Додати теми з цього браузера'
+  importGuest:'Додати теми з цього браузера',
+  manage:'Керування рекомендаціями',manageNote:'Обирай, які інтереси й реакції зберігати.',
+  personalizedOn:'Персоналізацію увімкнено',personalizedOff:'Персоналізацію вимкнено',
+  offNote:'Ти бачитимеш світові новини без персональних рекомендацій.',
+  history:'Історія реакцій',noHistory:'Ще немає оцінених публікацій.',
+  undo:'Скасувати',moreHistory:'Показати ще',historyLimit:'Показано останні 1000 реакцій. Повну історію можна експортувати.',
+  clearHistory:'Очистити реакції',resetAll:'Скинути новинні налаштування',
+  exportData:'Експортувати дані',confirmClear:'Видалити всі реакції?',
+  confirmReset:'Очистити інтереси й реакції GalaxiNews? Натальні карти й інші дані залишаться.',
+  confirmYes:'Так, видалити',cancel:'Назад',settingsError:'Не вдалося виконати дію. Спробуй ще раз.',
+  guestClear:'Очистити локальні реакції'
  },
  en:{
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'A living world of astrology, Tarot and spiritual traditions.',
@@ -73,7 +84,17 @@ const COPY={
   saveAccount:'Save interests to my account',savedAccount:'Interests saved to account',
   guestLocal:'Sign in to sync your interests.',
   saveFailed:'Could not sync interests. Please try again.',
-  importGuest:'Add topics from this browser'
+  importGuest:'Add topics from this browser',
+  manage:'Manage recommendations',manageNote:'Choose the interests and reactions you keep.',
+  personalizedOn:'Personalization on',personalizedOff:'Personalization off',
+  offNote:'World headlines are shown without personalized recommendations.',
+  history:'Reaction history',noHistory:'No reactions recorded yet.',
+  undo:'Undo',moreHistory:'Show more',historyLimit:'Showing the latest 1000 reactions; export for the full history.',
+  clearHistory:'Clear reactions',resetAll:'Reset news settings',
+  exportData:'Export data',confirmClear:'Delete all news reactions?',
+  confirmReset:'Clear GalaxiNews interests and feedback? Other account data remains intact.',
+  confirmYes:'Yes, delete',cancel:'Back',settingsError:'Unable to complete the action. Try again.',
+  guestClear:'Clear local reactions'
  }
 } as const;
 const STORAGE='galaxiora:news-world:v1';
@@ -108,6 +129,11 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const guestTopics=useRef<InterestTag[]>([]);
  const guestVotes=useRef<Record<string,Vote>>({});
  const [pendingGuest,setPendingGuest]=useState<InterestTag[]>([]);
+ const [personalEnabled,setPersonalEnabled]=useState(true);
+ const [history,setHistory]=useState<ReactionRow[]>([]),[historyTotal,setHistoryTotal]=useState(0);
+ const [historyShown,setHistoryShown]=useState(8),[manageOpen,setManageOpen]=useState(false);
+ const [privacyBusy,setPrivacyBusy]=useState(false),[privacyError,setPrivacyError]=useState(false);
+ const [confirmMode,setConfirmMode]=useState<'clear'|'reset'|'guest'|null>(null);
  // Only a changed search term may start a new feed request.
  // Never clear fetched stories from a timer: on the initial mount that raced
  // with the API response and left the page empty until the manual refresh.
@@ -141,7 +167,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   void fetch('/api/v1/news/interests',{
    credentials:'same-origin',cache:'no-store',signal:controller.signal
   }).then(async response=>{
-   if(response.status===401){setAccountStatus('guest');setVotes(guestVotes.current);return;}
+   if(response.status===401){setAccountStatus('guest');setVotes(guestVotes.current);setHistory([]);setHistoryTotal(0);return;}
    if(!response.ok)throw Error('News account interests HTTP '+response.status);
    const data=await response.json() as {tags?:unknown};
    if(controller.signal.aborted)return;
@@ -151,10 +177,13 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     credentials:'same-origin',cache:'no-store',signal:controller.signal
    });
    if(!feedbackResponse.ok)throw Error('News reactions HTTP '+feedbackResponse.status);
-   const feedback=await feedbackResponse.json() as {items?:Array<{articleId:string;vote:'YES'|'NO'}>};
+   const feedback=await feedbackResponse.json() as {items?:ReactionRow[];total?:number};
    if(controller.signal.aborted)return;
    setVotes(Object.fromEntries((feedback.items||[]).filter(x=>x.articleId&&['YES','NO'].includes(x.vote))
     .map(x=>[x.articleId,x.vote==='YES'?'yes':'no'])) as Record<string,Vote>);
+   setHistory(feedback.items||[]);
+   setHistoryTotal(feedback.total??(feedback.items||[]).length);
+   setPersonalEnabled(data.enabled!==false);
    setAccountTags(saved);
    setAccountStatus('member');
    // Stored account preferences win on sign-in. Guest choices remain optional.
@@ -162,7 +191,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    setSelected(saved);
   }).catch(()=>{if(!controller.signal.aborted){
    // Fail closed: do not mistake an account API error for permission to upload guest votes.
-   setAccountStatus('loading');setVotes({});
+   setAccountStatus('loading');setVotes({});setHistory([]);setHistoryTotal(0);
   }});
   return()=>controller.abort();
  },[ready]);
@@ -176,7 +205,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({tags:selected})
    });
-   if(response.status===401){setAccountStatus('guest');setSelected(guestTopics.current);throw Error('Signed out');}
+   if(response.status===401){setAccountStatus('guest');setSelected(guestTopics.current);setVotes(guestVotes.current);setHistory([]);throw Error('Signed out');}
    if(!response.ok)throw Error('News interests HTTP '+response.status);
    const updated=await response.json() as {tags?:unknown};
    if(Array.isArray(updated.tags))setAccountTags(updated.tags.filter(validTag));
@@ -207,8 +236,73 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  },[category,page,reload,view,selected,query,accountStatus]);
  const resetCategory=(value:string)=>{setCategory(value);setPage(1);setItems([]);};
  const toggleTag=(tag:InterestTag)=>setSelected(old=>old.includes(tag)?old.filter(t=>t!==tag):[...old,tag]);
+
+ const refreshHistory=async()=>{
+  const response=await fetch('/api/v1/news/reactions',{credentials:'same-origin',cache:'no-store'});
+  if(!response.ok)throw Error('Could not load reactions');
+  const data=await response.json() as {items:ReactionRow[];total:number};
+  setHistory(data.items);setHistoryTotal(data.total);
+ };
+ const savePrivacySwitch=async()=>{
+  if(accountStatus!=='member'||privacyBusy)return;
+  setPrivacyBusy(true);setPrivacyError(false);
+  try{
+   const r=await fetch('/api/v1/news/settings',{method:'PUT',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:!personalEnabled})});
+   if(!r.ok)throw Error('Settings update failed');
+   const data=await r.json() as {enabled:boolean};
+   setPersonalEnabled(data.enabled);setPage(1);setReload(n=>n+1);
+  }catch{setPrivacyError(true);}finally{setPrivacyBusy(false);}
+ };
+ const exportNewsData=async()=>{
+  if(accountStatus!=='member'||privacyBusy)return;
+  setPrivacyBusy(true);setPrivacyError(false);
+  try{
+   const response=await fetch('/api/v1/news/privacy/export',{credentials:'same-origin',cache:'no-store'});
+   if(!response.ok)throw Error('Export failed');
+   const data=await response.json();
+   const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+   const link=document.createElement('a');
+   link.href=url;link.download='galaxiora-news-'+new Date().toISOString().slice(0,10)+'.json';
+   document.body.appendChild(link);link.click();link.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),3000);
+  }catch{setPrivacyError(true);}finally{setPrivacyBusy(false);}
+ };
+ const undoHistory=async(id:string)=>{
+  if(privacyBusy||accountStatus!=='member')return;
+  setPrivacyBusy(true);setPrivacyError(false);
+  try{
+   const r=await fetch('/api/v1/news/reactions/'+encodeURIComponent(id),{
+    method:'DELETE',credentials:'same-origin'});
+   if(!r.ok)throw Error('Undo failed');
+   setVotes(old=>{const next={...old};delete next[id];return next;});
+   setHistory(old=>old.filter(x=>x.articleId!==id));
+   setHistoryTotal(n=>Math.max(0,n-1));
+   if(view==='mine')setReload(n=>n+1);
+  }catch{setPrivacyError(true);}finally{setPrivacyBusy(false);}
+ };
+ const confirmedDelete=async()=>{
+  if(privacyBusy||!confirmMode)return;
+  const target=confirmMode;
+  setPrivacyBusy(true);setPrivacyError(false);
+  try{
+   if(target==='guest'){
+    guestVotes.current={};setVotes({});
+   }else{
+    if(accountStatus!=='member')throw Error('No session');
+    const path=target==='reset'?'/api/v1/news/privacy/reset':'/api/v1/news/reactions';
+    const response=await fetch(path,{method:'DELETE',credentials:'same-origin'});
+    if(!response.ok)throw Error('Delete failed');
+    setVotes({});setHistory([]);setHistoryTotal(0);
+    if(target==='reset'){setSelected([]);setAccountTags([]);setPendingGuest([]);setPersonalEnabled(true);}
+    setReload(n=>n+1);
+   }
+   setConfirmMode(null);
+  }catch{setPrivacyError(true);}finally{setPrivacyBusy(false);}
+ };
+
  const answer=async(story:Story,vote:Vote)=>{
-  if(votePending===story.id||accountStatus==='loading')return;
+  if(votePending===story.id||accountStatus==='loading'||(accountStatus==='member'&&!personalEnabled)||(accountStatus==='member'&&!personalEnabled))return;
   const before=votes[story.id];
   const next=before===vote?undefined:vote;
   setVoteError(null);setVotePending(story.id);
@@ -221,12 +315,15 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       body:JSON.stringify({vote:next==='yes'?'YES':'NO'})}:{})
     });
     if(!response.ok)throw Error('Vote HTTP '+response.status);
+    await refreshHistory();
     if(view==='mine'){setPage(1);setReload(x=>x+1);}
    }catch{
     setVotes(old=>{const recovered={...old};if(before)recovered[story.id]=before;else delete recovered[story.id];return recovered;});
     setVoteError(story.id);
    }
   }
+  if(accountStatus==='guest'){guestVotes.current={...votes};
+   if(next)guestVotes.current[story.id]=next;else delete guestVotes.current[story.id];}
   setVotePending(null);
  };
  const visible=useMemo(()=>{
@@ -253,7 +350,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  };
  const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
  return <PortalShell locale={locale} active="news">
-  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.7">
+  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.8">
    <header className={styles.hero}>
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
@@ -303,6 +400,53 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
      </div>}
     {accountStatus==='guest'&&selected.length>0&&
      <small className={styles.localHint}>{t.guestLocal}</small>}
+    <div className={styles.privacyControls} data-testid="news-privacy-controls">
+     <button type="button" className={styles.manageToggle}
+      aria-expanded={manageOpen} onClick={()=>setManageOpen(v=>!v)}>
+      <Settings2 size={16}/>{t.manage}<ChevronDown size={15}/>
+     </button>
+     {manageOpen&&<div className={styles.managePanel}>
+      <p className={styles.manageNote}>{t.manageNote}</p>
+      {accountStatus==='member'?<>
+       <button type="button" role="switch" aria-checked={personalEnabled}
+        disabled={privacyBusy} onClick={()=>void savePrivacySwitch()}>
+        <ShieldCheck size={16}/>{personalEnabled?t.personalizedOn:t.personalizedOff}
+       </button>
+       {!personalEnabled&&<p className={styles.manageNote}>{t.offNote}</p>}
+       <div className={styles.manageActions}>
+        <button type="button" onClick={()=>void exportNewsData()} disabled={privacyBusy}>
+         <Download size={15}/>{t.exportData}</button>
+        <button type="button" onClick={()=>setConfirmMode('clear')} disabled={privacyBusy}>
+         <Trash2 size={15}/>{t.clearHistory}</button>
+        <button type="button" onClick={()=>setConfirmMode('reset')} disabled={privacyBusy}>{t.resetAll}</button>
+       </div>
+       <h3>{t.history} ({historyTotal})</h3>
+       {history.length===0?<p className={styles.manageNote}>{t.noHistory}</p>:
+        <ul className={styles.historyList}>
+         {history.slice(0,historyShown).map(row=><li key={row.articleId}>
+          <span>{row.vote==='YES'?<Heart size={14}/>:<HeartOff size={14}/>}
+           {safeLink(row.article.url)?<a href={row.article.url} target="_blank" rel="noopener noreferrer">
+            {locale==='uk'&&row.article.titleUk||row.article.title}</a>:
+            (locale==='uk'&&row.article.titleUk||row.article.title)}
+           <small>{row.article.source}</small></span>
+          <button type="button" disabled={privacyBusy} onClick={()=>void undoHistory(row.articleId)}>
+           <Undo2 size={14}/>{t.undo}</button>
+         </li>)}
+        </ul>}
+       {historyShown<history.length&&<button type="button"
+        onClick={()=>setHistoryShown(history.length)}>{t.moreHistory} ({history.length-historyShown})</button>}
+       {historyTotal>history.length&&<p className={styles.manageNote}>{t.historyLimit}</p>}
+      </>:<button type="button" disabled={!Object.keys(votes).length}
+       onClick={()=>setConfirmMode('guest')}><Trash2 size={15}/>{t.guestClear}</button>}
+      {confirmMode&&<div className={styles.confirmStrip} role="group" aria-label={t.confirmYes}>
+       <p>{confirmMode==='reset'?t.confirmReset:
+        confirmMode==='guest'?t.guestClear+'?':t.confirmClear}</p>
+       <button type="button" disabled={privacyBusy} onClick={()=>void confirmedDelete()}>{t.confirmYes}</button>
+       <button type="button" disabled={privacyBusy} onClick={()=>setConfirmMode(null)}>{t.cancel}</button>
+      </div>}
+      {privacyError&&<small role="alert" className={styles.manageError}>{t.settingsError}</small>}
+     </div>}
+    </div>
    </section>
 
    <div className={styles.feedLayout}>
@@ -344,10 +488,10 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
          </div>
          {(i===0||(i+1)%5===0)&&<div className={styles.feedback} data-testid="news-feedback">
           <p>{t.interesting}</p><div><button type="button" data-testid="news-vote-yes"
-            aria-pressed={v==='yes'} disabled={votePending===story.id||accountStatus==='loading'}
+            aria-pressed={v==='yes'} disabled={votePending===story.id||accountStatus==='loading'||(accountStatus==='member'&&!personalEnabled)}
             onClick={()=>void answer(story,'yes')}><Heart size={14}/>{t.yes}</button>
            <button type="button" data-testid="news-vote-no"
-            aria-pressed={v==='no'} disabled={votePending===story.id||accountStatus==='loading'}
+            aria-pressed={v==='no'} disabled={votePending===story.id||accountStatus==='loading'||(accountStatus==='member'&&!personalEnabled)}
             onClick={()=>void answer(story,'no')}><HeartOff size={14}/>{t.no}</button></div>
           {voteError===story.id&&<small role="alert">{t.feedbackError}</small>}
          </div>}
