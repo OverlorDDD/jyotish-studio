@@ -57,9 +57,10 @@ async function metadataRecovery(){
 async function verifyRunningFrontend(){
  const result=await probeLocalNewsFrontend();
  if(result.available){
-  console.log('[GalaxiNews] frontend:',result.current?'CURRENT v1.5 (tabs search)':
+  console.log('[GalaxiNews] frontend:',result.current?'CURRENT v1.6 (tabs search)':
    'OLD OR UNEXPECTED bundle (missing v1.5 markup / search), at '+result.url);
-  if(!result.current)console.log('[GalaxiNews] Check branch, stop older Next processes, then restart npm run dev:full.');
+  if(!result.current)console.log('[GalaxiNews] HTML details: search/count/tags/oldCopy:',result.hasSearch,result.hasCount,result.hasTags,result.obsoleteCopy);
+  console.log('[GalaxiNews] Open http://127.0.0.1:3000/uk/news?revision=v1.6 in a NEW private browser window.');
  }else{
   console.warn('[GalaxiNews] frontend not reachable at 127.0.0.1:3000 or localhost:3000.');
   console.warn('[GalaxiNews] Details:',result.attempts.join(' | '));
