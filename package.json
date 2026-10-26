@@ -43,7 +43,7 @@
     "test:platform": "node --test tools/platform-stage2.test.mjs",
     "test:stage3": "node --test tools/platform-stage3.test.mjs",
     "db:doctor": "node tools/db-doctor.mjs",
-    "test:bootstrap": "node --test tools/dev-full.test.mjs",
+    "test:bootstrap": "node --test tools/dev-full.test.mjs tools/news-local-probe.test.mjs",
     "db:prune-drafts": "node --env-file=.env tools/prune-expired-reading-drafts.mjs",
     "admin:setup": "node --env-file=.env tools/setup-owner.mjs",
     "test:tarot": "node --experimental-strip-types --test tools/tarot-roles.test.mjs",

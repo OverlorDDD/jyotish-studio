@@ -1,5 +1,6 @@
 /** One-time, non-destructive GalaxiNews archive recovery; no records are deleted. */
 import {PrismaClient} from '@prisma/client';
+import {probeLocalNewsFrontend} from './news-local-probe.mjs';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
 import {publisherDomain,safeImageUrl} from '../apps/api/src/news-domain.ts';
 import {metadataHosts,fetchArticleMetadata} from '../apps/api/src/news-metadata.ts';
@@ -53,16 +54,18 @@ async function metadataRecovery(){
   '(only approved publisher domains; no copyright override)');
 }
 async function verifyRunningFrontend(){
- try{
-  const response=await fetch('http://localhost:3000/uk/news',{signal:AbortSignal.timeout(5000),cache:'no-store'});
-  const markup=await response.text();
-  const current=markup.includes('world-v1.5')&&markup.includes('galaxinews-search');
-  console.log('[GalaxiNews] running frontend:',current?'CURRENT v1.5 (tabs search)':
-   'OLD OR UNEXPECTED build — stop old Next processes, pull feature branch and restart npm run dev:full');
- }catch{
-  console.log('[GalaxiNews] running frontend: unavailable (start npm run dev:full to check the UI)');
+ const result=await probeLocalNewsFrontend();
+ if(result.available){
+  console.log('[GalaxiNews] frontend:',result.current?'CURRENT v1.5 (tabs search)':
+   'OLD OR UNEXPECTED bundle (missing v1.5 markup / search), at '+result.url);
+  if(!result.current)console.log('[GalaxiNews] Check branch, stop older Next processes, then restart npm run dev:full.');
+ }else{
+  console.warn('[GalaxiNews] frontend not reachable at 127.0.0.1:3000 or localhost:3000.');
+  console.warn('[GalaxiNews] Details:',result.attempts.join(' | '));
+  console.warn('[GalaxiNews] This probe does NOT prove the website is outdated. Check Next startup and retry after /uk/news compiles.');
  }
 }
+
 try{
  await prisma.$connect();
  console.log('[GalaxiNews] AI providers:',{
