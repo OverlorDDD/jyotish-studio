@@ -103,8 +103,8 @@ const validTag=(t:unknown):t is InterestTag=>typeof t==='string'&&(INTEREST_TAGS
 function guestSimilar(story:Story,hint:GuestNewsHint){
  if(story.topic!==hint.topic)return false;
  if(story.tags.some(tag=>!TOPICS.includes(tag as Topic)&&hint.tags.includes(tag)))return true;
- const words=(value:string)=>new Set((value.toLowerCase().normalize('NFKC').match(/[\\p{L}\\p{N}]{4,}/gu)||[])
-  .filter(word=>!['tarot','yoga','jyotish','astrology','astrology','астрологія','таро','йога','джйотіш','today','world'].includes(word)));
+ const words=(value:string)=>new Set((value.toLowerCase().normalize('NFKC').match(/[\p{L}\p{N}]{4,}/gu)||[])
+  .filter(word=>!['tarot','yoga','jyotish','astrology','астрологія','таро','йога','джйотіш','today','world'].includes(word)));
  const a=words(story.titleUk||story.title),b=words(hint.title);
  if(a.size<2||b.size<2)return false;
  const common=[...a].filter(word=>b.has(word)).length;
