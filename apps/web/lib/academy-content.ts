@@ -1,5 +1,5 @@
 /** Original beginner-facing educational reading library, independent of external AI. */
-import type {Bilingual} from './yoga-content';
+import type {Bilingual} from './yoga-content.js';
 export type AcademyTopic='jyotish'|'tarot'|'practice';
 export type AcademyLesson={
  slug:string;topic:AcademyTopic;minutes:number;title:Bilingual;description:Bilingual;

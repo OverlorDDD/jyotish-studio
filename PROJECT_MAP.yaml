@@ -124,11 +124,20 @@ modules:
     safeguard: "no full articles, no invented facts or meta-text; hide unsupported teasers; image CC licence / explicitly-approved hosts; GDELT seendate marked observation; astronomy separate"
     tests: "npm run test:news; e2e/news-world.spec.mjs"
     documentation: "docs/research/galaxinews-quality-discovery-2026-10-26.md; docs/research/galaxinews-p4-p5-acceptance-2026-10-26.md"
+  galaxicom:
+    status: "C0-C3 CI PASS; C4 implemented: PostgreSQL shared rate limits, durable notification outbox, owner appeals, privacy exports/reviewed public redaction, backup/load operator tools; C4 CI/manual acceptance pending"
+    http: "apps/api/src/com.ts, com-social.ts, com-context.ts; /api/v1/com/*; public-source validation, ADMIN editorial approval"
+    domain_policy: "apps/api/src/com-policy.ts; FREE posting, staff roles separate, premium has no moderation authority"
+    persistence: "C0-C2 plus additive ComContextLink sourceKind+slug+threadId approval/audit; migration 20261026221500_galaxicom_c3_context"
+    web: "GalaxiCom.tsx, GalaxiComMember.tsx, GalaxiCom.module.css; /{uk|en}/community, topic/:id and member/:id"
+    safeguards: "plain-text privacy; C4 atomic DB budgets, appeal/audit, moderated privacy workflow; external worker and retention operations required"
+    tests: "npm run test:com with com-context policy, e2e/galaxicom-c3.spec.mjs + C0-C2 browser regression; PostgreSQL CI; Chromium desktop/mobile"
+    documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md; docs/research/galaxicom-c2-implementation-2026-10-26.md; docs/research/galaxicom-c3-implementation-2026-10-26.md; docs/research/galaxicom-c4-security-2026-10-26.md"
   portal:
-    status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and Community placeholders"
+    status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and GalaxiCom active code; public-release gates pending"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
-    future: [western_astrology, panchang, news, community, mobile]
+    future: [western_astrology, panchang, community_enhancements, mobile]
   ai_usage:
     status: "usage storage and Gemini/GroqCloud/OpenRouter (cloud-only default) fallback implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
@@ -209,7 +218,7 @@ active_risks:
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
   now: "JQA-3.4 fixed ascendant method and source metadata guard; 20 genuine JHora records, 600/600 signs PASS, remaining full 1-arcsecond and Vimshottari exact-date certificate blocked on source equivalence"
-  next: "GalaxiNews Stage 2 acceptance and producer rights/live metrics, GitHub PR integration; GalaxiCom C0/C1 after roadmap signoff. Exact JQA-3 numeric certification stays separate."
+  next: "GalaxiCom C3 owner acceptance, then C4 moderation, privacy and scale public-release gates; GalaxiNews rights/live QA. Exact JQA-3 numeric certification remains separate."
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"

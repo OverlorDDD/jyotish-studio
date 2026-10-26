@@ -13,12 +13,34 @@ import type {NestExpressApplication} from '@nestjs/platform-express';
 import {ValidationPipe} from '@nestjs/common';
 import {SwaggerModule,DocumentBuilder} from '@nestjs/swagger';
 import {AppModule} from './nest.ts';
+import {PrismaService} from './prisma.ts';
+import {cookieUser} from './auth.ts';
+import {forumBudget,forumWriteLimit} from './com-budget.ts';
 async function bootstrap(){
  const app=await NestFactory.create<NestExpressApplication>(AppModule,{cors:{origin:[`http://localhost:${process.env.WEB_PORT||3000}`]}});
  // Editorial articles can be much longer than Express's default 100 kB JSON body limit.
  // Keep an explicit 2 MB ceiling to prevent unlimited request-body allocations.
  app.useBodyParser('json',{limit:'2mb'});
  app.enableShutdownHooks();
+ // C4: all GalaxiCom writes share the same persistent budgets across API instances.
+ // Only authenticated session claims participate; invalid sessions are rejected by controllers.
+ const forumDb=app.get(PrismaService);
+ app.use('/api/v1/com',async(req:IncomingMessage,res:ServerResponse,next:(error?:unknown)=>void)=>{
+  if(!['POST','PATCH','PUT','DELETE'].includes(req.method||'')){next();return;}
+  const account=cookieUser(req);
+  if(!account){next();return;}
+  try{
+   const route=forumWriteLimit(req.method||'',req.url||'');
+   const general=await forumBudget(forumDb,account,'all-writes',300);
+   const specific=route.name==='mutations'||await forumBudget(forumDb,account,route.name,route.max);
+   if(!general||!specific){
+    res.statusCode=429;res.setHeader('Retry-After','3600');res.setHeader('Cache-Control','no-store');
+    res.setHeader('Content-Type','application/json; charset=utf-8');
+    res.end(JSON.stringify({statusCode:429,message:'GalaxiCom rate limit reached; please try later'}));return;
+   }
+   next();
+  }catch(error){next(error)}
+ });
  app.use((req:IncomingMessage,res:ServerResponse,next:()=>void)=>{
   const id=randomUUID(),start=Date.now();
   res.setHeader('X-Request-Id',id);
