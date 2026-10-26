@@ -12,9 +12,12 @@ const TOP_LEVEL=new Set(['jyotish','astrology','tarot','yoga','meditation','vedi
 const GENERIC=new Set(['about','with','your','this','from','into','what','guide','today','world',
  'коли','його','ваше','свої','для','про','який','якої','чому','щодо','вплив','новини',
  'tarot','yoga','astrology','jyotish','vedic','horoscope','астрологія','таро','йога','джйотіш']);
+const headlineCache=new WeakMap<object,Set<string>>();
 function headlineWords(row:{title?:string;titleUk?:string|null}){
+ const existing=headlineCache.get(row);if(existing)return existing;
  const str=(row.titleUk||row.title||'').toLowerCase().normalize('NFKC');
- return new Set((str.match(/[\p{L}\p{N}]{4,}/gu)||[]).filter(w=>!GENERIC.has(w)));
+ const tokens=new Set((str.match(/[\p{L}\p{N}]{4,}/gu)||[]).filter(w=>!GENERIC.has(w)));
+ headlineCache.set(row,tokens);return tokens;
 }
 /** Broad subject alone is deliberately insufficient to block an entire topic. */
 export function strongNewsSimilarity(article:NewsCandidate,history:NewsFeedback['article']){
@@ -54,8 +57,13 @@ export function rankPersonalNews<T extends NewsCandidate>(items:readonly T[],tag
  const rejected=new Set(negatives.map(r=>r.articleId));
  // Suppress truly close neighbors of explicitly dismissed stories. A generic
  // category match alone is never sufficient to hide every article in that area.
- const stronglySimilar=new Set(items.filter(a=>negatives.some(r=>
-  strongNewsSimilarity(a,r.article))).map(a=>a.id));
+ const negativeByTopic=new Map<string,NewsFeedback[]>();
+ for(const vote of negatives){
+  const group=negativeByTopic.get(vote.article.topic)||[];
+  group.push(vote);negativeByTopic.set(vote.article.topic,group);
+ }
+ const stronglySimilar=new Set(items.filter(a=>
+  (negativeByTopic.get(a.topic)||[]).some(r=>strongNewsSimilarity(a,r.article))).map(a=>a.id));
  const seen=new Set<string>();
  const available=items.filter(a=>!rejected.has(a.id)&&!stronglySimilar.has(a.id)&&!seen.has(a.id)&&!!seen.add(a.id));
  const scores=new Map(available.map(a=>[a.id,computePersonalScore(a,tags,reactions,now)]));
