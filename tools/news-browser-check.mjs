@@ -16,6 +16,11 @@ const page=await context.newPage();
 try{
  const response=await page.goto('http://127.0.0.1:3000/uk/news?check=v1.6',{waitUntil:'domcontentloaded',timeout:30000});
  await page.getByTestId('galaxinews-world').waitFor({state:'visible',timeout:15000});
+ // Prove client hydration by triggering an actual React state transition.
+ await page.getByRole('button',{name:/Для мене/}).click();
+ await page.getByRole('heading',{name:'Для мене'}).waitFor({state:'visible',timeout:10000});
+ await page.getByRole('button',{name:/Головне/}).click();
+ await page.getByRole('heading',{name:'Головне'}).waitFor({state:'visible',timeout:10000});
  const result=await page.evaluate(()=>{
   const root=document.querySelector('[data-testid="galaxinews-world"]');
   const input=document.querySelector('#galaxinews-search');
