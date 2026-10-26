@@ -108,7 +108,7 @@ export class NewsController {
   if(!/^[a-z0-9][a-z0-9.-]{2,190}$/.test(domain))throw new BadRequestException('Invalid domain');
   const changed=await this.prisma.newsDiscoveredSource.updateMany({where:{domain},data:{status:body.status}});
   if(body.status==='BLOCKED')await this.prisma.newsArticle.updateMany({
-   where:{url:{contains:domain},status:'PUBLISHED'},data:{status:'HIDDEN'}});
+   where:{status:'PUBLISHED',OR:[{url:{startsWith:'https://'+domain+'/'}},{url:{startsWith:'https://www.'+domain+'/'}}]},data:{status:'HIDDEN'}});
   return {updated:changed.count};
  }
  @Post('admin/refresh') @Header('Cache-Control','private,no-store')
