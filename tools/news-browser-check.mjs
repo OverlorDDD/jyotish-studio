@@ -1,4 +1,6 @@
 import {chromium} from '@playwright/test';
+import {mkdirSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
 if(process.argv.includes('--help')){
  console.log('npm run news:verify-ui: check the actual GalaxiNews page in a new browser context.');
  process.exit(0);
@@ -31,7 +33,11 @@ try{
  });
  const pass=response?.ok()&&result.revision==='world-v1.6'&&result.visibleSearch&&result.searchWithinTabs
    &&result.tagCount===12&&!result.obsoleteText&&Boolean(result.articleCounter);
+ const imagePath=resolve('apps/web/.next/diagnostics/galaxinews-v1.6.png');
+ mkdirSync(dirname(imagePath),{recursive:true});
+ await page.screenshot({path:imagePath,fullPage:false});
  console.log('[GalaxiNews] browser verification:',pass?'PASS':'FAIL',result);
+ console.log('[GalaxiNews] screenshot:',imagePath);
  if(!pass)process.exitCode=1;
 }catch(e){console.error('GalaxiNews browser check failed:',String(e));process.exitCode=1;}
 finally{await context.close();await browser.close();}
