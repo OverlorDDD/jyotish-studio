@@ -42,6 +42,7 @@ test('GalaxiCom C0/C1: guest, two users, moderation, PREMIUM isolation and UI',a
   await expect(page.getByText('I would like to understand the difference between D1 and D9 without sharing personal birth data.')).toBeVisible();
   const second=await page.request.post('/api/v1/account/register',{data:account()});
   expect(second.status()).toBe(201);bId=(await second.json()).user.id;
+  expect((await page.request.patch('/api/v1/com/me',{data:{showPremiumBadge:true}})).status()).toBe(403);
   const cross=await page.request.patch('/api/v1/com/threads/'+topicId,{
    data:{body:'I should never be allowed to rewrite someone else’s discussion.'}});
   expect([403,404].includes(cross.status())).toBe(true);
@@ -62,6 +63,13 @@ test('GalaxiCom C0/C1: guest, two users, moderation, PREMIUM isolation and UI',a
   expect(me.permissions.premiumBadge).toBe(true);
   expect(me.permissions.canModerate).toBe(true);
   expect(me.permissions.canOverrideModeration).toBe(false);
+  expect((await page.request.patch('/api/v1/com/me',{data:{showPremiumBadge:true}})).status()).toBe(200);
+  const premiumPosts=await (await page.request.get('/api/v1/com/threads/'+topicId+'/posts')).json();
+  expect(premiumPosts.items.find(p=>p.id===postId)?.author.premium).toBe(true);
+  await db.user.update({where:{id:bId},data:{subscriptionEndsAt:new Date(Date.now()-86400000)}});
+  const expiredPosts=await (await page.request.get('/api/v1/com/threads/'+topicId+'/posts')).json();
+  expect(expiredPosts.items.find(p=>p.id===postId)?.author.premium).toBe(false);
+
   const queue=await (await page.request.get('/api/v1/com/mod/reports')).json();
   expect(queue.items.some(r=>r.targetId===topicId)).toBe(true);
   expect((await page.request.patch('/api/v1/com/mod/threads/'+topicId,{data:{
