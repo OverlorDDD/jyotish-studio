@@ -27,7 +27,6 @@ const COPY={
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'Живий світ астрології, Таро та духовних традицій.',
   intro:'Відкривай нові матеріали з усього світу. Обирай теми, знаходь першоджерела та формуй стрічку, яка цікава саме тобі.',
   all:'Головне',latest:'Найсвіжіше',mine:'Для мене',topics:'Хмара твоїх інтересів',articles:'статей',
-  topicsHint:'Обери кілька тегів — вони стануть основою твоєї добірки. Поки що вибір зберігається лише в цьому браузері.',
   allTopics:'Усі теми',
   loading:'Завантажуємо новини…',
   world:'Світові матеріали',select:'Обери теми вище, щоб сформувати добірку.',
@@ -46,7 +45,6 @@ const COPY={
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'A living world of astrology, Tarot and spiritual traditions.',
   intro:'Discover new material from around the world. Choose topics, explore original sources, and shape a feed that matters to you.',
   all:'Highlights',latest:'Latest',mine:'For me',topics:'Your constellation of interests',articles:'articles',
-  topicsHint:'Choose a few tags to shape your reading. For now, your choices stay in this browser only.',
   allTopics:'All topics',
   loading:'Loading stories…',
   world:'Stories around the world',select:'Choose topics above to create your collection.',
@@ -151,7 +149,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  };
  const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
  return <PortalShell locale={locale} active="news">
-  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.5">
+  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.6">
    <header className={styles.hero}>
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
@@ -162,7 +160,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    <nav className={styles.views} aria-label={locale==='uk'?'Тип стрічки':'Feed type'}>
     {(['all','latest','mine'] as const).map(v=><button key={v} type="button" className={view===v?styles.active:''}
      aria-pressed={view===v} onClick={()=>{setView(v);setPage(1);setItems([]);}}>{v==='mine'?<Heart size={15}/>:v==='latest'?<Compass size={15}/>:<Orbit size={15}/>} {t[v]}</button>)}
-    <div className={styles.tabSearch} role="search" aria-label={t.search}>
+    <div className={styles.tabSearch} data-testid="news-tabs-search" role="search" aria-label={t.search}>
      <Search size={18} aria-hidden="true"/>
      <label className={styles.searchLabel} htmlFor="galaxinews-search">{t.search}</label>
      <input id="galaxinews-search" type="search" value={search} maxLength={80}
@@ -176,8 +174,8 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     </span>
    </nav>
    <section className={styles.tagSection} aria-label={t.topics}>
-    <div className={styles.sectionTitle}><span><Tags size={18}/>{t.topics}</span><small>{t.topicsHint}</small></div>
-    <div className={styles.tags}>
+    <div className={styles.sectionTitle}><span><Tags size={18}/>{t.topics}</span></div>
+    <div className={styles.tags} data-testid="news-all-interest-tags">
      {INTEREST_TAGS.map(tag=><button type="button" key={tag} onClick={()=>toggleTag(tag)}
       className={selected.includes(tag)?styles.tagActive:styles.tag} aria-pressed={selected.includes(tag)}>
        {selected.includes(tag)&&<Check size={13}/>} {LABELS[tag][locale]}</button>)}

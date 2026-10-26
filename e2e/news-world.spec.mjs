@@ -18,12 +18,28 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  }
  await expect(page.getByTestId('news-article-count')).toContainText(/\d[\d\s]* статей/);
  const interestCloud=page.getByRole('region',{name:'Хмара твоїх інтересів'});
+ const allTags=page.getByTestId('news-all-interest-tags');
+ await expect(allTags.locator('button')).toHaveCount(12);
+ await expect(allTags.getByRole('button',{name:'Астрономія'})).toBeVisible();
+ await expect(page.getByText('Обери кілька тегів — вони стануть основою твоєї добірки. Поки що вибір зберігається лише в цьому браузері.')).toHaveCount(0);
+ await expect(page.getByText(/Перевірка джерел приблизно кожні 15 хвилин/)).toHaveCount(0);
+ await expect(page.getByTestId('news-tabs-search')).toBeVisible();
+ await expect(page.getByTestId('news-article-count')).toBeVisible();
+ const actualDOM=await page.evaluate(()=>({
+  revision:document.querySelector('[data-testid="galaxinews-world"]')?.getAttribute('data-release'),
+  searchFound:Boolean(document.querySelector('#galaxinews-search')),
+  htmlText:document.body.innerText
+ }));
+ expect(actualDOM.revision).toBe('world-v1.6');
+ expect(actualDOM.searchFound).toBe(true);
+ expect(actualDOM.htmlText).not.toContain('Астрономічні матеріали не змішуються');
+ expect(actualDOM.htmlText).not.toContain('Перевірка джерел приблизно кожні 15 хвилин');
  await expect(interestCloud.getByRole('button',{name:'Астрономія'})).toBeVisible();
  await expect(interestCloud.getByRole('button',{name:'Натальні карти'})).toBeVisible();
  await expect(interestCloud.getByRole('button',{name:'Мантри'})).toBeVisible();
  await expect(page.getByText('Астрономічні матеріали не змішуються з астрологічними трактуваннями автоматично.')).toHaveCount(0);
 
- await expect(page.locator('[data-release="world-v1.5"]')).toHaveCount(1);
+ await expect(page.locator('[data-release="world-v1.6"]')).toHaveCount(1);
  await expect(page.getByText('Перевірка джерел приблизно кожні 15 хвилин')).toHaveCount(0);
  await expect(page.getByText('Хмара твоїх інтересів',{exact:true})).toHaveCount(1);
  await expect(page.locator('header.as-header')).toHaveCount(1);

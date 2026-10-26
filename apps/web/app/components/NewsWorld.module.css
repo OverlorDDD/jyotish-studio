@@ -93,3 +93,10 @@
 .articleCount svg{color:#d5b475}
 @media(max-width:860px){.tabSearch{flex:1 1 220px;min-width:190px;margin-left:0}.articleCount{margin-left:0}}
 @media(max-width:550px){.views button{padding:10px 12px;font-size:12px}.tabSearch{order:4;flex:1 1 100%;min-width:0;height:44px}.articleCount{order:5;font-size:12px}}
+
+/* World v1.6: one clean interest cloud; search is always part of feed tabs. */
+.sectionTitle{margin-bottom:16px}
+.sectionTitle>span{flex:1}
+.sectionTitle small{display:none}
+.tabSearch{z-index:1;max-width:310px;overflow:visible}
+@media(max-width:550px){.tabSearch{max-width:none}}
