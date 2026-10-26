@@ -51,23 +51,51 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:typeof fetch=f
  }
  return [];
 }
+/**
+ * Legacy-safe bounded catch-up. Oldest-first prevents evergreen articles from being starved.
+ * Each failed batch receives backoff so a bad provider response cannot block the entire queue.
+ */
 export async function enrichPendingNews(prisma:PrismaService,fetcher:typeof fetch=fetch){
  if(process.env.NEWS_EDITORIAL_AI_ENABLED==='0')return {processed:0,reason:'disabled'};
  if(!process.env.GROQ_API_KEY&&!process.env.GEMINI_API_KEY&&!process.env.OPENROUTER_API_KEY)
   return {processed:0,reason:'missing_provider_keys'};
  const raw=Number(process.env.NEWS_EDITORIAL_BATCH_LIMIT);
  const limit=Math.min(12,Math.max(1,Number.isFinite(raw)&&raw>0?raw:12));
- const rows=await prisma.newsArticle.findMany({where:{status:'PUBLISHED',OR:[
-  {titleUk:null},
-  {summaryUk:null,feedDescription:{not:null},summaryKind:{not:'no_context'}}
- ]},
-  orderBy:{discoveredAt:'desc'},take:limit,select:{
-   id:true,title:true,feedDescription:true,summary:true,summaryKind:true,language:true}});
- if(!rows.length)return {processed:0};
- const output:Output[]=[];
- for(let i=0;i<rows.length;i+=6)output.push(...await generateNewsMicrocopy(rows.slice(i,i+6),fetcher));
- for(const x of output)await prisma.newsArticle.updateMany({where:{id:x.id},data:{
-  titleUk:x.titleUk,summaryUk:x.summaryUk||null,summaryEn:x.summaryEn||null,
-  summaryKind:x.summaryUk?'ai_editorial':'no_context'}});
- return {processed:output.length,pending:rows.length-output.length};
+ const now=new Date();
+ const rows=await prisma.newsArticle.findMany({
+  where:{status:'PUBLISHED',
+   AND:[
+    {OR:[{editorialNextAttemptAt:null},{editorialNextAttemptAt:{lte:now}}]},
+    {OR:[{titleUk:null},
+     {summaryUk:null,feedDescription:{not:null},summaryKind:{notIn:['no_context','editorial_complete']}}]}
+    ]
+   },
+  orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:limit,
+  select:{id:true,title:true,titleUk:true,feedDescription:true,summary:true,summaryKind:true,
+   language:true,editorialAttempts:true}
+ });
+ if(!rows.length)return {processed:0,reason:'queue_empty'};
+ const collected:Output[]=[];
+ for(let i=0;i<rows.length;i+=6){
+  collected.push(...await generateNewsMicrocopy(rows.slice(i,i+6),fetcher));
+ }
+ let processed=0,failed=0;
+ for(const original of rows){
+  const output=collected.find(x=>x.id===original.id);
+  const facts=context(original);
+  const translated=Boolean(output?.titleUk);
+  const useful=Boolean(facts.length>=45&&!boiler.test(facts));
+  const teaser=useful&&Boolean(output?.summaryUk);
+  const success=translated&&(!useful||teaser);
+  const nextAttempts=original.editorialAttempts+1;
+  await prisma.newsArticle.updateMany({where:{id:original.id,status:'PUBLISHED'},data:{
+   editorialAttempts:nextAttempts,editorialAttemptedAt:now,
+   editorialNextAttemptAt:success?null:new Date(now.getTime()+(nextAttempts>=3?24:3)*3600000),
+   ...(translated?{titleUk:output!.titleUk}:{}),
+   ...(teaser?{summaryUk:output!.summaryUk,summaryEn:output!.summaryEn||null}:{}),
+   ...(success?{summaryKind:useful?'ai_editorial':'no_context'}:{})
+  }});
+  if(success)processed++;else failed++;
+ }
+ return {processed,attempted:rows.length,failed};
 }
