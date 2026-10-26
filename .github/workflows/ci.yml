@@ -136,6 +136,9 @@ jobs:
           --health-retries 12
     env:
       CI: 'true'
+      # Do not exhaust the sitewide auth fixture budget across 80 desktop/mobile E2E cases.
+      # Runtime permits this ONLY with the disposable localhost galaxiora_a1_test DB.
+      GALAXIORA_E2E_TEST_AUTH: '1'
       DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
       AUTH_SECRET: a4-only-ci-session-signing-secret-do-not-reuse
       AI_MODE: local

@@ -7,6 +7,7 @@ import {BirthDto} from './dto.ts';
 import {authReady,passwordHash,passwordMatches,normalizedEmail,sessionToken,cookieUser,setSession,clearSession,sameOrigin} from './auth.ts';
 import {createHourlyLimiter,createKeyedHourlyLimiter} from './ai.ts';
 import {publicUser} from './account-policy.ts';
+import {authAttemptCeiling} from './auth-limit-policy.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
 
 export class CredentialsDto{
@@ -32,7 +33,7 @@ export class JournalEditDto {
  @IsOptional() @IsString() @Length(1,2000) body?:string;
 }
 const allowJournalWrites=createKeyedHourlyLimiter(45);
-const allowAuthAttempt=createHourlyLimiter(60);
+const allowAuthAttempt=createHourlyLimiter(authAttemptCeiling(process.env));
 const allowAuthByEmail=createKeyedHourlyLimiter(12);
 const allowSaves=createHourlyLimiter(90);
 function checkRequest(req:IncomingMessage){

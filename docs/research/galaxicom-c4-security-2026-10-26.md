@@ -32,6 +32,11 @@ C4 hardens GalaxiCom while preserving FREE member posting, independent EXPERT ve
 - `npm run com:load` runs read-only 100 requests with concurrency 5 (configurable), two public forum endpoints, reports HTTP failures and p95. Not a substitute for representative production-sized traffic. Proposed staging gate: p95 <=2s at this probe intensity, no 5xx, zero exposed private content.
 - C4 admin health endpoint and CI unit, PostgreSQL, browser regressions cover new flows. Operator monitors repeated 429, failed outbox, aged OPEN appeals/privacy, slow queries, backup age, review queue size.
 
+
+### CI isolation after C4 expansion
+- The desktop+mobile E2E suite uses one API process and many disposable registrations/logins. This can consume the unrelated **sitewide** 60/hour authentication test budget. CI now uses `GALAXIORA_E2E_TEST_AUTH=1` to raise **only that test process's auth budget** to 600 when `CI=true` **and** the PostgreSQL connection points to local `galaxiora_a1_test`. Production and local development stay at 60. The override is rejected for any other DB or host; dedicated policy unit tests guard this. Forum-specific quotas stay unchanged in CI and production.
+- Sitewide authentication's single-process global bucket is not a substitute for a distributed per-IP/per-identity production defense; a real public launch still needs gateway anti-bot controls and account abuse modeling. This fixture adjustment does not approve public launch.
+
 ## Proposed published community rules (UA/EN editorial/legal review required)
 - Be respectful, even when discussing disagreeing astrological traditions.
 - Never publish other people's birth details, full charts, health concerns, addresses, contacts, account passwords, or private readings without explicit informed consent.
