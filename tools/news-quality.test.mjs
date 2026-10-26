@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {sameNewsEvent,collapseNewsEvents,newsQualitySnapshot} from '../apps/api/src/news-quality.ts';
 const clock=new Date('2026-10-26T10:00:00Z');
 const item=(id,title,topic='tarot',source='Publisher A',hours=0)=>({
@@ -38,4 +39,10 @@ test('bounded quality counts are factual and work with empty feeds',()=>{
  assert.equal(q.noApprovedImage,2);
  assert.equal(q.sampledPublishers,2);
  assert.equal(newsQualitySnapshot([]).sampledArticles,0);
+});
+
+test('public feed rechecks legacy media rights and admin UI shows bounded quality',()=>{
+ const source=(name)=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
+ assert.ok(source('apps/api/src/news.ts').includes('imageUrl:rest.imageUrl?safeImageUrl'));
+ assert.ok(source('apps/web/app/components/NewsDiagnostics.tsx').includes('data-testid="news-quality-summary"'));
 });

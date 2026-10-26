@@ -4,7 +4,7 @@ import {ArrayMaxSize,IsArray,IsBoolean,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
-import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify} from './news-domain.ts';
+import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,safeImageUrl} from './news-domain.ts';
 import {NewsIngestionService} from './news-ingestion.ts';
 import {rankPersonalNews} from './news-relevance.ts';
 import {collapseNewsEvents,newsQualitySnapshot} from './news-quality.ts';
@@ -90,7 +90,9 @@ export class NewsController {
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,sources:true,accepted:true,errors:true}}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED'}})
   ]);
-  return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>rest),
+  return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>({...rest,
+   // Legacy RSS thumbnails are rechecked at serving time, not trusted from old DB rows.
+   imageUrl:rest.imageUrl?safeImageUrl(rest.imageUrl,'',rest.source,false):null})),
    total:ranked.length,articleCount,page:Number(page),limit:size,lastScan,
    personalized:personalEnabled,sort};
  }

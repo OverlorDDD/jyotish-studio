@@ -5,7 +5,12 @@ import type {PortalLocale} from '../../lib/brand';
 type Scan={sourceKey:string;createdAt:string;status:string;candidates:number;accepted:number;duplicates:number;
  rejected:number;errors:number;failure:string|null;durationMs:number;rejectionReasons:Record<string,number>|null};
 type Publisher={domain:string;lastSeenAt:string;articleCount:number;status:string;lastTitle:string|null};
+type Quality={sampledArticles:number;visibleAfterGrouping:number;duplicatePresentationsAvoided:number;
+ sampledPublishers:number;sampledTopics:number;within48Hours:number;
+ missingUkrainianTitles:number;missingGroundedPreviews:number;noApprovedImage:number;
+ observedNotPublisherDated:number;scope:string};
 type Health={enabled:boolean;registeredSources:number;articleCount:number;publishers:number;
+ quality?:Quality;
  untranslated:number;unsummarized:number;unillustrated:number;discoveredSources:Publisher[];editorialAiConfigured:boolean;
  last:{createdAt:string;sources:number;accepted:number;errors:number}|null;
  byTopic:{topic:string;count:number}[];sources:Scan[];history:Scan[]};
@@ -61,6 +66,18 @@ export default function NewsDiagnostics({locale}:{locale:PortalLocale}){
     <div className="as-admin-metric"><span>{uk?'Без обкладинки':'Missing cover'}</span><strong>{data.unillustrated}</strong></div>
     <div className="as-admin-metric"><span>{uk?'Збір увімкнено':'Ingestion enabled'}</span><strong>{data.enabled?'ON':'OFF'}</strong></div>
    </div>
+   {data.quality&&<>
+    <h3>{uk?'Якість стрічки (останні 600 публікацій)':'Feed quality (latest 600 articles)'}</h3>
+    <div className="as-admin-grid" data-testid="news-quality-summary">
+     <div className="as-admin-metric"><span>{uk?'Унікальних сюжетів':'Distinct stories'}</span><strong>{data.quality.visibleAfterGrouping}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'Повтори згруповано':'Related cards grouped'}</span><strong>{data.quality.duplicatePresentationsAvoided}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'За останні 48 годин':'Within 48 hours'}</span><strong>{data.quality.within48Hours}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'Лише дата спостереження':'Observed date only'}</span><strong>{data.quality.observedNotPublisherDated}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'Без джерельного опису':'Missing sourced preview'}</span><strong>{data.quality.missingGroundedPreviews}</strong></div>
+    </div>
+    <p className="as-muted">{uk?'Лише останні 600 записів; ці числа не підтверджують видавничих ліцензій.':
+     'Latest 600 records only; these counts do not establish publisher licensing.'}</p>
+   </>}
    <p className="as-muted">{data.last?(uk?'Останнє повне сканування: ':'Last completed scan: ')+date(data.last.createdAt)+
     ' · '+data.last.sources+' '+(uk?'каналів':'channels')+', '+data.last.accepted+' '+(uk?'нових':'new')+', '+data.last.errors+' '+(uk?'помилок':'errors'):
     (uk?'Завершених сканувань ще не було.':'No completed scans yet.')}</p>
