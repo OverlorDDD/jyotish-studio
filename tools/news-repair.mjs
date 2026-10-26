@@ -56,8 +56,8 @@ async function verifyRunningFrontend(){
  try{
   const response=await fetch('http://localhost:3000/uk/news',{signal:AbortSignal.timeout(5000),cache:'no-store'});
   const markup=await response.text();
-  const current=markup.includes('world-v1.4')&&markup.includes('galaxinews-search');
-  console.log('[GalaxiNews] running frontend:',current?'CURRENT v1.4 (prominent search)':
+  const current=markup.includes('world-v1.5')&&markup.includes('galaxinews-search');
+  console.log('[GalaxiNews] running frontend:',current?'CURRENT v1.5 (tabs search)':
    'OLD OR UNEXPECTED build — stop old Next processes, pull feature branch and restart npm run dev:full');
  }catch{
   console.log('[GalaxiNews] running frontend: unavailable (start npm run dev:full to check the UI)');

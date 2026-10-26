@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {canonicalUrl,classify,classifyWithReason,parseXml,rank,TOPICS,articlePreview,cleanDescription,diversify,safeImageUrl} from '../apps/api/src/news-domain.ts';
+import {canonicalUrl,classify,classifyWithReason,parseXml,rank,TOPICS,INTEREST_TAGS,articlePreview,cleanDescription,diversify,safeImageUrl} from '../apps/api/src/news-domain.ts';
 import {generateNewsMicrocopy} from '../apps/api/src/news-editorial.ts';
 const now=new Date();
 const candidate=(title,url='https://example.org/articles/planet?utm_source=news')=>({title,url,publishedAt:now,source:'Publisher',language:'en'});
@@ -91,4 +91,16 @@ test('Editorial Ukrainian translation never fabricates missing article descripti
   if(gem===undefined)delete process.env.GEMINI_API_KEY;else process.env.GEMINI_API_KEY=gem;
   if(router===undefined)delete process.env.OPENROUTER_API_KEY;else process.env.OPENROUTER_API_KEY=router;
  }
+});
+
+test('extra interest tags are additive and do not break existing news categories',()=>{
+ assert.equal(TOPICS.length,8);
+ assert.equal(INTEREST_TAGS.length,12);
+ const natal=classify(candidate('Vedic astrology and the natal birth chart traditions'));
+ assert.equal(natal?.topic,'jyotish');
+ assert.ok(natal.tags.includes('natal-charts'));
+ const mantra=classify(candidate('Yoga mantras in daily pranayama breathwork practice'));
+ assert.equal(mantra?.topic,'yoga');
+ assert.ok(mantra.tags.includes('mantras'));
+ assert.ok(mantra.tags.includes('pranayama'));
 });
