@@ -14,6 +14,7 @@ type Story={id:string;url:string;title:string;source:string;language:string;topi
 type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
+type GuestNewsHint={topic:Topic;tags:InterestTag[];title:string};
 type ReactionRow={articleId:string;vote:'YES'|'NO';updatedAt:string;article:{title:string;titleUk?:string|null;url:string;source:string;topic:string}};
 const LABELS:Record<InterestTag,{uk:string;en:string}>={
  jyotish:{uk:'Джйотіш',en:'Jyotish'},astrology:{uk:'Астрологія',en:'Astrology'},tarot:{uk:'Таро',en:'Tarot'},
@@ -99,6 +100,16 @@ const COPY={
 } as const;
 const STORAGE='galaxiora:news-world:v1';
 const validTag=(t:unknown):t is InterestTag=>typeof t==='string'&&(INTEREST_TAGS as readonly string[]).includes(t);
+function guestSimilar(story:Story,hint:GuestNewsHint){
+ if(story.topic!==hint.topic)return false;
+ if(story.tags.some(tag=>!TOPICS.includes(tag as Topic)&&hint.tags.includes(tag)))return true;
+ const words=(value:string)=>new Set((value.toLowerCase().normalize('NFKC').match(/[\\p{L}\\p{N}]{4,}/gu)||[])
+  .filter(word=>!['tarot','yoga','jyotish','astrology','astrology','астрологія','таро','йога','джйотіш','today','world'].includes(word)));
+ const a=words(story.titleUk||story.title),b=words(hint.title);
+ if(a.size<2||b.size<2)return false;
+ const common=[...a].filter(word=>b.has(word)).length;
+ return common>=2&&common/Math.min(a.size,b.size)>=0.6;
+}
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 /** An authorized publisher thumbnail; broken external images fall back to site artwork. */
 function StoryArtwork({imageUrl,credit,title,topic,art}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;art:string}){
@@ -116,6 +127,7 @@ function StoryArtwork({imageUrl,credit,title,topic,art}:{imageUrl?:string|null;c
 export default function NewsWorld({locale}:{locale:PortalLocale}){
  const t=COPY[locale],[view,setView]=useState<View>('all'),[category,setCategory]=useState<string>('all');
  const [selected,setSelected]=useState<InterestTag[]>([]),[votes,setVotes]=useState<Record<string,Vote>>({});
+ const [guestDismissed,setGuestDismissed]=useState<Record<string,GuestNewsHint>>({});
  const [votePending,setVotePending]=useState<string|null>(null);
  const [voteError,setVoteError]=useState<string|null>(null);
  const [ready,setReady]=useState(false),[items,setItems]=useState<Story[]>([]),[total,setTotal]=useState(0);
@@ -149,6 +161,14 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   try{
    const saved=JSON.parse(localStorage.getItem(STORAGE)||'{}');
    if(Array.isArray(saved.tags)){const tags=saved.tags.filter(validTag);guestTopics.current=tags;setSelected(tags);}
+   if(saved.dismissedHints&&typeof saved.dismissedHints==='object'&&!Array.isArray(saved.dismissedHints)){
+    const hints=Object.entries(saved.dismissedHints as Record<string,unknown>).filter(([id,value])=>{
+     if(id.length>160||!value||typeof value!=='object')return false;
+     const v=value as GuestNewsHint;
+     return TOPICS.includes(v.topic)&&Array.isArray(v.tags)&&typeof v.title==='string'&&v.title.length<300;
+    }).slice(-200);
+    setGuestDismissed(Object.fromEntries(hints) as Record<string,GuestNewsHint>);
+   }
    if(saved.votes&&typeof saved.votes==='object'&&!Array.isArray(saved.votes)){
     const guest=Object.fromEntries(Object.entries(saved.votes).filter(([key,value])=>key.length<160&&['yes','no'].includes(String(value))).slice(-200)) as Record<string,Vote>;
     guestVotes.current=guest;setVotes(guest);
@@ -159,8 +179,8 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  useEffect(()=>{
   if(!ready)return;
   if(accountStatus!=='guest')return;
-  try{localStorage.setItem(STORAGE,JSON.stringify({tags:selected,votes}));}catch{}
- },[ready,selected,votes,accountStatus]);
+  try{localStorage.setItem(STORAGE,JSON.stringify({tags:selected,votes,dismissedHints:guestDismissed}));}catch{}
+ },[ready,selected,votes,guestDismissed,accountStatus]);
  useEffect(()=>{
   if(!ready)return;
   const controller=new AbortController();
@@ -287,7 +307,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   setPrivacyBusy(true);setPrivacyError(false);
   try{
    if(target==='guest'){
-    guestVotes.current={};setVotes({});
+    guestVotes.current={};setVotes({});setGuestDismissed({});
    }else{
     if(accountStatus!=='member')throw Error('No session');
     const path=target==='reset'?'/api/v1/news/privacy/reset':'/api/v1/news/reactions';
@@ -325,18 +345,26 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     setVoteError(story.id);
    }
   }
-  if(accountStatus==='guest'){guestVotes.current={...votes};
+  if(accountStatus==='guest'){
+   setGuestDismissed(old=>{const nextHints={...old};
+    if(next==='no')nextHints[story.id]={topic:story.topic,tags:story.tags,title:story.titleUk||story.title};
+    else delete nextHints[story.id];
+    return nextHints;
+   });
+   guestVotes.current={...votes};
    if(next)guestVotes.current[story.id]=next;else delete guestVotes.current[story.id];}
   setVotePending(null);
  };
  const visible=useMemo(()=>{
   let list=items.filter(story=>!(view==='mine'&&votes[story.id]==='no'));
   if(view==='mine'&&accountStatus!=='member')
-   list=selected.length?list.filter(story=>story.tags.some(tag=>selected.includes(tag))):[];
+   list=selected.length?list.filter(story=>
+    story.tags.some(tag=>selected.includes(tag))&&
+    !Object.values(guestDismissed).some(hint=>guestSimilar(story,hint))):[];
   // The authenticated personal feed already applies ranked interests + discoveries server-side.
   if(view==='latest')list=[...list].sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
   return list;
- },[items,view,selected,votes,accountStatus]);
+ },[items,view,selected,votes,guestDismissed,accountStatus]);
  useEffect(()=>{
   const timer=setInterval(()=>{if(document.visibilityState==='visible'){
    setPage(1);setReload(x=>x+1);
