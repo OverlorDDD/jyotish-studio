@@ -24,11 +24,11 @@ const COPY={
   all:'Головне',latest:'Найсвіжіше',mine:'Для мене',topics:'Хмара твоїх інтересів',
   topicsHint:'Обери кілька тегів — вони стануть основою твоєї добірки. Поки що вибір зберігається лише в цьому браузері.',
   allTopics:'Усі теми',aside:'Окрема категорія: астрономія',asideInfo:'Астрономічні матеріали не змішуються з астрологічними трактуваннями автоматично.',
-  update:'Перевірка джерел приблизно кожні 15 хвилин',last:'Остання перевірка',
+  loading:'Завантажуємо новини…',
   world:'Світові матеріали',select:'Обери теми вище, щоб сформувати добірку.',
   zero:'Поки немає підтверджених матеріалів за цим фільтром.',
   bootstrap:'Стрічка ще наповнюється перевіреними джерелами. Ми не створюємо вигаданих заголовків.',
-  offline:'Не вдалося завантажити стрічку. Перевір з’єднання й спробуй знову.',
+  offline:'Новини зараз недоступні. Спробуй оновити стрічку трохи пізніше.',
   more:'Показати ще',retry:'Спробувати ще раз',original:'Читати в першоджерелі',observed:'Знайдено',refresh:'Оновити стрічку',
   interesting:'Вам цікава ця публікація?',yes:'Так, цікаво',no:'Не для мене',thanks:'Враховано у вашій локальній добірці',
   chosen:'Обрані теми',reset:'Очистити вибір',external:'Зовнішня публікація',
@@ -43,11 +43,11 @@ const COPY={
   all:'Highlights',latest:'Latest',mine:'For me',topics:'Your constellation of interests',
   topicsHint:'Choose a few tags to shape your reading. For now, your choices stay in this browser only.',
   allTopics:'All topics',aside:'Separate category: astronomy',asideInfo:'Astronomy stories are never automatically treated as astrological interpretations.',
-  update:'Sources checked approximately every 15 minutes',last:'Last checked',
+  loading:'Loading stories…',
   world:'Stories around the world',select:'Choose topics above to create your collection.',
   zero:'No verified source articles match this filter yet.',
   bootstrap:'The feed is still collecting verified sources. We never invent headlines.',
-  offline:'The news feed could not load. Check your connection and try again.',
+  offline:'News are temporarily unavailable. Please try refreshing shortly.',
   more:'Load more',retry:'Try again',original:'Read original story',observed:'Discovered',refresh:'Refresh feed',
   interesting:'Was this publication interesting?',yes:'Yes, interested',no:'Not for me',thanks:'Applied to your browser-only feed',
   chosen:'Selected topics',reset:'Clear selection',external:'External publication',
@@ -143,7 +143,6 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
      <h1>{t.title}</h1><h2>{t.subtitle}</h2><p>{t.intro}</p>
-     <span className={styles.update}><RefreshCw size={14}/>{t.update}</span>
     </div>
     <div className={styles.cosmos} aria-hidden="true"><div className={styles.orbit1}/><div className={styles.orbit2}/><MoonStar size={84} strokeWidth={0.75}/><i className={styles.star1}/><i className={styles.star2}/></div>
    </header>
@@ -176,7 +175,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
        </select><ChevronDown size={14} aria-hidden="true"/></div>
      </div>
      {error?<div className={styles.empty} role="alert"><p>{t.offline}</p><button type="button" onClick={()=>setReload(x=>x+1)}>{t.retry}</button></div>:
-      busy&&page===1?<div className={styles.empty} role="status"><RefreshCw size={24}/><p>{t.update}</p></div>:
+      busy&&page===1?<div className={styles.empty} role="status"><RefreshCw size={24}/><p>{t.loading}</p></div>:
       view==='mine'&&!selected.length?<div className={styles.empty}><Tags size={28}/><p>{t.noPersonal}</p></div>:
       visible.length===0?<div className={styles.empty}><BookOpen size={28}/><p>{view==='mine'?t.nothingPersonal:lastScan?t.zero:t.bootstrap}</p></div>:
       <div className={styles.cards}>
@@ -203,13 +202,11 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
        })}
       </div>}
      {canMore&&!error&&<button className={styles.more} type="button" disabled={busy} onClick={()=>setPage(x=>x+1)}>
-       {busy?t.update:t.more}<ChevronDown size={16}/></button>}
+       {busy?t.loading:t.more}<ChevronDown size={16}/></button>}
     </section>
     <aside className={styles.sidebar}>
      <div className={styles.asideBox}><MoonStar size={25}/><h3>{t.topics}</h3><p>{t.topicsHint}</p>
       <div className={styles.asideTags}>{selected.map(x=><span key={x}>{LABELS[x][locale]}</span>)}</div></div>
-     <div className={styles.asideBox}><RefreshCw size={22}/><h3>{t.update}</h3>
-      <p>{lastScan?t.last+': '+date(lastScan.createdAt):t.bootstrap}</p></div>
     </aside>
    </div>
    <footer className={styles.footnote}>{t.attribution}</footer>

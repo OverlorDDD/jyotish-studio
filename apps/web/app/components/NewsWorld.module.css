@@ -4,7 +4,7 @@
 .heroCopy{position:relative;z-index:1;max-width:680px}.eyebrow{display:flex;gap:8px;align-items:center;color:var(--gold);font-size:11px;letter-spacing:.18em;font-weight:700}
 .hero h1{font:500 clamp(36px,5vw,64px)/1.08 Georgia,serif;letter-spacing:.02em;color:#f9e7c9;margin:17px 0 12px}
 .hero h2{font:500 clamp(19px,2vw,27px)/1.28 Georgia,serif;color:#e3e2ec;margin:0 0 16px}
-.hero p{font-size:15px;line-height:1.75;color:#c3cee4;max-width:600px}.update{display:flex;gap:9px;align-items:center;color:#c8ac76;font-size:12px;margin-top:23px}
+.hero p{font-size:15px;line-height:1.75;color:#c3cee4;max-width:600px}
 .cosmos{display:flex;align-items:center;justify-content:center;position:relative;color:#e7d3aa;min-height:220px;filter:drop-shadow(0 0 30px rgba(240,190,112,.3))}
 .orbit1,.orbit2{position:absolute;width:240px;height:240px;border:1px solid rgba(217,187,121,.32);border-radius:50%;transform:rotate(-30deg) scaleY(.59)}
 .orbit2{width:325px;height:325px;transform:rotate(38deg) scaleY(.58);border-color:rgba(166,180,233,.23)}
@@ -22,7 +22,7 @@
 .astronomy{margin-top:16px;padding-top:14px;border-top:1px solid rgba(210,190,140,.16);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .astronomy small{color:#a8b3cc}.selected{display:flex;gap:15px;align-items:center;font-size:12px;color:#d2be8d;margin-top:15px}.selected button{color:#d2be8d;background:none;border:0;text-decoration:underline;cursor:pointer}
 .feedLayout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:24px;align-items:start}
-.feedHeader{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:18px}
+.feedHeader{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:18px}
 .feedHeader small{font-size:11px;color:#cbaa6c;text-transform:uppercase;letter-spacing:.12em}
 .feedHeader h2{color:#ecdfc6;font:500 31px Georgia,serif;margin:5px 0 0}
 .filters{position:relative;display:flex;align-items:center;border:1px solid #51607c;background:#192845;border-radius:11px;min-width:170px}
