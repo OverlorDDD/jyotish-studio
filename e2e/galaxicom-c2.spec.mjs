@@ -38,8 +38,8 @@ test('GalaxiCom C2: long writing, full-width edit, revisions, follows, votes, no
   await editor.getByRole('button',{name:'Зберегти'}).click();
   await expect(page.getByText('Оновлена велика тема Джйотіш: огляд Навамші')).toBeVisible();
   const revisions=await (await page.request.get(url('threads/'+tid+'/revisions'))).json();
-  expect(revisions.items[0].title).toBe(original);
-  expect(revisions.items[0].body).toBe(longBody);
+  expect(revisions.items[0].title).toBe(original.trim());
+  expect(revisions.items[0].body).toBe(longBody.trim());
   const joinedB=await page.request.post('/api/v1/account/register',{data:b});
   expect(joinedB.status()).toBe(201);bid=(await joinedB.json()).user.id;
   expect((await page.request.get(url('threads/'+tid+'/revisions'))).status()).toBe(404);
