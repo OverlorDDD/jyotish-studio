@@ -356,7 +356,8 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   setVotePending(null);
  };
  const visible=useMemo(()=>{
-  let list=items.filter(story=>!(view==='mine'&&votes[story.id]==='no'));
+  let list=items.filter(story=>!(view==='mine'&&
+   (accountStatus!=='member'||personalEnabled)&&votes[story.id]==='no'));
   if(view==='mine'&&accountStatus!=='member')
    list=selected.length?list.filter(story=>
     story.tags.some(tag=>selected.includes(tag))&&
@@ -364,7 +365,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   // The authenticated personal feed already applies ranked interests + discoveries server-side.
   if(view==='latest')list=[...list].sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
   return list;
- },[items,view,selected,votes,guestDismissed,accountStatus]);
+ },[items,view,selected,votes,guestDismissed,accountStatus,personalEnabled]);
  useEffect(()=>{
   const timer=setInterval(()=>{if(document.visibilityState==='visible'){
    setPage(1);setReload(x=>x+1);
