@@ -86,7 +86,8 @@ test('GalaxiCom C0/C1: guest, two users, moderation, PREMIUM isolation and UI',a
   const queueEntry=queue.items.find(r=>r.targetId===topicId);
   expect((await page.request.patch('/api/v1/com/mod/reports/'+queueEntry.id,{data:{
    decision:'RESOLVED',reason:'Reviewed with explicit human moderation'}})).status()).toBe(200);
-  expect((await db.comModerationAction.count({where:{targetId:topicId}})).toBeGreaterThanOrEqual(2);
+  const auditedActions=await db.comModerationAction.count({where:{targetId:topicId}});
+  expect(auditedActions).toBeGreaterThanOrEqual(2);
   await page.goto('/en/community/topic/'+topicId);
   await expect(page.getByRole('heading',{name:created.title})).toBeVisible();
   await expect(page.getByText(/Read the whole chart context first/)).toBeVisible();
