@@ -12,7 +12,7 @@ type Thread={id:string;title:string;body:string;categorySlug:string;category:{sl
  author:Author;createdAt:string;updatedAt:string;lastActivityAt:string;replyCount:number;pinned:boolean;locked:boolean};
 type Post={id:string;body:string;author:Author;createdAt:string;updatedAt:string};
 type Listing<T>={items:T[];page:number;pageSize:number;total:number};
-type Me={signedIn:boolean;permissions:{canCreate:boolean;canReply:boolean;canModerate:boolean;premiumBadge:boolean};
+type Me={signedIn:boolean;permissions:{canCreate:boolean;canReply:boolean;canModerate:boolean;canManageContext:boolean;premiumBadge:boolean};
  profile:{id:string;name:string;showPremiumBadge:boolean}|null};
 type Report={id:string;reason:string;targetType:'thread'|'post';targetId:string;excerpt:string;createdAt:string};
 type Activity={following:boolean;followers:number;likes:Record<string,{count:number;liked:boolean}>;myLikes:string[]};
