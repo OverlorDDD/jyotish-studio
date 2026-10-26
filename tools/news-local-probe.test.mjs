@@ -41,3 +41,10 @@ test('doctor never calls a partial or legacy interface CURRENT',async()=>{
  assert.equal(legacy.current,false);
  assert.equal(legacy.obsoleteCopy,true);
 });
+
+test('browser UI diagnostics supports offline help without launching Chromium',async()=>{
+ const {spawnSync}=await import('node:child_process');
+ const out=spawnSync(process.execPath,['tools/news-browser-check.mjs','--help'],{encoding:'utf8'});
+ assert.equal(out.status,0,out.stderr);
+ assert.match(out.stdout,/news:verify-ui/);
+});
