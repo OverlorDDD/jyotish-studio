@@ -61,7 +61,7 @@ test('Tarot experts are nested and legacy /experts links redirect correctly',()=
  assert.ok(!home.includes("slug:'experts'"));
  assert.ok(!nav.includes("['astrology','tarot','experts'"));
 });
-test('News and community hubs are discoverable and explicitly not functional yet',()=>{
+test('News and GalaxiCom are discoverable live modules without legacy coming-soon copy',()=>{
  const home=read('apps/web/app/components/PortalHome.tsx');
  const sections=read('apps/web/app/components/PortalSection.tsx');
  const nav=read('apps/web/app/components/PortalShell.tsx');
@@ -70,8 +70,11 @@ test('News and community hubs are discoverable and explicitly not functional yet
   assert.ok(sections.includes(slug+':{title:'));
   assert.ok(nav.includes("'"+slug+"'"));
  }
- assert.ok(sections.includes('Жива новинна стрічка ще не працює'));
- assert.ok(sections.includes('Дописи поки не приймаються'));
+ assert.ok(sections.includes("section==='news'")&&sections.includes('<NewsWorld locale={locale}/>'));
+ assert.ok(sections.includes("section==='community'")&&sections.includes('<GalaxiCom locale={locale}/>'));
+ assert.ok(home.includes("slug:'community'")&&home.includes("live:true"));
+ assert.ok(!sections.includes('Жива новинна стрічка ще не працює'));
+ assert.ok(!sections.includes('Дописи поки не приймаються'));
 });
 
 test('Tarologist advice is grounded in card sequence, not repeated generic instructions',async()=>{

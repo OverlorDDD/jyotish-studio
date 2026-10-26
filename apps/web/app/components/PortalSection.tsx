@@ -20,7 +20,7 @@ export const SECTION_COPY={
   experts:{title:'Readings with real people',lead:'A personal reading should have a clear question, relevant context and boundaries. Build a draft brief here before our expert booking service opens.',cta:'Prepare your question',sub:'Video consultations, verified practitioner profiles and secure checkout are being developed. No bookings are accepted yet.'},
   yoga:{title:'Yoga & mindfulness',lead:'Four original gentle step-by-step practices for breathing, movement and mindfulness, with an optional timer.',cta:'Explore astrology',sub:'Four guided sessions are available now; stop or adapt if a movement or breath focus feels uncomfortable.'},
   learn:{title:'A living library',lead:'Eight original bilingual lessons on Jyotish, Tarot and yoga, with a knowledge check after each one.',cta:'Explore astrology',sub:'Browse three topics, eight full lessons and simple self-check quizzes — no account required.'},
-  news:{title:'Cosmic news and daily discoveries',lead:'A future daily editorial feed covering astronomy, cultural traditions, spirituality and platform updates, with clear source links.',cta:'Explore our live Tarot Studio',sub:'Editorial publishing, verification, author attribution, categories and archives are planned. No live news feed yet.'},
+  news:{title:'GalaxiNews world feed',lead:'Read source-linked news about Jyotish, Tarot and spiritual practice. Search worldwide coverage and follow your own interests.',cta:'Open GalaxiNews',sub:'Public news, search, categories, editorial metadata and personalized recommendations are available.'},
   community:{title:'GalaxiCom community forum',lead:'Real discussions about Jyotish, Tarot and spiritual practice using one Galaxiora account.',cta:'Join the discussion',sub:'Categories, replies, reports and human moderation are available.'}
  },
  uk:{
@@ -29,7 +29,7 @@ export const SECTION_COPY={
   experts:{title:'Розклади від реальних людей',lead:'Персональний розклад потребує чіткого запитання, контексту й розуміння меж. Підготуй чернетку для експертки до запуску замовлень.',cta:'Підготувати запитання',sub:'Профілі консультантів, відеорозклади й безпечна оплата в розробці. Замовлення поки не приймаються.'},
   yoga:{title:'Йога та медитація',lead:'Чотири готові покрокові практики м’якого руху, дихання й уважності з необов’язковим таймером.',cta:'Дослідити астрологію',sub:'Чотири практики вже доступні. За дискомфорту можна припинити, змінити або пропустити крок.'},
   learn:{title:'Бібліотека знань',lead:'Вісім готових двомовних уроків про Джйотіш, Таро й йогу з перевіркою знань.',cta:'Дослідити астрологію',sub:'Три тематичні блоки, вісім уроків та самоперевірки — без реєстрації.'},
-  news:{title:'Щоденні новини та відкриття',lead:'Майбутня стрічка щоденних матеріалів про космос, духовні традиції, культуру та розвиток платформи з перевіреними джерелами.',cta:'Відкрити наш Tarot Studio',sub:'Плануються редактори, перевірка фактів, авторство, категорії й архів. Жива новинна стрічка ще не працює.'},
+  news:{title:'Світові новини GalaxiNews',lead:'Жива стрічка матеріалів про Джйотіш, Таро та духовні практики з оригінальними джерелами й пошуком.',cta:'Відкрити GalaxiNews',sub:'Доступні новини, тематичний пошук, редакційні матеріали та персональні рекомендації.'},
   community:{title:'Форум GalaxiCom',lead:'Жива спільнота для запитань і обговорень Джйотіш, Таро та практик.',cta:'До обговорень',sub:'Уже доступні теми, відповіді, скарги та модерування.'}
  }
 } as const;
