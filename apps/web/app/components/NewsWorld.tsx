@@ -156,8 +156,6 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
      <h1>{t.title}</h1><h2>{t.subtitle}</h2><p>{t.intro}</p>
-
-     </div>
     </div>
     <div className={styles.cosmos} aria-hidden="true"><div className={styles.orbit1}/><div className={styles.orbit2}/><MoonStar size={84} strokeWidth={0.75}/><i className={styles.star1}/><i className={styles.star2}/></div>
    </header>
