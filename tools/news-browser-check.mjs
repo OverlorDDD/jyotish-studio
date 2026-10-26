@@ -21,12 +21,12 @@ try{
  const apiFeed=await apiResponse.json();
  if(!Array.isArray(apiFeed.items))throw Error('Feed API did not return items');
  // Make sure the first fetch finishes BEFORE clicking the manual refresh or any tab.
- await page.waitForFunction(()=>/\\d/.test(
+ await page.waitForFunction(()=>/\d/.test(
   document.querySelector('[data-testid="news-article-count"]')?.textContent||''
- ),{timeout:15000});
+ ),null,{timeout:15000});
  if(apiFeed.items.length){
   await page.waitForFunction(()=>document.querySelectorAll('[data-testid="galaxinews-world"] article').length>0,
-   {timeout:15000});
+   null,{timeout:15000});
  }
  await page.waitForTimeout(850); // catches the former 320ms state-erasing timer
  const initialArticles=await page.locator('[data-testid="galaxinews-world"] article').count();
