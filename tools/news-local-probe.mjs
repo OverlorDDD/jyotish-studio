@@ -11,7 +11,7 @@ export async function probeLocalNewsFrontend(fetcher=fetch,options={}){
    const reply=await fetcher(url,{cache:'no-store',signal:AbortSignal.timeout(timeoutMs)});
    if(!reply.ok){attempts.push(url+' HTTP '+reply.status);continue;}
    const html=await reply.text();
-   const hasRelease=html.includes('data-release="world-v1.6"');
+   const hasRelease=html.includes('data-release="world-v1.7"');
    const hasSearch=html.includes('id="galaxinews-search"');
    const hasCount=html.includes('data-testid="news-article-count"');
    const hasTags=html.includes('data-testid="news-all-interest-tags"');

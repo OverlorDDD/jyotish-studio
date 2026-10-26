@@ -6,7 +6,7 @@ test('doctor verifies reachable current Next release on IPv4 first',async()=>{
  const called=[];
  const response=await probeLocalNewsFrontend(async url=>{
   called.push(url);
-  return new Response('<main data-release="world-v1.6"><div data-testid="news-article-count"></div><div data-testid="news-all-interest-tags"></div><input id="galaxinews-search"/></main>',{status:200});
+  return new Response('<main data-release="world-v1.7"><div data-testid="news-article-count"></div><div data-testid="news-all-interest-tags"></div><input id="galaxinews-search"/></main>',{status:200});
  });
  assert.equal(response.current,true);
  assert.equal(called.length,1);
@@ -15,7 +15,7 @@ test('doctor verifies reachable current Next release on IPv4 first',async()=>{
 test('doctor falls back to localhost after IPv4 is unavailable',async()=>{
  const result=await probeLocalNewsFrontend(async url=>{
   if(url.includes('127.0.0.1'))throw Error('connection refused');
-  return new Response('data-release="world-v1.6" id="galaxinews-search" data-testid="news-article-count" data-testid="news-all-interest-tags"',{status:200});
+  return new Response('data-release="world-v1.7" id="galaxinews-search" data-testid="news-article-count" data-testid="news-all-interest-tags"',{status:200});
  });
  assert.equal(result.available,true);
  assert.equal(result.current,true);
@@ -32,12 +32,12 @@ test('doctor distinguishes old UI from inaccessible UI and reports errors',async
 
 test('doctor never calls a partial or legacy interface CURRENT',async()=>{
  const old=await probeLocalNewsFrontend(async()=>new Response(
-  '<main data-release="world-v1.6"><input id="galaxinews-search"/></main>'));
+  '<main data-release="world-v1.7"><input id="galaxinews-search"/></main>'));
  assert.equal(old.available,true);
  assert.equal(old.current,false);
  assert.equal(old.hasCount,false);
  const legacy=await probeLocalNewsFrontend(async()=>new Response(
-  '<main data-release="world-v1.6" id="galaxinews-search" data-testid="news-article-count" data-testid="news-all-interest-tags">Перевірка джерел приблизно кожні 15 хвилин</main>'));
+  '<main data-release="world-v1.7" id="galaxinews-search" data-testid="news-article-count" data-testid="news-all-interest-tags">Перевірка джерел приблизно кожні 15 хвилин</main>'));
  assert.equal(legacy.current,false);
  assert.equal(legacy.obsoleteCopy,true);
 });
