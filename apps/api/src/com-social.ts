@@ -112,7 +112,7 @@ export class ComSocialController {
    this.db.comThread.findMany({where:threadWhere,select:{id:true,title:true,createdAt:true},
     orderBy:{createdAt:'desc'},take:12}),
    this.db.comPost.findMany({where:postWhere,select:{id:true,threadId:true,createdAt:true,thread:{select:{title:true}}},
-    },orderBy:{createdAt:'desc'},take:12}),
+    orderBy:{createdAt:'desc'},take:12}),
    this.db.comThread.count({where:threadWhere}),this.db.comPost.count({where:postWhere})
   ]);
   return {member:authorView(u),threadCount,replyCount,threads,replies:posts.map(p=>({
