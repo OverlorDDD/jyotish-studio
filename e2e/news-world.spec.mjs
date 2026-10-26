@@ -122,7 +122,9 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   const matched=await page.request.get('/api/v1/news/feed?limit=48&q='+encodeURIComponent(prefix));
   expect(matched.status()).toBe(200);
   const results=await matched.json();
-  expect(results.items.filter(x=>x.title.includes(prefix)).length).toBe(5);
+  // Five publisher records intentionally describe the same event; the public feed groups them.
+  expect(results.items.filter(x=>x.title.includes(prefix)).length).toBe(1);
+  expect(await db.newsArticle.count({where:{id:{in:items}}})).toBe(5);
   const badSearch=await page.request.get('/api/v1/news/feed?q='+('x'.repeat(90)));
   expect(badSearch.status()).toBe(400);
   const guests=await page.request.get('/api/v1/news/admin/health');
@@ -152,7 +154,8 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible();
   await expect(page.getByText('Орієнтир за заголовком')).toHaveCount(0);
   await expect(page.getByText(/Це орієнтир за назвою матеріалу/)).toHaveCount(0);
-  await expect(page.locator('img[src="https://images.example.org/news-cover.jpg"]').first()).toHaveCount(1);
+  // An image stored before the rights gate must not bypass publisher approval.
+  await expect(page.locator('img[src="https://images.example.org/news-cover.jpg"]')).toHaveCount(0);
   await expect(page.getByTestId('news-feedback').first()).toBeVisible();
   await page.getByTestId('news-feedback').first().getByRole('button',{name:/Так, цікаво/}).click();
   await expect(page.getByTestId('news-feedback').first().getByRole('button',{name:/Так, цікаво/})).toHaveAttribute('aria-pressed','true');

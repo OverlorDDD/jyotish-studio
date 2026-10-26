@@ -92,8 +92,10 @@ test('P5 guests suppress similar news locally and restore on undo without accoun
  try{
   for(let n=0;n<2;n++){
    await db.newsArticle.create({data:{id:ids[n],urlHash:'guest-p5-'+ids[n],
-    title:'P5Guest'+suffix+' Pranayama breathwork insight '+n,
-    titleUk:'P5Guest'+suffix+' Пранаяма та дихальні техніки '+n,
+    title:'P5Guest'+suffix+(n===0?' Gentle pranayama breathing practice for evening relaxation':
+     ' Ancient yoga philosophy and pranayama traditions examined'),
+    titleUk:'P5Guest'+suffix+(n===0?' Дихальні вправи для спокійного вечора та відпочинку':
+     ' Історія пранаями у ведичній традиції та філософії йоги'),
     url:'https://example.org/guest-news/'+ids[n],
     topic:'yoga',tags:['yoga','pranayama'],language:'en',source:'P5 guest publisher',
     score:9999-n,publishedAt:new Date()}})
