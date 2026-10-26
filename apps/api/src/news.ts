@@ -56,10 +56,12 @@ export class NewsController {
     b.relevance-a.relevance||b.publishedAt.getTime()-a.publishedAt.getTime());
   const ranked=sort==='relevance'&&topic==='all'&&!tag?diversify(ordered,3):ordered;
   const size=Number(limit),offset=(Number(page)-1)*size;
-  const lastScan=await this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},
-   select:{createdAt:true,sources:true,accepted:true,errors:true}});
+  const [lastScan,articleCount]=await Promise.all([
+   this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,sources:true,accepted:true,errors:true}}),
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED'}})
+  ]);
   return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>rest),
-   total:ranked.length,page:Number(page),limit:size,lastScan,
+   total:ranked.length,articleCount,page:Number(page),limit:size,lastScan,
    personalized:false,sort};
  }
  @Get('status') @Header('Cache-Control','public,max-age=120')

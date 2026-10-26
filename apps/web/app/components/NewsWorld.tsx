@@ -8,7 +8,7 @@ import type {PortalLocale} from '../../lib/brand';
 const TOPICS=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'] as const;
 type Topic=typeof TOPICS[number];
 type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:Topic[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null};
-type Feed={items:Story[];total:number;lastScan:{createdAt:string;errors:number;sources:number}|null;intervalMinutes:number};
+type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
 const LABELS:Record<Topic,{uk:string;en:string}>={
@@ -21,9 +21,9 @@ const COPY={
  uk:{
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'Живий світ астрології, Таро та духовних традицій.',
   intro:'Відкривай нові матеріали з усього світу. Обирай теми, знаходь першоджерела та формуй стрічку, яка цікава саме тобі.',
-  all:'Головне',latest:'Найсвіжіше',mine:'Для мене',topics:'Хмара твоїх інтересів',
+  all:'Головне',latest:'Найсвіжіше',mine:'Для мене',topics:'Хмара твоїх інтересів',articles:'статей',
   topicsHint:'Обери кілька тегів — вони стануть основою твоєї добірки. Поки що вибір зберігається лише в цьому браузері.',
-  allTopics:'Усі теми',aside:'Окрема категорія: астрономія',asideInfo:'Астрономічні матеріали не змішуються з астрологічними трактуваннями автоматично.',
+  allTopics:'Усі теми',
   loading:'Завантажуємо новини…',
   world:'Світові матеріали',select:'Обери теми вище, щоб сформувати добірку.',
   zero:'Поки немає підтверджених матеріалів за цим фільтром.',
@@ -40,9 +40,9 @@ const COPY={
  en:{
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'A living world of astrology, Tarot and spiritual traditions.',
   intro:'Discover new material from around the world. Choose topics, explore original sources, and shape a feed that matters to you.',
-  all:'Highlights',latest:'Latest',mine:'For me',topics:'Your constellation of interests',
+  all:'Highlights',latest:'Latest',mine:'For me',topics:'Your constellation of interests',articles:'articles',
   topicsHint:'Choose a few tags to shape your reading. For now, your choices stay in this browser only.',
-  allTopics:'All topics',aside:'Separate category: astronomy',asideInfo:'Astronomy stories are never automatically treated as astrological interpretations.',
+  allTopics:'All topics',
   loading:'Loading stories…',
   world:'Stories around the world',select:'Choose topics above to create your collection.',
   zero:'No verified source articles match this filter yet.',
@@ -78,6 +78,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const [selected,setSelected]=useState<Topic[]>([]),[votes,setVotes]=useState<Record<string,Vote>>({});
  const [ready,setReady]=useState(false),[items,setItems]=useState<Story[]>([]),[total,setTotal]=useState(0);
  const [lastScan,setLastScan]=useState<Feed['lastScan']>(null),[page,setPage]=useState(1);
+ const [articleCount,setArticleCount]=useState<number|null>(null);
  const [busy,setBusy]=useState(true),[error,setError]=useState(false),[reload,setReload]=useState(0);
  const [search,setSearch]=useState(''),[query,setQuery]=useState('');
  useEffect(()=>{
@@ -111,6 +112,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     if(controller.signal.aborted)return;
     setItems(old=>page===1?data.items:[...old,...data.items.filter(x=>!old.some(o=>o.id===x.id))]);
     setTotal(data.total);setLastScan(data.lastScan);
+    if(Number.isInteger(data.articleCount)&&data.articleCount>=0)setArticleCount(data.articleCount);
    })
    .catch(()=>{if(!controller.signal.aborted)setError(true);})
    .finally(()=>{if(!controller.signal.aborted)setBusy(false);});
@@ -144,18 +146,12 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  };
  const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
  return <PortalShell locale={locale} active="news">
-  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.4">
+  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.5">
    <header className={styles.hero}>
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
      <h1>{t.title}</h1><h2>{t.subtitle}</h2><p>{t.intro}</p>
-     <div className={styles.heroSearch} role="search" aria-label={t.search}>
-      <label htmlFor="galaxinews-search" className={styles.heroSearchTitle}><Search size={17}/>{t.search}</label>
-      <div className={styles.heroSearchInput}>
-       <input id="galaxinews-search" type="search" placeholder={t.searchPlaceholder} value={search}
-        maxLength={80} onChange={e=>setSearch(e.target.value)} autoComplete="off"/>
-       {search&&<button type="button" title={t.clearSearch} aria-label={t.clearSearch} onClick={()=>setSearch('')}><X size={18}/></button>}
-      </div>
+
      </div>
     </div>
     <div className={styles.cosmos} aria-hidden="true"><div className={styles.orbit1}/><div className={styles.orbit2}/><MoonStar size={84} strokeWidth={0.75}/><i className={styles.star1}/><i className={styles.star2}/></div>
@@ -163,18 +159,26 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    <nav className={styles.views} aria-label={locale==='uk'?'Тип стрічки':'Feed type'}>
     {(['all','latest','mine'] as const).map(v=><button key={v} type="button" className={view===v?styles.active:''}
      aria-pressed={view===v} onClick={()=>{setView(v);setPage(1);setItems([]);}}>{v==='mine'?<Heart size={15}/>:v==='latest'?<Compass size={15}/>:<Orbit size={15}/>} {t[v]}</button>)}
+    <div className={styles.tabSearch} role="search" aria-label={t.search}>
+     <Search size={18} aria-hidden="true"/>
+     <label className={styles.searchLabel} htmlFor="galaxinews-search">{t.search}</label>
+     <input id="galaxinews-search" type="search" value={search} maxLength={80}
+      onChange={e=>setSearch(e.target.value)} placeholder={t.search} autoComplete="off"/>
+     {search&&<button type="button" className={styles.clearSearch} onClick={()=>setSearch('')}
+       title={t.clearSearch} aria-label={t.clearSearch}><X size={16}/></button>}
+    </div>
+    <span className={styles.articleCount} data-testid="news-article-count" role="status" aria-live="polite">
+     <BookOpen size={16} aria-hidden="true"/>
+     {articleCount===null?'—':new Intl.NumberFormat(locale==='uk'?'uk-UA':'en-GB').format(articleCount)} {t.articles}
+    </span>
    </nav>
    <section className={styles.tagSection} aria-label={t.topics}>
     <div className={styles.sectionTitle}><span><Tags size={18}/>{t.topics}</span><small>{t.topicsHint}</small></div>
     <div className={styles.tags}>
-     {TOPICS.filter(x=>x!=='astronomy').map(tag=><button type="button" key={tag} onClick={()=>toggleTag(tag)}
+     {TOPICS.map(tag=><button type="button" key={tag} onClick={()=>toggleTag(tag)}
       className={selected.includes(tag)?styles.tagActive:styles.tag} aria-pressed={selected.includes(tag)}>
        {selected.includes(tag)&&<Check size={13}/>} {LABELS[tag][locale]}</button>)}
     </div>
-    <div className={styles.astronomy}><button className={selected.includes('astronomy')?styles.tagActive:styles.tag}
-      onClick={()=>toggleTag('astronomy')} aria-pressed={selected.includes('astronomy')} type="button">
-      {selected.includes('astronomy')&&<Check size={13}/>} {LABELS.astronomy[locale]}</button>
-      <small>{t.asideInfo}</small></div>
     {selected.length>0&&<div className={styles.selected}><span>{t.chosen}: {selected.length}</span>
       <button onClick={()=>setSelected([])} type="button">{t.reset}</button></div>}
    </section>
