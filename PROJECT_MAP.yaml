@@ -114,7 +114,7 @@ modules:
     safety: "Docker Desktop / PostgreSQL health and Prisma migrations must pass before Next and Nest start; database volume preserved"
     diagnostics: "npm run db:doctor; npm run site:check; npm run test:bootstrap"
   news_world:
-    status: "World v1.5: compact search beside tabs, article counter, unified 12 interest chips, reliable editorial batching; live publisher-media QA pending"
+    status: "World v1.5 + external feed recovery: robust IPv4-first frontend probe, conflict-safe dev startup, RSS backoff and GDELT circuit breaker; live source QA pending"
     http: "apps/api/src/news.ts; /api/v1/news/feed, /topics, admin moderation and health"
     ingestion: "apps/api/src/news-ingestion.ts and news-metadata.ts; 25 RSS candidates, 13 GDELT queries, publisher domain registry, initial backfill, 15-minute polling, bounded OG extraction for trusted hosts"
     ranking: "apps/api/src/news-domain.ts (safe URL, description-aided topical classification, publisher diversity, recency rank, bounded source-grounded preview)"

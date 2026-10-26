@@ -1,5 +1,6 @@
 /** One-time, non-destructive GalaxiNews archive recovery; no records are deleted. */
 import {PrismaClient} from '@prisma/client';
+import {spawnSync} from 'node:child_process';
 import {probeLocalNewsFrontend} from './news-local-probe.mjs';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
 import {publisherDomain,safeImageUrl} from '../apps/api/src/news-domain.ts';
@@ -67,6 +68,9 @@ async function verifyRunningFrontend(){
 }
 
 try{
+ const branch=spawnSync('git',['branch','--show-current'],{encoding:'utf8',timeout:2500});
+ const sha=spawnSync('git',['rev-parse','--short','HEAD'],{encoding:'utf8',timeout:2500});
+ console.log('[GalaxiNews] local checkout:',(branch.stdout||'?').trim(),(sha.stdout||'?').trim());
  await prisma.$connect();
  console.log('[GalaxiNews] AI providers:',{
   groq:Boolean(process.env.GROQ_API_KEY),

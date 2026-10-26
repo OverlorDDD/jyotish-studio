@@ -10,5 +10,5 @@ export function sourceCooldownMs(reason:string,failures=1){
  return 30*60*1000;
 }
 export function gdeltCircuitFailure(reason:string){
- return /timeout|aborted|fetch failed|http 429|http 5\d\d|rate.?limit|unexpected content type/i.test(reason);
+ return /timeout|aborted|fetch failed|http 429|http 5\d\d|rate.?limit|unexpected content type|non-json/i.test(reason);
 }
