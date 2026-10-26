@@ -125,14 +125,14 @@ modules:
     tests: "npm run test:news; e2e/news-world.spec.mjs"
     documentation: "docs/research/galaxinews-quality-discovery-2026-10-26.md; docs/research/galaxinews-p4-p5-acceptance-2026-10-26.md"
   galaxicom:
-    status: "C0-C2 CI PASS, C3 public Academy/Practice context connections, editor-approved two-way forum links, Jyotish/Tarot topical bridges; C3 CI/manual acceptance pending"
+    status: "C0-C3 CI PASS; C4 implemented: PostgreSQL shared rate limits, durable notification outbox, owner appeals, privacy exports/reviewed public redaction, backup/load operator tools; C4 CI/manual acceptance pending"
     http: "apps/api/src/com.ts, com-social.ts, com-context.ts; /api/v1/com/*; public-source validation, ADMIN editorial approval"
     domain_policy: "apps/api/src/com-policy.ts; FREE posting, staff roles separate, premium has no moderation authority"
     persistence: "C0-C2 plus additive ComContextLink sourceKind+slug+threadId approval/audit; migration 20261026221500_galaxicom_c3_context"
     web: "GalaxiCom.tsx, GalaxiComMember.tsx, GalaxiCom.module.css; /{uk|en}/community, topic/:id and member/:id"
-    safeguards: "public plain text, no private astrology/user documents, author-only finite editing, audit and reports; per-process limiter until public scaling"
+    safeguards: "plain-text privacy; C4 atomic DB budgets, appeal/audit, moderated privacy workflow; external worker and retention operations required"
     tests: "npm run test:com with com-context policy, e2e/galaxicom-c3.spec.mjs + C0-C2 browser regression; PostgreSQL CI; Chromium desktop/mobile"
-    documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md; docs/research/galaxicom-c2-implementation-2026-10-26.md; docs/research/galaxicom-c3-implementation-2026-10-26.md"
+    documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md; docs/research/galaxicom-c2-implementation-2026-10-26.md; docs/research/galaxicom-c3-implementation-2026-10-26.md; docs/research/galaxicom-c4-security-2026-10-26.md"
   portal:
     status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and GalaxiCom active code; public-release gates pending"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"

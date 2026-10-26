@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {ArrowLeft,ArrowRight,Bell,Flag,History,Lock,MessageCircle,Plus,Search,ShieldCheck,Star,ThumbsUp,Trash2,Users} from 'lucide-react';
 import PortalShell from './PortalShell';
+import GalaxiComSafety from './GalaxiComSafety';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './GalaxiCom.module.css';
 type Category={slug:string;titleUk:string;titleEn:string;descriptionUk:string;descriptionEn:string};
@@ -244,6 +245,7 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       <button type="button" onClick={()=>setComposer(false)}>{t.cancel}</button></div>
     </form>
    </section>}
+   <GalaxiComSafety locale={locale} me={me}/>
    {threadId?
     <section className={styles.content}>
      <Link href={root} className={styles.back}><ArrowLeft size={16}/>{t.back}</Link>

@@ -24,6 +24,7 @@ import {NewsController} from './news.ts';
 import {ComController} from './com.ts';
 import {ComSocialController} from './com-social.ts';
 import {ComContextController} from './com-context.ts';
+import {ComSafetyController} from './com-safety.ts';
 import {NewsIngestionService} from './news-ingestion.ts';
 import {TarotController,TAROT_USE_CASES} from './tarot.ts';
 import {TarotUseCases} from './tarot-application.ts';
@@ -156,7 +157,7 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,NewsController,ComController,ComSocialController,ComContextController],
+@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController],
  providers:[PrismaService,NewsIngestionService,
   {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
    new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},

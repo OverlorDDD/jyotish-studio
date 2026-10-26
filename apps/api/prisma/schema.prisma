@@ -57,6 +57,10 @@ model User {
  comHelpfulReactions ComHelpfulReaction[]
  comFollows ComFollow[]
  comNotifications ComNotification[]
+ comAppeals ComAppeal[] @relation("ComAppealAuthor")
+ comAppealReviews ComAppeal[] @relation("ComAppealReviewer")
+ comPrivacyRequests ComPrivacyRequest[] @relation("ComPrivacyOwner")
+ comPrivacyReviews ComPrivacyRequest[] @relation("ComPrivacyReviewer")
  comContextApprovals ComContextLink[] @relation("ComContextApprover")
  practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
@@ -428,6 +432,7 @@ model ComThread {
  contextLinks ComContextLink[]
  notifications ComNotification[]
  revisions ComThreadRevision[]
+ fanout ComNotificationFanout[]
  @@index([categorySlug,status,pinned,lastActivityAt])
  @@index([status,lastActivityAt])
  @@index([authorId,createdAt])
@@ -446,6 +451,7 @@ model ComPost {
  helpful ComHelpfulReaction[]
  notifications ComNotification[]
  revisions ComPostRevision[]
+ fanout ComNotificationFanout?
  @@index([threadId,status,createdAt,id])
  @@index([authorId,createdAt])
 }
@@ -475,6 +481,7 @@ model ComModerationAction {
  reason String @db.VarChar(300)
  createdAt DateTime @default(now())
  @@index([targetType,targetId,createdAt])
+ appeals ComAppeal[]
  @@index([createdAt])
 }
 
@@ -542,4 +549,60 @@ model ComContextLink {
  @@unique([sourceKind,sourceSlug,threadId])
  @@index([sourceKind,sourceSlug,approvedAt])
  @@index([threadId])
+}
+
+/** C4: atomic fixed-window posting budgets shared across all API replicas. No raw IP/email stored. */
+model ComRateBucket {
+ key String @id @db.VarChar(100)
+ windowStart DateTime
+ count Int @default(0)
+ updatedAt DateTime @updatedAt
+ @@index([windowStart])
+}
+/** C4: transactional outbox; retry-safe batches and conditional leases. */
+model ComNotificationFanout {
+ postId String @id @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ cursorUserId String?
+ status String @default("PENDING") @db.VarChar(16)
+ lockedUntil DateTime?
+ attempts Int @default(0)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([status,lockedUntil,createdAt])
+}
+model ComAppeal {
+ id String @id @default(uuid()) @db.Uuid
+ authorId String
+ author User @relation("ComAppealAuthor",fields:[authorId],references:[id],onDelete:Cascade)
+ moderationActionId String @db.Uuid
+ action ComModerationAction @relation(fields:[moderationActionId],references:[id],onDelete:Restrict)
+ targetType String @db.VarChar(12)
+ targetId String @db.Uuid
+ reason String @db.VarChar(1000)
+ status String @default("OPEN") @db.VarChar(16)
+ decisionReason String? @db.VarChar(1000)
+ reviewerId String?
+ reviewer User? @relation("ComAppealReviewer",fields:[reviewerId],references:[id],onDelete:SetNull)
+ createdAt DateTime @default(now())
+ reviewedAt DateTime?
+ @@unique([authorId,moderationActionId])
+ @@index([status,createdAt])
+ @@index([authorId,createdAt])
+}
+model ComPrivacyRequest {
+ id String @id @default(uuid()) @db.Uuid
+ userId String
+ user User @relation("ComPrivacyOwner",fields:[userId],references:[id],onDelete:Cascade)
+ kind String @default("ERASE_FORUM") @db.VarChar(20)
+ status String @default("OPEN") @db.VarChar(16)
+ reason String? @db.VarChar(500)
+ reviewerId String?
+ reviewer User? @relation("ComPrivacyReviewer",fields:[reviewerId],references:[id],onDelete:SetNull)
+ createdAt DateTime @default(now())
+ reviewedAt DateTime?
+ @@index([status,createdAt])
+ @@index([userId,createdAt])
 }

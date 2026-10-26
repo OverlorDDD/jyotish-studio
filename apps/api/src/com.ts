@@ -5,14 +5,10 @@ import type {IncomingMessage} from 'node:http';
 import type {Prisma} from '@prisma/client';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
-import {createKeyedHourlyLimiter} from './ai.ts';
-import {authorView,forumModerator,forumPermissions,validateForumText,withinEditWindow,COM_THREAD_LIMIT,COM_REPLY_LIMIT} from './com-policy.ts';
+import {authorView,forumModerator,forumPermissions,validateForumText,withinEditWindow} from './com-policy.ts';
 
 const authorSelect={id:true,role:true,subscriptionTier:true,subscriptionEndsAt:true,
  comProfile:{select:{displayName:true,showPremiumBadge:true}}} as const;
-const threadQuota=createKeyedHourlyLimiter(COM_THREAD_LIMIT);
-const replyQuota=createKeyedHourlyLimiter(COM_REPLY_LIMIT);
-const reportQuota=createKeyedHourlyLimiter(15);
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 class ComThreadDto{
@@ -167,7 +163,6 @@ export class ComController{
   const title=safeText(dto.title,1,2000),body=safeText(dto.body,1,200000);
   if(!await this.db.comCategory.findFirst({where:{slug:dto.categorySlug,enabled:true}}))
    throw new BadRequestException('Category unavailable');
-  if(!threadQuota(actor.id))throw new HttpException('Too many discussions this hour',429);
   const existing=await this.db.comThread.findFirst({where:{authorId:actor.id,title,
    createdAt:{gte:new Date(Date.now()-60000)}},select:{id:true}});
   if(existing)throw new ConflictException('Similar discussion was just posted');
@@ -201,7 +196,6 @@ export class ComController{
  async reply(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComPostDto){
   this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw);
   const body=safeText(dto.body,1,200000);
-  if(!replyQuota(actor.id))throw new HttpException('Too many replies this hour',429);
   return this.db.$transaction(async tx=>{
    // Reject exact accidental double-submit (the UI also warns about near-duplicate topics).
    const duplicate=await tx.comPost.findFirst({where:{threadId:id,authorId:actor.id,body,
@@ -216,6 +210,9 @@ export class ComController{
     select:{userId:true},take:500});
    if(subscribers.length)await tx.comNotification.createMany({data:subscribers.map(x=>({
     userId:x.userId,threadId:id,postId:p.id,kind:'REPLY'})),skipDuplicates:true});
+   // Atomic durable outbox. Existing <=500-follower instant inbox stays, the worker
+   // covers all followers and uses uniqueness to deduplicate overlapping deliveries.
+   await tx.comNotificationFanout.create({data:{threadId:id,postId:p.id}});
    return {id:p.id};
   });
  }
@@ -239,7 +236,6 @@ export class ComController{
  async report(@Req()req:IncomingMessage,@Body()dto:ComReportDto){
   this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(dto.targetId);
   const reason=safeText(dto.reason,8,300);
-  if(!reportQuota(actor.id))throw new HttpException('Too many reports',429);
   if(dto.target==='thread'){
    const row=await this.db.comThread.findFirst({where:{id,status:'PUBLISHED'},select:{id:true}});
    if(!row)throw new NotFoundException('Discussion not found');
