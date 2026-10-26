@@ -5,11 +5,12 @@ import {classifyWithReason,parseXml,publisherDomain,safeImageUrl,type Candidate,
 import {GDELT_QUERIES,RSS_SOURCES} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
+import {sourceCooldownMs,gdeltCircuitFailure} from './news-source-health.ts';
 const PERIOD_MS=15*60*1000,LEASE_MS=12*60*1000;
 type Job={key:string;run:()=>Promise<Candidate[]>;hint:Topic;allowSnippet:boolean;isGdelt:boolean};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
-async function read(url:string,accept:string){
- const r=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(9000),
+async function read(url:string,accept:string,timeoutMs=9000){
+ const r=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(timeoutMs),
   headers:{Accept:accept,'User-Agent':'GalaxioraNewsDiscovery/1.1 (metadata only)'}});
  if(!r.ok)throw Error('HTTP '+r.status);
  if(Number(r.headers.get('content-length')||0)>1500000)throw Error('Feed too large');
@@ -38,6 +39,9 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
  private timer?:ReturnType<typeof setInterval>;
  private editorialTimer?:ReturnType<typeof setInterval>;
  private running=false;
+ private sourceRetryUntil=new Map<string,number>();
+ private sourceFailures=new Map<string,number>();
+ private gdeltRetryUntil=0;
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
  onModuleInit(){
   if(process.env.NEWS_INGESTION_ENABLED!=='1')return;
@@ -59,9 +63,11 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    run:async()=>{
     const u=new URL('https://api.gdeltproject.org/api/v2/doc/doc');
     u.searchParams.set('query','('+query+')');u.searchParams.set('mode','artlist');
-    u.searchParams.set('format','json');u.searchParams.set('maxrecords',backfill?'150':'60');
-    u.searchParams.set('timespan',backfill?'2months':'7d');u.searchParams.set('sort','datedesc');
-    return gdelt(JSON.parse(await read(u.toString(),'application/json')));
+    u.searchParams.set('format','json');u.searchParams.set('maxrecords',backfill?'75':'40');
+    u.searchParams.set('timespan',backfill?'2weeks':'3d');u.searchParams.set('sort','datedesc');
+    const raw=await read(u.toString(),'application/json',14000);
+    try{return gdelt(JSON.parse(raw));}
+    catch{throw new Error('GDELT returned non-JSON text or an incomplete response');}
    }
   }));
   return [...rss,...gdeltJobs];
@@ -86,7 +92,10 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
      const began=Date.now(),reasonCounts:Record<string,number>={};
      let candidates=0,accepted=0,duplicates=0,rejected=0,errors=0,status='ok',failure:string|null=null;
      sources++;
-     try{
+     const retryAt=Math.max(this.sourceRetryUntil.get(job.key)||0,job.isGdelt?this.gdeltRetryUntil:0);
+     if(retryAt>Date.now()){
+      status='cooldown';failure='Retry after '+new Date(retryAt).toISOString();
+     }else try{
       const items=await job.run();candidates=items.length;
       if(!items.length)status='empty';
       for(const item of items){
@@ -135,13 +144,22 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
         }
        }catch(e){errors++;console.warn('[news] item rejected',String(e));}
       }
+      this.sourceFailures.delete(job.key);
+      this.sourceRetryUntil.delete(job.key);
+      if(job.isGdelt)this.gdeltRetryUntil=0;
      }catch(e){status='error';failure=String(e).slice(0,300);errors++;
-      console.warn('[news] source '+job.key+': '+failure);}
+      const failures=(this.sourceFailures.get(job.key)||0)+1;
+      this.sourceFailures.set(job.key,failures);
+      const retryAt=Date.now()+sourceCooldownMs(failure,failures);
+      this.sourceRetryUntil.set(job.key,retryAt);
+      if(job.isGdelt&&gdeltCircuitFailure(failure))this.gdeltRetryUntil=Math.max(this.gdeltRetryUntil,retryAt);
+      console.warn('[news] source '+job.key+': '+failure+'; retry after '+new Date(retryAt).toISOString());
+     }
      rejectedAll+=rejected;errorsAll+=errors;
      await this.prisma.newsSourceScan.create({data:{sourceKey:job.key,scanToken:token,
       status,candidates,accepted,duplicates,rejected,errors,rejectionReasons:reasonCounts,
       failure,durationMs:Date.now()-began}}).catch(e=>console.warn('[news] audit',String(e)));
-     if(job.isGdelt)await sleep(6500);
+     if(job.isGdelt&&status!=='cooldown'&&this.gdeltRetryUntil<=Date.now())await sleep(6500);
     }
     await this.prisma.newsScan.create({data:{sources,accepted:added,errors:errorsAll}});
     await this.enrichMetadata().catch(e=>console.warn('[news] metadata lookup failed',String(e)));
