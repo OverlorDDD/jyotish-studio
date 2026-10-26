@@ -24,10 +24,10 @@ export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|n
  const [error,setError]=useState(''),[message,setMessage]=useState(''),[reload,setReload]=useState(0);
  const signed=me?.signedIn===true,staff=me?.permissions.canModerate===true,admin=me?.permissions.canManageContext===true;
  useEffect(()=>{if(!open||!signed)return;let active=true;
-  Promise.all([api<{items:Request[]}>('appeals/mine'),api<{items:Request[]}>('appeals/eligible'),api<{items:Request[]}>('privacy/requests'),
+  Promise.all([api<{items:Request[]}>('appeals/mine'),api<{items:{type:string;id:string;label:string}[]}>('appeals/eligible'),api<{items:Request[]}>('privacy/requests'),
    staff?api<{items:Request[]}>('mod/appeals'):Promise.resolve({items:[]}),
    admin?api<{items:Request[]}>('mod/privacy'):Promise.resolve({items:[]})])
-   .then(([a,e,p,m,x])=>{if(active){setMine(a.items);setEligible(e.items as {type:string;id:string;label:string}[]);setPrivacy(p.items);setAppeals(m.items);setModPrivacy(x.items)}})
+   .then(([a,e,p,m,x])=>{if(active){setMine(a.items);setEligible(e.items);setPrivacy(p.items);setAppeals(m.items);setModPrivacy(x.items)}})
    .catch(e=>{if(active)setError(e.message)});
   return()=>{active=false};
  },[open,signed,staff,admin,reload]);
