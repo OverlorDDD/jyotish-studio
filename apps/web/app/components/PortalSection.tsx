@@ -7,6 +7,7 @@ import TarotStudio from './TarotStudio';
 import YogaHub from './YogaHub';
 import AcademyHub from './AcademyHub';
 import NewsWorld from './NewsWorld';
+import GalaxiCom from './GalaxiCom';
 import {moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
 export const SECTIONS=['astrology','tarot','experts','yoga','learn','news','community'] as const;
@@ -20,7 +21,7 @@ export const SECTION_COPY={
   yoga:{title:'Yoga & mindfulness',lead:'Four original gentle step-by-step practices for breathing, movement and mindfulness, with an optional timer.',cta:'Explore astrology',sub:'Four guided sessions are available now; stop or adapt if a movement or breath focus feels uncomfortable.'},
   learn:{title:'A living library',lead:'Eight original bilingual lessons on Jyotish, Tarot and yoga, with a knowledge check after each one.',cta:'Explore astrology',sub:'Browse three topics, eight full lessons and simple self-check quizzes — no account required.'},
   news:{title:'Cosmic news and daily discoveries',lead:'A future daily editorial feed covering astronomy, cultural traditions, spirituality and platform updates, with clear source links.',cta:'Explore our live Tarot Studio',sub:'Editorial publishing, verification, author attribution, categories and archives are planned. No live news feed yet.'},
-  community:{title:'A community for thoughtful discussion',lead:'A planned forum for exchanging experiences, asking questions and discussing astrology, tarot and mindful practices respectfully.',cta:'Explore our live Tarot Studio',sub:'Forum accounts, roles, threads, moderation, reporting, privacy and anti-spam tools are planned. User posting is not enabled yet.'}
+  community:{title:'GalaxiCom community forum',lead:'Real discussions about Jyotish, Tarot and spiritual practice using one Galaxiora account.',cta:'Join the discussion',sub:'Categories, replies, reports and human moderation are available.'}
  },
  uk:{
   astrology:{title:'Інструменти астрології',lead:'Досліджуй натальну карту з готовим ведичним рушієм Джйотіш. Західна астрологія, транзити й місячний календар — у планах.',cta:'Розрахувати карту Джйотіш',sub:'Уже працює: Swiss Ephemeris, сидерична система Лахірі, D1, D9, D10 і життєві періоди.'},
@@ -29,7 +30,7 @@ export const SECTION_COPY={
   yoga:{title:'Йога та медитація',lead:'Чотири готові покрокові практики м’якого руху, дихання й уважності з необов’язковим таймером.',cta:'Дослідити астрологію',sub:'Чотири практики вже доступні. За дискомфорту можна припинити, змінити або пропустити крок.'},
   learn:{title:'Бібліотека знань',lead:'Вісім готових двомовних уроків про Джйотіш, Таро й йогу з перевіркою знань.',cta:'Дослідити астрологію',sub:'Три тематичні блоки, вісім уроків та самоперевірки — без реєстрації.'},
   news:{title:'Щоденні новини та відкриття',lead:'Майбутня стрічка щоденних матеріалів про космос, духовні традиції, культуру та розвиток платформи з перевіреними джерелами.',cta:'Відкрити наш Tarot Studio',sub:'Плануються редактори, перевірка фактів, авторство, категорії й архів. Жива новинна стрічка ще не працює.'},
-  community:{title:'Спільнота та форум',lead:'Майбутній простір для обміну досвідом і поважних дискусій про астрологію, Таро й духовні практики.',cta:'Відкрити наш Tarot Studio',sub:'Плануються теми, відповіді, модерація, скарги, захист приватності й антиспам. Дописи поки не приймаються.'}
+  community:{title:'Форум GalaxiCom',lead:'Жива спільнота для запитань і обговорень Джйотіш, Таро та практик.',cta:'До обговорень',sub:'Уже доступні теми, відповіді, скарги та модерування.'}
  }
 } as const;
 const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower2,learn:BookOpen,news:Newspaper,community:MessagesSquare};
@@ -39,6 +40,7 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
  if(section==='yoga')return <YogaHub locale={locale}/>;
  if(section==='learn')return <AcademyHub locale={locale}/>;
  if(section==='news')return <NewsWorld locale={locale}/>;
+ if(section==='community')return <GalaxiCom locale={locale}/>;
  const t=SECTION_COPY[locale][section];
  const Icon=iconMap[section];
  // The live modules returned above; remaining sections are informational.

@@ -49,6 +49,11 @@ model User {
  charts Chart[]
  personalProfile PersonalProfile?
  newsReactions NewsReaction[]
+ comProfile ComProfile?
+ comThreads ComThread[]
+ comPosts ComPost[]
+ comReports ComReport[]
+ comModerationActions ComModerationAction[]
  practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
@@ -377,4 +382,87 @@ model NewsDiscoveredSource {
  status String @default("DISCOVERED") @db.VarChar(24)
  @@index([lastSeenAt])
  @@index([status, articleCount])
+}
+
+/** GalaxiCom C0: community is deliberately separate from private natal/Personal data. */
+model ComCategory {
+ slug String @id @db.VarChar(48)
+ titleUk String @db.VarChar(80)
+ titleEn String @db.VarChar(80)
+ descriptionUk String @db.VarChar(220)
+ descriptionEn String @db.VarChar(220)
+ position Int @default(0)
+ enabled Boolean @default(true)
+ threads ComThread[]
+ @@index([enabled,position])
+}
+model ComProfile {
+ userId String @id
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ displayName String? @db.VarChar(40)
+ showPremiumBadge Boolean @default(false)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+model ComThread {
+ id String @id @default(uuid()) @db.Uuid
+ categorySlug String @db.VarChar(48)
+ category ComCategory @relation(fields:[categorySlug],references:[slug],onDelete:Restrict)
+ authorId String
+ author User @relation(fields:[authorId],references:[id],onDelete:Cascade)
+ title String @db.VarChar(160)
+ body String @db.Text
+ status String @default("PUBLISHED") @db.VarChar(16)
+ pinned Boolean @default(false)
+ locked Boolean @default(false)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ lastActivityAt DateTime @default(now())
+ posts ComPost[]
+ reports ComReport[]
+ @@index([categorySlug,status,pinned,lastActivityAt])
+ @@index([status,lastActivityAt])
+ @@index([authorId,createdAt])
+}
+model ComPost {
+ id String @id @default(uuid()) @db.Uuid
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ authorId String
+ author User @relation(fields:[authorId],references:[id],onDelete:Cascade)
+ body String @db.Text
+ status String @default("PUBLISHED") @db.VarChar(16)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ reports ComReport[]
+ @@index([threadId,status,createdAt,id])
+ @@index([authorId,createdAt])
+}
+model ComReport {
+ id String @id @default(uuid()) @db.Uuid
+ reporterId String
+ reporter User @relation(fields:[reporterId],references:[id],onDelete:Cascade)
+ threadId String? @db.Uuid
+ thread ComThread? @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ postId String? @db.Uuid
+ post ComPost? @relation(fields:[postId],references:[id],onDelete:Cascade)
+ reason String @db.VarChar(300)
+ status String @default("OPEN") @db.VarChar(16)
+ reviewedAt DateTime?
+ createdAt DateTime @default(now())
+ @@unique([reporterId,threadId])
+ @@unique([reporterId,postId])
+ @@index([status,createdAt])
+}
+model ComModerationAction {
+ id String @id @default(uuid()) @db.Uuid
+ actorId String?
+ actor User? @relation(fields:[actorId],references:[id],onDelete:SetNull)
+ action String @db.VarChar(28)
+ targetType String @db.VarChar(12)
+ targetId String @db.Uuid
+ reason String @db.VarChar(300)
+ createdAt DateTime @default(now())
+ @@index([targetType,targetId,createdAt])
+ @@index([createdAt])
 }

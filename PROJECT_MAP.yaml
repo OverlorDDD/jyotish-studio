@@ -124,11 +124,20 @@ modules:
     safeguard: "no full articles, no invented facts or meta-text; hide unsupported teasers; image CC licence / explicitly-approved hosts; GDELT seendate marked observation; astronomy separate"
     tests: "npm run test:news; e2e/news-world.spec.mjs"
     documentation: "docs/research/galaxinews-quality-discovery-2026-10-26.md; docs/research/galaxinews-p4-p5-acceptance-2026-10-26.md"
+  galaxicom:
+    status: "C0-C1 implemented: public reading, member threads/replies/edit, reports, staff moderation and opt-in active-PREMIUM flair; CI/manual acceptance pending"
+    http: "apps/api/src/com.ts; /api/v1/com/*; role/session and sameOrigin from auth.ts"
+    domain_policy: "apps/api/src/com-policy.ts; FREE posting, staff roles separate, premium has no moderation authority"
+    persistence: "ComCategory, ComProfile, ComThread, ComPost, ComReport, ComModerationAction; additive 20261026192000_galaxicom_c0_c1 migration"
+    web: "apps/web/app/components/GalaxiCom.tsx; GalaxiCom.module.css; /{uk|en}/community and /{uk|en}/community/topic/:id"
+    safeguards: "public plain text, no private astrology/user documents, author-only finite editing, audit and reports; per-process limiter until public scaling"
+    tests: "npm run test:com; e2e/galaxicom.spec.mjs; disposable PostgreSQL; Chromium desktop/mobile"
+    documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md"
   portal:
-    status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and Community placeholders"
+    status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and GalaxiCom active code; public-release gates pending"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
-    future: [western_astrology, panchang, news, community, mobile]
+    future: [western_astrology, panchang, community_enhancements, mobile]
   ai_usage:
     status: "usage storage and Gemini/GroqCloud/OpenRouter (cloud-only default) fallback implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
