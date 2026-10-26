@@ -41,7 +41,7 @@ const COPY={
   nothingPersonal:'За обраними тегами ще немає публікацій. Спробуй інші теми.',
   newest:'За часом публікації',relevant:'За релевантністю',search:'Пошук новин',searchPlaceholder:'Таро, ретроградна Венера, йога…',clearSearch:'Очистити пошук',searchResults:'Результати пошуку',
   saveAccount:'Зберегти інтереси в кабінеті',savedAccount:'Інтереси збережено',
-  guestLocal:'Зараз ці інтереси зберігаються в браузері. Для синхронізації увійди в кабінет.',
+  guestLocal:'Увійди, щоб синхронізувати інтереси.',
   saveFailed:'Не вдалося синхронізувати інтереси. Спробуй ще раз.',
   importGuest:'Додати теми з цього браузера'
  },
@@ -63,7 +63,7 @@ const COPY={
   nothingPersonal:'No articles match your selected tags yet. Try another topic.',
   newest:'Publication time',relevant:'Relevance',search:'Search news',searchPlaceholder:'Tarot, Venus retrograde, yoga…',clearSearch:'Clear search',searchResults:'Search results',
   saveAccount:'Save interests to my account',savedAccount:'Interests saved to account',
-  guestLocal:'These interests are in this browser. Sign in to sync across devices.',
+  guestLocal:'Sign in to sync your interests.',
   saveFailed:'Could not sync interests. Please try again.',
   importGuest:'Add topics from this browser'
  }
