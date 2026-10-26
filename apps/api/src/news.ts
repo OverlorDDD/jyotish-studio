@@ -69,7 +69,7 @@ export class NewsController {
   let personalEnabled=sort==='personal';
   if(sort==='personal'&&uid){
    const [profile,history]=await Promise.all([
-    this.prisma.personalProfile.findUnique({where:{userId:uid},select:{newsTopics:true}}),
+    this.prisma.personalProfile.findUnique({where:{userId:uid},select:{newsTopics:true,newsPersonalizationEnabled:true}}),
     this.prisma.newsReaction.findMany({where:{userId:uid},orderBy:{updatedAt:'desc'},take:1000,
      select:{articleId:true,vote:true,article:{select:{topic:true,tags:true}}}})
    ]);
