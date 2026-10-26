@@ -154,7 +154,8 @@ export function parseXml(xml:string,source:string):Candidate[]{
   const imageLicense=cleanDescription(field(node,'license')||field(node,'media:license'));
   // Some publishers place their lead photo only inside the RSS description or
   // content:encoded; inspect image metadata without copying the full article.
-  const imageInFeed=(field(node,'description')||field(node,'content')||'').match(
+  const embeddedBody=node.match(/<content:encoded(?:\s[^>]*)?>([\s\S]*?)<\/content:encoded>/i)?.[1]||'';
+  const imageInFeed=(field(node,'description')||embeddedBody).match(
    /<img\b[^>]*?\b(?:src|data-src)=["'](https:\/\/[^"']+\.(?:jpe?g|png|webp)(?:\?[^"']*)?)["']/i)?.[1]||'';
   const imageUrl=found?attr(found[0],'url'):imageInFeed;
   const imageCredit=cleanDescription(field(node,'media:credit')||source).slice(0,150);
