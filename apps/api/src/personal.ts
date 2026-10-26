@@ -11,7 +11,8 @@ import {buildDailyGuidance,buildPeriodGuidance,buildWeekHighlights,type Verified
 
 type ChartResult={verification?:{status?:string};ascendant?:{sign?:number;signName?:string};
  d1?:{name:string;sign:number}[];dasha?:{lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]}[]};
-const TOPICS=['astronomy','jyotish','tarot','yoga','vedic-traditions','academy'] as const;
+const TOPICS=['astronomy','jyotish','tarot','yoga','vedic-traditions','academy',
+ 'astrology','meditation','vedic','self-development','natal-charts','nakshatras','mantras','pranayama'] as const;
 const PRACTICES=['box','equal','extended'] as const;
 const calendarLimiter=createKeyedHourlyLimiter(20);
 function owner(req:IncomingMessage){const id=cookieUser(req);if(!id)throw new UnauthorizedException('Sign in to your Personal space');return id;}
@@ -45,7 +46,7 @@ export class PersonalProfileDto{
  @IsOptional() @IsString() currentTimeZone?:string;
  @IsOptional() @IsIn(['uk','en']) preferredLocale?:'uk'|'en';
  @IsOptional() @IsIn(PRACTICES) favoritePractice?:'box'|'equal'|'extended';
- @IsOptional() @IsArray() @ArrayMaxSize(6) @IsIn(TOPICS,{each:true}) newsTopics?:string[];
+ @IsOptional() @IsArray() @ArrayMaxSize(14) @IsIn(TOPICS,{each:true}) newsTopics?:string[];
 }
 export class PrimaryChartDto{
  @IsOptional() @IsUUID() chartId?:string|null;

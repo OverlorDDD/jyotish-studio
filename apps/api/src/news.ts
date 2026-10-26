@@ -1,6 +1,6 @@
-import {BadRequestException,Body,Controller,Get,Header,Inject,Param,Patch,Post,Query,Req,UnauthorizedException,ForbiddenException} from '@nestjs/common';
+import {BadRequestException,Body,Controller,Get,Header,Inject,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ForbiddenException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
-import {IsIn} from 'class-validator';
+import {ArrayMaxSize,IsArray,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
@@ -9,6 +9,10 @@ import {NewsIngestionService} from './news-ingestion.ts';
 import {RSS_SOURCES,GDELT_QUERIES} from './news-sources.ts';
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
 class SourcePolicyDto{@IsIn(['DISCOVERED','BLOCKED','TRUSTED'])status!:'DISCOVERED'|'BLOCKED'|'TRUSTED';}
+class NewsInterestsDto{
+ @IsArray() @ArrayMaxSize(12) @IsIn(INTEREST_TAGS,{each:true})
+ tags!:string[];
+}
 @ApiTags('GalaxiNews World')
 @Controller('api/v1/news')
 export class NewsController {
@@ -63,6 +67,42 @@ export class NewsController {
   return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>rest),
    total:ranked.length,articleCount,page:Number(page),limit:size,lastScan,
    personalized:false,sort};
+ }
+ /** Phase P1: account-scoped interests; public World never requires a login. */
+ @Get('interests') @Header('Cache-Control','private,no-store')
+ async getInterests(@Req()req:IncomingMessage){
+  const userId=cookieUser(req);
+  if(!userId)throw new UnauthorizedException('Sign in to synchronize news interests');
+  const user=await this.prisma.user.findUnique({where:{id:userId},select:{id:true}});
+  if(!user)throw new UnauthorizedException('Session is no longer valid');
+  const data=await this.prisma.personalProfile.findUnique({
+   where:{userId},select:{newsTopics:true,updatedAt:true}
+  });
+  return {tags:(data?.newsTopics||[]).filter(tag=>(INTEREST_TAGS as readonly string[]).includes(tag)),
+   updatedAt:data?.updatedAt||null};
+ }
+ @Put('interests') @Header('Cache-Control','private,no-store')
+ async saveInterests(@Req()req:IncomingMessage,@Body()dto:NewsInterestsDto){
+  if(!sameOrigin(req))throw new ForbiddenException('Cross-origin news preferences update denied');
+  const userId=cookieUser(req);
+  if(!userId)throw new UnauthorizedException('Sign in to save news interests');
+  const user=await this.prisma.user.findUnique({where:{id:userId},select:{id:true}});
+  if(!user)throw new UnauthorizedException('Session is no longer valid');
+  if(!Array.isArray(dto?.tags)||dto.tags.length>12||new Set(dto.tags).size!==dto.tags.length||
+     dto.tags.some(tag=>!(INTEREST_TAGS as readonly string[]).includes(tag))){
+   throw new BadRequestException('Choose up to 12 distinct valid interests');
+  }
+  // Keep legacy Personal interests such as "academy" instead of silently deleting them.
+  const saved=await this.prisma.personalProfile.findUnique({
+   where:{userId},select:{newsTopics:true}
+  });
+  const legacy=(saved?.newsTopics||[]).filter(tag=>!(INTEREST_TAGS as readonly string[]).includes(tag));
+  const newsTopics=[...legacy,...dto.tags];
+  const result=await this.prisma.personalProfile.upsert({
+   where:{userId},create:{userId,newsTopics},update:{newsTopics},
+   select:{updatedAt:true}
+  });
+  return {tags:dto.tags,updatedAt:result.updatedAt};
  }
  @Get('status') @Header('Cache-Control','public,max-age=120')
  async status(){
@@ -129,5 +169,7 @@ for(const [method,types] of [
  ['moderate',[Object,String,ModerateDto]],
  ['health',[Object]],
  ['refresh',[Object,String]],
- ['sourcePolicy',[Object,String,SourcePolicyDto]]
+ ['sourcePolicy',[Object,String,SourcePolicyDto]],
+ ['getInterests',[Object]],
+ ['saveInterests',[Object,NewsInterestsDto]]
 ] as const){Reflect.defineMetadata('design:paramtypes',types,NewsController.prototype,method);}
