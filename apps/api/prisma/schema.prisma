@@ -48,6 +48,7 @@ model User {
  roleChangesAsActor RoleChange[] @relation("RoleChangeActor")
  charts Chart[]
  personalProfile PersonalProfile?
+ newsReactions NewsReaction[]
  practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
@@ -312,10 +313,27 @@ model NewsArticle {
  publishedAt DateTime
  discoveredAt DateTime @default(now())
  lastSeenAt DateTime @default(now())
+ reactions NewsReaction[]
  @@index([status,publishedAt])
  @@index([topic,publishedAt])
  @@index([editorialNextAttemptAt])
 }
+
+// Personal news feedback: one reversible, owner-scoped reaction per published article.
+// No natal data, journal data, or passive reading/viewing history is stored.
+model NewsReaction {
+ userId String
+ articleId String
+ vote String @db.VarChar(3)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ article NewsArticle @relation(fields:[articleId],references:[id],onDelete:Cascade)
+ @@id([userId,articleId])
+ @@index([userId,updatedAt])
+ @@index([articleId])
+}
+
 model NewsScan {
  id String @id @default(uuid())
  createdAt DateTime @default(now())
