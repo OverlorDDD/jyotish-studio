@@ -52,6 +52,17 @@ async function metadataRecovery(){
  console.log('[GalaxiNews] metadata checked:',checked,'with usable updates:',added,
   '(only approved publisher domains; no copyright override)');
 }
+async function verifyRunningFrontend(){
+ try{
+  const response=await fetch('http://localhost:3000/uk/news',{signal:AbortSignal.timeout(5000),cache:'no-store'});
+  const markup=await response.text();
+  const current=markup.includes('world-v1.4')&&markup.includes('galaxinews-search');
+  console.log('[GalaxiNews] running frontend:',current?'CURRENT v1.4 (prominent search)':
+   'OLD OR UNEXPECTED build — stop old Next processes, pull feature branch and restart npm run dev:full');
+ }catch{
+  console.log('[GalaxiNews] running frontend: unavailable (start npm run dev:full to check the UI)');
+ }
+}
 try{
  await prisma.$connect();
  console.log('[GalaxiNews] AI providers:',{
@@ -61,6 +72,7 @@ try{
   editorialEnabled:process.env.NEWS_EDITORIAL_AI_ENABLED!=='0'
  });
  await statistics();
+ await verifyRunningFrontend();
  if(repair){
   await metadataRecovery();
   const configured=Boolean(process.env.GROQ_API_KEY||process.env.GEMINI_API_KEY||process.env.OPENROUTER_API_KEY);
