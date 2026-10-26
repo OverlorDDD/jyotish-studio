@@ -1,0 +1,11 @@
+.wrap{display:grid;gap:15px;margin:20px 0}.card{background:#152338;border:1px solid #44556b;border-radius:14px;padding:19px 22px;color:#dbd7cc;min-width:0}
+.card h2,.card summary{display:flex;gap:10px;align-items:center;color:#ecd3a4;font-size:18px;margin:0 0 15px;font-weight:650}
+.card summary{cursor:pointer;margin-bottom:0}.card[open] summary{margin-bottom:16px}
+.item{display:flex;flex-direction:column;gap:7px;text-decoration:none;padding:12px 0;border-bottom:1px solid #34445b;color:#f0e2c6;overflow-wrap:anywhere}
+.item small,.card>small{color:#b1c0d2;font-size:12px}.item:hover{text-decoration:underline}.card>small{display:block;margin-top:12px}
+.bookmarkAction button,.saved button,.settings button{display:inline-flex;gap:8px;align-items:center;background:#273c56;border:1px solid #62718b;border-radius:9px;color:#ecd6b1;padding:9px 13px;cursor:pointer}
+.bookmarkAction button[aria-pressed=true]{background:#54422d}.savedList{display:grid;gap:10px}
+.saved{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;overflow-wrap:anywhere}.saved a{color:#e6c795}
+.settings{display:grid;gap:12px}.settings label{display:grid;gap:7px}.settings textarea,.settings select{background:#101c2e;color:#e9e4d9;border:1px solid #536780;border-radius:9px;padding:12px;width:100%;font:inherit}
+.settings button{justify-self:start}.settings p{font-size:13px;color:#c7d1dc}.error{color:#ffcaca}
+@media(min-width:850px){.wrap:has(.card:nth-child(2)){grid-template-columns:minmax(0,1fr) minmax(260px,.7fr)}}

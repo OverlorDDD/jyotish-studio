@@ -13,14 +13,14 @@ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 class ComThreadDto{
  @IsString() @Matches(/^[a-z0-9-]{2,48}$/) categorySlug!:string;
- @IsString() @Length(1,2000) title!:string;
- @IsString() @Length(1,200000) body!:string;
+ @IsString() @Length(1,160) title!:string;
+ @IsString() @Length(1,8000) body!:string;
 }
 class ComThreadEditDto{
- @IsOptional() @IsString() @Length(1,2000) title?:string;
- @IsOptional() @IsString() @Length(1,200000) body?:string;
+ @IsOptional() @IsString() @Length(1,160) title?:string;
+ @IsOptional() @IsString() @Length(1,8000) body?:string;
 }
-class ComPostDto{ @IsString() @Length(1,200000) body!:string; }
+class ComPostDto{ @IsString() @Length(1,5000) body!:string; }
 class ComProfileDto{
  @IsOptional() @IsString() @Length(3,40) @Matches(/^[\p{L}\p{N} ._-]{3,40}$/u) displayName?:string;
  @IsOptional() @IsBoolean() showPremiumBadge?:boolean;
@@ -160,7 +160,7 @@ export class ComController{
  @Post('threads') @Header('Cache-Control','private,no-store')
  async createThread(@Req()req:IncomingMessage,@Body()dto:ComThreadDto){
   this.mutation(req);const actor=(await this.actor(req))!;
-  const title=safeText(dto.title,1,2000),body=safeText(dto.body,1,200000);
+  const title=safeText(dto.title,1,160),body=safeText(dto.body,1,8000);
   if(!await this.db.comCategory.findFirst({where:{slug:dto.categorySlug,enabled:true}}))
    throw new BadRequestException('Category unavailable');
   const existing=await this.db.comThread.findFirst({where:{authorId:actor.id,title,
@@ -178,8 +178,8 @@ export class ComController{
  async editThread(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComThreadEditDto){
   this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw);
   if(dto.title===undefined&&dto.body===undefined)throw new BadRequestException('Nothing to edit');
-  const data={...(dto.title!==undefined?{title:safeText(dto.title,1,2000)}:{}),
-   ...(dto.body!==undefined?{body:safeText(dto.body,1,200000)}:{})};
+  const data={...(dto.title!==undefined?{title:safeText(dto.title,1,160)}:{}),
+   ...(dto.body!==undefined?{body:safeText(dto.body,1,8000)}:{})};
   return this.db.$transaction(async tx=>{
    const row=await tx.comThread.findFirst({where:{id,authorId:actor.id,status:'PUBLISHED',locked:false},
     select:{createdAt:true,updatedAt:true,title:true,body:true}});
@@ -195,7 +195,7 @@ export class ComController{
  @Post('threads/:id/posts') @Header('Cache-Control','private,no-store')
  async reply(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComPostDto){
   this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw);
-  const body=safeText(dto.body,1,200000);
+  const body=safeText(dto.body,1,5000);
   return this.db.$transaction(async tx=>{
    // Reject exact accidental double-submit (the UI also warns about near-duplicate topics).
    const duplicate=await tx.comPost.findFirst({where:{threadId:id,authorId:actor.id,body,
@@ -218,7 +218,7 @@ export class ComController{
  }
  @Patch('posts/:id') @Header('Cache-Control','private,no-store')
  async editPost(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComPostDto){
-  this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw),body=safeText(dto.body,1,200000);
+  this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw),body=safeText(dto.body,1,5000);
   return this.db.$transaction(async tx=>{
    const row=await tx.comPost.findFirst({where:{id,authorId:actor.id,status:'PUBLISHED',
     thread:{status:'PUBLISHED',locked:false}},select:{createdAt:true,updatedAt:true,body:true}});

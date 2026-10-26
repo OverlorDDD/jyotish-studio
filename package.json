@@ -17,7 +17,7 @@
     "db:generate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
     "test:news": "node --experimental-strip-types --test tools/news-world.test.mjs tools/news-discovery.test.mjs tools/news-legacy.test.mjs tools/news-source-health.test.mjs tools/news-personal-interests.test.mjs tools/news-initial-load.test.mjs tools/news-relevance.test.mjs tools/news-privacy.test.mjs tools/news-quality.test.mjs",
-    "test:com": "node --experimental-strip-types --test tools/com-policy.test.mjs tools/com-context.test.mjs tools/com-security.test.mjs",
+    "test:com": "node --experimental-strip-types --test tools/com-policy.test.mjs tools/com-context.test.mjs tools/com-security.test.mjs tools/com-growth.test.mjs",
     "com:fanout": "node --env-file-if-exists=.env --experimental-strip-types tools/com-fanout-worker.mjs",
     "com:backup": "node --env-file-if-exists=.env tools/com-db-backup.mjs",
     "com:load": "node tools/com-load-probe.mjs",

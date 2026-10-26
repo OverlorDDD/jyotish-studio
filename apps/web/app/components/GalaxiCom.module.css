@@ -121,3 +121,7 @@
 .curatedSources a{color:#eed1a1;display:inline-flex;align-items:center;gap:7px;text-decoration:none;overflow-wrap:anywhere}
 .curatedSources a:hover{text-decoration:underline}
 .curatedSources small{color:#b9c6d7;line-height:1.55}
+
+.profileCard[data-accent="gold"]{border-color:#c6a36b;box-shadow:0 0 0 1px #a67f46}
+.profileCard[data-accent="violet"]{border-color:#aa91df;box-shadow:0 0 0 1px #7656a8}
+.profileCard[data-accent="teal"]{border-color:#69c2af;box-shadow:0 0 0 1px #4f9b8b}

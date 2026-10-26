@@ -131,7 +131,7 @@ export class PersonalController{
    journey:{period:context?buildPeriodGuidance(currentPeriod,context.lagnaSign,context.natalPositions):null,
     daily:buildDailyGuidance(transit,context)},
    transit,transitStatus,recentTarot:tarot,recentJournal:journal,privateQuestions:questions,
-   recentPractices:practices,horoscope:{status:'planned_after_launch',personal:true},
+   recentPractices:practices,horoscope:{status:verified?'available':'requires_verified_chart',personal:verified},
    news:{status:'planned_after_launch',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
  }
  @Get('transits') @Header('Cache-Control','private, no-store')
@@ -167,7 +167,10 @@ export class PersonalController{
    }
   }catch{throw new ServiceUnavailableException('Astronomical calendar temporarily unavailable, retry later');}
   return {status:personalized?'available':'general',recoveryStatus:c?.recoveryStatus||'no_chart',
-   dates,days:out,events,weekHighlights:buildWeekHighlights(out,events,utc=>verifiedContextAt(c,utc)),method:out[0]?.method};
+   dates,days:out,events,weekHighlights:buildWeekHighlights(out,events,utc=>verifiedContextAt(c,utc)),
+   // One canonical fact-verified daily reading; no competing advice or invented personal placements.
+   horoscopes:out.slice(0,7).map(t=>({date:t.date,guidance:buildDailyGuidance(t,verifiedContextAt(c,t.sampledAtUtc))})),
+   horoscopeStatus:personalized?'personalized':'requires_verified_chart',method:out[0]?.method};
  }
  @Get('practices') @Header('Cache-Control','private, no-store')
  async practices(@Req()req:IncomingMessage){

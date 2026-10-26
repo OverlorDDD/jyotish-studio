@@ -15,6 +15,7 @@ type TimelineEvent={type:'MAHADASHA_START'|'ANTARDASHA_START';lord:string;atUtc:
 type Localized={uk:string;en:string};
 type Guidance={headline:Localized;description:Localized;action:Localized;goodFor:Localized;caution:Localized;evidence:{kind:string;method:string;sampledAtUtc?:string;house?:number|null}};
 type WeekHighlight={date:string;kind:string;headline:Localized;summary:Localized;action:Localized;goodFor:Localized;caution:Localized;evidence:{method:string;sampledAtUtc?:string}};
+type HoroscopeDay={date:string;guidance:Guidance|null};
 type Overview={
  profile:{primaryChartId:string|null;currentTimeZone:string;preferredLocale:string;favoritePractice:string;newsTopics:string[]};
  charts:ChartSummary[];selected:ChartSummary|null;suggestedChartId:string|null;staleSelectedChart:boolean;
@@ -45,7 +46,7 @@ const copy={
   tarot:'Моє Таро',tarotAction:'Зробити розклад',questions:'Приватні запитання тарологу',
   yoga:'Моя практика',practiceAction:'Відкрити дихальні практики',recent:'Остання практика',never:'Ще не було',
   journal:'Мій журнал',openJournal:'Відкрити приватні записи',closeJournal:'Сховати журнал',
-  horoscope:'Мій персональний гороскоп',later:'Незабаром у Galaxiora',news:'Мої новини',
+  horoscope:'Мій персональний гороскоп',horoscopeDay:'На сьогодні',horoscopeWeek:'На 7 днів',horoscopeMethod:'Тлумачення за транзитом Місяця, твоєю лагною та поточною дашею. Положення для кожного дня — на 12:00 місцевого часу.',horoscopeSee:'Читати одну головну пораду',later:'Незабаром у Galaxiora',news:'Мої новини',
   newsDescription:'Майбутня добірка перевірених матеріалів за обраними темами, з посиланнями на першоджерела. Особисті записи не використовуються для добору.',
   themes:'Цікаві мені теми',settings:'Налаштування Personal',tz:'Мій поточний часовий пояс (IANA)',
   favorite:'Улюблена дихальна практика',saveSettings:'Зберегти налаштування',
@@ -75,7 +76,7 @@ const copy={
   tarot:'My Tarot',tarotAction:'Draw cards',questions:'Private questions for a reader',
   yoga:'My practice',practiceAction:'Open breathing practices',recent:'Recent practice',never:'Not yet',
   journal:'My journal',openJournal:'Open private notes',closeJournal:'Hide journal',
-  horoscope:'My personal horoscope',later:'Coming soon to Galaxiora',news:'My news',
+  horoscope:'My personal horoscope',horoscopeDay:'Today',horoscopeWeek:'7 days',horoscopeMethod:'Jyotish guidance from lunar transit, your verified Lagna and current Dasha. Each day is sampled at local noon.',horoscopeSee:'Read your one main daily suggestion',later:'Coming soon to Galaxiora',news:'My news',
   newsDescription:'A future source-linked collection of verified articles based on your chosen topics. Private journal notes never select news.',
   themes:'My interests',settings:'Personal settings',tz:'My current time zone (IANA)',
   favorite:'Favorite breathing practice',saveSettings:'Save preferences',
@@ -101,6 +102,7 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
  const [overview,setOverview]=useState<Overview|null>(null),[loaded,setLoaded]=useState(false),[signedOut,setSignedOut]=useState(false);
  const [message,setMessage]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [chartChoice,setChartChoice]=useState(''),[zone,setZone]=useState('UTC'),[practice,setPractice]=useState('box'),[topics,setTopics]=useState<string[]>([]);
+ const [horoscopeMode,setHoroscopeMode]=useState<'day'|'week'>('day'),[horoscopes,setHoroscopes]=useState<HoroscopeDay[]>([]),[horoscopeStatus,setHoroscopeStatus]=useState('requires_verified_chart');
  const [days,setDays]=useState<7|30>(7),[calendar,setCalendar]=useState<Day[]>([]),[events,setEvents]=useState<TimelineEvent[]>([]),[weekHighlights,setWeekHighlights]=useState<WeekHighlight[]>([]),[calendarError,setCalendarError]=useState(''),[calendarStatus,setCalendarStatus]=useState(''),[calendarRetry,setCalendarRetry]=useState(0),[calendarBusy,setCalendarBusy]=useState(false),[journalOpen,setJournalOpen]=useState(false);
  const refresh=useCallback(async()=>{
   setError('');setLoaded(false);
@@ -117,11 +119,11 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
  useEffect(()=>{void refresh();const onAuth=()=>{setOverview(null);setCalendar([]);void refresh();};window.addEventListener('galaxiora:auth-changed',onAuth);return()=>window.removeEventListener('galaxiora:auth-changed',onAuth);},[refresh]);
  useEffect(()=>{
   let active=true;
-  if(!overview){setCalendar([]);setEvents([]);setWeekHighlights([]);setCalendarError('');return;}
+  if(!overview){setCalendar([]);setEvents([]);setWeekHighlights([]);setHoroscopes([]);setCalendarError('');return;}
   setCalendarBusy(true);setCalendar([]);setCalendarError('');
-  void api<{status:string;days:Day[];events:TimelineEvent[];weekHighlights:WeekHighlight[]}>('/api/v1/personal/calendar?days='+days)
-   .then(value=>{if(active){setCalendar(value.days||[]);setEvents(value.events||[]);setWeekHighlights(value.weekHighlights||[]);setCalendarStatus(value.status);}})
-   .catch(()=>{if(active){setCalendar([]);setEvents([]);setWeekHighlights([]);setCalendarError(t.calendarError);}})
+  void api<{status:string;days:Day[];events:TimelineEvent[];weekHighlights:WeekHighlight[];horoscopes:HoroscopeDay[];horoscopeStatus:string}>('/api/v1/personal/calendar?days='+days)
+   .then(value=>{if(active){setCalendar(value.days||[]);setEvents(value.events||[]);setWeekHighlights(value.weekHighlights||[]);setHoroscopes(value.horoscopes||[]);setHoroscopeStatus(value.horoscopeStatus||'requires_verified_chart');setCalendarStatus(value.status);}})
+   .catch(()=>{if(active){setCalendar([]);setEvents([]);setWeekHighlights([]);setHoroscopes([]);setCalendarError(t.calendarError);}})
    .finally(()=>{if(active)setCalendarBusy(false);});
   return()=>{active=false;};
  },[overview?.profile.primaryChartId,overview?.profile.currentTimeZone,overview?.selected?.verified,overview?.selected?.recoveryStatus,overview?.today,days,calendarRetry,t.calendarError]);
@@ -272,7 +274,27 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
    <div className={[styles['gp-grid'],styles['gp-future-grid']].join(' ')}>
     <section className={[styles['gp-panel'],styles['gp-future']].join(' ')} aria-label={t.horoscope}>
      <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>GALAXIHOROSCOPE</span><h2>{t.horoscope}</h2></div><Orbit size={25}/></div>
-     <p>{t.later}</p><span className={styles['gp-future-status']}>{uk?'Місце зарезервовано':'Reserved for a future module'}</span>
+     <div className={styles['gp-tabs']} role="group" aria-label={t.horoscope}>
+      <button type="button" aria-pressed={horoscopeMode==='day'} onClick={()=>setHoroscopeMode('day')}>{t.horoscopeDay}</button>
+      <button type="button" aria-pressed={horoscopeMode==='week'} onClick={()=>setHoroscopeMode('week')}>{t.horoscopeWeek}</button>
+     </div>
+     {horoscopeStatus!=='personalized'?<p>{t.pathMissing}</p>:
+      horoscopeMode==='day'?<div data-testid="personal-horoscope-day">
+       <h3>{overview.journey?.daily?.headline[locale]}</h3>
+       <p>{overview.journey?.daily?.description[locale]}</p>
+       <p><b>{t.goodFor}: </b>{overview.journey?.daily?.goodFor[locale]}</p>
+       <p><b>{t.caution}: </b>{overview.journey?.daily?.caution[locale]}</p>
+       <a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={14}/></a>
+      </div>:<div data-testid="personal-horoscope-week">
+       {horoscopes.filter(x=>x.guidance).map(x=><article className={styles['gp-horoscope-day']} key={x.date}>
+        <time dateTime={x.date}>{calendarDayLabel(x.date,overview.today,locale)}</time>
+        <strong>{x.guidance!.headline[locale]}</strong>
+        {x.date===overview.today?<a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={13}/></a>:
+         <><p>{x.guidance!.description[locale]}</p><p><b>{t.goodFor}: </b>{x.guidance!.goodFor[locale]}</p>
+           <p><b>{t.caution}: </b>{x.guidance!.caution[locale]}</p><p>{x.guidance!.action[locale]}</p></>}
+       </article>)}
+      </div>}
+     <small className={styles['gp-microcopy']}>{t.horoscopeMethod}</small>
     </section>
     <section className={[styles['gp-panel'],styles['gp-future']].join(' ')}>
      <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>PERSONAL NEWS</span><h2>{t.news}</h2></div><Feather size={25}/></div>

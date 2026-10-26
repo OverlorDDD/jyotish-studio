@@ -13,10 +13,16 @@ test('GalaxiCom C2: long writing, full-width edit, revisions, follows, votes, no
   expect((await page.request.get(url('notifications'))).status()).toBe(401);
   const joinA=await page.request.post('/api/v1/account/register',{data:a});
   expect(joinA.status()).toBe(201);aid=(await joinA.json()).user.id;
-  const original='Натальна карта Джйотіш та взаємодія між Д1 і Навамшею: '+('важливі деталі '+ 'традиційного підходу ').repeat(11);
-  const longBody=('Розглядаю положення грах в різних варгах та порівнюю їх із класичними текстами. ').repeat(180);
-  expect(original.length).toBeGreaterThan(160);
-  expect(longBody.length).toBeGreaterThan(8000);
+  const original='Натальна карта Джйотіш та взаємодія між D1 і Навамшею';
+  const longBody=('Розглядаю положення грах в різних варгах та порівнюю їх із класичними текстами. ').repeat(88);
+  expect(original.length).toBeLessThanOrEqual(160);
+  expect(longBody.length).toBeLessThanOrEqual(8000);
+  // Shorter than old minimum now allowed; original safety maxima restored.
+  const oneChar=await page.request.post(url('threads'),{data:{categorySlug:'jyotish',title:'?',body:'!'}});
+  expect(oneChar.status()).toBe(201);
+  await db.comThread.delete({where:{id:(await oneChar.json()).id}});
+  expect((await page.request.post(url('threads'),{data:{categorySlug:'jyotish',title:'X'.repeat(161),body:'a'}})).status()).toBe(400);
+  expect((await page.request.post(url('threads'),{data:{categorySlug:'jyotish',title:'Valid',body:'a'.repeat(8001)}})).status()).toBe(400);
   const created=await page.request.post(url('threads'),{data:{categorySlug:'jyotish',title:original,body:longBody}});
   expect(created.status()).toBe(201);tid=(await created.json()).id;
   const suggestions=await (await page.request.get(url('duplicates?title='+encodeURIComponent(original.slice(0,200))))).json();
@@ -45,8 +51,9 @@ test('GalaxiCom C2: long writing, full-width edit, revisions, follows, votes, no
   expect((await page.request.get(url('threads/'+tid+'/revisions'))).status()).toBe(404);
   const watch=await page.request.put(url('threads/'+tid+'/follow'));
   expect(watch.status()).toBe(200);
-  const replyBody='Відповідь із детальним аналізом '+('системи домів і накшатр '.repeat(350));
-  expect(replyBody.length).toBeGreaterThan(5000);
+  const replyBody='Відповідь із детальним аналізом '+('системи домів і накшатр '.repeat(195));
+  expect(replyBody.length).toBeLessThanOrEqual(5000);
+  expect((await page.request.post(url('threads/'+tid+'/posts'),{data:{body:'x'.repeat(5001)}})).status()).toBe(400);
   const reply=await page.request.post(url('threads/'+tid+'/posts'),{data:{body:replyBody}});
   expect(reply.status()).toBe(201);pid=(await reply.json()).id;
   expect((await page.request.post(url('threads/'+tid+'/posts'),{data:{body:replyBody}})).status()).toBe(409);

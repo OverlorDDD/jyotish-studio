@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {ArrowLeft,ArrowRight,Bell,Flag,History,Lock,MessageCircle,Plus,Search,ShieldCheck,Star,ThumbsUp,Trash2,Users} from 'lucide-react';
 import PortalShell from './PortalShell';
 import GalaxiComSafety from './GalaxiComSafety';
+import GalaxiComGrowth from './GalaxiComGrowth';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './GalaxiCom.module.css';
 type Category={slug:string;titleUk:string;titleEn:string;descriptionUk:string;descriptionEn:string};
@@ -179,8 +180,8 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
    if(ok)setEditing(null);
   }}>
    {!path.startsWith('posts/')&&<label>{t.newTitle}<input type="text" value={editedTitle} minLength={1}
-    maxLength={2000} onChange={e=>setEditedTitle(e.target.value)} required/></label>}
-   <label>{t.newBody}<textarea rows={14} value={edited} minLength={1} maxLength={200000}
+    maxLength={160} onChange={e=>setEditedTitle(e.target.value)} required/></label>}
+   <label>{t.newBody}<textarea rows={14} value={edited} minLength={1} maxLength={path.startsWith('posts/')?5000:8000}
     onChange={e=>setEdited(e.target.value)} required/></label>
    <div className={styles.actions}><button type="submit" disabled={busy}>{t.save}</button>
     <button type="button" onClick={()=>setEditing(null)}>{t.cancel}</button></div>
@@ -232,7 +233,7 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
      <label>{t.pickCategory}<select value={topicCategory} onChange={e=>setTopicCategory(e.target.value)}>
       {categories.map(c=><option key={c.slug} value={c.slug}>{name(c)}</option>)}
      </select></label>
-     <label>{t.newTitle}<input value={title} minLength={1} maxLength={2000} required
+     <label>{t.newTitle}<input value={title} minLength={1} maxLength={160} required
       onBlur={()=>{if(title.trim().length>=8)api<{items:{id:string;title:string}[]}>('duplicates?title='+encodeURIComponent(title.trim()))
        .then(x=>setDuplicates(x.items)).catch(()=>setDuplicates([]));}}
       onChange={e=>{setTitle(e.target.value);setDuplicates([])}}/></label>
@@ -240,12 +241,13 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       <strong>{t.similar}</strong>
       {duplicates.map(item=><Link key={item.id} href={root+'/topic/'+item.id}>{item.title}</Link>)}
      </aside>}
-     <label>{t.newBody}<textarea rows={12} value={body} minLength={1} maxLength={200000} required onChange={e=>setBody(e.target.value)}/></label>
+     <label>{t.newBody}<textarea rows={12} value={body} minLength={1} maxLength={8000} required onChange={e=>setBody(e.target.value)}/></label>
      <div className={styles.actions}><button type="submit" disabled={busy||!topicCategory}>{t.publish}</button>
       <button type="button" onClick={()=>setComposer(false)}>{t.cancel}</button></div>
     </form>
    </section>}
    <GalaxiComSafety locale={locale} me={me}/>
+    <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
    {threadId?
     <section className={styles.content}>
      <Link href={root} className={styles.back}><ArrowLeft size={16}/>{t.back}</Link>
@@ -327,7 +329,7 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       e.preventDefault();const ok=await act(()=>api('threads/'+detail.id+'/posts',json('POST',{body:replyBody})));
       if(ok){setReplyBody('');setReplyPage(1)}
      }}>
-      <h3>{t.reply}</h3><textarea rows={12} value={replyBody} minLength={1} maxLength={200000} required
+      <h3>{t.reply}</h3><textarea rows={12} value={replyBody} minLength={1} maxLength={5000} required
        onChange={e=>setReplyBody(e.target.value)}/>
       <button type="submit" disabled={busy}>{t.send}</button>
      </form>}

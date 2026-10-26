@@ -62,6 +62,7 @@ model User {
  comPrivacyRequests ComPrivacyRequest[] @relation("ComPrivacyOwner")
  comPrivacyReviews ComPrivacyRequest[] @relation("ComPrivacyReviewer")
  comContextApprovals ComContextLink[] @relation("ComContextApprover")
+ comBookmarks ComBookmark[]
  practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
@@ -409,6 +410,8 @@ model ComProfile {
  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
  displayName String? @db.VarChar(40)
  showPremiumBadge Boolean @default(false)
+ signature String? @db.VarChar(280)
+ accent String @default("default") @db.VarChar(20)
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
 }
@@ -430,6 +433,7 @@ model ComThread {
  reports ComReport[]
  follows ComFollow[]
  contextLinks ComContextLink[]
+ bookmarks ComBookmark[]
  notifications ComNotification[]
  revisions ComThreadRevision[]
  fanout ComNotificationFanout[]
@@ -604,5 +608,16 @@ model ComPrivacyRequest {
  createdAt DateTime @default(now())
  reviewedAt DateTime?
  @@index([status,createdAt])
+ @@index([userId,createdAt])
+}
+
+/** C5 saved discussions: private member-owned records, no third-party view. */
+model ComBookmark {
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([userId,threadId])
  @@index([userId,createdAt])
 }

@@ -174,3 +174,8 @@
 .gp-calendar-day.gp-calendar-today small{color:#ffe1a5;font-weight:800}
 .gp-week-today{background:#72552b66!important;border-color:#efbe73!important;color:#ffe4aa!important}
 .gp-week-list time{min-width:68px;max-width:130px;white-space:normal;text-align:center}
+
+.gp-horoscope-day{border-top:1px solid #40506c;padding:13px 0;display:grid;gap:7px;overflow-wrap:anywhere}
+.gp-horoscope-day time{color:#d7bb86;font-size:13px}
+.gp-horoscope-day strong{color:#eee0c8}
+.gp-horoscope-day p{margin:0;line-height:1.6}
