@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
-import {ArrowLeft,ArrowRight,Flag,Lock,MessageCircle,Plus,Search,ShieldCheck,Star,Users} from 'lucide-react';
+import {ArrowLeft,ArrowRight,Bell,Flag,History,Lock,MessageCircle,Plus,Search,ShieldCheck,Star,ThumbsUp,Trash2,Users} from 'lucide-react';
 import PortalShell from './PortalShell';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './GalaxiCom.module.css';
@@ -14,6 +14,9 @@ type Listing<T>={items:T[];page:number;pageSize:number;total:number};
 type Me={signedIn:boolean;permissions:{canCreate:boolean;canReply:boolean;canModerate:boolean;premiumBadge:boolean};
  profile:{id:string;name:string;showPremiumBadge:boolean}|null};
 type Report={id:string;reason:string;targetType:'thread'|'post';targetId:string;excerpt:string;createdAt:string};
+type Activity={following:boolean;followers:number;likes:Record<string,{count:number;liked:boolean}>;myLikes:string[]};
+type Inbox={items:{id:string;threadId:string;title:string;createdAt:string;read:boolean}[];unread:number;total:number};
+type Revision={id:string;title?:string;body:string;editedAt:string};
 const uk={
  heading:'GalaxiCom',eyebrow:'СПІЛЬНОТА GALAXIORA',intro:'Простір живого спілкування про Джйотіш, Таро, духовні практики та ведичну традицію.',
  browse:'Обговорення',newTopic:'Створити тему',newTitle:'Назва теми',newBody:'Що хочеш обговорити?',pickCategory:'Вибери розділ',
@@ -27,7 +30,11 @@ const uk={
  lock:'Закрити тему',unlock:'Відкрити тему',pin:'Закріпити',unpin:'Відкріпити',resolve:'Вирішено',dismiss:'Відхилити',
  moderationReason:'Причина рішення',rule:'Тут публікуються відкриті дописи. Не розміщуй приватні дані народження, чужі історії, адресу чи контакти без згоди.',
  loading:'Завантаження…',error:'Не вдалося виконати дію. Перевір дані й повтори.',done:'Зміни збережено.',
- noReplies:'Поки немає відповідей.',signIn:'Увійти для участі',time:'uk-UA'
+ noReplies:'Поки немає відповідей.',signIn:'Увійти для участі',time:'uk-UA',
+ follow:'Стежити за темою',unfollow:'Не стежити',followers:'підписників',
+ helpful:'Корисно',history:'Історія змін',notifications:'Сповіщення',markRead:'Позначити прочитаним',
+ allRead:'Прочитати всі',delete:'Видалити тему',deleteConfirm:'Прибрати тему з форуму? Її можна відновити через модерацію, дані не будуть знищені.',
+ similar:'Можливо, таку тему вже обговорювали',editedLabel:'Попередня версія',noNotices:'Нових сповіщень немає.'
 } as const;
 const en={
  heading:'GalaxiCom',eyebrow:'GALAXIORA COMMUNITY',intro:'A welcoming space to discuss Jyotish, Tarot, spiritual practices and Vedic traditions.',
@@ -42,7 +49,11 @@ const en={
  lock:'Lock thread',unlock:'Unlock thread',pin:'Pin',unpin:'Unpin',resolve:'Resolve',dismiss:'Dismiss',
  moderationReason:'Decision reason',rule:'Posts are public. Avoid posting sensitive birth details, other people’s information, addresses or contact data without permission.',
  loading:'Loading…',error:'This action failed. Check the input and try again.',done:'Your changes were saved.',
- noReplies:'No replies yet.',signIn:'Sign in to participate',time:'en-GB'
+ noReplies:'No replies yet.',signIn:'Sign in to participate',time:'en-GB',
+ follow:'Follow topic',unfollow:'Unfollow',followers:'followers',
+ helpful:'Helpful',history:'Edit history',notifications:'Notifications',markRead:'Mark as read',
+ allRead:'Mark all read',delete:'Delete topic',deleteConfirm:'Remove this discussion? It will be hidden and auditable rather than physically erased.',
+ similar:'Similar discussions already exist',editedLabel:'Previous version',noNotices:'No notifications.'
 } as const;
 async function api<T>(path:string,options?:RequestInit):Promise<T>{
  const response=await fetch('/api/v1/com/'+path,{credentials:'same-origin',cache:'no-store',...options});
@@ -64,6 +75,10 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  const [composer,setComposer]=useState(false),[title,setTitle]=useState(''),[body,setBody]=useState('');
  const [topicCategory,setTopicCategory]=useState(''),[replyBody,setReplyBody]=useState('');
  const [displayName,setDisplayName]=useState(''),[editing,setEditing]=useState<string|null>(null),[edited,setEdited]=useState('');
+ const [editedTitle,setEditedTitle]=useState('');
+ const [activity,setActivity]=useState<Activity|null>(null),[inboxOpen,setInboxOpen]=useState(false);
+ const [inbox,setInbox]=useState<Inbox|null>(null),[duplicates,setDuplicates]=useState<{id:string;title:string}[]>([]);
+ const [history,setHistory]=useState<{id:string;items:Revision[]}|null>(null);
  const [reporting,setReporting]=useState<{target:'thread'|'post';id:string}|null>(null);
  const [reportReason,setReportReason]=useState(''),[modReason,setModReason]=useState('');
  const [queue,setQueue]=useState<Report[]|null>(null),[queueOpen,setQueueOpen]=useState(false);
@@ -100,8 +115,9 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  useEffect(()=>{
   if(!threadId)return;
   let active=true;
-  Promise.all([api<{thread:Thread}>('threads/'+threadId),api<Listing<Post>>('threads/'+threadId+'/posts?page='+replyPage)])
-   .then(([thread,posts])=>{if(active){setDetail(thread.thread);setReplies(posts)}})
+  Promise.all([api<{thread:Thread}>('threads/'+threadId),api<Listing<Post>>('threads/'+threadId+'/posts?page='+replyPage),
+   api<Activity>('threads/'+threadId+'/activity')])
+   .then(([thread,posts,social])=>{if(active){setDetail(thread.thread);setReplies(posts);setActivity(social)}})
    .catch(()=>{if(active)setError(t.error)});
   return()=>{active=false};
  },[threadId,replyPage,reload]);
@@ -112,6 +128,25 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
    .catch(()=>{if(active)setError(t.error)});
   return()=>{active=false};
  },[queueOpen,me?.permissions.canModerate,reload]);
+ useEffect(()=>{
+  if(!inboxOpen||!me?.signedIn)return;
+  let active=true;
+  api<Inbox>('notifications').then(x=>{if(active)setInbox(x)}).catch(()=>{if(active)setError(t.error)});
+  return()=>{active=false};
+ },[inboxOpen,me?.signedIn,reload]);
+ const showHistory=async(path:string,id:string)=>{
+  if(history?.id===id){setHistory(null);return;}
+  try{const response=await api<{items:Revision[]}>(path+'/revisions');setHistory({id,items:response.items});}
+  catch(e){setError(e instanceof Error?e.message:t.error);}
+ };
+ const historyPanel=(id:string)=>history?.id===id?<section className={styles.historyPanel}>
+  <h3>{t.history}</h3>
+  {history.items.map(rev=><div key={rev.id} className={styles.historyItem}>
+   <span>{t.editedLabel} · {date(rev.editedAt)}</span>
+   {rev.title&&<strong>{rev.title}</strong>}
+   <p className={styles.body}>{rev.body}</p>
+  </div>)}
+ </section>:null;
  const reportBox=(target:'thread'|'post',id:string)=>
   reporting?.target===target&&reporting.id===id?
    <form className={styles.inlineForm} onSubmit={async e=>{
@@ -124,19 +159,26 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
      <button type="button" onClick={()=>setReporting(null)}>{t.cancel}</button></div>
    </form>:null;
  const actor=(u:Author)=> <span className={styles.author}>
-  <strong>{u.name}</strong>
+  <Link href={root+'/member/'+u.id} className={styles.memberLink}><strong>{u.name}</strong></Link>
   {u.expert&&<span className={styles.expert}><ShieldCheck size={13}/>{t.expert}</span>}
   {u.premium&&<span className={styles.premium}><Star size={12}/>{t.premium}</span>}
  </span>;
- const editingForm=(id:string,current:string,path:string)=>
-  editing===id?<form className={styles.inlineForm} onSubmit={async e=>{
-   e.preventDefault();const ok=await act(()=>api(path,json('PATCH',path.startsWith('posts/')?{body:edited}:{body:edited})));
+ const editButton=(id:string,current:string,titleText='')=><button type="button" onClick={()=>{
+  setEditing(id);setEdited(current);setEditedTitle(titleText);
+ }}>{t.edit}</button>;
+ const editingForm=(id:string,path:string)=>editing===id?<form className={`${styles.inlineForm} ${styles.largeEditor}`}
+  data-testid="com-fullwidth-editor" onSubmit={async e=>{
+   e.preventDefault();const data=path.startsWith('posts/')?{body:edited}:{title:editedTitle,body:edited};
+   const ok=await act(()=>api(path,json('PATCH',data)));
    if(ok)setEditing(null);
   }}>
-   <textarea value={edited} minLength={3} maxLength={8000} onChange={e=>setEdited(e.target.value)} required/>
+   {!path.startsWith('posts/')&&<label>{t.newTitle}<input type="text" value={editedTitle} minLength={1}
+    maxLength={2000} onChange={e=>setEditedTitle(e.target.value)} required/></label>}
+   <label>{t.newBody}<textarea rows={14} value={edited} minLength={1} maxLength={200000}
+    onChange={e=>setEdited(e.target.value)} required/></label>
    <div className={styles.actions}><button type="submit" disabled={busy}>{t.save}</button>
     <button type="button" onClick={()=>setEditing(null)}>{t.cancel}</button></div>
-  </form>:<button type="button" onClick={()=>{setEditing(id);setEdited(current)}}>{t.edit}</button>;
+  </form>:null;
  return <PortalShell locale={locale} active="community" languagePath={threadId?'community/topic/'+threadId:'community'}>
   <div className={styles.wrap} data-testid="galaxicom">
    <header className={styles.hero}>
@@ -148,6 +190,18 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       <Plus size={17}/>{t.newTopic}</button>}</div>
    </header>
    <p className={styles.rules}>{t.rule}</p>
+   {me?.signedIn&&<details className={styles.inbox} open={inboxOpen}
+    onToggle={e=>setInboxOpen(e.currentTarget.open)}>
+    <summary><Bell size={17}/>{t.notifications}{inbox&&inbox.unread>0&&<strong>({inbox.unread})</strong>}</summary>
+    {inboxOpen&&<div className={styles.inboxItems}>
+     {inbox?.unread? <button type="button" disabled={busy} onClick={()=>void act(()=>api('notifications/read-all',{method:'PATCH'}))}>{t.allRead}</button>:null}
+     {inbox?.items.length?inbox.items.map(note=><div key={note.id} className={styles.inboxItem}>
+      <Link href={root+'/topic/'+note.threadId}>{note.title}</Link>
+      <span>{date(note.createdAt)}</span>
+      {!note.read&&<button type="button" onClick={()=>void act(()=>api('notifications/'+note.id+'/read',{method:'PATCH'}))}>{t.markRead}</button>}
+     </div>):<p>{t.noNotices}</p>}
+    </div>}
+   </details>}
    {error&&<p className={styles.error} role="alert">{error}</p>}
    {notice&&<p className={styles.notice} role="status">{notice}</p>}
    {!me?.signedIn&&<p className={styles.signIn}>{t.login} <Link href={'/'+locale+'/account'}>{t.signIn}<ArrowRight size={15}/></Link></p>}
@@ -172,8 +226,15 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
      <label>{t.pickCategory}<select value={topicCategory} onChange={e=>setTopicCategory(e.target.value)}>
       {categories.map(c=><option key={c.slug} value={c.slug}>{name(c)}</option>)}
      </select></label>
-     <label>{t.newTitle}<input value={title} minLength={12} maxLength={160} required onChange={e=>setTitle(e.target.value)}/></label>
-     <label>{t.newBody}<textarea value={body} minLength={30} maxLength={8000} required onChange={e=>setBody(e.target.value)}/></label>
+     <label>{t.newTitle}<input value={title} minLength={1} maxLength={2000} required
+      onBlur={()=>{if(title.trim().length>=8)api<{items:{id:string;title:string}[]}>('duplicates?title='+encodeURIComponent(title.trim()))
+       .then(x=>setDuplicates(x.items)).catch(()=>setDuplicates([]));}}
+      onChange={e=>{setTitle(e.target.value);setDuplicates([])}}/></label>
+     {duplicates.length>0&&<aside className={styles.similar} aria-label={t.similar}>
+      <strong>{t.similar}</strong>
+      {duplicates.map(item=><Link key={item.id} href={root+'/topic/'+item.id}>{item.title}</Link>)}
+     </aside>}
+     <label>{t.newBody}<textarea rows={12} value={body} minLength={1} maxLength={200000} required onChange={e=>setBody(e.target.value)}/></label>
      <div className={styles.actions}><button type="submit" disabled={busy||!topicCategory}>{t.publish}</button>
       <button type="button" onClick={()=>setComposer(false)}>{t.cancel}</button></div>
     </form>
@@ -187,11 +248,21 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       <h2>{detail.title}</h2><p className={styles.authorRow}>{actor(detail.author)}</p>
       <p className={styles.body}>{detail.body}</p>
       {detail.locked&&<p className={styles.locked}><Lock size={15}/>{t.locked}</p>}
+      {activity&&<div className={styles.followBar}>
+       <span>{activity.followers} {t.followers}</span>
+       {me?.signedIn&&<button type="button" disabled={busy} onClick={()=>void act(()=>api('threads/'+detail.id+'/follow',{
+        method:activity.following?'DELETE':'PUT'}))}>{activity.following?t.unfollow:t.follow}</button>}
+      </div>}
       <div className={styles.actions}>
-       {me?.profile?.id===detail.author.id&&editingForm(detail.id,detail.body,'threads/'+detail.id)}
+       {me?.profile?.id===detail.author.id&&editButton(detail.id,detail.body,detail.title)}
+       {(me?.profile?.id===detail.author.id||me?.permissions.canModerate)&&
+        <button type="button" onClick={()=>void showHistory('threads/'+detail.id,detail.id)}>
+         <History size={14}/>{t.history}</button>}
        {me?.signedIn&&<button type="button" onClick={()=>setReporting({target:'thread',id:detail.id})}>
         <Flag size={15}/>{t.report}</button>}
       </div>
+      {editingForm(detail.id,'threads/'+detail.id)}
+      {historyPanel(detail.id)}
       {reportBox('thread',detail.id)}
       {me?.permissions.canModerate&&<div className={styles.modBar}>
        <input aria-label={t.moderationReason} value={modReason} minLength={6} maxLength={300}
@@ -202,6 +273,10 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
         {text:t.hide,delta:{status:'HIDDEN'}}
        ]).map((item,i)=><button type="button" key={i} disabled={busy||modReason.trim().length<6}
         onClick={()=>void act(()=>api('mod/threads/'+detail.id,json('PATCH',{...item.delta,reason:modReason})))}>{item.text}</button>)}
+       <button type="button" className={styles.deleteButton} disabled={busy}
+        onClick={async()=>{if(!window.confirm(t.deleteConfirm))return;
+         if(await act(()=>api('mod/threads/'+detail.id,{method:'DELETE'})))window.location.assign(root);
+        }}><Trash2 size={15}/>{t.delete}</button>
       </div>}
      </article>}
      <h2 className={styles.subTitle}>{t.reply} · {replies?.total??0}</h2>
@@ -209,11 +284,22 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       <div className={styles.meta}>{actor(p.author)} · {date(p.createdAt)}</div>
       <p className={styles.body}>{p.body}</p>
       <div className={styles.actions}>
-       {me?.profile?.id===p.author.id&&editingForm(p.id,p.body,'posts/'+p.id)}
+       {me?.profile?.id===p.author.id&&editButton(p.id,p.body)}
+       {(me?.profile?.id===p.author.id||me?.permissions.canModerate)&&
+        <button type="button" onClick={()=>void showHistory('posts/'+p.id,p.id)}>
+         <History size={14}/>{t.history}</button>}
+       <button type="button" disabled={!me?.signedIn||busy}
+        aria-pressed={activity?.myLikes.includes(p.id)===true}
+        onClick={()=>void act(()=>api('posts/'+p.id+'/helpful',{
+         method:activity?.myLikes.includes(p.id)?'DELETE':'PUT'}))}>
+        <ThumbsUp size={14}/>{t.helpful} · {activity?.likes[p.id]?.count||0}
+       </button>
        {me?.signedIn&&<button type="button" onClick={()=>setReporting({target:'post',id:p.id})}><Flag size={14}/>{t.report}</button>}
        {me?.permissions.canModerate&&<button type="button" disabled={busy||modReason.trim().length<6}
         onClick={()=>void act(()=>api('mod/posts/'+p.id,json('PATCH',{status:'HIDDEN',reason:modReason})))}>{t.hide}</button>}
       </div>
+      {editingForm(p.id,'posts/'+p.id)}
+      {historyPanel(p.id)}
       {reportBox('post',p.id)}
      </article>)}
      {replies&&replies.total===0&&<p className={styles.empty}>{t.noReplies}</p>}
@@ -225,7 +311,7 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       e.preventDefault();const ok=await act(()=>api('threads/'+detail.id+'/posts',json('POST',{body:replyBody})));
       if(ok){setReplyBody('');setReplyPage(1)}
      }}>
-      <h3>{t.reply}</h3><textarea value={replyBody} minLength={3} maxLength={5000} required
+      <h3>{t.reply}</h3><textarea rows={12} value={replyBody} minLength={1} maxLength={200000} required
        onChange={e=>setReplyBody(e.target.value)}/>
       <button type="submit" disabled={busy}>{t.send}</button>
      </form>}
@@ -255,7 +341,11 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
          <h2><Link href={root+'/topic/'+thread.id}>{thread.title}</Link></h2>
          <p className={styles.excerpt}>{thread.body.slice(0,260)}{thread.body.length>260?'…':''}</p>
          <div className={styles.threadFooter}>{actor(thread.author)}<span><MessageCircle size={15}/>{thread.replyCount} {t.replyCount}</span>
-          {thread.locked&&<Lock size={15}/>}</div>
+          {thread.locked&&<Lock size={15}/>}
+          {me?.permissions.canModerate&&<button className={styles.deleteButton} type="button" disabled={busy}
+           onClick={async()=>{if(!window.confirm(t.deleteConfirm))return;
+            await act(()=>api('mod/threads/'+thread.id,{method:'DELETE'}));
+           }}><Trash2 size={14}/>{t.delete}</button>}</div>
         </article>)}
       {listing&&<div className={styles.pages}>
        <button type="button" disabled={page===1} onClick={()=>setPage(n=>n-1)}>{t.previous}</button>

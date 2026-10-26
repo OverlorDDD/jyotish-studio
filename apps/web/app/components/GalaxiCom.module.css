@@ -68,3 +68,50 @@
 .queue{padding:16px 0}.report{padding:12px 0;border-bottom:1px solid #33435b;color:#b7c8dd;overflow-wrap:anywhere}
 @media(max-width:800px){.layout{grid-template-columns:minmax(0,1fr)}.sidebar{flex-direction:row;overflow:auto;scrollbar-width:thin;white-space:nowrap}.sidebar button{flex-shrink:0}.wrap{width:calc(100% - 26px);margin:15px auto 45px}.tools{align-items:stretch}.tools form{flex-basis:100%}.hero{padding:27px 21px}.stars{opacity:.3}.thread,.panel,.reply{padding:16px}.threadFooter{justify-content:flex-start}.modBar input{min-width:100%}}
 @media(prefers-reduced-motion:reduce){.thread{transition:none}}
+
+/* C2: full-width editing, long user writing, clear actions across screen sizes. */
+.panel h2,.thread h2,.subTitle,.authorRow,.threadFooter,.historyItem,.inboxItem{overflow-wrap:anywhere;word-break:normal}
+.largeEditor{width:100%;max-width:none;display:flex;flex-direction:column;align-items:stretch;
+ padding:24px;margin:20px 0 22px;background:#142236;border:1px solid #52657e}
+.largeEditor label{display:flex;flex-direction:column;gap:9px;min-width:0;width:100%}
+.largeEditor input,.largeEditor textarea{display:block;width:100%;min-width:0;max-width:100%;
+ background:#091628;color:#e8eff8;border:1px solid #57708c;border-radius:10px;
+ padding:15px;line-height:1.65;font-size:16px}
+.largeEditor textarea{height:clamp(320px,48vh,760px);min-height:320px;resize:vertical;overflow-y:auto}
+.largeEditor .actions{width:100%;justify-content:flex-start}
+.composer textarea{height:clamp(260px,40vh,580px)}
+.panel>form>textarea{height:clamp(230px,34vh,450px);width:100%;resize:vertical;line-height:1.65}
+.deleteButton{background:#432735!important;color:#f5bbc4!important;border-color:#7d4352!important;
+ display:inline-flex;align-items:center;gap:7px}
+.deleteButton:hover{background:#68364a!important}
+.followBar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;color:#e3c58e;font-size:13px;
+ padding:13px 0;border-top:1px solid #35465c}
+.followBar button,.inboxItems button{background:#26364d;border:1px solid #5b7188;color:#efdfbb;
+ border-radius:9px;padding:9px 14px}
+.inbox{border:1px solid #3d5369;background:#162337;border-radius:12px;padding:13px 16px;
+ margin-bottom:18px}
+.inbox summary{display:flex;align-items:center;gap:9px;cursor:pointer;color:#e7d0a2}
+.inbox summary::marker{content:''}
+.inboxItems{display:grid;gap:8px;margin-top:13px}
+.inboxItem{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0;
+ border-bottom:1px solid #34445c}
+.inboxItem a,.memberLink,.similar a{color:#f0d098;text-decoration:none}
+.inboxItem span{font-size:12px;color:#a4b6ce}
+.inboxItem a:hover,.memberLink:hover,.similar a:hover{text-decoration:underline}
+.historyPanel{background:#18283b;padding:17px;border-radius:12px;margin:18px 0;border:1px solid #42566d}
+.historyPanel h3{font-size:15px;color:#e3c48e}
+.historyItem{border-top:1px solid #40506a;padding:14px 0}
+.historyItem span{font-size:12px;color:#a9bad0}
+.historyItem strong{display:block;margin:10px 0;color:#eee0c6}
+.historyItem p{max-height:300px;overflow:auto;white-space:pre-wrap}
+.similar{border:1px solid #786747;background:#292c35;padding:14px;border-radius:10px;
+ display:grid;gap:8px}
+.similar strong{color:#e9cc98;font-size:13px}
+.profileCard{display:grid;gap:14px;background:#19273a;padding:22px;
+ border:1px solid #3f5168;border-radius:14px}
+.profileCard a{color:#e8c58d}
+@media(max-width:600px){
+ .largeEditor{padding:14px;margin:15px 0}
+ .largeEditor textarea{height:55vh;min-height:260px}
+ .followBar,.inboxItem{align-items:flex-start}
+}

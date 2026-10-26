@@ -54,6 +54,9 @@ model User {
  comPosts ComPost[]
  comReports ComReport[]
  comModerationActions ComModerationAction[]
+ comHelpfulReactions ComHelpfulReaction[]
+ comFollows ComFollow[]
+ comNotifications ComNotification[]
  practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
@@ -410,7 +413,7 @@ model ComThread {
  category ComCategory @relation(fields:[categorySlug],references:[slug],onDelete:Restrict)
  authorId String
  author User @relation(fields:[authorId],references:[id],onDelete:Cascade)
- title String @db.VarChar(160)
+ title String @db.Text
  body String @db.Text
  status String @default("PUBLISHED") @db.VarChar(16)
  pinned Boolean @default(false)
@@ -420,6 +423,9 @@ model ComThread {
  lastActivityAt DateTime @default(now())
  posts ComPost[]
  reports ComReport[]
+ follows ComFollow[]
+ notifications ComNotification[]
+ revisions ComThreadRevision[]
  @@index([categorySlug,status,pinned,lastActivityAt])
  @@index([status,lastActivityAt])
  @@index([authorId,createdAt])
@@ -435,6 +441,9 @@ model ComPost {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  reports ComReport[]
+ helpful ComHelpfulReaction[]
+ notifications ComNotification[]
+ revisions ComPostRevision[]
  @@index([threadId,status,createdAt,id])
  @@index([authorId,createdAt])
 }
@@ -465,4 +474,55 @@ model ComModerationAction {
  createdAt DateTime @default(now())
  @@index([targetType,targetId,createdAt])
  @@index([createdAt])
+}
+
+/** C2 likes are independent of PREMIUM and atomically unique per member/post. */
+model ComHelpfulReaction {
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ postId String @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([userId,postId])
+ @@index([postId])
+}
+model ComFollow {
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([userId,threadId])
+ @@index([threadId])
+}
+model ComNotification {
+ id String @id @default(uuid()) @db.Uuid
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ postId String @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ kind String @default("REPLY") @db.VarChar(16)
+ createdAt DateTime @default(now())
+ readAt DateTime?
+ @@unique([userId,postId,kind])
+ @@index([userId,readAt,createdAt])
+}
+model ComThreadRevision {
+ id String @id @default(uuid()) @db.Uuid
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ title String @db.Text
+ body String @db.Text
+ editedAt DateTime @default(now())
+ @@index([threadId,editedAt])
+}
+model ComPostRevision {
+ id String @id @default(uuid()) @db.Uuid
+ postId String @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ body String @db.Text
+ editedAt DateTime @default(now())
+ @@index([postId,editedAt])
 }

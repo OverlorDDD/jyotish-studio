@@ -1,4 +1,4 @@
-import {BadRequestException,Body,ConflictException,Controller,ForbiddenException,Get,Header,HttpException,Inject,NotFoundException,Param,Patch,Post,Query,Req,UnauthorizedException} from '@nestjs/common';
+import {BadRequestException,Body,ConflictException,Controller,Delete,ForbiddenException,Get,Header,HttpException,Inject,NotFoundException,Param,Patch,Post,Query,Req,UnauthorizedException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {IsBoolean,IsIn,IsOptional,IsString,IsUUID,Length,Matches} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
@@ -17,14 +17,14 @@ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 class ComThreadDto{
  @IsString() @Matches(/^[a-z0-9-]{2,48}$/) categorySlug!:string;
- @IsString() @Length(12,160) title!:string;
- @IsString() @Length(30,8000) body!:string;
+ @IsString() @Length(1,2000) title!:string;
+ @IsString() @Length(1,200000) body!:string;
 }
 class ComThreadEditDto{
- @IsOptional() @IsString() @Length(12,160) title?:string;
- @IsOptional() @IsString() @Length(30,8000) body?:string;
+ @IsOptional() @IsString() @Length(1,2000) title?:string;
+ @IsOptional() @IsString() @Length(1,200000) body?:string;
 }
-class ComPostDto{ @IsString() @Length(3,5000) body!:string; }
+class ComPostDto{ @IsString() @Length(1,200000) body!:string; }
 class ComProfileDto{
  @IsOptional() @IsString() @Length(3,40) @Matches(/^[\p{L}\p{N} ._-]{3,40}$/u) displayName?:string;
  @IsOptional() @IsBoolean() showPremiumBadge?:boolean;
@@ -164,56 +164,76 @@ export class ComController{
  @Post('threads') @Header('Cache-Control','private,no-store')
  async createThread(@Req()req:IncomingMessage,@Body()dto:ComThreadDto){
   this.mutation(req);const actor=(await this.actor(req))!;
-  const title=safeText(dto.title,12,160),body=safeText(dto.body,30,8000);
+  const title=safeText(dto.title,1,2000),body=safeText(dto.body,1,200000);
   if(!await this.db.comCategory.findFirst({where:{slug:dto.categorySlug,enabled:true}}))
    throw new BadRequestException('Category unavailable');
   if(!threadQuota(actor.id))throw new HttpException('Too many discussions this hour',429);
   const existing=await this.db.comThread.findFirst({where:{authorId:actor.id,title,
    createdAt:{gte:new Date(Date.now()-60000)}},select:{id:true}});
   if(existing)throw new ConflictException('Similar discussion was just posted');
-  const thread=await this.db.comThread.create({data:{categorySlug:dto.categorySlug,
-   authorId:actor.id,title,body},select:{id:true}});
-  return {id:thread.id};
+  return this.db.$transaction(async tx=>{
+   const thread=await tx.comThread.create({data:{categorySlug:dto.categorySlug,
+    authorId:actor.id,title,body},select:{id:true}});
+   // The author is automatically subscribed to subsequent replies, with an explicit unfollow control.
+   await tx.comFollow.create({data:{userId:actor.id,threadId:thread.id}});
+   return {id:thread.id};
+  });
  }
  @Patch('threads/:id') @Header('Cache-Control','private,no-store')
  async editThread(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComThreadEditDto){
   this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw);
   if(dto.title===undefined&&dto.body===undefined)throw new BadRequestException('Nothing to edit');
-  const row=await this.db.comThread.findFirst({where:{id,authorId:actor.id,status:'PUBLISHED',locked:false},
-   select:{createdAt:true}});
-  if(!row)throw new NotFoundException('Editable discussion not found');
-  if(!withinEditWindow(row.createdAt))throw new ForbiddenException('Editing window ended');
-  const data={...(dto.title!==undefined?{title:safeText(dto.title,12,160)}:{}),
-   ...(dto.body!==undefined?{body:safeText(dto.body,30,8000)}:{})};
-  const count=await this.db.comThread.updateMany({where:{id,authorId:actor.id,status:'PUBLISHED',
-   locked:false,createdAt:{gte:new Date(Date.now()-30*60000)}},data});
-  if(!count.count)throw new ConflictException('Discussion changed');
-  return {updated:true};
+  const data={...(dto.title!==undefined?{title:safeText(dto.title,1,2000)}:{}),
+   ...(dto.body!==undefined?{body:safeText(dto.body,1,200000)}:{})};
+  return this.db.$transaction(async tx=>{
+   const row=await tx.comThread.findFirst({where:{id,authorId:actor.id,status:'PUBLISHED',locked:false},
+    select:{createdAt:true,updatedAt:true,title:true,body:true}});
+   if(!row)throw new NotFoundException('Editable discussion not found');
+   if(!withinEditWindow(row.createdAt))throw new ForbiddenException('Editing window ended');
+   const changed=await tx.comThread.updateMany({where:{id,authorId:actor.id,status:'PUBLISHED',locked:false,
+    updatedAt:row.updatedAt,createdAt:{gte:new Date(Date.now()-30*60000)}},data});
+   if(!changed.count)throw new ConflictException('Discussion changed');
+   await tx.comThreadRevision.create({data:{threadId:id,title:row.title,body:row.body}});
+   return {updated:true};
+  });
  }
  @Post('threads/:id/posts') @Header('Cache-Control','private,no-store')
  async reply(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComPostDto){
   this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw);
-  const body=safeText(dto.body,3,5000);
+  const body=safeText(dto.body,1,200000);
   if(!replyQuota(actor.id))throw new HttpException('Too many replies this hour',429);
   return this.db.$transaction(async tx=>{
+   // Reject exact accidental double-submit (the UI also warns about near-duplicate topics).
+   const duplicate=await tx.comPost.findFirst({where:{threadId:id,authorId:actor.id,body,
+    createdAt:{gte:new Date(Date.now()-120000)}},select:{id:true}});
+   if(duplicate)throw new ConflictException('This reply was just published');
    const changed=await tx.comThread.updateMany({where:{id,status:'PUBLISHED',locked:false,
     category:{enabled:true}},data:{lastActivityAt:new Date()}});
    if(!changed.count)throw new NotFoundException('Discussion closed or unavailable');
    const p=await tx.comPost.create({data:{threadId:id,authorId:actor.id,body},select:{id:true}});
+   // MVP fanout cap; C4 introduces a durable queue for large groups.
+   const subscribers=await tx.comFollow.findMany({where:{threadId:id,userId:{not:actor.id}},
+    select:{userId:true},take:500});
+   if(subscribers.length)await tx.comNotification.createMany({data:subscribers.map(x=>({
+    userId:x.userId,threadId:id,postId:p.id,kind:'REPLY'})),skipDuplicates:true});
    return {id:p.id};
   });
  }
  @Patch('posts/:id') @Header('Cache-Control','private,no-store')
  async editPost(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComPostDto){
-  this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw),body=safeText(dto.body,3,5000);
-  const row=await this.db.comPost.findFirst({where:{id,authorId:actor.id,status:'PUBLISHED',
-   thread:{status:'PUBLISHED',locked:false}},select:{createdAt:true}});
-  if(!row)throw new NotFoundException('Editable reply not found');
-  if(!withinEditWindow(row.createdAt))throw new ForbiddenException('Editing window ended');
-  const changed=await this.db.comPost.updateMany({where:{id,authorId:actor.id,status:'PUBLISHED',
-   createdAt:{gte:new Date(Date.now()-30*60000)},thread:{status:'PUBLISHED',locked:false}},data:{body}});
-  if(!changed.count)throw new ConflictException('Reply changed');
-  return {updated:true};
+  this.mutation(req);const actor=(await this.actor(req))!,id=requireUuid(raw),body=safeText(dto.body,1,200000);
+  return this.db.$transaction(async tx=>{
+   const row=await tx.comPost.findFirst({where:{id,authorId:actor.id,status:'PUBLISHED',
+    thread:{status:'PUBLISHED',locked:false}},select:{createdAt:true,updatedAt:true,body:true}});
+   if(!row)throw new NotFoundException('Editable reply not found');
+   if(!withinEditWindow(row.createdAt))throw new ForbiddenException('Editing window ended');
+   const changed=await tx.comPost.updateMany({where:{id,authorId:actor.id,status:'PUBLISHED',
+    updatedAt:row.updatedAt,createdAt:{gte:new Date(Date.now()-30*60000)},
+    thread:{status:'PUBLISHED',locked:false}},data:{body}});
+   if(!changed.count)throw new ConflictException('Reply changed');
+   await tx.comPostRevision.create({data:{postId:id,body:row.body}});
+   return {updated:true};
+  });
  }
  @Post('reports') @Header('Cache-Control','private,no-store')
  async report(@Req()req:IncomingMessage,@Body()dto:ComReportDto){
@@ -263,6 +283,19 @@ export class ComController{
    return {updated:true};
   });
  }
+ /** Quick deletion is reversible/tombstoned to preserve moderation audit and reports. */
+ @Delete('mod/threads/:id') @Header('Cache-Control','private,no-store')
+ async deleteThread(@Req()req:IncomingMessage,@Param('id')raw:string){
+  this.mutation(req);const actor=await this.mod(req),id=requireUuid(raw);
+  return this.db.$transaction(async tx=>{
+   const changed=await tx.comThread.updateMany({where:{id,status:{not:'DELETED'}},
+    data:{status:'DELETED',locked:true,pinned:false}});
+   if(!changed.count)throw new NotFoundException('Discussion unavailable');
+   await tx.comModerationAction.create({data:{actorId:actor.id,targetType:'THREAD',targetId:id,
+    action:'DELETE',reason:'Moderator confirmed quick deletion'}});
+   return {deleted:true};
+  });
+ }
  @Patch('mod/posts/:id') @Header('Cache-Control','private,no-store')
  async moderatePost(@Req()req:IncomingMessage,@Param('id')raw:string,@Body()dto:ComModeratePostDto){
   this.mutation(req);const actor=await this.mod(req),id=requireUuid(raw),reason=safeText(dto.reason,6,300);
@@ -293,6 +326,6 @@ for(const [name,args] of [
  ['createThread',[Object,ComThreadDto]],['editThread',[Object,String,ComThreadEditDto]],
  ['reply',[Object,String,ComPostDto]],['editPost',[Object,String,ComPostDto]],
  ['report',[Object,ComReportDto]],['modQueue',[Object]],
- ['moderateThread',[Object,String,ComModerateThreadDto]],['moderatePost',[Object,String,ComModeratePostDto]],
+ ['moderateThread',[Object,String,ComModerateThreadDto]],['deleteThread',[Object,String]],['moderatePost',[Object,String,ComModeratePostDto]],
  ['resolveReport',[Object,String,ComResolveDto]]
 ] as const)Reflect.defineMetadata('design:paramtypes',args,ComController.prototype,name);
