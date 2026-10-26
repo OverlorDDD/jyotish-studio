@@ -342,3 +342,15 @@ model NewsSourceScan {
  @@index([createdAt])
  @@index([sourceKey,createdAt])
 }
+
+/** Discovered through independent news-index results. Not automatically a trusted RSS source. */
+model NewsDiscoveredSource {
+ domain String @id @db.VarChar(200)
+ firstSeenAt DateTime @default(now())
+ lastSeenAt DateTime @default(now())
+ lastTitle String? @db.VarChar(240)
+ articleCount Int @default(0)
+ status String @default("DISCOVERED") @db.VarChar(24)
+ @@index([lastSeenAt])
+ @@index([status, articleCount])
+}
