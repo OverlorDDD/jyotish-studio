@@ -1,6 +1,6 @@
-import {BadRequestException,Body,Controller,Delete,Get,Header,HttpException,Inject,NotFoundException,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ForbiddenException} from '@nestjs/common';
+import {BadRequestException,Body,ConflictException,Controller,Delete,Get,Header,HttpException,Inject,NotFoundException,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ForbiddenException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
-import {ArrayMaxSize,IsArray,IsIn} from 'class-validator';
+import {ArrayMaxSize,IsArray,IsBoolean,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
@@ -12,6 +12,7 @@ import {RSS_SOURCES,GDELT_QUERIES} from './news-sources.ts';
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
 class SourcePolicyDto{@IsIn(['DISCOVERED','BLOCKED','TRUSTED'])status!:'DISCOVERED'|'BLOCKED'|'TRUSTED';}
 class NewsVoteDto{@IsIn(['YES','NO'])vote!:'YES'|'NO';}
+class NewsSettingDto{@IsBoolean()enabled!:boolean;}
 const reactionLimiter=createKeyedHourlyLimiter(150);
 class NewsInterestsDto{
  @IsArray() @ArrayMaxSize(12) @IsIn(INTEREST_TAGS,{each:true})
@@ -65,6 +66,7 @@ export class NewsController {
    .sort((a,b)=>sort==='latest'?b.publishedAt.getTime()-a.publishedAt.getTime():
     b.relevance-a.relevance||b.publishedAt.getTime()-a.publishedAt.getTime());
   let ranked=sort==='relevance'&&topic==='all'&&!tag?diversify(ordered,3):ordered;
+  let personalEnabled=sort==='personal';
   if(sort==='personal'&&uid){
    const [profile,history]=await Promise.all([
     this.prisma.personalProfile.findUnique({where:{userId:uid},select:{newsTopics:true}}),
@@ -73,7 +75,12 @@ export class NewsController {
    ]);
    const chosen=selectedTags.length?selectedTags:
     (profile?.newsTopics||[]).filter(x=>(INTEREST_TAGS as readonly string[]).includes(x));
-   ranked=rankPersonalNews(ordered,chosen,history) as typeof ordered;
+   if(profile?.newsPersonalizationEnabled===false){
+    personalEnabled=false;
+    ranked=diversify(ordered,3); // opt-out: no reaction-driven recommendations
+   }else{
+    ranked=rankPersonalNews(ordered,chosen,history) as typeof ordered;
+   }
   }
   const size=Number(limit),offset=(Number(page)-1)*size;
   const [lastScan,articleCount]=await Promise.all([
@@ -82,7 +89,7 @@ export class NewsController {
   ]);
   return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>rest),
    total:ranked.length,articleCount,page:Number(page),limit:size,lastScan,
-   personalized:sort==='personal',sort};
+   personalized:personalEnabled,sort};
  }
  /** P2: one reversible opinion per article, persisted only by explicit user action. */
  private async reactionOwner(req:IncomingMessage,mutation=false){
@@ -96,10 +103,14 @@ export class NewsController {
  @Get('reactions') @Header('Cache-Control','private,no-store')
  async getReactions(@Req()req:IncomingMessage){
   const userId=await this.reactionOwner(req);
-  const rows=await this.prisma.newsReaction.findMany({where:{userId},
-   orderBy:{updatedAt:'desc'},take:1000,
-   select:{articleId:true,vote:true,updatedAt:true}});
-  return {items:rows};
+  const [rows,total]=await Promise.all([
+   this.prisma.newsReaction.findMany({where:{userId},
+    orderBy:{updatedAt:'desc'},take:1000,
+    select:{articleId:true,vote:true,updatedAt:true,
+     article:{select:{title:true,titleUk:true,url:true,source:true,topic:true,publishedAt:true}}}}),
+   this.prisma.newsReaction.count({where:{userId}})
+  ]);
+  return {items:rows,total};
  }
  @Put('reactions/:articleId') @Header('Cache-Control','private,no-store')
  async putReaction(@Req()req:IncomingMessage,@Param('articleId')articleId:string,@Body()data:NewsVoteDto){
@@ -109,6 +120,10 @@ export class NewsController {
   if(!['YES','NO'].includes(data?.vote))throw new BadRequestException('Invalid reaction');
   const article=await this.prisma.newsArticle.findFirst({where:{id:articleId,status:'PUBLISHED'},select:{id:true}});
   if(!article)throw new NotFoundException('Article unavailable');
+  const personal=await this.prisma.personalProfile.findUnique({where:{userId},
+   select:{newsPersonalizationEnabled:true}});
+  if(personal?.newsPersonalizationEnabled===false)
+   throw new ConflictException('Enable news personalization before recording reactions');
   if(!reactionLimiter(userId))throw new HttpException('Reaction limit reached; retry later',429);
   const entry=await this.prisma.newsReaction.upsert({
    where:{userId_articleId:{userId,articleId}},
@@ -132,6 +147,52 @@ export class NewsController {
   return {deleted:deleted.count};
  }
 
+
+ /** P4: one explicit privacy switch: turning this off stops personal ranking and future votes. */
+ @Put('settings') @Header('Cache-Control','private,no-store')
+ async saveSettings(@Req()req:IncomingMessage,@Body()data:NewsSettingDto){
+  const userId=await this.reactionOwner(req,true);
+  if(typeof data?.enabled!=='boolean')throw new BadRequestException('Expected enabled boolean');
+  const row=await this.prisma.personalProfile.upsert({
+   where:{userId},create:{userId,newsPersonalizationEnabled:data.enabled},
+   update:{newsPersonalizationEnabled:data.enabled},
+   select:{newsPersonalizationEnabled:true,updatedAt:true}
+  });
+  return {enabled:row.newsPersonalizationEnabled,updatedAt:row.updatedAt};
+ }
+ /** P4: export only explicit News interests + reactions, never the Personal journal or birth data. */
+ @Get('privacy/export') @Header('Cache-Control','private,no-store')
+ async exportNewsData(@Req()req:IncomingMessage){
+  const userId=await this.reactionOwner(req);
+  const [profile,total,reactions]=await Promise.all([
+   this.prisma.personalProfile.findUnique({where:{userId},
+    select:{newsTopics:true,newsPersonalizationEnabled:true}}),
+   this.prisma.newsReaction.count({where:{userId}}),
+   this.prisma.newsReaction.findMany({where:{userId},orderBy:{updatedAt:'desc'},take:10000,
+    select:{articleId:true,vote:true,createdAt:true,updatedAt:true,
+     article:{select:{title:true,titleUk:true,source:true,url:true,topic:true}}}})
+  ]);
+  return {format:'galaxiora-news-interests-v1',exportedAt:new Date().toISOString(),
+   interests:(profile?.newsTopics||[]).filter(t=>(INTEREST_TAGS as readonly string[]).includes(t)),
+   enabled:profile?.newsPersonalizationEnabled!==false,
+   reactions,total,complete:reactions.length===total};
+ }
+ /** P4: deliberately scoped to NEWS settings, retaining Personal charts and unrelated interests. */
+ @Delete('privacy/reset') @Header('Cache-Control','private,no-store')
+ async resetNewsData(@Req()req:IncomingMessage){
+  const userId=await this.reactionOwner(req,true);
+  return this.prisma.$transaction(async tx=>{
+   const saved=await tx.personalProfile.findUnique({where:{userId},select:{newsTopics:true}});
+   const legacy=(saved?.newsTopics||[]).filter(tag=>
+    !(INTEREST_TAGS as readonly string[]).includes(tag));
+   const deleted=await tx.newsReaction.deleteMany({where:{userId}});
+   await tx.personalProfile.upsert({where:{userId},
+    create:{userId,newsTopics:legacy,newsPersonalizationEnabled:true},
+    update:{newsTopics:legacy,newsPersonalizationEnabled:true}});
+   return {deleted:deleted.count,tags:[],enabled:true};
+  });
+ }
+
  /** Phase P1: account-scoped interests; public World never requires a login. */
  @Get('interests') @Header('Cache-Control','private,no-store')
  async getInterests(@Req()req:IncomingMessage){
@@ -140,9 +201,10 @@ export class NewsController {
   const user=await this.prisma.user.findUnique({where:{id:userId},select:{id:true}});
   if(!user)throw new UnauthorizedException('Session is no longer valid');
   const data=await this.prisma.personalProfile.findUnique({
-   where:{userId},select:{newsTopics:true,updatedAt:true}
+   where:{userId},select:{newsTopics:true,newsPersonalizationEnabled:true,updatedAt:true}
   });
   return {tags:(data?.newsTopics||[]).filter(tag=>(INTEREST_TAGS as readonly string[]).includes(tag)),
+   enabled:data?.newsPersonalizationEnabled!==false,
    updatedAt:data?.updatedAt||null};
  }
  @Put('interests') @Header('Cache-Control','private,no-store')
@@ -234,6 +296,9 @@ for(const [method,types] of [
  ['putReaction',[Object,String,NewsVoteDto]],
  ['undoReaction',[Object,String]],
  ['clearReactions',[Object]],
+ ['saveSettings',[Object,NewsSettingDto]],
+ ['exportNewsData',[Object]],
+ ['resetNewsData',[Object]],
  ['moderate',[Object,String,ModerateDto]],
  ['health',[Object]],
  ['refresh',[Object,String]],
