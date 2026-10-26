@@ -13,7 +13,7 @@ export function middleware(request:NextRequest){
  const response=NextResponse.next({request:{headers:requestHeaders}});
  response.headers.set('Cache-Control','no-store, max-age=0, must-revalidate');
  if(/^\/(?:uk|en)\/news(?:\/|$)/.test(request.nextUrl.pathname)){
-  response.headers.set('X-Galaxiora-News-Revision','world-v1.6');
+  response.headers.set('X-Galaxiora-News-Revision','world-v1.7');
  }
  response.headers.set('X-Content-Type-Options','nosniff');
  response.headers.set('X-Frame-Options','DENY');
