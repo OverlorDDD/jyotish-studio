@@ -71,7 +71,7 @@ export class ComGrowthController{
   try{return await this.db.$transaction(async tx=>{
     const old=await tx.comBookmark.findUnique({where:{userId_threadId:{userId:actor.id,threadId:id}}});
     if(old)return {saved:true};
-    const total=await tx.comBookmark.count({where:{userId:actor.id}});
+    const total=await tx.comBookmark.count({where:{userId:actor.id,thread:{status:'PUBLISHED',category:{enabled:true}}}});
     if(total>=bookmarkCapacity(this.premium(actor)))throw new ForbiddenException('Bookmark allowance reached');
     await tx.comBookmark.create({data:{userId:actor.id,threadId:id}});
     return {saved:true};

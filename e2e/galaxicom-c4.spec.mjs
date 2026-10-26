@@ -79,6 +79,7 @@ test('C4: durable fanout, atomic quotas, independent appeals, private export, re
   const blockedStale=await page.request.patch(api('mod/appeals/'+staleId),{data:{
    decision:'ACCEPTED',reason:'An old appeal must never reverse a later moderation action'}});
   expect(blockedStale.status()).toBe(409);
+  expect((await page.request.put(api('growth/bookmarks/'+threadId))).status()).toBe(200);
   const privateRequest=await page.request.post(api('privacy/requests'),{data:{kind:'ERASE_FORUM'}});
   expect(privateRequest.status()).toBe(201);privacyId=(await privateRequest.json()).id;
   expect((await page.request.get(api('mod/privacy'))).status()).toBe(403);
@@ -88,6 +89,7 @@ test('C4: durable fanout, atomic quotas, independent appeals, private export, re
    data:{action:'PUBLIC_REDACT',reason:'User requested removal of their public forum contributions'}});
   expect(publicRedact.status()).toBe(200);
   expect((await db.comPrivacyRequest.findUnique({where:{id:privacyId}}))?.status).toBe('PUBLIC_REDACTED');
+  expect(await db.comBookmark.count({where:{userId:aid}})).toBe(0);
   expect((await db.comThread.findUnique({where:{id:threadId}}))?.status).toBe('DELETED');
   expect((await page.request.get(api('threads/'+threadId))).status()).toBe(404);
  }finally{

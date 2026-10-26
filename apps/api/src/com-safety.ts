@@ -187,6 +187,7 @@ export class ComSafetyController{
     await tx.comProfile.deleteMany({where:{userId:target.userId}});
     await tx.comHelpfulReaction.deleteMany({where:{userId:target.userId}});
     await tx.comFollow.deleteMany({where:{userId:target.userId}});
+    await tx.comBookmark.deleteMany({where:{userId:target.userId}});
     await tx.comNotification.deleteMany({where:{userId:target.userId}});
    }
    const status=dto.action==='PUBLIC_REDACT'?'PUBLIC_REDACTED':'IN_REVIEW';
