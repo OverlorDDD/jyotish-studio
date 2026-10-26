@@ -22,9 +22,9 @@ test('publisher metadata yields factual preview information without article body
  assert.equal(result.imageUrl,'https://culture.example.org/assets/tarot-card.jpg');
  assert.doesNotMatch(result.description,/FULL ARTICLE/);
 });
-test('RSS preview thumbnail remains linked as external publisher media and falls back without an image',()=>{
+test('unlicensed RSS thumbnails fall back instead of bypassing image rights checks',()=>{
  const xml='<rss><channel><item><title>Yoga practice connects mindful movement and breath</title><link>https://magazine.example.com/yoga</link><pubDate>Mon, 26 Oct 2026 10:00:00 GMT</pubDate><enclosure url="https://cdn.magazine.example.com/images/yoga.webp" type="image/webp"/></item></channel></rss>';
  const c=parseXml(xml,'Magazine')[0];
  assert.ok(c.imageFeedPreview);
- assert.equal(classify(c)?.imageUrl,'https://cdn.magazine.example.com/images/yoga.webp');
+ assert.equal(classify(c)?.imageUrl,null);
 });

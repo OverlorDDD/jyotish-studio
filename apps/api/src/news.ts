@@ -7,6 +7,7 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify} from './news-domain.ts';
 import {NewsIngestionService} from './news-ingestion.ts';
 import {rankPersonalNews} from './news-relevance.ts';
+import {collapseNewsEvents,newsQualitySnapshot} from './news-quality.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {RSS_SOURCES,GDELT_QUERIES} from './news-sources.ts';
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
@@ -82,6 +83,8 @@ export class NewsController {
     ranked=rankPersonalNews(ordered,chosen,history) as typeof ordered;
    }
   }
+  // Reduce duplicated event cards only after ranking, before pagination; never delete source records.
+  ranked=collapseNewsEvents(ranked);
   const size=Number(limit),offset=(Number(page)-1)*size;
   const [lastScan,articleCount]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,sources:true,accepted:true,errors:true}}),
@@ -251,7 +254,7 @@ export class NewsController {
  @Get('admin/health') @Header('Cache-Control','private,no-store')
  async health(@Req()req:IncomingMessage){
   await this.admin(req);
-  const [last,scans,articleCount,byTopic,byPublisher,untranslated,unsummarized,unillustrated,publishers]=await Promise.all([
+  const [last,scans,articleCount,byTopic,byPublisher,untranslated,unsummarized,unillustrated,publishers,qualitySample]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'}}),
    this.prisma.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:120}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED'}}),
@@ -260,7 +263,10 @@ export class NewsController {
    this.prisma.newsArticle.count({where:{status:'PUBLISHED',titleUk:null}}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED',summaryUk:null}}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED',imageUrl:null}}),
-   this.prisma.newsDiscoveredSource.findMany({orderBy:{articleCount:'desc'},take:100})
+   this.prisma.newsDiscoveredSource.findMany({orderBy:{articleCount:'desc'},take:100}),
+   this.prisma.newsArticle.findMany({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},take:600,
+    select:{id:true,url:true,title:true,titleUk:true,topic:true,source:true,publishedAt:true,
+     publishedAccuracy:true,imageUrl:true,summaryUk:true,summaryEn:true,feedDescription:true,summary:true}})
   ]);
   const seen=new Set<string>(),latest:typeof scans=[];
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
@@ -270,7 +276,7 @@ export class NewsController {
     &&process.env.NEWS_EDITORIAL_AI_ENABLED!=='0',
    articleCount,publishers:byPublisher.length,untranslated,unsummarized,unillustrated,discoveredSources:publishers,
    byTopic:byTopic.map(t=>({topic:t.topic,count:t._count._all})),
-   sources:latest,history:scans.slice(0,40)};
+   quality:newsQualitySnapshot(qualitySample),sources:latest,history:scans.slice(0,40)};
  }
  @Patch('admin/sources/:domain') @Header('Cache-Control','private,no-store')
  async sourcePolicy(@Req()req:IncomingMessage,@Param('domain')domain:string,@Body()body:SourcePolicyDto){

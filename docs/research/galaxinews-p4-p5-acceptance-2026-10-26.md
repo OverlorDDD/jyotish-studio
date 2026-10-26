@@ -33,6 +33,7 @@
 P1 saved account topics — accepted.
 P2 explicit vote persistence — accepted.
 P3 baseline Relevance Engine v2 — accepted for initial use, P4 adds similarity discrimination.
-P4 privacy/controls/similarity — implemented on PR #52 subject to CI and live manual acceptance.
-P5 tests/security/quality contract — implemented on PR #52 subject to CI and live manual acceptance.
+P4 privacy/controls/similarity — OWNER ACCEPTED 2026-10-26; in PR #52.
+P5 tests/security/quality contract — OWNER ACCEPTED 2026-10-26; baseline GitHub CI 4/4 PASS (run 40342456864, commit 9ee3363). Subsequent Stage 2 code needs its own CI result.
+Quality & Discovery Stage 2 — documented in galaxinews-quality-discovery-2026-10-26.md; live publisher rights and performance are independent release gates.
 Later optional natal/transit personalization is NOT part of P4/P5 and still requires separate consent and verified astronomical facts.

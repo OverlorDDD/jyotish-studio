@@ -98,8 +98,10 @@ export function safeImageUrl(raw:string,license='',publisher='',feedPreview=fals
   const grant=(process.env.NEWS_IMAGE_ALLOWED_HOSTS||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
   const allowedHost=grant.some(x=>x===host);
   const explicitLicense=/creativecommons\.org\/licenses\/by(?:-sa)?\/|creativecommons\.org\/publicdomain\/|(?:^|\s)(?:CC0|CC-BY(?:-SA)?)(?:\s|$)/i.test(license);
-  // External RSS image enclosures are intended as linked publisher previews. Never copy the media bytes.
-  if(!allowedHost&&!explicitLicense&&!feedPreview)return null;
+  // RSS thumbnails are metadata, not rights grants. Require explicit license or approved host.
+  // Preserve old call signature but never treat preview=true as permission.
+  void publisher;void feedPreview;
+  if(!allowedHost&&!explicitLicense)return null;
   return url;
  }catch{return null;}
 }

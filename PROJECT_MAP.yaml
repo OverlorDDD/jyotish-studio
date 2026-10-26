@@ -1,9 +1,9 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-24"
+updated: "2026-10-26"
 verified_against:
   branch: fix/jqa3-windows-and-llm-recovery
-  commit: "54ed714ca4faddb3f67f7cf38a7109e37200e2f1"
+  commit: "9ee3363ae8deea87a9ec8d7cab333e3fbc534b7f" # pre-Stage2 baseline
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -114,16 +114,16 @@ modules:
     safety: "Docker Desktop / PostgreSQL health and Prisma migrations must pass before Next and Nest start; database volume preserved"
     diagnostics: "npm run db:doctor; npm run site:check; npm run test:bootstrap"
   news_world:
-    status: "World v1.7: stale Next.js client build safe cleanup on git revisions, full Chromium DOM verification, 12 tags, visible search, no public ops copy; live host QA pending"
+    status: "GalaxiNews World + P1-P5 accepted; Stage 2 Quality & Discovery implemented; independent live-source/licensing QA pending"
     http: "apps/api/src/news.ts; /api/v1/news/feed, /topics, admin moderation and health"
     ingestion: "apps/api/src/news-ingestion.ts and news-metadata.ts; 25 RSS candidates, 13 GDELT queries, publisher domain registry, initial backfill, 15-minute polling, bounded OG extraction for trusted hosts"
-    ranking: "apps/api/src/news-domain.ts (safe URL, description-aided topical classification, publisher diversity, recency rank, bounded source-grounded preview)"
+    ranking: "apps/api/src/news-domain.ts; news-relevance.ts (P1-P5 owner preference); news-quality.ts (event clustering / quality metrics)"
     persistence: "NewsArticle, NewsScan, NewsSourceScan, NewsIngestionLease, NewsDiscoveredSource; additive migration chain through 20261026124000_galaxinews_discovery_backfill"
     web: "apps/web/app/components/NewsWorld.tsx; NewsWorld.module.css; /{locale}/news; compact search beside tabs, data-release=world-v1.8, publisher feed thumbnails + fallback"
-    interests: "browser-local tag cloud and yes/no feedback; no natal data or account-based recommendations yet"
+    interests: "guest-local + server owner-scoped tags and reversible reactions, suppression of highly similar rejected news, history, export/reset, opt-out; no natal inference"
     safeguard: "no full articles, no invented facts or meta-text; hide unsupported teasers; image CC licence / explicitly-approved hosts; GDELT seendate marked observation; astronomy separate"
     tests: "npm run test:news; e2e/news-world.spec.mjs"
-    documentation: "docs/research/galaxinews-world-implementation-2026-10-25.md"
+    documentation: "docs/research/galaxinews-quality-discovery-2026-10-26.md; docs/research/galaxinews-p4-p5-acceptance-2026-10-26.md"
   portal:
     status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and Community placeholders"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
@@ -209,7 +209,7 @@ active_risks:
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
   now: "JQA-3.4 fixed ascendant method and source metadata guard; 20 genuine JHora records, 600/600 signs PASS, remaining full 1-arcsecond and Vimshottari exact-date certificate blocked on source equivalence"
-  next: "Owner visual feedback acceptance; only after visual review start A9.1 Galaxiora Personal. Close precision/date certificate only with independent method-matched JHora evidence."
+  next: "GalaxiNews Stage 2 acceptance and producer rights/live metrics, GitHub PR integration; GalaxiCom C0/C1 after roadmap signoff. Exact JQA-3 numeric certification stays separate."
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
