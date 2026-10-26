@@ -71,7 +71,7 @@ export class NewsController {
    const [profile,history]=await Promise.all([
     this.prisma.personalProfile.findUnique({where:{userId:uid},select:{newsTopics:true,newsPersonalizationEnabled:true}}),
     this.prisma.newsReaction.findMany({where:{userId:uid},orderBy:{updatedAt:'desc'},take:1000,
-     select:{articleId:true,vote:true,article:{select:{topic:true,tags:true}}}})
+     select:{articleId:true,vote:true,article:{select:{topic:true,tags:true,title:true,titleUk:true}}}})
    ]);
    const chosen=selectedTags.length?selectedTags:
     (profile?.newsTopics||[]).filter(x=>(INTEREST_TAGS as readonly string[]).includes(x));
