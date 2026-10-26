@@ -79,6 +79,19 @@ try{
   editorialEnabled:process.env.NEWS_EDITORIAL_AI_ENABLED!=='0'
  });
  await statistics();
+ const scans=await prisma.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:100,
+  select:{sourceKey:true,status:true,failure:true,createdAt:true}});
+ const latest=new Map();
+ for(const s of scans)if(!latest.has(s.sourceKey))latest.set(s.sourceKey,s);
+ const counters={ok:0,empty:0,error:0,cooldown:0,other:0};
+ for(const s of latest.values()){
+  if(Object.hasOwn(counters,s.status))counters[s.status]++;
+  else counters.other++;
+ }
+ console.log('[GalaxiNews] latest source states:',counters);
+ const failures=[...latest.values()].filter(s=>s.status==='error').slice(0,6);
+ if(failures.length)console.log('[GalaxiNews] recent failed sources:',
+  failures.map(s=>s.sourceKey+' ('+(s.failure||'unknown').slice(0,95)+')').join('; '));
  await verifyRunningFrontend();
  if(repair){
   await metadataRecovery();
