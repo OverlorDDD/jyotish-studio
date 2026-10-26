@@ -125,14 +125,14 @@ modules:
     tests: "npm run test:news; e2e/news-world.spec.mjs"
     documentation: "docs/research/galaxinews-quality-discovery-2026-10-26.md; docs/research/galaxinews-p4-p5-acceptance-2026-10-26.md"
   galaxicom:
-    status: "C0-C1 CI PASS; C2 implemented: full-width long editing, moderator soft-delete audit, follows, helpful votes, notification inbox, edit history, duplicate suggestions and public profiles; pending new CI/manual acceptance"
-    http: "apps/api/src/com.ts, com-social.ts; /api/v1/com/*; role/session and sameOrigin from auth.ts"
+    status: "C0-C2 CI PASS, C3 public Academy/Practice context connections, editor-approved two-way forum links, Jyotish/Tarot topical bridges; C3 CI/manual acceptance pending"
+    http: "apps/api/src/com.ts, com-social.ts, com-context.ts; /api/v1/com/*; public-source validation, ADMIN editorial approval"
     domain_policy: "apps/api/src/com-policy.ts; FREE posting, staff roles separate, premium has no moderation authority"
-    persistence: "C0-C1 plus ComFollow, ComHelpfulReaction, ComNotification, ComThreadRevision, ComPostRevision; additive 20261026213000_galaxicom_c2 migration"
+    persistence: "C0-C2 plus additive ComContextLink sourceKind+slug+threadId approval/audit; migration 20261026221500_galaxicom_c3_context"
     web: "GalaxiCom.tsx, GalaxiComMember.tsx, GalaxiCom.module.css; /{uk|en}/community, topic/:id and member/:id"
     safeguards: "public plain text, no private astrology/user documents, author-only finite editing, audit and reports; per-process limiter until public scaling"
-    tests: "npm run test:com; e2e/galaxicom.spec.mjs and galaxicom-c2.spec.mjs; PostgreSQL CI; Chromium desktop/mobile"
-    documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md; docs/research/galaxicom-c2-implementation-2026-10-26.md"
+    tests: "npm run test:com with com-context policy, e2e/galaxicom-c3.spec.mjs + C0-C2 browser regression; PostgreSQL CI; Chromium desktop/mobile"
+    documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md; docs/research/galaxicom-c2-implementation-2026-10-26.md; docs/research/galaxicom-c3-implementation-2026-10-26.md"
   portal:
     status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and GalaxiCom active code; public-release gates pending"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
@@ -218,7 +218,7 @@ active_risks:
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
   now: "JQA-3.4 fixed ascendant method and source metadata guard; 20 genuine JHora records, 600/600 signs PASS, remaining full 1-arcsecond and Vimshottari exact-date certificate blocked on source equivalence"
-  next: "GalaxiCom C2 CI and owner UI acceptance; C3 Academy/Library integration and C4 public safety; GalaxiNews publisher rights/live QA. Exact JQA-3 numeric certification remains separate."
+  next: "GalaxiCom C3 owner acceptance, then C4 moderation, privacy and scale public-release gates; GalaxiNews rights/live QA. Exact JQA-3 numeric certification remains separate."
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"

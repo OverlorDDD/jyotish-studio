@@ -12,6 +12,7 @@ import {isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
 import {publishedDetail} from '../../../../lib/editorial-public';
 import EditorialArticle from '../../../components/EditorialArticle';
+import GalaxiComBridge from '../../../components/GalaxiComBridge';
 export const dynamicParams=true;
 type Params={params:Promise<{locale:string;slug:string}>};
 export function generateStaticParams(){return (['uk','en'] as const).flatMap(locale=>YOGA_PRACTICES.map(item=>({locale,slug:item.slug})));}
@@ -48,6 +49,7 @@ export default async function YogaPracticePage({params}:Params){
    <aside className="as-wellness-prep"><h2>{uk?'Перед початком':'Before you begin'}</h2><p><GlossaryText text={say(practice.preparation,locale)} locale={locale}/></p></aside>
    <YogaSession practice={practice} locale={locale}/>
    <PersonalJournal locale={locale} kind="PRACTICE"/>
+   <GalaxiComBridge kind="YOGA" slug={slug} title={say(practice.title,locale)} locale={locale}/>
    <aside className="as-wellness-note"><ShieldCheck size={22} aria-hidden="true"/><div><strong>{uk?'Важливо':'Safety first'}</strong><p><GlossaryText text={say(practice.safety,locale)} locale={locale}/></p></div></aside>
    <div className="as-wellness-next"><Link href={'/'+locale+'/learn/yoga-roots-and-safety'}>{uk?'Більше про йогу в Академії':'Explore yoga in Academy'} <ArrowUpRight size={16}/></Link></div>
   </div></PortalShell>;

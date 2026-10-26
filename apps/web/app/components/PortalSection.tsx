@@ -8,6 +8,7 @@ import YogaHub from './YogaHub';
 import AcademyHub from './AcademyHub';
 import NewsWorld from './NewsWorld';
 import GalaxiCom from './GalaxiCom';
+import GalaxiComModuleLink from './GalaxiComModuleLink';
 import {moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
 export const SECTIONS=['astrology','tarot','experts','yoga','learn','news','community'] as const;
@@ -36,7 +37,7 @@ export const SECTION_COPY={
 const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower2,learn:BookOpen,news:Newspaper,community:MessagesSquare};
 export default function PortalSection({locale,section}:{locale:PortalLocale;section:PortalSectionSlug}){
  if(section==='astrology')redirect('/'+locale+'/astrology/jyotish');
- if(section==='tarot')return <PortalShell locale={locale} active="tarot"><div className="as-subpage as-direct-module"><TarotStudio locale={locale}/><section id="human-readings" className="as-human-readings"><ExpertOffer locale={locale}/></section></div></PortalShell>;
+ if(section==='tarot')return <PortalShell locale={locale} active="tarot"><div className="as-subpage as-direct-module"><TarotStudio locale={locale}/><GalaxiComModuleLink locale={locale} kind="tarot"/><section id="human-readings" className="as-human-readings"><ExpertOffer locale={locale}/></section></div></PortalShell>;
  if(section==='yoga')return <YogaHub locale={locale}/>;
  if(section==='learn')return <AcademyHub locale={locale}/>;
  if(section==='news')return <NewsWorld locale={locale}/>;

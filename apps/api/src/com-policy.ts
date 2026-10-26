@@ -7,7 +7,7 @@ export function forumModerator(role:string){return role==='ADMIN'||role==='SUPPO
 export function forumPermissions(actor:ComActor|null){
  const premium=actor?effectiveSubscription(actor)==='PREMIUM':false;
  return {canRead:true,canCreate:Boolean(actor),canReply: Boolean(actor),
-  canModerate:Boolean(actor&&forumModerator(actor.role)),premiumBadge:premium,
+  canModerate:Boolean(actor&&forumModerator(actor.role)),canManageContext:actor?.role==='ADMIN',premiumBadge:premium,
   // Future paid features are deliberately disabled without verified subscription/payment design.
   canCreatePremiumOnlyRooms:false,canPinOwnTopics:false,canOverrideModeration:false};
 }

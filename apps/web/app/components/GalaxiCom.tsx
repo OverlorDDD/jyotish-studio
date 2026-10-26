@@ -15,6 +15,7 @@ type Me={signedIn:boolean;permissions:{canCreate:boolean;canReply:boolean;canMod
  profile:{id:string;name:string;showPremiumBadge:boolean}|null};
 type Report={id:string;reason:string;targetType:'thread'|'post';targetId:string;excerpt:string;createdAt:string};
 type Activity={following:boolean;followers:number;likes:Record<string,{count:number;liked:boolean}>;myLikes:string[]};
+type CuratedSource={kind:'ACADEMY'|'YOGA';slug:string;titleUk:string;titleEn:string};
 type Inbox={items:{id:string;threadId:string;title:string;createdAt:string;read:boolean}[];unread:number;total:number};
 type Revision={id:string;title?:string;body:string;editedAt:string};
 const uk={
@@ -77,6 +78,7 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  const [displayName,setDisplayName]=useState(''),[editing,setEditing]=useState<string|null>(null),[edited,setEdited]=useState('');
  const [editedTitle,setEditedTitle]=useState('');
  const [activity,setActivity]=useState<Activity|null>(null),[inboxOpen,setInboxOpen]=useState(false);
+ const [sources,setSources]=useState<CuratedSource[]>([]);
  const [inbox,setInbox]=useState<Inbox|null>(null),[duplicates,setDuplicates]=useState<{id:string;title:string}[]>([]);
  const [history,setHistory]=useState<{id:string;items:Revision[]}|null>(null);
  const [reporting,setReporting]=useState<{target:'thread'|'post';id:string}|null>(null);
@@ -84,6 +86,9 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  const [queue,setQueue]=useState<Report[]|null>(null),[queueOpen,setQueueOpen]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const root='/'+locale+'/community';
+ useEffect(()=>{const requested=new URLSearchParams(window.location.search).get('category');
+  if(requested&&['jyotish','tarot','practices','vedic','experiences','experts','help'].includes(requested))setCategory(requested);
+ },[]);
  const name=(c:Category)=>locale==='uk'?c.titleUk:c.titleEn;
  const date=(s:string)=>new Intl.DateTimeFormat(t.time,{day:'numeric',month:'short',year:'numeric'}).format(new Date(s));
  const refresh=()=>setReload(n=>n+1);
@@ -116,8 +121,8 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
   if(!threadId)return;
   let active=true;
   Promise.all([api<{thread:Thread}>('threads/'+threadId),api<Listing<Post>>('threads/'+threadId+'/posts?page='+replyPage),
-   api<Activity>('threads/'+threadId+'/activity')])
-   .then(([thread,posts,social])=>{if(active){setDetail(thread.thread);setReplies(posts);setActivity(social)}})
+   api<Activity>('threads/'+threadId+'/activity'),api<{items:CuratedSource[]}>('context/threads/'+threadId)])
+   .then(([thread,posts,social,linked])=>{if(active){setDetail(thread.thread);setReplies(posts);setActivity(social);setSources(linked.items)}})
    .catch(()=>{if(active)setError(t.error)});
   return()=>{active=false};
  },[threadId,replyPage,reload]);
@@ -242,6 +247,15 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
    {threadId?
     <section className={styles.content}>
      <Link href={root} className={styles.back}><ArrowLeft size={16}/>{t.back}</Link>
+     {sources.length>0&&<nav className={styles.curatedSources} aria-label={locale==='uk'?'Пов’язані матеріали':'Related learning materials'}>
+      <strong>{locale==='uk'?'Матеріали Galaxiora за темою':'Related Galaxiora materials'}</strong>
+      {sources.map(item=><Link key={item.kind+item.slug}
+       href={'/'+locale+'/'+(item.kind==='ACADEMY'?'learn':'yoga')+'/'+item.slug}>
+       {locale==='uk'?item.titleUk:item.titleEn} <ArrowRight size={14}/>
+      </Link>)}
+      <small>{locale==='uk'?'Редакція підтвердила зв’язок тем. Відповіді форуму — думки учасників, не офіційні висновки.':
+      'Editorially linked subject matter. Community replies are member views, not official findings.'}</small>
+     </nav>}
      {detail&&<article className={styles.panel} data-testid="com-thread">
       <div className={styles.meta}>{locale==='uk'?detail.category.titleUk:detail.category.titleEn} · {date(detail.createdAt)}
        {detail.pinned&&<span> · {t.pinned}</span>}</div>

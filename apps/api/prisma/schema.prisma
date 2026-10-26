@@ -57,6 +57,7 @@ model User {
  comHelpfulReactions ComHelpfulReaction[]
  comFollows ComFollow[]
  comNotifications ComNotification[]
+ comContextApprovals ComContextLink[] @relation("ComContextApprover")
  practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
@@ -424,6 +425,7 @@ model ComThread {
  posts ComPost[]
  reports ComReport[]
  follows ComFollow[]
+ contextLinks ComContextLink[]
  notifications ComNotification[]
  revisions ComThreadRevision[]
  @@index([categorySlug,status,pinned,lastActivityAt])
@@ -525,4 +527,19 @@ model ComPostRevision {
  body String @db.Text
  editedAt DateTime @default(now())
  @@index([postId,editedAt])
+}
+
+/** C3: curated public connections; never persist user birth data or private reading IDs. */
+model ComContextLink {
+ id String @id @default(uuid()) @db.Uuid
+ sourceKind String @db.VarChar(16)
+ sourceSlug String @db.VarChar(80)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ approvedById String?
+ approvedBy User? @relation("ComContextApprover",fields:[approvedById],references:[id],onDelete:SetNull)
+ approvedAt DateTime @default(now())
+ @@unique([sourceKind,sourceSlug,threadId])
+ @@index([sourceKind,sourceSlug,approvedAt])
+ @@index([threadId])
 }
