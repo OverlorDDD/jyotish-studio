@@ -1,4 +1,4 @@
-import {BadRequestException,Body,Controller,Get,Header,Inject,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ForbiddenException} from '@nestjs/common';
+import {BadRequestException,Body,Controller,Delete,Get,Header,HttpException,Inject,NotFoundException,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ForbiddenException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {ArrayMaxSize,IsArray,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
@@ -6,9 +6,13 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify} from './news-domain.ts';
 import {NewsIngestionService} from './news-ingestion.ts';
+import {rankPersonalNews} from './news-relevance.ts';
+import {createKeyedHourlyLimiter} from './ai.ts';
 import {RSS_SOURCES,GDELT_QUERIES} from './news-sources.ts';
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
 class SourcePolicyDto{@IsIn(['DISCOVERED','BLOCKED','TRUSTED'])status!:'DISCOVERED'|'BLOCKED'|'TRUSTED';}
+class NewsVoteDto{@IsIn(['YES','NO'])vote!:'YES'|'NO';}
+const reactionLimiter=createKeyedHourlyLimiter(150);
 class NewsInterestsDto{
  @IsArray() @ArrayMaxSize(12) @IsIn(INTEREST_TAGS,{each:true})
  tags!:string[];
@@ -26,14 +30,14 @@ export class NewsController {
  }
  @Get('topics') @Header('Cache-Control','public,max-age=300')
  topics(){return {...TOPIC_LABELS,...EXTRA_INTEREST_LABELS};}
- @Get('feed') @Header('Cache-Control','public,max-age=60')
+ @Get('feed') @Header('Cache-Control','private,no-store')
  async feed(@Query('topic')topic='all',@Query('tag')tag='',@Query('limit')limit='24',
-  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q=''){
+  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q='',@Req()req:IncomingMessage){
   if(topic!=='all'&&!TOPICS.includes(topic as typeof TOPICS[number])||
    tag&&!INTEREST_TAGS.includes(tag as typeof INTEREST_TAGS[number]))throw new BadRequestException('Invalid category');
   if(!/^\d{1,2}$/.test(limit)||Number(limit)<1||Number(limit)>48||
    !/^\d{1,3}$/.test(page)||Number(page)<1||Number(page)>20)throw new BadRequestException('Invalid pagination');
-  if(!['relevance','latest'].includes(sort))throw new BadRequestException('Invalid sort');
+  if(!['relevance','latest','personal'].includes(sort))throw new BadRequestException('Invalid sort');
   const selectedTags=tags?tags.split(','):[];
   if(selectedTags.length>INTEREST_TAGS.length||selectedTags.some(x=>!INTEREST_TAGS.includes(x as typeof INTEREST_TAGS[number])))
    throw new BadRequestException('Invalid tags');
@@ -47,8 +51,10 @@ export class NewsController {
    {feedDescription:{contains:search,mode:'insensitive' as const}},
    {source:{contains:search,mode:'insensitive' as const}}
   ]}:{};
+  const uid=sort==='personal'?cookieUser(req):null;
+  if(sort==='personal'&&!uid)throw new UnauthorizedException('Sign in for personal recommendations');
   const articles=await this.prisma.newsArticle.findMany({
-   where:{status:'PUBLISHED',...find,...(topic!=='all'?{topic}:{}),...(tag?{tags:{has:tag}}:selectedTags.length?{tags:{hasSome:selectedTags}}:{})},
+   where:{status:'PUBLISHED',...find,...(topic!=='all'?{topic}:{}),...(sort==='personal'?{}:tag?{tags:{has:tag}}:selectedTags.length?{tags:{hasSome:selectedTags}}:{})},
    take:600,orderBy:{publishedAt:'desc'},select:{
     id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
     publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true,
@@ -58,7 +64,17 @@ export class NewsController {
   const ordered=articles.map(a=>({...a,relevance:rank(a.score,a.publishedAt)}))
    .sort((a,b)=>sort==='latest'?b.publishedAt.getTime()-a.publishedAt.getTime():
     b.relevance-a.relevance||b.publishedAt.getTime()-a.publishedAt.getTime());
-  const ranked=sort==='relevance'&&topic==='all'&&!tag?diversify(ordered,3):ordered;
+  let ranked=sort==='relevance'&&topic==='all'&&!tag?diversify(ordered,3):ordered;
+  if(sort==='personal'&&uid){
+   const [profile,history]=await Promise.all([
+    this.prisma.personalProfile.findUnique({where:{userId:uid},select:{newsTopics:true}}),
+    this.prisma.newsReaction.findMany({where:{userId:uid},orderBy:{updatedAt:'desc'},take:1000,
+     select:{articleId:true,vote:true,article:{select:{topic:true,tags:true}}}})
+   ]);
+   const chosen=selectedTags.length?selectedTags:
+    (profile?.newsTopics||[]).filter(x=>(INTEREST_TAGS as readonly string[]).includes(x));
+   ranked=rankPersonalNews(ordered,chosen,history) as typeof ordered;
+  }
   const size=Number(limit),offset=(Number(page)-1)*size;
   const [lastScan,articleCount]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,sources:true,accepted:true,errors:true}}),
@@ -66,8 +82,56 @@ export class NewsController {
   ]);
   return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>rest),
    total:ranked.length,articleCount,page:Number(page),limit:size,lastScan,
-   personalized:false,sort};
+   personalized:sort==='personal',sort};
  }
+ /** P2: one reversible opinion per article, persisted only by explicit user action. */
+ private async reactionOwner(req:IncomingMessage,mutation=false){
+  if(mutation&&!sameOrigin(req))throw new ForbiddenException('Cross-origin feedback update denied');
+  const uid=cookieUser(req);
+  if(!uid)throw new UnauthorizedException('Sign in to synchronize news reactions');
+  const exists=await this.prisma.user.findUnique({where:{id:uid},select:{id:true}});
+  if(!exists)throw new UnauthorizedException('Session invalid');
+  return uid;
+ }
+ @Get('reactions') @Header('Cache-Control','private,no-store')
+ async getReactions(@Req()req:IncomingMessage){
+  const userId=await this.reactionOwner(req);
+  const rows=await this.prisma.newsReaction.findMany({where:{userId},
+   orderBy:{updatedAt:'desc'},take:1000,
+   select:{articleId:true,vote:true,updatedAt:true}});
+  return {items:rows};
+ }
+ @Put('reactions/:articleId') @Header('Cache-Control','private,no-store')
+ async putReaction(@Req()req:IncomingMessage,@Param('articleId')articleId:string,@Body()data:NewsVoteDto){
+  const userId=await this.reactionOwner(req,true);
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(articleId))
+   throw new BadRequestException('Invalid article identifier');
+  if(!['YES','NO'].includes(data?.vote))throw new BadRequestException('Invalid reaction');
+  const article=await this.prisma.newsArticle.findFirst({where:{id:articleId,status:'PUBLISHED'},select:{id:true}});
+  if(!article)throw new NotFoundException('Article unavailable');
+  if(!reactionLimiter(userId))throw new HttpException('Reaction limit reached; retry later',429);
+  const entry=await this.prisma.newsReaction.upsert({
+   where:{userId_articleId:{userId,articleId}},
+   create:{userId,articleId,vote:data.vote},update:{vote:data.vote},
+   select:{articleId:true,vote:true,updatedAt:true}
+  });
+  return entry;
+ }
+ @Delete('reactions/:articleId') @Header('Cache-Control','private,no-store')
+ async undoReaction(@Req()req:IncomingMessage,@Param('articleId')articleId:string){
+  const userId=await this.reactionOwner(req,true);
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(articleId))
+   throw new BadRequestException('Invalid article identifier');
+  const deleted=await this.prisma.newsReaction.deleteMany({where:{userId,articleId}});
+  return {deleted:deleted.count};
+ }
+ @Delete('reactions') @Header('Cache-Control','private,no-store')
+ async clearReactions(@Req()req:IncomingMessage){
+  const userId=await this.reactionOwner(req,true);
+  const deleted=await this.prisma.newsReaction.deleteMany({where:{userId}});
+  return {deleted:deleted.count};
+ }
+
  /** Phase P1: account-scoped interests; public World never requires a login. */
  @Get('interests') @Header('Cache-Control','private,no-store')
  async getInterests(@Req()req:IncomingMessage){
@@ -165,7 +229,11 @@ export class NewsController {
  }
 }
 for(const [method,types] of [
- ['feed',[String,String,String,String,String,String,String,String]],
+ ['feed',[String,String,String,String,String,String,String,String,Object]],
+ ['getReactions',[Object]],
+ ['putReaction',[Object,String,NewsVoteDto]],
+ ['undoReaction',[Object,String]],
+ ['clearReactions',[Object]],
  ['moderate',[Object,String,ModerateDto]],
  ['health',[Object]],
  ['refresh',[Object,String]],
