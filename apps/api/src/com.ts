@@ -114,7 +114,7 @@ export class ComController{
    select:{displayName:true,showPremiumBadge:true}});
   return {name:profile.displayName,showPremiumBadge:profile.showPremiumBadge};
  }
- @Get('threads') @Header('Cache-Control','public,max-age=30')
+ @Get('threads') @Header('Cache-Control','no-store')
  async threads(@Query('category')category?:string,@Query('sort')sort='active',
   @Query('q')q='',@Query('page')rawPage?:string){
   const {page,skip,take}=paging(rawPage);
@@ -135,7 +135,7 @@ export class ComController{
   ]);
   return {items:rows.map(row=>this.showThread(row)),page,total,pageSize:take};
  }
- @Get('threads/:id') @Header('Cache-Control','public,max-age=30')
+ @Get('threads/:id') @Header('Cache-Control','no-store')
  async thread(@Param('id')raw:string){
   const id=requireUuid(raw);
   const row=await this.db.comThread.findFirst({where:{id,status:'PUBLISHED',category:{enabled:true}},
@@ -144,7 +144,7 @@ export class ComController{
   if(!row)throw new NotFoundException('Discussion not found');
   return {thread:this.showThread(row)};
  }
- @Get('threads/:id/posts') @Header('Cache-Control','public,max-age=30')
+ @Get('threads/:id/posts') @Header('Cache-Control','no-store')
  async posts(@Param('id')raw:string,@Query('page')rawPage?:string){
   const id=requireUuid(raw),{page,skip,take}=paging(rawPage);
   const exists=await this.db.comThread.findFirst({where:{id,status:'PUBLISHED',category:{enabled:true}},select:{id:true}});

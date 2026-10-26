@@ -62,6 +62,18 @@ export class ComSafetyController{
    throw e;
   }
  }
+ @Get('appeals/eligible') @Header('Cache-Control','private,no-store')
+ async eligibleAppeals(@Req()req:IncomingMessage){
+  const actor=await this.actor(req);
+  const [topics,replies]=await Promise.all([
+   this.db.comThread.findMany({where:{authorId:actor.id,status:{in:['HIDDEN','DELETED']}},
+    select:{id:true,title:true},orderBy:{createdAt:'desc'},take:30}),
+   this.db.comPost.findMany({where:{authorId:actor.id,status:'HIDDEN'},
+    select:{id:true,threadId:true},orderBy:{createdAt:'desc'},take:30})
+  ]);
+  return {items:[...topics.map(x=>({type:'THREAD',id:x.id,label:x.title.slice(0,120)})),
+   ...replies.map(x=>({type:'POST',id:x.id,label:'Reply in topic '+x.threadId}))]};
+ }
  @Get('appeals/mine') @Header('Cache-Control','private,no-store')
  async ownAppeals(@Req()req:IncomingMessage){
   const actor=await this.actor(req);
@@ -186,7 +198,7 @@ export class ComSafetyController{
  }
 }
 for(const [name,args] of [
- ['appeal',[Object,ComAppealDto]],['ownAppeals',[Object]],
+ ['appeal',[Object,ComAppealDto]],['eligibleAppeals',[Object]],['ownAppeals',[Object]],
  ['appealsQueue',[Object]],['decideAppeal',[Object,String,ComDecisionDto]],
  ['exportOwn',[Object,String]],['requestPrivacy',[Object,ComPrivacyDto]],
  ['myPrivacy',[Object]],['privacyQueue',[Object]],['reviewPrivacy',[Object,String,ComPrivacyDecisionDto]],

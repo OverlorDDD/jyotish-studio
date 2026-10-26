@@ -35,7 +35,7 @@ export class ComContextController{
   return userId;
  }
  @Get()
- @Header('Cache-Control','public,max-age=30')
+ @Header('Cache-Control','no-store')
  async index(@Query('kind')rawKind:string,@Query('slug')rawSlug:string){
   let kind:CommunitySourceKind,slug:string;
   try{({kind,slug}=communitySource(rawKind,rawSlug));}
@@ -52,7 +52,7 @@ export class ComContextController{
     lastActivityAt:r.thread.lastActivityAt,replies:r.thread._count.posts}))};
  }
  @Get('threads/:id')
- @Header('Cache-Control','public,max-age=30')
+ @Header('Cache-Control','no-store')
  async sourceOfThread(@Param('id')id:string){
   if(!uuid.test(id))throw new BadRequestException('Invalid topic ID');
   const thread=await this.db.comThread.findFirst({where:{id,status:'PUBLISHED',category:{enabled:true}},

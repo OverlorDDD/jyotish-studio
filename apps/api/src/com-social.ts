@@ -102,7 +102,7 @@ export class ComSocialController {
   const count=await this.db.comNotification.updateMany({where:{userId:actor.id,readAt:null},data:{readAt:new Date()}});
   return {updated:count.count};
  }
- @Get('profiles/:id') @Header('Cache-Control','public,max-age=30')
+ @Get('profiles/:id') @Header('Cache-Control','no-store')
  async publicProfile(@Param('id')id:string){
   const u=await this.db.user.findUnique({where:{id:checked(id)},select:authorSelect});
   if(!u)throw new NotFoundException('Member not found');

@@ -28,7 +28,7 @@ C4 hardens GalaxiCom while preserving FREE member posting, independent EXPERT ve
 
 ### E. Recovery, monitoring and performance
 - `npm run com:backup -- --output <external-secret-folder>/galaxiora.dump` uses `pg_dump` in custom format, checks archive with `pg_restore --list` and sets restrictive file permissions. Database password is passed via environment, not the command line. Contains the **entire** database; keep encrypted, access-restricted, never commit it. Verify backups regularly. No backup is actually taken in GitHub CI.
-- Optional **destructive disposable-only** drill: `GALAXICOM_DRILL_CONFIRM=YES_DISPOSABLE_DATABASE` and `--drill-url <separate PostgreSQL test DB>`. Source and target database equality is blocked. Never run against production or personal DB.
+- Optional **destructive disposable-only** drill: `GALAXICOM_DRILL_CONFIRM=YES_DISPOSABLE_DATABASE` and `GALAXICOM_DRILL_DATABASE_URL` provided as an environment variable for a **separate** PostgreSQL test DB (never command-line credentials). Source and target database equality is blocked. Never run against production or personal DB.
 - `npm run com:load` runs read-only 100 requests with concurrency 5 (configurable), two public forum endpoints, reports HTTP failures and p95. Not a substitute for representative production-sized traffic. Proposed staging gate: p95 <=2s at this probe intensity, no 5xx, zero exposed private content.
 - C4 admin health endpoint and CI unit, PostgreSQL, browser regressions cover new flows. Operator monitors repeated 429, failed outbox, aged OPEN appeals/privacy, slow queries, backup age, review queue size.
 

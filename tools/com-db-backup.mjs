@@ -7,7 +7,7 @@ import {dirname,resolve} from 'node:path';
 if(!process.env.DATABASE_URL&&process.env.NODE_ENV!=='production')try{process.loadEnvFile('.env')}catch{}
 const args=process.argv.slice(2),value=(k)=>{const i=args.indexOf(k);return i>=0?args[i+1]:undefined};
 const output=value('--output');
-if(!output){console.error('Usage: node tools/com-db-backup.mjs --output PATH.dump [--drill-url DISPOSABLE_TEST_DATABASE_URL]');process.exit(2)}
+if(!output){console.error('Usage: node tools/com-db-backup.mjs --output PATH.dump [GALAXICOM_DRILL_DATABASE_URL=disposable]');process.exit(2)}
 function parseUrl(input){
  const url=new URL(input);
  if(!['postgresql:','postgres:'].includes(url.protocol))throw Error('Only PostgreSQL is supported');
@@ -18,7 +18,8 @@ function parseUrl(input){
 const source=process.env.DATABASE_URL;
 if(!source)throw Error('DATABASE_URL must be supplied (never print it in logs)');
 const original=parseUrl(source);
-const destination=value('--drill-url')?parseUrl(value('--drill-url')):null;
+// Never place credentials in process arguments. Supply target URL through environment only.
+const destination=process.env.GALAXICOM_DRILL_DATABASE_URL?parseUrl(process.env.GALAXICOM_DRILL_DATABASE_URL):null;
 if(destination){
  if(!process.env.GALAXICOM_DRILL_CONFIRM||process.env.GALAXICOM_DRILL_CONFIRM!=='YES_DISPOSABLE_DATABASE')
   throw Error('Set GALAXICOM_DRILL_CONFIRM=YES_DISPOSABLE_DATABASE for an explicitly disposable target');

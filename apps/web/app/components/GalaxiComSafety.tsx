@@ -16,6 +16,7 @@ const send=(method:string,data:unknown):RequestInit=>({method,headers:{'Content-
 export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|null}){
  const uk=locale==='uk';
  const [open,setOpen]=useState(false),[mine,setMine]=useState<Request[]>([]),
+  [eligible,setEligible]=useState<{type:string;id:string;label:string}[]>([]),
   [privacy,setPrivacy]=useState<Request[]>([]),[appeals,setAppeals]=useState<Request[]>([]),
   [modPrivacy,setModPrivacy]=useState<Request[]>([]);
  const [type,setType]=useState('THREAD'),[id,setId]=useState(''),[reason,setReason]=useState('');
@@ -23,10 +24,10 @@ export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|n
  const [error,setError]=useState(''),[message,setMessage]=useState(''),[reload,setReload]=useState(0);
  const signed=me?.signedIn===true,staff=me?.permissions.canModerate===true,admin=me?.permissions.canManageContext===true;
  useEffect(()=>{if(!open||!signed)return;let active=true;
-  Promise.all([api<{items:Request[]}>('appeals/mine'),api<{items:Request[]}>('privacy/requests'),
+  Promise.all([api<{items:Request[]}>('appeals/mine'),api<{items:Request[]}>('appeals/eligible'),api<{items:Request[]}>('privacy/requests'),
    staff?api<{items:Request[]}>('mod/appeals'):Promise.resolve({items:[]}),
    admin?api<{items:Request[]}>('mod/privacy'):Promise.resolve({items:[]})])
-   .then(([a,p,m,x])=>{if(active){setMine(a.items);setPrivacy(p.items);setAppeals(m.items);setModPrivacy(x.items)}})
+   .then(([a,e,p,m,x])=>{if(active){setMine(a.items);setEligible(e.items as {type:string;id:string;label:string}[]);setPrivacy(p.items);setAppeals(m.items);setModPrivacy(x.items)}})
    .catch(e=>{if(active)setError(e.message)});
   return()=>{active=false};
  },[open,signed,staff,admin,reload]);
@@ -65,6 +66,15 @@ export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|n
    <div className={styles.columns}>
     <section>
      <h3><Scale size={17}/>{uk?'Оскаржити рішення':'Appeal moderation'}</h3>
+     {eligible.length>0&&<label>{uk?'Мої приховані матеріали':'My moderated contributions'}
+      <select value="" onChange={e=>{
+       const item=eligible.find(x=>x.id===e.target.value);
+       if(item){setType(item.type);setId(item.id);}
+      }}>
+       <option value="">{uk?'Вибрати матеріал':'Choose a contribution'}</option>
+       {eligible.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}
+      </select>
+     </label>}
      <form onSubmit={async e=>{e.preventDefault();if(await action(()=>api('appeals',send('POST',{
       targetType:type,targetId:id,reason
      })),uk?'Апеляцію передано':'Appeal submitted')){setReason('');setId('')}}}>
