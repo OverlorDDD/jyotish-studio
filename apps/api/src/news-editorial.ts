@@ -33,7 +33,7 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:typeof fetch=f
    if(!reply.ok)throw Error('HTTP '+reply.status);
    const json=await reply.json() as {choices?:Array<{message?:{content?:string}}>} ;
    const raw=json.choices?.[0]?.message?.content||'';
-   const parsed=JSON.parse(raw) as unknown;
+   const parsed=JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'') ) as unknown;
    if(!Array.isArray(parsed))throw Error('Bad response format');
    const output:Output[]=[];
    for(const obj of parsed){
@@ -53,16 +53,21 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:typeof fetch=f
 }
 export async function enrichPendingNews(prisma:PrismaService,fetcher:typeof fetch=fetch){
  if(process.env.NEWS_EDITORIAL_AI_ENABLED==='0')return {processed:0,reason:'disabled'};
+ if(!process.env.GROQ_API_KEY&&!process.env.GEMINI_API_KEY&&!process.env.OPENROUTER_API_KEY)
+  return {processed:0,reason:'missing_provider_keys'};
  const raw=Number(process.env.NEWS_EDITORIAL_BATCH_LIMIT);
  const limit=Math.min(12,Math.max(1,Number.isFinite(raw)&&raw>0?raw:12));
- const rows=await prisma.newsArticle.findMany({where:{titleUk:null,status:'PUBLISHED'},
+ const rows=await prisma.newsArticle.findMany({where:{status:'PUBLISHED',OR:[
+  {titleUk:null},
+  {summaryUk:null,feedDescription:{not:null},summaryKind:{not:'no_context'}}
+ ]},
   orderBy:{discoveredAt:'desc'},take:limit,select:{
    id:true,title:true,feedDescription:true,summary:true,summaryKind:true,language:true}});
  if(!rows.length)return {processed:0};
  const output:Output[]=[];
  for(let i=0;i<rows.length;i+=6)output.push(...await generateNewsMicrocopy(rows.slice(i,i+6),fetcher));
- for(const x of output)await prisma.newsArticle.updateMany({where:{id:x.id,titleUk:null},data:{
+ for(const x of output)await prisma.newsArticle.updateMany({where:{id:x.id},data:{
   titleUk:x.titleUk,summaryUk:x.summaryUk||null,summaryEn:x.summaryEn||null,
-  ...(x.summaryUk?{summaryKind:'ai_editorial'}:{})}});
+  summaryKind:x.summaryUk?'ai_editorial':'no_context'}});
  return {processed:output.length,pending:rows.length-output.length};
 }
