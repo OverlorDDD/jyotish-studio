@@ -54,6 +54,12 @@ async function metadataRecovery(){
 }
 try{
  await prisma.$connect();
+ console.log('[GalaxiNews] AI providers:',{
+  groq:Boolean(process.env.GROQ_API_KEY),
+  gemini:Boolean(process.env.GEMINI_API_KEY),
+  openrouter:Boolean(process.env.OPENROUTER_API_KEY),
+  editorialEnabled:process.env.NEWS_EDITORIAL_AI_ENABLED!=='0'
+ });
  await statistics();
  if(repair){
   await metadataRecovery();
