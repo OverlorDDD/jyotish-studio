@@ -83,3 +83,37 @@ test('P4: reactions history, export, opt-out and confirmed news-only reset prese
   await prisma.$disconnect();
  }
 });
+
+test('P5 guests suppress similar news locally and restore on undo without account writes',async({page})=>{
+ test.setTimeout(80000);
+ if(!process.env.DATABASE_URL)test.skip();
+ const {PrismaClient}=await import('@prisma/client');
+ const db=new PrismaClient(),ids=[randomUUID(),randomUUID()],suffix=randomUUID().slice(0,9);
+ try{
+  for(let n=0;n<2;n++){
+   await db.newsArticle.create({data:{id:ids[n],urlHash:'guest-p5-'+ids[n],
+    title:'P5Guest'+suffix+' Pranayama breathwork insight '+n,
+    titleUk:'P5Guest'+suffix+' Пранаяма та дихальні техніки '+n,
+    url:'https://example.org/guest-news/'+ids[n],
+    topic:'yoga',tags:['yoga','pranayama'],language:'en',source:'P5 guest publisher',
+    score:9999-n,publishedAt:new Date()}})
+  }
+  await page.goto('/uk/news');
+  await page.getByRole('searchbox',{name:'Пошук новин'}).fill('P5Guest'+suffix);
+  await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(2);
+  const no=page.getByTestId('news-vote-no').first();
+  await expect(no).toBeEnabled();await no.click();
+  await page.getByRole('button',{name:'Пранаяма'}).click();
+  await page.getByRole('button',{name:/Для мене/}).click();
+  await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(0);
+  await page.getByRole('button',{name:/Головне/}).click();
+  await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(2);
+  await page.getByTestId('news-vote-no').first().click();
+  await page.getByRole('button',{name:/Для мене/}).click();
+  await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(2);
+  expect((await page.request.get('/api/v1/news/reactions')).status()).toBe(401);
+ }finally{
+  await db.newsArticle.deleteMany({where:{id:{in:ids}}});
+  await db.$disconnect();
+ }
+});
