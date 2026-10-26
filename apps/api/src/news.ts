@@ -98,6 +98,8 @@ export class NewsController {
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
   return {enabled:process.env.NEWS_INGESTION_ENABLED==='1',last,
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
+   editorialAiConfigured:Boolean(process.env.GROQ_API_KEY||process.env.GEMINI_API_KEY||process.env.OPENROUTER_API_KEY)
+    &&process.env.NEWS_EDITORIAL_AI_ENABLED!=='0',
    articleCount,publishers:byPublisher.length,untranslated,unsummarized,unillustrated,discoveredSources:publishers,
    byTopic:byTopic.map(t=>({topic:t.topic,count:t._count._all})),
    sources:latest,history:scans.slice(0,40)};

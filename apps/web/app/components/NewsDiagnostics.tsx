@@ -6,7 +6,7 @@ type Scan={sourceKey:string;createdAt:string;status:string;candidates:number;acc
  rejected:number;errors:number;failure:string|null;durationMs:number;rejectionReasons:Record<string,number>|null};
 type Publisher={domain:string;lastSeenAt:string;articleCount:number;status:string;lastTitle:string|null};
 type Health={enabled:boolean;registeredSources:number;articleCount:number;publishers:number;
- untranslated:number;unsummarized:number;unillustrated:number;discoveredSources:Publisher[];
+ untranslated:number;unsummarized:number;unillustrated:number;discoveredSources:Publisher[];editorialAiConfigured:boolean;
  last:{createdAt:string;sources:number;accepted:number;errors:number}|null;
  byTopic:{topic:string;count:number}[];sources:Scan[];history:Scan[]};
 export default function NewsDiagnostics({locale}:{locale:PortalLocale}){
@@ -53,6 +53,7 @@ export default function NewsDiagnostics({locale}:{locale:PortalLocale}){
   {loading?<p>{uk?'Завантаження…':'Loading…'}</p>:data&&<>
    <div className="as-admin-grid">
     <div className="as-admin-metric"><span>{uk?'Опублікованих':'Published'}</span><strong>{data.articleCount}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Редактор AI':'AI editor'}</span><strong>{data.editorialAiConfigured?'READY':'NOT READY'}</strong></div>
     <div className="as-admin-metric"><span>{uk?'Видавців':'Publishers'}</span><strong>{data.publishers}</strong></div>
     <div className="as-admin-metric"><span>{uk?'Налаштованих каналів':'Candidate channels'}</span><strong>{data.registeredSources}</strong></div>
     <div className="as-admin-metric"><span>{uk?'Без української назви':'Missing Ukrainian titles'}</span><strong>{data.untranslated}</strong></div>
@@ -72,7 +73,9 @@ export default function NewsDiagnostics({locale}:{locale:PortalLocale}){
     <td><strong>{pub.domain}</strong><small style={{display:'block'}}>{date(pub.lastSeenAt)}</small></td>
     <td>{pub.articleCount}</td><td>{pub.status}</td><td>
     <button type="button" onClick={()=>void policy(pub.domain,pub.status==='BLOCKED'?'DISCOVERED':'BLOCKED')}>
-     {pub.status==='BLOCKED'?(uk?'Розблокувати':'Unblock'):(uk?'Заблокувати':'Block')}</button>
+     {pub.status==='BLOCKED'?(uk?'Розблокувати':'Unblock'):(uk?'Заблокувати':'Block')}</button>{' '}
+    {pub.status!=='BLOCKED'&&<button type="button" onClick={()=>void policy(pub.domain,pub.status==='TRUSTED'?'DISCOVERED':'TRUSTED')}>
+     {pub.status==='TRUSTED'?(uk?'Скасувати довіру':'Untrust'):(uk?'Перевірені метадані':'Trust metadata')}</button>}
     </td></tr>)}</tbody></table></div>
    <h3>{uk?'Діагностика каналів':'Feed diagnostics'}</h3>
    <div className="as-table-wrap"><table><thead><tr>

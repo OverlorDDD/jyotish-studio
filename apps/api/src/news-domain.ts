@@ -152,7 +152,11 @@ export function parseXml(xml:string,source:string):Candidate[]{
    return u&&(/\.(?:jpe?g|png|webp)(?:\?|$)/i.test(u)||/^image\/(?:jpe?g|png|webp)$/i.test(kind));
   });
   const imageLicense=cleanDescription(field(node,'license')||field(node,'media:license'));
-  const imageUrl=found?attr(found[0],'url'):'';
+  // Some publishers place their lead photo only inside the RSS description or
+  // content:encoded; inspect image metadata without copying the full article.
+  const imageInFeed=(field(node,'description')||field(node,'content')||'').match(
+   /<img\b[^>]*?\b(?:src|data-src)=["'](https:\/\/[^"']+\.(?:jpe?g|png|webp)(?:\?[^"']*)?)["']/i)?.[1]||'';
+  const imageUrl=found?attr(found[0],'url'):imageInFeed;
   const imageCredit=cleanDescription(field(node,'media:credit')||source).slice(0,150);
   return [{url:cleanDescription(url),title,publishedAt,source,description,
    imageUrl,imageLicense,imageCredit,imageFeedPreview:Boolean(imageUrl),language:'en',publishedAccuracy:'published' as const}];

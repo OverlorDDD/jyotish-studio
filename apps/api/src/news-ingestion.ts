@@ -157,9 +157,11 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
   finally{this.editorialRunning=false;}
  }
  private async enrichMetadata(){
-  const approved=metadataHosts(),rows=await this.prisma.newsArticle.findMany({
+  const trusted=await this.prisma.newsDiscoveredSource.findMany({where:{status:'TRUSTED'},select:{domain:true}});
+  const extra=trusted.map(x=>x.domain);
+  const approved=metadataHosts(extra),rows=await this.prisma.newsArticle.findMany({
    where:{metadataCheckedAt:null,status:'PUBLISHED'},
-   orderBy:{publishedAt:'desc'},take:180,
+   orderBy:{publishedAt:'desc'},take:600,
    select:{id:true,url:true,feedDescription:true,imageUrl:true,imageCredit:true}
   });
   let checked=0,filled=0;
@@ -169,7 +171,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    if(!domain)continue;
    if(!approved.has(domain)&&!approved.has('www.'+domain))continue;
    checked++;
-   const meta=await fetchArticleMetadata(row.url);
+   const meta=await fetchArticleMetadata(row.url,fetch,extra);
    const externalImage=meta.imageUrl?safeImageUrl(meta.imageUrl,'',domain,false):null;
    await this.prisma.newsArticle.updateMany({where:{id:row.id,metadataCheckedAt:null},data:{
     metadataCheckedAt:new Date(),

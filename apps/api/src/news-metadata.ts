@@ -18,11 +18,11 @@ const forbidden=(ip:string)=>{
   ip.toLowerCase().startsWith('fd')||ip.toLowerCase().startsWith('fe80')||ip.includes('::ffff:');
  return true;
 };
-export function metadataHosts():Set<string>{
+export function metadataHosts(extra:readonly string[]=[]):Set<string>{
  const candidate=RSS_SOURCES.map(s=>publisherDomain(s.url)).filter((x):x is string=>Boolean(x));
  const permitted=(process.env.NEWS_METADATA_ALLOWED_HOSTS||'').split(',').map(x=>x.trim().toLowerCase())
   .filter(x=>/^[a-z0-9][a-z0-9.-]{2,190}[a-z0-9]$/.test(x));
- return new Set([...candidate,...permitted]);
+ return new Set([...candidate,...permitted,...extra.filter(x=>/^[a-z0-9][a-z0-9.-]{2,190}$/.test(x))]);
 }
 export function parseArticleMeta(html:string,originalUrl:string):Meta {
  const meta=[...html.slice(0,135000).matchAll(/<meta\b[^>]*>/gi)];
@@ -43,9 +43,9 @@ export function parseArticleMeta(html:string,originalUrl:string):Meta {
  return {description:description.length>45?description:undefined,imageUrl,
   imageCredit:cleanDescription(entries.get('article:publisher')||new URL(originalUrl).hostname)};
 }
-export async function fetchArticleMetadata(url:string,fetcher:typeof fetch=fetch):Promise<Meta>{
+export async function fetchArticleMetadata(url:string,fetcher:typeof fetch=fetch,extraHosts:readonly string[]=[]):Promise<Meta>{
  const clean=canonicalUrl(url);if(!clean)return {};
- const u=new URL(clean),allowed=metadataHosts();
+ const u=new URL(clean),allowed=metadataHosts(extraHosts);
  if(!allowed.has(u.hostname)&&!allowed.has(u.hostname.replace(/^www\./,'')))return {};
  try{
   if(isIP(u.hostname))return {};
