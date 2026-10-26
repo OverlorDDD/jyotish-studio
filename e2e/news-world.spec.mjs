@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('GalaxiNews World is a public bilingual editorial feed with tag preferences',async({page})=>{
- await page.goto('/uk/news');
+ const response=await page.goto('/uk/news');
+ expect(response?.headers()['x-galaxiora-news-revision']).toBe('world-v1.6');
  await expect(page.getByTestId('galaxinews-world')).toBeVisible();
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
  await expect(page.getByRole('search',{name:'Пошук новин'})).toBeVisible();

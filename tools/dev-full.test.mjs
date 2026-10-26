@@ -25,6 +25,7 @@ test('public GalaxiNews never exposes operational scan cadence or webpack CSS wa
 test('local bootstrap detects stale Next and Nest listeners before showing updated site',()=>{
  const source=readFileSync(new URL('./dev-full.mjs',import.meta.url),'utf8');
  assert.match(source,/Get-NetTCPConnection/);
+ assert.match(source,/refreshDevNextCache/);
  assert.match(source,/occupied\(port\)/);
  assert.match(source,/Next\.js/);
  assert.match(source,/NestJS/);

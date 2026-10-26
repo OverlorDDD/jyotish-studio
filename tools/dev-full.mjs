@@ -6,6 +6,7 @@ import {connect} from 'node:net';
 import {existsSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {refreshDevNextCache} from './news-dev-cache.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const win=process.platform==='win32';
@@ -82,6 +83,18 @@ for(const [name,port] of [['Next.js',Number(process.env.WEB_PORT||3000)],
   console.error('[Galaxiora preflight] '+name+' port '+port+' is already in use.');
   console.error('Stop the old Next/Nest terminal (Ctrl+C). On Windows use Get-NetTCPConnection -LocalPort '+port+' to find the process.');
   console.error('A running old frontend can make it look as though GitHub updates were not applied.');
+  process.exit(1);
+ }
+}
+// Next's dev cache is generated output, not persistent user content.
+// Build a clean client bundle after a Git pull only; never touch .env, prisma or account data.
+const git=run('git',['rev-parse','HEAD'],5000);
+if(git.ok){
+ try{
+  const cache=refreshDevNextCache(resolve(root,'apps/web'),git.stdout.trim());
+  console.log('[Galaxiora preflight] Next.js dev cache:',cache.state);
+ }catch(e){
+  console.error('[Galaxiora preflight] Cannot safely refresh Next.js build cache: '+String(e));
   process.exit(1);
  }
 }
