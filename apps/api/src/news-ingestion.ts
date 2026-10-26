@@ -120,11 +120,17 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
          duplicates++;duplicatesAll++;
          // Can enrich old rows, but do not change their visibility/moderation.
          // New publisher metadata can enhance existing legacy rows and trigger translation.
+         const prior=await this.prisma.newsArticle.findUnique({where:{urlHash},
+          select:{feedDescription:true,summaryKind:true}});
+         const received=item.description?.slice(0,1200)||'';
+         const isNewContext=received.length>45&&received!==prior?.feedDescription;
          await this.prisma.newsArticle.updateMany({where:{urlHash},data:{
           lastSeenAt:new Date(),
-          ...(item.description?{feedDescription:item.description.slice(0,1200),summaryKind:'needs_editorial'}:{}),
+          ...(isNewContext?{feedDescription:received,summaryKind:'needs_editorial',
+           editorialNextAttemptAt:null,editorialAttempts:0}:{}),
           ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit}:{}),
-          ...(c.summaryKind==='source_excerpt'?{summary:c.summary,summaryKind:'source_excerpt'}:{})
+          ...(c.summaryKind==='source_excerpt'&&prior?.summaryKind!=='ai_editorial'?
+           {summary:c.summary,summaryKind:'source_excerpt'}:{})
          }});
         }
        }catch(e){errors++;console.warn('[news] item rejected',String(e));}
@@ -161,7 +167,8 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
   const trusted=await this.prisma.newsDiscoveredSource.findMany({where:{status:'TRUSTED'},select:{domain:true}});
   const extra=trusted.map(x=>x.domain);
   const approved=metadataHosts(extra),rows=await this.prisma.newsArticle.findMany({
-   where:{metadataCheckedAt:null,status:'PUBLISHED'},
+   where:{status:'PUBLISHED',OR:[{metadataCheckedAt:null},
+    {metadataCheckedAt:{lt:new Date(Date.now()-7*24*3600000)},feedDescription:null}]},
    orderBy:{publishedAt:'desc'},take:600,
    select:{id:true,url:true,feedDescription:true,imageUrl:true,imageCredit:true}
   });
@@ -174,9 +181,9 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    checked++;
    const meta=await fetchArticleMetadata(row.url,fetch,extra);
    const externalImage=meta.imageUrl?safeImageUrl(meta.imageUrl,'',domain,false):null;
-   await this.prisma.newsArticle.updateMany({where:{id:row.id,metadataCheckedAt:null},data:{
+   await this.prisma.newsArticle.updateMany({where:{id:row.id,status:'PUBLISHED'},data:{
     metadataCheckedAt:new Date(),
-    ...(!row.feedDescription&&meta.description?{feedDescription:meta.description,summaryKind:'needs_editorial'}:{}),
+    ...(!row.feedDescription&&meta.description?{feedDescription:meta.description,summaryKind:'needs_editorial',editorialNextAttemptAt:null,editorialAttempts:0}:{}),
     ...(!row.imageUrl&&externalImage?{imageUrl:externalImage,imageCredit:meta.imageCredit||domain}:{})
    }});
    if(meta.description||externalImage)filled++;
