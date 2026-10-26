@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {computePersonalScore,rankPersonalNews} from '../apps/api/src/news-relevance.ts';
+import {computePersonalScore,rankPersonalNews,strongNewsSimilarity} from '../apps/api/src/news-relevance.ts';
 const at=new Date('2026-10-26T11:00:00Z');
 const now=new Date('2026-10-26T14:00:00Z').getTime();
 const story=(id,topic,source,score=42,tags=[topic])=>({id,topic,source,score,tags,publishedAt:at});
@@ -45,4 +45,30 @@ test('no feedback only ever reads explicit vote data; selected topic has no birt
  const list=[story('a','jyotish','A'),story('b','tarot','B')];
  assert.doesNotThrow(()=>rankPersonalNews(list,['tarot'],[],now));
  assert.equal(rankPersonalNews(list,['tarot'],[],now)[0].id,'b');
+});
+
+test('one rejected narrow-topic story hides similar stories, not all yoga',()=>{
+ const no=[{articleId:'old',vote:'NO',article:{
+  topic:'yoga',tags:['yoga','pranayama'],title:'Pranayama breathing techniques for beginners'}}];
+ const close={...story('close','yoga','A',75,['yoga','pranayama']),
+  title:'Pranayama breathing techniques for relaxation'};
+ const broad={...story('broad','yoga','B',70,['yoga']),title:'Yoga philosophy for life'};
+ const rest=rankPersonalNews([close,broad],['yoga'],no,now);
+ assert.deepEqual(rest.map(a=>a.id),['broad']);
+ assert.equal(rankPersonalNews([close,broad],['yoga'],[],now).length,2);
+});
+test('unusually similar titles are excluded; common category words alone are insufficient',()=>{
+ const rejected={topic:'astrology',tags:['astrology'],title:'Venus retrograde Scorpio October forecast'};
+ const close={...story('close','astrology','A',70),title:'Venus retrograde Scorpio November forecast'};
+ const different={...story('different','astrology','B',70),title:'Lunar eclipses and traditional astrology'};
+ assert.equal(strongNewsSimilarity(close,rejected),true);
+ assert.equal(strongNewsSimilarity(different,rejected),false);
+});
+test('repeated generic dislikes reduce ranking without wiping an entire category',()=>{
+ const candidate=story('yoga','yoga','A',65,['yoga']);
+ const negative={articleId:'unrelated',vote:'NO',
+  article:{topic:'yoga',tags:['yoga'],title:'Unrelated yoga retreat'}};
+ assert.equal(rankPersonalNews([candidate],['yoga'],[negative,negative],now).length,1);
+ assert.ok(computePersonalScore(candidate,[],[negative],now).score<
+  computePersonalScore(candidate,[],[],now).score);
 });
