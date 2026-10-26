@@ -4,7 +4,14 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  await expect(page.getByTestId('galaxinews-world')).toBeVisible();
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
  await expect(page.getByRole('search',{name:'Пошук новин'})).toBeVisible();
- await expect(page.locator('[data-release="world-v1.3"]')).toHaveCount(1);
+ const masthead=await page.locator('[data-testid="galaxinews-world"] header').first().boundingBox();
+ const searchBox=await page.getByRole('searchbox',{name:'Пошук новин'}).boundingBox();
+ const tagsArea=await page.getByRole('region',{name:'Хмара твоїх інтересів'}).boundingBox();
+ expect(masthead&&searchBox&&tagsArea).toBeTruthy();
+ expect(searchBox.y).toBeGreaterThanOrEqual(masthead.y);
+ expect(searchBox.y+searchBox.height).toBeLessThan(tagsArea.y);
+
+ await expect(page.locator('[data-release="world-v1.4"]')).toHaveCount(1);
  await expect(page.getByText('Перевірка джерел приблизно кожні 15 хвилин')).toHaveCount(0);
  await expect(page.getByText('Хмара твоїх інтересів',{exact:true})).toHaveCount(1);
  await expect(page.locator('header.as-header')).toHaveCount(1);
