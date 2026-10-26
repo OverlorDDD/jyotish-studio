@@ -119,7 +119,7 @@ modules:
     ingestion: "apps/api/src/news-ingestion.ts and news-metadata.ts; 25 RSS candidates, 13 GDELT queries, publisher domain registry, initial backfill, 15-minute polling, bounded OG extraction for trusted hosts"
     ranking: "apps/api/src/news-domain.ts (safe URL, description-aided topical classification, publisher diversity, recency rank, bounded source-grounded preview)"
     persistence: "NewsArticle, NewsScan, NewsSourceScan, NewsIngestionLease, NewsDiscoveredSource; additive migration chain through 20261026124000_galaxinews_discovery_backfill"
-    web: "apps/web/app/components/NewsWorld.tsx; NewsWorld.module.css; /{locale}/news; compact search beside tabs, data-release=world-v1.7, publisher feed thumbnails + fallback"
+    web: "apps/web/app/components/NewsWorld.tsx; NewsWorld.module.css; /{locale}/news; compact search beside tabs, data-release=world-v1.8, publisher feed thumbnails + fallback"
     interests: "browser-local tag cloud and yes/no feedback; no natal data or account-based recommendations yet"
     safeguard: "no full articles, no invented facts or meta-text; hide unsupported teasers; image CC licence / explicitly-approved hosts; GDELT seendate marked observation; astronomy separate"
     tests: "npm run test:news; e2e/news-world.spec.mjs"

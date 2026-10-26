@@ -34,7 +34,7 @@ test('GalaxiNews automatically shows a fast initial response and never erases it
 });
 test('GalaxiNews World is a public bilingual editorial feed with tag preferences',async({page})=>{
  const response=await page.goto('/uk/news');
- expect(response?.headers()['x-galaxiora-news-revision']).toBe('world-v1.7');
+ expect(response?.headers()['x-galaxiora-news-revision']).toBe('world-v1.8');
  await expect(page.getByTestId('galaxinews-world')).toBeVisible();
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
  await expect(page.getByRole('search',{name:'Пошук новин'})).toBeVisible();
@@ -64,7 +64,7 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
   searchFound:Boolean(document.querySelector('#galaxinews-search')),
   htmlText:document.body.innerText
  }));
- expect(actualDOM.revision).toBe('world-v1.7');
+ expect(actualDOM.revision).toBe('world-v1.8');
  expect(actualDOM.searchFound).toBe(true);
  expect(actualDOM.htmlText).not.toContain('Астрономічні матеріали не змішуються');
  expect(actualDOM.htmlText).not.toContain('Перевірка джерел приблизно кожні 15 хвилин');
@@ -73,7 +73,7 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  await expect(interestCloud.getByRole('button',{name:'Мантри'})).toBeVisible();
  await expect(page.getByText('Астрономічні матеріали не змішуються з астрологічними трактуваннями автоматично.')).toHaveCount(0);
 
- await expect(page.locator('[data-release="world-v1.7"]')).toHaveCount(1);
+ await expect(page.locator('[data-release="world-v1.8"]')).toHaveCount(1);
  await expect(page.getByText('Перевірка джерел приблизно кожні 15 хвилин')).toHaveCount(0);
  await expect(page.getByText('Хмара твоїх інтересів',{exact:true})).toHaveCount(1);
  await expect(page.locator('header.as-header')).toHaveCount(1);

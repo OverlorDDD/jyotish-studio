@@ -14,7 +14,7 @@ catch{
 const context=await browser.newContext({viewport:{width:1440,height:900}});
 const page=await context.newPage();
 try{
- const response=await page.goto('http://127.0.0.1:3000/uk/news?check=v1.7',{waitUntil:'domcontentloaded',timeout:30000});
+ const response=await page.goto('http://127.0.0.1:3000/uk/news?check=v1.8',{waitUntil:'domcontentloaded',timeout:30000});
  await page.getByTestId('galaxinews-world').waitFor({state:'visible',timeout:15000});
  const apiResponse=await page.request.get('http://127.0.0.1:3000/api/v1/news/feed?limit=12',{timeout:15000});
  if(!apiResponse.ok())throw Error('Feed API HTTP '+apiResponse.status());
@@ -62,11 +62,11 @@ try{
     document.body.innerText.includes('Астрономічні матеріали не змішуються')
   };
  },initialArticles);
- const pass=response?.ok()&&result.revision==='world-v1.7'&&result.visibleSearch&&result.searchWithinTabs
+ const pass=response?.ok()&&result.revision==='world-v1.8'&&result.visibleSearch&&result.searchWithinTabs
    &&result.tagCount===12&&!result.obsoleteText&&Boolean(result.articleCounter)
    &&/\d/.test(result.articleCounter)&&initialStillVisible
    &&(!apiFeed.items.length||result.articleCards>0);
- const imagePath=resolve('apps/web/.next/diagnostics/galaxinews-v1.7.png');
+ const imagePath=resolve('apps/web/.next/diagnostics/galaxinews-v1.8.png');
  mkdirSync(dirname(imagePath),{recursive:true});
  await page.screenshot({path:imagePath,fullPage:false});
  console.log('[GalaxiNews] Feed API items:',apiFeed.items.length,'initial cards after debounce:',initialArticles);
