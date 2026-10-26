@@ -29,7 +29,8 @@ function gdelt(raw:unknown):Candidate[]{
   // GDELT seendate is detection time rather than confirmed original publication time.
   return Number.isFinite(when.getTime())?[{url:x.url,title:x.title,publishedAt:when,
    publishedAccuracy:'observed' as const,source:typeof x.domain==='string'?x.domain:'GDELT indexed',
-   language:typeof x.language==='string'?x.language:'unknown'}]:[];
+   language:typeof x.language==='string'?x.language:'unknown',
+   imageUrl:typeof x.socialimage==='string'?x.socialimage:undefined,imageCredit:typeof x.domain==='string'?x.domain:'Publisher'}]:[];
  });
 }
 @Injectable()
@@ -121,7 +122,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
          // New publisher metadata can enhance existing legacy rows and trigger translation.
          await this.prisma.newsArticle.updateMany({where:{urlHash},data:{
           lastSeenAt:new Date(),
-          ...(item.description?{feedDescription:item.description.slice(0,1200)}:{}),
+          ...(item.description?{feedDescription:item.description.slice(0,1200),summaryKind:'needs_editorial'}:{}),
           ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit}:{}),
           ...(c.summaryKind==='source_excerpt'?{summary:c.summary,summaryKind:'source_excerpt'}:{})
          }});
@@ -175,7 +176,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    const externalImage=meta.imageUrl?safeImageUrl(meta.imageUrl,'',domain,false):null;
    await this.prisma.newsArticle.updateMany({where:{id:row.id,metadataCheckedAt:null},data:{
     metadataCheckedAt:new Date(),
-    ...(!row.feedDescription&&meta.description?{feedDescription:meta.description}:{}),
+    ...(!row.feedDescription&&meta.description?{feedDescription:meta.description,summaryKind:'needs_editorial'}:{}),
     ...(!row.imageUrl&&externalImage?{imageUrl:externalImage,imageCredit:meta.imageCredit||domain}:{})
    }});
    if(meta.description||externalImage)filled++;
