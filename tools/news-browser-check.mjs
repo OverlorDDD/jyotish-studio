@@ -37,6 +37,14 @@ try{
  await page.getByRole('heading',{name:'Для мене'}).waitFor({state:'visible',timeout:10000});
  await page.getByRole('button',{name:/Головне/}).click();
  await page.getByRole('heading',{name:'Головне'}).waitFor({state:'visible',timeout:10000});
+ // Returning from Personal mode starts another async request. Do not claim PASS
+ // while React is still showing the transient empty state.
+ if(apiFeed.items.length){
+  await page.waitForFunction(
+   ()=>document.querySelectorAll('[data-testid="galaxinews-world"] article').length>0,
+   null,{timeout:15000}
+  );
+ }
  const result=await page.evaluate((initialArticles)=>{
   const root=document.querySelector('[data-testid="galaxinews-world"]');
   const input=document.querySelector('#galaxinews-search');
@@ -56,7 +64,8 @@ try{
  },initialArticles);
  const pass=response?.ok()&&result.revision==='world-v1.7'&&result.visibleSearch&&result.searchWithinTabs
    &&result.tagCount===12&&!result.obsoleteText&&Boolean(result.articleCounter)
-   &&/\d/.test(result.articleCounter)&&initialStillVisible;
+   &&/\d/.test(result.articleCounter)&&initialStillVisible
+   &&(!apiFeed.items.length||result.articleCards>0);
  const imagePath=resolve('apps/web/.next/diagnostics/galaxinews-v1.7.png');
  mkdirSync(dirname(imagePath),{recursive:true});
  await page.screenshot({path:imagePath,fullPage:false});
