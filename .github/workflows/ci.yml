@@ -47,6 +47,11 @@ jobs:
         run: python -m pip install pyswisseph
       - name: Unit tests
         run: npm run test:all
+      - name: NPM dependency audit diagnostics
+        continue-on-error: true
+        run: |
+          npm audit --json > /tmp/galaxiora-npm-audit.json || true
+          node -e 'const a=require("/tmp/galaxiora-npm-audit.json"); for(const [name,v] of Object.entries(a.vulnerabilities||{})){console.log([name,v.severity,v.isDirect?"direct":"transitive",JSON.stringify(v.fixAvailable),v.range].join(" | "));} console.log("TOTAL:",JSON.stringify(a.metadata?.vulnerabilities||{}))'
       - name: Independently certify JHora D1 D9 D10 sign parity (20 attested profiles)
         run: npm run jqa3:certify-signs
       - name: Diagnose historical JHora Vimshottari calendar (informational; never certifies dates)
@@ -57,6 +62,7 @@ jobs:
         run: npm run test:swagger
       - name: Validate public launchers
         run: |
+          node --check tools/dev-full.mjs
           node --check tools/public-launch.mjs
           node --check tools/next-launch.mjs
           node --check tools/jyotish-direct-live-check.mjs

@@ -108,6 +108,11 @@ modules:
     user_interface: "apps/web/app/components/EditorialWorkspace.tsx"
     public: "apps/web/lib/editorial-public.ts; EditorialPublishedCards.tsx; EditorialArticle.tsx"
     invariant: "only PUBLISHED visible to public; immutable versions; CAS expectedRevision; A5 slugs reserved"
+  local_bootstrap:
+    source: "tools/dev-full.mjs"
+    entry: "npm run dev:full"
+    safety: "Docker Desktop / PostgreSQL health and Prisma migrations must pass before Next and Nest start; database volume preserved"
+    diagnostics: "npm run db:doctor; npm run site:check; npm run test:bootstrap"
   news_world:
     status: "World v1.2 editorial quality implemented: UA source-grounded title/teaser, image rights gate, no boilerplate; live editorial provider and source coverage need QA"
     http: "apps/api/src/news.ts; /api/v1/news/feed, /topics, admin moderation and health"
