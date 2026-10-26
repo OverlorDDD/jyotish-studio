@@ -5,6 +5,7 @@ import {probeLocalNewsFrontend} from './news-local-probe.mjs';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
 import {publisherDomain,safeImageUrl} from '../apps/api/src/news-domain.ts';
 import {metadataHosts,fetchArticleMetadata} from '../apps/api/src/news-metadata.ts';
+import {rank,diversify} from '../apps/api/src/news-domain.ts';
 
 const repair=process.argv.includes('--repair');
 if(process.argv.includes('--help')){
@@ -80,6 +81,23 @@ try{
   editorialEnabled:process.env.NEWS_EDITORIAL_AI_ENABLED!=='0'
  });
  await statistics();
+ const [recentScans,recentArticles]=await Promise.all([
+  prisma.newsScan.findMany({orderBy:{createdAt:'desc'},take:6,select:{createdAt:true,accepted:true,sources:true,errors:true}}),
+  prisma.newsArticle.findMany({where:{status:'PUBLISHED'},take:600,
+   orderBy:{publishedAt:'desc'},select:{id:true,title:true,titleUk:true,source:true,publishedAt:true,score:true}})
+ ]);
+ const relevance=diversify([...recentArticles].sort((a,b)=>rank(b.score,b.publishedAt)-rank(a.score,a.publishedAt)||
+  b.publishedAt.getTime()-a.publishedAt.getTime()),3);
+ const lead=relevance[0],newest=recentArticles[0];
+ console.log('[GalaxiNews] featured story:',lead?JSON.stringify({
+  id:lead.id,title:lead.titleUk||lead.title,source:lead.source,publishedAt:lead.publishedAt
+ }):'none');
+ console.log('[GalaxiNews] most recently published:',newest?JSON.stringify({
+  id:newest.id,title:newest.titleUk||newest.title,source:newest.source,publishedAt:newest.publishedAt
+ }):'none');
+ console.log('[GalaxiNews] recent scans:',recentScans.map(scan=>({
+  at:scan.createdAt,added:scan.accepted,sources:scan.sources,errors:scan.errors
+ })));
  const scans=await prisma.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:100,
   select:{sourceKey:true,status:true,failure:true,createdAt:true}});
  const latest=new Map();
