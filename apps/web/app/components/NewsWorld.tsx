@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit,Search,X} from 'lucide-react';
 import PortalShell from './PortalShell';
 import styles from './NewsWorld.module.css';
@@ -42,7 +42,8 @@ const COPY={
   newest:'За часом публікації',relevant:'За релевантністю',search:'Пошук новин',searchPlaceholder:'Таро, ретроградна Венера, йога…',clearSearch:'Очистити пошук',searchResults:'Результати пошуку',
   saveAccount:'Зберегти інтереси в кабінеті',savedAccount:'Інтереси збережено',
   guestLocal:'Зараз ці інтереси зберігаються в браузері. Для синхронізації увійди в кабінет.',
-  saveFailed:'Не вдалося синхронізувати інтереси. Спробуй ще раз.'
+  saveFailed:'Не вдалося синхронізувати інтереси. Спробуй ще раз.',
+  importGuest:'Додати теми з цього браузера'
  },
  en:{
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'A living world of astrology, Tarot and spiritual traditions.',
@@ -63,7 +64,8 @@ const COPY={
   newest:'Publication time',relevant:'Relevance',search:'Search news',searchPlaceholder:'Tarot, Venus retrograde, yoga…',clearSearch:'Clear search',searchResults:'Search results',
   saveAccount:'Save interests to my account',savedAccount:'Interests saved to account',
   guestLocal:'These interests are in this browser. Sign in to sync across devices.',
-  saveFailed:'Could not sync interests. Please try again.'
+  saveFailed:'Could not sync interests. Please try again.',
+  importGuest:'Add topics from this browser'
  }
 } as const;
 const STORAGE='galaxiora:news-world:v1';
@@ -93,6 +95,8 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const [accountStatus,setAccountStatus]=useState<'loading'|'guest'|'member'>('loading');
  const [accountTags,setAccountTags]=useState<InterestTag[]>([]);
  const [syncing,setSyncing]=useState(false),[syncError,setSyncError]=useState(false);
+ const guestTopics=useRef<InterestTag[]>([]);
+ const [pendingGuest,setPendingGuest]=useState<InterestTag[]>([]);
  // Only a changed search term may start a new feed request.
  // Never clear fetched stories from a timer: on the initial mount that raced
  // with the API response and left the page empty until the manual refresh.
@@ -107,7 +111,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  useEffect(()=>{
   try{
    const saved=JSON.parse(localStorage.getItem(STORAGE)||'{}');
-   if(Array.isArray(saved.tags))setSelected(saved.tags.filter(validTag));
+   if(Array.isArray(saved.tags)){const tags=saved.tags.filter(validTag);guestTopics.current=tags;setSelected(tags);}
    if(saved.votes&&typeof saved.votes==='object'&&!Array.isArray(saved.votes))
     setVotes(Object.fromEntries(Object.entries(saved.votes).filter(([key,value])=>key.length<160&&['yes','no'].includes(String(value))).slice(-200)) as Record<string,Vote>);
   }catch{}
@@ -115,8 +119,9 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  },[]);
  useEffect(()=>{
   if(!ready)return;
+  if(accountStatus!=='guest')return;
   try{localStorage.setItem(STORAGE,JSON.stringify({tags:selected,votes}));}catch{}
- },[ready,selected,votes]);
+ },[ready,selected,votes,accountStatus]);
  useEffect(()=>{
   if(!ready)return;
   const controller=new AbortController();
@@ -130,8 +135,9 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    const saved=Array.isArray(data.tags)?data.tags.filter(validTag):[];
    setAccountTags(saved);
    setAccountStatus('member');
-   // An existing guest choice is never silently overwritten or uploaded.
-   setSelected(previous=>previous.length?previous:saved);
+   // Stored account preferences win on sign-in. Guest choices remain optional.
+   setPendingGuest(guestTopics.current.filter(tag=>!saved.includes(tag)));
+   setSelected(saved);
   }).catch(()=>{if(!controller.signal.aborted)setAccountStatus('guest');});
   return()=>controller.abort();
  },[ready]);
@@ -145,7 +151,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({tags:selected})
    });
-   if(response.status===401){setAccountStatus('guest');throw Error('Signed out');}
+   if(response.status===401){setAccountStatus('guest');setSelected(guestTopics.current);throw Error('Signed out');}
    if(!response.ok)throw Error('News interests HTTP '+response.status);
    const updated=await response.json() as {tags?:unknown};
    if(Array.isArray(updated.tags))setAccountTags(updated.tags.filter(validTag));
@@ -234,6 +240,13 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     </div>
     {selected.length>0&&<div className={styles.selected}><span>{t.chosen}: {selected.length}</span>
       <button onClick={()=>setSelected([])} type="button">{t.reset}</button></div>}
+    {accountStatus==='member'&&pendingGuest.length>0&&
+     <div className={styles.accountSync} data-testid="news-import-guest">
+      <button type="button" onClick={()=>{
+       setSelected(old=>[...new Set([...old,...pendingGuest])]);
+       setPendingGuest([]);
+      }}>{t.importGuest} ({pendingGuest.length})</button>
+     </div>}
     {accountStatus==='member'&&(accountTagsDiffer||selected.length>0)&&
      <div className={styles.accountSync} data-testid="news-account-sync">
       {accountTagsDiffer?
