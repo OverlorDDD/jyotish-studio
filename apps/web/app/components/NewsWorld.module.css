@@ -114,3 +114,31 @@
  padding:5px 9px;border-radius:12px;color:#e6d3af;font-size:12px;letter-spacing:.01em}
 .feedback small[role="alert"]{color:#f6aea4;font-size:12px}
 .feedback button:disabled{opacity:.55;cursor:wait}
+
+
+/* GalaxiNews P4: calm inline preferences that do not narrow the World magazine. */
+.privacyControls{margin-top:14px;max-width:100%}
+.manageToggle,.managePanel button{display:inline-flex;align-items:center;gap:8px;border:1px solid #60708d;
+ color:#e4d3ae;background:#1c2b47;border-radius:12px;padding:9px 13px;font-size:13px;cursor:pointer}
+.manageToggle:hover,.managePanel button:hover{border-color:#d9b976}
+.manageToggle[aria-expanded="true"]{border-color:#d8b676}
+.managePanel{margin-top:13px;padding:19px 20px;border:1px solid rgba(214,185,121,.33);
+ background:linear-gradient(145deg,rgba(28,43,72,.95),rgba(14,26,47,.94));
+ border-radius:16px;display:flex;flex-direction:column;align-items:flex-start;gap:11px}
+.managePanel h3{color:#e4d1a5;font:500 19px Georgia,serif;margin:12px 0 0}
+.manageNote{color:#b8c5dc;font-size:13px;line-height:1.55;margin:0}
+.managePanel button[role="switch"][aria-checked="true"]{border-color:#d5b577;color:#f1d699}
+.managePanel button[role="switch"][aria-checked="false"]{border-color:#8892a7;color:#d6ddec}
+.managePanel button:disabled{opacity:.5;cursor:not-allowed}
+.manageActions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.historyList{list-style:none;padding:0;margin:0;width:100%;max-height:450px;overflow:auto;display:flex;flex-direction:column;gap:0}
+.historyList li{display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid rgba(206,190,162,.18);padding:11px 0}
+.historyList li>span{display:flex;align-items:flex-start;gap:9px;flex-wrap:wrap;min-width:0}
+.historyList a{color:#f0dfbb;text-decoration:underline;text-decoration-color:#657187;overflow-wrap:anywhere}
+.historyList small{color:#9aabc8;width:100%;padding-left:23px}
+.historyList button{flex-shrink:0}
+.confirmStrip{border:1px solid #c99d67;background:#2b3046;border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%}
+.confirmStrip p{color:#f2e1c5;font-size:13px;flex-basis:100%;margin:0}
+.confirmStrip button:first-of-type{border-color:#e4ac88;color:#ffe0d0}
+.manageError{color:#ffbcb5;font-size:12px}
+@media(max-width:700px){.managePanel{padding:15px 12px}.manageActions{width:100%}.historyList li{align-items:flex-start;flex-direction:column;gap:7px}.historyList button{margin-left:20px}}
