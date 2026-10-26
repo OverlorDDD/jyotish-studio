@@ -256,6 +256,7 @@ model PersonalProfile {
  preferredLocale String @default("uk") @db.VarChar(2)
  favoritePractice String? @db.VarChar(32)
  newsTopics String[] @default([])
+ newsPersonalizationEnabled Boolean @default(true)
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
 }
