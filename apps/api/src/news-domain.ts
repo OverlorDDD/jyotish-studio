@@ -41,9 +41,27 @@ export function cleanDescription(input:string):string{
   }).replace(/&#(\d+);/g,(_,v)=>{const n=Number(v);return n>31&&n<1114112?String.fromCodePoint(n):'';})
   .replace(/\s+/g,' ').trim();
 }
+/** The Galaxiora editorial newsdesk does not aggregate polemics or hostile debunking.
+ * Flag clear critique headlines; ambiguous opinion pieces need human review.
+ * Do not automatically exclude neutral reporting just because it mentions skepticism. */
+export function editorialDecision(title:string,description=''): 'REJECT'|'REVIEW'|'ACCEPT' {
+ const headline=cleanDescription(title).toLowerCase();
+ const teaser=cleanDescription(description).toLowerCase().slice(0,500);
+ const content=headline+' '+teaser;
+ if(/(?:astrology|horoscope|tarot|vedic astrology|horoscopes).{0,50}(?:is fake|is a fraud|is a scam|pseudoscience|debunked|bunk|quackery|nonsense|doesn.t work)|(?:debunk(?:ing|ed)?|expos(?:e|ing)|why not to believe).{0,45}(?:astrology|horoscopes|tarot)|(?:астрологія|таро|гороскопи).{0,50}(?:псевдонаук|шахрайств|обман|вигадк)|(?:викриття|розвінчан).{0,40}(?:астролог|таро|гороскоп)/i.test(content))return 'REJECT';
+ if(/(?:is astrology|astrology and science|skepti(?:c|k)|critici[sz]m|critical look|the problem with horoscopes|чи працює астрологія|критика астрології)/i.test(headline))return 'REVIEW';
+ return 'ACCEPT';
+}
+export function publisherDomain(raw:string):string|null {
+ const u=canonicalUrl(raw);if(!u)return null;
+ const host=new URL(u).hostname.toLowerCase();
+ return host.startsWith('www.')?host.slice(4):host;
+}
 export function classifyWithReason(c:Candidate):{article:ReturnType<typeof classify>|null;reason:string}{
  const a=classify(c);
  if(a)return {article:a,reason:'accepted'};
+ if(editorialDecision(c.title,c.description)==='REJECT')return {article:null,reason:'editorial_exclusion'};
+ if(editorialDecision(c.title,c.description)==='REVIEW')return {article:null,reason:'editorial_review'};
  if(!canonicalUrl(c.url))return {article:null,reason:'invalid_url'};
  if(!Number.isFinite(c.publishedAt.getTime())||c.publishedAt.getTime()>Date.now()+86400000||
   c.publishedAt.getTime()<Date.now()-1000*60*60*24*90)return {article:null,reason:'date_out_of_range'};
@@ -81,7 +99,7 @@ export function articlePreview(c:Candidate,topic:Topic){
 export function classify(c:Candidate){
  const url=canonicalUrl(c.url),title=c.title.replace(/\s+/g,' ').trim();
  if(!url||title.length<15||title.length>240||!Number.isFinite(c.publishedAt.getTime())||
-  /astrology is fake|astrology is a pseudoscience|debunk.{0,20}astrology|гороскоп.{0,15}шахрай|casino|coupon code/i.test(title))return null;
+  editorialDecision(title,c.description)!=='ACCEPT'||/casino|coupon code/i.test(title))return null;
  const age=(Date.now()-c.publishedAt.getTime())/3600000;
  if(age < -24||age>24*90)return null;
  const matched=TOPICS.filter(t=>terms[t].test(title+' '+cleanDescription(c.description||'').slice(0,600)));

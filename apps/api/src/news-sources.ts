@@ -38,5 +38,9 @@ export const GDELT_QUERIES=[
  ['meditation','"meditation practice" OR "mindfulness meditation"','meditation'],
  ['vedic','"vedic tradition" OR "Bhagavad Gita"','vedic'],
  ['natal','astrology AND "natal chart"','astrology'],
- ['spiritual','"spiritual development" AND meditation','self-development']
+ ['spiritual','"spiritual development" AND meditation','self-development'],
+ ['mainstream-astrology','astrology OR horoscope OR zodiac','astrology'],
+ ['mainstream-tarot','"tarot" OR "tarot cards"','tarot'],
+ ['mainstream-yoga','"yoga" AND (practice OR traditions)','yoga'],
+ ['mainstream-meditation','meditation AND (mindfulness OR practice)','meditation']
 ] as const;
