@@ -14,6 +14,8 @@ test('C5 bookmarks, profiles, verified premium perks and community discovery iso
   expect((await page.request.put(api('growth/bookmarks/'+id))).status()).toBe(200);
   expect((await page.request.put(api('growth/bookmarks/'+id))).status()).toBe(200);
   const my=await(await page.request.get(api('growth/bookmarks'))).json();expect(my.total).toBe(1);expect(my.max).toBe(20);
+  const ownExport=await(await page.request.get(api('privacy/export?page=1'))).json();
+  expect(ownExport.bookmarks.some(x=>x.threadId===id)).toBe(true);
   expect((await page.request.patch(api('growth/profile'),{data:{signature:'Мої інтереси',accent:'gold'}})).status()).toBe(403);
   expect((await page.request.patch(api('growth/profile'),{data:{signature:'Мої інтереси',accent:'default'}})).status()).toBe(200);
   const trends=await(await page.request.get(api('growth/featured'))).json();

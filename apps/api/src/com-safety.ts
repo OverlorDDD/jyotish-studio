@@ -133,8 +133,8 @@ export class ComSafetyController{
  async exportOwn(@Req()req:IncomingMessage,@Query('page')raw='1'){
   const actor=await this.actor(req),page=Number(raw);
   if(!Number.isSafeInteger(page)||page<1||page>1000)throw new BadRequestException('Invalid page');
-  const [profile,threads,posts,appeals,reports]=await Promise.all([
-   this.db.comProfile.findUnique({where:{userId:actor.id},select:{displayName:true,showPremiumBadge:true,createdAt:true}}),
+  const [profile,threads,posts,appeals,reports,bookmarks]=await Promise.all([
+   this.db.comProfile.findUnique({where:{userId:actor.id},select:{displayName:true,showPremiumBadge:true,signature:true,accent:true,createdAt:true}}),
    this.db.comThread.findMany({where:{authorId:actor.id},orderBy:{createdAt:'asc'},
     skip:(page-1)*100,take:100,select:{id:true,title:true,body:true,status:true,createdAt:true,updatedAt:true}}),
    this.db.comPost.findMany({where:{authorId:actor.id},orderBy:{createdAt:'asc'},
@@ -142,10 +142,12 @@ export class ComSafetyController{
    this.db.comAppeal.findMany({where:{authorId:actor.id},orderBy:{createdAt:'asc'},
     skip:(page-1)*100,take:100,select:{id:true,targetType:true,targetId:true,reason:true,status:true,decisionReason:true}}),
    this.db.comReport.findMany({where:{reporterId:actor.id},orderBy:{createdAt:'asc'},
-    skip:(page-1)*100,take:100,select:{id:true,threadId:true,postId:true,reason:true,status:true,createdAt:true}})
+    skip:(page-1)*100,take:100,select:{id:true,threadId:true,postId:true,reason:true,status:true,createdAt:true}}),
+   this.db.comBookmark.findMany({where:{userId:actor.id},orderBy:{createdAt:'asc'},
+    skip:(page-1)*100,take:100,select:{threadId:true,createdAt:true}})
   ]);
-  return {page,hasMore:[threads,posts,appeals,reports].some(x=>x.length===100),
-   profile,threads,posts,appeals,reports,scope:'GalaxiCom only, not full account export'};
+  return {page,hasMore:[threads,posts,appeals,reports,bookmarks].some(x=>x.length===100),
+   profile,threads,posts,appeals,reports,bookmarks,scope:'GalaxiCom only, not full account export'};
  }
  @Post('privacy/requests') @Header('Cache-Control','private,no-store')
  async requestPrivacy(@Req()req:IncomingMessage,@Body()dto:ComPrivacyDto){

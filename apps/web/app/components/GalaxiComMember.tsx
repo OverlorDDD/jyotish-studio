@@ -34,7 +34,7 @@ export default function GalaxiComMember({locale,memberId}:{locale:PortalLocale;m
       {data.member.premium&&<span className={styles.premium}><Star size={14}/>PREMIUM</span>}
      </div>
      {growth&&<div data-testid="com-reputation">
-      <strong>{uk?'Репутація':'Reputation'}: {growth.reputation} · {growth.helpful} {uk?'позначок «Корисно»':'helpful votes'}</strong>
+      <strong>{uk?'Репутація':'Reputation'}: {({NEW:uk?'Новачок':'Newcomer',ACTIVE:uk?'Активний учасник':'Active member',HELPFUL:uk?'Корисний дописувач':'Helpful contributor',GUIDE:uk?'Провідний учасник':'Leading contributor'} as Record<string,string>)[growth.reputation]||growth.reputation} · {growth.helpful} {uk?'позначок «Корисно»':'helpful votes'}</strong>
       {growth.signature&&<p>{growth.signature}</p>}
      </div>}
      <p>{uk?'Тем':'Threads'}: {data.threadCount} · {uk?'Відповідей':'Replies'}: {data.replyCount}</p>
