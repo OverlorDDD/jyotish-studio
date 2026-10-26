@@ -9,12 +9,10 @@ const data:[string,string,string,Topic,boolean][]=[
  ['llewellyn','Llewellyn Unbound','https://www.llewellyn.com/blog/feed/','tarot',false],
  ['yoga-lily','Yoga Lily','https://yogalily.com/feed/','yoga',false],
  ['yoga-synergy','Yoga Synergy','https://yogasynergy.com/feed/','yoga',false],
- ['astrology-weekly','Astrology Weekly','https://blog.astrologyweekly.com/rss.php','astrology',false],
- ['astrosage','AstroSage Magazine','https://astrosage.com/magazine/feed/','jyotish',false],
- ['astroved','AstroVed','https://www.astroved.com/articles/feed','jyotish',false],
+ ['astrosage','AstroSage Magazine','https://horoscope.astrosage.com/feed','jyotish',false],
+ ['astroved','AstroVed','https://astroved.com/blogs/feed','jyotish',false],
  ['astrotalk','AstroTalk Blog','https://astrotalk.com/astrology-blog/feed/','jyotish',false],
  ['clickastro','Clickastro','https://www.clickastro.com/blog/feed/','jyotish',false],
- ['indastro','Indastro','https://www.indastro.com/astrology/blog/feed/','jyotish',false],
  ['lunar-astro','Lunar Astro','https://lunarastro.org/blog/feed/','jyotish',false],
  ['hinduism-today','Hinduism Today','https://www.hinduismtoday.com/feed/','vedic',false],
  ['hindu-press','Hindu Press International','https://www.hinduismtoday.com/hpi/feed/','vedic',false],
@@ -25,8 +23,7 @@ const data:[string,string,string,Topic,boolean][]=[
  ['mountain-astrologer','The Mountain Astrologer','https://mountainastrologer.com/feed/','astrology',false],
  ['astrotwins','The AstroTwins','https://astrostyle.com/feed/','astrology',false],
  ['elephant-journal','Elephant Journal','https://www.elephantjournal.com/feed/','self-development',false],
- ['yoga-international','Yoga International','https://yogainternational.com/feed/','yoga',false],
- ['art-of-living','Art of Living','https://www.artofliving.org/blog/feed/','meditation',false]
+ ['yoga-basics','Yoga Basics','https://www.yogabasics.com/feed/','yoga',false]
 ];
 export const RSS_SOURCES:readonly RssSource[]=data.map(([key,name,url,hint,allowSnippet])=>({key,name,url,hint,allowSnippet}));
 export const GDELT_QUERIES=[
