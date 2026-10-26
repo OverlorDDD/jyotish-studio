@@ -45,7 +45,7 @@ test('GalaxiCom C3: published sources, editorial approvals, hidden posts and pri
   await expect(bridge.getByRole('link',{name:/Reading Vimshottari in the context/})).toBeVisible();
   await expect(bridge.getByText('Зв’язок схвалений редакцією')).toBeVisible();
   expect(await bridge.getByText('Прив’язати тему').count()).toBeGreaterThan(0);
-  expect((await db.comModerationAction.count({where:{targetId:linkId,action:'APPROVE_LINK'}})).toBe(1);
+  expect(await db.comModerationAction.count({where:{targetId:linkId,action:'APPROVE_LINK'}})).toBe(1);
   await page.goto('/en/learn/vimshottari-life-cycle');
   await expect(page.getByText('Editorially linked')).toBeVisible();
   // Rejected source is still DRAFT in CMS.
@@ -69,7 +69,7 @@ test('GalaxiCom C3: published sources, editorial approvals, hidden posts and pri
   const unlinked=await page.request.delete('/api/v1/com/context/links/'+linkId);
   expect(unlinked.status()).toBe(200);
   expect((await (await page.request.get(ctx('ACADEMY','vimshottari-life-cycle'))).json()).items).toEqual([]);
-  expect((await db.comModerationAction.count({where:{targetId:linkId,action:'UNLINK'}})).toBe(1);
+  expect(await db.comModerationAction.count({where:{targetId:linkId,action:'UNLINK'}})).toBe(1);
   await page.goto('/uk/tarot');
   await expect(page.getByTestId('community-module-link').getByRole('link',{name:/Перейти до GalaxiCom/})).toHaveAttribute('href','/uk/community?category=tarot');
   await page.goto('/uk/astrology/jyotish');
