@@ -144,11 +144,19 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  };
  const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
  return <PortalShell locale={locale} active="news">
-  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.3">
+  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.4">
    <header className={styles.hero}>
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
      <h1>{t.title}</h1><h2>{t.subtitle}</h2><p>{t.intro}</p>
+     <div className={styles.heroSearch} role="search" aria-label={t.search}>
+      <label htmlFor="galaxinews-search" className={styles.heroSearchTitle}><Search size={17}/>{t.search}</label>
+      <div className={styles.heroSearchInput}>
+       <input id="galaxinews-search" type="search" placeholder={t.searchPlaceholder} value={search}
+        maxLength={80} onChange={e=>setSearch(e.target.value)} autoComplete="off"/>
+       {search&&<button type="button" title={t.clearSearch} aria-label={t.clearSearch} onClick={()=>setSearch('')}><X size={18}/></button>}
+      </div>
+     </div>
     </div>
     <div className={styles.cosmos} aria-hidden="true"><div className={styles.orbit1}/><div className={styles.orbit2}/><MoonStar size={84} strokeWidth={0.75}/><i className={styles.star1}/><i className={styles.star2}/></div>
    </header>
@@ -170,15 +178,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     {selected.length>0&&<div className={styles.selected}><span>{t.chosen}: {selected.length}</span>
       <button onClick={()=>setSelected([])} type="button">{t.reset}</button></div>}
    </section>
-   <div className={styles.searchPanel} role="search" aria-label={t.search}>
-    <Search size={21} aria-hidden="true"/>
-    <label className={styles.searchLabel} htmlFor="galaxinews-search">{t.search}</label>
-    <input id="galaxinews-search" type="search" placeholder={t.searchPlaceholder}
-     value={search} maxLength={80} onChange={e=>setSearch(e.target.value)}
-     autoComplete="off"/>
-    {search&&<button type="button" title={t.clearSearch} aria-label={t.clearSearch}
-     onClick={()=>setSearch('')}><X size={19}/></button>}
-   </div>
+
    <div className={styles.feedLayout}>
     <section className={styles.feed} aria-label={view==='mine'?t.yourFeed:t.world}>
      <div className={styles.feedHeader}>

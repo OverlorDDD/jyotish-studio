@@ -90,3 +90,15 @@
 .searchPanel button{display:flex;align-items:center;justify-content:center;background:#273451;border:0;border-radius:9px;color:#f0d6a0;min-width:35px;min-height:35px}
 .searchLabel{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media(max-width:640px){.searchPanel{margin-bottom:22px;padding:9px 12px}.searchPanel input{font-size:14px}}
+
+/* The search is prominent above the fold, inside the news masthead. */
+.hero{align-items:center}
+.heroCopy{max-width:760px}
+.heroSearch{margin-top:22px;max-width:655px;text-align:left}
+.heroSearchTitle{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;letter-spacing:.04em;color:#f0d39b;margin-bottom:9px}
+.heroSearchInput{display:flex;align-items:center;min-height:52px;gap:8px;background:#f7f3e9;border:2px solid #e5c47c;border-radius:13px;padding:4px 10px;box-shadow:0 9px 30px rgba(0,0,0,.18)}
+.heroSearchInput:focus-within{outline:3px solid #eac787;outline-offset:3px}
+.heroSearchInput input{min-width:0;flex:1;border:0;background:transparent;outline:0;color:#17243d;font-size:15px;padding:9px}
+.heroSearchInput input::placeholder{color:#66738b}
+.heroSearchInput button{border:0;border-radius:7px;background:#e9ddc5;color:#17243d;display:flex;align-items:center;justify-content:center;min-width:35px;min-height:35px;cursor:pointer}
+@media(max-width:760px){.heroSearch{margin-top:16px}.heroSearchInput{min-height:46px}.heroSearchInput input{font-size:14px}.heroCopy{max-width:100%}}
