@@ -3,6 +3,10 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  await page.goto('/uk/news');
  await expect(page.getByTestId('galaxinews-world')).toBeVisible();
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
+ await expect(page.getByRole('search',{name:'Пошук новин'})).toBeVisible();
+ await expect(page.locator('[data-release="world-v1.3"]')).toHaveCount(1);
+ await expect(page.getByText('Перевірка джерел приблизно кожні 15 хвилин')).toHaveCount(0);
+ await expect(page.getByText('Хмара твоїх інтересів',{exact:true})).toHaveCount(1);
  await expect(page.locator('header.as-header')).toHaveCount(1);
  await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','false');
  await page.getByRole('button',{name:'Таро',exact:true}).click();
@@ -44,12 +48,26 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   expect(response.status()).toBe(200);
   const data=await response.json();
   expect(data.items.some(x=>x.title.includes(prefix)&&x.summary?.includes('Tarot spread'))).toBe(true);
+  const matched=await page.request.get('/api/v1/news/feed?limit=48&q='+encodeURIComponent(prefix));
+  expect(matched.status()).toBe(200);
+  const results=await matched.json();
+  expect(results.items.filter(x=>x.title.includes(prefix)).length).toBe(5);
+  const badSearch=await page.request.get('/api/v1/news/feed?q='+('x'.repeat(90)));
+  expect(badSearch.status()).toBe(400);
+  const guests=await page.request.get('/api/v1/news/admin/health');
+  expect(guests.status()).toBe(401);
   await page.route('https://images.example.org/news-cover.jpg',route=>route.fulfill({
    status:200,contentType:'image/png',
    body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jlhQAAAAASUVORK5CYII=','base64')
   }));
   await page.goto('/uk/news');
   await page.locator('#news-topic-filter').selectOption('tarot');
+  const search=page.getByRole('searchbox',{name:'Пошук новин'});
+  await search.fill(prefix);
+  await expect(page.getByRole('heading',{name:'Результати пошуку'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible();
+  await search.fill('');
+
   await expect(page.getByTestId('news-summary').first()).toBeVisible();
   await expect(page.getByText(/Матеріал пояснює структуру розкладу Таро/).first()).toBeVisible();
   await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible();
