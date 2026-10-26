@@ -39,7 +39,10 @@ const COPY={
   attribution:'Заголовки належать відповідним видавцям. Galaxiora показує посилання на першоджерела; текст статті залишається на сайті автора.',
   yourFeed:'Добірка за твоїми інтересами',noPersonal:'Обери хоча б один тег, щоб налаштувати стрічку.',
   nothingPersonal:'За обраними тегами ще немає публікацій. Спробуй інші теми.',
-  newest:'За часом публікації',relevant:'За релевантністю',search:'Пошук новин',searchPlaceholder:'Таро, ретроградна Венера, йога…',clearSearch:'Очистити пошук',searchResults:'Результати пошуку'
+  newest:'За часом публікації',relevant:'За релевантністю',search:'Пошук новин',searchPlaceholder:'Таро, ретроградна Венера, йога…',clearSearch:'Очистити пошук',searchResults:'Результати пошуку',
+  saveAccount:'Зберегти інтереси в кабінеті',savedAccount:'Інтереси збережено',
+  guestLocal:'Зараз ці інтереси зберігаються в браузері. Для синхронізації увійди в кабінет.',
+  saveFailed:'Не вдалося синхронізувати інтереси. Спробуй ще раз.'
  },
  en:{
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'A living world of astrology, Tarot and spiritual traditions.',
@@ -57,7 +60,10 @@ const COPY={
   attribution:'Headlines belong to their publishers. Galaxiora links to original sources; article bodies remain with their authors.',
   yourFeed:'Stories based on your interests',noPersonal:'Choose at least one tag to personalize this feed.',
   nothingPersonal:'No articles match your selected tags yet. Try another topic.',
-  newest:'Publication time',relevant:'Relevance',search:'Search news',searchPlaceholder:'Tarot, Venus retrograde, yoga…',clearSearch:'Clear search',searchResults:'Search results'
+  newest:'Publication time',relevant:'Relevance',search:'Search news',searchPlaceholder:'Tarot, Venus retrograde, yoga…',clearSearch:'Clear search',searchResults:'Search results',
+  saveAccount:'Save interests to my account',savedAccount:'Interests saved to account',
+  guestLocal:'These interests are in this browser. Sign in to sync across devices.',
+  saveFailed:'Could not sync interests. Please try again.'
  }
 } as const;
 const STORAGE='galaxiora:news-world:v1';
@@ -84,6 +90,9 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const [articleCount,setArticleCount]=useState<number|null>(null);
  const [busy,setBusy]=useState(true),[error,setError]=useState(false),[reload,setReload]=useState(0);
  const [search,setSearch]=useState(''),[query,setQuery]=useState('');
+ const [accountStatus,setAccountStatus]=useState<'loading'|'guest'|'member'>('loading');
+ const [accountTags,setAccountTags]=useState<InterestTag[]>([]);
+ const [syncing,setSyncing]=useState(false),[syncError,setSyncError]=useState(false);
  // Only a changed search term may start a new feed request.
  // Never clear fetched stories from a timer: on the initial mount that raced
  // with the API response and left the page empty until the manual refresh.
@@ -108,6 +117,42 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   if(!ready)return;
   try{localStorage.setItem(STORAGE,JSON.stringify({tags:selected,votes}));}catch{}
  },[ready,selected,votes]);
+ useEffect(()=>{
+  if(!ready)return;
+  const controller=new AbortController();
+  void fetch('/api/v1/news/interests',{
+   credentials:'same-origin',cache:'no-store',signal:controller.signal
+  }).then(async response=>{
+   if(response.status===401){setAccountStatus('guest');return;}
+   if(!response.ok)throw Error('News account interests HTTP '+response.status);
+   const data=await response.json() as {tags?:unknown};
+   if(controller.signal.aborted)return;
+   const saved=Array.isArray(data.tags)?data.tags.filter(validTag):[];
+   setAccountTags(saved);
+   setAccountStatus('member');
+   // An existing guest choice is never silently overwritten or uploaded.
+   setSelected(previous=>previous.length?previous:saved);
+  }).catch(()=>{if(!controller.signal.aborted)setAccountStatus('guest');});
+  return()=>controller.abort();
+ },[ready]);
+ const accountTagsDiffer=selected.length!==accountTags.length||
+  selected.some(tag=>!accountTags.includes(tag));
+ const saveAccountInterests=async()=>{
+  if(accountStatus!=='member'||syncing)return;
+  setSyncing(true);setSyncError(false);
+  try{
+   const response=await fetch('/api/v1/news/interests',{
+    method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({tags:selected})
+   });
+   if(response.status===401){setAccountStatus('guest');throw Error('Signed out');}
+   if(!response.ok)throw Error('News interests HTTP '+response.status);
+   const updated=await response.json() as {tags?:unknown};
+   if(Array.isArray(updated.tags))setAccountTags(updated.tags.filter(validTag));
+  }catch{setSyncError(true);}
+  finally{setSyncing(false);}
+ };
+
  useEffect(()=>{
   const controller=new AbortController();
   setBusy(true);setError(false);
@@ -189,6 +234,16 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     </div>
     {selected.length>0&&<div className={styles.selected}><span>{t.chosen}: {selected.length}</span>
       <button onClick={()=>setSelected([])} type="button">{t.reset}</button></div>}
+    {accountStatus==='member'&&(accountTagsDiffer||selected.length>0)&&
+     <div className={styles.accountSync} data-testid="news-account-sync">
+      {accountTagsDiffer?
+       <button type="button" onClick={()=>void saveAccountInterests()} disabled={syncing}>
+        {syncing?'…':t.saveAccount}</button>:
+       <span><Check size={15}/>{t.savedAccount}</span>}
+      {syncError&&<small role="alert">{t.saveFailed}</small>}
+     </div>}
+    {accountStatus==='guest'&&selected.length>0&&
+     <small className={styles.localHint}>{t.guestLocal}</small>}
    </section>
 
    <div className={styles.feedLayout}>

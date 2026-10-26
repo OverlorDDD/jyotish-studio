@@ -100,3 +100,11 @@
 .sectionTitle small{display:none}
 .tabSearch{z-index:1;max-width:310px;overflow:visible}
 @media(max-width:550px){.tabSearch{max-width:none}}
+
+/* News Personal Interests P1: unobtrusive, explicit account sync. */
+.accountSync{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:13px;color:#dec99f;font-size:12px}
+.accountSync>button{cursor:pointer;color:#101a2d;background:#e9c889;border:1px solid #f5d99c;padding:7px 13px;border-radius:15px;font-weight:650}
+.accountSync>button:disabled{opacity:.5;cursor:wait}
+.accountSync>span{display:inline-flex;align-items:center;gap:6px}
+.accountSync small{color:#f4ab9f}
+.localHint{display:block;margin-top:12px;color:#c1cee0;font-size:12px}
