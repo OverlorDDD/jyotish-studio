@@ -7,6 +7,6 @@ test('debounced search never clears loaded articles on mount or input changes',(
  const end=code.indexOf('},[search]);',start);
  assert.ok(start>=0&&end>start);
  const effect=code.slice(start,end);
- assert.match(effect,/setQuery\\(/);
- assert.doesNotMatch(effect,/setItems\\(\\[\\]\\)/);
+ assert.ok(effect.includes('setQuery('));
+ assert.equal(effect.includes('setItems([])'),false);
 });
