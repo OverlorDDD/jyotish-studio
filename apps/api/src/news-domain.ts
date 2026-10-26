@@ -1,6 +1,21 @@
 /** GalaxiNews World: source metadata only; no copied full article texts or AI-invented facts. */
 export const TOPICS=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'] as const;
 export type Topic=typeof TOPICS[number];
+export const EXTRA_INTEREST_TAGS=['natal-charts','nakshatras','mantras','pranayama'] as const;
+export const INTEREST_TAGS=[...TOPICS,...EXTRA_INTEREST_TAGS] as const;
+export type InterestTag=typeof INTEREST_TAGS[number];
+const interestTerms:Record<typeof EXTRA_INTEREST_TAGS[number],RegExp>={
+ 'natal-charts':/natal chart|birth chart|horoscope chart|натальн.{0,10}карт|карта народження/i,
+ nakshatras:/nakshatra|nakshatras|накшатр/i,
+ mantras:/mantras?|мантр/i,
+ pranayama:/pranayama|breathwork|дихальн.{0,15}практик|пранаям/i
+};
+export const EXTRA_INTEREST_LABELS:Record<typeof EXTRA_INTEREST_TAGS[number],{uk:string;en:string}>={
+ 'natal-charts':{uk:'Натальні карти',en:'Natal charts'},
+ nakshatras:{uk:'Накшатри',en:'Nakshatras'},
+ mantras:{uk:'Мантри',en:'Mantras'},
+ pranayama:{uk:'Пранаяма',en:'Pranayama'}
+};
 export type Candidate={url:string;title:string;publishedAt:Date;source:string;language:string;
  description?:string;imageUrl?:string;imageLicense?:string;imageCredit?:string;imageFeedPreview?:boolean;publishedAccuracy?:'published'|'observed';hint?:Topic;allowSnippet?:boolean};
 const terms:Record<Topic,RegExp>={
@@ -109,7 +124,9 @@ export function classify(c:Candidate){
  const primary=priority.find(t=>matched.includes(t))||(c.hint&&c.hint!=='astronomy'?c.hint:null);
  if(!primary)return null;
  // Astronomy is opt-in topic: no escalation to astrology, unless explicitly in text.
- const tags=[primary,...matched.filter(x=>x!==primary)].slice(0,5);
+ const tagContent=title+' '+cleanDescription(c.description||'').slice(0,600);
+ const detailTags=EXTRA_INTEREST_TAGS.filter(tag=>interestTerms[tag].test(tagContent));
+ const tags=[primary,...matched.filter(x=>x!==primary),...detailTags].slice(0,8);
  const quality=c.description?.length&&cleanDescription(c.description).length>=70?8:0;
  const topicWeight=primary==='astronomy'?12:primary==='self-development'?24:42;
  const score=Math.round((35*Math.max(0,1-Math.max(age,0)/(24*30))+topicWeight+quality)*100)/100;

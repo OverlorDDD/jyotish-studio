@@ -4,7 +4,7 @@ import {IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
-import {TOPICS,TOPIC_LABELS,rank,diversify} from './news-domain.ts';
+import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify} from './news-domain.ts';
 import {NewsIngestionService} from './news-ingestion.ts';
 import {RSS_SOURCES,GDELT_QUERIES} from './news-sources.ts';
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
@@ -21,17 +21,17 @@ export class NewsController {
   if(user?.role!=='ADMIN')throw new ForbiddenException('Admin only');
  }
  @Get('topics') @Header('Cache-Control','public,max-age=300')
- topics(){return TOPIC_LABELS;}
+ topics(){return {...TOPIC_LABELS,...EXTRA_INTEREST_LABELS};}
  @Get('feed') @Header('Cache-Control','public,max-age=60')
  async feed(@Query('topic')topic='all',@Query('tag')tag='',@Query('limit')limit='24',
   @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q=''){
   if(topic!=='all'&&!TOPICS.includes(topic as typeof TOPICS[number])||
-   tag&&!TOPICS.includes(tag as typeof TOPICS[number]))throw new BadRequestException('Invalid category');
+   tag&&!INTEREST_TAGS.includes(tag as typeof INTEREST_TAGS[number]))throw new BadRequestException('Invalid category');
   if(!/^\d{1,2}$/.test(limit)||Number(limit)<1||Number(limit)>48||
    !/^\d{1,3}$/.test(page)||Number(page)<1||Number(page)>20)throw new BadRequestException('Invalid pagination');
   if(!['relevance','latest'].includes(sort))throw new BadRequestException('Invalid sort');
   const selectedTags=tags?tags.split(','):[];
-  if(selectedTags.length>8||selectedTags.some(x=>!TOPICS.includes(x as typeof TOPICS[number])))
+  if(selectedTags.length>INTEREST_TAGS.length||selectedTags.some(x=>!INTEREST_TAGS.includes(x as typeof INTEREST_TAGS[number])))
    throw new BadRequestException('Invalid tags');
   const search=q.trim().replace(/[\u0000-\u001F]/g,' ');
   if(search.length>80)throw new BadRequestException('Search query too long');

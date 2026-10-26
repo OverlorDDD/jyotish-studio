@@ -7,15 +7,20 @@ import type {PortalLocale} from '../../lib/brand';
 
 const TOPICS=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'] as const;
 type Topic=typeof TOPICS[number];
-type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:Topic[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null};
+const EXTRA_INTEREST_TAGS=['natal-charts','nakshatras','mantras','pranayama'] as const;
+const INTEREST_TAGS=[...TOPICS,...EXTRA_INTEREST_TAGS] as const;
+type InterestTag=typeof INTEREST_TAGS[number];
+type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null};
 type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
-const LABELS:Record<Topic,{uk:string;en:string}>={
+const LABELS:Record<InterestTag,{uk:string;en:string}>={
  jyotish:{uk:'Джйотіш',en:'Jyotish'},astrology:{uk:'Астрологія',en:'Astrology'},tarot:{uk:'Таро',en:'Tarot'},
  yoga:{uk:'Йога',en:'Yoga'},meditation:{uk:'Медитація',en:'Meditation'},
  vedic:{uk:'Ведична традиція',en:'Vedic traditions'},
- 'self-development':{uk:'Саморозвиток',en:'Self-development'},astronomy:{uk:'Астрономія',en:'Astronomy'}
+ 'self-development':{uk:'Саморозвиток',en:'Self-development'},astronomy:{uk:'Астрономія',en:'Astronomy'},
+ 'natal-charts':{uk:'Натальні карти',en:'Natal charts'},nakshatras:{uk:'Накшатри',en:'Nakshatras'},
+ mantras:{uk:'Мантри',en:'Mantras'},pranayama:{uk:'Пранаяма',en:'Pranayama'}
 };
 const COPY={
  uk:{
@@ -58,7 +63,7 @@ const COPY={
  }
 } as const;
 const STORAGE='galaxiora:news-world:v1';
-const validTag=(t:unknown):t is Topic=>typeof t==='string'&&(TOPICS as readonly string[]).includes(t);
+const validTag=(t:unknown):t is InterestTag=>typeof t==='string'&&(INTEREST_TAGS as readonly string[]).includes(t);
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 /** An authorized publisher thumbnail; broken external images fall back to site artwork. */
 function StoryArtwork({imageUrl,credit,title,topic,art}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;art:string}){
@@ -75,7 +80,7 @@ function StoryArtwork({imageUrl,credit,title,topic,art}:{imageUrl?:string|null;c
 }
 export default function NewsWorld({locale}:{locale:PortalLocale}){
  const t=COPY[locale],[view,setView]=useState<View>('all'),[category,setCategory]=useState<string>('all');
- const [selected,setSelected]=useState<Topic[]>([]),[votes,setVotes]=useState<Record<string,Vote>>({});
+ const [selected,setSelected]=useState<InterestTag[]>([]),[votes,setVotes]=useState<Record<string,Vote>>({});
  const [ready,setReady]=useState(false),[items,setItems]=useState<Story[]>([]),[total,setTotal]=useState(0);
  const [lastScan,setLastScan]=useState<Feed['lastScan']>(null),[page,setPage]=useState(1);
  const [articleCount,setArticleCount]=useState<number|null>(null);
@@ -119,7 +124,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   return()=>controller.abort();
  },[category,page,reload,view,selected,query]);
  const resetCategory=(value:string)=>{setCategory(value);setPage(1);setItems([]);};
- const toggleTag=(tag:Topic)=>setSelected(old=>old.includes(tag)?old.filter(t=>t!==tag):[...old,tag]);
+ const toggleTag=(tag:InterestTag)=>setSelected(old=>old.includes(tag)?old.filter(t=>t!==tag):[...old,tag]);
  const answer=(story:Story,vote:Vote)=>{
   setVotes(old=>({...old,[story.id]:vote}));
   if(vote==='yes')setSelected(old=>old.includes(story.topic)?old:[...old,story.topic]);
@@ -175,7 +180,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    <section className={styles.tagSection} aria-label={t.topics}>
     <div className={styles.sectionTitle}><span><Tags size={18}/>{t.topics}</span><small>{t.topicsHint}</small></div>
     <div className={styles.tags}>
-     {TOPICS.map(tag=><button type="button" key={tag} onClick={()=>toggleTag(tag)}
+     {INTEREST_TAGS.map(tag=><button type="button" key={tag} onClick={()=>toggleTag(tag)}
       className={selected.includes(tag)?styles.tagActive:styles.tag} aria-pressed={selected.includes(tag)}>
        {selected.includes(tag)&&<Check size={13}/>} {LABELS[tag][locale]}</button>)}
     </div>
