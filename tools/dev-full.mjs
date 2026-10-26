@@ -2,6 +2,7 @@
  * Preserves jyotish-postgres volume. Never runs reset, down -v or destructive migrations.
  */
 import {spawnSync} from 'node:child_process';
+import {connect} from 'node:net';
 import {existsSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -64,5 +65,24 @@ for(const [label,arg] of [['Prisma Client','generate'],['Database migrations','m
  const result=run(process.execPath,args,120000);
  if(!result.ok)error(label+' failed: '+result.detail);
  if(result.stdout.trim())console.log(result.stdout.trim().slice(-1500));
+}
+/** Catch a previously running Next/Nest process before a new dev:full startup. */
+const occupied=(port)=>new Promise(resolve=>{
+ const socket=connect({host:'127.0.0.1',port});
+ const finish=value=>{socket.destroy();resolve(value);};
+ socket.setTimeout(950);
+ socket.once('connect',()=>finish(true));
+ socket.once('timeout',()=>finish(false));
+ socket.once('error',()=>finish(false));
+});
+for(const [name,port] of [['Next.js',Number(process.env.WEB_PORT||3000)],
+                          ['NestJS',Number(process.env.PORT||4000)]]){
+ if(!Number.isInteger(port)||port<1024||port>65535)error('Invalid port for '+name);
+ if(await occupied(port)){
+  console.error('[Galaxiora preflight] '+name+' port '+port+' is already in use.');
+  console.error('Stop the old Next/Nest terminal (Ctrl+C). On Windows use Get-NetTCPConnection -LocalPort '+port+' to find the process.');
+  console.error('A running old frontend can make it look as though GitHub updates were not applied.');
+  process.exit(1);
+ }
 }
 console.log('[Galaxiora preflight] PASS: PostgreSQL healthy, Prisma generated, migrations applied. Starting Next.js and NestJS.');
