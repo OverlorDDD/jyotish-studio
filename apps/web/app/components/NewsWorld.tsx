@@ -169,7 +169,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   }).then(async response=>{
    if(response.status===401){setAccountStatus('guest');setVotes(guestVotes.current);setHistory([]);setHistoryTotal(0);return;}
    if(!response.ok)throw Error('News account interests HTTP '+response.status);
-   const data=await response.json() as {tags?:unknown};
+   const data=await response.json() as {tags?:unknown;enabled?:boolean};
    if(controller.signal.aborted)return;
    const saved=Array.isArray(data.tags)?data.tags.filter(validTag):[];
    // The account's votes are private and must never reuse another account's local votes.
@@ -302,7 +302,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  };
 
  const answer=async(story:Story,vote:Vote)=>{
-  if(votePending===story.id||accountStatus==='loading'||(accountStatus==='member'&&!personalEnabled)||(accountStatus==='member'&&!personalEnabled))return;
+  if(votePending===story.id||accountStatus==='loading'||(accountStatus==='member'&&!personalEnabled))return;
   const before=votes[story.id];
   const next=before===vote?undefined:vote;
   setVoteError(null);setVotePending(story.id);
@@ -315,7 +315,10 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       body:JSON.stringify({vote:next==='yes'?'YES':'NO'})}:{})
     });
     if(!response.ok)throw Error('Vote HTTP '+response.status);
-    await refreshHistory();
+    try{await refreshHistory();}catch{
+     // The vote was committed; a failed history refresh must not undo it locally.
+     setHistory(previous=>previous.filter(x=>x.articleId!==story.id));
+    }
     if(view==='mine'){setPage(1);setReload(x=>x+1);}
    }catch{
     setVotes(old=>{const recovered={...old};if(before)recovered[story.id]=before;else delete recovered[story.id];return recovered;});
