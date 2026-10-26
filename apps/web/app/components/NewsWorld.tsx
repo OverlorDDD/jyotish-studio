@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
-import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit} from 'lucide-react';
+import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit,Search,X} from 'lucide-react';
 import PortalShell from './PortalShell';
 import styles from './NewsWorld.module.css';
 import type {PortalLocale} from '../../lib/brand';
@@ -35,7 +35,7 @@ const COPY={
   attribution:'Заголовки належать відповідним видавцям. Galaxiora показує посилання на першоджерела; текст статті залишається на сайті автора.',
   yourFeed:'Добірка за твоїми інтересами',noPersonal:'Обери хоча б один тег, щоб налаштувати стрічку.',
   nothingPersonal:'За обраними тегами ще немає публікацій. Спробуй інші теми.',
-  newest:'За часом публікації',relevant:'За релевантністю'
+  newest:'За часом публікації',relevant:'За релевантністю',search:'Пошук новин',searchPlaceholder:'Таро, ретроградна Венера, йога…',clearSearch:'Очистити пошук',searchResults:'Результати пошуку'
  },
  en:{
   kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'A living world of astrology, Tarot and spiritual traditions.',
@@ -54,7 +54,7 @@ const COPY={
   attribution:'Headlines belong to their publishers. Galaxiora links to original sources; article bodies remain with their authors.',
   yourFeed:'Stories based on your interests',noPersonal:'Choose at least one tag to personalize this feed.',
   nothingPersonal:'No articles match your selected tags yet. Try another topic.',
-  newest:'Publication time',relevant:'Relevance'
+  newest:'Publication time',relevant:'Relevance',search:'Search news',searchPlaceholder:'Tarot, Venus retrograde, yoga…',clearSearch:'Clear search',searchResults:'Search results'
  }
 } as const;
 const STORAGE='galaxiora:news-world:v1';
@@ -79,6 +79,11 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const [ready,setReady]=useState(false),[items,setItems]=useState<Story[]>([]),[total,setTotal]=useState(0);
  const [lastScan,setLastScan]=useState<Feed['lastScan']>(null),[page,setPage]=useState(1);
  const [busy,setBusy]=useState(true),[error,setError]=useState(false),[reload,setReload]=useState(0);
+ const [search,setSearch]=useState(''),[query,setQuery]=useState('');
+ useEffect(()=>{
+  const timer=setTimeout(()=>{setQuery(search.trim());setPage(1);setItems([]);},320);
+  return()=>clearTimeout(timer);
+ },[search]);
  useEffect(()=>{
   try{
    const saved=JSON.parse(localStorage.getItem(STORAGE)||'{}');
@@ -98,6 +103,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   const params=new URLSearchParams({limit:'48',page:String(page),sort:view==='latest'?'latest':'relevance'});
   if(category!=='all')params.set('topic',category);
   if(view==='mine'&&selected.length)params.set('tags',selected.join(','));
+  if(query.length>=2)params.set('q',query);
   const url='/api/v1/news/feed?'+params.toString();
   void fetch(url,{signal:controller.signal,cache:'no-store'})
    .then(async r=>{if(!r.ok)throw Error(String(r.status));return await r.json() as Feed;})
@@ -109,7 +115,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    .catch(()=>{if(!controller.signal.aborted)setError(true);})
    .finally(()=>{if(!controller.signal.aborted)setBusy(false);});
   return()=>controller.abort();
- },[category,page,reload,view,selected]);
+ },[category,page,reload,view,selected,query]);
  const resetCategory=(value:string)=>{setCategory(value);setPage(1);setItems([]);};
  const toggleTag=(tag:Topic)=>setSelected(old=>old.includes(tag)?old.filter(t=>t!==tag):[...old,tag]);
  const answer=(story:Story,vote:Vote)=>{
@@ -138,7 +144,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  };
  const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
  return <PortalShell locale={locale} active="news">
-  <div className={styles.world} data-testid="galaxinews-world">
+  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.3">
    <header className={styles.hero}>
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
@@ -164,10 +170,19 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
     {selected.length>0&&<div className={styles.selected}><span>{t.chosen}: {selected.length}</span>
       <button onClick={()=>setSelected([])} type="button">{t.reset}</button></div>}
    </section>
+   <div className={styles.searchPanel} role="search" aria-label={t.search}>
+    <Search size={21} aria-hidden="true"/>
+    <label className={styles.searchLabel} htmlFor="galaxinews-search">{t.search}</label>
+    <input id="galaxinews-search" type="search" placeholder={t.searchPlaceholder}
+     value={search} maxLength={80} onChange={e=>setSearch(e.target.value)}
+     autoComplete="off"/>
+    {search&&<button type="button" title={t.clearSearch} aria-label={t.clearSearch}
+     onClick={()=>setSearch('')}><X size={19}/></button>}
+   </div>
    <div className={styles.feedLayout}>
     <section className={styles.feed} aria-label={view==='mine'?t.yourFeed:t.world}>
      <div className={styles.feedHeader}>
-      <div><small>{view==='mine'?t.yourFeed:t.world}</small><h2>{view==='latest'?t.newest:t[view]}</h2></div>
+      <div><small>{view==='mine'?t.yourFeed:t.world}</small><h2>{query.length>=2?t.searchResults:view==='latest'?t.newest:t[view]}</h2></div>
       <button className={styles.refreshButton} type="button" onClick={()=>{setPage(1);setReload(x=>x+1);}} aria-label={t.refresh} title={t.refresh}><RefreshCw size={17}/></button>
       <div className={styles.filters}><label htmlFor="news-topic-filter">{t.allTopics}</label>
        <select id="news-topic-filter" value={category} onChange={e=>resetCategory(e.target.value)}>
@@ -204,10 +219,6 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
      {canMore&&!error&&<button className={styles.more} type="button" disabled={busy} onClick={()=>setPage(x=>x+1)}>
        {busy?t.loading:t.more}<ChevronDown size={16}/></button>}
     </section>
-    <aside className={styles.sidebar}>
-     <div className={styles.asideBox}><MoonStar size={25}/><h3>{t.topics}</h3><p>{t.topicsHint}</p>
-      <div className={styles.asideTags}>{selected.map(x=><span key={x}>{LABELS[x][locale]}</span>)}</div></div>
-    </aside>
    </div>
    <footer className={styles.footnote}>{t.attribution}</footer>
   </div>
