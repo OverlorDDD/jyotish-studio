@@ -100,6 +100,19 @@ export class ComSafetyController{
     include:{action:{select:{actorId:true}}}});
    if(!entry)throw new NotFoundException('Appeal unavailable');
    if(entry.action.actorId===actor.id)throw new ForbiddenException('The original moderator cannot review their own action');
+   // An older appeal cannot reverse a newer human moderation decision.
+   const newer=await tx.comModerationAction.findFirst({where:{
+    targetType:entry.targetType,targetId:entry.targetId,
+    action:{in:entry.targetType==='THREAD'?['DELETE','MODIFY']:['HIDE','RESTORE']}
+   },orderBy:[{createdAt:'desc'},{id:'desc'}],select:{id:true}});
+   if(newer?.id!==entry.moderationActionId)
+    throw new ConflictException('Moderation has changed; submit a new appeal for the latest decision');
+   // A completed privacy redaction must never be reversed by an old appeal.
+   if(dto.decision==='ACCEPTED'){
+    const redacted=await tx.comPrivacyRequest.count({where:{
+     userId:entry.authorId,status:'PUBLIC_REDACTED'}});
+    if(redacted)throw new ConflictException('Privacy redaction cannot be reversed by appeal');
+   }
    const update=await tx.comAppeal.updateMany({where:{id,status:'OPEN'},data:{
     status:dto.decision,decisionReason:dto.reason.trim(),reviewerId:actor.id,reviewedAt:new Date()}});
    if(!update.count)throw new ConflictException('Already reviewed');

@@ -11,13 +11,13 @@ C4 hardens GalaxiCom while preserving FREE member posting, independent EXPERT ve
 
 ### B. Durable notification fanout
 - `ComNotificationFanout` outbox row is created in the **same transaction** as a reply. Up to 500 previously subscribed members retain instant notifications. Independent worker processes all subscriber pages, including audiences above 500, in stable `userId` order.
-- Worker leases are conditional and expire after 120 seconds; notifications are idempotent by unique `(userId,postId,kind)`. Skip own replies and follows created after post publication. Missing, hidden or deleted content does not receive new notifications. Up to 5 attempts before FAILED status to require investigation; read-only ADMIN `GET /api/v1/com/mod/security` reports pending/failed.
+- Worker leases are conditional and expire after 120 seconds; notifications are idempotent by unique `(userId,postId,kind)`. Skip own replies and follows created after post publication. Missing, hidden or deleted content does not receive new notifications. Up to 5 **consecutive failed retries per page** before FAILED status; successful pages reset the retry counter so topics with thousands of followers do not exhaust retries merely by making progress. Read-only ADMIN `GET /api/v1/com/mod/security` reports pending/failed.
 - **Must schedule** `npm run com:fanout` via external cron/Task Scheduler **once per minute** on deployed instance, or run it manually for development. No distributed scheduler is installed automatically. Inspect FAILED rows and requeue manually after fixing cause; do not claim continuous delivery until scheduled. Worker is safe with overlapping runs.
 - Existing member notification UI and read state remain unchanged.
 
 ### C. Human appeals and audit
 - Authenticated author: `POST /api/v1/com/appeals` ({targetType:'THREAD'|'POST',targetId,reason}), within **30 days** of the latest applicable moderation decision, one appeal per action. Only owners of currently hidden/deleted contributions can appeal; other users receive 404.
-- Author sees own appeals: `GET /appeals/mine`. Human SUPPORT/ADMIN queue: `GET /mod/appeals`; `PATCH /mod/appeals/:id` with ACCEPTED/REJECTED and mandatory reason, transactional audit. **Original moderator cannot decide their own moderation action**. ACCEPTED restores the hidden contribution, without pinning. A hidden parent thread still hides its replies.
+- Author sees own appeals: `GET /appeals/mine`. Human SUPPORT/ADMIN queue: `GET /mod/appeals`; `PATCH /mod/appeals/:id` with ACCEPTED/REJECTED and mandatory reason, transactional audit. **Original moderator cannot decide their own moderation action**. An appeal cannot override a newer human moderation decision, nor restore material after completed `PUBLIC_REDACTED` privacy removal. ACCEPTED restores a still-eligible hidden contribution without pinning; a hidden parent thread still hides its replies.
 - C0 moderation audit and report queue preserved; neither PREMIUM nor EXPERT automatically becomes moderator. Escalations and review staffing remain an operational requirement.
 
 ### D. Privacy: export and public redaction workflow

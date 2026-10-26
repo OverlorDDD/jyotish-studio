@@ -63,6 +63,22 @@ test('C4: durable fanout, atomic quotas, independent appeals, private export, re
    reason:'Independent moderator review found the reply should remain public'}});
   expect(accepted.status()).toBe(200);
   expect((await db.comPost.findUnique({where:{id:replyId}}))?.status).toBe('PUBLISHED');
+  // A new moderator action makes a pending appeal stale. It must not override current state.
+  await page.request.post('/api/v1/account/login',{data:C});
+  expect((await page.request.patch(api('mod/posts/'+replyId),{data:{
+   status:'HIDDEN',reason:'New independent moderation decision for stale-appeal regression'}})).status()).toBe(200);
+  await page.request.post('/api/v1/account/login',{data:B});
+  const stale=await page.request.post(api('appeals'),{data:{targetType:'POST',targetId:replyId,
+   reason:'A new appeal whose original moderation action will soon become stale.'}});
+  expect(stale.status()).toBe(201);
+  const staleId=(await stale.json()).id;
+  await page.request.post('/api/v1/account/login',{data:C});
+  expect((await page.request.patch(api('mod/posts/'+replyId),{data:{
+   status:'PUBLISHED',reason:'Restore topic under new moderation decision before old appeal review'}})).status()).toBe(200);
+  await page.request.post('/api/v1/account/login',{data:A});
+  const blockedStale=await page.request.patch(api('mod/appeals/'+staleId),{data:{
+   decision:'ACCEPTED',reason:'An old appeal must never reverse a later moderation action'}});
+  expect(blockedStale.status()).toBe(409);
   const privateRequest=await page.request.post(api('privacy/requests'),{data:{kind:'ERASE_FORUM'}});
   expect(privateRequest.status()).toBe(201);privacyId=(await privateRequest.json()).id;
   expect((await page.request.get(api('mod/privacy'))).status()).toBe(403);

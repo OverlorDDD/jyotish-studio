@@ -36,7 +36,7 @@ export async function drainForumFanout(db:PrismaClient,maxJobs=12,batchSize=300)
    }
    const done=follows.length<batchSize;
    await db.comNotificationFanout.update({where:{postId:job.postId},data:{
-    status:done?'DONE':'PENDING',lockedUntil:null,
+    status:done?'DONE':'PENDING',lockedUntil:null,attempts:0,
     cursorUserId:follows.at(-1)?.userId||job.cursorUserId
    }});
    if(done)completed++;
