@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('GalaxiNews World is a public bilingual editorial feed with tag preferences',async({page})=>{
  const response=await page.goto('/uk/news');
- expect(response?.headers()['x-galaxiora-news-revision']).toBe('world-v1.6');
+ expect(response?.headers()['x-galaxiora-news-revision']).toBe('world-v1.7');
  await expect(page.getByTestId('galaxinews-world')).toBeVisible();
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
  await expect(page.getByRole('search',{name:'Пошук новин'})).toBeVisible();
@@ -31,7 +31,7 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
   searchFound:Boolean(document.querySelector('#galaxinews-search')),
   htmlText:document.body.innerText
  }));
- expect(actualDOM.revision).toBe('world-v1.6');
+ expect(actualDOM.revision).toBe('world-v1.7');
  expect(actualDOM.searchFound).toBe(true);
  expect(actualDOM.htmlText).not.toContain('Астрономічні матеріали не змішуються');
  expect(actualDOM.htmlText).not.toContain('Перевірка джерел приблизно кожні 15 хвилин');
@@ -40,7 +40,7 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  await expect(interestCloud.getByRole('button',{name:'Мантри'})).toBeVisible();
  await expect(page.getByText('Астрономічні матеріали не змішуються з астрологічними трактуваннями автоматично.')).toHaveCount(0);
 
- await expect(page.locator('[data-release="world-v1.6"]')).toHaveCount(1);
+ await expect(page.locator('[data-release="world-v1.7"]')).toHaveCount(1);
  await expect(page.getByText('Перевірка джерел приблизно кожні 15 хвилин')).toHaveCount(0);
  await expect(page.getByText('Хмара твоїх інтересів',{exact:true})).toHaveCount(1);
  await expect(page.locator('header.as-header')).toHaveCount(1);
@@ -98,7 +98,15 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
    status:200,contentType:'image/png',
    body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jlhQAAAAASUVORK5CYII=','base64')
   }));
+  // This test seeds real published articles BEFORE opening the page.
+  // Initial loading must display them without clicking refresh. The debounce
+  // timer must NOT erase the list after the first successful request.
   await page.goto('/uk/news');
+  await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible({timeout:15000});
+  await page.waitForTimeout(850); // exceeds the old 320ms destructive debounce
+  await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible();
+  await expect(page.getByTestId('news-article-count')).toContainText(/\d+ статей/);
+  await expect(page.getByText('Поки немає підтверджених матеріалів за цим фільтром.')).toHaveCount(0);
   await page.locator('#news-topic-filter').selectOption('tarot');
   const search=page.getByRole('searchbox',{name:'Пошук новин'});
   await search.fill(prefix);

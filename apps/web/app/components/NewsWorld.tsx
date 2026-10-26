@@ -84,8 +84,15 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const [articleCount,setArticleCount]=useState<number|null>(null);
  const [busy,setBusy]=useState(true),[error,setError]=useState(false),[reload,setReload]=useState(0);
  const [search,setSearch]=useState(''),[query,setQuery]=useState('');
+ // Only a changed search term may start a new feed request.
+ // Never clear fetched stories from a timer: on the initial mount that raced
+ // with the API response and left the page empty until the manual refresh.
  useEffect(()=>{
-  const timer=setTimeout(()=>{setQuery(search.trim());setPage(1);setItems([]);},320);
+  const timer=setTimeout(()=>{
+   const next=search.trim();
+   setQuery(previous=>previous===next?previous:next);
+   setPage(1);
+  },320);
   return()=>clearTimeout(timer);
  },[search]);
  useEffect(()=>{
@@ -149,7 +156,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  };
  const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
  return <PortalShell locale={locale} active="news">
-  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.6">
+  <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.7">
    <header className={styles.hero}>
     <div className={styles.heroCopy}>
      <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
