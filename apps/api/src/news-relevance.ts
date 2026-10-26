@@ -41,13 +41,13 @@ export function rankPersonalNews<T extends NewsCandidate>(items:readonly T[],tag
   return best.map(a=>({...a,personalReason:scores.get(a.id)!.reason,matchingTag:null}));
  const discovery=available.filter(a=>!a.tags.some(tag=>tags.includes(tag))&&!tags.includes(a.topic))
   .sort((a,b)=>rank(b.score,b.publishedAt,now)-rank(a.score,a.publishedAt,now));
- const output:T[]=[];const used=new Set<string>();let next=0;
+ const output:T[]=[];const used=new Set<string>();
  for(let i=0;i<best.length;i++){
   // At most 20% dedicated exploration; never claim it follows explicit interests.
   const slot=(i+1)%5===0?discovery.find(a=>!used.has(a.id)):null;
   const candidate=slot||best.find(a=>!used.has(a.id));
   if(!candidate)break;
-  output.push(candidate);used.add(candidate.id);next++;
+  output.push(candidate);used.add(candidate.id);
  }
  return output.map(a=>({...a,personalReason:scores.get(a.id)!.reason,matchingTag:scores.get(a.id)!.matchingTag}));
 }

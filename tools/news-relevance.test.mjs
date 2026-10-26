@@ -39,7 +39,7 @@ test('at least one fresh off-topic item enters the first five when choices are n
  const ordered=rankPersonalNews(set,['tarot'],[],now);
  assert.equal(ordered.length,set.length);
  assert.equal(ordered[4].id,'discover');
- assert.equal(ordered[4].reason,'fresh_discovery');
+ assert.equal(ordered[4].personalReason,'fresh_discovery');
 });
 test('no feedback only ever reads explicit vote data; selected topic has no birth or journal inputs',()=>{
  const list=[story('a','jyotish','A'),story('b','tarot','B')];
