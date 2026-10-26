@@ -8,6 +8,7 @@ import {TOPICS,TOPIC_LABELS,rank,diversify} from './news-domain.ts';
 import {NewsIngestionService} from './news-ingestion.ts';
 import {RSS_SOURCES,GDELT_QUERIES} from './news-sources.ts';
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
+class SourcePolicyDto{@IsIn(['DISCOVERED','BLOCKED','TRUSTED'])status!:'DISCOVERED'|'BLOCKED'|'TRUSTED';}
 @ApiTags('GalaxiNews World')
 @Controller('api/v1/news')
 export class NewsController {
@@ -23,7 +24,7 @@ export class NewsController {
  topics(){return TOPIC_LABELS;}
  @Get('feed') @Header('Cache-Control','public,max-age=60')
  async feed(@Query('topic')topic='all',@Query('tag')tag='',@Query('limit')limit='24',
-  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags=''){
+  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q=''){
   if(topic!=='all'&&!TOPICS.includes(topic as typeof TOPICS[number])||
    tag&&!TOPICS.includes(tag as typeof TOPICS[number]))throw new BadRequestException('Invalid category');
   if(!/^\d{1,2}$/.test(limit)||Number(limit)<1||Number(limit)>48||
@@ -32,8 +33,18 @@ export class NewsController {
   const selectedTags=tags?tags.split(','):[];
   if(selectedTags.length>8||selectedTags.some(x=>!TOPICS.includes(x as typeof TOPICS[number])))
    throw new BadRequestException('Invalid tags');
+  const search=q.trim().replace(/[\u0000-\u001F]/g,' ');
+  if(search.length>80)throw new BadRequestException('Search query too long');
+  const find=search.length>=2?{OR:[
+   {title:{contains:search,mode:'insensitive' as const}},
+   {titleUk:{contains:search,mode:'insensitive' as const}},
+   {summaryUk:{contains:search,mode:'insensitive' as const}},
+   {summaryEn:{contains:search,mode:'insensitive' as const}},
+   {feedDescription:{contains:search,mode:'insensitive' as const}},
+   {source:{contains:search,mode:'insensitive' as const}}
+  ]}:{};
   const articles=await this.prisma.newsArticle.findMany({
-   where:{status:'PUBLISHED',...(topic!=='all'?{topic}:{}),...(tag?{tags:{has:tag}}:selectedTags.length?{tags:{hasSome:selectedTags}}:{})},
+   where:{status:'PUBLISHED',...find,...(topic!=='all'?{topic}:{}),...(tag?{tags:{has:tag}}:selectedTags.length?{tags:{hasSome:selectedTags}}:{})},
    take:600,orderBy:{publishedAt:'desc'},select:{
     id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
     publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true,
@@ -48,7 +59,7 @@ export class NewsController {
   const lastScan=await this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},
    select:{createdAt:true,sources:true,accepted:true,errors:true}});
   return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>rest),
-   total:ranked.length,page:Number(page),limit:size,lastScan,intervalMinutes:15,
+   total:ranked.length,page:Number(page),limit:size,lastScan,
    personalized:false,sort};
  }
  @Get('status') @Header('Cache-Control','public,max-age=120')
@@ -72,20 +83,33 @@ export class NewsController {
  @Get('admin/health') @Header('Cache-Control','private,no-store')
  async health(@Req()req:IncomingMessage){
   await this.admin(req);
-  const [last,scans,articleCount,byTopic,byPublisher]=await Promise.all([
+  const [last,scans,articleCount,byTopic,byPublisher,untranslated,unsummarized,unillustrated,publishers]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'}}),
    this.prisma.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:120}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED'}}),
    this.prisma.newsArticle.groupBy({by:['topic'],where:{status:'PUBLISHED'},_count:{_all:true}}),
-   this.prisma.newsArticle.groupBy({by:['source'],where:{status:'PUBLISHED'},_count:{_all:true}})
+   this.prisma.newsArticle.groupBy({by:['source'],where:{status:'PUBLISHED'},_count:{_all:true}}),
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED',titleUk:null}}),
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED',summaryUk:null}}),
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED',imageUrl:null}}),
+   this.prisma.newsDiscoveredSource.findMany({orderBy:{articleCount:'desc'},take:100})
   ]);
   const seen=new Set<string>(),latest:typeof scans=[];
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
   return {enabled:process.env.NEWS_INGESTION_ENABLED==='1',last,
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
-   articleCount,publishers:byPublisher.length,
+   articleCount,publishers:byPublisher.length,untranslated,unsummarized,unillustrated,discoveredSources:publishers,
    byTopic:byTopic.map(t=>({topic:t.topic,count:t._count._all})),
    sources:latest,history:scans.slice(0,40)};
+ }
+ @Patch('admin/sources/:domain') @Header('Cache-Control','private,no-store')
+ async sourcePolicy(@Req()req:IncomingMessage,@Param('domain')domain:string,@Body()body:SourcePolicyDto){
+  await this.admin(req,true);
+  if(!/^[a-z0-9][a-z0-9.-]{2,190}$/.test(domain))throw new BadRequestException('Invalid domain');
+  const changed=await this.prisma.newsDiscoveredSource.updateMany({where:{domain},data:{status:body.status}});
+  if(body.status==='BLOCKED')await this.prisma.newsArticle.updateMany({
+   where:{url:{contains:domain},status:'PUBLISHED'},data:{status:'HIDDEN'}});
+  return {updated:changed.count};
  }
  @Post('admin/refresh') @Header('Cache-Control','private,no-store')
  async refresh(@Req()req:IncomingMessage,@Query('backfill')backfill='false'){
@@ -97,8 +121,9 @@ export class NewsController {
  }
 }
 for(const [method,types] of [
- ['feed',[String,String,String,String,String,String]],
+ ['feed',[String,String,String,String,String,String,String,String]],
  ['moderate',[Object,String,ModerateDto]],
  ['health',[Object]],
- ['refresh',[Object,String]]
+ ['refresh',[Object,String]],
+ ['sourcePolicy',[Object,String,SourcePolicyDto]]
 ] as const){Reflect.defineMetadata('design:paramtypes',types,NewsController.prototype,method);}
