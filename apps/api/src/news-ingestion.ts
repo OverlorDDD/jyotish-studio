@@ -1,9 +1,10 @@
 import {Inject,Injectable,OnModuleDestroy,OnModuleInit} from '@nestjs/common';
 import {createHash,randomUUID} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
-import {classifyWithReason,parseXml,type Candidate,type Topic} from './news-domain.ts';
+import {classifyWithReason,parseXml,publisherDomain,safeImageUrl,type Candidate,type Topic} from './news-domain.ts';
 import {GDELT_QUERIES,RSS_SOURCES} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
+import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
 const PERIOD_MS=15*60*1000,LEASE_MS=12*60*1000;
 type Job={key:string;run:()=>Promise<Candidate[]>;hint:Topic;allowSnippet:boolean;isGdelt:boolean};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
@@ -34,16 +35,21 @@ function gdelt(raw:unknown):Candidate[]{
 @Injectable()
 export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
  private timer?:ReturnType<typeof setInterval>;
+ private editorialTimer?:ReturnType<typeof setInterval>;
  private running=false;
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
  onModuleInit(){
   if(process.env.NEWS_INGESTION_ENABLED!=='1')return;
   this.timer=setInterval(()=>{void this.refresh().catch(e=>console.warn('[news] scheduled scan',String(e)));},PERIOD_MS);
   this.timer.unref?.();
+  this.editorialTimer=setInterval(()=>{void this.runEditorial();},5*60*1000);
+  this.editorialTimer.unref?.();
   const initial=setTimeout(()=>{void this.refresh().catch(e=>console.warn('[news] initial scan',String(e)));},15000);
   initial.unref?.();
+  const editorialInitial=setTimeout(()=>void this.runEditorial(),25000);
+  editorialInitial.unref?.();
  }
- onModuleDestroy(){if(this.timer)clearInterval(this.timer);}
+ onModuleDestroy(){if(this.timer)clearInterval(this.timer);if(this.editorialTimer)clearInterval(this.editorialTimer);}
  private jobs(backfill:boolean):Job[]{
   const rss:Job[]=RSS_SOURCES.map(s=>({key:s.key,hint:s.hint,allowSnippet:s.allowSnippet,isGdelt:false,
    run:()=>read(s.url,'application/rss+xml,application/atom+xml,application/xml,text/xml').then(x=>parseXml(x,s.name))}));
@@ -71,6 +77,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
     data:{token,expiresAt:new Date(start.getTime()+LEASE_MS)}});
    if(!lease.count)return {skipped:true,reason:'database_lease_held'};
    let sources=0,added=0,duplicatesAll=0,rejectedAll=0,errorsAll=0;
+   const domainPolicies=new Map<string,string>();
    try{
     const previous=await this.prisma.newsSourceScan.count();
     const backfill=options.backfill===true||previous===0;
@@ -84,6 +91,14 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
       for(const item of items){
        const {article:c,reason}=classifyWithReason({...item,hint:job.hint,allowSnippet:job.allowSnippet});
        if(!c){rejected++;reasonCounts[reason]=(reasonCounts[reason]||0)+1;continue;}
+       const domain=publisherDomain(c.url);
+       if(!domain){rejected++;reasonCounts.invalid_publisher=(reasonCounts.invalid_publisher||0)+1;continue;}
+       let state=domainPolicies.get(domain);
+       if(!state){
+        const found=await this.prisma.newsDiscoveredSource.findUnique({where:{domain},select:{status:true}});
+        state=found?.status||'DISCOVERED';domainPolicies.set(domain,state);
+       }
+       if(state==='BLOCKED'){rejected++;reasonCounts.blocked_source=(reasonCounts.blocked_source||0)+1;continue;}
        const urlHash=createHash('sha256').update(c.url).digest('hex');
        try{
         const inserted=await this.prisma.newsArticle.createMany({data:[{
@@ -94,7 +109,12 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
          summaryUk:null,summaryEn:null,
          summaryKind:c.summaryKind,publishedAccuracy:c.publishedAccuracy||'published',publishedAt:c.publishedAt
         }],skipDuplicates:true});
-        if(inserted.count){accepted++;added++;}
+        if(inserted.count){
+         accepted++;added++;
+         await this.prisma.newsDiscoveredSource.upsert({where:{domain},
+          create:{domain,lastTitle:c.title.slice(0,240),articleCount:1},
+          update:{lastSeenAt:new Date(),lastTitle:c.title.slice(0,240),articleCount:{increment:1}}});
+        }
         else{
          duplicates++;duplicatesAll++;
          // Can enrich old rows, but do not change their visibility/moderation.
@@ -117,7 +137,8 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
      if(job.isGdelt)await sleep(6500);
     }
     await this.prisma.newsScan.create({data:{sources,accepted:added,errors:errorsAll}});
-    try{await enrichPendingNews(this.prisma);}catch(e){console.warn('[news] editorial queue failed',String(e));}
+    await this.enrichMetadata().catch(e=>console.warn('[news] metadata lookup failed',String(e)));
+    await this.runEditorial();
     return {sources,newArticles:added,duplicates:duplicatesAll,rejected:rejectedAll,errors:errorsAll,backfill};
    }finally{
     await this.prisma.newsIngestionLease.updateMany({where:{id:'world',token},
@@ -125,4 +146,39 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    }
   }finally{this.running=false;}
  }
+ private editorialRunning=false;
+ private async runEditorial(){
+  if(this.editorialRunning)return;
+  this.editorialRunning=true;
+  try{
+   const result=await enrichPendingNews(this.prisma);
+   console.log('[news] localization:',result.processed,'updated');
+  }catch(e){console.warn('[news] editorial:',String(e));}
+  finally{this.editorialRunning=false;}
+ }
+ private async enrichMetadata(){
+  const approved=metadataHosts(),rows=await this.prisma.newsArticle.findMany({
+   where:{metadataCheckedAt:null,status:'PUBLISHED'},
+   orderBy:{publishedAt:'desc'},take:180,
+   select:{id:true,url:true,feedDescription:true,imageUrl:true,imageCredit:true}
+  });
+  let checked=0,filled=0;
+  for(const row of rows){
+   if(checked>=18)break;
+   const domain=publisherDomain(row.url);
+   if(!domain)continue;
+   if(!approved.has(domain)&&!approved.has('www.'+domain))continue;
+   checked++;
+   const meta=await fetchArticleMetadata(row.url);
+   const externalImage=meta.imageUrl?safeImageUrl(meta.imageUrl,'',domain,false):null;
+   await this.prisma.newsArticle.updateMany({where:{id:row.id,metadataCheckedAt:null},data:{
+    metadataCheckedAt:new Date(),
+    ...(!row.feedDescription&&meta.description?{feedDescription:meta.description}:{}),
+    ...(!row.imageUrl&&externalImage?{imageUrl:externalImage,imageCredit:meta.imageCredit||domain}:{})
+   }});
+   if(meta.description||externalImage)filled++;
+  }
+  if(checked)console.log('[news] metadata:',checked,'checked',filled,'with metadata');
+ }
+
 }

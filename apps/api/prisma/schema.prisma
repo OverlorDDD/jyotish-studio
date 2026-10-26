@@ -298,6 +298,7 @@ model NewsArticle {
  score Float @default(0)
  summary String? @db.VarChar(500)
  feedDescription String? @db.VarChar(1200)
+ metadataCheckedAt DateTime?
  imageUrl String? @db.VarChar(1000)
  imageCredit String? @db.VarChar(160)
  summaryKind String @default("title_context") @db.VarChar(32)
