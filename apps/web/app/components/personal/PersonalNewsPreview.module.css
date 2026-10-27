@@ -1,0 +1,11 @@
+.preview{display:grid;gap:13px;margin-top:13px;min-width:0;font-size:14px}
+.context{color:#e4c992;font-size:12px}
+.list{display:grid;gap:0}
+.story{border-top:1px solid rgba(196,207,225,.22);padding:10px 0;display:grid;gap:6px;min-width:0}
+.story small{color:#b6c2d4;font-size:11px}
+.story a,.story strong{display:flex;align-items:baseline;gap:6px;color:#f0dcbd;text-decoration:none;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.story a:hover{text-decoration:underline}
+.story a svg{flex-shrink:0}
+.story p{margin:0!important;color:#bdcadb;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.more{color:#eed0a0;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:650;margin-top:5px}
+.more:hover{text-decoration:underline}

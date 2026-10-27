@@ -3,6 +3,7 @@
  * Natal facts are verified separately; no invented ingress moments.
  */
 import type {dailyTransit} from './personal-transits.ts';
+import {horoscopeTheme} from './horoscope-editorial.ts';
 type L={uk:string;en:string};
 type Transit=Awaited<ReturnType<typeof dailyTransit>>;
 type Period={lord:string;start:string;end:string;antardasha?:{lord:string;start:string;end:string}|null};
@@ -122,24 +123,24 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
  const house=houseFrom(t.moon.sign,context.lagnaSign);
  if(t.moon.houseFromLagna!==house||
   !context.natalPositions.some(p=>p.name==='Moon'&&p.sign===context.moonSign))return null;
- const focus=houses[house-1],zodiac=signs[t.moon.sign-1],nak=mansions[t.moon.nakshatra];
  const natalMoonHouse=houseFrom(context.moonSign,context.lagnaSign);
  const major=context.period?.lord,minor=context.period?.antardasha?.lord;
  const majorNatalHouse=major?natalPeriodContext(context.lagnaSign,context.natalPositions,major)?.house??null:null;
  const minorNatalHouse=minor?natalPeriodContext(context.lagnaSign,context.natalPositions,minor)?.house??null:null;
- const periodUk=major&&names[major]?' На довший ритм впливає махадаша '+names[major].uk+
-  (majorNatalHouse?' ('+majorNatalHouse+'-й натальний дім)':'')+
-  (minor&&names[minor]?' та антардаша '+names[minor].uk+(minorNatalHouse?' ('+minorNatalHouse+'-й натальний дім)':''):'')+'.':'';
- const periodEn=major&&names[major]?' The longer cycle is '+names[major].en+' Mahadasha'+
-  (majorNatalHouse?' (natal house '+majorNatalHouse+')':'')+
-  (minor&&names[minor]?' and '+names[minor].en+' Antardasha'+(minorNatalHouse?' (natal house '+minorNatalHouse+')':''):'')+'.':'';
+ const voice=horoscopeTheme(house),moonVoice=horoscopeTheme(t.moon.houseFromMoon||house);
+ const mahadasha=major&&names[major]?names[major]:null,antardasha=minor&&names[minor]?names[minor]:null;
+ // The current-day experience is unknown. No claim that a meeting, crisis,
+ // promotion, disease or payment WILL happen; this is house-based interpretation.
  return {
-  headline:l('Тема дня: '+focus.topic.uk,'Today’s theme: '+focus.topic.en),
-  description:l('Транзитний Місяць у '+zodiac.uk+' · '+t.moon.nakshatra+', пада '+t.moon.pada+'. У твоїй збереженій натальній карті це '+house+'-й дім від лагни; натальний Місяць розташований у '+natalMoonHouse+'-му домі.'+periodUk+
-   (nak?' Традиційна тема накшатри — '+nak.uk+'.':''),
-   'The transiting Moon is in '+zodiac.en+' · '+t.moon.nakshatra+', pada '+t.moon.pada+'. From your verified natal Lagna this is house '+house+'; your natal Moon occupies house '+natalMoonHouse+'.'+periodEn+
-   (nak?' The traditional nakshatra theme is '+nak.en+'.':'')),
-  goodFor:focus.goodFor,caution:focus.caution,action:focus.action,
+  headline:voice.title,
+  description:l(
+   voice.story.uk+' У твоїй карті місячний транзит торкається '+house+'-го дому від лагни, а від натального Місяця — '+(t.moon.houseFromMoon||'—')+'-го: '+moonVoice.title.uk.toLocaleLowerCase('uk-UA')+'.'+
+   (mahadasha?' На триваліший життєвий ритм накладається махадаша '+mahadasha.uk+
+    (antardasha?' та антардаша '+antardasha.uk:'')+'. Це фон для тлумачення, а не обіцянка події.':''),
+   voice.story.en+' Today’s Moon is in house '+house+' from your natal Lagna and in house '+(t.moon.houseFromMoon||'—')+' from your natal Moon: '+moonVoice.title.en.toLowerCase()+'.'+
+   (mahadasha?' The longer cycle is '+mahadasha.en+' Mahadasha'+(antardasha?' with '+antardasha.en+' Antardasha':'')+'. This adds context, not a guaranteed event.':'')
+  ),
+  goodFor:voice.opportunity,caution:voice.care,action:voice.prompt,
   evidence:{kind:'VERIFIED_NATAL_TRANSIT_DASHA',method:t.method,day:t.date,sampledAtUtc:t.sampledAtUtc,
    planet:'Moon',sign:t.moon.sign,house,nakshatra:t.moon.nakshatra,natalLagnaSign:context.lagnaSign,
    natalMoonSign:context.moonSign,natalMoonHouse,major,minor,majorNatalHouse,minorNatalHouse}

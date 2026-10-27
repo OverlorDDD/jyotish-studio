@@ -231,6 +231,10 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
      onClick={()=>void act(()=>api('me',json('PATCH',{showPremiumBadge:!me.profile?.showPremiumBadge})))}>
      <Star size={14}/>{me.profile?.showPremiumBadge?t.badgeHide:t.badgeShow}
    </button>}
+
+   <GalaxiComSafety locale={locale} me={me}/>
+   <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
+   </div>
    {composer&&me?.permissions.canCreate&&<section id="com-topic-composer" ref={composerRef} className={styles.panel} aria-label={t.newTopic} data-testid="com-composer">
     <h2 ref={composerTitleRef} tabIndex={-1}>{t.newTopic}</h2>
     <form className={styles.composer} onSubmit={async e=>{
@@ -255,9 +259,6 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       <button type="button" onClick={()=>setComposer(false)}>{t.cancel}</button></div>
     </form>
    </section>}
-   <GalaxiComSafety locale={locale} me={me}/>
-   <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
-   </div>
    {me?.permissions.canModerate&&<section className={styles.modQueueWrap} data-testid="com-mod-queue">
     <button type="button" aria-expanded={queueOpen} onClick={()=>setQueueOpen(n=>!n)}>
       <ShieldCheck size={16}/>{t.queue}{queueOpen?' −':' +'}{queue?.length?' ('+queue.length+')':''}

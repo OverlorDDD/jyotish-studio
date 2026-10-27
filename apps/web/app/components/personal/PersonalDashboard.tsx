@@ -7,6 +7,7 @@ import {Activity,ArrowRight,BookOpen,CalendarDays,CheckCircle2,Compass,Feather,H
 import {readApiJson} from '../../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../../lib/brand';
 import {calendarDayLabel} from '../../../lib/personal-date-label';
+import PersonalNewsPreview from './PersonalNewsPreview';
 const PersonalJournal=dynamic(()=>import('../PersonalJournal'),{loading:()=>null});
 type ChartSummary={id:string;createdAt:string;date:string;place:string;verified:boolean;recoveryStatus?:'current'|'recovered'|'needs_review'|'temporarily_unavailable';lagnaSign:number|null;lagnaName:string;moonSign:number|null};
 type Transit={date:string;sampledAtUtc:string;timeZone:string;method:string;moon:{sign:number;nakshatra:string;pada:number;houseFromLagna:number|null;houseFromMoon:number|null};planets:{name:string;sign:number;houseFromLagna:number|null;houseFromMoon:number|null}[]};
@@ -221,17 +222,14 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
            <p><b>{t.caution}: </b>{x.guidance!.caution[locale]}</p><p>{x.guidance!.action[locale]}</p></>}
        </article>)}
       </div>}
+     <Link href={portalPath(locale,'horoscope')} className={styles['gp-text-link']}>
+      {uk?'Усі 12 знаків і повний гороскоп':'All 12 signs and full horoscope'} <ArrowRight size={14}/>
+     </Link>
      <small className={styles['gp-microcopy']}>{t.horoscopeMethod}</small>
     </section>
     <section className={[styles['gp-panel'],styles['gp-future']].join(' ')}>
      <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>PERSONAL NEWS</span><h2>{t.news}</h2></div><Feather size={25}/></div>
-     <p>{t.newsDescription}</p>
-     {overview.profile.newsTopics.length>0&&<p className={styles['gp-microcopy']}>
-      {uk?'Мої інтереси':'My interests'}: {overview.profile.newsTopics.join(' · ')}
-     </p>}
-     <Link href={portalPath(locale,'news')} className={styles['gp-text-link']}>
-      {uk?'Відкрити стрічку GalaxiNews':'Open GalaxiNews'} <ArrowRight size={14}/>
-     </Link>
+     <PersonalNewsPreview locale={locale} interests={overview.profile.newsTopics}/>
     </section>
    </div>
    <section id="astrological-path" className={[styles['gp-panel'],styles['gp-path']].join(' ')} data-testid="astrological-path" aria-label={t.path}>
@@ -239,6 +237,11 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
     <article className={styles['gp-daily-focus']} data-testid="journey-daily">
      {overview.journey?.daily?<><h3>{overview.journey.daily.headline[locale]}</h3>
       <p>{overview.journey.daily.description[locale]}</p>
+      <details className={styles['gp-period-detail']}>
+       <summary>{uk?'На чому ґрунтується прогноз?':'How was this derived?'}</summary>
+       <p>{t.horoscopeMethod} · {overview.transit?.moon.nakshatra||'—'} ·
+         {uk?'Дім від лагни: ':'House from Lagna: '}{overview.journey.daily.evidence.house??'—'}</p>
+      </details>
       <div className={styles['gp-daily-matrix']} data-testid="daily-advice">
        <div><span>{t.goodFor}</span><p>{overview.journey.daily.goodFor[locale]}</p></div>
        <div><span>{t.caution}</span><p>{overview.journey.daily.caution[locale]}</p></div>
