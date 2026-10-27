@@ -32,7 +32,10 @@ export default function PersonalNewsPreview({locale,interests}:{locale:PortalLoc
     return <article className={styles.story} key={article.id}>
      <small>{article.source} · {new Date(article.publishedAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
      <div className={styles.storyContent}>
-      {image&&<img src={image} alt="" className={styles.thumbnail} loading="lazy" referrerPolicy="no-referrer"/>}
+      {image?<img src={image} alt="" className={styles.thumbnail} loading="lazy" referrerPolicy="no-referrer"/>:
+       <div className={styles.thumbnailArt} aria-label={uk?'Ілюстрація Galaxiora':'Galaxiora original illustration'}>
+        <span aria-hidden="true">{article.topic==='yoga'?'ॐ':article.topic==='tarot'?'✦':article.topic==='astronomy'?'☽':'✧'}</span>
+       </div>}
       <div className={styles.storyText}>
      {url?<a href={url} target="_blank" rel="noopener noreferrer">
        {uk?(article.titleUk||article.title):article.title} <ExternalLink size={14} aria-hidden="true"/>
