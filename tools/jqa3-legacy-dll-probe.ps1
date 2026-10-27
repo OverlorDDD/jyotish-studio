@@ -21,6 +21,7 @@ public class Jqa3Win32 {
   [UnmanagedFunctionPointer(CallingConvention.StdCall)] public delegate int Calc(double jd,int body,int flags,[Out] double[] values,StringBuilder error);
   [UnmanagedFunctionPointer(CallingConvention.StdCall)] public delegate int Houses(double jd,double lat,double lon,int system,[Out] double[] cusps,[Out] double[] ascmc);
   [UnmanagedFunctionPointer(CallingConvention.StdCall)] public delegate double Ayanamsa(double jd);
+  [UnmanagedFunctionPointer(CallingConvention.StdCall)] public delegate double DeltaT(double jd,int flags,StringBuilder error);
 }
 '@
 $module=[Jqa3Win32]::LoadLibraryW($DllPath)
@@ -43,6 +44,7 @@ $epheFn=Link-Native 'swe_set_ephe_path' 4 ([Jqa3Win32+EphePath])
 $calcFn=Link-Native 'swe_calc_ut' 24 ([Jqa3Win32+Calc])
 $houseFn=Link-Native 'swe_houses' 36 ([Jqa3Win32+Houses])
 $ayanFn=Link-Native 'swe_get_ayanamsa_ut' 8 ([Jqa3Win32+Ayanamsa])
+$deltaFn=Link-Native 'swe_deltat_ex' 16 ([Jqa3Win32+DeltaT])
 $v=New-Object System.Text.StringBuilder 200
 [void]$versionFn.Invoke($v)
 if($EphemerisPath){
@@ -77,8 +79,12 @@ foreach($i in 1..20){
  if($returnedFlags -lt 0){throw ('Swiss lunar failure '+$id+': '+$errorBuffer.ToString())}
  $rL=Arc-Delta $asc ([double]$source.expected.positions.Lagna.longitude)
  $rM=Arc-Delta $moon[0] ([double]$source.expected.positions.Moon.longitude)
+ $deltaError=New-Object System.Text.StringBuilder 256
+ $historicalDeltaTSeconds=86400.0*$deltaFn.Invoke($jd,2,$deltaError)
+ if($deltaError.Length){Write-Host ('DeltaT note '+$id+': '+$deltaError.ToString())}
  $rows+= [pscustomobject][ordered]@{
    id=$id;lagnaResidualArcseconds=$rL;moonResidualArcseconds=$rM
+   historicalDeltaTSeconds=$historicalDeltaTSeconds
    oldMeanAyanamsaDeg=$ayan;oldTropicalAscDeg=$angles[0];oldSiderealAscDeg=$asc
    lagnaPass=([Math]::Abs($rL) -le 1.0);moonPass=([Math]::Abs($rM) -le 1.0)
    returnedEphemerisFlags=$returnedFlags

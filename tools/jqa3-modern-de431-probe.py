@@ -36,6 +36,7 @@ for n in range(1,21):
  results['Ketu']=diff((swe.calc_ut(jd,swe.MEAN_NODE,FLAGS)[0][0]+180)%360,
                       fixture['expected']['positions']['Ketu']['longitude'])
  rows.append({'id':fixture['title'],'residualArcsec':results,'flags':flags,
+  'modernDeltaTSeconds':swe.deltat_ex(jd,swe.FLG_SWIEPH)*86400,
   'modernMeanAyanamsaDeg':ay,'modernTropicalAscDeg':houses[1][0],
   'modernSiderealAscDeg':asc,'modernUnadjustedSiderealAscDeg':asc_unadjusted})
 bodies=['Lagna','Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
