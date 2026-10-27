@@ -101,7 +101,7 @@ foreach($year in 1900..2200){
   $j=$julianFn.Invoke([int]$year,[int]$month,1,0.0,1)
   $msg=New-Object System.Text.StringBuilder 256
   $seconds=86400.0*$deltaFn.Invoke($j,2,$msg)
-  if(![double]::IsFinite($seconds)){throw 'Nonfinite historical DeltaT grid sample'}
+  if([double]::IsNaN($seconds) -or [double]::IsInfinity($seconds)){throw 'Nonfinite historical DeltaT grid sample'}
   $deltaGrid.Add([pscustomobject]@{year=$year;month=$month;seconds=$seconds})
  }
 }
