@@ -6,7 +6,8 @@ const makePlanet=(name,house,sign,deg=12.3)=>({
 });
 const LAGNA=makePlanet('Ascendant',1,4,17.2);
 const FIXTURE_VERIFICATION={version:'jyotish-integrity-v3',status:'verified_internal',digest:'a'.repeat(64),checks:['d1_longitudes_houses'],externalReferenceChecked:false};
-// UI geometry mocks must obey the real integrity contract; otherwise they conceal a missing chart.\nconst CHART={
+// UI geometry mocks must obey the real integrity contract; otherwise they conceal a missing chart.
+const CHART={
  verification:FIXTURE_VERIFICATION,id:'geometry-e2e',input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:47.9105,longitude:33.3918},
  utc:'1996-03-27T10:58:00.000Z',ayanamsa:23.8,ephemeris:'Swiss Ephemeris',
  ascendant:LAGNA,lagnaD9:makePlanet('Ascendant',1,9,5.5),lagnaD10:makePlanet('Ascendant',1,5,6.1),
