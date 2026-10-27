@@ -3,6 +3,7 @@ import {ApiTags} from '@nestjs/swagger';
 import type {IncomingMessage} from 'node:http';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
+import {CHART_VERIFICATION_VERSION} from './jyotish-integrity.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
 import {buildDetailedReport} from './report.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts';
@@ -60,7 +61,7 @@ export class JyotishController{
   }});
  }
  @Get('v1/jyotish/runtime')
- runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,mode:process.env.AI_MODE||'free',
+ runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,verificationContract:CHART_VERIFICATION_VERSION,mode:process.env.AI_MODE||'free',
   referenceBenchmark:{
    // Versioned CI-pinned result, NOT a live JHora check of the current visitor.
    // The CI release gate runs jqa3:certify-signs against all raw source hashes.
