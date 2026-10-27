@@ -222,8 +222,23 @@ export class PersonalController{
    }
   }catch{throw new ServiceUnavailableException('Astronomical calendar temporarily unavailable, retry later');}
   verifyLunarContinuity(out);
+  // Use the exact same verified AE-P5 interpretation and optional action
+  // in today's Personal card AND the first calendar-week highlight.
+  const sky=await dailySkyContext(start,p.profile.currentTimeZone);
+  const baseHighlights=buildWeekHighlights(out,events,utc=>verifiedContextAt(c,utc));
+  const weekHighlights=baseHighlights.map(h=>{
+   const event=sky.events.find(e=>e.localDate===h.date);
+   if(!event)return h;
+   return {...h,summary:{
+    uk:h.summary.uk+' Сьогодні є розрахована астрономічна подія: '+event.meaning.uk,
+    en:h.summary.en+' An exact astronomical event occurs today: '+event.meaning.en
+   },action:{
+    uk:h.action.uk+' Астрономічний акцент: '+event.practice.uk,
+    en:h.action.en+' Astronomical focus: '+event.practice.en
+   }};
+  });
   return {status:personalized?'available':'general',recoveryStatus:c?.recoveryStatus||'no_chart',
-   dates,days:out,events,weekHighlights:buildWeekHighlights(out,events,utc=>verifiedContextAt(c,utc)),
+   dates,days:out,events,weekHighlights,
    // One canonical fact-verified daily reading; no competing advice or invented personal placements.
    horoscopes:out.slice(0,7).map(t=>({date:t.date,guidance:buildMoonSignHoroscope(t,verifiedContextAt(c,t.sampledAtUtc))})),
    horoscopeStatus:personalized?'personalized':'requires_verified_chart',method:out[0]?.method};
