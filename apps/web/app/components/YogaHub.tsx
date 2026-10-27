@@ -5,6 +5,7 @@ import {YOGA_PRACTICES,say,type ContentLocale} from '../../lib/yoga-content';
 import {BREATHING_PATTERNS,sessionMs} from '../../lib/breathing-patterns';
 import EditorialPublishedCards from './EditorialPublishedCards';
 import YogaBreathSession from './YogaBreathSession';
+import YogaLunarGuide from './YogaLunarGuide';
 const Icon={wind:Wind,sun:Sun,leaf:Leaf,moon:Moon};
 export default function YogaHub({locale}:{locale:ContentLocale}){
  const uk=locale==='uk';
@@ -15,6 +16,7 @@ export default function YogaHub({locale}:{locale:ContentLocale}){
    <p>{uk?'Квадрат дихання вже перед тобою. Обери ритм і розпочни практику. Інші заняття — нижче.':'Your breathing square is ready. Choose a rhythm and begin. More practices are below.'}</p>
   </header>
   <YogaBreathSession locale={locale}/>
+  <YogaLunarGuide locale={locale}/>
   <section className="as-wellness-section" id="practice-library">
    <div className="as-wellness-section-header"><span className="as-overline">{uk?'БІБЛІОТЕКА ПРАКТИК':'THE PRACTICE LIBRARY'}</span><h2>{uk?'Із чого хочеться почати?':'Where would you like to begin?'}</h2></div>
    <div className="as-wellness-grid">{YOGA_PRACTICES.map(practice=>{
