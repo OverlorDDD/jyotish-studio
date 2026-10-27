@@ -22,6 +22,12 @@ type Overview={
  charts:ChartSummary[];selected:ChartSummary|null;suggestedChartId:string|null;staleSelectedChart:boolean;
  today:string;activeDasha:null|{lord:string;start:string;end:string;antardasha:null|{lord:string;start:string;end:string}};
  transit:Transit|null;transitStatus:string;journey?:{period:Guidance|null;daily:Guidance|null;horoscope:Guidance|null};
+ lunarStrength?:{version:string;tarabala:{name:string;taraNumber:number;quality:string};chandrabala:{houseFromJanmaRashi:number;quality:string;ashtamaChandra:boolean}}|null;
+ lunarStrengthSampling?:string;
+ sky?:{events:{kind:string;atUtc:string;localDate:string;practice:Localized}[];
+  observances:{id:string;atUtc:string;rule:string;category:string}[];
+  referenceLocation:{name:string}|null;observanceDayCertifiedByTradition:boolean};
+
  recentTarot:{id:string;createdAt:string;spread:string;question:string|null}[];
  recentJournal:{id:string;kind:string;title:string;createdAt:string}[];
  recentPractices:{id:string;practiceId:string;durationSeconds:number;completedAt:string}[];
@@ -242,6 +248,19 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
        <p>{t.horoscopeMethod} · {overview.transit?.moon.nakshatra||'—'} ·
          {uk?'Дім від лагни: ':'House from Lagna: '}{overview.journey.daily.evidence.house??'—'}</p>
       </details>
+      {overview.lunarStrength&&<div data-testid="personal-lunar-strength" style={{padding:'12px 15px',marginBottom:12,border:'1px solid #b4a07288',borderRadius:12,background:'#182842'}}>
+       <strong>{uk?'Мій місячний ритм · Тарабала та Чандрабала':'My lunar rhythm · Tarabala and Chandrabala'}</strong>
+       <p>{uk?'Тарабала':'Tarabala'}: {overview.lunarStrength.tarabala.name}
+        {' ('+overview.lunarStrength.tarabala.taraNumber+'/9)'}
+        {' · '}{uk?'Чандрабала':'Chandrabala'}: {overview.lunarStrength.chandrabala.houseFromJanmaRashi}/12.
+        {overview.lunarStrength.chandrabala.ashtamaChandra?' · Ashtama Chandra':''}</p>
+       <small>{uk?'Зіставлено з підтвердженою картою на полудень. Точний місцевий схід Сонця та оцінки доступні в Панчанзі.':'Verified natal comparison sampled at local noon. Sunrise-specific analysis is available in Panchanga.'}</small>
+      </div>}
+      {overview.sky?.observances.length? <div data-testid="personal-observances" style={{padding:'10px 14px',marginBottom:12,borderLeft:'3px solid #d7b478'}}>
+       <strong>{uk?'Ведичні позначки дня (орієнтир: Київ)':'Vedic observance markers (Kyiv reference)'}</strong>
+       <p>{overview.sky.observances.map(e=>e.id.replaceAll('_',' ')).join(' · ')}</p>
+       <small>{uk?'Кандидати за традиційними правилами, не остаточні дати посту.':'Traditional candidate dates, not certified fasting assignments.'}</small>
+      </div>:null}
       <div className={styles['gp-daily-matrix']} data-testid="daily-advice">
        <div><span>{t.goodFor}</span><p>{overview.journey.daily.goodFor[locale]}</p></div>
        <div><span>{t.caution}</span><p>{overview.journey.daily.caution[locale]}</p></div>
