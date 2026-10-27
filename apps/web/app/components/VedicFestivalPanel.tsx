@@ -6,7 +6,9 @@ import styles from './VedicFestivalPanel.module.css';
 type Point={date:string;timeZone:string;latitude:string;longitude:string};
 type MonthSystem='amanta'|'purnimanta';
 type Observance={id:'ekadashi_sunrise'|'ekadashi_arunodaya'|'pradosha_trayodashi'|
- 'purnima_sunrise'|'amavasya_sunrise'|'sankranti';
+ 'purnima_sunrise'|'amavasya_sunrise'|'sankranti'|
+ 'rama_navami'|'ganesh_chaturthi'|'chaitra_navratri'|'sharad_navratri'|
+ 'guru_purnima'|'janmashtami'|'maha_shivaratri'|'diwali_amavasya';
  atUtc:string;category:'candidate'|'astronomical_event';rule:string;metadata?:Record<string,string|number|boolean>};
 type Window={startUtc:string;endUtc:string;weekdayCaution:string|null};
 type FestivalDay={date:string;sunriseUtc:string;sunsetUtc:string;tithi:number;arunodayaTithi:number;
@@ -24,7 +26,11 @@ const T={
  ekadashi_sunrise:'Екадаші — тітхі на сході',ekadashi_arunodaya:'Екадаші на арунодаї',
  pradosha_trayodashi:'Прадоша — трайодаші після заходу',
  purnima_sunrise:'Повня — тітхі на сході',amavasya_sunrise:'Амавасья — тітхі на сході',
- sankranti:'Санкранті — вхід Сонця у знак',candidate:'Кандидат за правилом',
+ sankranti:'Санкранті — вхід Сонця у знак',
+ rama_navami:'Рама Навамі · опівдні',ganesh_chaturthi:'Ґанеша Чатуртхі · опівдні',
+ chaitra_navratri:'Чайтра Наваратрі · початок',sharad_navratri:'Шарад Наваратрі · початок',
+ guru_purnima:'Ґуру Пурніма',janmashtami:'Крішна Джанмаштамі · ніч',
+ maha_shivaratri:'Маха Шиваратрі · ніч',diwali_amavasya:'Дівалі · амавасья ввечері',candidate:'Кандидат за правилом',
  moment:'Астрономічний момент',adhika:'Адхіка-маса',regular:'Звичайний місяць',
  kshaya:'Особливий місяць: назва потребує окремої звірки',
  warning:'Це календарні спостереження й кандидати свят, а не остаточні дати посту, час парани або персональне призначення мухурти. Смартські та вайшнавські правила, а також місцеві традиції можуть відрізнятися.',
@@ -37,7 +43,11 @@ const T={
  ekadashi_sunrise:'Ekadashi at sunrise',ekadashi_arunodaya:'Ekadashi at Arunodaya',
  pradosha_trayodashi:'Pradosha — Trayodashi after sunset',
  purnima_sunrise:'Purnima at sunrise',amavasya_sunrise:'Amavasya at sunrise',
- sankranti:'Sankranti — sidereal solar ingress',candidate:'Rule-based candidate',
+ sankranti:'Sankranti — sidereal solar ingress',
+ rama_navami:'Rama Navami · midday',ganesh_chaturthi:'Ganesh Chaturthi · midday',
+ chaitra_navratri:'Chaitra Navratri · beginning',sharad_navratri:'Sharad Navratri · beginning',
+ guru_purnima:'Guru Purnima',janmashtami:'Krishna Janmashtami · night',
+ maha_shivaratri:'Maha Shivaratri · night',diwali_amavasya:'Diwali · evening Amavasya',candidate:'Rule-based candidate',
  moment:'Astronomical instant',adhika:'Adhika month',regular:'Ordinary lunar month',
  kshaya:'Exceptional month: name requires additional reference review',
  warning:'These are calendar observations and observance candidates, not definitive fasting dates, Parana windows or individual Muhurta prescriptions. Smarta, Vaishnava and regional rules can differ.',
