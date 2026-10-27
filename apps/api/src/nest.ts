@@ -24,6 +24,7 @@ import {PersonalController} from './personal.ts';
 import {HoroscopeController} from './horoscope.ts';
 import {PanchangaController} from './panchanga-controller.ts';
 import {AstronomicalEventsController} from './astronomical-events-controller.ts';
+import {VedicCalendarController} from './vedic-calendar-controller.ts';
 import {NewsController} from './news.ts';
 import {ComController} from './com.ts';
 import {ComSocialController} from './com-social.ts';
@@ -162,7 +163,7 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,HoroscopeController,PanchangaController,AstronomicalEventsController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController,ComGrowthController],
+@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,HoroscopeController,PanchangaController,AstronomicalEventsController,VedicCalendarController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController,ComGrowthController],
  providers:[PrismaService,NewsIngestionService,
   {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
    new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},
