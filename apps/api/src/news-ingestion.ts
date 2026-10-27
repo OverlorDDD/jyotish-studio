@@ -6,6 +6,7 @@ import {GDELT_QUERIES,RSS_SOURCES} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
 import {sourceCooldownMs,gdeltCircuitFailure} from './news-source-health.ts';
+import {publishAstronomicalNews} from './news-astronomy.ts';
 /** Local development with an existing .env and no NEWS_* flag must not
  * silently stop news. CI/test and production remain explicitly opted in.
  */
@@ -48,6 +49,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
  private timer?:ReturnType<typeof setInterval>;
  private editorialTimer?:ReturnType<typeof setInterval>;
  private running=false;
+ private nextAstronomyAt=0;
  private sourceRetryUntil=new Map<string,number>();
  private sourceFailures=new Map<string,number>();
  private gdeltRetryUntil=0;
@@ -171,6 +173,16 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
      if(job.isGdelt&&status!=='cooldown'&&this.gdeltRetryUntil<=Date.now())await sleep(6500);
     }
     await this.prisma.newsScan.create({data:{sources,accepted:added,errors:errorsAll}});
+    // A verified, original Galaxiora astronomy digest, at most daily. This
+    // operates independently of failing external RSS/GDELT publishers.
+    if(Date.now()>=this.nextAstronomyAt){
+     this.nextAstronomyAt=Date.now()+24*60*60*1000;
+     try{
+      const original=await publishAstronomicalNews(this.prisma);
+      if(original.created)console.log('[news] first-party Swiss astronomy:',original.created,'new stories');
+      added+=original.created;
+     }catch(e){console.warn('[news] astronomy digest:',String(e).slice(0,180));}
+    }
     await this.enrichMetadata().catch(e=>console.warn('[news] metadata lookup failed',String(e)));
     await this.runEditorial();
     return {sources,newArticles:added,duplicates:duplicatesAll,rejected:rejectedAll,errors:errorsAll,backfill};
