@@ -152,6 +152,12 @@ async function compute(v:ReturnType<typeof validateVedicCalendar>){
    metadata:{fromSign:change.fromSign,toSign:change.toSign}
   });
  }
+ // The API and UI always expose events in actual UTC chronology, including
+ // late-added solar Sankranti. Stable ordering makes cross-day comparisons
+ // and calendar export deterministic without changing observance policy.
+ for(const day of days){
+  day.observances.sort((a,b)=>a.atUtc.localeCompare(b.atUtc)||a.id.localeCompare(b.id));
+ }
  return {version:VEDIC_CALENDAR_VERSION,policy:'explicit-amanta-purnimanta-v1',
   scope:'calculated-observance-indications-not-definitive-religious-fasting-dates',
   observer:{latitude:v.latitude,longitude:v.longitude,timeZone:v.timeZone},
