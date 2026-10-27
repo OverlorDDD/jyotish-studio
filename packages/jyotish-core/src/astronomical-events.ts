@@ -1,6 +1,6 @@
 /** AE-P5 exact UTC crossings: pure astronomy event finder.
  * Consumers supply real Swiss positions and speeds; no daily noon interpolation.
- * Bounded six-hour detection windows, then bisection to <= 1 second.
+ * Bounded two-hour detection windows, then bisection to <= 1 second.
  */
 export const ASTRONOMICAL_EVENTS_VERSION='astronomical-events-v1';
 export const EVENT_BODIES=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'] as const;
@@ -12,7 +12,7 @@ export type EventKind='new_moon'|'first_quarter'|'full_moon'|'last_quarter'|
 export type AstronomicalEvent={kind:EventKind;atUtc:string;body?:EventBody;
  fromSign?:number;toSign?:number;motion?:'direct'|'retrograde';
  longitude?:number;sign?:number};
-const STEP_MS=6*3600000;
+const STEP_MS=2*3600000;
 const norm=(x:number,n=360)=>((x%n)+n)%n;
 const sign=(lon:number)=>Math.floor(norm(lon)/30)+1;
 const phase=(sun:number,moon:number)=>Math.floor(norm(moon-sun)/90);
