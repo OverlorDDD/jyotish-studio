@@ -21,11 +21,27 @@ test('GalaxiCom compact UX and focused creation, understandable moderation, visi
    await expect(quick.getByText('Популярне')).toBeVisible();
    // Equal-height 4-up toolbar across desktop, then 2-up tablet and stacked mobile.
    await page.setViewportSize({width:1440,height:900});
-   const cards=quick.locator('summary, [data-testid="com-safety"] > button');
+   const cards=quick.locator('[data-testid="com-safety"] > button, [data-testid="com-trending"] > button, [data-testid="com-bookmarks"] > button, [data-testid="com-profile-tool"] > button');
    await expect(cards).toHaveCount(4);
    const positions=await cards.evaluateAll(nodes=>nodes.map(n=>{const box=n.getBoundingClientRect();return {top:box.top,height:box.height,width:box.width}}));
    expect(Math.max(...positions.map(x=>x.height))-Math.min(...positions.map(x=>x.height))).toBeLessThan(6);
    expect(Math.max(...positions.map(x=>x.top))-Math.min(...positions.map(x=>x.top))).toBeLessThan(6);
+   const before=await cards.evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return [r.x,r.y]}));
+   await page.getByTestId('com-trending').getByRole('button').click();
+   await expect(page.getByTestId('com-expanded-popular')).toBeVisible();
+   await page.getByTestId('com-bookmarks').getByRole('button').click();
+   await expect(page.getByTestId('com-expanded-popular')).toHaveCount(0);
+   await expect(page.getByTestId('com-expanded-bookmarks')).toBeVisible();
+   await page.getByTestId('com-profile-tool').getByRole('button').click();
+   await expect(page.getByTestId('com-expanded-bookmarks')).toHaveCount(0);
+   await expect(page.getByTestId('com-expanded-profile')).toBeVisible();
+   await page.getByTestId('com-safety').getByRole('button',{name:/Безпека/}).click();
+   await expect(page.getByTestId('com-expanded-profile')).toHaveCount(0);
+   await expect(page.getByTestId('com-toolbar-panel').getByText('Правила спільноти')).toBeVisible();
+   const after=await cards.evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return [r.x,r.y]}));
+   expect(after).toEqual(before);
+   await page.getByTestId('com-safety').getByRole('button',{name:/Безпека/}).click();
+   await expect(page.getByTestId('com-toolbar-panel').getByText('Правила спільноти')).toHaveCount(0);
    await page.setViewportSize({width:375,height:812});
    await expect(quick).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2)).toBe(true);
@@ -54,9 +70,12 @@ test('GalaxiCom compact UX and focused creation, understandable moderation, visi
   await page.getByRole('button',{name:/Черга модерації/}).click();
   const mod=page.getByTestId('com-mod-queue');
    await expect(page.getByTestId('com-account-tools').getByTestId('com-mod-queue')).toBeVisible();
-  await expect(mod.getByText('Скарги від учасників')).toBeVisible();
-  await expect(mod.getByText('Перевір скаргу та відкрий пов’язану публікацію.',{exact:false})).toBeVisible();
-  await expect(mod.getByRole('heading',{name:'Скарги від учасників'})).toBeVisible();
+  await expect(page.getByTestId('com-toolbar-panel').getByText('Скарги від учасників')).toBeVisible();
+  await expect(page.getByTestId('com-toolbar-panel').getByText('Перевір скаргу та відкрий пов’язану публікацію.',{exact:false})).toBeVisible();
+  await expect(page.getByTestId('com-toolbar-panel').getByRole('heading',{name:'Скарги від учасників'})).toBeVisible();
+  await page.getByTestId('com-account-tools').getByRole('button',{name:/Сповіщення/}).click();
+  await expect(page.getByTestId('com-toolbar-panel').getByRole('heading',{name:'Скарги від учасників'})).toHaveCount(0);
+  await expect(mod.getByRole('button')).toHaveAttribute('aria-expanded','false');
  }finally{
   if(userId){await db.comThread.deleteMany({where:{authorId:userId}});await db.user.deleteMany({where:{id:userId}})}
   await db.$disconnect();
