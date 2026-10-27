@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './AstronomicalEventsPanel.module.css';
+import {eventInsight} from '../../../../packages/jyotish-core/src/astro-education.ts';
 
 type Kind='new_moon'|'first_quarter'|'full_moon'|'last_quarter'|'sidereal_ingress'|'retrograde_station'|'direct_station';
 type Event={kind:Kind;atUtc:string;localDate:string;body?:string;fromSign?:number;toSign?:number;
@@ -86,6 +87,15 @@ export default function AstronomicalEventsPanel({locale,start,zone}:{locale:Port
      <time dateTime={e.atUtc}>{fmt(e.atUtc)}</time>
      <strong>{desc(e)}</strong>
      {e.kind==='sidereal_ingress'&&<small>{SIGNS[locale][(e.fromSign||1)-1]} → {SIGNS[locale][(e.toSign||1)-1]}</small>}
+     <details style={{gridColumn:'1 / -1',borderTop:'1px solid #45617b',paddingTop:10}}>
+      <summary style={{cursor:'pointer',color:'#f4d69b',fontWeight:600}}>{uk?'Що це означає і що можна зробити?':'What does this mean and what can I do?'}</summary>
+      <div style={{display:'grid',gap:8,paddingTop:10,lineHeight:1.65}}>
+       <p><strong>{uk?'Астрономічний факт':'Astronomical fact'}: </strong>{eventInsight(e.kind,locale).meaning}</p>
+       <p><strong>{uk?'У традиції Джйотіш':'In Jyotish tradition'}: </strong>{eventInsight(e.kind,locale).tradition}</p>
+       <p><strong>{uk?'Практика':'Practical idea'}: </strong>{eventInsight(e.kind,locale).practice}</p>
+       <small>{eventInsight(e.kind,locale).limits}</small>
+      </div>
+     </details>
     </li>)}
    </ol>}
   </>}
