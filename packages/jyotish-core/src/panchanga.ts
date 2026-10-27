@@ -53,6 +53,7 @@ export function fiveAngas(positions:PanchangaAngles,weekday:number){
  const p=angaPosition('tithi',positions);
  return {
   tithi:{number:t+1,paksha:t<15?'Shukla':'Krishna',numberWithinPaksha:t%15+1},
+  moonSign:Math.floor(positions.moon/30)+1,
   nakshatra:{number:n+1,name:NAKSHATRAS[n],pada:Math.min(4,Math.floor(mod(positions.moon,NAK)/(NAK/4))+1)},
   vara:{number:weekday+1,name:VARAS[weekday]},
   yoga:{number:y+1,name:YOGAS[y]},
