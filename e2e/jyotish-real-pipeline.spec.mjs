@@ -21,7 +21,7 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  await expect(page.locator('.jy-reference-details')).toContainText('200/200');
  const actualChart=await (await page.request.post('/api/v1/charts/calculate',{data:{date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude:28.6139,longitude:77.209}})).json();
  expect(actualChart.verification?.status).toBe('verified_internal');
- expect(actualChart.verification?.version).toBe('jyotish-integrity-v1');
+ expect(actualChart.verification?.version).toBe('jyotish-integrity-v3');
  expect(actualChart.verification?.checks?.length).toBe(10);
  expect(actualChart.verification?.externalReferenceChecked).toBe(false);
  const chartResponse=await page.request.post('/api/v1/reports',{
