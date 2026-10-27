@@ -74,6 +74,22 @@ jobs:
           '@
           $code|Set-Content inspect-jhora-dll.py -Encoding utf8
           python inspect-jhora-dll.py
+      - name: Fetch pre-DE441 Swiss compressed DE431 ephemeris source snapshots
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $ephe=Join-Path $env:RUNNER_TEMP 'jqa3-original-DE431-ephe'
+          New-Item -ItemType Directory -Force $ephe | Out-Null
+          # Swiss repository snapshot predates the 2026 DE441 re-encoding.
+          $historical='ad0935c2993405b57db161240e0af7e451840efd'
+          foreach($filename in @('semo_18.se1','sepl_18.se1')){
+            $source="https://raw.githubusercontent.com/aloistr/swisseph/$historical/ephe/$filename"
+            $dest=Join-Path $ephe $filename
+            Invoke-WebRequest $source -TimeoutSec 120 -OutFile $dest
+            if((Get-Item $dest).Length -lt 50000){throw "Swiss historical ephemeris file looks incomplete: $filename"}
+            Write-Host "Pinned-pre-DE441 $filename SHA256=$((Get-FileHash $dest -Algorithm SHA256).Hash)"
+          }
+          Add-Content $env:GITHUB_ENV "JQA3_EPHE=$ephe"
       - name: Differential 20-chart probe using original installed Win32 Swiss backend
         shell: pwsh
         run: |
