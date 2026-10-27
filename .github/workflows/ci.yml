@@ -56,6 +56,8 @@ jobs:
         run: npm run jqa3:certify-signs
       - name: Diagnose historical JHora Vimshottari calendar (informational; never certifies dates)
         run: npm run jqa3:dasha-diagnostic
+      - name: Diagnose historical Delta-T influence independently before calendar certification
+        run: npm run jqa3:delta-t-experiment
       - name: Certify printed calendar dates using actual production Moon and genuine JHora source
         run: npm run jqa3:certify-dates
       - name: Verify independent native JHora true-solar dates for all 20 source charts
