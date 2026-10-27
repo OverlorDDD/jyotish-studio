@@ -135,12 +135,14 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
  // exact dasha identifiers in evidence, not in the editorial opening.
  const description=l(
   [voice.story.uk,
-   secondary?'Від твого натального Місяця цей самий рух також нагадує про '+secondary.topic.uk+'.':null,
+   secondary?'Від твого натального Місяця цей самий рух також нагадує про '+secondary.topic.uk+'.':
+    t.moon.houseFromMoon===house?'Від натального Місяця ця тема також виходить на перший план.':null,
    mahadasha?'На ширшому життєвому тлі період '+mahadasha.uk+' звертає увагу на '+qualities[major!].uk+
     (antardasha?' Підперіод '+antardasha.uk+' додає тему '+qualities[minor!].uk+'.':'.'):null]
    .filter(Boolean).join(' '),
   [voice.story.en,
-   secondary?'Seen from your natal Moon, this transit also highlights '+secondary.topic.en+'.':null,
+   secondary?'Seen from your natal Moon, this transit also highlights '+secondary.topic.en+'.':
+    t.moon.houseFromMoon===house?'From your natal Moon, the same theme comes to the fore.':null,
    mahadasha?'Against a longer backdrop, your '+mahadasha.en+' period brings attention to '+qualities[major!].en+
     (antardasha?' The '+antardasha.en+' subperiod adds '+qualities[minor!].en+'.':'.'):null]
    .filter(Boolean).join(' ')
