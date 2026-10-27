@@ -56,6 +56,8 @@ jobs:
         run: npm run jqa3:certify-signs
       - name: Diagnose historical JHora Vimshottari calendar (informational; never certifies dates)
         run: npm run jqa3:dasha-diagnostic
+      - name: Verify independent native JHora true-solar dates for all 20 source charts
+        run: npm run test:jqa3:solar-native
       - name: Verify pure native-ready sidereal solar crossing math
         run: npm run test:jqa3:solar-core
       - name: Verify JQA-3.5 UTC calendar invariants and fail-closed year-mode evidence

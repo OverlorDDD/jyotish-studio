@@ -94,6 +94,7 @@
     "test:jhora:independent": "node tools/jhora-independent-parity.mjs",
     "test:jqa2:numerical": "node --experimental-strip-types --test tools/jqa2-numerical.test.mjs",
     "test:jqa2:profiles": "node tools/run-python.mjs tools/jqa2-profile-diagnostics.py",
+    "test:jqa3:solar-native": "node --experimental-strip-types --test tools/jqa3-true-solar-native.test.mjs",
     "test:jqa3:solar-core": "node --experimental-strip-types --test tools/jqa3-true-solar-core.test.mjs",
     "test:jqa3:calendar-invariants": "node --experimental-strip-types --test tools/jqa3-calendar-invariants.test.mjs",
     "test:jqa3:corpus": "node --experimental-strip-types --test tools/jqa3-corpus.test.mjs",
