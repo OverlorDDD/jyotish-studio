@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+ <title id="title">Galaxiora — зоряний компас</title>
+ <defs>
+  <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+   <stop offset="0" stop-color="#152844"/><stop offset="1" stop-color="#071020"/>
+  </linearGradient>
+  <linearGradient id="gold" x1="0" x2="0.85" y1="0" y2="1">
+   <stop offset="0" stop-color="#fff0af"/><stop offset=".47" stop-color="#f5c46c"/><stop offset="1" stop-color="#bd7a35"/>
+  </linearGradient>
+  <mask id="moon"><rect width="64" height="64" fill="white"/><circle cx="47.5" cy="36" r="8" fill="black"/></mask>
+ </defs>
+ <rect x="1.2" y="1.2" width="61.6" height="61.6" rx="15.5" fill="url(#bg)" stroke="#3f526f" stroke-width="1.3"/>
+ <circle cx="32" cy="32" r="24.8" fill="none" stroke="url(#gold)" stroke-width="2.3"/>
+ <circle cx="32" cy="32" r="20.8" fill="none" stroke="#45577b" stroke-width="1" opacity=".75"/>
+ <path d="M31.5 8.3 35.5 27.7 51.9 32 35.5 36.2 31.5 55.6 27.7 36.2 11.5 32 27.7 27.7Z" fill="url(#gold)" stroke="#6d4b2b" stroke-width=".7" stroke-linejoin="round"/>
+ <path d="M31.5 16 33.3 30.1 44.5 32 33.3 34 31.5 47.1 29.6 34 18.5 32 29.6 30.1Z" fill="#ffe5a3" opacity=".7"/>
+ <path d="M45.6 34.4a11.2 11.2 0 1 0 10.4 16.5 11.2 11.2 0 0 1-10.4-16.5Z" fill="url(#gold)" mask="url(#moon)" stroke="#9f7135" stroke-width=".55"/>
+ <path d="M47.3 13.1 48.6 17.1 52.6 18.3 48.6 19.5 47.3 23.5 46.2 19.5 42.2 18.3 46.2 17.1Z" fill="#ffe0a0"/>
+</svg>
