@@ -8,6 +8,7 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  const version=await runtime.json();
  expect(version.readerVersion).toBe('6.0.0');
  expect(version.pipeline).toBe('direct-v2');
+ expect(version.verificationContract).toBe('jyotish-integrity-v3');
  expect(version.referenceBenchmark?.version).toBe('jhora8-same-profile-v2');
  expect(version.referenceBenchmark?.cases).toBe(20);
  expect(version.referenceBenchmark?.perUserJhoraVerified).toBe(false);
