@@ -210,16 +210,16 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
       horoscopeMode==='day'?<div data-testid="personal-horoscope-day">
        <h3>{overview.journey?.horoscope?.headline[locale]}</h3>
        <p>{overview.journey?.horoscope?.description[locale]}</p>
-       <p><b>{t.goodFor}: </b>{overview.journey?.horoscope?.goodFor[locale]}</p>
-       <p><b>{t.caution}: </b>{overview.journey?.horoscope?.caution[locale]}</p>
+       <p><b>{uk?'Спробуй сьогодні':'Try today'}: </b>{overview.journey?.horoscope?.goodFor[locale]}</p>
+       <p><b>{uk?'Пам’ятай':'Keep in mind'}: </b>{overview.journey?.horoscope?.caution[locale]}</p>
        <p className={styles['gp-microcopy']}>{uk?'Це місячний гороскоп. Натальний орієнтир за планетами й дашею — нижче.':'This is your Moon-sign horoscope. Natal transit and dasha guidance appears below.'}</p>
       </div>:<div data-testid="personal-horoscope-week">
        {horoscopes.filter(x=>x.guidance).map(x=><article className={styles['gp-horoscope-day']} key={x.date}>
         <time dateTime={x.date}>{calendarDayLabel(x.date,overview.today,locale)}</time>
         <strong>{x.guidance!.headline[locale]}</strong>
         {x.date===overview.today?<a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={13}/></a>:
-         <><p>{x.guidance!.description[locale]}</p><p><b>{t.goodFor}: </b>{x.guidance!.goodFor[locale]}</p>
-           <p><b>{t.caution}: </b>{x.guidance!.caution[locale]}</p><p>{x.guidance!.action[locale]}</p></>}
+         <><p>{x.guidance!.description[locale]}</p><p><b>{uk?'Спробуй':'Try this'}: </b>{x.guidance!.goodFor[locale]}</p>
+           <p><b>{uk?'Пам’ятай':'Keep in mind'}: </b>{x.guidance!.caution[locale]}</p><p>{x.guidance!.action[locale]}</p></>}
        </article>)}
       </div>}
      <Link href={portalPath(locale,'horoscope')} className={styles['gp-text-link']}>

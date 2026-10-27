@@ -6,6 +6,7 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
+import {verifyLunarContinuity} from './horoscope.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
 
@@ -166,6 +167,7 @@ export class PersonalController{
     out.push(...await Promise.all(dates.slice(i,i+3).map(day=>dailyTransit(day,p.profile.currentTimeZone,personalized?c!.lagnaSign:null,personalized?c!.moonSign:null))));
    }
   }catch{throw new ServiceUnavailableException('Astronomical calendar temporarily unavailable, retry later');}
+  verifyLunarContinuity(out);
   return {status:personalized?'available':'general',recoveryStatus:c?.recoveryStatus||'no_chart',
    dates,days:out,events,weekHighlights:buildWeekHighlights(out,events,utc=>verifiedContextAt(c,utc)),
    // One canonical fact-verified daily reading; no competing advice or invented personal placements.

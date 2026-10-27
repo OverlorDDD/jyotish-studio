@@ -93,8 +93,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    <h2>{t(g.headline)}</h2>
    <p className={styles.story}>{t(g.description)}</p>
    <div className={styles.highlights}>
-    <section><strong>{uk?'На що звернути увагу':'What deserves attention'}</strong><p>{t(g.goodFor)}</p></section>
-    <section><strong>{uk?'Що важливо не перебільшувати':'What not to overstate'}</strong><p>{t(g.caution)}</p></section>
+    <section><strong>{uk?'Спробуй сьогодні':'Try this today'}</strong><p>{t(g.goodFor)}</p></section>
+    <section><strong>{uk?'Пам’ятай':'Keep in mind'}</strong><p>{t(g.caution)}</p></section>
    </div>
    <div className={styles.reflection}><strong>{g.reflection?(uk?'Запитання для себе':'A question for yourself'):
      (uk?'Практичний крок':'One practical step')}</strong>
@@ -146,7 +146,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     {weekPhases.map(phase=><article key={phase.start} className={styles.weekPhase}>
      <time>{dayLabel(phase.start)}{phase.end!==phase.start?' — '+dayLabel(phase.end):''}</time>
      <h3>{t(phase.entry.headline)}</h3><p>{t(phase.entry.description)}</p>
-     <p><strong>{uk?'Сприятлива увага: ':'Worth focusing on: '}</strong>{t(phase.entry.goodFor)}</p>
+     <p><strong>{uk?'Спробуй: ':'Try this: '}</strong>{t(phase.entry.goodFor)}</p>
      {evidence({...phase.entry,evidence:{...phase.entry.evidence,house:phase.entry.house}})}
     </article>)}
    </section>}

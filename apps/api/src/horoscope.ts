@@ -2,6 +2,15 @@ import {Controller,Get,Header,ServiceUnavailableException} from '@nestjs/common'
 import {ApiTags} from '@nestjs/swagger';
 import {calendarDays,dailyTransit,localToday} from './personal-transits.ts';
 import {readPublicSign,EDITORIAL_REFERENCE} from './horoscope-editorial.ts';
+/** Moon moves about 11–16 degrees per 24h. Reject reused/corrupted daily snapshots. */
+export function verifyLunarContinuity(days:Awaited<ReturnType<typeof dailyTransit>>[]){
+ for(let i=1;i<days.length;i++){
+  const a=days[i-1].moon.longitude,b=days[i].moon.longitude;
+  const delta=((b-a)%360+360)%360;
+  if(!Number.isFinite(delta)||delta<5||delta>20)
+   throw new ServiceUnavailableException('Lunar noon observations failed continuity check');
+ }
+}
 /** Public Janma-Rashi references, not personal natal readings.
  * Always derives lunar positions from existing Swiss/Lahiri calculation.
  */
@@ -26,6 +35,7 @@ export class HoroscopeController{
   let days:Awaited<ReturnType<typeof dailyTransit>>[];
   try{days=await Promise.all(calendarDays(startDate,7).map(day=>dailyTransit(day,zone)));}
   catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
+  verifyLunarContinuity(days);
   return {startDate,zone,reference:'SIDEREAL_MOON_SIGN',notAPersonalChart:true,
    days:days.map(transit=>({
     date:transit.date,sampledAtUtc:transit.sampledAtUtc,
