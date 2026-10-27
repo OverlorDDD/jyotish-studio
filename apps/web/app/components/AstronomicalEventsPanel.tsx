@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './AstronomicalEventsPanel.module.css';
-import {eventInsight} from '../../../../packages/jyotish-core/src/astro-education.ts';
+import {eventInsight} from '../../../../packages/jyotish-core/src/astro-education';
 
 type Kind='new_moon'|'first_quarter'|'full_moon'|'last_quarter'|'sidereal_ingress'|'retrograde_station'|'direct_station';
 type Event={kind:Kind;atUtc:string;localDate:string;body?:string;fromSign?:number;toSign?:number;
