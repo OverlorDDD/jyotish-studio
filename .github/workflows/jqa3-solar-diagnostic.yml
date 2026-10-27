@@ -18,11 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: python -m pip install pyswisseph
       - name: Compare 20 genuine JHora calendars without editing source
         run: |
