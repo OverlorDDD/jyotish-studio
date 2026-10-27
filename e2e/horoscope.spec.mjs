@@ -21,7 +21,7 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  await page.getByRole('button',{name:'Риби'}).click();
  await expect(page.getByRole('button',{name:'Риби'})).toHaveAttribute('aria-pressed','true');
  await expect(page.getByTestId('horoscope-reading')).toBeVisible();
- await page.getByText('На чому ґрунтується це трактування').click();
+ await page.getByText('Астрологічна основа прогнозу').click();
  await expect(page.getByTestId('horoscope-reading').getByText(/Swiss Ephemeris/)).toBeVisible();
  await page.getByRole('button',{name:'Цей тиждень'}).click();
  await expect(page.getByTestId('public-horoscope-week')).toBeVisible();
