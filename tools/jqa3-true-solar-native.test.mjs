@@ -13,7 +13,9 @@ const sw=await import('@swisseph/node');
 const flag=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
 sw.setSiderealMode(sw.SiderealMode.Lahiri);
 const sunAt=(jd)=>{
- const p=sw.calculatePosition(jd,sw.Planet.Sun,flag);
+ const year=new Date((jd-2440587.5)*86400000).getUTCFullYear();
+ const sourceJd=year>=1900&&year<=2200?jhora8HistoricalJulianDay(jd):jd;
+ const p=sw.calculatePosition(sourceJd,sw.Planet.Sun,flag);
  assertSwissReturnFlags(p.flags,'SolarDasha.Sun');
  return {longitude:p.longitude,longitudeSpeed:p.longitudeSpeed};
 };

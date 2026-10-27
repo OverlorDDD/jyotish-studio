@@ -27,10 +27,10 @@ def main():
     # JavaScript from Python; verify sample count to avoid silent divergence.
     import re
     grid_source=(Path(__file__).resolve().parent.parent/'packages/jyotish-core/src/jhora8-delta-t-grid.ts').read_text('utf-8')
-    grid_match=re.search(r'const DELTA_T_SECONDS=\\[([\\s\\S]*?)\\];',grid_source)
+    grid_match=re.search(r'const DELTA_T_SECONDS=\[([\s\S]*?)\];',grid_source)
     if not grid_match:
         raise RuntimeError('Missing independently attested historical Swiss Delta-T grid')
-    grid=[float(x) for x in re.findall(r'-?\\d+(?:\\.\\d+)?',grid_match.group(1))]
+    grid=[float(x) for x in re.findall(r'-?\d+(?:\.\d+)?',grid_match.group(1))]
     if len(grid)!=3612:
         raise RuntimeError('Unexpected JHora8 Delta-T grid length')
     source_dt=dt
