@@ -76,8 +76,16 @@ def report():
         current_moon, flags = moon(jd)
         if (flags & 7) != swe.FLG_SWIEPH:
             raise RuntimeError('SWIEPH unavailable in JQA3 precision replay for '+chart_id)
-        moon_residuals = {'production_geocentric_apparent_sidereal': delta_arcseconds(
-            current_moon, reference['Moon']['longitude'])}
+        # Match the same versioned historical Lahiri convention as Node/Python
+        # production adapters; retain the uncorrected current-Swiss candidate
+        # to show the exact independent library-version impact.
+        jhora8_version_delta=0.13823494055031915/3600
+        moon_residuals = {
+            'production_geocentric_apparent_sidereal': delta_arcseconds(
+                (current_moon+jhora8_version_delta)%360, reference['Moon']['longitude']),
+            'modern_uncorrected_geocentric_apparent_sidereal': delta_arcseconds(
+                current_moon, reference['Moon']['longitude'])
+        }
         for mode, additional_flags in [
             ('without_nutation', swe.FLG_NONUT),
             ('true_geometric', swe.FLG_TRUEPOS),
@@ -124,7 +132,7 @@ def report():
         'status': 'DIAGNOSTIC_ONLY_NOT_CERTIFIED',
         'source': 'twenty independent immutable JHora 8.0 captures, not synthetic labels',
         'swissLibraryVersion': swe.version,
-        'mode': 'geocentric apparent positions, Lahiri, Swiss requested; output flags reported',
+        'mode': 'geocentric apparent positions, JHora8 versioned Lahiri, SWIEPH verified; uncorrected candidates kept',
         'ascendantCandidates': {
             k: summary('lagnaResidualArcseconds', k)
             for k in rows[0]['lagnaResidualArcseconds']
