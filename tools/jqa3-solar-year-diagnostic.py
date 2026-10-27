@@ -92,7 +92,7 @@ for calendar in ['UTC','LOCAL_CAPTURED']:
   models.append({'kind':'MEAN','days':days,'sidereal':False,'name':'MEAN_'+str(days),'calendar':calendar})
 results=[]
 for model in models:
- maha=0;antar=0;major_deltas=[];sub_deltas=[];details=[]
+ maha=0;antar=0;major_deltas=[];sub_deltas=[];details=[];mismatches=[]
  for record in records:
   found=truth_table(record,model)
   cm=ca=0
@@ -101,15 +101,19 @@ for model in models:
    diff=(dt.date.fromisoformat(actual['start'])-dt.date.fromisoformat(original['start'])).days
    major_deltas.append(diff)
    if diff==0:maha+=1;cm+=1
+   elif model['name']=='TRUE_SIDEREAL_SOLAR' and model['calendar']=='LOCAL_CAPTURED':
+    mismatches.append({'id':record['id'],'major':original['lord'],'calculated':actual['start'],'expected':original['start'],'dayDelta':diff,'type':'major','birthUtc':record['utc'],'offset':record['offset']})
    for lord,date in original['antardashas'].items():
     sd=(dt.date.fromisoformat(actual['sub'][lord])-dt.date.fromisoformat(date)).days
     sub_deltas.append(sd)
     if sd==0:antar+=1;ca+=1
+    elif model['name']=='TRUE_SIDEREAL_SOLAR' and model['calendar']=='LOCAL_CAPTURED':
+     mismatches.append({'id':record['id'],'major':original['lord'],'minor':lord,'calculated':actual['sub'][lord],'expected':date,'dayDelta':sd,'type':'antardasha','birthUtc':record['utc'],'offset':record['offset']})
   details.append({'id':record['id'],'mahaMatches':cm,'antarMatches':ca})
  results.append({'model':model['name'],'calendar':model['calendar'],'mahaMatches':maha,'mahaTotal':180,
    'antarMatches':antar,'antarTotal':1620,'maxAbsMajorDays':max(map(abs,major_deltas)),
    'maxAbsAntarDays':max(map(abs,sub_deltas)),
-   'allExact':maha==180 and antar==1620,'byChart':details})
+   'allExact':maha==180 and antar==1620,'byChart':details,'mismatches':mismatches})
 results.sort(key=lambda x:(x['antarMatches'],x['mahaMatches']),reverse=True)
 print(json.dumps({'status':'DIAGNOSTIC_ONLY_NOT_CERTIFIED','reference':'20 source-original JHora 8.0 YYYY-MM-DD exports',
  'yearDefinitionCode':3,'noJHoraGUIOptionMapping':True,'versions':{'pyswisseph':swe.version},
