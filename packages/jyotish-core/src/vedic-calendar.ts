@@ -16,9 +16,11 @@ export type DateMoonObservation={
 };
 export type NewMoonRecord={atUtc:string;sunLongitude:number};
 export type Observance={id:'ekadashi_sunrise'|'ekadashi_arunodaya'|'pradosha_trayodashi'|
- 'purnima_sunrise'|'amavasya_sunrise'|'sankranti';
+ 'purnima_sunrise'|'amavasya_sunrise'|'sankranti'|
+ 'rama_navami'|'ganesh_chaturthi'|'chaitra_navratri'|'sharad_navratri'|
+ 'guru_purnima'|'janmashtami'|'maha_shivaratri'|'diwali_amavasya';
  date:string;atUtc:string;category:'candidate'|'astronomical_event';
- rule:string;tradition:'common_sunrise'|'vaishnava_arunodaya'|'sunset_trayodashi'|'sidereal_solar';
+ rule:string;tradition:'common_sunrise'|'vaishnava_arunodaya'|'sunset_trayodashi'|'sidereal_solar'|'regional_festival_indicator';
  metadata?:Record<string,string|number|boolean>};
 const modulo=(x:number,n:number)=>((x%n)+n)%n;
 export function validPosition(p:SunMoonPosition){
@@ -132,4 +134,46 @@ export function abhijitMuhurta(sunriseUtc:string,sunsetUtc:string,weekday:number
   weekdayCaution:weekday===3?'wednesday_traditional_exception':null,
   rule:'Eighth of fifteen equal intervals of true local daytime; not a universal electional guarantee',
   certifiedElectional:false};
+}
+
+/** Named festivals: only primary astronomical date *indicators*, not
+ * religiously final fasting/puja selection. Source school-specific Madhyahna,
+ * Nishita and Pradosha precedence rules still require witnessed acceptance.
+ */
+export function namedFestivalCandidates(input:{
+ date:string;sunriseUtc:string;sunsetUtc:string;nextSunriseUtc:string;
+ sunriseTithi:number;madhyahnaTithi:number;sunsetTithi:number;nightMidTithi:number;
+ amantaMonth:string|null;monthStatus:'regular'|'adhika'|'kshaya_review_required';
+}):Observance[]{
+ const fields=[input.sunriseTithi,input.madhyahnaTithi,input.sunsetTithi,input.nightMidTithi];
+ if(fields.some(v=>!Number.isInteger(v)||v<1||v>30)||
+  [input.sunriseUtc,input.sunsetUtc,input.nextSunriseUtc].some(s=>!Number.isFinite(Date.parse(s))))
+  throw Error('Invalid astronomical festival samples');
+ if(input.monthStatus!=='regular'||!input.amantaMonth)return [];
+ const rise=Date.parse(input.sunriseUtc),set=Date.parse(input.sunsetUtc),next=Date.parse(input.nextSunriseUtc);
+ if(rise>=set||set>=next)throw Error('Invalid festival horizon geometry');
+ const midday=new Date(Math.round((rise+set)/2)).toISOString();
+ const night=new Date(Math.round((set+next)/2)).toISOString();
+ const result:Observance[]=[];
+ const add=(id:Observance['id'],atUtc:string,rule:string)=>result.push({
+  id,date:input.date,atUtc,category:'candidate',tradition:'regional_festival_indicator',
+  rule,metadata:{amantaMonth:input.amantaMonth||'unknown',traditionalRuleOnly:true}
+ });
+ if(input.amantaMonth==='Chaitra'&&input.sunriseTithi===1)
+  add('chaitra_navratri',input.sunriseUtc,'Chaitra Shukla Pratipada at sunrise; Ghatasthapana time not certified');
+ if(input.amantaMonth==='Ashwina'&&input.sunriseTithi===1)
+  add('sharad_navratri',input.sunriseUtc,'Ashwina Shukla Pratipada at sunrise; local Ghatasthapana rules not certified');
+ if(input.amantaMonth==='Chaitra'&&input.madhyahnaTithi===9)
+  add('rama_navami',midday,'Chaitra Shukla Navami at local daylight midpoint; Madhyahna festival precedence not fully adjudicated');
+ if(input.amantaMonth==='Bhadrapada'&&input.madhyahnaTithi===4)
+  add('ganesh_chaturthi',midday,'Bhadrapada Shukla Chaturthi at local daylight midpoint; Madhyahna puja/date precedence not fully adjudicated');
+ if(input.amantaMonth==='Ashadha'&&input.sunriseTithi===15)
+  add('guru_purnima',input.sunriseUtc,'Ashadha Shukla Purnima at local sunrise; festival date may require moonrise/tradition rules');
+ if(input.amantaMonth==='Shravana'&&input.nightMidTithi===23)
+  add('janmashtami',night,'Shravana Krishna Ashtami at midpoint of sunset-to-next-sunrise; Rohini and regional precedences not adjudicated');
+ if(input.amantaMonth==='Magha'&&input.nightMidTithi===29)
+  add('maha_shivaratri',night,'Magha Krishna Chaturdashi at local night midpoint; Nishita/prahar and duplicate tithi precedence not adjudicated');
+ if(input.amantaMonth==='Ashwina'&&input.sunsetTithi===30)
+  add('diwali_amavasya',input.sunsetUtc,'Ashwina Krishna Amavasya at sunset; local Pradosha Lakshmi-puja/date precedence not adjudicated');
+ return result;
 }
