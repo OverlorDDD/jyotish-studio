@@ -16,6 +16,7 @@ type Day={
  boundaries:Record<'tithi'|'nakshatra'|'yoga'|'karana',{startUtc:string;endUtc:string}>;
  changes:{kind:'tithi'|'nakshatra'|'yoga'|'karana';atUtc:string;nextIndex:number}[];
  astronomicalEvents:{type:'sunrise'|'sunset'|'new_moon'|'full_moon';atUtc:string}[];
+ daytimeKalas:{version:string;rahuKalam:{part:number;fromUtc:string;untilUtc:string};yamaganda:{part:number;fromUtc:string;untilUtc:string};gulikaKalam:{part:number;fromUtc:string;untilUtc:string}};
  astronomyProfile:string;sunriseMethod:string;
  methodology:{referenceFrame:string;boundaryResolutionSeconds:number;referenceCertification:string};
 };
@@ -32,7 +33,7 @@ const labels={
  uk:{title:'Панчанга',intro:'Пʼять складових ведичного дня, визначених за положеннями Сонця й Місяця на місцевому сході Сонця. Переглянь реальні моменти переходів, а не приблизні прогнози на полудень.',
  subtitle:'Астрономічний календар',date:'Дата',city:'Місцевість',zone:'Часовий пояс (IANA)',lat:'Широта',lon:'Довгота',calculate:'Розрахувати день',busy:'Розраховуємо переходи…',
  unknown:'Немає обчислення',error:'Немає перевірених астрономічних даних для цих умов. Перевір часовий пояс, координати та Swiss Ephemeris, тоді повтори.',
- sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'Пʼять анг Панчанги',transitions:'Переходи протягом дня',events:'Астрономічні події',new_moon:'Молодик',full_moon:'Повня',
+ sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'Пʼять анг Панчанги',transitions:'Переходи протягом дня',kalas:'Традиційні денні періоди',rahuKalam:'Раху-калам',yamaganda:'Ямаганда',gulikaKalam:'Гуліка-калам',kalaNote:'Вісім рівних частин світлового дня, визначених за місцевим сходом і заходом Сонця. Це традиційні календарні інтервали, не готова персональна мухурта.',events:'Астрономічні події',new_moon:'Молодик',full_moon:'Повня',
  source:'Методика та джерело',started:'Початок',ends:'Закінчення',notProphecy:'Це розраховані календарні показники, а не прогноз конкретних подій.',
  tithi:'Тітхі',nakshatra:'Накшатра',vara:'Вара',yoga:'Нітья-йога',karana:'Карана',
  shukla:'Шукла',krishna:'Крішна',pada:'пада',
@@ -42,7 +43,7 @@ const labels={
  en:{title:'Panchanga',intro:'The five limbs of the Vedic day, calculated from Sun and Moon positions at local sunrise. See real astronomical transition times rather than approximate noon forecasts.',
  subtitle:'Astronomical calendar',date:'Date',city:'Location',zone:'Time zone (IANA)',lat:'Latitude',lon:'Longitude',calculate:'Calculate day',busy:'Calculating transitions…',
  unknown:'No calculation yet',error:'Verified astronomical data are unavailable for this location. Check timezone, coordinates and Swiss Ephemeris, then retry.',
- sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',events:'Astronomical events',new_moon:'New Moon',full_moon:'Full Moon',
+ sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',kalas:'Traditional daytime periods',rahuKalam:'Rahu Kalam',yamaganda:'Yamaganda',gulikaKalam:'Gulika Kalam',kalaNote:'Eight equal daylight segments from the local sunrise and sunset. These traditional windows do not constitute a personalized muhurta verdict.',events:'Astronomical events',new_moon:'New Moon',full_moon:'Full Moon',
  source:'Method and source',started:'Started',ends:'Ends',notProphecy:'These are calculated calendar indicators, not predictions of specific life events.',
  tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana',
  shukla:'Shukla',krishna:'Krishna',pada:'pada',profile:'Same Swiss Ephemeris / Lahiri / Delta-T framework as verified Galaxiora natal charts.',
@@ -125,6 +126,14 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
      <time dateTime={event.atUtc}>{fmt(event.atUtc)}</time>
      <strong>{event.type==='sunrise'?t.sunrise:event.type==='sunset'?t.sunset:t[event.type]}</strong>
     </div>)}
+   </section>
+   <section className={styles.timeline}><h2>{t.kalas}</h2>
+    {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
+     <time dateTime={result.daytimeKalas[key].fromUtc}>{fmt(result.daytimeKalas[key].fromUtc)} — {fmt(result.daytimeKalas[key].untilUtc)}</time>
+     <strong>{t[key]}</strong>
+     <span>#{result.daytimeKalas[key].part}/8</span>
+    </div>)}
+    <p>{t.kalaNote}</p>
    </section>
    <section><h2>{t.titleFive}</h2>
     <div className={styles.cards}>
