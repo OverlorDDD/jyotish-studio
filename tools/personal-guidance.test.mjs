@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,natalPeriodContext} from '../apps/api/src/personal-guidance.ts';
+import {lifeSituation} from '../apps/api/src/personal-life-guidance.ts';
 
 const natal=[{name:'Saturn',sign:9},{name:'Moon',sign:3},{name:'Jupiter',sign:6}];
 const period={lord:'Saturn',start:'2015-01-01T00:00:00.000Z',end:'2034-01-01T00:00:00.000Z',
@@ -128,4 +129,18 @@ test('Janma Rashi horoscope and natal guide use genuinely distinct calculation l
  assert.match(guide.action.uk,/Якщо|Коли/);
  assert.equal(buildMoonSignHoroscope({...sample,moon:{...sample.moon,houseFromMoon:3}},context),null);
  assert.deepEqual(buildMoonSignHoroscope(sample,{...context,lagnaSign:1})?.description,sign.description);
+});
+
+test('All natal-house advisories contain an optional scenario and a real response, never assert a personal crisis',()=>{
+ const titles=new Set();
+ for(let house=1;house<=12;house++){
+  const s=lifeSituation(house);
+  titles.add(s.title.uk);
+  assert.match(s.story.uk,/Якщо|Коли|якщо|коли/);
+  assert.match(s.action.uk,/Якщо|Коли/);
+  assert.ok(s.action.uk.length>90&&s.action.en.length>90);
+  assert.doesNotMatch(s.action.uk,/у тебе проблеми|ти маєш конфлікт|тобі обов’язково|ти мусиш|тобі треба змінити роботу/);
+ }
+ assert.equal(titles.size,12);
+ assert.throws(()=>lifeSituation(0));
 });

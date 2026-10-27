@@ -53,6 +53,7 @@ test('GalaxiCom compact UX and focused creation, understandable moderation, visi
   await page.reload();
   await page.getByRole('button',{name:/Черга модерації/}).click();
   const mod=page.getByTestId('com-mod-queue');
+   await expect(page.getByTestId('com-account-tools').getByTestId('com-mod-queue')).toBeVisible();
   await expect(mod.getByText('Скарги від учасників')).toBeVisible();
   await expect(mod.getByText('Перевір скаргу та відкрий пов’язану публікацію.',{exact:false})).toBeVisible();
   await expect(mod.getByRole('heading',{name:'Скарги від учасників'})).toBeVisible();

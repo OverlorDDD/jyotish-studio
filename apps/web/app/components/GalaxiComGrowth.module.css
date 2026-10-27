@@ -27,7 +27,7 @@
 /* Consistent grid quick actions. Expanded details are full-width below controls. */
 .card{min-width:0;width:100%;max-width:100%}
 .card summary{min-height:56px;box-sizing:border-box;width:100%;white-space:normal;
- justify-content:center;text-align:center;line-height:1.35;font:600 14px/1.35 inherit;
+ justify-content:center;text-align:center;line-height:1.35;font-family:inherit;font-size:14px;font-weight:600;line-height:1.35;
  padding:10px 12px;border:1px solid #50647c;border-radius:11px;background:#203149}
 .card[open]{grid-column:1/-1;order:initial;flex:auto;width:100%;max-width:100%;
  padding:12px;border-color:#50647c;box-sizing:border-box}

@@ -146,7 +146,7 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
   description:l(
    [scene.story.uk,
     majorLabel?'На ширшому тлі період '+majorLabel.uk+' в традиції пов’язують із темою '+qualities[major!].uk+'.':null,
-    minorLabel?'Підперіод '+minorLabel.uk+' додає увагу до '+qualities[minor!].uk+'.':null].filter(Boolean).join(' '),
+    minorLabel?'Підперіод '+minorLabel.uk+' звертає увагу на питання '+qualities[minor!].uk+'.':null].filter(Boolean).join(' '),
    [scene.story.en,
     majorLabel?'The longer '+majorLabel.en+' period is associated with '+qualities[major!].en+'.':null,
     minorLabel?'The '+minorLabel.en+' subperiod also concerns '+qualities[minor!].en+'.':null].filter(Boolean).join(' ')
