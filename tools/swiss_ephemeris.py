@@ -22,11 +22,10 @@ def main():
     swe.set_ephe_path(str(ephe))
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
-    # Planetary metadata is the nutated apparent ayanamsa (unchanged).
-    # Separately use mean Lahiri for the ascendant: 20 preserved JHora 8.0
-    # rising longitudes support this convention (19/20 within 1 arcsec).
-    # Do not replace planetary coordinates/ayanamsa metadata with mean values.
+    # Versioned historical v2.02.01 Lahiri convention for every sidereal
+    # planet and the apparent ayanamsa metadata. Mean variant for Lagna.
     _,ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH)
+    ayan-=0.13823494055031915/3600
     _,lagna_ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH|swe.FLG_NONUT)
     _,angles=swe.houses(jd,float(data['latitude']),float(data['longitude']),b'P')
     # Historical JHora 8 mean-Lahiri convention anchored to Swiss 2.02.01.
@@ -40,7 +39,7 @@ def main():
        if (ret & 7)!=swe.FLG_SWIEPH:
            raise RuntimeError('Swiss Ephemeris files unavailable for '+name+
                               '; refused silent Moshier/JPL fallback; returned flags='+str(ret))
-       positions.append({'name':name,'longitude':xx[0]%360,'speed':xx[3]})
+       positions.append({'name':name,'longitude':(xx[0]+jhora8_version_diff_arcsec/3600)%360,'speed':xx[3]})
     rahu=positions[-1]
     positions.append({'name':'Ketu','longitude':(rahu['longitude']+180)%360,'speed':rahu['speed']})
     print(json.dumps({'ayanamsa':ayan,'ascendant':ascendant,'positions':positions,'julianDay':jd,'backend':'Swiss Ephemeris / pyswisseph / verified-SWIEPH (fallback)'}))

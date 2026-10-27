@@ -3,7 +3,7 @@ import {assertSwissReturnFlags} from './swiss-backend-policy.ts';
 import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
 import type {BirthInput,EphemerisData} from '../../../packages/jyotish-core/src/index.ts';
-import {localToUTC,mod,JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS} from '../../../packages/jyotish-core/src/index.ts';
+import {localToUTC,mod,JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS,jhora8SiderealLongitude} from '../../../packages/jyotish-core/src/index.ts';
 const thisDir=dirname(fileURLToPath(import.meta.url));
 /** Prefer native TypeScript-friendly Swiss Ephemeris; Python fallback is for offline workshops. */
 export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
@@ -15,9 +15,12 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   const jd=sw.julianDay(date.getUTCFullYear(),date.getUTCMonth()+1,date.getUTCDate(),hour);
   sw.setSiderealMode(sw.SiderealMode.Lahiri);
   const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536; // SEFLG_SIDEREAL, upstream numeric flag
-  // Planetary metadata retains the apparent (nutated) ayanamsa; do not change
-  // it or the nine graha positions when fixing the JHora ascendant convention.
-  const ayanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris);
+  // Maintain JHora 8's explicitly versioned historical Lahiri convention
+  // for the apparent metadata and every sidereal graha (including the Moon).
+  // Swiss 2.10's tropical astronomy is retained; only the documented
+  // historical ayanamsa definition differs.
+  const ayanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris)-
+   JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600;
   // Swiss SEFLG_NONUT=64. Across 20 original JHora 8.0 exports the rising
   // longitude agrees with tropical ASC minus MEAN Lahiri (19/20 within 1\"),
   // rather than tropical ASC minus nutated Lahiri (0/20 within 1\").
@@ -25,12 +28,12 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   const lagnaAyanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris|64);
   const houses=sw.calculateHouses(jd,input.latitude,input.longitude,sw.HouseSystem.Placidus);
   // JHora 8's Swiss 2.02.01 mean Lahiri ayanamsa differs from 2.10.03.
-  // Keep the present-day ephemerides; recover the historical *named*
-  // convention for rising longitude only. This is independent of chart labels.
+  // Same physically attested v2.02.01 ayanamsa convention for Lagna;
+  // no chart-specific adjustment or data replacement.
   const jhora8HistoricalMeanLahiri=lagnaAyanamsa-JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600;
   const ascendant=mod(houses.ascendant-jhora8HistoricalMeanLahiri);
   const bodies:[string,number][]=[['Sun',sw.Planet.Sun],['Moon',sw.Planet.Moon],['Mars',sw.Planet.Mars],['Mercury',sw.Planet.Mercury],['Jupiter',sw.Planet.Jupiter],['Venus',sw.Planet.Venus],['Saturn',sw.Planet.Saturn],['Rahu',sw.LunarPoint.MeanNode]];
-  const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);assertSwissReturnFlags(p.flags,name);return {name,longitude:mod(p.longitude),speed:p.longitudeSpeed};});
+  const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);assertSwissReturnFlags(p.flags,name);return {name,longitude:jhora8SiderealLongitude(p.longitude),speed:p.longitudeSpeed};});
   const rahu=positions.find(p=>p.name==='Rahu')!;
   positions.push({name:'Ketu',longitude:mod(rahu.longitude+180),speed:rahu.speed});
   if(!Number.isFinite(ascendant)||positions.some(p=>!Number.isFinite(p.longitude)||!Number.isFinite(p.speed)))throw Error('Invalid native ephemeris result');
@@ -55,6 +58,6 @@ export async function getVerifiedSiderealSolarSunAt(){
  return (julianDayUt:number)=>{
   const point=sw.calculatePosition(julianDayUt,sw.Planet.Sun,flags);
   assertSwissReturnFlags(point.flags,'TrueSiderealDasha.Sun');
-  return {longitude:mod(point.longitude),longitudeSpeed:point.longitudeSpeed};
+  return {longitude:jhora8SiderealLongitude(point.longitude),longitudeSpeed:point.longitudeSpeed};
  };
 }

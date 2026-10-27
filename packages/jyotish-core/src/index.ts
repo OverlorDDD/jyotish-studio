@@ -36,6 +36,12 @@ export function graha(name:string,lon:number,ascLon:number,speed=0):Graha {
  * Do not apply to graha positions or to apparent-ayanamsa metadata.
  */
 export const JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS=0.13823494055031915;
+/** The same historical Lahiri offset affects *all* sidereal graha longitudes,
+ * not just Lagna: a 0.138" Moon discrepancy may displace a 20-year dasha
+ * boundary by ~30 minutes. Use one versioned correction for both.
+ */
+export const jhora8SiderealLongitude=(modernSiderealLongitude:number)=>
+ mod(modernSiderealLongitude+JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600);
 export const JHORA8_ASCENDANT_CONVENTION='jhora8-swiss20201-mean-lahiri-v3';
 export const DASHA_YEAR_DAYS=365.2425;
 const dashaDuration=(years:number)=>years*DASHA_YEAR_DAYS*86400000;

@@ -31,7 +31,7 @@ print(json.dumps({'ayanamsa':ayan,'mean':mean,'tropicalAscendant':trop,'former':
 `],{input:JSON.stringify({jd:p.julianDay,latitude:input.latitude,longitude:input.longitude}),encoding:'utf8',timeout:12000});
   assert.equal(helper.status,0,helper.stderr||helper.error?.message);
   const expected=JSON.parse(helper.stdout);
-  assert.ok(Math.abs(p.ayanamsa-expected.ayanamsa)<1e-9);
+  assert.ok(Math.abs(p.ayanamsa-(expected.ayanamsa-JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600))<1e-9);
   assert.ok(angular(p.ascendant,
    (expected.tropicalAscendant-(expected.mean-JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600)+360)%360)<0.00001,
    'historical mean Lahiri convention must be preserved, not inferred from chart targets');
