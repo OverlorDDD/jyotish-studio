@@ -69,6 +69,15 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [form,setForm]=useState<Form>(initialForm);
  const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(initialForm);
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
+ // First-party GalaxiNews stories deep-link to their authentic event day.
+ useEffect(()=>{
+  const day=new URLSearchParams(window.location.search).get('date');
+  if(!day||!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||
+   new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||
+   day<'1900-01-01'||day>'2099-12-31')return;
+  setForm(f=>({...f,date:day}));
+  setRequested(f=>({...f,date:day}));
+ },[]);
  useEffect(()=>{
   if(!requested)return;
   let live=true;const controller=new AbortController();setLoading(true);setError(false);
