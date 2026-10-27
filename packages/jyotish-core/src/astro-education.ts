@@ -1,7 +1,7 @@
 /** Verified-event educational interpretation. Traditional Jyotish practice is
  * deliberately separate from astronomical facts; no medical or causal claims.
  */
-import type {EventKind,AstronomicalEvent} from './astronomical-events';
+import type {EventKind,AstronomicalEvent} from './astronomical-events.js';
 export type Locale='uk'|'en';
 export type EventInsight={meaning:string;tradition:string;practice:string;limits:string};
 const D:Record<EventKind,Record<Locale,EventInsight>>={
