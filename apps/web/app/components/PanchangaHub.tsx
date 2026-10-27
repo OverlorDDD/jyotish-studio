@@ -58,8 +58,9 @@ function currentDay(){
 }
 export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const t=labels[locale],uk=locale==='uk';
- const [form,setForm]=useState<Form>({date:currentDay(),...presets.kyiv});
- const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(null);
+ const initialForm={date:currentDay(),...presets.kyiv};
+ const [form,setForm]=useState<Form>(initialForm);
+ const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(initialForm);
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  useEffect(()=>{
   if(!requested)return;
