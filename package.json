@@ -102,6 +102,7 @@
     "test:jqa3:ephemeris": "node --experimental-strip-types --test tools/jqa3-ephemeris-parity.test.mjs",
     "jqa3:audit": "node --experimental-strip-types tools/jqa3-corpus.mjs audit",
     "jqa3:certify": "node --experimental-strip-types tools/jqa3-corpus.mjs certify",
+    "jqa3:certify-dates": "node --experimental-strip-types tools/jqa3-date-certificate.mjs",
     "jqa3:certify-signs": "node --experimental-strip-types tools/jqa3-corpus.mjs certify-signs",
     "jqa3:doctor": "node --experimental-strip-types tools/jqa3-doctor.mjs",
     "jqa3:doctor:json": "node --experimental-strip-types tools/jqa3-doctor.mjs --json",
