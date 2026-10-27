@@ -5,7 +5,7 @@ import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,safeImageUrl} from './news-domain.ts';
-import {NewsIngestionService} from './news-ingestion.ts';
+import {NewsIngestionService,newsIngestionEnabled} from './news-ingestion.ts';
 import {rankPersonalNews} from './news-relevance.ts';
 import {collapseNewsEvents,newsQualitySnapshot} from './news-quality.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
@@ -245,7 +245,7 @@ export class NewsController {
   ]);
   return {lastScan:last,articleCount:articles,activePublishers:sources.length,
    byTopic:topics.map(t=>({topic:t.topic,count:t._count._all})),intervalMinutes:15,
-   running:process.env.NEWS_INGESTION_ENABLED==='1'};
+   running:newsIngestionEnabled()};
  }
  @Patch('admin/:id/status') @Header('Cache-Control','private,no-store')
  async moderate(@Req()req:IncomingMessage,@Param('id')id:string,@Body()body:ModerateDto){
@@ -272,7 +272,7 @@ export class NewsController {
   ]);
   const seen=new Set<string>(),latest:typeof scans=[];
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
-  return {enabled:process.env.NEWS_INGESTION_ENABLED==='1',last,
+  return {enabled:newsIngestionEnabled(),last,
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
    editorialAiConfigured:Boolean(process.env.GROQ_API_KEY||process.env.GEMINI_API_KEY||process.env.OPENROUTER_API_KEY)
     &&process.env.NEWS_EDITORIAL_AI_ENABLED!=='0',
