@@ -76,3 +76,14 @@ for(const lang of ['uk','en']){
   expect(layout.separate&&layout.readable).toBe(true);
  });
 }
+
+test('old API proof cannot silently open a chart even when the calculation JSON looks valid',async({page})=>{
+ await page.route('**/api/v1/charts/calculate',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({...CHART,verification:{...FIXTURE_VERIFICATION,version:'jyotish-integrity-v1'}})
+ }));
+ await page.goto('/uk/astrology/jyotish');
+ await page.getByRole('button',{name:'Розрахувати карту'}).click();
+ await expect(page.getByRole('status')).toContainText('jyotish-integrity-v3');
+ await expect(page.locator('.jy-primary-chart .jy-south-chart')).toHaveCount(0);
+});
