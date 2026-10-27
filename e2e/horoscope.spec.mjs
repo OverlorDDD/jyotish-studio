@@ -15,6 +15,19 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  expect(weekly.reference).toBe('SIDEREAL_MOON_SIGN');
  expect(weekly.days).toHaveLength(7);
  expect(weekly.days.every(d=>d.signs.length===12&&d.sampledAtUtc)).toBe(true);
+ for(let i=1;i<weekly.days.length;i++){
+  const previous=weekly.days[i-1],current=weekly.days[i];
+  for(let sign=0;sign<12;sign++){
+   expect(current.signs[sign].description.uk).not.toEqual(previous.signs[sign].description.uk);
+   expect(current.signs[sign].goodFor.uk).not.toEqual(previous.signs[sign].goodFor.uk);
+   expect(current.signs[sign].caution.uk).not.toEqual(previous.signs[sign].caution.uk);
+   expect(current.signs[sign].reflection.uk).not.toEqual(previous.signs[sign].reflection.uk);
+  }
+ }
+ const favicon=await page.request.get('/icon.svg');
+ expect(favicon.status()).toBe(200);
+ expect(favicon.headers()['content-type']).toMatch(/image\/svg\+xml/);
+ expect(await favicon.text()).toContain('Galaxiora');
  await page.goto('/uk/horoscope');
  await expect(page.getByRole('heading',{name:'Гороскопи'})).toBeVisible();
  await expect(page.getByRole('button',{name:'Овен'})).toBeVisible();
