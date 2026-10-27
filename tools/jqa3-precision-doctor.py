@@ -100,7 +100,7 @@ def report():
             'sourceLongitudeResolutionArcseconds': 0.01,
             'productionMoonSwissFlags': flags,
             'requestedFlags': FLAGS,
-            'ephemerisFallbackDetected': (flags & swe.FLG_EPHMASK) != swe.FLG_SWIEPH,
+            'ephemerisFallbackDetected': (flags & (swe.FLG_SWIEPH | swe.FLG_MOSEPH | swe.FLG_JPLEPH)) != swe.FLG_SWIEPH,
             'lagnaResidualArcseconds': lagna,
             'moonResidualArcseconds': moon_residuals,
             'timeSensitivityForOneSecond': time_sensitivity
