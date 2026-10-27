@@ -63,9 +63,10 @@ export function monthAtSunrise(utc:string,tithi:number,moons:NewMoonRecord[],sys
  const displaySunSign=purnimantaShift?next:current;
  const month=monthForSun(displaySunSign);
  const nextIngresses=modulo(after-next,12);
+ const lunarMonthStatus:'regular'|'adhika'|'kshaya_review_required'=exceptional?'kshaya_review_required':adhika?'adhika':'regular';
  return {system,name:exceptional?null:month,
   amantaName:exceptional?null:monthForSun(current),
-  lunarMonthStatus:exceptional?'kshaya_review_required':adhika?'adhika':'regular',
+  lunarMonthStatus,
   ingresses,sourceNewMoonUtc:arr[k].atUtc,nextNewMoonUtc:arr[k+1].atUtc,
   purnimantaKrishnaShiftApplied:purnimantaShift,
   nextMonthStatus:nextIngresses===0?'adhika':nextIngresses===2?'kshaya_review_required':'regular',
