@@ -1,21 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
  <title id="title">Galaxiora — зоряний компас</title>
+ <desc id="desc">Кругла темно-синя емблема із золотим півмісяцем і яскравою зіркою</desc>
  <defs>
-  <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-   <stop offset="0" stop-color="#294d78"/><stop offset="1" stop-color="#183452"/>
+  <radialGradient id="cosmos" cx=".35" cy=".25" r=".95">
+   <stop offset="0" stop-color="#315783"/>
+   <stop offset=".53" stop-color="#172e52"/>
+   <stop offset="1" stop-color="#090e24"/>
+  </radialGradient>
+  <linearGradient id="gold" x1=".18" y1="0" x2=".8" y2="1">
+   <stop offset="0" stop-color="#fff4bf"/>
+   <stop offset=".37" stop-color="#ffd67b"/>
+   <stop offset=".74" stop-color="#e6ac53"/>
+   <stop offset="1" stop-color="#a86b31"/>
   </linearGradient>
-  <linearGradient id="gold" x1="0" x2="0.85" y1="0" y2="1">
-   <stop offset="0" stop-color="#fff0af"/><stop offset=".47" stop-color="#f5c46c"/><stop offset="1" stop-color="#bd7a35"/>
-  </linearGradient>
-  <mask id="moon"><rect width="64" height="64" fill="white"/><circle cx="47.5" cy="36" r="8" fill="black"/></mask>
  </defs>
- <!-- Versioned favicon 2026-10-27 v2: full-bleed opaque navy, alpha=255 even in corners. Next.js hashes this file-based icon; clients should not retain the original transparent file. -->
- <rect x="0" y="0" width="64" height="64" fill="#294d78"/>
- <rect x="1.2" y="1.2" width="61.6" height="61.6" rx="15.5" fill="url(#bg)" stroke="#3f526f" stroke-width="1.3"/>
- <circle cx="32" cy="32" r="24.8" fill="none" stroke="url(#gold)" stroke-width="2.3"/>
- <circle cx="32" cy="32" r="20.8" fill="none" stroke="#45577b" stroke-width="1" opacity=".75"/>
- <path d="M31.5 8.3 35.5 27.7 51.9 32 35.5 36.2 31.5 55.6 27.7 36.2 11.5 32 27.7 27.7Z" fill="url(#gold)" stroke="#6d4b2b" stroke-width=".7" stroke-linejoin="round"/>
- <path d="M31.5 16 33.3 30.1 44.5 32 33.3 34 31.5 47.1 29.6 34 18.5 32 29.6 30.1Z" fill="#ffe5a3" opacity=".7"/>
- <path d="M45.6 34.4a11.2 11.2 0 1 0 10.4 16.5 11.2 11.2 0 0 1-10.4-16.5Z" fill="url(#gold)" mask="url(#moon)" stroke="#9f7135" stroke-width=".55"/>
- <path d="M47.3 13.1 48.6 17.1 52.6 18.3 48.6 19.5 47.3 23.5 46.2 19.5 42.2 18.3 46.2 17.1Z" fill="#ffe0a0"/>
+ <!-- True transparent corners: circular favicon, no black or navy square. -->
+ <circle cx="32" cy="32" r="30" fill="url(#cosmos)"/>
+ <circle cx="32" cy="32" r="29.15" fill="none" stroke="url(#gold)" stroke-width="1.7"/>
+ <circle cx="32" cy="32" r="26.2" fill="none" stroke="#f7d28b" stroke-opacity=".27" stroke-width=".7"/>
+ <path d="M26.7 11.5C15.2 15.2 8.3 26.8 11.5 38.7c3.5 13.0 16.4 20.5 29.3 16.2-13.2 1.8-24-9.3-24-22.8 0-9.3 3.5-16.7 9.9-21.8Z" fill="url(#gold)"/>
+ <path d="M39.1 11.5 43.2 27.8 55 32 43.2 36.2 39.1 52.5 35 36.2 23.4 32 35 27.8Z" fill="url(#gold)" stroke="#985e2b" stroke-width=".55" stroke-linejoin="round"/>
+ <path d="M39.1 18.9 41.3 30.1 49.2 32 41.3 33.9 39.1 45.1 37 33.9 29 32 37 30.1Z" fill="#fff2ba" opacity=".7"/>
+ <circle cx="39.1" cy="32" r="1.75" fill="#fff8d0"/>
+ <path d="m22.3 13.6 1.1 3.6 3.6 1.1-3.6 1.1-1.1 3.6-1.1-3.6-3.6-1.1 3.6-1.1Z" fill="#fff1b0"/>
+ <circle cx="48.8" cy="46.5" r="1.2" fill="#f9c979"/>
 </svg>
