@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {VEDIC_CALENDAR_VERSION,monthAtSunrise,sunriseObservances,
- solarSankrantis,abhijitMuhurta,tithiNumber} from '../packages/jyotish-core/src/vedic-calendar.ts';
+ solarSankrantis,abhijitMuhurta,tithiNumber,namedFestivalCandidates} from '../packages/jyotish-core/src/vedic-calendar.ts';
 const HOUR=3600000,DAY=24*HOUR,base=Date.parse('2026-01-01T00:00:00Z');
 const moons=[
  {atUtc:'2026-01-01T00:00:00.000Z',sunLongitude:330},
@@ -93,4 +93,34 @@ test('fail closed for invalid moon inputs, policies, dates and impossible horizo
  assert.throws(()=>sunriseObservances(obs({arunodayaTithi:99})),/Invalid/);
  assert.throws(()=>abhijitMuhurta('bad','2026-01-20T18:00:00Z',2),/Invalid/);
  assert.throws(()=>solarSankrantis(base,base+16*DAY,()=>1),/Invalid/);
+});
+
+test('named festival candidates use actual matching sunrise/midday/sunset/night-tithi rules, with no fictional full festival certification',()=>{
+ const sample=(month,extra={})=>({
+  date:'2026-03-26',sunriseUtc:'2026-03-26T06:00:00.000Z',
+  sunsetUtc:'2026-03-26T18:00:00.000Z',
+  nextSunriseUtc:'2026-03-27T06:00:00.000Z',
+  sunriseTithi:7,madhyahnaTithi:7,sunsetTithi:7,nightMidTithi:7,
+  amantaMonth:month,monthStatus:'regular',...extra
+ });
+ const cases=[
+  ['Chaitra',{sunriseTithi:1},'chaitra_navratri'],
+  ['Ashwina',{sunriseTithi:1},'sharad_navratri'],
+  ['Chaitra',{madhyahnaTithi:9},'rama_navami'],
+  ['Bhadrapada',{madhyahnaTithi:4},'ganesh_chaturthi'],
+  ['Ashadha',{sunriseTithi:15},'guru_purnima'],
+  ['Shravana',{nightMidTithi:23},'janmashtami'],
+  ['Magha',{nightMidTithi:29},'maha_shivaratri'],
+  ['Ashwina',{sunsetTithi:30},'diwali_amavasya']
+ ];
+ for(const [month,overrides,expected] of cases){
+  const actual=namedFestivalCandidates(sample(month,overrides));
+  assert.deepEqual(actual.map(e=>e.id),[expected]);
+  assert.equal(actual[0].category,'candidate');
+  assert.equal(actual[0].metadata.traditionalRuleOnly,true);
+ }
+ assert.deepEqual(namedFestivalCandidates(sample('Chaitra',{madhyahnaTithi:9,monthStatus:'adhika'})),[]);
+ assert.deepEqual(namedFestivalCandidates(sample('Chaitra',{madhyahnaTithi:9,monthStatus:'kshaya_review_required'})),[]);
+ assert.deepEqual(namedFestivalCandidates(sample('Chaitra',{sunriseTithi:9,madhyahnaTithi:8})),[]);
+ assert.deepEqual(namedFestivalCandidates(sample('Magha',{nightMidTithi:28,sunriseTithi:29})),[]);
 });
