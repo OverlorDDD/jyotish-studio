@@ -138,7 +138,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     <p>{t.kalaNote}</p>
    </section>
    <section><h2>{t.titleFive}</h2>
-    <div className={styles.cards}>
+    <div className={styles.cards} data-testid="panchanga-five-angas">
      {limbKeys.map(key=><article key={key}>
       <small>{t[key]}</small><h3>{angaText(key)}</h3>
       {key!=='vara'&&<div className={styles.times}>
