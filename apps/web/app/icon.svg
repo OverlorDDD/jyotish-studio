@@ -9,6 +9,8 @@
   </linearGradient>
   <mask id="moon"><rect width="64" height="64" fill="white"/><circle cx="47.5" cy="36" r="8" fill="black"/></mask>
  </defs>
+ <!-- Full-bleed opaque navy prevents transparent corners turning black in browser tabs. -->
+ <rect x="0" y="0" width="64" height="64" fill="#122843"/>
  <rect x="1.2" y="1.2" width="61.6" height="61.6" rx="15.5" fill="url(#bg)" stroke="#3f526f" stroke-width="1.3"/>
  <circle cx="32" cy="32" r="24.8" fill="none" stroke="url(#gold)" stroke-width="2.3"/>
  <circle cx="32" cy="32" r="20.8" fill="none" stroke="#45577b" stroke-width="1" opacity=".75"/>
