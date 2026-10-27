@@ -38,7 +38,7 @@ function riseSet(location:Location){
  const processResult=spawnSync(exe,args,{input:JSON.stringify({noonUtc,latitude,longitude}),
   encoding:'utf8',timeout:15000,maxBuffer:24000,windowsHide:true});
  if(processResult.status!==0)
-  throw Error('Local sunrise unavailable; install pyswisseph and official Swiss ephemeris files. '+(processResult.error?.code||''));
+  throw Error('Local sunrise unavailable; install pyswisseph and official Swiss ephemeris files. '+(processResult.error?.message||''));
  let data:{rise:string[];set:string[];method:string};
  try{data=JSON.parse(processResult.stdout);}catch{throw Error('Invalid Swiss rise/set response');}
  if(!Array.isArray(data.rise)||!Array.isArray(data.set)||data.rise.length<2)throw Error('Incomplete sunrise source');
