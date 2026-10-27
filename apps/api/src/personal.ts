@@ -9,6 +9,7 @@ import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from '
 import {verifyLunarContinuity} from './horoscope.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
+import {dailySkyContext} from './sky-context.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
 
@@ -131,9 +132,32 @@ export class PersonalController{
   }catch{transitStatus='ephemeris_unavailable';}
   const context=verifiedContextAt(chart,transit?.sampledAtUtc||new Date().toISOString());
   const currentPeriod=context?.period||null;
-  return {...profile,today,activeDasha:currentPeriod,
+  // Noon-based lunar comparison is marked explicitly; the sunrise-based
+  // independent comparison remains available on the verified Panchanga page.
+  let lunarStrength:null|ReturnType<typeof verifiedDailyMoonStrength>=null;
+  if(chart?.verified&&chart.moonLongitude!=null&&chart.moonSign&&transit&&
+    Number.isFinite(transit.moon.longitude)){
+   try{lunarStrength=verifiedDailyMoonStrength(
+    {moonLongitude:chart.moonLongitude,moonSign:chart.moonSign},
+    {nakshatraNumber:Math.floor(transit.moon.longitude/(360/27))+1,moonSign:transit.moon.sign});}
+   catch{lunarStrength=null;}
+  }
+  const sky=await dailySkyContext(today,profile.profile.currentTimeZone);
+  const todayEvent=sky.events.find(e=>e.localDate===today);
+  const baseDaily=buildDailyGuidance(transit,context);
+  const daily=baseDaily&&todayEvent?{...baseDaily,
+   description:{
+    uk:baseDaily.description.uk+' Сьогодні є розрахована астрономічна подія: '+todayEvent.meaning.uk,
+    en:baseDaily.description.en+' An exact astronomical event occurs today: '+todayEvent.meaning.en
+   },
+   action:{
+    uk:baseDaily.action.uk+' Астрономічний акцент: '+todayEvent.practice.uk,
+    en:baseDaily.action.en+' Astronomical focus: '+todayEvent.practice.en
+   }}:baseDaily;
+  return {...profile,today,activeDasha:currentPeriod,sky,lunarStrength,
+   lunarStrengthSampling:'NOON_OBSERVATION_NOT_LOCAL_SUNRISE',
    journey:{period:context?buildPeriodGuidance(currentPeriod,context.lagnaSign,context.natalPositions):null,
-    daily:buildDailyGuidance(transit,context),horoscope:buildMoonSignHoroscope(transit,context)},
+    daily,horoscope:buildMoonSignHoroscope(transit,context)},
    transit,transitStatus,recentTarot:tarot,recentJournal:journal,privateQuestions:questions,
    recentPractices:practices,horoscope:{status:verified?'available':'requires_verified_chart',personal:verified},
    news:{status:'planned_after_launch',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
