@@ -51,6 +51,37 @@ jobs:
           ) | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (!$exe) { throw 'Authentic installed JHora not found; do not substitute Swiss/other engines' }
           Write-Host "Original JHora SHA256: $((Get-FileHash $exe).Hash)"
+      - name: Attest installed JHora executable and Swiss Win32 DLL provenance
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $exe=@(
+            "${env:ProgramFiles(x86)}\\Jagannatha Hora\\bin\\jhora.exe",
+            "$env:ProgramFiles\\Jagannatha Hora\\bin\\jhora.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (!$exe) { throw 'Authentic JHora binary missing' }
+          $dll=Join-Path (Split-Path $exe -Parent) 'swedll32.dll'
+          if (!(Test-Path $dll)) { throw 'JHora Swiss Win32 DLL missing' }
+          $binary=(Get-Item $exe)
+          $engine=(Get-Item $dll)
+          $exeHash=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
+          $data=[ordered]@{
+            source='AUTHENTIC_JHORA_INSTALLER_NO_BINARY_EXPORTED'
+            jhoraExeSha256=$exeHash
+            capturedExeHashExpected='3ddbe5fb0458ad1f0ad91b002c7efb8bba9f08891d3f46190aba97d570b17908'
+            matchesTwentyPinnedCaptures=($exeHash -eq '3ddbe5fb0458ad1f0ad91b002c7efb8bba9f08891d3f46190aba97d570b17908')
+            jhoraExeVersion=$binary.VersionInfo.FileVersion
+            swedll32Sha256=(Get-FileHash $dll -Algorithm SHA256).Hash.ToLower()
+            swedll32FileVersion=$engine.VersionInfo.FileVersion
+            swedll32ProductVersion=$engine.VersionInfo.ProductVersion
+            swedll32Bytes=$engine.Length
+            jhoraExeBytes=$binary.Length
+          }
+          $data | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 jqa3-original-dll-provenance.json
+          Get-Content jqa3-original-dll-provenance.json
+          if (!$data.matchesTwentyPinnedCaptures) {
+            Write-Warning 'Executable is not identical to the pinned JHora8 oracle; results cannot certify same-version method.'
+          }
       - name: Pinned independent GUI automation scripts
         shell: pwsh
         run: |
@@ -76,5 +107,6 @@ jobs:
             tests/fixtures/jhora-corpus/captures/
             tests/fixtures/jhora-corpus/jqa3-*.json
             tests/fixtures/jhora-corpus/manifest.json
+            jqa3-original-dll-provenance.json
           if-no-files-found: warn
           retention-days: 14
