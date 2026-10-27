@@ -125,6 +125,9 @@ jobs:
           python tools/jqa3-solar-year-diagnostic.py > jqa3-solar-year-evidence.json
           $result=Get-Content jqa3-solar-year-evidence.json -Raw | ConvertFrom-Json
           $result.candidates | Select-Object -First 8 model,calendar,mahaMatches,antarMatches,maxAbsMajorDays,maxAbsAntarDays | Format-Table
+          $best=$result.candidates | Where-Object { $_.model -eq 'TRUE_SIDEREAL_SOLAR' -and $_.calendar -eq 'LOCAL_CAPTURED' } | Select-Object -First 1
+          Write-Host "Remaining true sidereal solar calendar discrepancies:"
+          $best.mismatches | ConvertTo-Json -Depth 5
           if($result.candidates.Count -lt 12){throw 'Missing solar-year diagnostic candidates'}
       - name: Preserve numerical comparisons without redistributing DLL
         if: always()
