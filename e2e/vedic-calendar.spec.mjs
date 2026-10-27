@@ -22,6 +22,7 @@ test('AE-P7 real Swiss festival week has exact local sunrise, versioned month ru
   expect(Date.parse(d.windows.abhijit.startUtc)).toBeGreaterThan(Date.parse(d.sunriseUtc));
   expect(Date.parse(d.windows.abhijit.endUtc)).toBeLessThan(Date.parse(d.sunsetUtc));
   expect(d.observances.every(o=>o.category==='candidate'||o.category==='astronomical_event')).toBe(true);
+  for(let i=1;i<d.observances.length;i++)expect(d.observances[i].atUtc>=d.observances[i-1].atUtc).toBe(true);
  }
  expect(dates.size).toBe(7);
  const north=await request.get(endpoint.replace('monthSystem=amanta','monthSystem=purnimanta'),{timeout:90000});
