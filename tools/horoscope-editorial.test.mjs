@@ -24,6 +24,7 @@ test('Each sign delivers different text and direct action on adjacent calendar d
   assert.notDeepEqual(a.description,b.description);
   assert.notDeepEqual(a.goodFor,b.goodFor);
   assert.notDeepEqual(a.caution,b.caution);
+  assert.notDeepEqual(a.reflection,b.reflection);
   assert.match(a.goodFor.uk,/^[А-ЯІЇЄҐ]/);
  }
  assert.throws(()=>readPublicSign(1,{...transit,date:'2026-02-30'}));
