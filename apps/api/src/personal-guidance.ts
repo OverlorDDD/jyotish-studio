@@ -3,13 +3,14 @@
  * Natal facts are verified separately; no invented ingress moments.
  */
 import type {dailyTransit} from './personal-transits.ts';
-import {horoscopeTheme} from './horoscope-editorial.ts';
+import {readPublicSign} from './horoscope-editorial.ts';
+import {lifeSituation} from './personal-life-guidance.ts';
 type L={uk:string;en:string};
 type Transit=Awaited<ReturnType<typeof dailyTransit>>;
 type Period={lord:string;start:string;end:string;antardasha?:{lord:string;start:string;end:string}|null};
 type Natal={name:string;sign:number};
 type Event={type:string;lord:string;date:string;atUtc:string};
-type Evidence={kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string;natalLagnaSign?:number;natalMoonSign?:number;natalMoonHouse?:number|null;majorNatalHouse?:number|null;minorNatalHouse?:number|null};
+type Evidence={kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string;natalLagnaSign?:number;natalMoonSign?:number;natalMoonHouse?:number|null;majorNatalHouse?:number|null;minorNatalHouse?:number|null;natalPlanetHouse?:number|null;selection?:string};
 type Brief={headline:L;description:L;action:L;goodFor:L;caution:L;evidence:Evidence};
 export type VerifiedNatalContext={lagnaSign:number;moonSign:number;natalPositions:Natal[];period:Period|null};
 const l=(uk:string,en:string):L=>({uk,en});
@@ -120,44 +121,58 @@ export function buildPeriodGuidance(period:Period|null,lagna:number|null,natal:N
 export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|null):Brief|null{
  if(!t||!context||context.lagnaSign<1||context.lagnaSign>12||context.moonSign<1||context.moonSign>12||
  !t.personalized||!Number.isInteger(t.moon.sign)||t.moon.sign<1||t.moon.sign>12)return null;
- const house=houseFrom(t.moon.sign,context.lagnaSign);
- if(t.moon.houseFromLagna!==house||
+ const moonHouse=houseFrom(t.moon.sign,context.lagnaSign);
+ if(t.moon.houseFromLagna!==moonHouse||
   !context.natalPositions.some(p=>p.name==='Moon'&&p.sign===context.moonSign))return null;
  const natalMoonHouse=houseFrom(context.moonSign,context.lagnaSign);
  const major=context.period?.lord,minor=context.period?.antardasha?.lord;
  const majorNatalHouse=major?natalPeriodContext(context.lagnaSign,context.natalPositions,major)?.house??null:null;
  const minorNatalHouse=minor?natalPeriodContext(context.lagnaSign,context.natalPositions,minor)?.house??null:null;
- const voice=horoscopeTheme(house);
- const secondary=t.moon.houseFromMoon&&t.moon.houseFromMoon!==house?
-  houses[t.moon.houseFromMoon-1]:null;
- const mahadasha=major&&names[major]?names[major]:null,antardasha=minor&&names[minor]?names[minor]:null;
- // Interpret ONLY validated natal and transit anchors. Keep house numbers and
- // exact dasha identifiers in evidence, not in the editorial opening.
- const description=l(
-  [voice.story.uk,
-   secondary?'Від твого натального Місяця цей самий рух також нагадує про '+secondary.topic.uk+'.':
-    t.moon.houseFromMoon===house?'Від натального Місяця ця тема також виходить на перший план.':null,
-   mahadasha?'На ширшому життєвому тлі період '+mahadasha.uk+' звертає увагу на '+qualities[major!].uk+
-    (antardasha?' Підперіод '+antardasha.uk+' додає тему '+qualities[minor!].uk+'.':'.'):null]
-   .filter(Boolean).join(' '),
-  [voice.story.en,
-   secondary?'Seen from your natal Moon, this transit also highlights '+secondary.topic.en+'.':
-    t.moon.houseFromMoon===house?'From your natal Moon, the same theme comes to the fore.':null,
-   mahadasha?'Against a longer backdrop, your '+mahadasha.en+' period brings attention to '+qualities[major!].en+
-    (antardasha?' The '+antardasha.en+' subperiod adds '+qualities[minor!].en+'.':'.'):null]
-   .filter(Boolean).join(' ')
- );
+ // Editorial rotation among FACTUALLY calculated non-lunar transits; no invented aspects.
+ // Prefer a non-Moon house when available, distinct from Janma Rashi daily horoscope.
+ const verified=t.planets.filter(p=>p.name!=='Moon'&&p.name in names&&Number.isInteger(p.sign)&&
+  p.sign>=1&&p.sign<=12&&p.houseFromLagna===houseFrom(p.sign,context.lagnaSign)&&
+  context.natalPositions.some(n=>n.name===p.name&&n.sign>=1&&n.sign<=12));
+ const distinct=verified.filter(p=>p.houseFromLagna!==moonHouse),candidates=distinct.length?distinct:verified;
+ const serial=Math.floor(Date.parse(t.date+'T00:00:00Z')/86400000);
+ const featured=candidates.length?candidates[((serial%candidates.length)+candidates.length)%candidates.length]:null;
+ const house=featured?.houseFromLagna??moonHouse;
+ if(house==null)return null;
+ const scene=lifeSituation(house),planet=featured?.name||'Moon';
+ const natal=context.natalPositions.find(p=>p.name===planet);
+ const majorLabel=major&&names[major]?names[major]:null,minorLabel=minor&&names[minor]?names[minor]:null;
  return {
-  headline:voice.title,
-  description,
-  goodFor:voice.opportunity,caution:voice.care,
-  action:houses[house-1].action,
+  headline:scene.title,
+  description:l(
+   [scene.story.uk,
+    majorLabel?'На ширшому тлі період '+majorLabel.uk+' в традиції пов’язують із темою '+qualities[major!].uk+'.':null,
+    minorLabel?'Підперіод '+minorLabel.uk+' додає увагу до '+qualities[minor!].uk+'.':null].filter(Boolean).join(' '),
+   [scene.story.en,
+    majorLabel?'The longer '+majorLabel.en+' period is associated with '+qualities[major!].en+'.':null,
+    minorLabel?'The '+minorLabel.en+' subperiod also concerns '+qualities[minor!].en+'.':null].filter(Boolean).join(' ')
+  ),
+  goodFor:scene.goodFor,caution:scene.caution,action:scene.action,
   evidence:{kind:'VERIFIED_NATAL_TRANSIT_DASHA',method:t.method,day:t.date,sampledAtUtc:t.sampledAtUtc,
-   planet:'Moon',sign:t.moon.sign,house,nakshatra:t.moon.nakshatra,natalLagnaSign:context.lagnaSign,
-   natalMoonSign:context.moonSign,natalMoonHouse,major,minor,majorNatalHouse,minorNatalHouse}
+   planet,sign:featured?.sign??t.moon.sign,house,nakshatra:t.moon.nakshatra,
+   natalLagnaSign:context.lagnaSign,natalMoonSign:context.moonSign,natalMoonHouse,
+   major,minor,majorNatalHouse,minorNatalHouse,
+   natalPlanetHouse:natal?houseFrom(natal.sign,context.lagnaSign):null,
+   selection:featured?'EDITORIAL_ROTATION_VERIFIED_PLANETS':'LUNAR_FALLBACK'}
  };
 }
 
+/** A sign horoscope depends on Janma Rashi rather than personal Lagna/dasha. */
+export function buildMoonSignHoroscope(t:Transit|null,context:VerifiedNatalContext|null):Brief|null{
+ if(!t||!context||!t.personalized||context.moonSign<1||context.moonSign>12||
+  !context.natalPositions.some(p=>p.name==='Moon'&&p.sign===context.moonSign)||
+  t.moon.houseFromMoon!==houseFrom(t.moon.sign,context.moonSign))return null;
+ const signReading=readPublicSign(context.moonSign,t);
+ return {headline:signReading.headline,description:signReading.description,goodFor:signReading.goodFor,
+  caution:signReading.caution,action:signReading.reflection,
+  evidence:{kind:'PERSONAL_JANMA_RASHI',method:t.method,day:t.date,sampledAtUtc:t.sampledAtUtc,
+   planet:'Moon',sign:t.moon.sign,house:signReading.house,nakshatra:t.moon.nakshatra,
+   natalLagnaSign:context.lagnaSign,natalMoonSign:context.moonSign}};
+}
 export type WeekHighlight={date:string;kind:'TODAY'|'MOON_SIGN_SAMPLE_CHANGE'|'NAKSHATRA_SAMPLE_CHANGE'|'DASHA_START';
  headline:L;summary:L;action:L;goodFor:L;caution:L;
  evidence:Evidence & {transition?:{lord:string;atUtc:string;method:string}}};

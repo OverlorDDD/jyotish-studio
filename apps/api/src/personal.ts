@@ -7,7 +7,7 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
-import {buildDailyGuidance,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
+import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
 
 type ChartResult={verification?:{status?:string};ascendant?:{sign?:number;signName?:string};
  d1?:{name:string;sign:number}[];dasha?:{lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]}[]};
@@ -129,7 +129,7 @@ export class PersonalController{
   const currentPeriod=context?.period||null;
   return {...profile,today,activeDasha:currentPeriod,
    journey:{period:context?buildPeriodGuidance(currentPeriod,context.lagnaSign,context.natalPositions):null,
-    daily:buildDailyGuidance(transit,context)},
+    daily:buildDailyGuidance(transit,context),horoscope:buildMoonSignHoroscope(transit,context)},
    transit,transitStatus,recentTarot:tarot,recentJournal:journal,privateQuestions:questions,
    recentPractices:practices,horoscope:{status:verified?'available':'requires_verified_chart',personal:verified},
    news:{status:'planned_after_launch',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
@@ -169,7 +169,7 @@ export class PersonalController{
   return {status:personalized?'available':'general',recoveryStatus:c?.recoveryStatus||'no_chart',
    dates,days:out,events,weekHighlights:buildWeekHighlights(out,events,utc=>verifiedContextAt(c,utc)),
    // One canonical fact-verified daily reading; no competing advice or invented personal placements.
-   horoscopes:out.slice(0,7).map(t=>({date:t.date,guidance:buildDailyGuidance(t,verifiedContextAt(c,t.sampledAtUtc))})),
+   horoscopes:out.slice(0,7).map(t=>({date:t.date,guidance:buildMoonSignHoroscope(t,verifiedContextAt(c,t.sampledAtUtc))})),
    horoscopeStatus:personalized?'personalized':'requires_verified_chart',method:out[0]?.method};
  }
  @Get('practices') @Header('Cache-Control','private, no-store')

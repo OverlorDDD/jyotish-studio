@@ -21,7 +21,7 @@ type Overview={
  profile:{primaryChartId:string|null;currentTimeZone:string;preferredLocale:string;favoritePractice:string;newsTopics:string[]};
  charts:ChartSummary[];selected:ChartSummary|null;suggestedChartId:string|null;staleSelectedChart:boolean;
  today:string;activeDasha:null|{lord:string;start:string;end:string;antardasha:null|{lord:string;start:string;end:string}};
- transit:Transit|null;transitStatus:string;journey?:{period:Guidance|null;daily:Guidance|null};
+ transit:Transit|null;transitStatus:string;journey?:{period:Guidance|null;daily:Guidance|null;horoscope:Guidance|null};
  recentTarot:{id:string;createdAt:string;spread:string;question:string|null}[];
  recentJournal:{id:string;kind:string;title:string;createdAt:string}[];
  recentPractices:{id:string;practiceId:string;durationSeconds:number;completedAt:string}[];
@@ -47,7 +47,7 @@ const copy={
   tarot:'Моє Таро',tarotAction:'Зробити розклад',questions:'Приватні запитання тарологу',
   yoga:'Моя практика',practiceAction:'Відкрити дихальні практики',recent:'Остання практика',never:'Ще не було',
   journal:'Мій журнал',openJournal:'Відкрити приватні записи',closeJournal:'Сховати журнал',
-  horoscope:'Мій персональний гороскоп',horoscopeDay:'На сьогодні',horoscopeWeek:'На 7 днів',horoscopeMethod:'Тлумачення за транзитом Місяця, твоєю лагною та поточною дашею. Положення для кожного дня — на 12:00 місцевого часу.',horoscopeSee:'Читати одну головну пораду',later:'Незабаром у Galaxiora',news:'Мої новини',
+  horoscope:'Мій персональний гороскоп',horoscopeDay:'На сьогодні',horoscopeWeek:'На 7 днів',horoscopeMethod:'Прогноз за твоїм сидеричним знаком натального Місяця (джанма-раші) і транзитом Місяця на 12:00. Натальні транзити та даші — в окремому орієнтирі нижче.',horoscopeSee:'Читати одну головну пораду',later:'Незабаром у Galaxiora',news:'Мої новини',
   newsDescription:'Стрічка GalaxiNews допоможе стежити за обраними темами. Особисті записи не використовуються для добору матеріалів.',
   themes:'Цікаві мені теми',settings:'Налаштування Personal',tz:'Мій поточний часовий пояс (IANA)',
   favorite:'Улюблена дихальна практика',saveSettings:'Зберегти налаштування',
@@ -77,7 +77,7 @@ const copy={
   tarot:'My Tarot',tarotAction:'Draw cards',questions:'Private questions for a reader',
   yoga:'My practice',practiceAction:'Open breathing practices',recent:'Recent practice',never:'Not yet',
   journal:'My journal',openJournal:'Open private notes',closeJournal:'Hide journal',
-  horoscope:'My personal horoscope',horoscopeDay:'Today',horoscopeWeek:'7 days',horoscopeMethod:'Jyotish guidance from lunar transit, your verified Lagna and current Dasha. Each day is sampled at local noon.',horoscopeSee:'Read your one main daily suggestion',later:'Coming soon to Galaxiora',news:'My news',
+  horoscope:'My personal horoscope',horoscopeDay:'Today',horoscopeWeek:'7 days',horoscopeMethod:'Reading by your sidereal natal Moon sign (Janma Rashi) and the Moon transit at local noon. Natal transits and dasha form a separate daily guide below.',horoscopeSee:'Read your one main daily suggestion',later:'Coming soon to Galaxiora',news:'My news',
   newsDescription:'Explore GalaxiNews articles about your chosen interests. Private journal entries are not used to select news.',
   themes:'My interests',settings:'Personal settings',tz:'My current time zone (IANA)',
   favorite:'Favorite breathing practice',saveSettings:'Save preferences',
@@ -208,11 +208,11 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      </div>
      {horoscopeStatus!=='personalized'?<p>{t.pathMissing}</p>:
       horoscopeMode==='day'?<div data-testid="personal-horoscope-day">
-       <h3>{overview.journey?.daily?.headline[locale]}</h3>
-       <p>{overview.journey?.daily?.description[locale]}</p>
-       <p><b>{t.goodFor}: </b>{overview.journey?.daily?.goodFor[locale]}</p>
-       <p><b>{t.caution}: </b>{overview.journey?.daily?.caution[locale]}</p>
-       <a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={14}/></a>
+       <h3>{overview.journey?.horoscope?.headline[locale]}</h3>
+       <p>{overview.journey?.horoscope?.description[locale]}</p>
+       <p><b>{t.goodFor}: </b>{overview.journey?.horoscope?.goodFor[locale]}</p>
+       <p><b>{t.caution}: </b>{overview.journey?.horoscope?.caution[locale]}</p>
+       <p className={styles['gp-microcopy']}>{uk?'Це місячний гороскоп. Натальний орієнтир за планетами й дашею — нижче.':'This is your Moon-sign horoscope. Natal transit and dasha guidance appears below.'}</p>
       </div>:<div data-testid="personal-horoscope-week">
        {horoscopes.filter(x=>x.guidance).map(x=><article className={styles['gp-horoscope-day']} key={x.date}>
         <time dateTime={x.date}>{calendarDayLabel(x.date,overview.today,locale)}</time>

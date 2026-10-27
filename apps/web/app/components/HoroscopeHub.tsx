@@ -9,7 +9,7 @@ type Reading={headline:L;description:L;goodFor:L;caution:L;reflection?:L;action?
 type SignReading=Reading&{referenceSign:number;house:number};
 type PublicData={date:string;zone:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[];reference:string};
 type PublicWeek={startDate:string;zone:string;reference:string;days:{date:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[]}[]};
-type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string}|null;journey?:{daily:Reading|null}};
+type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string}|null;journey?:{daily:Reading|null;horoscope:Reading|null}};
 type PersonalCalendar={horoscopeStatus:string;horoscopes:{date:string;guidance:Reading|null}[]};
 const SIGNS={
  uk:['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'],
@@ -78,7 +78,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    {lunarName&&<p>{uk?'Транзитний Місяць: ':'Transiting Moon: '}{lunarName}
     {nakshatra?' · '+nakshatra:''}{pada?' · '+(uk?'пада ':'pada ')+pada:''}</p>}
    {facts.house!=null&&<p>{uk?'Дім транзиту: ':'Transit house: '}{String(facts.house)}
-    {publicReading?(uk?' від обраного місячного знака':' from the selected Moon sign'):
+    {publicReading||facts.kind==='PERSONAL_JANMA_RASHI'?(uk?' від натального знака Місяця':' from the natal Moon sign'):
      (uk?' від натальної лагни':' from natal Lagna')}</p>}
    {!publicReading&&typeof facts.natalMoonSign==='number'&&<p>
     {uk?'Натальний Місяць: ':'Natal Moon: '}{SIGNS[locale][facts.natalMoonSign-1]}</p>}
@@ -160,7 +160,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     <Link href={'/'+locale+'/personal'}>{uk?'Перейти до «Мого Всесвіту»':'Open Your Universe'} <ArrowRight size={16}/></Link></div>:
     <><div className={styles.personalHeading}><h2>{uk?'Сьогодні у твоєму гороскопі':'Your reading for today'}</h2>
       <span>{uk?'За перевіреною натальною картою':'From your verified birth chart'}</span></div>
-     {period==='day'&&(personal.journey?.daily?detail(personal.journey.daily):<p>{uk?'Поточне персональне трактування недоступне.':'Current personal reading unavailable.'}</p>)}
+     {period==='day'&&(personal.journey?.horoscope?detail(personal.journey.horoscope):<p>{uk?'Поточне персональне трактування недоступне.':'Current personal reading unavailable.'}</p>)}
      {period==='week'&&!week&&<p role="status">{uk?'Персональний тижневий прогноз недоступний.':'Personal weekly reading is currently unavailable.'}</p>}
      {period==='week'&&week?.horoscopeStatus==='personalized'&&<section className={styles.week}>
       <h2>{uk?'Наступні сім днів':'The next seven days'}</h2>

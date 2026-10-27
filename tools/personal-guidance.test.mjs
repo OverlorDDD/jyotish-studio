@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildDailyGuidance,buildPeriodGuidance,buildWeekHighlights,natalPeriodContext} from '../apps/api/src/personal-guidance.ts';
+import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,natalPeriodContext} from '../apps/api/src/personal-guidance.ts';
 
 const natal=[{name:'Saturn',sign:9},{name:'Moon',sign:3},{name:'Jupiter',sign:6}];
 const period={lord:'Saturn',start:'2015-01-01T00:00:00.000Z',end:'2034-01-01T00:00:00.000Z',
@@ -39,9 +39,9 @@ test('One personal reading uses natal Lagna, natal Moon, Dasha and same noon tra
  assert.equal(reading.evidence.minorNatalHouse,12);
  assert.equal(reading.evidence.house,9);
  assert.equal(reading.evidence.sampledAtUtc,week[0].sampledAtUtc);
- assert.match(reading.description.uk,/натальн/);
+ assert.match(reading.description.uk,/Якщо|Коли|якщо/);
  assert.match(reading.description.uk,/період Сатурна/);
- assert.match(reading.description.en,/natal Moon/);
+ assert.match(reading.description.en,/If|When|if/);
  assert.doesNotMatch(reading.description.uk,/\d+-го дому|пада \d|обіцянка події/);
  assert.doesNotMatch(reading.description.en,/house \d|guaranteed event/);
  assert.match(reading.action.uk,/принцип/);
@@ -51,6 +51,7 @@ test('One personal reading uses natal Lagna, natal Moon, Dasha and same noon tra
 });
 test('A missing, unverified or mismatched birth chart never triggers personal advice',()=>{
  assert.equal(buildDailyGuidance(week[0],null),null);
+ assert.equal(buildMoonSignHoroscope(week[0],null),null);
  assert.equal(buildDailyGuidance(moon('2026-10-25',12,'Revati',null),context),null);
  assert.equal(buildDailyGuidance(week[0],{...context,lagnaSign:5}),null);
  assert.equal(buildDailyGuidance(week[0],{...context,moonSign:11}),null);
@@ -110,4 +111,21 @@ test('A real Dasha start remains visible even if its day reuses today’s house 
  assert.equal(highlights[1].evidence.transition?.lord,'Jupiter');
  assert.equal(highlights[1].evidence.transition?.atUtc,event.atUtc);
  assert.deepEqual(highlights[0].evidence,buildDailyGuidance(quietWeek[0],context).evidence);
+});
+
+test('Janma Rashi horoscope and natal guide use genuinely distinct calculation layers',()=>{
+ const sample={...week[0],moon:{...week[0].moon,houseFromMoon:10},
+  planets:[{name:'Venus',sign:7,houseFromLagna:4,houseFromMoon:5},
+   {name:'Saturn',sign:3,houseFromLagna:12,houseFromMoon:1}]};
+ const guide=buildDailyGuidance(sample,context),sign=buildMoonSignHoroscope(sample,context);
+ assert.ok(guide&&sign);
+ assert.equal(sign.evidence.kind,'PERSONAL_JANMA_RASHI');
+ assert.equal(guide.evidence.kind,'VERIFIED_NATAL_TRANSIT_DASHA');
+ assert.notDeepEqual(guide.headline,sign.headline);
+ assert.notDeepEqual(guide.description,sign.description);
+ assert.notDeepEqual(guide.action,sign.action);
+ assert.notEqual(guide.evidence.planet,'Moon');
+ assert.match(guide.action.uk,/Якщо|Коли/);
+ assert.equal(buildMoonSignHoroscope({...sample,moon:{...sample.moon,houseFromMoon:3}},context),null);
+ assert.deepEqual(buildMoonSignHoroscope(sample,{...context,lagnaSign:1})?.description,sign.description);
 });
