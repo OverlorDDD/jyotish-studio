@@ -243,3 +243,18 @@
  .wrap .toolbarIdentity .inbox[open],.wrap .toolbarIdentity .modQueueWrap:has(.queue){grid-column:auto}
 }
 @media(prefers-reduced-motion:reduce){.wrap .toolbarActions button,.wrap .toolbarActions summary{transition:none}}
+
+/* C5.3: Disclosure content stays below both fixed rows. */
+.wrap .toolbarIdentity .inbox,.wrap .toolbarIdentity .modQueueWrap{grid-column:auto!important;order:initial!important;min-height:54px;width:100%;max-width:100%;background:transparent;padding:0!important;border:0}
+.wrap .toolbarIdentity .inbox button.toolbarTrigger,.wrap .toolbarIdentity .modQueueWrap>button{
+ display:flex;align-items:center;justify-content:center;gap:9px;text-align:center;
+ width:100%;height:54px;min-height:54px;box-sizing:border-box;border:1px solid #50647c;
+ background:#203149;color:#f0d3a1;border-radius:11px;padding:9px 12px;cursor:pointer;
+ font-family:inherit;font-size:14px;font-weight:600;line-height:1.35}
+.wrap .toolbarIdentity button[aria-expanded=true],.wrap .toolbarActions button[aria-expanded=true]{background:#2e405b;border-color:#d6b77d}
+.toolbarPanel:empty{display:none}
+.toolbarPanel:not(:empty){min-width:0;width:100%;box-sizing:border-box;margin:-8px 0 22px;padding:19px 22px;
+ background:linear-gradient(145deg,#17283f,#111f32);border:1px solid #475f79;border-radius:0 0 16px 16px;color:#d9e2ed}
+.toolbarPanel h3{font-size:18px;color:#e5c58c;margin:0 0 10px}
+.toolbarPanel .inboxItems,.toolbarPanel .queue{min-width:0;width:100%;max-width:100%}
+@media(max-width:620px){.toolbarPanel:not(:empty){padding:14px 12px}}

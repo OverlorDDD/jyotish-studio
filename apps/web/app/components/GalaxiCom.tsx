@@ -80,15 +80,17 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  const [topicCategory,setTopicCategory]=useState(''),[replyBody,setReplyBody]=useState('');
  const [displayName,setDisplayName]=useState(''),[editing,setEditing]=useState<string|null>(null),[edited,setEdited]=useState('');
  const [editedTitle,setEditedTitle]=useState('');
- const [activity,setActivity]=useState<Activity|null>(null),[inboxOpen,setInboxOpen]=useState(false);
+ const [activity,setActivity]=useState<Activity|null>(null),[activePanel,setActivePanel]=useState<string|null>(null);
  const [sources,setSources]=useState<CuratedSource[]>([]);
  const [inbox,setInbox]=useState<Inbox|null>(null),[duplicates,setDuplicates]=useState<{id:string;title:string}[]>([]);
  const [history,setHistory]=useState<{id:string;items:Revision[]}|null>(null);
  const [reporting,setReporting]=useState<{target:'thread'|'post';id:string}|null>(null);
  const [reportReason,setReportReason]=useState(''),[modReason,setModReason]=useState('');
- const [queue,setQueue]=useState<Report[]|null>(null),[queueOpen,setQueueOpen]=useState(false);
+ const [queue,setQueue]=useState<Report[]|null>(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const root='/'+locale+'/community';
+ const inboxOpen=activePanel==='notifications',queueOpen=activePanel==='moderation';
+ const togglePanel=(name:string)=>setActivePanel(current=>current===name?null:name);
  useEffect(()=>{const requested=new URLSearchParams(window.location.search).get('category');
   if(requested&&['jyotish','tarot','practices','vedic','experiences','experts','help'].includes(requested))setCategory(requested);
  },[]);
@@ -217,9 +219,27 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       onChange={e=>setDisplayName(e.target.value)}/>
     <button type="submit" disabled={busy||displayName===me.profile?.name}>{t.update}</button>
    </form>}
-   {me?.signedIn&&<details className={styles.inbox} open={inboxOpen}
-    onToggle={e=>setInboxOpen(e.currentTarget.open)}>
-    <summary><Bell size={17}/>{t.notifications}{inbox&&inbox.unread>0&&<strong>({inbox.unread})</strong>}</summary>
+   {me?.signedIn&&<div className={styles.inbox}>
+     <button className={styles.toolbarTrigger} type="button" aria-expanded={inboxOpen} aria-controls="com-toolbar-panel"
+      onClick={()=>togglePanel('notifications')}><Bell size={17}/>{t.notifications}
+      {inbox&&inbox.unread>0&&<strong>({inbox.unread})</strong>}</button></div>}
+    {me?.permissions.canModerate&&<section className={styles.modQueueWrap} data-testid="com-mod-queue">
+     <button type="button" aria-expanded={queueOpen} aria-controls="com-toolbar-panel"
+      onClick={()=>togglePanel('moderation')}><ShieldCheck size={16}/>{t.queue}
+      {queueOpen?' −':' +'}{queue?.length?' ('+queue.length+')':''}</button></section>}
+    {me?.permissions.premiumBadge&&<button className={styles.badgeToggle} type="button" disabled={busy}
+     onClick={()=>void act(()=>api('me',json('PATCH',{showPremiumBadge:!me.profile?.showPremiumBadge})))}>
+     <Star size={14}/>{me.profile?.showPremiumBadge?t.badgeHide:t.badgeShow}
+   </button>}
+
+
+    </div>}
+    <div className={styles.toolbarActions} data-testid="com-quick-actions">
+     <GalaxiComSafety locale={locale} me={me} activePanel={activePanel} onToggle={togglePanel}/>
+     <GalaxiComGrowth locale={locale} me={me} threadId={threadId} activePanel={activePanel} onToggle={togglePanel}/>
+    </div>
+   </section>
+   <div id="com-toolbar-panel" className={styles.toolbarPanel} data-testid="com-toolbar-panel">
     {inboxOpen&&<div className={styles.inboxItems}>
      {inbox?.unread? <button type="button" disabled={busy} onClick={()=>void act(()=>api('notifications/read-all',{method:'PATCH'}))}>{t.allRead}</button>:null}
      {inbox?.items.length?inbox.items.map(note=><div key={note.id} className={styles.inboxItem}>
@@ -228,11 +248,6 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       {!note.read&&<button type="button" onClick={()=>void act(()=>api('notifications/'+note.id+'/read',{method:'PATCH'}))}>{t.markRead}</button>}
      </div>):<p>{t.noNotices}</p>}
     </div>}
-   </details>}
-   {me?.permissions.canModerate&&<section className={styles.modQueueWrap} data-testid="com-mod-queue">
-    <button type="button" aria-expanded={queueOpen} onClick={()=>setQueueOpen(n=>!n)}>
-      <ShieldCheck size={16}/>{t.queue}{queueOpen?' −':' +'}{queue?.length?' ('+queue.length+')':''}
-    </button>
     {queueOpen&&<div className={styles.queue}>
      <h3>{locale==='uk'?'Скарги від учасників':'Member reports'}</h3>
      <p>{locale==='uk'?'Перевір скаргу та відкрий пов’язану публікацію. «Вирішено» закриває звернення, «Відхилити» залишає його без дії, «Приховати» прибирає публікацію. Для кожної дії вкажи причину (від 6 символів).':
@@ -258,19 +273,7 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       </div>
      </div>)}
     </div>}
-   </section>}
-   {me?.permissions.premiumBadge&&<button className={styles.badgeToggle} type="button" disabled={busy}
-     onClick={()=>void act(()=>api('me',json('PATCH',{showPremiumBadge:!me.profile?.showPremiumBadge})))}>
-     <Star size={14}/>{me.profile?.showPremiumBadge?t.badgeHide:t.badgeShow}
-   </button>}
-
-
-    </div>}
-    <div className={styles.toolbarActions} data-testid="com-quick-actions">
-     <GalaxiComSafety locale={locale} me={me}/>
-     <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
-    </div>
-   </section>
+   </div>
    {composer&&me?.permissions.canCreate&&<section id="com-topic-composer" ref={composerRef} className={styles.panel} aria-label={t.newTopic} data-testid="com-composer">
     <h2 ref={composerTitleRef} tabIndex={-1}>{t.newTopic}</h2>
     <form className={styles.composer} onSubmit={async e=>{
