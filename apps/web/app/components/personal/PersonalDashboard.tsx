@@ -47,7 +47,7 @@ const copy={
   yoga:'Моя практика',practiceAction:'Відкрити дихальні практики',recent:'Остання практика',never:'Ще не було',
   journal:'Мій журнал',openJournal:'Відкрити приватні записи',closeJournal:'Сховати журнал',
   horoscope:'Мій персональний гороскоп',horoscopeDay:'На сьогодні',horoscopeWeek:'На 7 днів',horoscopeMethod:'Тлумачення за транзитом Місяця, твоєю лагною та поточною дашею. Положення для кожного дня — на 12:00 місцевого часу.',horoscopeSee:'Читати одну головну пораду',later:'Незабаром у Galaxiora',news:'Мої новини',
-  newsDescription:'Майбутня добірка перевірених матеріалів за обраними темами, з посиланнями на першоджерела. Особисті записи не використовуються для добору.',
+  newsDescription:'Стрічка GalaxiNews допоможе стежити за обраними темами. Особисті записи не використовуються для добору матеріалів.',
   themes:'Цікаві мені теми',settings:'Налаштування Personal',tz:'Мій поточний часовий пояс (IANA)',
   favorite:'Улюблена дихальна практика',saveSettings:'Зберегти налаштування',
   foundation:'Моя астрологічна основа',goodFor:'Сприятливий фокус',caution:'Не поспішай із',step:'Що зробити сьогодні',todayTitle:'Астрологічний орієнтир на сьогодні',todayLink:'Читати одну пораду на сьогодні',periodDetail:'Як читати свій життєвий цикл',weekFocus:'Сьогодні — в основному орієнтирі; далі — зміни від твоєї натальної карти',weekEmpty:'Немає нових акцентів на цей тиждень.',
@@ -77,7 +77,7 @@ const copy={
   yoga:'My practice',practiceAction:'Open breathing practices',recent:'Recent practice',never:'Not yet',
   journal:'My journal',openJournal:'Open private notes',closeJournal:'Hide journal',
   horoscope:'My personal horoscope',horoscopeDay:'Today',horoscopeWeek:'7 days',horoscopeMethod:'Jyotish guidance from lunar transit, your verified Lagna and current Dasha. Each day is sampled at local noon.',horoscopeSee:'Read your one main daily suggestion',later:'Coming soon to Galaxiora',news:'My news',
-  newsDescription:'A future source-linked collection of verified articles based on your chosen topics. Private journal notes never select news.',
+  newsDescription:'Explore GalaxiNews articles about your chosen interests. Private journal entries are not used to select news.',
   themes:'My interests',settings:'Personal settings',tz:'My current time zone (IANA)',
   favorite:'Favorite breathing practice',saveSettings:'Save preferences',
   foundation:'My astrological foundation',goodFor:'Useful focus',caution:'Be careful about',step:'What to do today',todayTitle:'Today’s astrological orientation',todayLink:'Open today’s single reading',periodDetail:'Understand your life cycle',weekFocus:'Today has one reading above; upcoming shifts use your saved chart',weekEmpty:'No new highlights for the coming week.',
@@ -198,6 +198,42 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      {overview.staleSelectedChart&&<p className={styles['gp-notice']}>{uk?'Обрану карту видалено. Вибери іншу.':'Your selected chart was removed. Choose another.'}</p>}
     </section>
    </div>
+   <div className={[styles['gp-grid'],styles['gp-future-grid']].join(' ')}>
+    <section className={[styles['gp-panel'],styles['gp-future']].join(' ')} aria-label={t.horoscope}>
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>GALAXIHOROSCOPE</span><h2>{t.horoscope}</h2></div><Orbit size={25}/></div>
+     <div className={styles['gp-tabs']} role="group" aria-label={t.horoscope}>
+      <button type="button" aria-pressed={horoscopeMode==='day'} onClick={()=>setHoroscopeMode('day')}>{t.horoscopeDay}</button>
+      <button type="button" aria-pressed={horoscopeMode==='week'} onClick={()=>setHoroscopeMode('week')}>{t.horoscopeWeek}</button>
+     </div>
+     {horoscopeStatus!=='personalized'?<p>{t.pathMissing}</p>:
+      horoscopeMode==='day'?<div data-testid="personal-horoscope-day">
+       <h3>{overview.journey?.daily?.headline[locale]}</h3>
+       <p>{overview.journey?.daily?.description[locale]}</p>
+       <p><b>{t.goodFor}: </b>{overview.journey?.daily?.goodFor[locale]}</p>
+       <p><b>{t.caution}: </b>{overview.journey?.daily?.caution[locale]}</p>
+       <a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={14}/></a>
+      </div>:<div data-testid="personal-horoscope-week">
+       {horoscopes.filter(x=>x.guidance).map(x=><article className={styles['gp-horoscope-day']} key={x.date}>
+        <time dateTime={x.date}>{calendarDayLabel(x.date,overview.today,locale)}</time>
+        <strong>{x.guidance!.headline[locale]}</strong>
+        {x.date===overview.today?<a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={13}/></a>:
+         <><p>{x.guidance!.description[locale]}</p><p><b>{t.goodFor}: </b>{x.guidance!.goodFor[locale]}</p>
+           <p><b>{t.caution}: </b>{x.guidance!.caution[locale]}</p><p>{x.guidance!.action[locale]}</p></>}
+       </article>)}
+      </div>}
+     <small className={styles['gp-microcopy']}>{t.horoscopeMethod}</small>
+    </section>
+    <section className={[styles['gp-panel'],styles['gp-future']].join(' ')}>
+     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>PERSONAL NEWS</span><h2>{t.news}</h2></div><Feather size={25}/></div>
+     <p>{t.newsDescription}</p>
+     {overview.profile.newsTopics.length>0&&<p className={styles['gp-microcopy']}>
+      {uk?'Мої інтереси':'My interests'}: {overview.profile.newsTopics.join(' · ')}
+     </p>}
+     <Link href={portalPath(locale,'news')} className={styles['gp-text-link']}>
+      {uk?'Відкрити стрічку GalaxiNews':'Open GalaxiNews'} <ArrowRight size={14}/>
+     </Link>
+    </section>
+   </div>
    <section id="astrological-path" className={[styles['gp-panel'],styles['gp-path']].join(' ')} data-testid="astrological-path" aria-label={t.path}>
     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>TODAY · GOCHARA</span><h2>{t.todayTitle}</h2></div><MoonStar size={27}/></div>
     <article className={styles['gp-daily-focus']} data-testid="journey-daily">
@@ -271,36 +307,6 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      {journalOpen?t.closeJournal:t.openJournal}</button>
     {journalOpen&&<PersonalJournal locale={locale}/>}
    </section>
-   <div className={[styles['gp-grid'],styles['gp-future-grid']].join(' ')}>
-    <section className={[styles['gp-panel'],styles['gp-future']].join(' ')} aria-label={t.horoscope}>
-     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>GALAXIHOROSCOPE</span><h2>{t.horoscope}</h2></div><Orbit size={25}/></div>
-     <div className={styles['gp-tabs']} role="group" aria-label={t.horoscope}>
-      <button type="button" aria-pressed={horoscopeMode==='day'} onClick={()=>setHoroscopeMode('day')}>{t.horoscopeDay}</button>
-      <button type="button" aria-pressed={horoscopeMode==='week'} onClick={()=>setHoroscopeMode('week')}>{t.horoscopeWeek}</button>
-     </div>
-     {horoscopeStatus!=='personalized'?<p>{t.pathMissing}</p>:
-      horoscopeMode==='day'?<div data-testid="personal-horoscope-day">
-       <h3>{overview.journey?.daily?.headline[locale]}</h3>
-       <p>{overview.journey?.daily?.description[locale]}</p>
-       <p><b>{t.goodFor}: </b>{overview.journey?.daily?.goodFor[locale]}</p>
-       <p><b>{t.caution}: </b>{overview.journey?.daily?.caution[locale]}</p>
-       <a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={14}/></a>
-      </div>:<div data-testid="personal-horoscope-week">
-       {horoscopes.filter(x=>x.guidance).map(x=><article className={styles['gp-horoscope-day']} key={x.date}>
-        <time dateTime={x.date}>{calendarDayLabel(x.date,overview.today,locale)}</time>
-        <strong>{x.guidance!.headline[locale]}</strong>
-        {x.date===overview.today?<a href="#astrological-path" className={styles['gp-text-link']}>{t.horoscopeSee}<ArrowRight size={13}/></a>:
-         <><p>{x.guidance!.description[locale]}</p><p><b>{t.goodFor}: </b>{x.guidance!.goodFor[locale]}</p>
-           <p><b>{t.caution}: </b>{x.guidance!.caution[locale]}</p><p>{x.guidance!.action[locale]}</p></>}
-       </article>)}
-      </div>}
-     <small className={styles['gp-microcopy']}>{t.horoscopeMethod}</small>
-    </section>
-    <section className={[styles['gp-panel'],styles['gp-future']].join(' ')}>
-     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>PERSONAL NEWS</span><h2>{t.news}</h2></div><Feather size={25}/></div>
-     <p>{t.newsDescription}</p><p className={styles['gp-microcopy']}>{t.later}</p>
-    </section>
-   </div>
    <details className={[styles['gp-panel'],styles['gp-settings']].join(' ')} data-testid="personal-settings">
     <summary className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>PREFERENCES</span><h2>{t.settings}</h2></div><Settings2 size={26}/></summary>
     <div className={styles['gp-settings-fields']}>

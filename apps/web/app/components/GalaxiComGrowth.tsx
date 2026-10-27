@@ -34,13 +34,15 @@ export default function GalaxiComGrowth({locale,me,threadId}:{locale:PortalLocal
   finally{setBusy(false);}
  }
  return <section className={styles.wrap} data-testid="com-growth">
-  {!threadId&&<section className={styles.card} data-testid="com-trending">
-   <h2><Flame size={19}/>{uk?'Популярні обговорення':'Trending conversations'}</h2>
+  {!threadId&&<details className={styles.card} data-testid="com-trending">
+   <summary><Flame size={18}/>{uk?'Популярне':'Trending'}</summary>
+   <div className={styles.detailContent}>
    {featured.length?featured.map(x=><Link href={root+'/topic/'+x.id} className={styles.item} key={x.id}>
     <span>{x.title}</span><small>{x.category} · {x.replies} {uk?'відповідей':'replies'}</small>
    </Link>):<p>{uk?'Обговорення з’являться після перших публікацій.':'Discussions appear after members post.'}</p>}
    <small>{uk?'Активність за 30 днів, не редакційна рекомендація':'30-day engagement, not an editorial endorsement'}</small>
-  </section>}
+   </div>
+  </details>}
   {threadId&&me?.signedIn&&<div className={styles.bookmarkAction}>
    <button type="button" disabled={busy} aria-pressed={saved} onClick={()=>void change('bookmarks/'+threadId,saved?'DELETE':'PUT')}>
     <Bookmark size={16}/>{saved?(uk?'Прибрати із закладок':'Remove bookmark'):(uk?'Зберегти тему':'Save topic')}</button>

@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {ArrowLeft,ArrowRight,Bell,Flag,History,Lock,MessageCircle,Plus,Search,ShieldCheck,Star,ThumbsUp,Trash2,Users} from 'lucide-react';
 import PortalShell from './PortalShell';
@@ -15,7 +15,7 @@ type Post={id:string;body:string;author:Author;createdAt:string;updatedAt:string
 type Listing<T>={items:T[];page:number;pageSize:number;total:number};
 type Me={signedIn:boolean;permissions:{canCreate:boolean;canReply:boolean;canModerate:boolean;canManageContext:boolean;premiumBadge:boolean};
  profile:{id:string;name:string;showPremiumBadge:boolean}|null};
-type Report={id:string;reason:string;targetType:'thread'|'post';targetId:string;excerpt:string;createdAt:string};
+type Report={id:string;reason:string;targetType:'thread'|'post';targetId:string;threadId:string;excerpt:string;createdAt:string};
 type Activity={following:boolean;followers:number;likes:Record<string,{count:number;liked:boolean}>;myLikes:string[]};
 type CuratedSource={kind:'ACADEMY'|'YOGA';slug:string;titleUk:string;titleEn:string};
 type Inbox={items:{id:string;threadId:string;title:string;createdAt:string;read:boolean}[];unread:number;total:number};
@@ -76,6 +76,7 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  const [search,setSearch]=useState(''),[query,setQuery]=useState(''),[page,setPage]=useState(1);
  const [replyPage,setReplyPage]=useState(1),[reload,setReload]=useState(0);
  const [composer,setComposer]=useState(false),[title,setTitle]=useState(''),[body,setBody]=useState('');
+ const composerRef=useRef<HTMLElement|null>(null),composerTitleRef=useRef<HTMLHeadingElement|null>(null);
  const [topicCategory,setTopicCategory]=useState(''),[replyBody,setReplyBody]=useState('');
  const [displayName,setDisplayName]=useState(''),[editing,setEditing]=useState<string|null>(null),[edited,setEdited]=useState('');
  const [editedTitle,setEditedTitle]=useState('');
@@ -91,6 +92,11 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  useEffect(()=>{const requested=new URLSearchParams(window.location.search).get('category');
   if(requested&&['jyotish','tarot','practices','vedic','experiences','experts','help'].includes(requested))setCategory(requested);
  },[]);
+ useEffect(()=>{if(composer&&!threadId){
+  const heading=composerTitleRef.current;
+  heading?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  heading?.focus({preventScroll:true});
+ }},[composer,threadId]);
  const name=(c:Category)=>locale==='uk'?c.titleUk:c.titleEn;
  const date=(s:string)=>new Intl.DateTimeFormat(t.time,{day:'numeric',month:'short',year:'numeric'}).format(new Date(s));
  const refresh=()=>setReload(n=>n+1);
@@ -193,10 +199,11 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
     <span className={styles.eyebrow}>{t.eyebrow}</span>
     <h1>{t.heading}</h1><p>{t.intro}</p>
     <div className={styles.heroBottom}><span><Users size={16}/>{t.browse}</span>
-     {me?.permissions.canCreate&&<button type="button" onClick={()=>setComposer(v=>!v)}>
+     {me?.permissions.canCreate&&<button type="button" aria-expanded={composer} aria-controls="com-topic-composer" onClick={()=>{setComposer(true);if(composer)composerTitleRef.current?.scrollIntoView({behavior:'smooth',block:'start'});}}>
       <Plus size={17}/>{t.newTopic}</button>}</div>
    </header>
    <p className={styles.rules}>{t.rule}</p>
+   <div className={styles.communityToolbar} data-testid="com-compact-toolbar">
    {me?.signedIn&&<details className={styles.inbox} open={inboxOpen}
     onToggle={e=>setInboxOpen(e.currentTarget.open)}>
     <summary><Bell size={17}/>{t.notifications}{inbox&&inbox.unread>0&&<strong>({inbox.unread})</strong>}</summary>
@@ -212,18 +219,20 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
    {error&&<p className={styles.error} role="alert">{error}</p>}
    {notice&&<p className={styles.notice} role="status">{notice}</p>}
    {!me?.signedIn&&<p className={styles.signIn}>{t.login} <Link href={'/'+locale+'/account'}>{t.signIn}<ArrowRight size={15}/></Link></p>}
-   {me?.signedIn&&<details className={styles.profile}><summary>{t.myName}: {me.profile?.name}</summary>
-    <form onSubmit={async e=>{e.preventDefault();await act(()=>api('me',json('PATCH',{displayName})))}}>
-     <label>{t.name}<input value={displayName} minLength={3} maxLength={40}
-      onChange={e=>setDisplayName(e.target.value)}/></label>
-     <button type="submit" disabled={busy}>{t.update}</button></form>
-    {me.permissions.premiumBadge&&<button type="button" disabled={busy}
-      onClick={()=>void act(()=>api('me',json('PATCH',{showPremiumBadge:!me.profile?.showPremiumBadge})))}>
-      {me.profile?.showPremiumBadge?t.badgeHide:t.badgeShow}
-    </button>}
-   </details>}
-   {composer&&me?.permissions.canCreate&&<section className={styles.panel} aria-label={t.newTopic}>
-    <h2>{t.newTopic}</h2>
+   {me?.signedIn&&<form className={styles.compactName} onSubmit={async e=>{
+     e.preventDefault();await act(()=>api('me',json('PATCH',{displayName})));
+   }}>
+    <label htmlFor="com-display-name">{t.myName}</label>
+    <input id="com-display-name" aria-label={t.name} value={displayName} minLength={3} maxLength={40}
+      onChange={e=>setDisplayName(e.target.value)}/>
+    <button type="submit" disabled={busy||displayName===me.profile?.name}>{t.update}</button>
+   </form>}
+   {me?.permissions.premiumBadge&&<button className={styles.badgeToggle} type="button" disabled={busy}
+     onClick={()=>void act(()=>api('me',json('PATCH',{showPremiumBadge:!me.profile?.showPremiumBadge})))}>
+     <Star size={14}/>{me.profile?.showPremiumBadge?t.badgeHide:t.badgeShow}
+   </button>}
+   {composer&&me?.permissions.canCreate&&<section id="com-topic-composer" ref={composerRef} className={styles.panel} aria-label={t.newTopic} data-testid="com-composer">
+    <h2 ref={composerTitleRef} tabIndex={-1}>{t.newTopic}</h2>
     <form className={styles.composer} onSubmit={async e=>{
      e.preventDefault();setBusy(true);setError('');
      try{const r=await api<{id:string}>('threads',json('POST',{categorySlug:topicCategory,title,body}));
@@ -247,7 +256,38 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
     </form>
    </section>}
    <GalaxiComSafety locale={locale} me={me}/>
-    <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
+   <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
+   </div>
+   {me?.permissions.canModerate&&<section className={styles.modQueueWrap} data-testid="com-mod-queue">
+    <button type="button" aria-expanded={queueOpen} onClick={()=>setQueueOpen(n=>!n)}>
+      <ShieldCheck size={16}/>{t.queue}{queueOpen?' −':' +'}{queue?.length?' ('+queue.length+')':''}
+    </button>
+    {queueOpen&&<div className={styles.queue}>
+     <h3>{locale==='uk'?'Скарги від учасників':'Member reports'}</h3>
+     <p>{locale==='uk'?'Перевір скаргу та відкрий пов’язану публікацію. «Вирішено» закриває звернення, «Відхилити» залишає його без дії, «Приховати» прибирає публікацію. Для кожної дії вкажи причину (від 6 символів).':
+        'Review the reported topic or reply. Resolve closes a report, Dismiss rejects it, and Hide removes the content. Each action requires a reason (6+ characters).'}</p>
+     {queue?.length? <label>{t.moderationReason}<input value={modReason} minLength={6} maxLength={300}
+      placeholder={locale==='uk'?'Наприклад: порушення правил спільноти':'Example: community rule violation'}
+      onChange={e=>setModReason(e.target.value)}/></label>:null}
+     {queue===null?<p>{t.loading}</p>:queue.length===0?<p role="status">{locale==='uk'?'Нових скарг немає. Черга порожня.':'No new reports. Your queue is empty.'}</p>:queue.map(item=><div className={styles.report} key={item.id}>
+      <p><strong>{item.excerpt}</strong></p>
+      <p>{locale==='uk'?'Причина скарги':'Reported reason'}: {item.reason}</p>
+      <Link href={root+'/topic/'+item.threadId}>
+       {locale==='uk'?'Відкрити обговорення':'Open discussion'}
+      </Link>
+      <div className={styles.actions}>
+       {(['RESOLVED','DISMISSED'] as const).map(decision=><button type="button" key={decision}
+        disabled={busy||modReason.trim().length<6}
+        onClick={()=>void act(()=>api('mod/reports/'+item.id,json('PATCH',{decision,reason:modReason})))}>
+        {decision==='RESOLVED'?t.resolve:t.dismiss}</button>)}
+       <button type="button" disabled={busy||modReason.trim().length<6} onClick={()=>void act(()=>api(
+        'mod/'+(item.targetType==='thread'?'threads/':'posts/')+item.targetId,
+        json('PATCH',item.targetType==='thread'?{status:'HIDDEN',reason:modReason}:{status:'HIDDEN',reason:modReason})
+       ))}>{t.hide}</button>
+      </div>
+     </div>)}
+    </div>}
+   </section>}
    {threadId?
     <section className={styles.content}>
      <Link href={root} className={styles.back}><ArrowLeft size={16}/>{t.back}</Link>
@@ -298,6 +338,10 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       </div>}
      </article>}
      <h2 className={styles.subTitle}>{t.reply} · {replies?.total??0}</h2>
+     <p className={styles.voteHint}><ThumbsUp size={16}/>
+       {locale==='uk'?'Кнопка «Корисно» є під кожною відповіддю. Вона допомагає відзначати цінні пояснення.':
+        'Use “Helpful” beneath individual replies to highlight useful explanations.'}
+     </p>
      {replies?.items.map(p=><article className={styles.reply} key={p.id}>
       <div className={styles.meta}>{actor(p.author)} · {date(p.createdAt)}</div>
       <p className={styles.body}>{p.body}</p>
@@ -306,7 +350,8 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
        {(me?.profile?.id===p.author.id||me?.permissions.canModerate)&&
         <button type="button" onClick={()=>void showHistory('posts/'+p.id,p.id)}>
          <History size={14}/>{t.history}</button>}
-       <button type="button" disabled={!me?.signedIn||busy}
+       <button className={styles.helpfulButton} type="button" disabled={!me?.signedIn||busy}
+        title={locale==='uk'?'Позначити цю відповідь корисною':'Mark this reply helpful'}
         aria-pressed={activity?.myLikes.includes(p.id)===true}
         onClick={()=>void act(()=>api('posts/'+p.id+'/helpful',{
          method:activity?.myLikes.includes(p.id)?'DELETE':'PUT'}))}>
@@ -372,26 +417,6 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       </div>}
      </section>
     </div>}
-   {me?.permissions.canModerate&&<section className={styles.panel}>
-    <button type="button" onClick={()=>setQueueOpen(n=>!n)}><ShieldCheck size={16}/>{t.queue}</button>
-    {queueOpen&&<div className={styles.queue}>
-     <label>{t.moderationReason}<input value={modReason} minLength={6} maxLength={300}
-      onChange={e=>setModReason(e.target.value)}/></label>
-     {queue===null?<p>{t.loading}</p>:queue.map(item=><div className={styles.report} key={item.id}>
-      <p><strong>{item.excerpt}</strong> · {item.reason}</p>
-      <div className={styles.actions}>
-       {(['RESOLVED','DISMISSED'] as const).map(decision=><button type="button" key={decision}
-        disabled={busy||modReason.trim().length<6}
-        onClick={()=>void act(()=>api('mod/reports/'+item.id,json('PATCH',{decision,reason:modReason})))}>
-        {decision==='RESOLVED'?t.resolve:t.dismiss}</button>)}
-       <button type="button" disabled={busy||modReason.trim().length<6} onClick={()=>void act(()=>api(
-        'mod/'+(item.targetType==='thread'?'threads/':'posts/')+item.targetId,
-        json('PATCH',item.targetType==='thread'?{status:'HIDDEN',reason:modReason}:{status:'HIDDEN',reason:modReason})
-       ))}>{t.hide}</button>
-      </div>
-     </div>)}
-    </div>}
-   </section>}
   </div>
  </PortalShell>;
 }

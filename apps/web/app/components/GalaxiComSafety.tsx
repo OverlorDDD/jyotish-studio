@@ -66,29 +66,25 @@ export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|n
    <div className={styles.columns}>
     <section>
      <h3><Scale size={17}/>{uk?'Оскаржити рішення':'Appeal moderation'}</h3>
-     {eligible.length>0&&<label>{uk?'Мої приховані матеріали':'My moderated contributions'}
-      <select value="" onChange={e=>{
-       const item=eligible.find(x=>x.id===e.target.value);
-       if(item){setType(item.type);setId(item.id);}
-      }}>
-       <option value="">{uk?'Вибрати матеріал':'Choose a contribution'}</option>
-       {eligible.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}
-      </select>
-     </label>}
-     <form onSubmit={async e=>{e.preventDefault();if(await action(()=>api('appeals',send('POST',{
-      targetType:type,targetId:id,reason
-     })),uk?'Апеляцію передано':'Appeal submitted')){setReason('');setId('')}}}>
-      <label>{uk?'Тип запису':'Content type'}
-       <select value={type} onChange={e=>setType(e.target.value)}>
-        <option value="THREAD">{uk?'Тема':'Thread'}</option><option value="POST">{uk?'Відповідь':'Reply'}</option>
-       </select></label>
-      <label>{uk?'ID власної прихованої теми / відповіді':'Your hidden post/thread ID'}
-       <input value={id} onChange={e=>setId(e.target.value)} required
-        pattern="[a-fA-F0-9-]{36}" maxLength={36}/></label>
+     {eligible.length===0?<p>{uk?'Немає прихованих матеріалів, які зараз можна оскаржити. Якщо модератор приховає твій допис, він з’явиться тут.':
+      'There are no eligible hidden contributions. If a moderator hides your post, it will appear here.'}</p>:null}
+     {eligible.length>0&&<form onSubmit={async e=>{e.preventDefault();if(!id)return;
+      if(await action(()=>api('appeals',send('POST',{targetType:type,targetId:id,reason})),
+       uk?'Апеляцію передано':'Appeal submitted')){setReason('');setId('')}
+     }}>
+      <label>{uk?'Оберіть прихований матеріал':'Choose a hidden contribution'}
+       <select value={id} required onChange={e=>{
+        const item=eligible.find(x=>x.id===e.target.value);
+        setId(item?.id||'');if(item)setType(item.type);
+       }}>
+        <option value="">{uk?'Оберіть допис або тему':'Select a post or topic'}</option>
+        {eligible.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}
+       </select>
+      </label>
       <label>{uk?'Чому переглянути рішення':'Why review the decision?'}
        <textarea value={reason} onChange={e=>setReason(e.target.value)} minLength={12} maxLength={1000} required/></label>
-      <button type="submit" disabled={busy}>{uk?'Надіслати апеляцію':'Submit appeal'}</button>
-     </form>
+      <button type="submit" disabled={busy||!id}>{uk?'Надіслати апеляцію':'Submit appeal'}</button>
+     </form>}
      {mine.length>0&&<div className={styles.queue}>
       <strong>{uk?'Мої апеляції':'My appeals'}</strong>
       {mine.map(x=><p key={x.id}>{x.status} · {x.targetType} · {x.targetId}

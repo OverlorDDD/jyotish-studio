@@ -9,3 +9,17 @@
 .settings{display:grid;gap:12px}.settings label{display:grid;gap:7px}.settings textarea,.settings select{background:#101c2e;color:#e9e4d9;border:1px solid #536780;border-radius:9px;padding:12px;width:100%;font:inherit}
 .settings button{justify-self:start}.settings p{font-size:13px;color:#c7d1dc}.error{color:#ffcaca}
 @media(min-width:850px){.wrap:has(.card:nth-child(2)){grid-template-columns:minmax(0,1fr) minmax(260px,.7fr)}}
+
+/* Compact controls on forum home; expanded panels take full available width. */
+.wrap{display:contents}
+.card{padding:0;border:0;background:transparent;min-width:0}
+.card summary{font-size:13px;margin:0!important;background:#1d2b40;border:1px solid #52647c;border-radius:9px;padding:10px 12px;min-height:38px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.card[open]{order:7;flex:1 1 100%;background:#172538;border:1px solid #4b5e77;border-radius:11px;padding:10px 12px}
+.card[open] summary{margin:0 0 10px!important}
+.card .detailContent{display:grid;gap:5px}
+.card .item{padding:9px 0}
+.bookmarkAction{min-height:38px}
+.bookmarkAction button{min-height:38px}
+.savedList,.settings{margin:0 3px;padding-bottom:8px}
+.card .settings label{max-width:600px}
+@media(min-width:850px){.wrap:has(.card:nth-child(2)){grid-template-columns:none}}

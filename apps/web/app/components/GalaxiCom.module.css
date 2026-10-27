@@ -125,3 +125,30 @@
 .profileCard[data-accent="gold"]{border-color:#c6a36b;box-shadow:0 0 0 1px #a67f46}
 .profileCard[data-accent="violet"]{border-color:#aa91df;box-shadow:0 0 0 1px #7656a8}
 .profileCard[data-accent="teal"]{border-color:#69c2af;box-shadow:0 0 0 1px #4f9b8b}
+
+/* UX pass: group secondary tools into one compact responsive utility rail */
+.communityToolbar{display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+.communityToolbar>*{min-width:0;margin:0!important}
+.communityToolbar .inbox{flex:0 1 auto;max-width:100%;padding:0;border:0;background:transparent}
+.communityToolbar .inbox summary{border:1px solid #52647c;border-radius:10px;background:#1d2b40;padding:9px 12px;font-size:14px}
+.communityToolbar .inbox[open]{flex-basis:100%;order:5}
+.communityToolbar .inboxItems{padding:12px 14px;border:1px solid #41566e;border-radius:11px;background:#172538}
+.compactName{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:4px 9px;border:1px solid #47576c;border-radius:10px;background:#172337;min-width:0}
+.compactName label{font-size:13px;color:#e2c79b;white-space:nowrap}
+.compactName input{font:inherit;font-size:14px;color:#f3e5d5;background:#0e1a2b;border:1px solid #4b5c73;border-radius:7px;padding:6px 9px;width:clamp(100px,12vw,170px);max-width:100%}
+.compactName button,.badgeToggle,.modQueueWrap>button{font:inherit;font-size:13px;color:#f1d3a1;background:#26364e;border:1px solid #50627a;border-radius:8px;padding:8px 11px;display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.compactName button:disabled{opacity:.5}
+.badgeToggle{min-height:36px}
+#com-topic-composer{scroll-margin-top:105px}
+.panel[id="com-topic-composer"] h2:focus{outline:2px solid #dfbd82;outline-offset:5px;border-radius:5px}
+.voteHint{display:flex;align-items:flex-start;gap:9px;color:#d1bc94;font-size:14px;line-height:1.5;margin:8px 0 18px}
+.voteHint svg{flex-shrink:0}
+.actions button.helpfulButton{border:1px solid #b49b6b;color:#f6daa5;background:#33405a;font-weight:650}
+.actions button.helpfulButton[aria-pressed=true]{background:#6c5630;border-color:#d7bc82;color:#fff1cb}
+.modQueueWrap{margin:12px 0;border:1px solid #445873;border-radius:11px;padding:9px 12px;background:#17263b}
+.modQueueWrap>button{border:0;background:transparent;font-weight:650}
+.modQueueWrap .queue h3{font-size:17px;color:#e4c58e;margin:0 0 8px}
+.modQueueWrap .queue>p{font-size:13px;line-height:1.6;color:#c4d0df}
+.modQueueWrap .queue label{max-width:100%}
+.modQueueWrap .report a{color:#f0d195}
+@media(max-width:680px){.compactName{flex:1 1 100%}.compactName input{flex:1;width:auto}.communityToolbar .inbox[open]{order:initial}}

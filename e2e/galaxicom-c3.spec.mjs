@@ -44,7 +44,12 @@ test('GalaxiCom C3: published sources, editorial approvals, hidden posts and pri
   const bridge=page.getByTestId('community-context');
   await expect(bridge.getByRole('link',{name:/Reading Vimshottari in the context/})).toBeVisible();
   await expect(bridge.getByText('Зв’язок схвалений редакцією')).toBeVisible();
-  expect(await bridge.getByText('Прив’язати тему').count()).toBeGreaterThan(0);
+  await bridge.getByText('Прив’язати обговорення до матеріалу').click();
+  await bridge.getByRole('textbox',{name:'Пошук теми для прив’язки'}).fill('Reading Vimshottari');
+  const match=bridge.getByRole('button',{name:/Reading Vimshottari in the context/});
+  await expect(match).toBeVisible();
+  await match.click();
+  await expect(bridge.getByText(/Вибрано: Reading Vimshottari/)).toBeVisible();
   expect(await db.comModerationAction.count({where:{targetId:linkId,action:'APPROVE_LINK'}})).toBe(1);
   await page.goto('/en/learn/vimshottari-life-cycle');
   await expect(page.getByText('Editorially linked')).toBeVisible();

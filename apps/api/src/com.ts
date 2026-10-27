@@ -256,9 +256,9 @@ export class ComController{
  async modQueue(@Req()req:IncomingMessage){
   await this.mod(req);
   const rows=await this.db.comReport.findMany({where:{status:'OPEN'},
-   orderBy:{createdAt:'asc'},take:50,include:{thread:{select:{title:true}},post:{select:{body:true}}}});
+   orderBy:{createdAt:'asc'},take:50,include:{thread:{select:{title:true}},post:{select:{body:true,threadId:true}}}});
   return {items:rows.map(row=>({id:row.id,createdAt:row.createdAt,reason:row.reason,
-   targetType:row.threadId?'thread':'post',targetId:row.threadId||row.postId,
+   targetType:row.threadId?'thread':'post',targetId:row.threadId||row.postId,threadId:row.threadId||row.post?.threadId,
    excerpt:row.thread?.title||row.post?.body.slice(0,160)||''}))};
  }
  @Patch('mod/threads/:id') @Header('Cache-Control','private,no-store')

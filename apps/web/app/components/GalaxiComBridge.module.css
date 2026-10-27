@@ -13,3 +13,8 @@
 .admin button{justify-self:start;border:0;border-radius:9px;background:#bba071;padding:11px 17px;font-weight:700;color:#192236;cursor:pointer}
 .admin button:disabled{opacity:.5;cursor:not-allowed}.admin small{color:#b4c1d4}.admin p[role=alert]{color:#ffb9c1}
 @media(max-width:600px){.heading,.module{gap:11px}.bridge,.module{padding:17px}}
+
+.adminDisclosure{margin-top:18px;border-top:1px solid #475972;padding-top:10px}.adminDisclosure summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:#f2cc8b;font-weight:650}
+.adminDisclosure p{color:#c8d1de;line-height:1.55}.candidates{display:grid;gap:5px;max-height:260px;overflow-y:auto}
+.candidates button{text-align:left;border:1px solid #516982;background:#1c3048;color:#eadabf;border-radius:8px;padding:10px 12px;cursor:pointer}
+.candidates button:hover,.candidates button:focus{border-color:#d7b67b;background:#293e56}

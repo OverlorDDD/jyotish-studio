@@ -15,3 +15,9 @@
 .queue{margin-top:14px;overflow-wrap:anywhere}.queueRow{padding:12px 0;border-top:1px solid #3d5269;overflow-wrap:anywhere}
 .error{color:#ffb5bb!important}.success{color:#afe6c2!important}
 @media(max-width:720px){.columns{grid-template-columns:minmax(0,1fr)}}
+
+/* Display safety as an on-demand tool, not another full-width dashboard card. */
+.wrapper{margin:0;padding:0;background:transparent;border:0;width:auto;max-width:100%}
+.toggle{min-height:38px;padding:8px 12px;font-size:13px}
+.wrapper:has(.content){flex:1 1 100%;order:8}
+.content{padding:16px;border:1px solid #40536c;border-radius:12px;margin-top:7px;background:#172539}
