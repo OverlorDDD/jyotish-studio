@@ -3,7 +3,7 @@ import test from 'node:test';
 import {spawnSync} from 'node:child_process';
 import {resolve} from 'node:path';
 import {getEphemeris} from '../apps/api/src/ephemeris.ts';
-import {localToUTC} from '../packages/jyotish-core/src/index.ts';
+import {localToUTC,JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS} from '../packages/jyotish-core/src/index.ts';
 
 const angular=(a,b)=>Math.abs(((a-b+540)%360)-180)*3600;
 const cases=[
@@ -11,7 +11,7 @@ const cases=[
  {date:'2000-07-15',time:'21:05',timeZone:'Etc/UTC',latitude:28.6139,longitude:77.209},
  {date:'2026-10-23',time:'11:00',timeZone:'Etc/UTC',latitude:-33.8688,longitude:151.2093}
 ];
-test('Python Swiss keeps apparent planet ayanamsa but uses source-matched MEAN Lahiri for Lagna',async()=>{
+test('Python Swiss preserves apparent metadata and the historically attested mean-Lahiri JHora8 ascendant',async()=>{
  const py=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
  const script=resolve('tools/swiss_ephemeris.py');
  for(const input of cases){
@@ -27,12 +27,14 @@ p=json.load(sys.stdin); jd=p['jd']; s.set_sid_mode(s.SIDM_LAHIRI)
 ayan=s.get_ayanamsa_ex_ut(jd,s.FLG_SWIEPH)[1]
 mean=s.get_ayanamsa_ex_ut(jd,s.FLG_SWIEPH|s.FLG_NONUT)[1]
 trop=s.houses(jd,p['latitude'],p['longitude'],b'P')[1][0]
-print(json.dumps({'ayanamsa':ayan,'ascendant':(trop-mean)%360,'former':(trop-ayan)%360}))
+print(json.dumps({'ayanamsa':ayan,'mean':mean,'tropicalAscendant':trop,'former':(trop-ayan)%360}))
 `],{input:JSON.stringify({jd:p.julianDay,latitude:input.latitude,longitude:input.longitude}),encoding:'utf8',timeout:12000});
   assert.equal(helper.status,0,helper.stderr||helper.error?.message);
   const expected=JSON.parse(helper.stdout);
   assert.ok(Math.abs(p.ayanamsa-expected.ayanamsa)<1e-9);
-  assert.ok(angular(p.ascendant,expected.ascendant)<0.00001);
+  assert.ok(angular(p.ascendant,
+   (expected.tropicalAscendant-(expected.mean-JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600)+360)%360)<0.00001,
+   'historical mean Lahiri convention must be preserved, not inferred from chart targets');
   assert.ok(angular(p.ascendant,expected.former)>1,
    'a true-vs-mean difference must remain observable on these test epochs');
   assert.equal(p.positions.length,9);
