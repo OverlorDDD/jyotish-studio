@@ -73,6 +73,12 @@ jobs:
           if (@($diagnostic.rows | Where-Object { $_.actualSwissBackend -ne 'SWIEPH' }).Count) {
             throw 'Historical Swiss returned MOSEPH rather than SWIEPH; precision comparison invalid'
           }
+          if ($diagnostic.dllSha256 -ne 'd56ba3a6158fcec3921774b5c9fcc533374413d7b77cdbc6b83ffa082d260a69') {
+            throw 'Historical JHora8 SWIEPH DLL hash changed; independent same-version control is invalid'
+          }
+          if ($diagnostic.results.total -ne 20 -or $diagnostic.results.lagnaPass -ne 20 -or $diagnostic.results.moonPass -ne 20) {
+            throw 'Authentic JHora 8 historical independent precision 20/20 REGRESSION'
+          }
           Get-Content jqa3-historical-dll-results.json
       - name: Preserve metadata and 20-chart residuals (never redistribute executable or DLL)
         if: always()
