@@ -41,7 +41,7 @@ for(const locale of ['uk','en']){
   await expect(page.getByRole('heading',{name:label,exact:true})).toBeVisible();
   await page.getByLabel(locale==='uk'?'Дата':'Date').fill('2026-10-27');
   await page.getByRole('button',{name:locale==='uk'?'Розрахувати день':'Calculate day'}).click();
-  await expect(page.locator('[data-testid="panchanga-hub"] article')).toHaveCount(5,{timeout:60000});
+  await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:60000});
   await expect(page.getByText('Swiss Ephemeris · Programming Documentation')).toBeVisible();
   await expect(page.getByText(locale==='uk'?'Переходи протягом дня':'Transitions during the day')).toBeVisible();
  });
