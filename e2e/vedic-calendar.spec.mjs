@@ -58,3 +58,22 @@ for(const locale of ['uk','en']){
   await expect(p.getByText(new RegExp(warning,'i')).last()).toBeVisible();
  });
 }
+
+test('AE-P7 rule-based New Delhi festival indicators align with independently published 2026 Rama Navami and Maha Shivaratri dates',async({request})=>{
+ test.setTimeout(150000);
+ const base='/api/v1/vedic-calendar/week?days=7&zone=Asia%2FKolkata&latitude=28.6139&longitude=77.209&monthSystem=amanta&start=';
+ const samples=[
+  {start:'2026-03-23',day:'2026-03-26',id:'rama_navami'},
+  {start:'2026-02-12',day:'2026-02-15',id:'maha_shivaratri'}
+ ];
+ for(const s of samples){
+  const response=await request.get(base+s.start,{timeout:90000});
+  expect(response.status(),await response.text()).toBe(200);
+  const data=await response.json();
+  const found=data.days.find(d=>d.date===s.day);
+  expect(found,s.id+' '+s.day+' missing').toBeTruthy();
+  expect(found.observances.some(x=>x.id===s.id),
+    'Source: Drik Panchang publicly published New Delhi '+s.id+' '+s.day).toBe(true);
+  expect(data.observanceDayCertifiedByTradition).toBe(false);
+ }
+});
