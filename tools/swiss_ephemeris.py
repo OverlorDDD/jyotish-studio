@@ -9,9 +9,17 @@ def main():
     hour=dt.hour+(dt.minute+(dt.second+dt.microsecond/1e6)/60)/60
     jd=swe.julday(dt.year,dt.month,dt.day,hour)
     import os
-    ephe=os.environ.get('GALAXIORA_SWISS_EPHE_PATH')
-    if ephe:
-        swe.set_ephe_path(ephe)
+    from pathlib import Path
+    # The native @swisseph/node package ships the official compressed planet and Moon
+    # files. Reuse exactly those for a Python fallback/forensic comparison.
+    # Do not silently substitute MOSEPH if neither install nor an explicit path exists.
+    explicit=os.environ.get('GALAXIORA_SWISS_EPHE_PATH')
+    bundled=Path(__file__).resolve().parent.parent/'node_modules/@swisseph/node/ephemeris'
+    ephe=Path(explicit) if explicit else bundled
+    required=('sepl_18.se1','semo_18.se1')
+    if not ephe.is_dir() or any(not (ephe/f).is_file() for f in required):
+        raise RuntimeError('Missing Swiss Ephemeris data files; set GALAXIORA_SWISS_EPHE_PATH to official ephe directory or install @swisseph/node bundled data.')
+    swe.set_ephe_path(str(ephe))
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
     # Planetary metadata is the nutated apparent ayanamsa (unchanged).
