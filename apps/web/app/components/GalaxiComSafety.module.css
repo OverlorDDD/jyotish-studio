@@ -21,3 +21,14 @@
 .toggle{min-height:38px;padding:8px 12px;font-size:13px}
 .wrapper:has(.content){flex:1 1 100%;order:8}
 .content{padding:16px;border:1px solid #40536c;border-radius:12px;margin-top:7px;background:#172539}
+
+/* Equal-height community quick action, expands as a complete grid row. */
+.wrapper{min-width:0;width:100%;max-width:none}
+.toggle{display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;
+ width:100%;min-height:56px;box-sizing:border-box;margin:0;padding:10px 12px;
+ background:#203149;border:1px solid #50647c;border-radius:11px;
+ color:#f0d3a1;font:600 14px/1.35 inherit}
+.wrapper:has(.content){grid-column:1/-1;order:initial;padding:12px;background:#182a41;border:1px solid #50647c}
+.wrapper:has(.content) .toggle{width:max-content;max-width:100%;min-height:44px}
+.wrapper .content{max-width:100%;box-sizing:border-box}
+@media(max-width:620px){.wrapper:has(.content){grid-column:auto}}

@@ -196,3 +196,50 @@
 .wrap .modQueueWrap:has(.queue){width:min(820px,100%)}
 .wrap .modQueueWrap .queue{min-width:0;overflow-wrap:anywhere}
 @media(max-width:480px){.wrap .communityToolbar .compactName label{flex-basis:100%}.wrap .communityToolbar .compactName button{flex:0 0 auto}}
+
+/* C5.2 — structural two-row toolbar: no flex-wrap cascade or orphaned badges. */
+.wrap .communityToolbar{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:18px 0 22px!important;
+ padding:16px;background:linear-gradient(145deg,#18283e,#121f33);border:1px solid #425772;border-radius:17px}
+.toolbarIdentity{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(180px,1fr) minmax(190px,1fr);
+ align-items:stretch;gap:10px;min-width:0}
+.toolbarActions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ align-items:start;gap:10px;min-width:0}
+.wrap .toolbarIdentity>*,.wrap .toolbarActions>*{min-width:0;margin:0!important;max-width:100%}
+.wrap .toolbarIdentity .compactName{min-height:54px;width:100%;max-width:none;gap:9px;box-sizing:border-box;
+ padding:8px 12px;display:flex;flex-wrap:nowrap;justify-content:space-between;background:#203149;border:1px solid #50647c}
+.wrap .toolbarIdentity .compactName label{white-space:normal;line-height:1.25;flex:0 1 auto}
+.wrap .toolbarIdentity .compactName input{height:37px;min-width:75px;width:clamp(92px,10vw,150px);flex:1 1 100px;box-sizing:border-box}
+.wrap .toolbarIdentity .compactName button{height:37px;flex-shrink:0}
+.wrap .toolbarIdentity .inbox{max-width:none;border:0;padding:0;background:transparent}
+.wrap .toolbarIdentity .inbox summary,.wrap .toolbarIdentity .badgeToggle,
+.wrap .toolbarIdentity .modQueueWrap>button{width:100%;min-height:54px;height:100%;display:flex;align-items:center;
+ justify-content:center;gap:9px;white-space:normal;text-align:center;line-height:1.35;
+ background:#203149;border:1px solid #50647c;border-radius:11px;padding:9px 12px;box-sizing:border-box;
+ color:#f0d3a1;font-size:14px;font-weight:600}
+.wrap .toolbarIdentity .inbox[open],.wrap .toolbarIdentity .modQueueWrap:has(.queue){
+ grid-column:1/-1;width:100%;max-width:none;box-sizing:border-box;background:#1b2c43;
+ padding:11px;border:1px solid #50647c;border-radius:11px}
+.wrap .toolbarIdentity .inbox[open] summary,.wrap .toolbarIdentity .modQueueWrap:has(.queue)>button{
+ width:max-content;max-width:100%;min-height:44px;height:auto}
+.wrap .toolbarIdentity .modQueueWrap{width:100%;max-width:none;border:0;padding:0;margin:0!important;
+ background:transparent;align-self:stretch}
+.wrap .toolbarIdentity .modQueueWrap .queue{overflow-wrap:anywhere}
+.wrap .toolbarActions button,.wrap .toolbarActions summary{transition:background-color .15s,border-color .15s}
+.wrap .toolbarIdentity button:hover:not(:disabled),.wrap .toolbarActions button:hover:not(:disabled),
+.wrap .toolbarIdentity summary:hover,.wrap .toolbarActions summary:hover{background-color:#304760;border-color:#c9a66d}
+.wrap .toolbarIdentity svg,.wrap .toolbarActions svg{flex:0 0 auto}
+@media(max-width:1040px){
+ .toolbarIdentity{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+ .wrap .toolbarIdentity .modQueueWrap{grid-column:1/-1}
+ .toolbarActions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+ .wrap .communityToolbar{padding:11px;gap:9px}
+ .toolbarIdentity,.toolbarActions{grid-template-columns:minmax(0,1fr)}
+ .wrap .toolbarIdentity .modQueueWrap{grid-column:auto}
+ .wrap .toolbarIdentity .compactName{flex-wrap:wrap;justify-content:flex-start}
+ .wrap .toolbarIdentity .compactName label{flex:0 0 100%}
+ .wrap .toolbarIdentity .compactName input{flex:1 1 130px;width:auto}
+ .wrap .toolbarIdentity .inbox[open],.wrap .toolbarIdentity .modQueueWrap:has(.queue){grid-column:auto}
+}
+@media(prefers-reduced-motion:reduce){.wrap .toolbarActions button,.wrap .toolbarActions summary{transition:none}}

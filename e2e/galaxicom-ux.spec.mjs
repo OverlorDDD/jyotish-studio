@@ -17,6 +17,19 @@ test('GalaxiCom compact UX and focused creation, understandable moderation, visi
   await expect(toolbar.getByLabel('Публічний псевдонім')).toBeVisible();
   await expect(toolbar.getByText('Мої закладки')).toBeVisible();
   await expect(toolbar.getByText('Мій профіль спільноти')).toBeVisible();
+   const quick=page.getByTestId('com-quick-actions');
+   await expect(quick.getByText('Популярне')).toBeVisible();
+   // Equal-height 4-up toolbar across desktop, then 2-up tablet and stacked mobile.
+   await page.setViewportSize({width:1440,height:900});
+   const cards=quick.locator('summary, [data-testid="com-safety"] > button');
+   await expect(cards).toHaveCount(4);
+   const positions=await cards.evaluateAll(nodes=>nodes.map(n=>{const box=n.getBoundingClientRect();return {top:box.top,height:box.height,width:box.width}}));
+   expect(Math.max(...positions.map(x=>x.height))-Math.min(...positions.map(x=>x.height))).toBeLessThan(6);
+   expect(Math.max(...positions.map(x=>x.top))-Math.min(...positions.map(x=>x.top))).toBeLessThan(6);
+   await page.setViewportSize({width:375,height:812});
+   await expect(quick).toBeVisible();
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2)).toBe(true);
+   await page.setViewportSize({width:1440,height:900});
   const form=page.getByTestId('com-composer');
   await page.getByRole('button',{name:'Створити тему'}).click();
   await expect(form).toBeVisible();

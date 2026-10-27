@@ -203,7 +203,20 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       <Plus size={17}/>{t.newTopic}</button>}</div>
    </header>
    <p className={styles.rules}>{t.rule}</p>
-   <div className={styles.communityToolbar} data-testid="com-compact-toolbar">
+   {error&&<p className={styles.error} role="alert">{error}</p>}
+   {notice&&<p className={styles.notice} role="status">{notice}</p>}
+   {!me?.signedIn&&<p className={styles.signIn}>{t.login} <Link href={'/'+locale+'/account'}>{t.signIn}<ArrowRight size={15}/></Link></p>}
+
+   <section className={styles.communityToolbar} data-testid="com-compact-toolbar" aria-label={locale==='uk'?'Інструменти спільноти':'Community tools'}>
+    {me?.signedIn&&<div className={styles.toolbarIdentity} data-testid="com-account-tools">
+   {me?.signedIn&&<form className={styles.compactName} onSubmit={async e=>{
+     e.preventDefault();await act(()=>api('me',json('PATCH',{displayName})));
+   }}>
+    <label htmlFor="com-display-name">{t.myName}</label>
+    <input id="com-display-name" aria-label={t.name} value={displayName} minLength={3} maxLength={40}
+      onChange={e=>setDisplayName(e.target.value)}/>
+    <button type="submit" disabled={busy||displayName===me.profile?.name}>{t.update}</button>
+   </form>}
    {me?.signedIn&&<details className={styles.inbox} open={inboxOpen}
     onToggle={e=>setInboxOpen(e.currentTarget.open)}>
     <summary><Bell size={17}/>{t.notifications}{inbox&&inbox.unread>0&&<strong>({inbox.unread})</strong>}</summary>
@@ -216,49 +229,6 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
      </div>):<p>{t.noNotices}</p>}
     </div>}
    </details>}
-   {error&&<p className={styles.error} role="alert">{error}</p>}
-   {notice&&<p className={styles.notice} role="status">{notice}</p>}
-   {!me?.signedIn&&<p className={styles.signIn}>{t.login} <Link href={'/'+locale+'/account'}>{t.signIn}<ArrowRight size={15}/></Link></p>}
-   {me?.signedIn&&<form className={styles.compactName} onSubmit={async e=>{
-     e.preventDefault();await act(()=>api('me',json('PATCH',{displayName})));
-   }}>
-    <label htmlFor="com-display-name">{t.myName}</label>
-    <input id="com-display-name" aria-label={t.name} value={displayName} minLength={3} maxLength={40}
-      onChange={e=>setDisplayName(e.target.value)}/>
-    <button type="submit" disabled={busy||displayName===me.profile?.name}>{t.update}</button>
-   </form>}
-   {me?.permissions.premiumBadge&&<button className={styles.badgeToggle} type="button" disabled={busy}
-     onClick={()=>void act(()=>api('me',json('PATCH',{showPremiumBadge:!me.profile?.showPremiumBadge})))}>
-     <Star size={14}/>{me.profile?.showPremiumBadge?t.badgeHide:t.badgeShow}
-   </button>}
-
-   <GalaxiComSafety locale={locale} me={me}/>
-   <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
-   </div>
-   {composer&&me?.permissions.canCreate&&<section id="com-topic-composer" ref={composerRef} className={styles.panel} aria-label={t.newTopic} data-testid="com-composer">
-    <h2 ref={composerTitleRef} tabIndex={-1}>{t.newTopic}</h2>
-    <form className={styles.composer} onSubmit={async e=>{
-     e.preventDefault();setBusy(true);setError('');
-     try{const r=await api<{id:string}>('threads',json('POST',{categorySlug:topicCategory,title,body}));
-      window.location.assign(root+'/topic/'+r.id);
-     }catch(e){setBusy(false);setError(e instanceof Error?e.message:t.error)}
-    }}>
-     <label>{t.pickCategory}<select value={topicCategory} onChange={e=>setTopicCategory(e.target.value)}>
-      {categories.map(c=><option key={c.slug} value={c.slug}>{name(c)}</option>)}
-     </select></label>
-     <label>{t.newTitle}<input value={title} minLength={1} maxLength={160} required
-      onBlur={()=>{if(title.trim().length>=8)api<{items:{id:string;title:string}[]}>('duplicates?title='+encodeURIComponent(title.trim()))
-       .then(x=>setDuplicates(x.items)).catch(()=>setDuplicates([]));}}
-      onChange={e=>{setTitle(e.target.value);setDuplicates([])}}/></label>
-     {duplicates.length>0&&<aside className={styles.similar} aria-label={t.similar}>
-      <strong>{t.similar}</strong>
-      {duplicates.map(item=><Link key={item.id} href={root+'/topic/'+item.id}>{item.title}</Link>)}
-     </aside>}
-     <label>{t.newBody}<textarea rows={12} value={body} minLength={1} maxLength={8000} required onChange={e=>setBody(e.target.value)}/></label>
-     <div className={styles.actions}><button type="submit" disabled={busy||!topicCategory}>{t.publish}</button>
-      <button type="button" onClick={()=>setComposer(false)}>{t.cancel}</button></div>
-    </form>
-   </section>}
    {me?.permissions.canModerate&&<section className={styles.modQueueWrap} data-testid="com-mod-queue">
     <button type="button" aria-expanded={queueOpen} onClick={()=>setQueueOpen(n=>!n)}>
       <ShieldCheck size={16}/>{t.queue}{queueOpen?' −':' +'}{queue?.length?' ('+queue.length+')':''}
@@ -288,6 +258,42 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
       </div>
      </div>)}
     </div>}
+   </section>}
+   {me?.permissions.premiumBadge&&<button className={styles.badgeToggle} type="button" disabled={busy}
+     onClick={()=>void act(()=>api('me',json('PATCH',{showPremiumBadge:!me.profile?.showPremiumBadge})))}>
+     <Star size={14}/>{me.profile?.showPremiumBadge?t.badgeHide:t.badgeShow}
+   </button>}
+
+
+    </div>}
+    <div className={styles.toolbarActions} data-testid="com-quick-actions">
+     <GalaxiComSafety locale={locale} me={me}/>
+     <GalaxiComGrowth locale={locale} me={me} threadId={threadId}/>
+    </div>
+   </section>
+   {composer&&me?.permissions.canCreate&&<section id="com-topic-composer" ref={composerRef} className={styles.panel} aria-label={t.newTopic} data-testid="com-composer">
+    <h2 ref={composerTitleRef} tabIndex={-1}>{t.newTopic}</h2>
+    <form className={styles.composer} onSubmit={async e=>{
+     e.preventDefault();setBusy(true);setError('');
+     try{const r=await api<{id:string}>('threads',json('POST',{categorySlug:topicCategory,title,body}));
+      window.location.assign(root+'/topic/'+r.id);
+     }catch(e){setBusy(false);setError(e instanceof Error?e.message:t.error)}
+    }}>
+     <label>{t.pickCategory}<select value={topicCategory} onChange={e=>setTopicCategory(e.target.value)}>
+      {categories.map(c=><option key={c.slug} value={c.slug}>{name(c)}</option>)}
+     </select></label>
+     <label>{t.newTitle}<input value={title} minLength={1} maxLength={160} required
+      onBlur={()=>{if(title.trim().length>=8)api<{items:{id:string;title:string}[]}>('duplicates?title='+encodeURIComponent(title.trim()))
+       .then(x=>setDuplicates(x.items)).catch(()=>setDuplicates([]));}}
+      onChange={e=>{setTitle(e.target.value);setDuplicates([])}}/></label>
+     {duplicates.length>0&&<aside className={styles.similar} aria-label={t.similar}>
+      <strong>{t.similar}</strong>
+      {duplicates.map(item=><Link key={item.id} href={root+'/topic/'+item.id}>{item.title}</Link>)}
+     </aside>}
+     <label>{t.newBody}<textarea rows={12} value={body} minLength={1} maxLength={8000} required onChange={e=>setBody(e.target.value)}/></label>
+     <div className={styles.actions}><button type="submit" disabled={busy||!topicCategory}>{t.publish}</button>
+      <button type="button" onClick={()=>setComposer(false)}>{t.cancel}</button></div>
+    </form>
    </section>}
    {threadId?
     <section className={styles.content}>
