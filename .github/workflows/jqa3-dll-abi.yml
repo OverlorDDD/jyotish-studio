@@ -5,6 +5,7 @@ on:
     paths:
       - 'tools/jqa3-legacy-dll-probe.ps1'
       - 'tools/jqa3-solar-year-diagnostic.py'
+      - 'tools/jqa3-modern-de431-probe.py'
       - '.github/workflows/jqa3-dll-abi.yml'
       - 'docs/research/jqa3-6-jhora202-vs-swiss210-2026-10-27.md'
   workflow_dispatch:
@@ -108,6 +109,15 @@ jobs:
           Write-Host "Original executable matched: $env:JQA3_EXE_MATCH"
           Write-Host "True Swiss ephemeris data backend used: $($report.backendMethods -join ',')"
           Write-Host "Lagna=$($report.results.lagnaPass)/20 Moon=$($report.results.moonPass)/20"
+      - name: Verify modern Swiss 2.10 with strict historical SWIEPH data, not MOSEPH
+        shell: pwsh
+        run: |
+          python -m pip install pyswisseph
+          python tools/jqa3-modern-de431-probe.py > jqa3-modern-swiss-de431.json
+          $result=Get-Content jqa3-modern-swiss-de431.json -Raw | ConvertFrom-Json
+          foreach($name in @('Lagna','Moon','Sun','Rahu')){
+            Write-Host "$name $($result.totals.$name.passing)/20 max $($result.totals.$name.maxAbsArcseconds) arcseconds"
+          }
       - name: Independently test true solar-year Vimshottari theories against authentic source
         shell: pwsh
         run: |
@@ -125,5 +135,6 @@ jobs:
             jqa3-installed-dll-provenance.json
             jqa3-installed-dll-numerical.json
             jqa3-solar-year-evidence.json
+            jqa3-modern-swiss-de431.json
           if-no-files-found: warn
           retention-days: 30
