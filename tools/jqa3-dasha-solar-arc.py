@@ -65,7 +65,7 @@ def previous_solar_cross(jd,years,flags,mean):
 def evaluate(mode,clock):
     flags=swe.FLG_SWIEPH | (swe.FLG_SIDEREAL if mode=='true_sidereal_sun' else 0)
     year=MEAN[mode]
-    score={'majorExact':0,'minorExact':0,'majorTotal':0,'minorTotal':0,'offsets':[],'byChart':[]}
+    score={'majorExact':0,'minorExact':0,'majorTotal':0,'minorTotal':0,'offsets':[],'byChart':[],'mismatches':[]}
     for n in range(1,21):
         id=f'jqa3-{n:02d}'
         row=json.loads((ROOT/f'tests/fixtures/jhora-corpus/{id}.json').read_text('utf-8'))
@@ -91,6 +91,15 @@ def evaluate(mode,clock):
                 subLord=LORDS[a]
                 actual=date_at(sub,offset)
                 diff=(from_date(actual)-from_date(source['antardashas'][subLord])).days
+                if diff != 0:
+                    local_time=dt.datetime(1970,1,1,tzinfo=dt.timezone.utc)+dt.timedelta(days=sub-2440587.5,seconds=offset)
+                    score['mismatches'].append({'id':id,'mahadasha':LORDS[k],
+                      'antardasha':subLord,'predictedDate':actual,
+                      'sourceDate':source['antardashas'][subLord],
+                      'localInstant':local_time.isoformat(),
+                      'secondsIntoDay':local_time.hour*3600+local_time.minute*60+
+                        local_time.second+local_time.microsecond/1000000,
+                      'dayOffset':diff})
                 minors+=int(diff==0)
                 score['minorTotal']+=1
                 sub=next_solar_cross(sub,YEARS[k]*YEARS[a]/120,flags,year)
