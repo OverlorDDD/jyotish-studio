@@ -80,6 +80,18 @@ jobs:
             throw 'Authentic JHora 8 historical independent precision 20/20 REGRESSION'
           }
           Get-Content jqa3-historical-dll-results.json
+      - name: Modern Swiss vs historical JHora 2.02.01 on identical original DE431 files
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m pip install pyswisseph
+          $env:JQA3_EPHE=$env:JQA3_ORIGINAL_EPHE
+          python tools/jqa3-modern-de431-probe.py | Out-File -Encoding utf8 jqa3-modern-on-historical-files.json
+          if ($LASTEXITCODE -ne 0) { throw 'Modern Swiss same-ephemeris comparison failed' }
+          $result=Get-Content jqa3-modern-on-historical-files.json -Raw | ConvertFrom-Json
+          "modernSwissVersion=$($result.swissVersion)"
+          "modernLagna=$($result.totals.Lagna.passing)/20 modernMoon=$($result.totals.Moon.passing)/20"
+          Get-Content jqa3-modern-on-historical-files.json
       - name: Preserve metadata and 20-chart residuals (never redistribute executable or DLL)
         if: always()
         uses: actions/upload-artifact@v4
@@ -88,5 +100,6 @@ jobs:
           path: |
             jqa3-installed-jhora-provenance.json
             jqa3-historical-dll-results.json
+            jqa3-modern-on-historical-files.json
           if-no-files-found: warn
           retention-days: 30
