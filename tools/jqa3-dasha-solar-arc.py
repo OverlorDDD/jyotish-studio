@@ -75,7 +75,7 @@ def evaluate(mode,clock):
         first=int(moon/(360/27))%9
         frac=(moon%(360/27))/(360/27)
         instant=previous_solar_cross(jd_from_utc(row['civilTime']['birthUtc']),frac*YEARS[first],flags,year)
-        majors=0,minors=0
+        majors,minors=0,0
         for i in range(9):
             k=(first+i)%9
             source=row['expected']['vimshottari'][i]
