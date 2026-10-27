@@ -34,7 +34,9 @@ for n in range(1,21):
   flags[name]=ret
  results['Ketu']=diff((swe.calc_ut(jd,swe.MEAN_NODE,FLAGS)[0][0]+180)%360,
                       fixture['expected']['positions']['Ketu']['longitude'])
- rows.append({'id':fixture['title'],'residualArcsec':results,'flags':flags})
+ rows.append({'id':fixture['title'],'residualArcsec':results,'flags':flags,
+  'modernMeanAyanamsaDeg':ay,'modernTropicalAscDeg':houses[1][0],
+  'modernSiderealAscDeg':asc})
 bodies=['Lagna','Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
 totals={k:{'passing':sum(abs(r['residualArcsec'][k])<=1.0 for r in rows),
            'maxAbsArcseconds':max(abs(r['residualArcsec'][k]) for r in rows)} for k in bodies}

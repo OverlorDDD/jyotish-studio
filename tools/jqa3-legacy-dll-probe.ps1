@@ -79,6 +79,7 @@ foreach($i in 1..20){
  $rM=Arc-Delta $moon[0] ([double]$source.expected.positions.Moon.longitude)
  $rows+= [pscustomobject][ordered]@{
    id=$id;lagnaResidualArcseconds=$rL;moonResidualArcseconds=$rM
+   oldMeanAyanamsaDeg=$ayan;oldTropicalAscDeg=$angles[0];oldSiderealAscDeg=$asc
    lagnaPass=([Math]::Abs($rL) -le 1.0);moonPass=([Math]::Abs($rM) -le 1.0)
    returnedEphemerisFlags=$returnedFlags
    actualSwissBackend=($(if(($returnedFlags -band 7) -eq 2){'SWIEPH'}elseif(($returnedFlags -band 7) -eq 4){'MOSEPH'}else{'OTHER'}))
