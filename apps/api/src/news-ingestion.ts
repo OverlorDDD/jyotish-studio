@@ -6,6 +6,15 @@ import {GDELT_QUERIES,RSS_SOURCES} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
 import {sourceCooldownMs,gdeltCircuitFailure} from './news-source-health.ts';
+/** Local development with an existing .env and no NEWS_* flag must not
+ * silently stop news. CI/test and production remain explicitly opted in.
+ */
+export function newsIngestionEnabled(env=process.env,args=process.argv){
+ if(env.NEWS_INGESTION_ENABLED==='0')return false;
+ if(env.NEWS_INGESTION_ENABLED==='1')return true;
+ return env.NODE_ENV!=='production'&&env.NODE_ENV!=='test'&&
+  args.some(v=>/[\\/]src[\\/]main\.ts$|^src[\\/]main\.ts$/.test(v));
+}
 const PERIOD_MS=15*60*1000,LEASE_MS=12*60*1000;
 type Job={key:string;run:()=>Promise<Candidate[]>;hint:Topic;allowSnippet:boolean;isGdelt:boolean};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
@@ -44,7 +53,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
  private gdeltRetryUntil=0;
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
  onModuleInit(){
-  if(process.env.NEWS_INGESTION_ENABLED!=='1')return;
+  if(!newsIngestionEnabled())return;
   this.timer=setInterval(()=>{void this.refresh().catch(e=>console.warn('[news] scheduled scan',String(e)));},PERIOD_MS);
   this.timer.unref?.();
   this.editorialTimer=setInterval(()=>{void this.runEditorial();},5*60*1000);
