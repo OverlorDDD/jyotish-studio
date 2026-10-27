@@ -94,7 +94,7 @@ test('ambiguous/nonexistent local birth time is rejected before ephemeris',()=>{
 });
 test('entire server calculation always returns an internal-verification certificate',async()=>{
  const source=readFileSync(new URL('../apps/api/src/logic.ts',import.meta.url),'utf8');
- assert.match(source,/verifyCalculatedChart\(input,eph,chart,birthUtc\)/);
+ assert.match(source,/verifyCalculatedChart\(input,eph,chart,birthUtc,solarSunAt\)/);
  const gateway=readFileSync(new URL('../apps/api/src/nest.ts',import.meta.url),'utf8');
  assert.match(gateway,/verified\.verification\?\.status!=='verified_internal'/);
  assert.match(gateway,/verification:verified\.verification/);
