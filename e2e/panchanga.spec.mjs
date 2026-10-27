@@ -17,6 +17,8 @@ test('real Swiss Panchanga returns local sunrise, five angas and actual transiti
  expect(data.sunrise.vara.name).toBe('Mangalavara');
  expect(data.astronomyProfile).toMatch(/verified SWIEPH/);
  expect(data.methodology.boundaryResolutionSeconds).toBe(1);
+ expect(data.astronomicalEvents.some(e=>e.type==='sunrise')).toBe(true);
+ expect(data.astronomicalEvents.some(e=>e.type==='sunset')).toBe(true);
  const start=Date.parse(data.sunriseUtc),end=Date.parse(data.nextSunriseUtc);
  expect(end-start).toBeGreaterThan(20*3600000);
  expect(end-start).toBeLessThan(28*3600000);
