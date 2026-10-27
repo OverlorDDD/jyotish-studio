@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {YOGA_PRACTICES} from '../../lib/yoga-content';
-import {eventInsight} from '../../../../packages/jyotish-core/src/astro-education.ts';
+import {eventInsight} from '../../../../packages/jyotish-core/src/astro-education';
 import type {PortalLocale} from '../../lib/brand';
 type Phase='new_moon'|'first_quarter'|'full_moon'|'last_quarter';
 type Event={kind:string;atUtc:string;localDate:string};
