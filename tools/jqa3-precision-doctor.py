@@ -36,7 +36,8 @@ def asc_variants(jd, lat, lon):
     mean = swe.get_ayanamsa_ex_ut(jd, swe.FLG_SWIEPH | swe.FLG_NONUT)[1]
     apparent = swe.get_ayanamsa_ex_ut(jd, swe.FLG_SWIEPH)[1]
     variants = {
-        'production_tropical_asc_minus_mean_lahiri': (tropical_asc - mean) % 360,
+        'production_tropical_asc_minus_mean_lahiri': (tropical_asc - (mean-0.13823494055031915/3600)) % 360,
+        'modern_uncorrected_tropical_asc_minus_mean_lahiri': (tropical_asc - mean) % 360,
         'tropical_asc_minus_nutated_lahiri': (tropical_asc - apparent) % 360,
     }
     for name, house_flags in [

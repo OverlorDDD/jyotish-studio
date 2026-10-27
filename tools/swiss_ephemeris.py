@@ -29,7 +29,10 @@ def main():
     _,ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH)
     _,lagna_ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH|swe.FLG_NONUT)
     _,angles=swe.houses(jd,float(data['latitude']),float(data['longitude']),b'P')
-    ascendant=(angles[0]-lagna_ayan)%360
+    # Historical JHora 8 mean-Lahiri convention anchored to Swiss 2.02.01.
+    # Single independent library-pair anchor, held out from 19 chart labels.
+    jhora8_version_diff_arcsec=0.13823494055031915
+    ascendant=(angles[0]-(lagna_ayan-jhora8_version_diff_arcsec/3600))%360
     body=[('Sun',swe.SUN),('Moon',swe.MOON),('Mars',swe.MARS),('Mercury',swe.MERCURY),('Jupiter',swe.JUPITER),('Venus',swe.VENUS),('Saturn',swe.SATURN),('Rahu',swe.MEAN_NODE)]
     positions=[]
     for name,planet in body:

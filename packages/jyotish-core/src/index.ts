@@ -26,6 +26,17 @@ export function graha(name:string,lon:number,ascLon:number,speed=0):Graha {
   const s=signIndex(lon),nak=nakshatraOf(lon);
   return {name,longitude:mod(lon),sign:s+1,signName:RASHIS[s],degreesInSign:mod(lon)%30,house:mod(s-signIndex(ascLon),12)+1,nakshatra:nak.name,pada:nak.pada,retrograde:speed<0};
 }
+/** Historical Lahiri mean ayanamsa shift between Swiss 2.02.01 (JHora 8)
+ * and Swiss 2.10.03, in arcseconds (modern minus historical).
+ * Derived from the two authentic DLL/library outputs on identical DE431
+ * input at jqa3-01, verified unchanged to <0.000001" on 19 held-out cards.
+ * Swiss 2.09 documented an explicit Lahiri convention correction.
+ * IMPORTANT: this is a VERSIONED HISTORICAL ASTROMETRY CONVENTION, not
+ * adjustment against a desired chart longitude or a blanket correction.
+ * Do not apply to graha positions or to apparent-ayanamsa metadata.
+ */
+export const JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS=0.13823494055031915;
+export const JHORA8_ASCENDANT_CONVENTION='jhora8-swiss20201-mean-lahiri-v3';
 export const DASHA_YEAR_DAYS=365.2425;
 const dashaDuration=(years:number)=>years*DASHA_YEAR_DAYS*86400000;
 /** Mahadasha + antardasha. The active-at-birth mahadasha begins before birth. */

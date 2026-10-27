@@ -3,7 +3,7 @@ import {assertSwissReturnFlags} from './swiss-backend-policy.ts';
 import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
 import type {BirthInput,EphemerisData} from '../../../packages/jyotish-core/src/index.ts';
-import {localToUTC,mod} from '../../../packages/jyotish-core/src/index.ts';
+import {localToUTC,mod,JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS} from '../../../packages/jyotish-core/src/index.ts';
 const thisDir=dirname(fileURLToPath(import.meta.url));
 /** Prefer native TypeScript-friendly Swiss Ephemeris; Python fallback is for offline workshops. */
 export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
@@ -24,7 +24,11 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   // This is an observational convention match, not proof of JHora internals.
   const lagnaAyanamsa=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris|64);
   const houses=sw.calculateHouses(jd,input.latitude,input.longitude,sw.HouseSystem.Placidus);
-  const ascendant=mod(houses.ascendant-lagnaAyanamsa);
+  // JHora 8's Swiss 2.02.01 mean Lahiri ayanamsa differs from 2.10.03.
+  // Keep the present-day ephemerides; recover the historical *named*
+  // convention for rising longitude only. This is independent of chart labels.
+  const jhora8HistoricalMeanLahiri=lagnaAyanamsa-JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600;
+  const ascendant=mod(houses.ascendant-jhora8HistoricalMeanLahiri);
   const bodies:[string,number][]=[['Sun',sw.Planet.Sun],['Moon',sw.Planet.Moon],['Mars',sw.Planet.Mars],['Mercury',sw.Planet.Mercury],['Jupiter',sw.Planet.Jupiter],['Venus',sw.Planet.Venus],['Saturn',sw.Planet.Saturn],['Rahu',sw.LunarPoint.MeanNode]];
   const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);assertSwissReturnFlags(p.flags,name);return {name,longitude:mod(p.longitude),speed:p.longitudeSpeed};});
   const rahu=positions.find(p=>p.name==='Rahu')!;

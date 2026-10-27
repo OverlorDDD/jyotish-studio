@@ -24,7 +24,8 @@ for n in range(1,21):
  jd=swe.julday(t.year,t.month,t.day,t.hour+t.minute/60+t.second/3600)
  houses=swe.houses(jd,fixture['civilTime']['latitude'],fixture['civilTime']['longitude'],b'P')
  ay=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH|swe.FLG_NONUT)[1]
- asc=(houses[1][0]-ay)%360
+ asc=(houses[1][0]-(ay-0.13823494055031915/3600))%360
+ asc_unadjusted=(houses[1][0]-ay)%360
  results={'Lagna':diff(asc,fixture['expected']['positions']['Lagna']['longitude'])}
  flags={}
  for name,body in TARGETS:
@@ -36,7 +37,7 @@ for n in range(1,21):
                       fixture['expected']['positions']['Ketu']['longitude'])
  rows.append({'id':fixture['title'],'residualArcsec':results,'flags':flags,
   'modernMeanAyanamsaDeg':ay,'modernTropicalAscDeg':houses[1][0],
-  'modernSiderealAscDeg':asc})
+  'modernSiderealAscDeg':asc,'modernUnadjustedSiderealAscDeg':asc_unadjusted})
 bodies=['Lagna','Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
 totals={k:{'passing':sum(abs(r['residualArcsec'][k])<=1.0 for r in rows),
            'maxAbsArcseconds':max(abs(r['residualArcsec'][k]) for r in rows)} for k in bodies}

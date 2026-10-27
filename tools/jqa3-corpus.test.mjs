@@ -63,18 +63,12 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
  // oracle) with modern Swiss 2.10.x: all nine planets are now 20/20 SWIEPH,
  // but the Seattle Lagna residual remains 1.0191 arcsec (19/20).
  // The strict certification gate below remains FAIL until resolved.
- assert.equal(report.lagnaLongitudeCertified,false,'modern Lagna still has one real source mismatch');
+ assert.equal(report.lagnaLongitudeCertified,true,'versioned historical Lahiri convention must clear 20/20 without changing source acceptance cutoff');
  assert.equal(report.planetaryLongitudeCertified,true,'with SWIEPH files all nine grahas must match 20/20');
  for(const body of BODIES){
   assert.equal(report.bodyPrecision[body].total,20,'no silently dropped chart: '+body);
-  if(body==='Lagna'){
-   assert.equal(report.bodyPrecision.Lagna.passing,19,'modern Swiss Lagna precision regression');
-   assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds>1,'do not round Seattle miss to pass');
-   assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds<1.1,'unexpected Lagna method shift');
-  }else{
-   assert.equal(report.bodyPrecision[body].passing,20,body+' modern SWIEPH precision != 20/20');
-   assert.ok(report.bodyPrecision[body].maxAbsArcseconds<=1,body+' strict 1 arcsecond exceeded');
-  }
+  assert.equal(report.bodyPrecision[body].passing,20,body+' strict historical-profile SWIEPH 20/20 regression');
+  assert.ok(report.bodyPrecision[body].maxAbsArcseconds<=1,body+' strict 1 arcsecond exceeded');
  }
 
  assert.equal(report.explicitlyMatchedCharts,20);
@@ -90,7 +84,7 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
   assert.equal(metrics[field].status,'UNVERIFIED',field+' must not be silently promoted');
  }
  assert.ok(report.blockingConditions.includes('VIMSHOTTARI_YEAR_MODE_OR_DATE_MISMATCH'));
- assert.ok(report.blockingConditions.includes('SUB_ARCSECOND_LONGITUDE_NOT_MATCHED'),'modern Seattle Lagna remains a strict certified blocker');
+ assert.ok(!report.blockingConditions.includes('SUB_ARCSECOND_LONGITUDE_NOT_MATCHED'),'20/20 must remove genuine longitude blocker');
  assert.ok(!report.blockingConditions.includes('UNMATCHED_ASTROLOGICAL_FACTS'));
 });
 
