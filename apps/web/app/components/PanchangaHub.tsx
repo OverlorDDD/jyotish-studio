@@ -5,6 +5,7 @@ import type {PortalLocale} from '../../lib/brand';
 import styles from './PanchangaHub.module.css';
 import AstronomicalEventsPanel from './AstronomicalEventsPanel';
 import PersonalPanchanga from './PersonalPanchanga';
+import EclipsePanel from './EclipsePanel';
 
 type AngaName={number:number;name:string};
 type Day={
@@ -109,6 +110,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   {error&&<div role="alert" className={styles.error}>{t.error}</div>}
   <AstronomicalEventsPanel locale={locale} start={requested?.date??form.date} zone={requested?.timeZone??form.timeZone}/>
   <PersonalPanchanga locale={locale} point={requested??form}/>
+  <EclipsePanel locale={locale} point={requested??form}/>
   {!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
   {result&&<div className={styles.results}>
    <section className={styles.sun}><h2>{t.subtitle} · {result.date}</h2>
