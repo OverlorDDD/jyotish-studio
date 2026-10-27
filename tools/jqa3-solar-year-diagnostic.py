@@ -24,7 +24,7 @@ def jd_from_utc(utc):
 
 def to_utc_date(jd,offset_seconds):
  stamp=(jd-2440587.5)*DAY+offset_seconds
- return dt.datetime.fromtimestamp(stamp,tz=dt.timezone.utc).strftime('%Y-%m-%d')
+ return (dt.datetime(1970,1,1,tzinfo=dt.timezone.utc)+dt.timedelta(seconds=stamp)).strftime('%Y-%m-%d')
 
 def angular_diff(a,b):
  return ((a-b+180)%360)-180
