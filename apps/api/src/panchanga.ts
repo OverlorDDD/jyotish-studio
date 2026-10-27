@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {jhora8SiderealLongitude,localToUTC} from '../../../packages/jyotish-core/src/index.ts';
 import {jhora8HistoricalJulianDay,JHORA8_DELTA_T_GRID_ID} from '../../../packages/jyotish-core/src/jhora8-delta-t-grid.ts';
 import {buildPanchangaSunrise,type SunMoonAt} from '../../../packages/jyotish-core/src/panchanga.ts';
+import {daytimeKalas} from '../../../packages/jyotish-core/src/daytime-kalas.ts';
 import type {EventBody,PlanetAt} from '../../../packages/jyotish-core/src/astronomical-events.ts';
 import {assertSwissReturnFlags} from './swiss-backend-policy.ts';
 import {validLocalDay,validTimeZone,localToday} from './personal-transits.ts';
@@ -91,6 +92,7 @@ export async function calculatePanchangaDay(unsafe:Partial<Location>){
  const rise=riseSet(location);
  const at=await createPanchangaSunMoonAt();
  const result=buildPanchangaSunrise(location.date,rise.sunriseUtc,rise.nextSunriseUtc,at);
+ const kalas=daytimeKalas(rise.sunriseUtc,rise.sunsetUtc,new Date(location.date+'T12:00:00Z').getUTCDay());
  // Astronomical Events v1: sunrise/sunset and geocentric 0°/180° lunations.
  // These are not eclipse predictions; lunar latitude is not part of the test.
  const astronomicalEvents=[
@@ -99,7 +101,7 @@ export async function calculatePanchangaDay(unsafe:Partial<Location>){
   ...result.changes.filter(x=>x.kind==='tithi'&&(x.nextIndex===1||x.nextIndex===16))
    .map(x=>({type:x.nextIndex===1?'new_moon':'full_moon',atUtc:x.atUtc}))
  ].sort((a,b)=>a.atUtc.localeCompare(b.atUtc));
- return {...result,astronomicalEvents,location:{timeZone:location.timeZone,latitude:location.latitude,longitude:location.longitude},
+ return {...result,astronomicalEvents,daytimeKalas:kalas,location:{timeZone:location.timeZone,latitude:location.latitude,longitude:location.longitude},
   sunsetUtc:rise.sunsetUtc,astronomyProfile:PANCHANGA_ASTRONOMY_PROFILE,
   sunriseMethod:rise.sunriseMethod,
   methodology:{referenceFrame:'Lahiri sidereal, apparent geocentric Sun & Moon',
