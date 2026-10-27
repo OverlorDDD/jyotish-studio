@@ -27,7 +27,7 @@ type Validated=ReturnType<typeof validateEclipseRequest>;
 type Eclipses={source:string;independentVisibilityCertified:boolean;
  events:{type:'solar'|'lunar';eclipseKind:string;maximumUtc:string;
   visibleHere:boolean;localMaximumUtc:string|null}[]};
-const cache=new Map<string,{at:number,promise:Promise<ReturnType<typeof eclipseWindow>>}>();
+const cache=new Map<string,{at:number,promise:ReturnType<typeof eclipseWindow>}>();
 async function eclipseWindow(v:Validated){
  const script=resolve(dirname(fileURLToPath(import.meta.url)),'../../../tools/astronomy-eclipses.py');
  const exe=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
