@@ -6,6 +6,7 @@ import {readFileSync} from 'node:fs';
 import {loadCorpus,verifyReference,withinOneArcsecond} from './jqa3-corpus.mjs';
 import {vimshottariTrueSiderealSolar,VIMSHOTTARI_SOLAR_METHOD} from '../packages/jyotish-core/src/solar-dasha.ts';
 import {assertSwissReturnFlags} from '../apps/api/src/swiss-backend-policy.ts';
+import {jhora8SiderealLongitude} from '../packages/jyotish-core/src/index.ts';
 const sw=await import('@swisseph/node');
 const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
 sw.setSiderealMode(sw.SiderealMode.Lahiri);
@@ -31,12 +32,13 @@ for(const record of selected){
  const jd=sw.julianDay(birth.getUTCFullYear(),birth.getUTCMonth()+1,birth.getUTCDate(),hour);
  const position=sw.calculatePosition(jd,sw.Planet.Moon,flags);
  assertSwissReturnFlags(position.flags,record.id+'.Moon');
- if(!withinOneArcsecond(position.longitude,fixture.expected.positions.Moon.longitude)){
-  errors.push({id:record.id,kind:'NATAL_MOON_PRECISION',reference:fixture.expected.positions.Moon.longitude,actual:position.longitude});
+ const productionMoonLongitude=jhora8SiderealLongitude(position.longitude);
+ if(!withinOneArcsecond(productionMoonLongitude,fixture.expected.positions.Moon.longitude)){
+  errors.push({id:record.id,kind:'NATAL_MOON_PRECISION',reference:fixture.expected.positions.Moon.longitude,actual:productionMoonLongitude});
   continue;
  }
  moon++;
- const periods=vimshottariTrueSiderealSolar(position.longitude,fixture.civilTime.birthUtc,sunAt);
+ const periods=vimshottariTrueSiderealSolar(productionMoonLongitude,fixture.civilTime.birthUtc,sunAt);
  let m=0,a=0;
  for(let i=0;i<9;i++){
   const expected=fixture.expected.vimshottari[i],actual=periods[i];

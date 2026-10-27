@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {vimshottariTrueSiderealSolar} from '../packages/jyotish-core/src/solar-dasha.ts';
 import {assertSwissReturnFlags} from '../apps/api/src/swiss-backend-policy.ts';
+import {jhora8SiderealLongitude} from '../packages/jyotish-core/src/index.ts';
 const sw=await import('@swisseph/node');
 const flag=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
 sw.setSiderealMode(sw.SiderealMode.Lahiri);
@@ -34,7 +35,7 @@ test('20 authentic JHora date tables match independent native solar-Sun solver, 
    birth.getUTCHours()+birth.getUTCMinutes()/60+birth.getUTCSeconds()/3600);
   const natalMoon=sw.calculatePosition(jd,sw.Planet.Moon,flag);
   assertSwissReturnFlags(natalMoon.flags,id+'.LiveMoon');
-  const livePeriods=vimshottariTrueSiderealSolar(natalMoon.longitude,fixture.civilTime.birthUtc,sunAt);
+  const livePeriods=vimshottariTrueSiderealSolar(jhora8SiderealLongitude(natalMoon.longitude),fixture.civilTime.birthUtc,sunAt);
   assert.equal(periods.length,9);
   assert.equal(livePeriods.length,9);
   for(let i=0;i<9;i++){
