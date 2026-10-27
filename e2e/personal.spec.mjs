@@ -30,7 +30,8 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  expect(response.selected.id).toBe(chartId);
  expect(response.profile.currentTimeZone).toBe('Europe/Kyiv');
  expect(response.news.status).toBe('planned_after_launch');
- expect(response.horoscope.status).toBe('planned_after_launch');
+ expect(response.horoscope.status).toBe('available');
+ expect(response.horoscope.personal).toBe(true);
  expect(response.transit?.observationType).toBe('SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON');
  expect(response.journey?.daily?.headline?.uk).toBeTruthy();
  expect(response.journey?.daily?.description?.en).toContain('Moon');

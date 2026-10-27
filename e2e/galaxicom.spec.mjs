@@ -36,8 +36,9 @@ test('GalaxiCom C0/C1: guest, two users, moderation, PREMIUM isolation and UI',a
    data:{body:'<script>alert(1)</script>'}});
   expect(invalid.status()).toBe(400);
   await page.goto('/uk/community');
-  await expect(page.getByRole('link',{name:created.title})).toBeVisible();
-  await page.getByRole('link',{name:created.title}).click();
+  const topicLink=page.getByTestId('com-thread-card').getByRole('link',{name:created.title});
+  await expect(topicLink).toBeVisible();
+  await topicLink.click();
   await expect(page.getByTestId('com-thread')).toBeVisible();
   await expect(page.getByText('I would like to understand the difference between D1 and D9 without sharing personal birth data.')).toBeVisible();
   const second=await page.request.post('/api/v1/account/register',{data:account()});
