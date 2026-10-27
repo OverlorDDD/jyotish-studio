@@ -5,8 +5,8 @@ import GlobalAccount from './GlobalAccount';
 
 type Props={locale:PortalLocale;children:React.ReactNode;active?:string;languagePath?:string};
 const LABELS={
- en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'Learn',news:'News',community:'Community',horoscope:'Horoscopes',personal:'Personal',language:'Language',caption:'A place for celestial wisdom and mindful practice',disclaimer:'Readings are rooted in astrological and tarot traditions; important decisions still deserve careful attention.'},
- uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'Знання',news:'Новини',community:'Форум',horoscope:'Гороскопи',personal:'Мій Всесвіт',language:'Мова',caption:'Простір астрології, Таро та живих практик',disclaimer:'Наші трактування спираються на традицію Джйотіш і Таро. Важливі життєві рішення завжди потребують уваги до реальних обставин.'}
+ en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'Learn',news:'News',community:'Community',horoscope:'Horoscopes',panchanga:'Panchanga',personal:'Personal',language:'Language',caption:'A place for celestial wisdom and mindful practice',disclaimer:'Readings are rooted in astrological and tarot traditions; important decisions still deserve careful attention.'},
+ uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'Знання',news:'Новини',community:'Форум',horoscope:'Гороскопи',panchanga:'Панчанга',personal:'Мій Всесвіт',language:'Мова',caption:'Простір астрології, Таро та живих практик',disclaimer:'Наші трактування спираються на традицію Джйотіш і Таро. Важливі життєві рішення завжди потребують уваги до реальних обставин.'}
 } as const;
 const SECTIONS=['astrology','tarot','yoga','learn','news','community'] as const;
 export default function PortalShell({locale,children,active='',languagePath}:Props){
@@ -22,6 +22,7 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
     <nav className="as-main-nav" aria-label={locale==='uk'?'Основна навігація':'Main navigation'}>
      <Link href={portalPath(locale)} aria-current={!active?'page':undefined}>{t.home}</Link>
      <Link href={portalPath(locale,'horoscope')} aria-current={active==='horoscope'?'page':undefined}>{t.horoscope}</Link>
+     <Link href={portalPath(locale,'panchanga')} aria-current={active==='panchanga'?'page':undefined}>{t.panchanga}</Link>
      {SECTIONS.map(s=><Link key={s} href={portalPath(locale,s)} aria-current={active===s?'page':undefined}>{t[s]}</Link>)}
      <Link href={portalPath(locale,'personal')} className="as-personal-link" aria-current={active==='personal'?'page':undefined}>{t.personal}</Link>
     </nav>
