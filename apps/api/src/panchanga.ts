@@ -12,9 +12,13 @@ import {validLocalDay,validTimeZone,localToday} from './personal-transits.ts';
 
 export const PANCHANGA_ASTRONOMY_PROFILE='JHora8-20201-mean-Lahiri / '+JHORA8_DELTA_T_GRID_ID+' / verified SWIEPH';
 type Location={date:string;timeZone:string;latitude:number;longitude:number};
-const isoDay=(iso:string,zone:string)=>new Intl.DateTimeFormat('en-CA',{
- timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'
-}).format(new Date(iso)).replaceAll('/','-');
+const isoDay=(iso:string,zone:string)=>{
+ const parts=new Intl.DateTimeFormat('en-US',{
+  timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'
+ }).formatToParts(new Date(iso));
+ const read=(k:string)=>parts.find(p=>p.type===k)?.value||'';
+ return read('year')+'-'+read('month')+'-'+read('day');
+};
 export function validatePanchangaLocation(input:Partial<Location>):Location{
  const zone=input.timeZone??'Europe/Kyiv';
  const day=input.date??localToday(zone);
