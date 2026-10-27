@@ -8,6 +8,10 @@ def main():
     dt=datetime.fromisoformat(data['utc'].replace('Z','+00:00')).astimezone(timezone.utc)
     hour=dt.hour+(dt.minute+(dt.second+dt.microsecond/1e6)/60)/60
     jd=swe.julday(dt.year,dt.month,dt.day,hour)
+    import os
+    ephe=os.environ.get('GALAXIORA_SWISS_EPHE_PATH')
+    if ephe:
+        swe.set_ephe_path(ephe)
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
     # Planetary metadata is the nutated apparent ayanamsa (unchanged).
@@ -22,9 +26,12 @@ def main():
     positions=[]
     for name,planet in body:
        xx,ret=swe.calc_ut(jd,planet,flags)
+       if (ret & 7)!=swe.FLG_SWIEPH:
+           raise RuntimeError('Swiss Ephemeris files unavailable for '+name+
+                              '; refused silent Moshier/JPL fallback; returned flags='+str(ret))
        positions.append({'name':name,'longitude':xx[0]%360,'speed':xx[3]})
     rahu=positions[-1]
     positions.append({'name':'Ketu','longitude':(rahu['longitude']+180)%360,'speed':rahu['speed']})
-    print(json.dumps({'ayanamsa':ayan,'ascendant':ascendant,'positions':positions,'julianDay':jd,'backend':'Swiss Ephemeris / pyswisseph (fallback)'}))
+    print(json.dumps({'ayanamsa':ayan,'ascendant':ascendant,'positions':positions,'julianDay':jd,'backend':'Swiss Ephemeris / pyswisseph / verified-SWIEPH (fallback)'}))
 
 if __name__=='__main__':main()

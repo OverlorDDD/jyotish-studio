@@ -58,6 +58,8 @@ jobs:
         run: npm run jqa3:dasha-diagnostic
       - name: Verify JQA-3.5 UTC calendar invariants and fail-closed year-mode evidence
         run: npm run test:jqa3:calendar-invariants
+      - name: Guard all calculation adapters against silent Moshier fallback
+        run: npm run test:ephemeris-backend
       - name: JQA-3.5 differential diagnostics (must not self-certify)
         run: npm run jqa3:doctor
       - name: Full NestJS and Next.js production build

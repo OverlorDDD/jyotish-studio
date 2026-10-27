@@ -1,4 +1,5 @@
 import {spawnSync} from 'node:child_process';
+import {assertSwissReturnFlags} from './swiss-backend-policy.ts';
 import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
 import type {BirthInput,EphemerisData} from '../../../packages/jyotish-core/src/index.ts';
@@ -25,11 +26,11 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   const houses=sw.calculateHouses(jd,input.latitude,input.longitude,sw.HouseSystem.Placidus);
   const ascendant=mod(houses.ascendant-lagnaAyanamsa);
   const bodies:[string,number][]=[['Sun',sw.Planet.Sun],['Moon',sw.Planet.Moon],['Mars',sw.Planet.Mars],['Mercury',sw.Planet.Mercury],['Jupiter',sw.Planet.Jupiter],['Venus',sw.Planet.Venus],['Saturn',sw.Planet.Saturn],['Rahu',sw.LunarPoint.MeanNode]];
-  const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);return {name,longitude:mod(p.longitude),speed:p.longitudeSpeed};});
+  const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);assertSwissReturnFlags(p.flags,name);return {name,longitude:mod(p.longitude),speed:p.longitudeSpeed};});
   const rahu=positions.find(p=>p.name==='Rahu')!;
   positions.push({name:'Ketu',longitude:mod(rahu.longitude+180),speed:rahu.speed});
   if(!Number.isFinite(ascendant)||positions.some(p=>!Number.isFinite(p.longitude)||!Number.isFinite(p.speed)))throw Error('Invalid native ephemeris result');
-  return {ayanamsa,ascendant,positions,julianDay:jd,backend:'Swiss Ephemeris / @swisseph/node'};
+  return {ayanamsa,ascendant,positions,julianDay:jd,backend:'Swiss Ephemeris / @swisseph/node / verified-SWIEPH'};
  } catch(err){
   if(process.env.ALLOW_PYTHON_SWISSEPH==='0')throw new Error(`Native Swiss Ephemeris unavailable: ${String(err)}`);
   const pythonExe=process.env.PYTHON_BIN|| (process.platform==='win32'?'py':'python3');
