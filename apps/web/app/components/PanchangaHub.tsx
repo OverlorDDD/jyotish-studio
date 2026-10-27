@@ -76,7 +76,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||
    day<'1900-01-01'||day>'2099-12-31')return;
   setForm(f=>({...f,date:day}));
-  setRequested(f=>({...f,date:day}));
+  setRequested(f=>({...initialForm,...(f||{}),date:day}));
  },[]);
  useEffect(()=>{
   if(!requested)return;
