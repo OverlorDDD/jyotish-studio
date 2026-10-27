@@ -30,8 +30,9 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  expect(await favicon.text()).toContain('Galaxiora');
  await page.goto('/uk/horoscope');
  await expect(page.getByRole('heading',{name:'Гороскопи'})).toBeVisible();
- // Browser-level proof: the tab icon is actually opaque, including every corner.
- // A text-only assertion on SVG source would miss CSS or rendering transparency.
+ // Browser-level proof of the owner's requested genuinely round favicon:
+ // the four pixels outside the golden ring are transparent, center opaque.
+ // This verifies the actual rendered alpha, not merely the SVG source text.
  const alpha=await page.evaluate(async()=>{
   const img=new Image();
   img.src='/icon.svg';await img.decode();
@@ -41,7 +42,7 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
   ctx.drawImage(img,0,0,64,64);
   return [[0,0],[63,0],[0,63],[63,63],[32,32]].map(([x,y])=>ctx.getImageData(x,y,1,1).data[3]);
  });
- expect(alpha).toEqual([255,255,255,255,255]);
+ expect(alpha).toEqual([0,0,0,0,255]);
  await expect(page.getByRole('button',{name:'Овен'})).toBeVisible();
  await page.getByRole('button',{name:'Риби'}).click();
  await expect(page.getByRole('button',{name:'Риби'})).toHaveAttribute('aria-pressed','true');
