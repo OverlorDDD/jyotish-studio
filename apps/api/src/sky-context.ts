@@ -16,7 +16,7 @@ export async function dailySkyContext(date:string,zone:string,includeReferenceFe
  if(!validLocalDay(date)||!validTimeZone(zone))throw Error('Invalid astronomical day and zone');
  const [astro,festival]=await Promise.allSettled([
   astronomicalEventsWindow({start:date,days:7,timeZone:zone}),
-  includeReferenceFestivals?vedicCalendarWindow({start:date,days:1,timeZone:zone,
+  includeReferenceFestivals?vedicCalendarWindow({start:date,days:1,timeZone:'Europe/Kyiv',
    latitude:50.4501,longitude:30.5234,monthSystem:'amanta'}):Promise.resolve(null)
  ]);
  const events=astro.status==='fulfilled'?astro.value.events.slice(0,12).map(e=>({
