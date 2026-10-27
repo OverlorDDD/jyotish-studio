@@ -2,6 +2,7 @@ import {Controller,Get,Header,ServiceUnavailableException} from '@nestjs/common'
 import {ApiTags} from '@nestjs/swagger';
 import {calendarDays,dailyTransit,localToday} from './personal-transits.ts';
 import {readPublicSign,EDITORIAL_REFERENCE} from './horoscope-editorial.ts';
+import {dailySkyContext} from './sky-context.ts';
 /** Moon moves about 11–16 degrees per 24h. Reject reused/corrupted daily snapshots. */
 export function verifyLunarContinuity(days:Awaited<ReturnType<typeof dailyTransit>>[]){
  for(let i=1;i<days.length;i++){
@@ -23,7 +24,8 @@ export class HoroscopeController{
   let transit:Awaited<ReturnType<typeof dailyTransit>>;
   try{transit=await dailyTransit(date,zone);}
   catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
-  return {date,zone,reference:'SIDEREAL_MOON_SIGN',sampledAtUtc:transit.sampledAtUtc,
+  const sky=await dailySkyContext(date,zone);
+  return {date,zone,reference:'SIDEREAL_MOON_SIGN',sampledAtUtc:transit.sampledAtUtc,sky,
    moon:{sign:transit.moon.sign,nakshatra:transit.moon.nakshatra,pada:transit.moon.pada},
    signs:Array.from({length:12},(_,i)=>readPublicSign(i+1,transit)),
    sources:EDITORIAL_REFERENCE,notAPersonalChart:true};
@@ -36,7 +38,8 @@ export class HoroscopeController{
   try{days=await Promise.all(calendarDays(startDate,7).map(day=>dailyTransit(day,zone)));}
   catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
   verifyLunarContinuity(days);
-  return {startDate,zone,reference:'SIDEREAL_MOON_SIGN',notAPersonalChart:true,
+  const sky=await dailySkyContext(startDate,zone);
+  return {startDate,zone,reference:'SIDEREAL_MOON_SIGN',notAPersonalChart:true,sky,
    days:days.map(transit=>({
     date:transit.date,sampledAtUtc:transit.sampledAtUtc,
     moon:{sign:transit.moon.sign,nakshatra:transit.moon.nakshatra,pada:transit.moon.pada},
