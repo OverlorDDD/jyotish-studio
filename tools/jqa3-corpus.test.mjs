@@ -56,16 +56,16 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
  assert.equal(report.signParityCertified,true);
  assert.equal(report.dashaSequenceCertified,true,'all original JHora mahadasha/antardasha lords must retain their order');
  assert.equal(report.precisionCertified,false);
- assert.equal(report.lagnaLongitudeCertified,false,'JHora and Swiss ascendant differ beyond 1 arcsecond');
- assert.equal(report.planetaryLongitudeCertified,false,'do not declare all nine graha precision matches');
- assert.equal(report.bodyPrecision.Lagna.total,20);
- assert.equal(report.bodyPrecision.Lagna.passing,19,
-  'mean Lahiri Lagna must independently match 19/20 original JHora arcs to 1 arcsecond');
- assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds>1,
-  'the 2002 Seattle residual is still above strict 1 arcsecond; never round to PASS');
- assert.ok(report.bodyPrecision.Lagna.maxAbsArcseconds<1.1,
-  'unexpected systematic change to the corrected ascendant convention');
- for(const body of BODIES)assert.equal(report.bodyPrecision[body].total,20,'no silently dropped chart');
+ // The former 19/20 and 18/20 assertions were captured under silent MOSEPH.
+ // Now demand a real, correctly configured SWIEPH 20/20 within the SAME strict
+ // 1.0000 arcsecond limit; a build must fail on any regression.
+ assert.equal(report.lagnaLongitudeCertified,true,'Lagna must match 20/20 strict arcsecond JHora source');
+ assert.equal(report.planetaryLongitudeCertified,true,'All nine grahas must match 20/20 strict JHora source');
+ for(const body of BODIES){
+  assert.equal(report.bodyPrecision[body].total,20,'no silently dropped chart: '+body);
+  assert.equal(report.bodyPrecision[body].passing,20,body+' JHora precision != 20/20');
+  assert.ok(report.bodyPrecision[body].maxAbsArcseconds<=1,body+' exceeds strict 1 arcsecond');
+ }
 
  assert.equal(report.explicitlyMatchedCharts,20);
  for(const item of report.results.slice(1)){
@@ -80,7 +80,7 @@ test('astronomical audit cannot certify unrecorded nakshatra, pada and house lor
   assert.equal(metrics[field].status,'UNVERIFIED',field+' must not be silently promoted');
  }
  assert.ok(report.blockingConditions.includes('VIMSHOTTARI_YEAR_MODE_OR_DATE_MISMATCH'));
- assert.ok(report.blockingConditions.includes('SUB_ARCSECOND_LONGITUDE_NOT_MATCHED'));
+ assert.ok(!report.blockingConditions.includes('SUB_ARCSECOND_LONGITUDE_NOT_MATCHED'),'no precision blocker if all 20 sources match');
  assert.ok(!report.blockingConditions.includes('UNMATCHED_ASTROLOGICAL_FACTS'));
 });
 
