@@ -13,7 +13,7 @@ import {
 import {CLASSICAL_RULERS,houseLordFacts,validateRuleInput} from '../../../packages/jyotish-core/src/rules.ts';
 import {vimshottariTrueSiderealSolar,VIMSHOTTARI_SOLAR_METHOD,type SolarPositionAtJulianDay} from '../../../packages/jyotish-core/src/solar-dasha.ts';
 
-export const CHART_VERIFICATION_VERSION='jyotish-integrity-v2';
+export const CHART_VERIFICATION_VERSION='jyotish-integrity-v3';
 const REQUIRED=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'] as const;
 const NAMES=new Set<string>(REQUIRED);
 const EPS=1e-7;

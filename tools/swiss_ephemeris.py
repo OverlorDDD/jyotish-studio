@@ -22,6 +22,28 @@ def main():
     swe.set_ephe_path(str(ephe))
     swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags=swe.FLG_SWIEPH|swe.FLG_SIDEREAL|swe.FLG_SPEED
+    # The historical official JHora8 DLL Delta-T profile is stored in the
+    # canonical static TypeScript grid. Parse the data array only, never run
+    # JavaScript from Python; verify sample count to avoid silent divergence.
+    import re
+    grid_source=(Path(__file__).resolve().parent.parent/'packages/jyotish-core/src/jhora8-delta-t-grid.ts').read_text('utf-8')
+    grid_match=re.search(r'const DELTA_T_SECONDS=\\[([\\s\\S]*?)\\];',grid_source)
+    if not grid_match:
+        raise RuntimeError('Missing independently attested historical Swiss Delta-T grid')
+    grid=[float(x) for x in re.findall(r'-?\\d+(?:\\.\\d+)?',grid_match.group(1))]
+    if len(grid)!=3612:
+        raise RuntimeError('Unexpected JHora8 Delta-T grid length')
+    source_dt=dt
+    if 1900<=source_dt.year<=2200:
+        i=(source_dt.year-1900)*12+source_dt.month-1
+        month_start=datetime(source_dt.year,source_dt.month,1,tzinfo=timezone.utc)
+        next_month=datetime(source_dt.year+(source_dt.month==12),source_dt.month%12+1,1,tzinfo=timezone.utc)
+        ratio=(source_dt-month_start).total_seconds()/(next_month-month_start).total_seconds()
+        historical_jd=jd+(grid[i]+(grid[min(i+1,len(grid)-1)]-grid[i])*ratio)/86400
+        history='jhora8-swiss20201-vs-21003-monthly-1900-2200-v1'
+    else:
+        historical_jd=jd
+        history='modern-Swiss-DeltaT-outside-validated-JHora8-era'
     # Versioned historical v2.02.01 Lahiri convention for every sidereal
     # planet and the apparent ayanamsa metadata. Mean variant for Lagna.
     _,ayan=swe.get_ayanamsa_ex_ut(jd,swe.FLG_SWIEPH)
@@ -35,13 +57,13 @@ def main():
     body=[('Sun',swe.SUN),('Moon',swe.MOON),('Mars',swe.MARS),('Mercury',swe.MERCURY),('Jupiter',swe.JUPITER),('Venus',swe.VENUS),('Saturn',swe.SATURN),('Rahu',swe.MEAN_NODE)]
     positions=[]
     for name,planet in body:
-       xx,ret=swe.calc_ut(jd,planet,flags)
+       xx,ret=swe.calc_ut(historical_jd,planet,flags)
        if (ret & 7)!=swe.FLG_SWIEPH:
            raise RuntimeError('Swiss Ephemeris files unavailable for '+name+
                               '; refused silent Moshier/JPL fallback; returned flags='+str(ret))
        positions.append({'name':name,'longitude':(xx[0]+jhora8_version_diff_arcsec/3600)%360,'speed':xx[3]})
     rahu=positions[-1]
     positions.append({'name':'Ketu','longitude':(rahu['longitude']+180)%360,'speed':rahu['speed']})
-    print(json.dumps({'ayanamsa':ayan,'ascendant':ascendant,'positions':positions,'julianDay':jd,'backend':'Swiss Ephemeris / pyswisseph / verified-SWIEPH (fallback)'}))
+    print(json.dumps({'ayanamsa':ayan,'ascendant':ascendant,'positions':positions,'julianDay':jd,'backend':'Swiss Ephemeris / pyswisseph / verified-SWIEPH (fallback) / '+history}))
 
 if __name__=='__main__':main()

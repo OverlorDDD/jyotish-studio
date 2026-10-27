@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
 import type {BirthInput,EphemerisData} from '../../../packages/jyotish-core/src/index.ts';
 import {localToUTC,mod,JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS,jhora8SiderealLongitude} from '../../../packages/jyotish-core/src/index.ts';
+import {jhora8HistoricalJulianDay,JHORA8_DELTA_T_GRID_ID} from '../../../packages/jyotish-core/src/jhora8-delta-t-grid.ts';
 const thisDir=dirname(fileURLToPath(import.meta.url));
 /** Prefer native TypeScript-friendly Swiss Ephemeris; Python fallback is for offline workshops. */
 export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
@@ -14,6 +15,12 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   const hour=date.getUTCHours()+date.getUTCMinutes()/60+date.getUTCSeconds()/3600+date.getUTCMilliseconds()/3600000;
   const jd=sw.julianDay(date.getUTCFullYear(),date.getUTCMonth()+1,date.getUTCDate(),hour);
   sw.setSiderealMode(sw.SiderealMode.Lahiri);
+  // Swiss v2.10 and source-authentic JHora v2.02 use different Delta-T
+  // histories; reuse the measured 3612-point reference rather than nudging
+  // individual natal charts. The historical profile is attested 1900–2200 UT.
+  const jdYear=date.getUTCFullYear();
+  const historicalTimeModel=jdYear>=1900&&jdYear<=2200;
+  const planetaryJd=historicalTimeModel?jhora8HistoricalJulianDay(jd):jd;
   const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536; // SEFLG_SIDEREAL, upstream numeric flag
   // Maintain JHora 8's explicitly versioned historical Lahiri convention
   // for the apparent metadata and every sidereal graha (including the Moon).
@@ -33,11 +40,11 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   const jhora8HistoricalMeanLahiri=lagnaAyanamsa-JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600;
   const ascendant=mod(houses.ascendant-jhora8HistoricalMeanLahiri);
   const bodies:[string,number][]=[['Sun',sw.Planet.Sun],['Moon',sw.Planet.Moon],['Mars',sw.Planet.Mars],['Mercury',sw.Planet.Mercury],['Jupiter',sw.Planet.Jupiter],['Venus',sw.Planet.Venus],['Saturn',sw.Planet.Saturn],['Rahu',sw.LunarPoint.MeanNode]];
-  const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(jd,body,flags);assertSwissReturnFlags(p.flags,name);return {name,longitude:jhora8SiderealLongitude(p.longitude),speed:p.longitudeSpeed};});
+  const positions=bodies.map(([name,body])=>{const p=sw.calculatePosition(planetaryJd,body,flags);assertSwissReturnFlags(p.flags,name);return {name,longitude:jhora8SiderealLongitude(p.longitude),speed:p.longitudeSpeed};});
   const rahu=positions.find(p=>p.name==='Rahu')!;
   positions.push({name:'Ketu',longitude:mod(rahu.longitude+180),speed:rahu.speed});
   if(!Number.isFinite(ascendant)||positions.some(p=>!Number.isFinite(p.longitude)||!Number.isFinite(p.speed)))throw Error('Invalid native ephemeris result');
-  return {ayanamsa,ascendant,positions,julianDay:jd,backend:'Swiss Ephemeris / @swisseph/node / verified-SWIEPH'};
+  return {ayanamsa,ascendant,positions,julianDay:jd,backend:'Swiss Ephemeris / @swisseph/node / verified-SWIEPH / '+(historicalTimeModel?JHORA8_DELTA_T_GRID_ID:'modern-Swiss-DeltaT-outside-validated-JHora8-era')};
  } catch(err){
   if(process.env.ALLOW_PYTHON_SWISSEPH==='0')throw new Error(`Native Swiss Ephemeris unavailable: ${String(err)}`);
   const pythonExe=process.env.PYTHON_BIN|| (process.platform==='win32'?'py':'python3');
@@ -56,7 +63,11 @@ export async function getVerifiedSiderealSolarSunAt(){
  sw.setSiderealMode(sw.SiderealMode.Lahiri);
  const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
  return (julianDayUt:number)=>{
-  const point=sw.calculatePosition(julianDayUt,sw.Planet.Sun,flags);
+  // Consistent historic time model for periods inside its supported era.
+  // Past 2200 use current precise Swiss data, not an extrapolated Delta-T.
+  const utcYear=new Date((julianDayUt-2440587.5)*86400000).getUTCFullYear();
+  const sourceJd=utcYear>=1900&&utcYear<=2200?jhora8HistoricalJulianDay(julianDayUt):julianDayUt;
+  const point=sw.calculatePosition(sourceJd,sw.Planet.Sun,flags);
   assertSwissReturnFlags(point.flags,'TrueSiderealDasha.Sun');
   return {longitude:jhora8SiderealLongitude(point.longitude),longitudeSpeed:point.longitudeSpeed};
  };

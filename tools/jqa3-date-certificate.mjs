@@ -7,6 +7,7 @@ import {loadCorpus,verifyReference,withinOneArcsecond} from './jqa3-corpus.mjs';
 import {vimshottariTrueSiderealSolar,VIMSHOTTARI_SOLAR_METHOD} from '../packages/jyotish-core/src/solar-dasha.ts';
 import {assertSwissReturnFlags} from '../apps/api/src/swiss-backend-policy.ts';
 import {jhora8SiderealLongitude} from '../packages/jyotish-core/src/index.ts';
+import {jhora8HistoricalJulianDay,JHORA8_DELTA_T_GRID_ID} from '../packages/jyotish-core/src/jhora8-delta-t-grid.ts';
 const sw=await import('@swisseph/node');
 const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
 sw.setSiderealMode(sw.SiderealMode.Lahiri);
@@ -30,7 +31,7 @@ for(const record of selected){
  if(!Number.isFinite(birth.valueOf()))throw Error('Invalid UTC source birth '+record.id);
  const hour=birth.getUTCHours()+birth.getUTCMinutes()/60+birth.getUTCSeconds()/3600;
  const jd=sw.julianDay(birth.getUTCFullYear(),birth.getUTCMonth()+1,birth.getUTCDate(),hour);
- const position=sw.calculatePosition(jd,sw.Planet.Moon,flags);
+ const position=sw.calculatePosition(jhora8HistoricalJulianDay(jd),sw.Planet.Moon,flags);
  assertSwissReturnFlags(position.flags,record.id+'.Moon');
  const productionMoonLongitude=jhora8SiderealLongitude(position.longitude);
  if(!withinOneArcsecond(productionMoonLongitude,fixture.expected.positions.Moon.longitude)){
@@ -60,7 +61,7 @@ const report={
  status:passed?'DATE_PARITY_CERTIFIED':'NOT_CERTIFIED',
  birthCases:20,natalMoonPassing:moon,
  mahaDates:{passing:maha,required:180},antaraDates:{passing:antara,required:1620},
- method:VIMSHOTTARI_SOLAR_METHOD,
+ method:VIMSHOTTARI_SOLAR_METHOD,deltaTProfile:JHORA8_DELTA_T_GRID_ID,
  displayCalendar:'captured civil fixed offset, nearest minute, YYYY-MM-DD',
  numericalStandard:'actual native SWIEPH Moon must remain within 1 arcsecond',
  sourceEvidence:'unmodified JHora 8 original INI, binary hashes and per-chart raw clipboard captures',

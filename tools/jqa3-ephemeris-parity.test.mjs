@@ -67,3 +67,24 @@ test('Native and Python ephemeris adapters agree to within 1 arcsecond for moder
   else process.env.ALLOW_PYTHON_SWISSEPH=old;
  }
 });
+
+test('Native and Python historical Swiss profiles agree on real Moon and Sun within hundredth arcsec',async()=>{
+ const py=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
+ const script=resolve('tools/swiss_ephemeris.py');
+ for(const input of cases){
+  const utc=localToUTC(input.date,input.time,input.timeZone);
+  const cp=spawnSync(py,[...(py==='py'?['-3']:[]),script],{
+   input:JSON.stringify({utc,latitude:input.latitude,longitude:input.longitude}),
+   cwd:process.cwd(),encoding:'utf8',timeout:12000
+  });
+  assert.equal(cp.status,0,cp.stderr||cp.error?.message);
+  const pyData=JSON.parse(cp.stdout);
+  const native=await getEphemeris(input);
+  const left=pyData.positions.find(x=>x.name==='Moon');
+  const right=native.positions.find(x=>x.name==='Moon');
+  assert.ok(angular(left.longitude,right.longitude)<0.02,
+   'historical Delta-T mismatch across Python/native '+utc);
+  assert.match(pyData.backend,/jhora8-swiss20201/);
+  assert.match(native.backend,/jhora8-swiss20201/);
+ }
+});

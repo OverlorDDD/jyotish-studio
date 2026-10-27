@@ -16,7 +16,7 @@ test('Legacy signs must match across Lagna and all nine positions in D1/D9/D10 b
  assert.equal(originalSignsAgree(invalidMoon,original),false);
 });
 test('Internal marker is not trusted if method or verification version changed',()=>{
- const good={...original,verification:{status:'verified_internal',version:'jyotish-integrity-v2',digest:'test'}};
+ const good={...original,verification:{status:'verified_internal',version:'jyotish-integrity-v3',digest:'test'}};
  assert.equal(isCurrentVerifiedChart(good),true);
  assert.equal(isCurrentVerifiedChart({...good,config:{...good.config,ascendantConvention:'legacy'}}),false);
  assert.equal(isCurrentVerifiedChart({...good,verification:{...good.verification,version:'old'}}),false);
@@ -26,7 +26,7 @@ test('Internal marker is not trusted if method or verification version changed',
 test('Recovery cache is source-bound, versioned, never silently rewrites snapshots',async()=>{
  const row={id:'legacy-chart',input,result:structuredClone(original)};
  let read=0,updates=0;
- const saved={sourceHash:sourceFingerprint(row),methodVersion:personalRecoveryVersion,verifiedResult:{...original,verification:{status:'verified_internal',version:'jyotish-integrity-v2',digest:'test'}}};
+ const saved={sourceHash:sourceFingerprint(row),methodVersion:personalRecoveryVersion,verifiedResult:{...original,verification:{status:'verified_internal',version:'jyotish-integrity-v3',digest:'test'}}};
  const prisma={personalChartRecovery:{findUnique:async()=>{read++;return saved;},upsert:async()=>{updates++;throw Error('must not write a cache hit');}}};
  const res=await resolvePersonalChart(prisma,row);
  assert.equal(res.status,'recovered');assert.equal(res.chart?.dasha.length,9);
@@ -37,7 +37,7 @@ test('Recovery cache is source-bound, versioned, never silently rewrites snapsho
 });
 
 test('Changed source sign cannot reuse a previously verified personal projection',()=>{
- const good={...original,verification:{status:'verified_internal',version:'jyotish-integrity-v2',digest:'test'}};
+ const good={...original,verification:{status:'verified_internal',version:'jyotish-integrity-v3',digest:'test'}};
  const bad=structuredClone(original);
  bad.d1[0].sign=bad.d1[0].sign===12?1:bad.d1[0].sign+1;
  assert.equal(isCurrentVerifiedChart(good),true);
