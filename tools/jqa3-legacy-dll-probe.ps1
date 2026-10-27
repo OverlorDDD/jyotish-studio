@@ -77,7 +77,7 @@ foreach($i in 1..20){
  if($returnedFlags -lt 0){throw ('Swiss lunar failure '+$id+': '+$errorBuffer.ToString())}
  $rL=Arc-Delta $asc ([double]$source.expected.positions.Lagna.longitude)
  $rM=Arc-Delta $moon[0] ([double]$source.expected.positions.Moon.longitude)
- $rows+= [ordered]@{
+ $rows+= [pscustomobject][ordered]@{
    id=$id;lagnaResidualArcseconds=$rL;moonResidualArcseconds=$rM
    lagnaPass=([Math]::Abs($rL) -le 1.0);moonPass=([Math]::Abs($rM) -le 1.0)
    returnedEphemerisFlags=$returnedFlags
@@ -87,7 +87,7 @@ foreach($i in 1..20){
 }
 $lagnaPass=@($rows|Where-Object {$_.lagnaPass}).Count
 $moonPass=@($rows|Where-Object {$_.moonPass}).Count
-$backends=@($rows|Select-Object -ExpandProperty actualSwissBackend -Unique)
+$backends=@($rows|ForEach-Object {$_.actualSwissBackend}|Sort-Object -Unique)
 $report=[ordered]@{
  status='DIAGNOSTIC_ONLY'
  libraryVersion=$v.ToString();dllSha256=(Get-FileHash -LiteralPath $DllPath -Algorithm SHA256).Hash.ToLowerInvariant()
