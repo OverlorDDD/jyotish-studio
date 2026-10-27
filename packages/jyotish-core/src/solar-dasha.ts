@@ -43,7 +43,7 @@ export function findSiderealSolarCross(
   if(!Number.isFinite(correction)||Math.abs(correction)>12)
    throw new Error('Sidereal-Sun crossing left expected 12-day bracket');
   jd-=correction;
-  if(Math.abs(correction)<1e-10){
+  if(Math.abs(correction)<1e-9){
    if(Math.abs((jd-estimate))>12||direction*(jd-startJdUt)<=0)
     throw new Error('Sidereal-Sun crossing outside expected cycle');
    return jd;
