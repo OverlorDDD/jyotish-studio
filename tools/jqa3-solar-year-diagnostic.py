@@ -65,13 +65,14 @@ def truth_table(case,model):
   k=(first+idx)%9
   major_lord=LORDS[k]
   t0=phase_inverse(birth_jd,birth_sun,cursor,model['sidereal']) if model['kind']=='TRUE_SOLAR' else birth_jd+cursor*model['days']
-  sub={};sub_cursor=cursor
+  sub={};sub_times={};sub_cursor=cursor
   for sub_index in range(9):
    s=(k+sub_index)%9
    jd=phase_inverse(birth_jd,birth_sun,sub_cursor,model['sidereal']) if model['kind']=='TRUE_SOLAR' else birth_jd+sub_cursor*model['days']
    sub[LORDS[s]]=to_utc_date(jd,offset)
+   sub_times[LORDS[s]]={'julianDayUt':jd,'utcInstant':(dt.datetime(1970,1,1,tzinfo=dt.timezone.utc)+dt.timedelta(days=jd-2440587.5)).isoformat(), 'localInstant':(dt.datetime(1970,1,1,tzinfo=dt.timezone.utc)+dt.timedelta(days=jd-2440587.5,seconds=offset)).isoformat()}
    sub_cursor+=YEARS[k]*YEARS[s]/120.0
-  result[major_lord]={'start':to_utc_date(t0,offset),'sub':sub}
+  result[major_lord]={'start':to_utc_date(t0,offset),'sub':sub,'subTimes':sub_times}
   cursor+=YEARS[k]
  return result
 
@@ -108,7 +109,7 @@ for model in models:
     sub_deltas.append(sd)
     if sd==0:antar+=1;ca+=1
     elif model['name']=='TRUE_SIDEREAL_SOLAR' and model['calendar']=='LOCAL_CAPTURED':
-     mismatches.append({'id':record['id'],'major':original['lord'],'minor':lord,'calculated':actual['sub'][lord],'expected':date,'dayDelta':sd,'type':'antardasha','birthUtc':record['utc'],'offset':record['offset']})
+     mismatches.append({'id':record['id'],'major':original['lord'],'minor':lord,'calculated':actual['sub'][lord],'expected':date,'dayDelta':sd,'type':'antardasha','solarBoundary':actual['subTimes'][lord],'birthUtc':record['utc'],'offset':record['offset']})
   details.append({'id':record['id'],'mahaMatches':cm,'antarMatches':ca})
  results.append({'model':model['name'],'calendar':model['calendar'],'mahaMatches':maha,'mahaTotal':180,
    'antarMatches':antar,'antarTotal':1620,'maxAbsMajorDays':max(map(abs,major_deltas)),
