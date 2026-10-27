@@ -26,13 +26,15 @@ public class Jqa3Win32 {
 $module=[Jqa3Win32]::LoadLibraryW($DllPath)
 if($module -eq [IntPtr]::Zero){throw ('Cannot load DLL: '+[Runtime.InteropServices.Marshal]::GetLastWin32Error())}
 function Link-Native([string]$name,[int]$stack,[type]$delegate){
-  foreach($candidate in @('_'+$name+'@'+$stack,$name)){
+  $candidates=@("_${name}@${stack}","$name")
+  foreach($candidate in $candidates){
     $pointer=[Jqa3Win32]::GetProcAddress($module,$candidate)
     if($pointer -ne [IntPtr]::Zero){
       return [Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer($pointer,$delegate)
     }
   }
-  throw ('Missing DLL symbol: '+$name+' stack='+$stack)
+  $known=[Jqa3Win32]::GetProcAddress($module,'_swe_version@4')
+  throw ('Missing DLL symbol: '+$name+' stack='+$stack+' tried='+($candidates -join ',')+' knownVersionPtr='+$known)
 }
 $versionFn=Link-Native 'swe_version' 4 ([Jqa3Win32+Version])
 $julianFn=Link-Native 'swe_julday' 24 ([Jqa3Win32+Julian])
