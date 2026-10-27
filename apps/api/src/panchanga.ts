@@ -73,7 +73,15 @@ export async function calculatePanchangaDay(unsafe:Partial<Location>){
  const rise=riseSet(location);
  const at=await createPanchangaSunMoonAt();
  const result=buildPanchangaSunrise(location.date,rise.sunriseUtc,rise.nextSunriseUtc,at);
- return {...result,location:{timeZone:location.timeZone,latitude:location.latitude,longitude:location.longitude},
+ // Astronomical Events v1: sunrise/sunset and geocentric 0°/180° lunations.
+ // These are not eclipse predictions; lunar latitude is not part of the test.
+ const astronomicalEvents=[
+  {type:'sunrise',atUtc:rise.sunriseUtc},
+  {type:'sunset',atUtc:rise.sunsetUtc},
+  ...result.changes.filter(x=>x.kind==='tithi'&&(x.nextIndex===1||x.nextIndex===16))
+   .map(x=>({type:x.nextIndex===1?'new_moon':'full_moon',atUtc:x.atUtc}))
+ ].sort((a,b)=>a.atUtc.localeCompare(b.atUtc));
+ return {...result,astronomicalEvents,location:{timeZone:location.timeZone,latitude:location.latitude,longitude:location.longitude},
   sunsetUtc:rise.sunsetUtc,astronomyProfile:PANCHANGA_ASTRONOMY_PROFILE,
   sunriseMethod:rise.sunriseMethod,
   methodology:{referenceFrame:'Lahiri sidereal, apparent geocentric Sun & Moon',
