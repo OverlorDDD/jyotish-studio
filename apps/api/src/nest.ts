@@ -23,6 +23,7 @@ import {ReadingOrdersController} from './reading-orders.ts';
 import {PersonalController} from './personal.ts';
 import {HoroscopeController} from './horoscope.ts';
 import {PanchangaController} from './panchanga-controller.ts';
+import {dailySkyContext} from './sky-context.ts';
 import {PanchangaPlacesController} from './panchanga-places-controller.ts';
 import {AstronomicalEventsController} from './astronomical-events-controller.ts';
 import {VedicCalendarController} from './vedic-calendar-controller.ts';
@@ -121,7 +122,33 @@ export class JyotishController{
   const verified=chart as CalculatedChart&{verification?:{status:string;version:string;digest:string}};
   if(verified.verification?.status!=='verified_internal')
    throw new ServiceUnavailableException('Jyotish verification missing. Report generation is blocked.');
-  const base={...report,readerVersion:'6.0.0',verification:verified.verification};
+  // Additive, independently computed contemporary sky/calendar section.
+  // Never reinterpret the historic birth chart as if a current festival
+  // happened at the birth instant; the city is labelled reference only.
+  const asOf=report.asOf.slice(0,10);
+  const sky=await dailySkyContext(asOf,'Europe/Kyiv').catch(()=>null);
+  const nextSky=sky?.events[0],todayFestival=sky?.observances[0];
+  const skyParagraphs=[
+   nextSky?(birth.lang==='uk'?
+    'Найближча астрономічна подія ('+nextSky.atUtc+'): '+nextSky.meaning.uk+
+    ' Практичний крок: '+nextSky.practice.uk:
+    'Upcoming exact event ('+nextSky.atUtc+'): '+nextSky.meaning.en+
+    ' Practice: '+nextSky.practice.en):null,
+   todayFestival?(birth.lang==='uk'?
+    'Календарний орієнтир для Києва: '+todayFestival.id.replaceAll('_',' ')+
+    '. Це кандидат за традиційним правилом, а не остаточна дата посту.':
+    'Kyiv-reference calendar observance: '+todayFestival.id.replaceAll('_',' ')+
+    '. It is a rule-based candidate, not a certified fasting date.'):null
+  ].filter((x):x is string=>Boolean(x));
+  const skySection=skyParagraphs.length?{
+   id:'current-sky-context',eyebrow:'AE-P5 · AE-P7',
+   heading:birth.lang==='uk'?'Поточний небесний календар':'Current sky and observance calendar',
+   lead:birth.lang==='uk'?'Розрахунок на дату читання, не характеристика народження':'Calculated for reading date, not birth attributes',
+   paragraphs:skyParagraphs,
+   facts:['Swiss Ephemeris · Lahiri','Reference: Europe/Kyiv / Kyiv','Festival dates are candidates']
+  }:null;
+  const base={...report,sections:skySection?[...report.sections,skySection]:report.sections,
+   calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification};
   if(birth.preferred==='local'||process.env.GALAXIORA_READER_ONLY==='1')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
