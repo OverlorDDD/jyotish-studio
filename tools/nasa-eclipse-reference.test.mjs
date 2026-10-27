@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 const original=JSON.parse(readFileSync(new URL('../docs/research/nasa-eclipses-2027-fixture.json',import.meta.url),'utf8'));
-const root=resolve(new URL('..',import.meta.url).pathname);
+const root=fileURLToPath(new URL('..',import.meta.url));
 const python=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
 const args=[...(python==='py'?['-3']:[]),resolve(root,'tools/astronomy-eclipses.py')];
 function search(payload){
