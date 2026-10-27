@@ -33,3 +33,13 @@
  padding:12px;border-color:#50647c;box-sizing:border-box}
 .card[open] summary{width:max-content;max-width:100%;min-height:44px}
 @media(max-width:620px){.card[open]{grid-column:auto}}
+
+/* Stationary triggers; content is portaled to dedicated toolbar panel. */
+.trigger{width:100%;min-height:56px;box-sizing:border-box;padding:10px 12px;
+ display:flex;align-items:center;justify-content:center;gap:9px;
+ font-family:inherit;font-size:14px;font-weight:600;line-height:1.35;
+ border:1px solid #50647c;border-radius:11px;color:#f0d3a1;background:#203149;cursor:pointer}
+.trigger[aria-expanded=true]{background:#2e405b;border-color:#d6b77d}
+.expanded{min-width:0;width:100%;overflow-wrap:anywhere}
+.expanded h3{font:600 19px/1.4 Georgia,serif;color:#f0d4a4;margin:0 0 12px}
+.expanded .settings{max-width:640px}
