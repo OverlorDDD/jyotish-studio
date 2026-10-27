@@ -36,3 +36,8 @@
 
 ## Favicon correction
 `apps/web/app/icon.svg` now has a **full-bleed opaque navy 64×64 rectangle** before the artwork, so browser UI does not render transparent corners black. New installation may require hard reload of browser favicon cache.
+
+## Supplement: dynamic true solar-year candidates (2026-10-27)
+PyJHora's modern Vimshottari module offers both mean-length and *true solar revolution* timing, with Sun crossing searches rather than fixed days/year. This is independent algorithmic evidence that date discrepancies may originate in choice of year definition, not mere rounding. The new `npm run jqa3:dasha-solar-arc` evaluates true sidereal and true tropical solar arc candidates in both original captured local clock and UTC. It uses official Swiss compressed Sun/Moon ephemeris and rejects fallback. These candidates do not prove JHora's undocumented `YearDefinition=3` mapping, nor do they certify exact instants without source evidence. Original JHora and production data remain untouched.
+
+Source: https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/horoscope/dhasa/graha/vimsottari.py ; https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/panchanga/drik.py .

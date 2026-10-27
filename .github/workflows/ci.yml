@@ -62,6 +62,8 @@ jobs:
         run: npm run test:ephemeris-backend
       - name: JQA-3.5 differential diagnostics (must not self-certify)
         run: npm run jqa3:doctor
+      - name: Explore true solar-revolution Vimshottari year interpretations (diagnostic only)
+        run: npm run jqa3:dasha-solar-arc
       - name: Full NestJS and Next.js production build
         run: npm run build
       - name: Swagger metadata and controller routes
