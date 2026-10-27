@@ -58,6 +58,22 @@ jobs:
             Select-Object -First 12
           $files | ForEach-Object { Write-Host "Eph: $($_.FullName) sha256=$((Get-FileHash $_.FullName -Algorithm SHA256).Hash)" }
           if($files.Count -gt 0) { Add-Content $env:GITHUB_ENV "JQA3_EPHE=$($files[0].DirectoryName)" }
+      - name: Inspect actual JHora DLL exports and version signature before binding
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check pefile
+          $code=@'
+          import os,hashlib,pefile
+          p=os.environ['JQA3_DLL']
+          pe=pefile.PE(p,fast_load=False)
+          print('actual_DllSha256',hashlib.sha256(open(p,'rb').read()).hexdigest())
+          print('actual_ExportNames',[s.name.decode('ascii',errors='replace') if s.name else 'ordinal:'+str(s.ordinal) for s in pe.DIRECTORY_ENTRY_EXPORT.symbols][:150])
+          data=open(p,'rb').read()
+          for needle in (b'2.02.01',b'2.02',b'1.78'):
+              print('embedded_version_pattern',needle.decode(),data.find(needle))
+          '@
+          $code|Set-Content inspect-jhora-dll.py -Encoding utf8
+          python inspect-jhora-dll.py
       - name: Differential 20-chart probe using original installed Win32 Swiss backend
         shell: pwsh
         run: |
