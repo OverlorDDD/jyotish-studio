@@ -7,7 +7,10 @@ import styles from './HoroscopeHub.module.css';
 type L={uk:string;en:string};
 type Reading={headline:L;description:L;goodFor:L;caution:L;reflection?:L;action?:L;evidence:Record<string,string|number|null|undefined>};
 type SignReading=Reading&{referenceSign:number;house:number};
-type PublicData={date:string;zone:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[];reference:string};
+type Sky={events:{kind:string;atUtc:string;localDate:string;practice:L;meaning:L;tradition:L}[];
+ observances:{id:string;atUtc:string;rule:string;category:string}[];
+ referenceLocation:{name:string}|null;observanceDayCertifiedByTradition:false};
+type PublicData={date:string;zone:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[];reference:string;sky?:Sky};
 type PublicWeek={startDate:string;zone:string;reference:string;days:{date:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[]}[]};
 type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string}|null;journey?:{daily:Reading|null;horoscope:Reading|null}};
 type PersonalCalendar={horoscopeStatus:string;horoscopes:{date:string;guidance:Reading|null}[]};
@@ -100,6 +103,17 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      (uk?'Практичний крок':'One practical step')}</strong>
     <p>{t(g.reflection||g.action||g.goodFor)}</p>
    </div>
+   {data?.sky&&<section data-testid="horoscope-sky-context" style={{padding:'14px 0',borderTop:'1px solid #536a82'}}>
+    <h3>{uk?'Астрономічні та ведичні події':'Astronomical and Vedic calendar context'}</h3>
+    {data.sky.events.slice(0,2).map((e,i)=><p key={e.kind+e.atUtc+i}>
+     <strong>{e.localDate}: </strong>{t(e.meaning)} <span>{t(e.practice)}</span>
+    </p>)}
+    {data.sky.observances.map((e,i)=><p key={e.id+e.atUtc+i}>
+     <strong>{uk?'Календарна позначка':'Calendar observance'}: </strong>{e.id.replaceAll('_',' ')}.
+     <small> {uk?'Кандидат за традиційним правилом, не підтверджена дата посту.':'Rule-based candidate, not a certified fasting date.'}</small>
+    </p>)}
+    {data.sky.referenceLocation&&<small>{uk?'Святкові позначки розраховані для Києва; для іншого міста відкрий Панчангу.':'Observance reference city: Kyiv; open Panchanga for other locations.'}</small>}
+   </section>}
    {evidence(g)}
   </article>;
  }
