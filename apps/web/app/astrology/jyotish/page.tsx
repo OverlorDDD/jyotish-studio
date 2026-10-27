@@ -70,7 +70,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
   return ()=>{live=false;};
  },[lang]);
- const verified=(value:Chart|null|undefined)=>value?.verification?.version==='jyotish-integrity-v1'&&
+ const verified=(value:Chart|null|undefined)=>value?.verification?.version==='jyotish-integrity-v3'&&
   value.verification.status==='verified_internal'&&/^[a-f0-9]{64}$/.test(value.verification.digest);
  const loadSaved=async(loaded:unknown,saved:ReadingReport|null)=>{
   const incoming=loaded as Chart;
