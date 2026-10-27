@@ -96,7 +96,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     <section><strong>{uk?'На що звернути увагу':'What deserves attention'}</strong><p>{t(g.goodFor)}</p></section>
     <section><strong>{uk?'Що важливо не перебільшувати':'What not to overstate'}</strong><p>{t(g.caution)}</p></section>
    </div>
-   <div className={styles.reflection}><strong>{uk?'Запитання для себе':'A question for yourself'}</strong>
+   <div className={styles.reflection}><strong>{g.reflection?(uk?'Запитання для себе':'A question for yourself'):
+     (uk?'Практичний крок':'One practical step')}</strong>
     <p>{t(g.reflection||g.action||g.goodFor)}</p>
    </div>
    {evidence(g)}

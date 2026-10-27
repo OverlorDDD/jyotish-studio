@@ -40,8 +40,10 @@ test('One personal reading uses natal Lagna, natal Moon, Dasha and same noon tra
  assert.equal(reading.evidence.house,9);
  assert.equal(reading.evidence.sampledAtUtc,week[0].sampledAtUtc);
  assert.match(reading.description.uk,/натальн/);
- assert.match(reading.description.uk,/махадаша Сатурна/);
+ assert.match(reading.description.uk,/період Сатурна/);
  assert.match(reading.description.en,/natal Moon/);
+ assert.doesNotMatch(reading.description.uk,/\d+-го дому|пада \d|обіцянка події/);
+ assert.doesNotMatch(reading.description.en,/house \d|guaranteed event/);
  assert.match(reading.action.uk,/принцип/);
  assert.doesNotMatch(reading.action.uk,/навчальну програму|вступ|наставник|вакансі/);
  assert.doesNotMatch(reading.goodFor.uk,/вступ|наставник/);

@@ -127,20 +127,29 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
  const major=context.period?.lord,minor=context.period?.antardasha?.lord;
  const majorNatalHouse=major?natalPeriodContext(context.lagnaSign,context.natalPositions,major)?.house??null:null;
  const minorNatalHouse=minor?natalPeriodContext(context.lagnaSign,context.natalPositions,minor)?.house??null:null;
- const voice=horoscopeTheme(house),moonVoice=horoscopeTheme(t.moon.houseFromMoon||house);
+ const voice=horoscopeTheme(house);
+ const secondary=t.moon.houseFromMoon&&t.moon.houseFromMoon!==house?
+  houses[t.moon.houseFromMoon-1]:null;
  const mahadasha=major&&names[major]?names[major]:null,antardasha=minor&&names[minor]?names[minor]:null;
- // The current-day experience is unknown. No claim that a meeting, crisis,
- // promotion, disease or payment WILL happen; this is house-based interpretation.
+ // Interpret ONLY validated natal and transit anchors. Keep house numbers and
+ // exact dasha identifiers in evidence, not in the editorial opening.
+ const description=l(
+  [voice.story.uk,
+   secondary?'Від твого натального Місяця цей самий рух також нагадує про '+secondary.topic.uk+'.':null,
+   mahadasha?'На ширшому життєвому тлі період '+mahadasha.uk+' звертає увагу на '+qualities[major!].uk+
+    (antardasha?' Підперіод '+antardasha.uk+' додає тему '+qualities[minor!].uk+'.':'.'):null]
+   .filter(Boolean).join(' '),
+  [voice.story.en,
+   secondary?'Seen from your natal Moon, this transit also highlights '+secondary.topic.en+'.':null,
+   mahadasha?'Against a longer backdrop, your '+mahadasha.en+' period brings attention to '+qualities[major!].en+
+    (antardasha?' The '+antardasha.en+' subperiod adds '+qualities[minor!].en+'.':'.'):null]
+   .filter(Boolean).join(' ')
+ );
  return {
   headline:voice.title,
-  description:l(
-   voice.story.uk+' У твоїй карті місячний транзит торкається '+house+'-го дому від лагни, а від натального Місяця — '+(t.moon.houseFromMoon||'—')+'-го: '+moonVoice.title.uk.toLocaleLowerCase('uk-UA')+'.'+
-   (mahadasha?' На триваліший життєвий ритм накладається махадаша '+mahadasha.uk+
-    (antardasha?' та антардаша '+antardasha.uk:'')+'. Це фон для тлумачення, а не обіцянка події.':''),
-   voice.story.en+' Today’s Moon is in house '+house+' from your natal Lagna and in house '+(t.moon.houseFromMoon||'—')+' from your natal Moon: '+moonVoice.title.en.toLowerCase()+'.'+
-   (mahadasha?' The longer cycle is '+mahadasha.en+' Mahadasha'+(antardasha?' with '+antardasha.en+' Antardasha':'')+'. This adds context, not a guaranteed event.':'')
-  ),
-  goodFor:voice.opportunity,caution:voice.care,action:voice.prompt,
+  description,
+  goodFor:voice.opportunity,caution:voice.care,
+  action:houses[house-1].action,
   evidence:{kind:'VERIFIED_NATAL_TRANSIT_DASHA',method:t.method,day:t.date,sampledAtUtc:t.sampledAtUtc,
    planet:'Moon',sign:t.moon.sign,house,nakshatra:t.moon.nakshatra,natalLagnaSign:context.lagnaSign,
    natalMoonSign:context.moonSign,natalMoonHouse,major,minor,majorNatalHouse,minorNatalHouse}

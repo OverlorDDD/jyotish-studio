@@ -61,3 +61,16 @@ Test pages:
 - API http://localhost:4000/api/v1/horoscope/today or same origin /api/v1/horoscope/today according to frontend proxy. A public reading has `notAPersonalChart: true`, `reference: SIDEREAL_MOON_SIGN`, and exactly 12 `signs`.
 
 QA: desktop 1440px, mobile 375px + 320px, focus keyboard Tab, collapsed evidence; compare "Мій Всесвіт" and public tab for same verified user and local day.
+
+## 2026-10-27 follow-up audit and corrections
+
+- Added public `GET /api/v1/horoscope/week` with seven real Swiss/Lahiri local-noon samples for all 12 Janma-Rashi signs. UI groups consecutive noon samples in the same transit house into weekly phases. Day ranges are not exact lunar ingresses.
+- Fixed personal evidence: natal-based readings now use their own date, profile time zone, lunar sign, nakshatra and nativity; public Kyiv data no longer overwrites personal facts.
+- Personal GalaxiNews displays images only when the existing News API returns a safe real image URL. Ranking, source, date, and publication links remain authoritative.
+- Harmonized forum utility heights and constrained the moderator disclosure. Topic creation stays structurally outside the toolbar.
+- Personal daily prose now leads with grounded narrative, leaving house numbers and formal dasha data in the collapsible evidence. The daily step uses the verified house-action policy, without assumed occupation or education.
+
+### Research and technical boundaries
+The implementation uses deterministic, fact-bound editorial rules, **not yet live LLM rewriting**. A future LLM editor must consume a typed immutable fact contract, produce only language improvements, then pass claim/evidence, schema and UA/EN validation with deterministic fallback. It must never calculate planets or claim a guaranteed event. JQA-3 Lagna/Moon sub-arcsecond and exact Vimshottari boundaries remain unresolved.
+
+Reviewed comparators: Astro.com explains balancing transit prominence and avoiding repeated daily text (https://www.astro.com/faq/fq_fh_transits_h.htm); AstroSage explicitly identifies Vedic Moon-sign weekly forecasts (https://www.astrosage.com/astrology/weekly-horoscope.asp). No competitor copy was reused.
