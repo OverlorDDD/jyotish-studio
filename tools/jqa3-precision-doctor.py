@@ -11,6 +11,11 @@ import swisseph as swe
 
 ROOT = Path(__file__).resolve().parent.parent
 CORPUS = ROOT / 'tests/fixtures/jhora-corpus'
+EPHE = ROOT / 'node_modules/@swisseph/node/ephemeris'
+for _source_file in ('sepl_18.se1','semo_18.se1'):
+    if not (EPHE / _source_file).is_file():
+        raise RuntimeError('JQA3 precision reference requires bundled SWIEPH data: '+_source_file)
+swe.set_ephe_path(str(EPHE))
 FLAGS = swe.FLG_SWIEPH | swe.FLG_SPEED | swe.FLG_SIDEREAL
 ONE = 1.0
 
@@ -67,7 +72,9 @@ def report():
             k: (None if v is None else delta_arcseconds(v, reference['Lagna']['longitude']))
             for k, v in base.items()
         }
-        current_moon, flags = moon(jd)
+            current_moon, flags = moon(jd)
+        if (flags & 7) != swe.FLG_SWIEPH:
+            raise RuntimeError('SWIEPH unavailable in JQA3 precision replay for '+chart_id)
         moon_residuals = {'production_geocentric_apparent_sidereal': delta_arcseconds(
             current_moon, reference['Moon']['longitude'])}
         for mode, additional_flags in [
