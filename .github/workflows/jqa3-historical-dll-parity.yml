@@ -53,6 +53,11 @@ jobs:
           $p | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 jqa3-installed-jhora-provenance.json
           Get-Content jqa3-installed-jhora-provenance.json
           "JQA3_OFFICIAL_DLL=$dll" >> $env:GITHUB_ENV
+          $ephe=Join-Path (Split-Path -Parent $dir) 'jhcore\ephe'
+          foreach($name in @('sepl_18.se1','semo_18.se1')) {
+            if (!(Test-Path (Join-Path $ephe $name))) { throw "Missing original JHora Swiss file: $name at $ephe" }
+          }
+          "JQA3_ORIGINAL_EPHE=$ephe" >> $env:GITHUB_ENV
           if (!$p.sameExeAsTwentyCaptures) {
              throw 'Official installation differs from SHA-pinned JHora 8 reference executable; cannot claim same-version method.'
           }
@@ -62,8 +67,12 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $exe=Join-Path $env:WINDIR 'SysWOW64\WindowsPowerShell\v1.0\powershell.exe'
           if (!(Test-Path $exe)) { throw '32-bit PowerShell unavailable' }
-          & $exe -NoProfile -ExecutionPolicy Bypass -File tools/jqa3-legacy-dll-probe.ps1 -DllPath $env:JQA3_OFFICIAL_DLL -OutputPath jqa3-historical-dll-results.json
+          & $exe -NoProfile -ExecutionPolicy Bypass -File tools/jqa3-legacy-dll-probe.ps1 -DllPath $env:JQA3_OFFICIAL_DLL -EphemerisPath $env:JQA3_ORIGINAL_EPHE -OutputPath jqa3-historical-dll-results.json
           if ($LASTEXITCODE -ne 0) { throw 'DLL probe failed; no parity claim' }
+          $diagnostic=Get-Content jqa3-historical-dll-results.json -Raw | ConvertFrom-Json
+          if (@($diagnostic.rows | Where-Object { $_.actualSwissBackend -ne 'SWIEPH' }).Count) {
+            throw 'Historical Swiss returned MOSEPH rather than SWIEPH; precision comparison invalid'
+          }
           Get-Content jqa3-historical-dll-results.json
       - name: Preserve metadata and 20-chart residuals (never redistribute executable or DLL)
         if: always()
