@@ -26,9 +26,11 @@ def jd_from_utc(iso):
     return swe.julday(date.year,date.month,date.day,
                       date.hour+date.minute/60+date.second/3600)
 
-def date_at(jd,offset_seconds):
-    return (dt.datetime(1970,1,1,tzinfo=dt.timezone.utc)+
-            dt.timedelta(days=jd-2440587.5,seconds=offset_seconds)).strftime('%Y-%m-%d')
+def date_at(jd,offset_seconds,rounding):
+    instant=dt.datetime(1970,1,1,tzinfo=dt.timezone.utc)+dt.timedelta(days=jd-2440587.5,seconds=offset_seconds)
+    if rounding=='nearest_minute':
+        instant+=dt.timedelta(seconds=30)
+    return instant.strftime('%Y-%m-%d')
 
 def from_date(iso):
     return dt.date.fromisoformat(iso)
@@ -62,7 +64,7 @@ def previous_solar_cross(jd,years,flags,mean):
         raise RuntimeError('Solar backward crossing outside expected cycle: '+str(candidate-expected))
     return candidate
 
-def evaluate(mode,clock):
+def evaluate(mode,clock,rounding='unrounded'):
     flags=swe.FLG_SWIEPH | (swe.FLG_SIDEREAL if mode=='true_sidereal_sun' else 0)
     year=MEAN[mode]
     score={'majorExact':0,'minorExact':0,'majorTotal':0,'minorTotal':0,'offsets':[],'byChart':[],'mismatches':[]}
@@ -80,7 +82,7 @@ def evaluate(mode,clock):
             k=(first+i)%9
             source=row['expected']['vimshottari'][i]
             if source['lord']!=LORDS[k]:raise RuntimeError('JHora lord order mismatch for '+id)
-            actual=date_at(instant,offset)
+            actual=date_at(instant,offset,rounding)
             diff=(from_date(actual)-from_date(source['start'])).days
             score['offsets'].append(diff)
             majors+=int(diff==0)
@@ -89,7 +91,7 @@ def evaluate(mode,clock):
             for j in range(9):
                 a=(k+j)%9
                 subLord=LORDS[a]
-                actual=date_at(sub,offset)
+                actual=date_at(sub,offset,rounding)
                 diff=(from_date(actual)-from_date(source['antardashas'][subLord])).days
                 if diff != 0:
                     local_time=dt.datetime(1970,1,1,tzinfo=dt.timezone.utc)+dt.timedelta(days=sub-2440587.5,seconds=offset)
@@ -108,13 +110,17 @@ def evaluate(mode,clock):
         score['minorExact']+=minors
         score['byChart'].append({'id':id,'mahadasaDayMatches':majors,'antarDayMatches':minors})
     score['largestAbsoluteMajorOffsetDays']=max(abs(x) for x in score['offsets'])
-    return {'method':mode,'dateClock':clock,**score}
+    return {'method':mode,'dateClock':clock,'calendarRounding':rounding,**score}
 
 def main():
     out=[]
     for mode in MEAN:
         for clock in ('utc','original_captured_local'):
-            out.append(evaluate(mode,clock))
+            out.append(evaluate(mode,clock,'unrounded'))
+            if mode=='true_sidereal_sun' and clock=='original_captured_local':
+                # Test one uniformly applied, independently explainable
+                # convention rather than a fixture-specific date exception.
+                out.append(evaluate(mode,clock,'nearest_minute'))
     out.sort(key=lambda x:(x['minorExact'],x['majorExact']),reverse=True)
     print(json.dumps({'status':'DIAGNOSTIC_ONLY_NO_YEAR_SELECTOR_PROOF',
      'astrometry':'Swiss verified SWIEPH from bundled ephe files',
