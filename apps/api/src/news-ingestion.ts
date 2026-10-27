@@ -99,6 +99,17 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    try{
     const previous=await this.prisma.newsSourceScan.count();
     const backfill=options.backfill===true||previous===0;
+    // A verified, original Galaxiora astronomy digest, at most daily. This
+    // operates independently of failing external RSS/GDELT publishers.
+    if(Date.now()>=this.nextAstronomyAt){
+     this.nextAstronomyAt=Date.now()+24*60*60*1000;
+     try{
+      const original=await publishAstronomicalNews(this.prisma);
+      if(original.created)console.log('[news] first-party Swiss astronomy:',original.created,'new stories');
+      added+=original.created;
+     }catch(e){console.warn('[news] astronomy digest:',String(e).slice(0,180));}
+    }
+
     for(const job of this.jobs(backfill)){
      const began=Date.now(),reasonCounts:Record<string,number>={};
      let candidates=0,accepted=0,duplicates=0,rejected=0,errors=0,status='ok',failure:string|null=null;
@@ -171,16 +182,6 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
       status,candidates,accepted,duplicates,rejected,errors,rejectionReasons:reasonCounts,
       failure,durationMs:Date.now()-began}}).catch(e=>console.warn('[news] audit',String(e)));
      if(job.isGdelt&&status!=='cooldown'&&this.gdeltRetryUntil<=Date.now())await sleep(6500);
-    }
-    // A verified, original Galaxiora astronomy digest, at most daily. This
-    // operates independently of failing external RSS/GDELT publishers.
-    if(Date.now()>=this.nextAstronomyAt){
-     this.nextAstronomyAt=Date.now()+24*60*60*1000;
-     try{
-      const original=await publishAstronomicalNews(this.prisma);
-      if(original.created)console.log('[news] first-party Swiss astronomy:',original.created,'new stories');
-      added+=original.created;
-     }catch(e){console.warn('[news] astronomy digest:',String(e).slice(0,180));}
     }
     await this.prisma.newsScan.create({data:{sources,accepted:added,errors:errorsAll}});
     await this.enrichMetadata().catch(e=>console.warn('[news] metadata lookup failed',String(e)));
