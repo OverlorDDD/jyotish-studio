@@ -80,6 +80,24 @@ jobs:
             throw 'Authentic JHora 8 historical independent precision 20/20 REGRESSION'
           }
           Get-Content jqa3-historical-dll-results.json
+      - name: Derive chart-independent old-vs-modern monthly Delta-T differential
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          python -m pip install pyswisseph
+          $env:JQA3_EPHE=$env:JQA3_ORIGINAL_EPHE
+          python tools/jqa3-delta-t-grid-modern.py > jqa3-delta-t-sampled-differences.json
+          if ($LASTEXITCODE -ne 0) { throw 'Delta-T calibration failed' }
+          $data=Get-Content jqa3-delta-t-sampled-differences.json -Raw | ConvertFrom-Json
+          if ($data.samples.Count -ne 3612) { throw 'Expected exactly 301 years x 12 months' }
+          "JQA3_GRID_BEGIN|1900|$($data.samples.Count)"
+          for ($i=0;$i -lt $data.samples.Count;$i+=120) {
+           $end=[Math]::Min($i+119,$data.samples.Count-1)
+           $chunk=($data.samples[$i..$end]|ConvertTo-Json -Compress -Depth 4)
+           "JQA3_GRID_CHUNK|$i|$chunk"
+          }
+          "JQA3_GRID_END"
+
       - name: Modern Swiss vs historical JHora 2.02.01 on identical original DE431 files
         shell: pwsh
         run: |
@@ -101,5 +119,7 @@ jobs:
             jqa3-installed-jhora-provenance.json
             jqa3-historical-dll-results.json
             jqa3-modern-on-historical-files.json
+            jqa3-legacy-delta-t-grid.json
+            jqa3-delta-t-sampled-differences.json
           if-no-files-found: warn
           retention-days: 30

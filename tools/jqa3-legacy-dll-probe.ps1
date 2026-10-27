@@ -92,6 +92,21 @@ foreach($i in 1..20){
    error=$errorBuffer.ToString()
  }
 }
+# Systematic, NON-chart-specific monthly sample of the genuine original
+# Swiss 2.02.01 Delta-T model. Never use the 20 birth fixtures as a lookup table.
+# The checksum-attested DLL is already loaded in the isolated Win32 runner.
+$deltaGrid=New-Object System.Collections.Generic.List[object]
+foreach($year in 1900..2200){
+ foreach($month in 1..12){
+  $j=$julianFn.Invoke([int]$year,[int]$month,1,0.0,1)
+  $msg=New-Object System.Text.StringBuilder 256
+  $seconds=86400.0*$deltaFn.Invoke($j,2,$msg)
+  if(![double]::IsFinite($seconds)){throw 'Nonfinite historical DeltaT grid sample'}
+  $deltaGrid.Add([pscustomobject]@{year=$year;month=$month;seconds=$seconds})
+ }
+}
+$deltaGrid|ConvertTo-Json -Depth 3|Set-Content -Encoding UTF8 'jqa3-legacy-delta-t-grid.json'
+Write-Host ('HISTORICAL_DELTAT_SAMPLES='+$deltaGrid.Count)
 $lagnaPass=@($rows|Where-Object {$_.lagnaPass}).Count
 $moonPass=@($rows|Where-Object {$_.moonPass}).Count
 $backends=@($rows|ForEach-Object {$_.actualSwissBackend}|Sort-Object -Unique)
