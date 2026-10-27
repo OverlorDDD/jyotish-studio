@@ -1,0 +1,50 @@
+name: JQA3 solar-year differential calendar diagnostic
+on:
+  push:
+    branches: [fix/jqa3-windows-and-llm-recovery]
+    paths:
+      - 'tools/jqa3-dasha-solar-arc.py'
+      - 'tests/fixtures/jhora-corpus/**'
+      - '.github/workflows/jqa3-solar-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare-20:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: python -m pip install pyswisseph
+      - name: Compare 20 genuine JHora calendars without editing source
+        run: |
+          python tools/jqa3-dasha-solar-arc.py > jqa3-solar-diagnostic.json
+          python - <<'PY'
+          import json
+          with open('jqa3-solar-diagnostic.json',encoding='utf-8') as f: d=json.load(f)
+          best=d['comparisonModes'][0]
+          print('YEAR_MODE',best['method'],best['dateClock'])
+          print('ORIGINAL_JHORA_DATES: major',best['majorExact'],'/',best['majorTotal'],
+                'antardasha',best['minorExact'],'/',best['minorTotal'])
+          print('MISMATCHES',json.dumps(best['mismatches'],indent=2))
+          assert best['method']=='true_sidereal_sun'
+          assert best['dateClock']=='original_captured_local'
+          assert best['majorExact']==180
+          assert best['minorExact']>=1619
+          print('DIAGNOSTIC_VALID_NOT_FINAL_CERTIFICATION')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jqa3-true-solar-year-comparison-20
+          path: jqa3-solar-diagnostic.json
+          if-no-files-found: warn
+          retention-days: 30
