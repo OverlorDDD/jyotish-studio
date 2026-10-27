@@ -30,6 +30,18 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  expect(await favicon.text()).toContain('Galaxiora');
  await page.goto('/uk/horoscope');
  await expect(page.getByRole('heading',{name:'Гороскопи'})).toBeVisible();
+ // Browser-level proof: the tab icon is actually opaque, including every corner.
+ // A text-only assertion on SVG source would miss CSS or rendering transparency.
+ const alpha=await page.evaluate(async()=>{
+  const img=new Image();
+  img.src='/icon.svg';await img.decode();
+  const canvas=document.createElement('canvas');
+  canvas.width=64;canvas.height=64;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(img,0,0,64,64);
+  return [[0,0],[63,0],[0,63],[63,63],[32,32]].map(([x,y])=>ctx.getImageData(x,y,1,1).data[3]);
+ });
+ expect(alpha).toEqual([255,255,255,255,255]);
  await expect(page.getByRole('button',{name:'Овен'})).toBeVisible();
  await page.getByRole('button',{name:'Риби'}).click();
  await expect(page.getByRole('button',{name:'Риби'})).toHaveAttribute('aria-pressed','true');
