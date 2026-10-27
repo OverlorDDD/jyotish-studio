@@ -5,6 +5,7 @@ Search true solar-year phase lengths (sidereal and tropical) vs mean-year varian
 import datetime as dt
 import json
 import math
+import os
 from pathlib import Path
 import swisseph as swe
 
@@ -14,6 +15,10 @@ DAY=86400.0
 LORDS=['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury']
 YEARS=[7,20,6,10,7,18,16,19,17]
 NAK=360/27
+EPHE=os.environ.get('JQA3_EPHE') or os.environ.get('SE_EPHE_PATH')
+if not EPHE or not (Path(EPHE)/'semo_18.se1').is_file() or not (Path(EPHE)/'sepl_18.se1').is_file():
+ raise SystemExit('Source-year diagnostic must use pinned historical Swiss compressed ephemerides, not MOSEPH')
+swe.set_ephe_path(EPHE)
 swe.set_sid_mode(swe.SIDM_LAHIRI)
 FL= swe.FLG_SWIEPH|swe.FLG_SPEED
 SUN=swe.SUN
@@ -32,6 +37,7 @@ def angular_diff(a,b):
 def sun_at(jd,sidereal):
  flags=FL|(swe.FLG_SIDEREAL if sidereal else 0)
  xx,ret=swe.calc_ut(jd,SUN,flags)
+ if (ret & 7)!=swe.FLG_SWIEPH:raise RuntimeError('Swiss ephemeris fallback is prohibited')
  return xx[0]%360,xx[3],ret
 
 def phase_inverse(birth_jd,birth_sun,relative_years,sidereal):
@@ -108,4 +114,4 @@ results.sort(key=lambda x:(x['antarMatches'],x['mahaMatches']),reverse=True)
 print(json.dumps({'status':'DIAGNOSTIC_ONLY_NOT_CERTIFIED','reference':'20 source-original JHora 8.0 YYYY-MM-DD exports',
  'yearDefinitionCode':3,'noJHoraGUIOptionMapping':True,'versions':{'pyswisseph':swe.version},
  'candidates':results,
- 'warning':'Same-date scores are observational clues, not attestation of source year definition. Never change production year mode just to maximize scores.'},ensure_ascii=False,indent=2))
+ 'ephemerisBackend':'PINNED_PRE_DE441_SWIEPH','warning':'Same-date scores are observational clues, not attestation of source year definition. Never change production year mode just to maximize scores.'},ensure_ascii=False,indent=2))
