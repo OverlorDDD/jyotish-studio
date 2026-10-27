@@ -9,7 +9,7 @@ export const metadata:Metadata={
  title:{default:'Astrology, Tarot & Cosmic Wisdom | '+BRAND.name,template:'%s'},
  description:BRAND.name+' connects astrology, tarot, Vedic wisdom, mindfulness, and personal readings in one cosmic space.',
  applicationName:BRAND.name,
-  icons:{icon:[{url:'/icon.svg?v=galaxiora-opaque-20261027',type:'image/svg+xml'}],shortcut:'/icon.svg?v=galaxiora-opaque-20261027'},
+  icons:{icon:[{url:'/icon.svg?v=galaxiora-opaque-solid-v2-20261027',type:'image/svg+xml'}],shortcut:'/icon.svg?v=galaxiora-opaque-solid-v2-20261027'},
  openGraph:{siteName:BRAND.name,type:'website'},
  robots:{index:false,follow:true}, // Root / is a duplicate; localized pages opt in explicitly.
  ...(siteUrl&&/^https:\/\//.test(siteUrl)?{metadataBase:new URL(siteUrl)}:{})
