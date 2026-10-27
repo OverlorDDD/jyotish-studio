@@ -25,3 +25,15 @@
 .error{padding:20px;border:1px solid #924858;color:#ffced8;border-radius:10px;margin:20px 0}.error button{margin-left:12px;background:#344764;border:1px solid #65768e;padding:9px;border-radius:8px;color:#fff}
 @media(max-width:850px){.signs{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){.signs{grid-template-columns:repeat(2,minmax(0,1fr))}.highlights{grid-template-columns:1fr}.page{width:calc(100% - 24px);margin-top:14px}}
+
+/* Shared daily/weekly control and concise sign-phase timeline. */
+.period{display:flex;gap:9px;margin-top:17px;flex-wrap:wrap}
+.period button{font:inherit;cursor:pointer;color:#e9d1aa;background:#20314a;border:1px solid #5a6d83;border-radius:9px;padding:9px 15px;min-height:42px}
+.period button[aria-pressed=true]{color:#172237;background:#e0bd80;border-color:#e9cb96;font-weight:700}
+.weekPhase{border-top:1px solid #465972;padding:21px 0;max-width:90ch}
+.weekPhase time{color:#e9c990;font-weight:700;font-size:13px}
+.weekPhase h3{font:600 clamp(19px,2vw,25px)/1.4 Georgia,serif;color:#f0dbb7;margin:8px 0}
+.weekPhase p{line-height:1.75;color:#d9e2eb;margin:9px 0;font-size:15px}
+.weekPhase strong{color:#e9c990}
+.page button:focus-visible,.page a:focus-visible,.page summary:focus-visible{outline:2px solid #f1d49c;outline-offset:3px}
+@media(max-width:560px){.period button{flex:1;justify-content:center}}

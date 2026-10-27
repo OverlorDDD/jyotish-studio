@@ -9,6 +9,12 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  expect(result.signs).toHaveLength(12);
  expect(new Set(result.signs.map(x=>x.house)).size).toBe(12);
  expect(result.signs.every(x=>x.evidence.kind==='PUBLIC_JANMA_RASHI_REFERENCE')).toBe(true);
+ const weekResponse=await page.request.get('/api/v1/horoscope/week');
+ expect(weekResponse.status()).toBe(200);
+ const weekly=await weekResponse.json();
+ expect(weekly.reference).toBe('SIDEREAL_MOON_SIGN');
+ expect(weekly.days).toHaveLength(7);
+ expect(weekly.days.every(d=>d.signs.length===12&&d.sampledAtUtc)).toBe(true);
  await page.goto('/uk/horoscope');
  await expect(page.getByRole('heading',{name:'Гороскопи'})).toBeVisible();
  await expect(page.getByRole('button',{name:'Овен'})).toBeVisible();
@@ -17,6 +23,9 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  await expect(page.getByTestId('horoscope-reading')).toBeVisible();
  await page.getByText('На чому ґрунтується це трактування').click();
  await expect(page.getByTestId('horoscope-reading').getByText(/Swiss Ephemeris/)).toBeVisible();
+ await page.getByRole('button',{name:'Цей тиждень'}).click();
+ await expect(page.getByTestId('public-horoscope-week')).toBeVisible();
+ await expect(page.getByTestId('public-horoscope-week').locator('article').first()).toBeVisible();
  await page.getByRole('button',{name:'Мій персональний'}).click();
  await expect(page.getByText('Для справді персонального трактування',{exact:false})).toBeVisible();
  await expect(page.getByRole('link',{name:/Перейти до «Мого Всесвіту»/})).toHaveAttribute('href','/uk/personal');

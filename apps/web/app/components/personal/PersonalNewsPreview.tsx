@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type {PortalLocale} from '../../../lib/brand';
 import {portalPath} from '../../../lib/brand';
 import styles from './PersonalNewsPreview.module.css';
-type Article={id:string;url:string;title:string;titleUk?:string|null;summaryUk?:string|null;summaryEn?:string|null;source:string;publishedAt:string;topic:string};
+type Article={id:string;url:string;title:string;titleUk?:string|null;summaryUk?:string|null;summaryEn?:string|null;source:string;publishedAt:string;topic:string;imageUrl?:string|null};
 type Feed={items:Article[];personalized?:boolean};
 const safeLink=(raw:string)=>{try{const url=new URL(raw);return ['https:','http:'].includes(url.protocol)?raw:null}catch{return null}};
 export default function PersonalNewsPreview({locale,interests}:{locale:PortalLocale;interests:string[]}){
@@ -28,13 +28,17 @@ export default function PersonalNewsPreview({locale,interests}:{locale:PortalLoc
   {articles.length>0&&<><small className={styles.context}>{status==='personal'?(uk?'Добірка за твоїми інтересами':'Based on your interests'):
     (uk?'Останні матеріали зі світу GalaxiNews':'Highlights from GalaxiNews')}</small>
    <div className={styles.list}>{articles.map(article=>{
-    const url=safeLink(article.url);
+    const url=safeLink(article.url),image=article.imageUrl?safeLink(article.imageUrl):null;
     return <article className={styles.story} key={article.id}>
      <small>{article.source} · {new Date(article.publishedAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
+     <div className={styles.storyContent}>
+      {image&&<img src={image} alt="" className={styles.thumbnail} loading="lazy" referrerPolicy="no-referrer"/>}
+      <div className={styles.storyText}>
      {url?<a href={url} target="_blank" rel="noopener noreferrer">
        {uk?(article.titleUk||article.title):article.title} <ExternalLink size={14} aria-hidden="true"/>
       </a>:<strong>{uk?(article.titleUk||article.title):article.title}</strong>}
      {(uk?article.summaryUk:article.summaryEn)&&<p>{uk?article.summaryUk:article.summaryEn}</p>}
+      </div></div>
     </article>;
    })}</div></>}
   <Link href={portalPath(locale,'news')} className={styles.more}>

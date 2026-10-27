@@ -185,3 +185,14 @@
  .wrap #com-topic-composer{padding:17px}
  .wrap #com-topic-composer .composer textarea{min-height:240px}
 }
+
+/* Consistent forum utility controls and proportional moderator disclosure. */
+.wrap .communityToolbar .compactName,.wrap .communityToolbar .inbox summary,
+.wrap .communityToolbar .badgeToggle,.wrap .communityToolbar .toggle,
+.wrap .communityToolbar details summary{min-height:44px;box-sizing:border-box}
+.wrap .communityToolbar button,.wrap .communityToolbar details summary{transition:border-color .16s,background-color .16s}
+.wrap .communityToolbar button:hover:not(:disabled),.wrap .communityToolbar details summary:hover{border-color:#c6a77a;background-color:#314159}
+.wrap .modQueueWrap{width:max-content;max-width:100%;box-sizing:border-box}
+.wrap .modQueueWrap:has(.queue){width:min(820px,100%)}
+.wrap .modQueueWrap .queue{min-width:0;overflow-wrap:anywhere}
+@media(max-width:480px){.wrap .communityToolbar .compactName label{flex-basis:100%}.wrap .communityToolbar .compactName button{flex:0 0 auto}}

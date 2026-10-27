@@ -9,3 +9,9 @@
 .story p{margin:0!important;color:#bdcadb;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .more{color:#eed0a0;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:650;margin-top:5px}
 .more:hover{text-decoration:underline}
+
+.storyContent{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0}
+.storyContent:has(.thumbnail){grid-template-columns:110px minmax(0,1fr)}
+.storyText{min-width:0;display:grid;gap:6px;align-content:start}
+.thumbnail{display:block;width:110px;height:78px;max-width:100%;border-radius:9px;object-fit:cover;background:#1f3148}
+@media(max-width:410px){.storyContent:has(.thumbnail){grid-template-columns:85px minmax(0,1fr)}.thumbnail{width:85px;height:75px}}
