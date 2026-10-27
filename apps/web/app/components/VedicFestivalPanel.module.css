@@ -1,0 +1,20 @@
+.section{margin:28px 0;background:linear-gradient(138deg,#1c2e46,#122237);border:1px solid #51677c;color:#dce6f0;border-radius:18px;padding:clamp(19px,3vw,32px)}
+.kicker{color:#dfbc81;font-size:11px;letter-spacing:.17em;font-weight:700}
+.section h2{color:#f1deb8;font:600 clamp(24px,3.4vw,34px)/1.3 Georgia,serif;margin:11px 0}
+.section header p{color:#c9d8e6;font-size:14px;line-height:1.7;max-width:82ch}
+.scheme{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 24px}.scheme button,.error button{border:1px solid #69809a;border-radius:9px;background:#243c54;color:#ebdec6;padding:10px 15px;font-size:13px;font-weight:600}
+.scheme button[aria-pressed=true]{background:#e5c58d;color:#152337;border-color:#e5c58d}
+.section button:focus-visible,.section a:focus-visible{outline:2px solid #edcb94;outline-offset:3px}
+.days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.day{background:#152942;border:1px solid #4a6079;border-radius:13px;padding:19px;min-width:0}
+.heading{display:flex;flex-direction:column;gap:7px}.heading strong{font:600 20px Georgia,serif;color:#eddaae}.heading span{color:#c9d6e3;font-size:13px;overflow-wrap:anywhere}
+.tithi{color:#bfcee0;margin:13px 0;font-size:13px}
+.flags{display:grid;gap:9px}.flags>div{border-left:3px solid #d7b47c;padding:8px 10px;background:#213750;border-radius:4px;display:flex;flex-direction:column;gap:5px}
+.flags strong{font-weight:600;color:#f3e4cb}.flags small{font-size:11px;color:#d5bd90}.flags time{font-size:12px;color:#d2e0ec}
+.quiet{color:#9dacc0;font-size:12px;margin:4px 0}
+.muhurta{margin-top:18px;border-top:1px solid #445b75;padding-top:14px;display:flex;flex-direction:column;gap:6px;font-size:12px}
+.muhurta span{color:#ddc69d;font-weight:700}.muhurta time{color:#d4e1ed}.muhurta small{color:#e4b29d}
+.error{padding:17px;border:1px solid #ad7070;border-radius:11px;color:#f5d0d0;background:#402b36}
+.section footer{border-top:1px solid #4e6680;margin-top:21px;padding-top:16px;font-size:12px;color:#c1cfdf;line-height:1.7}
+.section footer a{color:#e8c894}
+@media(max-width:680px){.days{grid-template-columns:1fr}.scheme{flex-direction:column}.scheme button{width:100%}}
