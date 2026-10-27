@@ -1,6 +1,6 @@
 /** Public indexing only when explicitly configured with an HTTPS origin. */
 export const INDEXED_SECTIONS=['astrology','tarot','yoga','learn'] as const;
-export const SEO_PATHS=['','astrology','tarot','astrology/jyotish','yoga','learn'] as const;
+export const SEO_PATHS=['','astrology','tarot','astrology/jyotish','yoga','learn','horoscope'] as const;
 export function publicSiteOrigin():string|null{
  const value=process.env.NEXT_PUBLIC_SITE_URL?.trim();
  if(!value)return null;

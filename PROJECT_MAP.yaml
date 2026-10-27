@@ -134,7 +134,7 @@ modules:
     tests: "npm run test:com; e2e/galaxicom.spec.mjs, galaxicom-c2/c3/c4/c5 and galaxicom-ux.spec.mjs; PostgreSQL CI, Chromium desktop/mobile"
     documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md; docs/research/galaxicom-c2-implementation-2026-10-26.md; docs/research/galaxicom-c3-implementation-2026-10-26.md; docs/research/galaxicom-c4-security-2026-10-26.md; docs/research/galaxicom-c5-final-and-launch-plan-2026-10-26.md; docs/research/galaxicom-usability-2026-10-27.md"
   portal:
-    status: "unified bilingual shared header including Jyotish; GalaxiAstro/Tarot/Yoga/Learn/News/Com module titles; astrology direct route; Tarot tool first; animated homepage; News and GalaxiCom active code; public-release gates pending"
+    status: "unified bilingual header with dedicated /horoscope; 12 sidereal Janma-Rashi readings, verified natal personal reading, live Personal GalaxiNews feed, fixed GalaxiCom composer; public-release gates pending"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
     future: [western_astrology, panchang, community_enhancements, mobile]
@@ -153,6 +153,7 @@ routes:
   web:
     home: "/uk | /en"
     jyotish: "/{locale}/astrology/jyotish"
+    horoscope: "/{locale}/horoscope"
     tarot: "/{locale}/tarot"
     yoga: "/{locale}/yoga | /{locale}/yoga/{slug}"
     academy: "/{locale}/learn | /{locale}/learn/{slug}"

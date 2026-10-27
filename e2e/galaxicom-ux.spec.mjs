@@ -23,6 +23,11 @@ test('GalaxiCom compact UX and focused creation, understandable moderation, visi
   await expect(form.getByRole('heading',{name:'Створити тему'})).toBeFocused();
   const frame=await form.boundingBox();
   expect(frame).toBeTruthy();
+  const rail=await page.getByTestId('com-compact-toolbar').boundingBox();
+  expect(rail).toBeTruthy();
+  expect(frame.width).toBeGreaterThan(rail.width*0.8); // Full page editor, never a narrow flex item
+  const textarea=await form.locator('textarea').boundingBox();
+  expect(textarea.width).toBeGreaterThan(frame.width*0.65);
   const title=form.getByRole('textbox',{name:'Назва теми'});
   expect(await title.getAttribute('maxlength')).toBe('160');
   expect(await form.locator('textarea').getAttribute('maxlength')).toBe('8000');
