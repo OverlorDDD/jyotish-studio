@@ -11,8 +11,9 @@ import {
   type BirthInput,type EphemerisData,type CalculatedChart,type Graha
 } from '../../../packages/jyotish-core/src/index.ts';
 import {CLASSICAL_RULERS,houseLordFacts,validateRuleInput} from '../../../packages/jyotish-core/src/rules.ts';
+import {vimshottariTrueSiderealSolar,VIMSHOTTARI_SOLAR_METHOD,type SolarPositionAtJulianDay} from '../../../packages/jyotish-core/src/solar-dasha.ts';
 
-export const CHART_VERIFICATION_VERSION='jyotish-integrity-v1';
+export const CHART_VERIFICATION_VERSION='jyotish-integrity-v2';
 const REQUIRED=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'] as const;
 const NAMES=new Set<string>(REQUIRED);
 const EPS=1e-7;
@@ -69,7 +70,8 @@ function checkPositions(positions:Graha[],scope:string,asc:number,
 }
 /** Strict pre-publication verification of ALL displayed Jyotish calculations. */
 export function verifyCalculatedChart(
- input:BirthInput,eph:EphemerisData,chart:CalculatedChart,birthUtc:string
+ input:BirthInput,eph:EphemerisData,chart:CalculatedChart,birthUtc:string,
+ solarSunAt?:SolarPositionAtJulianDay
 ):ChartVerification{
  const parsedUtc=Date.parse(birthUtc);
  check(Number.isFinite(parsedUtc)&&chart.utc===birthUtc,'birth.utc');
@@ -111,7 +113,11 @@ export function verifyCalculatedChart(
   const planet=chart.d1.find(x=>x.name===ruler)!;
   check(lord.values.locatedHouse===planet.house&&lord.values.locatedSign===planet.sign,'lords.position.'+h);
  }
- const expectedPeriods=vimshottari(coords.get('Moon')!.longitude,birthUtc);
+ const solar=chart.config.dashaYearMode===VIMSHOTTARI_SOLAR_METHOD;
+ if(solar)check(typeof solarSunAt==='function','dasha.solar_source_required');
+ const expectedPeriods=solar
+  ?vimshottariTrueSiderealSolar(coords.get('Moon')!.longitude,birthUtc,solarSunAt!)
+  :vimshottari(coords.get('Moon')!.longitude,birthUtc);
  check(chart.dasha.length===9,'dasha.period_count');
  for(let i=0;i<9;i++){
   const got=chart.dasha[i],expected=expectedPeriods[i];
@@ -127,7 +133,7 @@ export function verifyCalculatedChart(
  }
  check(chart.config.ayanamsa==='Lahiri'&&chart.config.houses==='Whole sign'&&
   chart.config.nodes==='Mean Rahu / opposite Ketu'&&
-  match(chart.config.dashaYearDays,365.2425,1e-10),'methodology.conventions');
+  match(chart.config.dashaYearDays,solar?365.25636:365.2425,1e-10),'methodology.conventions');
  const fingerprint={
   algorithm:CHART_VERIFICATION_VERSION,
   utc:birthUtc,ayanamsa:eph.ayanamsa,ascendant:chart.ascendant.longitude,
@@ -135,7 +141,7 @@ export function verifyCalculatedChart(
   d1:chart.d1.map(p=>[p.name,p.longitude,p.house,p.nakshatra,p.pada]),
   d9:chart.d9.map(p=>[p.name,p.longitude,p.house]),
   d10:chart.d10.map(p=>[p.name,p.longitude,p.house]),
-  dashas:chart.dasha
+  dashaYearMode:chart.config.dashaYearMode||'fixed-365.2425',dashas:chart.dasha
  };
  const digest=createHash('sha256').update(JSON.stringify(fingerprint)).digest('hex');
  return {version:CHART_VERIFICATION_VERSION,status:'verified_internal',

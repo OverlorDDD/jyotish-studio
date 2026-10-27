@@ -1,6 +1,7 @@
 import type {BirthInput,CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {calculateChart,validateBirth} from '../../../packages/jyotish-core/src/index.ts';
-import {getEphemeris} from './ephemeris.ts';
+import {getEphemeris,getVerifiedSiderealSolarSunAt} from './ephemeris.ts';
+import {vimshottariTrueSiderealSolar,VIMSHOTTARI_SOLAR_METHOD} from '../../../packages/jyotish-core/src/solar-dasha.ts';
 import {verifyCalculatedChart,type ChartVerification} from './jyotish-integrity.ts';
 export async function runCalculation(body:unknown):Promise<CalculatedChart&{verification:ChartVerification}>{
  if(!body||typeof body!=='object')throw new Error('Invalid request body');
@@ -11,8 +12,14 @@ export async function runCalculation(body:unknown):Promise<CalculatedChart&{veri
  const birthUtc=validateBirth(input);
  const eph=await getEphemeris(input);
  const chart=calculateChart(input,eph);
+ const birthMoon=eph.positions.find(x=>x.name==='Moon');
+ if(!birthMoon)throw new Error('Verified Moon longitude required for solar Vimshottari');
+ const solarSunAt=await getVerifiedSiderealSolarSunAt();
+ chart.dasha=vimshottariTrueSiderealSolar(birthMoon.longitude,birthUtc,solarSunAt);
+ chart.config.dashaYearDays=365.25636; // mean sidereal YEAR ONLY for metadata; boundaries use exact Sun crossings
+ chart.config.dashaYearMode=VIMSHOTTARI_SOLAR_METHOD;
  // FAIL CLOSED before any chart, table, cached report, saved snapshot or LLM can use this chart.
- const verification=verifyCalculatedChart(input,eph,chart,birthUtc);
+ const verification=verifyCalculatedChart(input,eph,chart,birthUtc,solarSunAt);
  return {...chart,verification};
 }
 const SIGN_NAMES_UK=["Овен","Телець","Близнюки","Рак","Лев","Діва","Терези","Скорпіон","Стрілець","Козоріг","Водолій","Риби"];

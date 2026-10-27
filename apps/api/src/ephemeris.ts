@@ -44,3 +44,17 @@ export async function getEphemeris(input:BirthInput):Promise<EphemerisData>{
   return JSON.parse(result.stdout) as EphemerisData;
  }
 }
+
+/** Native, fail-closed SWIEPH Sun callback for true-sidereal solar years.
+ * Never attempt to calculate future dashas with a Moshier fallback.
+ */
+export async function getVerifiedSiderealSolarSunAt(){
+ const sw=await import('@swisseph/node');
+ sw.setSiderealMode(sw.SiderealMode.Lahiri);
+ const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
+ return (julianDayUt:number)=>{
+  const point=sw.calculatePosition(julianDayUt,sw.Planet.Sun,flags);
+  assertSwissReturnFlags(point.flags,'TrueSiderealDasha.Sun');
+  return {longitude:mod(point.longitude),longitudeSpeed:point.longitudeSpeed};
+ };
+}
