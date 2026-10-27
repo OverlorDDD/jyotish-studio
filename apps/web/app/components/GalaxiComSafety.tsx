@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
+import {createPortal} from 'react-dom';
 import {ShieldCheck,Download,Scale,Trash2} from 'lucide-react';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './GalaxiComSafety.module.css';
@@ -13,9 +14,10 @@ async function api<T>(path:string,init?:RequestInit){
  return body;
 }
 const send=(method:string,data:unknown):RequestInit=>({method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|null}){
+export default function GalaxiComSafety({locale,me,activePanel,onToggle}:{locale:PortalLocale;me:Me|null;
+ activePanel:string|null;onToggle:(name:string)=>void}){
  const uk=locale==='uk';
- const [open,setOpen]=useState(false),[mine,setMine]=useState<Request[]>([]),
+ const [mine,setMine]=useState<Request[]>([]),
   [eligible,setEligible]=useState<{type:string;id:string;label:string}[]>([]),
   [privacy,setPrivacy]=useState<Request[]>([]),[appeals,setAppeals]=useState<Request[]>([]),
   [modPrivacy,setModPrivacy]=useState<Request[]>([]);
@@ -23,6 +25,9 @@ export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|n
  const [decisionReason,setDecisionReason]=useState(''),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[message,setMessage]=useState(''),[reload,setReload]=useState(0);
  const signed=me?.signedIn===true,staff=me?.permissions.canModerate===true,admin=me?.permissions.canManageContext===true;
+ const open=activePanel==='safety';
+ const [panelTarget,setPanelTarget]=useState<HTMLElement|null>(null);
+ useEffect(()=>{setPanelTarget(document.getElementById('com-toolbar-panel'))},[]);
  useEffect(()=>{if(!open||!signed)return;let active=true;
   Promise.all([api<{items:Request[]}>('appeals/mine'),api<{items:{type:string;id:string;label:string}[]}>('appeals/eligible'),api<{items:Request[]}>('privacy/requests'),
    staff?api<{items:Request[]}>('mod/appeals'):Promise.resolve({items:[]}),
@@ -54,10 +59,10 @@ export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|n
  }
  if(!signed)return null;
  return <section className={styles.wrapper} data-testid="com-safety">
-  <button className={styles.toggle} type="button" onClick={()=>setOpen(!open)} aria-expanded={open}>
+  <button className={styles.toggle} type="button" onClick={()=>onToggle('safety')} aria-expanded={open} aria-controls="com-toolbar-panel">
    <ShieldCheck size={19}/>{uk?'Безпека, апеляції та мої дані':'Safety, appeals and my data'}
   </button>
-  {open&&<div className={styles.content}>
+  {open&&panelTarget&&createPortal(<div className={styles.content}>
    <h3>{uk?'Правила спільноти':'Community rules'}</h3>
    <p>{uk?'Публікуй лише інформацію, якою маєш право ділитися. Заборонені переслідування, спам, обманна реклама та чужі приватні дані. Скарги розглядають люди; редакційний зв’язок не означає схвалення кожної відповіді.':
     'Only share information you are authorized to disclose. No harassment, spam, deceptive advertising, or third-party private data. Humans review reports; article links do not endorse every community reply.'}</p>
@@ -132,6 +137,6 @@ export default function GalaxiComSafety({locale,me}:{locale:PortalLocale;me:Me|n
    </section>}
    {error&&<p className={styles.error} role="alert">{error}</p>}
    {message&&<p className={styles.success} role="status">{message}</p>}
-  </div>}
+  </div>,panelTarget)}
  </section>;
 }

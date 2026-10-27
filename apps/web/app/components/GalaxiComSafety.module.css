@@ -32,3 +32,8 @@
 .wrapper:has(.content) .toggle{width:max-content;max-width:100%;min-height:44px}
 .wrapper .content{max-width:100%;box-sizing:border-box}
 @media(max-width:620px){.wrapper:has(.content){grid-column:auto}}
+
+/* Expanded information renders in shared panel, not inside the four-up grid. */
+.wrapper:has(.content){grid-column:auto;order:initial;padding:0;border:0;background:transparent}
+.toggle[aria-expanded=true]{background:#2e405b;border-color:#d6b77d}
+.content{box-sizing:border-box;width:100%;margin:0!important;border:0;padding:0;background:transparent}
