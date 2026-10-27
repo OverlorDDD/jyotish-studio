@@ -7,10 +7,10 @@ import {createHash} from 'node:crypto';
 import type {PrismaService} from './prisma.ts';
 import {runCalculation} from './logic.ts';
 import {CHART_VERIFICATION_VERSION} from './jyotish-integrity.ts';
-import {validateBirth,type CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
+import {validateBirth,JHORA8_ASCENDANT_CONVENTION,type CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 
 export const PERSONAL_RECOVERY_METHOD='personal-chart-recovery-v1';
-export const PERSONAL_ASCENDANT_CONVENTION='tropical-apparent-minus-mean-lahiri-v2';
+export const PERSONAL_ASCENDANT_CONVENTION=JHORA8_ASCENDANT_CONVENTION;
 export const personalRecoveryVersion=PERSONAL_RECOVERY_METHOD+':'+CHART_VERIFICATION_VERSION+':'+PERSONAL_ASCENDANT_CONVENTION;
 export type RecoveredChart=CalculatedChart&{verification:{status:'verified_internal';version:string;digest:string}};
 export type RecoveryState='current'|'recovered'|'needs_review'|'temporarily_unavailable';
