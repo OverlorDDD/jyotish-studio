@@ -7,6 +7,7 @@ import AstronomicalEventsPanel from './AstronomicalEventsPanel';
 import PersonalPanchanga from './PersonalPanchanga';
 import EclipsePanel from './EclipsePanel';
 import VedicFestivalPanel from './VedicFestivalPanel';
+import CitySearch from './CitySearch';
 
 type AngaName={number:number;name:string};
 type Day={
@@ -100,6 +101,10 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   <form className={styles.form} onSubmit={e=>{e.preventDefault();setRequested({...form});}}>
    <div className={styles.formGrid}>
     <label>{t.date}<input required type="date" min="1900-01-01" max="2099-12-31" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></label>
+    <CitySearch locale={locale} onChoose={c=>{
+     setCity('custom');
+     setForm(f=>({...f,timeZone:c.timeZone,latitude:String(c.latitude),longitude:String(c.longitude)}));
+    }}/>
     <label>{t.city}<select value={city} onChange={e=>{
      const next=e.target.value;setCity(next);
      if(next!=='custom')setForm(f=>({...f,...presets[next]}));
