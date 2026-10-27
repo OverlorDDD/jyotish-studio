@@ -7,6 +7,8 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {verifyLunarContinuity} from './horoscope.ts';
+import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
+import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
 
@@ -30,6 +32,7 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
   lagnaSign:result&&Number.isInteger(asc?.sign)?asc!.sign:null,
   lagnaName:asc?.signName||(row.result as ChartResult)?.ascendant?.signName||'',
   moonSign:result&&Number.isInteger(moon?.sign)?moon!.sign:null,
+  moonLongitude:result&&Number.isFinite(moon?.longitude)?moon!.longitude:null,
   dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
 }
 /** Shared verified natal context for both Personal's main card and the calendar. */
@@ -135,6 +138,33 @@ export class PersonalController{
    recentPractices:practices,horoscope:{status:verified?'available':'requires_verified_chart',personal:verified},
    news:{status:'planned_after_launch',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
  }
+ /** AE-P6: private lunar suitability, computed only from the owner's
+  * verified natal Moon + actual local-sunrise Swiss Moon. No birth data in
+  * URL, no chart selections from unauthenticated callers, no persistence.
+  */
+ @Get('panchanga') @Header('Cache-Control','private, no-store')
+ async personalPanchanga(@Req()req:IncomingMessage,
+  @Query('date')date?:string,@Query('zone')zone?:string,
+  @Query('latitude')latitude?:string,@Query('longitude')longitude?:string){
+  const uid=owner(req);
+  const p=await this.profile(uid),chart=p.selected;
+  if(!chart?.verified||!chart.moonSign||chart.moonLongitude==null)
+   return {status:'requires_verified_chart',method:'no_personal_values_without_verified_natal'};
+  const raw={date,timeZone:zone??p.profile.currentTimeZone,
+   latitude:latitude===undefined?undefined:Number(latitude),
+   longitude:longitude===undefined?undefined:Number(longitude)};
+  try{validatePanchangaLocation(raw);}
+  catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid location');}
+  let day:Awaited<ReturnType<typeof calculatePanchangaDay>>;
+  try{day=await calculatePanchangaDay(raw);}
+  catch{throw new ServiceUnavailableException('Verified sunrise Panchanga unavailable');}
+  return {status:'available',date:day.date,sunriseUtc:day.sunriseUtc,
+   timeZone:day.location.timeZone,
+   observation:'VERIFIED_NATAL_MOON_VS_LOCAL_SUNRISE_TRANSIT',
+   ...verifiedDailyMoonStrength(
+    {moonLongitude:chart.moonLongitude,moonSign:chart.moonSign},
+    {nakshatraNumber:day.sunrise.nakshatra.number,moonSign:day.sunrise.moonSign})};
+ }
  @Get('transits') @Header('Cache-Control','private, no-store')
  async transits(@Req()req:IncomingMessage,@Query('date')date?:string){
   const uid=owner(req),p=await this.profile(uid),c=p.selected;
@@ -215,5 +245,6 @@ for(const [name,types]of [
  ['completedPractice',[Object,CompletedPracticeDto]],
  ['removePractice',[Object,String]],
  ['calendar',[Object,String,String]],
+ ['personalPanchanga',[Object,String,String,String,String]],
  ['transits',[Object,String]]
 ] as const)Reflect.defineMetadata('design:paramtypes',types,PersonalController.prototype,name);
