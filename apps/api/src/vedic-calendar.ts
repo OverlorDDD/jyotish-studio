@@ -10,7 +10,7 @@ import {validLocalDay,validTimeZone,localToday} from './personal-transits.ts';
 import {createVerifiedSiderealPlanetAt,PANCHANGA_ASTRONOMY_PROFILE} from './panchanga.ts';
 import {daytimeKalas} from '../../../packages/jyotish-core/src/daytime-kalas.ts';
 import {VEDIC_CALENDAR_VERSION,tithiNumber,monthAtSunrise,
- sunriseObservances,solarSankrantis,abhijitMuhurta,type MonthSystem,
+ sunriseObservances,namedFestivalCandidates,solarSankrantis,abhijitMuhurta,type MonthSystem,
  type NewMoonRecord} from '../../../packages/jyotish-core/src/vedic-calendar.ts';
 const DAY=86400000,HOUR=3600000;
 export type VedicCalendarInput={start?:string;days?:number;timeZone?:string;
@@ -130,6 +130,13 @@ async function compute(v:ReturnType<typeof validateVedicCalendar>){
    sunLongitude:at(sunrise).sun};
   const moonMonth=monthAtSunrise(sunriseUtc,tithi,moons,v.monthSystem);
   const observed=sunriseObservances(sample);
+  observed.push(...namedFestivalCandidates({
+   date,sunriseUtc,sunsetUtc,nextSunriseUtc,sunriseTithi:tithi,
+   madhyahnaTithi:tithiNumber(at(Math.round((sunrise+sunset)/2))),
+   sunsetTithi:sample.pradoshaTithi,
+   nightMidTithi:tithiNumber(at(Math.round((sunset+Date.parse(nextSunriseUtc))/2))),
+   amantaMonth:moonMonth.amantaName,monthStatus:moonMonth.lunarMonthStatus
+  }));
   const windows={abhijit:abhijitMuhurta(sunriseUtc,sunsetUtc,weekday),
    daytimeKalas:daytimeKalas(sunriseUtc,sunsetUtc,weekday)};
   days.push({...sample,moonMonth,observances:observed,windows});
@@ -156,6 +163,7 @@ async function compute(v:ReturnType<typeof validateVedicCalendar>){
   rules:{
    ekadashi:'Local sunrise candidate; arunodaya comparison 96 minutes before local sunrise, not full Smarta/Vaishnava/Parana adjudication',
    pradosha:'Trayodashi at sunset or 90min post-sunset',
+   namedFestivals:'Sunrise, daylight midpoint, sunset or night midpoint indicators; no final regional fasting or puja priority rules',
    abhijit:'8th daytime muhurta of 15; Wednesday flagged for traditional caution',
    months:'New Moon-to-New Moon solar sign mapping, 0-ingress adhika, 2-ingress kshaya fail closed for month naming'
   }};
