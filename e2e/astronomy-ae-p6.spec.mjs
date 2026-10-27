@@ -40,7 +40,7 @@ for(const locale of ['uk','en']){
   await page.getByRole('button',{name:locale==='uk'?'Розрахувати день':'Calculate day'}).click();
   await panel.getByRole('button',{name:locale==='uk'?'Знайти затемнення на рік':'Find eclipses for a year'}).click();
   await expect(panel.locator('li').first()).toBeVisible({timeout:90000});
-  await expect(panel.locator('li').count()).resolves.toBeGreaterThanOrEqual(4);
+  expect(await panel.locator('li').count()).toBeGreaterThanOrEqual(4);
   await expect(panel.getByText('NASA · Eclipse Canon',{exact:false})).toBeVisible();
  });
 }
