@@ -60,6 +60,10 @@ jobs:
         run: npm run jqa3:delta-t-experiment
       - name: Certify printed calendar dates using actual production Moon and genuine JHora source
         run: npm run jqa3:certify-dates
+      - name: Certify full JQA3 200 longitudes and all 180 plus 1620 source dates
+        run: npm run jqa3:certify
+      - name: Enforce full certification fail-closed criteria
+        run: npm run test:jqa3:full-certifier-gates
       - name: Verify independent native JHora true-solar dates for all 20 source charts
         run: npm run test:jqa3:solar-native
       - name: Verify pure native-ready sidereal solar crossing math
