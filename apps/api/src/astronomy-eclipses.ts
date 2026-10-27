@@ -1,7 +1,7 @@
 /** AE-P6 observer eclipse searches via official Swiss Ephemeris algorithms.
  * Ephemeris operation is bounded, fail-closed, and location is not persisted.
  */
-import {spawnSync} from 'node:child_process';
+import {spawn} from 'node:child_process';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {localToUTC} from '../../../packages/jyotish-core/src/index.ts';
@@ -28,15 +28,51 @@ type Eclipses={source:string;independentVisibilityCertified:boolean;
  events:{type:'solar'|'lunar';eclipseKind:string;maximumUtc:string;
   visibleHere:boolean;localMaximumUtc:string|null}[]};
 const cache=new Map<string,{at:number,promise:ReturnType<typeof eclipseWindow>}>();
+let activeEclipseProcesses=0;
+/** Bounded nonblocking worker: no synchronous Python processes on the API event loop.
+ * Simultaneous identical queries share the in-flight cache; unrelated requests
+ * may run at most two expensive Swiss eclipse searches concurrently.
+ */
+async function runEclipsePython(v:Validated):Promise<string>{
+ if(activeEclipseProcesses>=2)throw Error('Swiss eclipse worker capacity reached');
+ activeEclipseProcesses++;
+ try{
+  const script=resolve(dirname(fileURLToPath(import.meta.url)),'../../../tools/astronomy-eclipses.py');
+  const exe=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
+  return await new Promise<string>((resolvePromise,rejectPromise)=>{
+   const child=spawn(exe,[...(exe==='py'?['-3']:[]),script],
+    {windowsHide:true,stdio:['pipe','pipe','pipe']});
+   let output='',errorText='',closed=false;
+   const timer=setTimeout(()=>{
+    child.kill();
+    done(new Error('Verified eclipse worker exceeded 25-second budget'));
+   },25000);
+   function done(error?:Error,result?:string){
+    if(closed)return;closed=true;clearTimeout(timer);
+    if(error)rejectPromise(error);
+    else resolvePromise(result||'');
+   }
+   child.on('error',(error:Error)=>done(error));
+   child.stdout.setEncoding('utf8');
+   child.stderr.setEncoding('utf8');
+   child.stdout.on('data',(chunk:string)=>{
+    output+=chunk;
+    if(output.length>512000){child.kill();done(new Error('Swiss eclipse response too large'));}
+   });
+   child.stderr.on('data',(chunk:string)=>{errorText=(errorText+chunk).slice(-2000);});
+   child.on('close',(exitCode:number|null)=>{
+    if(exitCode!==0)done(new Error('Swiss eclipse worker failed: '+errorText.slice(0,200)));
+    else done(undefined,output);
+   });
+   child.stdin.on('error',(error:Error)=>done(error));
+   child.stdin.end(JSON.stringify(v));
+  });
+ }finally{activeEclipseProcesses--;}
+}
 async function eclipseWindow(v:Validated){
- const script=resolve(dirname(fileURLToPath(import.meta.url)),'../../../tools/astronomy-eclipses.py');
- const exe=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
- const cmd=spawnSync(exe,[...(exe==='py'?['-3']:[]),script],{
-  input:JSON.stringify(v),encoding:'utf8',timeout:25000,maxBuffer:512000,windowsHide:true
- });
- if(cmd.status!==0)throw Error('Swiss eclipse backend failed: '+(cmd.stderr||cmd.error?.message||'unavailable').slice(0,200));
+ const output=await runEclipsePython(v);
  let parsed:Eclipses;
- try{parsed=JSON.parse(cmd.stdout) as Eclipses;}
+ try{parsed=JSON.parse(output) as Eclipses;}
  catch{throw Error('Invalid Swiss eclipse response');}
  if(!Array.isArray(parsed.events)||parsed.events.length>24||
   parsed.events.some(e=>!['solar','lunar'].includes(e.type)||!Number.isFinite(Date.parse(e.maximumUtc))||
