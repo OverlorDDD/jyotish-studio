@@ -72,7 +72,7 @@ def report():
             k: (None if v is None else delta_arcseconds(v, reference['Lagna']['longitude']))
             for k, v in base.items()
         }
-            current_moon, flags = moon(jd)
+        current_moon, flags = moon(jd)
         if (flags & 7) != swe.FLG_SWIEPH:
             raise RuntimeError('SWIEPH unavailable in JQA3 precision replay for '+chart_id)
         moon_residuals = {'production_geocentric_apparent_sidereal': delta_arcseconds(
