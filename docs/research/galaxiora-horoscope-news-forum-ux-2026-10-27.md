@@ -33,6 +33,7 @@ Readers primarily want: What part of life is emphasized? How does it relate to m
 ### Tests and launch gates
 - `tools/horoscope-editorial.test.mjs`: all 12 houses distinct from 12 reference signs, evidence dates and moon facts identical across selections, no invalid sign acceptance.
 - `e2e/horoscope.spec.mjs`: public GET returns 12, sidereal method, standalone UA/EN route, source detail and user-only reading guarded from guests.
+- `e2e/personal-news-preview.spec.mjs`: creates a clearly marked CI-only published fixture through PostgreSQL, confirms personalized article title/source/full-news link, cleans up fixture and account; never invents stories in real feed.
 - Existing C0–C5/forum editing/Personal/calendar/JHora regression still run.
 - JQA3 Lagna 19/20 and Moon 18/20 ≤1 arcsecond and exact Vimshottari boundary dates are **not solved here**. No change to numerical pass thresholds, timezone policy, primary-chart verification or claims of certified precision.
 - Site remains pre-launch until owner UI acceptance and separate payment/privacy/production gates.
