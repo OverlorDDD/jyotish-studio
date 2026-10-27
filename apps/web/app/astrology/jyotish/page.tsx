@@ -64,7 +64,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    const data=res.ok?await res.json():null;
    if(!live)return;
    setJhoraReference(data?.referenceBenchmark?.version==='jhora8-same-profile-v2'?data.referenceBenchmark:null);
-   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2')
+   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.verificationContract!=='jyotish-integrity-v3')
     setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
    else setRuntimeMismatch('');
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
@@ -104,7 +104,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  useEffect(()=>{if(report)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});},[report]);
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>setForm(old=>({...old,[key]:value}));
- async function calculate(e:React.FormEvent){e.preventDefault();setBusy(true);setError(false);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'Сервер не підтвердив перевірку всіх даних карти.':'Server did not verify all chart calculations.');setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);}catch(e){setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
+ async function calculate(e:React.FormEvent){e.preventDefault();setBusy(true);setError(false);setChart(null);setReport(null);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'API повернуло карту без чинного підтвердження цілісності (потрібен jyotish-integrity-v3). Перезапустіть Next.js і NestJS з однієї оновленої гілки, потім повторіть розрахунок.':'API returned a chart without the current jyotish-integrity-v3 proof. Restart Next.js and NestJS from the same updated branch, then retry.');setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);}catch(e){setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
  async function interpret(mode:'auto'|'local'='auto'){
   if(!chart)return;
   setAiBusy(true);setInterpretation(lang==='uk'?'Створюємо детальний звіт…':'Preparing a detailed report…');
