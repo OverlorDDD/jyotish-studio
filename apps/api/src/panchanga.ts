@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {jhora8SiderealLongitude,localToUTC} from '../../../packages/jyotish-core/src/index.ts';
 import {jhora8HistoricalJulianDay,JHORA8_DELTA_T_GRID_ID} from '../../../packages/jyotish-core/src/jhora8-delta-t-grid.ts';
 import {buildPanchangaSunrise,type SunMoonAt} from '../../../packages/jyotish-core/src/panchanga.ts';
+import type {EventBody,PlanetAt} from '../../../packages/jyotish-core/src/astronomical-events.ts';
 import {assertSwissReturnFlags} from './swiss-backend-policy.ts';
 import {validLocalDay,validTimeZone,localToday} from './personal-transits.ts';
 
@@ -49,25 +50,42 @@ function riseSet(location:Location){
  if(!sunriseUtc||!nextSunriseUtc||!sunsetUtc)throw Error('Sunrise/sunset not found for local day (polar regions unsupported)');
  return {sunriseUtc,nextSunriseUtc,sunsetUtc,sunriseMethod:data.method};
 }
-export async function createPanchangaSunMoonAt():Promise<SunMoonAt>{
+/** Shared JQA-3-compatible Swiss calculation for Panchanga and AE-P5.
+ * Requires REAL SWIEPH flags, Lahiri mode and the versioned historical
+ * Delta-T/ayanamsa convention; one backend and no alternative constants.
+ */
+export async function createVerifiedSiderealPlanetAt():Promise<PlanetAt>{
  const swiss=await import('@swisseph/node');
  swiss.setSiderealMode(swiss.SiderealMode.Lahiri);
  const flags=swiss.CalculationFlag.SwissEphemeris|swiss.CalculationFlag.Speed|65536;
- const cache=new Map<number,{sun:number;moon:number}>();
- return (ms:number)=>{
-  const key=Math.floor(ms);const hit=cache.get(key);if(hit)return hit;
-  const jd=key/86400000+2440587.5;
-  const year=new Date(key).getUTCFullYear();
+ const planets:Record<EventBody,number>={
+  Sun:swiss.Planet.Sun,Moon:swiss.Planet.Moon,
+  Mercury:swiss.Planet.Mercury,Venus:swiss.Planet.Venus,
+  Mars:swiss.Planet.Mars,Jupiter:swiss.Planet.Jupiter,Saturn:swiss.Planet.Saturn
+ };
+ const cache=new Map<string,{longitude:number;longitudeSpeed:number}>();
+ return (ms,body)=>{
+  if(!Number.isSafeInteger(ms)||!Object.hasOwn(planets,body))throw Error('Invalid planet/instant');
+  const key=ms+':'+body,hit=cache.get(key);
+  if(hit)return hit;
+  const jd=ms/86400000+2440587.5;
+  const year=new Date(ms).getUTCFullYear();
   const effectiveJd=year>=1900&&year<=2200?jhora8HistoricalJulianDay(jd):jd;
-  const sun=swiss.calculatePosition(effectiveJd,swiss.Planet.Sun,flags);
-  const moon=swiss.calculatePosition(effectiveJd,swiss.Planet.Moon,flags);
-  assertSwissReturnFlags(sun.flags,'Panchanga.Sun');
-  assertSwissReturnFlags(moon.flags,'Panchanga.Moon');
-  const positions={sun:jhora8SiderealLongitude(sun.longitude),moon:jhora8SiderealLongitude(moon.longitude)};
-  if(cache.size>640)cache.clear();
-  cache.set(key,positions);return positions;
+  const result=swiss.calculatePosition(effectiveJd,planets[body],flags);
+  assertSwissReturnFlags(result.flags,'AstronomicalEvents.'+body);
+  const point={longitude:jhora8SiderealLongitude(result.longitude),longitudeSpeed:result.longitudeSpeed};
+  if(!Number.isFinite(point.longitude)||!Number.isFinite(point.longitudeSpeed))
+   throw Error('Non-finite Swiss planet position or speed');
+  if(cache.size>2400)cache.clear();
+  cache.set(key,point);
+  return point;
  };
 }
+export async function createPanchangaSunMoonAt():Promise<SunMoonAt>{
+ const at=await createVerifiedSiderealPlanetAt();
+ return ms=>({sun:at(ms,'Sun').longitude,moon:at(ms,'Moon').longitude});
+}
+
 export async function calculatePanchangaDay(unsafe:Partial<Location>){
  const location=validatePanchangaLocation(unsafe);
  const rise=riseSet(location);
