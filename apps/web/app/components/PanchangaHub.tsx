@@ -12,6 +12,7 @@ type Day={
  vara:AngaName;yoga:AngaName;karana:{slot:number;name:string};phase:string};
  boundaries:Record<'tithi'|'nakshatra'|'yoga'|'karana',{startUtc:string;endUtc:string}>;
  changes:{kind:'tithi'|'nakshatra'|'yoga'|'karana';atUtc:string;nextIndex:number}[];
+ astronomicalEvents:{type:'sunrise'|'sunset'|'new_moon'|'full_moon';atUtc:string}[];
  astronomyProfile:string;sunriseMethod:string;
  methodology:{referenceFrame:string;boundaryResolutionSeconds:number;referenceCertification:string};
 };
@@ -28,7 +29,7 @@ const labels={
  uk:{title:'Панчанга',intro:'Пʼять складових ведичного дня, визначених за положеннями Сонця й Місяця на місцевому сході Сонця. Переглянь реальні моменти переходів, а не приблизні прогнози на полудень.',
  subtitle:'Астрономічний календар',date:'Дата',city:'Місцевість',zone:'Часовий пояс (IANA)',lat:'Широта',lon:'Довгота',calculate:'Розрахувати день',busy:'Розраховуємо переходи…',
  unknown:'Немає обчислення',error:'Немає перевірених астрономічних даних для цих умов. Перевір часовий пояс, координати та Swiss Ephemeris, тоді повтори.',
- sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'Пʼять анг Панчанги',transitions:'Переходи протягом дня',
+ sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'Пʼять анг Панчанги',transitions:'Переходи протягом дня',events:'Астрономічні події',new_moon:'Молодик',full_moon:'Повня',
  source:'Методика та джерело',started:'Початок',ends:'Закінчення',notProphecy:'Це розраховані календарні показники, а не прогноз конкретних подій.',
  tithi:'Тітхі',nakshatra:'Накшатра',vara:'Вара',yoga:'Нітья-йога',karana:'Карана',
  shukla:'Шукла',krishna:'Крішна',pada:'пада',
@@ -38,7 +39,7 @@ const labels={
  en:{title:'Panchanga',intro:'The five limbs of the Vedic day, calculated from Sun and Moon positions at local sunrise. See real astronomical transition times rather than approximate noon forecasts.',
  subtitle:'Astronomical calendar',date:'Date',city:'Location',zone:'Time zone (IANA)',lat:'Latitude',lon:'Longitude',calculate:'Calculate day',busy:'Calculating transitions…',
  unknown:'No calculation yet',error:'Verified astronomical data are unavailable for this location. Check timezone, coordinates and Swiss Ephemeris, then retry.',
- sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',
+ sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',events:'Astronomical events',new_moon:'New Moon',full_moon:'Full Moon',
  source:'Method and source',started:'Started',ends:'Ends',notProphecy:'These are calculated calendar indicators, not predictions of specific life events.',
  tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana',
  shukla:'Shukla',krishna:'Krishna',pada:'pada',profile:'Same Swiss Ephemeris / Lahiri / Delta-T framework as verified Galaxiora natal charts.',
@@ -112,6 +113,12 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
      <div><small>{t.sunset}</small><strong>{fmt(result.sunsetUtc)}</strong></div>
      <div><small>{t.next}</small><strong>{fmt(result.nextSunriseUtc)}</strong></div>
     </div>
+   </section>
+   <section className={styles.timeline}><h2>{t.events}</h2>
+    {result.astronomicalEvents.map((event,i)=><div key={event.type+event.atUtc+i}>
+     <time dateTime={event.atUtc}>{fmt(event.atUtc)}</time>
+     <strong>{event.type==='sunrise'?t.sunrise:event.type==='sunset'?t.sunset:t[event.type]}</strong>
+    </div>)}
    </section>
    <section><h2>{t.titleFive}</h2>
     <div className={styles.cards}>
