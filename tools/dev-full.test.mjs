@@ -41,6 +41,7 @@ test('API build always regenerates Prisma Client with licensed-news fields befor
  assert.match(api.scripts.build,/^tsc -p tsconfig\.json$/);
  const newsArticle=schema.slice(schema.indexOf('model NewsArticle {'),schema.indexOf('model NewsReaction {'));
  for(const field of ['imageLicense','imageLicenseUrl','imagePageUrl','imageLookupAt']){
-  assert.match(newsArticle,new RegExp('\\\\b'+field+'\\\\s+'));
+  assert.ok(newsArticle.split('\n').some(line=>line.trim().startsWith(field+' ')),
+   'NewsArticle Prisma field missing: '+field);
  }
 });
