@@ -5,9 +5,34 @@ import Link from 'next/link';
 import type {PortalLocale} from '../../../lib/brand';
 import {portalPath} from '../../../lib/brand';
 import styles from './PersonalNewsPreview.module.css';
+import {newsFallbackArtwork,type NewsArtworkTopic} from '../news-fallback-artwork';
 type Article={id:string;url:string;title:string;titleUk?:string|null;summaryUk?:string|null;summaryEn?:string|null;source:string;publishedAt:string;topic:string;imageUrl?:string|null;imageCredit?:string|null;imagePageUrl?:string|null;imageLicenseUrl?:string|null};
 type Feed={items:Article[];personalized?:boolean};
 const safeLink=(raw:string)=>{try{const url=new URL(raw);return ['https:','http:'].includes(url.protocol)?raw:null}catch{return null}};
+function PreviewArtwork({article,uk}:{article:Article;uk:boolean}){
+ const [readyUrl,setReadyUrl]=useState<string|null>(null);
+ const [failedUrl,setFailedUrl]=useState<string|null>(null);
+ const photo=article.imageUrl&&safeLink(article.imageUrl);
+ const canLoad=Boolean(photo&&photo!==failedUrl);
+ const ready=canLoad&&readyUrl===photo;
+ return <div className={styles.thumbnailWrap}>
+  <div className={styles.thumbnailStack}>
+   <img src={newsFallbackArtwork(article.topic as NewsArtworkTopic,article.id)}
+    alt={uk?'Тематична обкладинка Galaxiora':'Original Galaxiora topic cover'} className={styles.thumbnail} loading="eager"/>
+   {canLoad&&<img src={photo!} alt="" className={styles.thumbnail+' '+(ready?styles.photoReady:styles.photoPending)}
+     loading="lazy" referrerPolicy="no-referrer"
+     onLoad={()=>setReadyUrl(photo!)} onError={()=>setFailedUrl(photo!)}/>}
+  </div>
+  {ready&&article.imagePageUrl?.startsWith('https://commons.wikimedia.org/')&&article.imageCredit&&
+   <a className={styles.credit} href={article.imagePageUrl} target="_blank" rel="noopener noreferrer" title={article.imageCredit}>
+    {uk?'Фото й автор':'Photo and author'}
+   </a>}
+  {ready&&article.imageLicenseUrl?.startsWith('https://creativecommons.org/')&&
+   <a className={styles.credit} href={article.imageLicenseUrl} target="_blank" rel="noopener noreferrer">
+    {uk?'Умови ліцензії':'License terms'}
+   </a>}
+ </div>;
+}
 export default function PersonalNewsPreview({locale,interests}:{locale:PortalLocale;interests:string[]}){
  const uk=locale==='uk';
  const [articles,setArticles]=useState<Article[]>([]),[status,setStatus]=useState<'loading'|'personal'|'world'|'empty'|'error'>('loading');
@@ -28,24 +53,11 @@ export default function PersonalNewsPreview({locale,interests}:{locale:PortalLoc
   {articles.length>0&&<><small className={styles.context}>{status==='personal'?(uk?'Добірка за твоїми інтересами':'Based on your interests'):
     (uk?'Останні матеріали зі світу GalaxiNews':'Highlights from GalaxiNews')}</small>
    <div className={styles.list}>{articles.map(article=>{
-    const url=safeLink(article.url),image=article.imageUrl?safeLink(article.imageUrl):null;
+    const url=safeLink(article.url);
     return <article className={styles.story} key={article.id}>
      <small>{article.source} · {new Date(article.publishedAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
      <div className={styles.storyContent}>
-      {image?<div className={styles.thumbnailWrap}>
-        <img src={image} alt="" className={styles.thumbnail} loading="lazy" referrerPolicy="no-referrer"/>
-        {article.imagePageUrl?.startsWith('https://commons.wikimedia.org/')&&article.imageCredit&&
-         <a className={styles.credit} href={article.imagePageUrl} target="_blank" rel="noopener noreferrer" title={article.imageCredit}>
-          {uk?'Фото і ліцензія':'Photo and license'}
-         </a>}
-        {article.imageLicenseUrl?.startsWith('https://creativecommons.org/')&&
-         <a className={styles.credit} href={article.imageLicenseUrl} target="_blank" rel="noopener noreferrer">
-          {uk?'Умови ліцензії':'License terms'}
-         </a>}
-       </div>:
-       <div className={styles.thumbnailArt} aria-label={uk?'Ілюстрація Galaxiora':'Galaxiora original illustration'}>
-        <span aria-hidden="true">{article.topic==='yoga'?'ॐ':article.topic==='tarot'?'✦':article.topic==='astronomy'?'☽':'✧'}</span>
-       </div>}
+      <PreviewArtwork article={article} uk={uk}/>
       <div className={styles.storyText}>
      {url?<a href={url} target="_blank" rel="noopener noreferrer">
        {uk?(article.titleUk||article.title):article.title} <ExternalLink size={14} aria-hidden="true"/>
