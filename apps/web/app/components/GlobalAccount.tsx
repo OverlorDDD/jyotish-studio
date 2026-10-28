@@ -11,6 +11,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
  const [user,setUser]=useState<User|null>(null),[loaded,setLoaded]=useState(false),[open,setOpen]=useState(false);
  const [mode,setMode]=useState<'login'|'register'>('login'),[email,setEmail]=useState(''),[password,setPassword]=useState('');
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [expertUnread,setExpertUnread]=useState(0);
  useEffect(()=>{
   let alive=true;
   fetch('/api/v1/account/me',{credentials:'same-origin',cache:'no-store'})
@@ -20,6 +21,21 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
    .finally(()=>{if(alive)setLoaded(true)});
   return()=>{alive=false};
  },[uk]);
+ useEffect(()=>{
+  if(user?.role!=='ADMIN'){setExpertUnread(0);return;}
+  let active=true;
+  const refresh=async()=>{
+   try{
+    const response=await fetch('/api/v1/admin/expert-requests',{credentials:'same-origin',cache:'no-store'});
+    if(!response.ok)return;
+    const info=await response.json() as {unread:number};
+    if(active&&Number.isInteger(info.unread))setExpertUnread(info.unread);
+   }catch{}
+  };
+  void refresh();
+  const interval=setInterval(()=>void refresh(),45000);
+  return()=>{active=false;clearInterval(interval)};
+ },[user?.role]);
  async function authenticate(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError('');
   try{
@@ -42,6 +58,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
  return <div className="as-account">
   <button className="as-account-trigger" type="button" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>
    <UserRound size={17}/><span>{user?(uk?'Кабінет':'Account'):(uk?'Увійти':'Sign in')}</span>
+   {user?.role==='ADMIN'&&expertUnread>0&&<span role="status" aria-label={uk?'Нові запити до таролога':'New Tarot expert requests'} style={{borderRadius:20,padding:'2px 8px',background:'#b65357',color:'#fff',fontWeight:700}}>{expertUnread}</span>}
   </button>
   {open&&<div className="as-account-popover" role="region" aria-label={uk?'Обліковий запис':'Account'}>
    {!loaded?<p>{uk?'Завантаження…':'Loading…'}</p>:user?<div className="as-account-signed">
@@ -49,7 +66,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
     <small>{user.role} · {user.subscription?.tier==='PREMIUM'?'Premium':'Free'}</small>
     <Link href={portalPath(locale,'personal')} onClick={()=>setOpen(false)}>{uk?'Galaxiora Personal — Мій Всесвіт':'Galaxiora Personal — My Universe'}</Link>
      <Link href={portalPath(locale,'account')} onClick={()=>setOpen(false)}>{uk?'Акаунт і запитання':'Account & questions'}</Link>
-    {user.role==='ADMIN'&&<Link href={portalPath(locale,'admin')} onClick={()=>setOpen(false)}><Shield size={15}/>{uk?'Панель адміністратора':'Admin overview'}</Link>}
+    {user.role==='ADMIN'&&<Link href={portalPath(locale,'admin')} onClick={()=>setOpen(false)}><Shield size={15}/>{uk?'Панель адміністратора':'Admin overview'}{expertUnread>0?' ('+expertUnread+')':''}</Link>}
     <button type="button" onClick={logout} disabled={busy}><LogOut size={15}/>{uk?'Вийти':'Sign out'}</button>
    </div>:<form onSubmit={authenticate} className="as-account-form">
     <h3>{mode==='login'?(uk?'Вхід':'Sign in'):(uk?'Реєстрація':'Create account')}</h3>
