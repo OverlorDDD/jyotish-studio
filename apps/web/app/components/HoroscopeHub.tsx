@@ -30,6 +30,13 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
  const [loading,setLoading]=useState(true),[reload,setReload]=useState(0);
  const [period,setPeriod]=useState<'day'|'week'>('day');
  const [publicWeek,setPublicWeek]=useState<PublicWeek|null>(null),[weekBusy,setWeekBusy]=useState(false),[weekError,setWeekError]=useState(false);
+ useEffect(()=>{
+  // Shareable canonical public sign deep links, with validation against
+  // exactly twelve signs. Private natal selection remains independent.
+  const slug=new URLSearchParams(window.location.search).get('sign')||'';
+  const index=['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'].indexOf(slug.toLowerCase());
+  if(index>=0)setSelected(index+1);
+ },[]);
  useEffect(()=>{let live=true;
   setLoading(true);
   Promise.allSettled([get<PublicData>('/api/v1/horoscope/today'),get<Overview>('/api/v1/personal/overview')])
@@ -91,8 +98,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     {uk?'Натальний Місяць: ':'Natal Moon: '}{SIGNS[locale][facts.natalMoonSign-1]}</p>}
    {(facts.major||facts.minor)&&<p>{uk?'Махадаша / антардаша':'Mahadasha / Antardasha'}:
     {' '+String(facts.major||'—')} / {String(facts.minor||'—')}</p>}
-   <p>{uk?'Традиційна інтерпретація розрахованих чинників; без тверджень про наперед визначені події.':
-    'Traditional interpretation of calculated factors; no claims of predetermined events.'}</p>
+
   </details>;
  }
  function detail(g:Reading){
@@ -107,7 +113,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      (uk?'Практичний крок':'One practical step')}</strong>
     <p>{t(g.reflection||g.action||g.goodFor)}</p>
    </div>
-   {data?.sky&&<section data-testid="horoscope-sky-context" style={{padding:'14px 0',borderTop:'1px solid #536a82'}}>
+   {g.evidence.kind==='PUBLIC_JANMA_RASHI_REFERENCE'&&data?.sky&&<section data-testid="horoscope-sky-context" style={{padding:'14px 0',borderTop:'1px solid #536a82'}}>
     <h3>{uk?'Астрономічні та ведичні події':'Astronomical and Vedic calendar context'}</h3>
     {data.sky.events.slice(0,2).map((e,i)=><p key={e.kind+e.atUtc+i}>
      <strong>{e.localDate}: </strong>{t(e.meaning)} <span>{t(e.practice)}</span>
@@ -139,8 +145,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
   </header>
   {loading&&!data&&<p role="status">{uk?'Звіряємо положення Місяця…':'Checking the Moon position…'}</p>}
   {error&&<div role="alert" className={styles.error}>
-    {uk?'Астрономічні дані зараз недоступні. Ми не створюємо гороскоп без перевірених положень.':
-     'Astronomical data is unavailable. No reading is generated without verified positions.'}
+    {uk?'Сьогоднішні ефемериди тимчасово недоступні. Онови сторінку трохи пізніше.':
+     'Today’s ephemeris data is temporarily unavailable. Please retry shortly.'}
     <button type="button" onClick={()=>setReload(x=>x+1)}><RefreshCw size={15}/>{uk?'Спробувати ще':'Retry'}</button></div>}
   {data&&mode==='signs'&&<>
    <div className={styles.info}><CalendarDays size={18}/>
@@ -179,8 +185,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      {evidence({...phase.entry,evidence:{...phase.entry.evidence,house:phase.entry.house}})}
     </article>)}
    </section>}
-   <p className={styles.note}>{uk?'Це загальне читання для знака Місяця у ведичному сидеричному зодіаку, а не для сонячного знака західного гороскопа. Для розбору лагни, даш і власних періодів обери персональний прогноз.':
-    'This is a general Jyotish reading by sidereal Moon sign, not a Western Sun-sign horoscope. Your birth-chart Lagna and Dasha require a personal reading.'}</p>
+   <p className={styles.note}>{uk?'Для особистої карти з лагною, дашею та твоїм натальним Місяцем відкрий «Мій персональний».':
+    'For your own Ascendant, Dasha and natal Moon, open My personal reading.'}</p>
   </>}
   {mode==='mine'&&<div className={styles.personal}>
    {!personal?<div className={styles.empty}><h2>{uk?'Твій особистий гороскоп':'Your personal horoscope'}</h2>
