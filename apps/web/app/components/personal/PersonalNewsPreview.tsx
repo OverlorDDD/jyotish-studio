@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type {PortalLocale} from '../../../lib/brand';
 import {portalPath} from '../../../lib/brand';
 import styles from './PersonalNewsPreview.module.css';
-type Article={id:string;url:string;title:string;titleUk?:string|null;summaryUk?:string|null;summaryEn?:string|null;source:string;publishedAt:string;topic:string;imageUrl?:string|null};
+type Article={id:string;url:string;title:string;titleUk?:string|null;summaryUk?:string|null;summaryEn?:string|null;source:string;publishedAt:string;topic:string;imageUrl?:string|null;imageCredit?:string|null;imagePageUrl?:string|null;imageLicenseUrl?:string|null};
 type Feed={items:Article[];personalized?:boolean};
 const safeLink=(raw:string)=>{try{const url=new URL(raw);return ['https:','http:'].includes(url.protocol)?raw:null}catch{return null}};
 export default function PersonalNewsPreview({locale,interests}:{locale:PortalLocale;interests:string[]}){
@@ -32,7 +32,17 @@ export default function PersonalNewsPreview({locale,interests}:{locale:PortalLoc
     return <article className={styles.story} key={article.id}>
      <small>{article.source} · {new Date(article.publishedAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
      <div className={styles.storyContent}>
-      {image?<img src={image} alt="" className={styles.thumbnail} loading="lazy" referrerPolicy="no-referrer"/>:
+      {image?<div className={styles.thumbnailWrap}>
+        <img src={image} alt="" className={styles.thumbnail} loading="lazy" referrerPolicy="no-referrer"/>
+        {article.imagePageUrl?.startsWith('https://commons.wikimedia.org/')&&article.imageCredit&&
+         <a className={styles.credit} href={article.imagePageUrl} target="_blank" rel="noopener noreferrer" title={article.imageCredit}>
+          {uk?'Фото і ліцензія':'Photo and license'}
+         </a>}
+        {article.imageLicenseUrl?.startsWith('https://creativecommons.org/')&&
+         <a className={styles.credit} href={article.imageLicenseUrl} target="_blank" rel="noopener noreferrer">
+          {uk?'Умови ліцензії':'License terms'}
+         </a>}
+       </div>:
        <div className={styles.thumbnailArt} aria-label={uk?'Ілюстрація Galaxiora':'Galaxiora original illustration'}>
         <span aria-hidden="true">{article.topic==='yoga'?'ॐ':article.topic==='tarot'?'✦':article.topic==='astronomy'?'☽':'✧'}</span>
        </div>}
