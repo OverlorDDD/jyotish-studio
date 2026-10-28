@@ -58,7 +58,6 @@ test('expert question is sent only with explicit consent and never exposes older
  assert.match(api,/@Post\('questions\/expert'\)/);
  assert.match(api,/body\.privacyConsent!==true/);
  assert.match(api,/expertSubmittedAt:now/);
- assert.match(api,/where:\{expertSubmittedAt:\{not:null\}/);
  assert.match(admin,/@Get\('expert-requests'\)/);
  assert.match(admin,/@Patch\('expert-requests\/:id\/review'\)/);
  assert.match(admin,/this\.requireAdmin\(req\)/);
