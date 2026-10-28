@@ -159,3 +159,68 @@ Official guidance:
 - https://developers.google.com/search/docs/crawling-indexing/canonicalization
 - https://developers.google.com/search/docs/appearance/structured-data/breadcrumb
 - https://developers.google.com/search/docs/appearance/structured-data/organization
+
+## 2026-10-28 final additional horoscope UX and launch review
+
+The apparent Aries-versus-Gemini discrepancy was a **basis mismatch in the
+presentation, not evidence that the natal transit engine replaced Aries with
+Gemini**. The general selector is a *hypothetical natal sidereal Moon sign*.
+The authenticated user has a verified chart with their actual sidereal natal
+Moon sign, which can differ from their **popular Western Sun sign**. The old
+personal view foregrounded `buildDailyGuidance` (Lagna, sampled planets,
+Dasha) before `buildMoonSignHoroscope`; these are deliberately distinct
+readings with different house frames. **Now the directly comparable natal
+Moon-sign reading is shown first**. The deeper Lagna/Dasha reading is a
+separate clearly labelled expansion. The old canonical source computation
+and personal user ownership rules are unchanged.
+
+`tools/horoscope-basis.test.mjs` checks all twelve signs: for a fixed
+Swiss transit, `buildMoonSignHoroscope` equals `readPublicSign` on
+headline, description, goodFor, caution and action; the Aries/public vs
+Gemini/natal case is intentionally distinguishable. Added to `test:all`.
+This is a *contract test of consistent interpretations*; it is not a new
+independent JHora benchmark or a proof of any astrological prediction.
+
+Removed internal-looking public text such as unfinished certification notes
+from calendar/eclipses screens, and removed a generic coming-soon banner
+from human consultant landing copy. No invented consultant availability,
+booking or payments: the actual status remains accurately stated. Do not
+remove genuine safety/rights/privacy terms or reveal experimental unpaid
+features as live offers.
+
+**Existing P4 implementation verified in repo**: 24 original UA/EN Moon
+sign SEO guides, canonical/hreflang, bilingual site sitemap, global OG
+image, public-domain opt-in robots, release verifier, release34 tests.
+These are *SEO implementation*, not a guarantee of ranking, traffic,
+search engine approval or immediate indexed pages.
+
+### Mandatory last-mile launch dependencies
+
+1. Owner provides a stable **owned HTTPS domain and hosting credentials**.
+   Without this, local code cannot acquire a domain, deploy a production
+   environment or mark Google indexing as complete.
+2. Production configuration: strong `AUTH_SECRET`; PostgreSQL & Redis;
+   valid Swiss Ephemeris files, `NEWS_INGESTION_ENABLED=1`, actual
+   `NEXT_PUBLIC_SITE_URL=https://owned-domain/`, and `SITE_NOINDEX=0`
+   only after privacy, accessibility, payment and data-retention review.
+   Keep all secret values out of source control.
+3. Geocoding needs paid/commercial terms or a replacement before ads or
+   paid site usage. The Open-Meteo open free endpoint is non-commercial.
+4. A preview can run with `npm run dev:public` when cloudflared is
+   installed, with `SITE_NOINDEX=1`; this is a **preview**, not an
+   indexed production release.
+5. Before claiming ready-to-launch, verify final branch SHA and a complete
+   4/4 green GitHub Actions run, then run
+   `npm run launch:verify` against the live origin and inspect news
+   scan freshness, images, browser tests and account security.
+
+User-facing browser acceptance:
+
+- Open `/uk/horoscope?sign=aries`. A manual Aries selection is interpreted
+  as a **reference natal Moon in Aries**, not as proof that a Western Aries
+  Sun-sign person has a natal Moon in Aries.
+- Sign in with a chart whose verified natal Moon is Gemini. The personal
+  Moon forecast matches the *public Gemini* reference after selecting
+  Gemini; the deeper Lagna/Dasha paragraph is different **by design**.
+- Open `/uk/panchanga`, `/uk/news`, `/uk/yoga`, 24 lunar guide paths,
+  `/robots.txt`, `/sitemap.xml` after domain release.
