@@ -24,7 +24,7 @@ const COPY={
  refresh:'Повторити',new_moon:'Молодик',first_quarter:'Перша чверть',full_moon:'Повня',last_quarter:'Остання чверть',
  direct_station:'Перехід до прямого руху',retrograde_station:'Початок ретроградного руху',
  ingress:'Перехід до знака',backward:'ретроградно',forward:'прямо',
- source:'Метод: Swiss Ephemeris · Lahiri · геоцентричні координати. Час чисельно уточнений до 1 с; незалежна еталонна сертифікація цих подій ще окрема перевірка. Фази не позначають затемнення.'},
+ source:'Метод: Swiss Ephemeris · Lahiri · геоцентричні координати. Час переходів обчислюється за ефемеридами. Деталі методики доступні за посиланням. Фази не позначають затемнення.'},
  en:{title:'Astronomical events',intro:'Exact lunar phases, sidereal planetary ingresses and stationary instants, computed from ephemerides rather than static calendar dates.',
  seven:'7 days',thirty:'30 days',all:'All',moon:'Lunar phases',ingresses:'Sign ingresses',stations:'Retrograde stations',
  loading:'Locating astronomical events…',
@@ -32,7 +32,7 @@ const COPY={
  refresh:'Retry',new_moon:'New Moon',first_quarter:'First Quarter',full_moon:'Full Moon',last_quarter:'Last Quarter',
  direct_station:'Station direct',retrograde_station:'Station retrograde',
  ingress:'Ingress into',backward:'retrograde',forward:'direct',
- source:'Method: Swiss Ephemeris · Lahiri · geocentric coordinates. Event instants are numerically isolated to 1 s; independent reference certification remains separate. Lunar phases do not imply eclipses.'}
+ source:'Method: Swiss Ephemeris · Lahiri · geocentric coordinates. Event times are calculated from astronomical ephemerides. See the technical methodology for details. Lunar phases do not imply eclipses.'}
 } as const;
 const phaseKinds:Kind[]=['new_moon','first_quarter','full_moon','last_quarter'];
 export default function AstronomicalEventsPanel({locale,start,zone}:{locale:PortalLocale;start:string;zone:string}){
