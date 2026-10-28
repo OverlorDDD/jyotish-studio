@@ -12,8 +12,12 @@ test('localized home metadata, language, indexability and semantic main',async({
   await expect(page.locator('nav.as-main-nav')).toHaveAttribute('aria-label',locale==='uk'?'Основна навігація':'Main navigation');
  }
 });
-test('SEO excludes unfinished modules and private screens; robots and sitemap are safe',async({page,request})=>{
- for(const path of ['/en/news','/en/community','/uk/account','/en/admin']){
+test('SEO includes finished News and Community while account/admin stay private; robots and sitemap are safe',async({page,request})=>{
+ for(const path of ['/en/news','/en/community','/uk/panchanga']){
+  await page.goto(path);
+  await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute('content',/noindex/);
+ }
+ for(const path of ['/uk/account','/en/admin']){
   await page.goto(path);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
  }
@@ -29,6 +33,10 @@ test('SEO excludes unfinished modules and private screens; robots and sitemap ar
  expect(xml).toContain('https://galaxiora.example/en/tarot');
  expect(xml).toContain('https://galaxiora.example/uk/yoga');
  expect(xml).toContain('https://galaxiora.example/en/learn');
+ expect(xml).toContain('https://galaxiora.example/uk/news');
+ expect(xml).toContain('https://galaxiora.example/en/community');
+ expect(xml).toContain('https://galaxiora.example/uk/panchanga');
+ expect(xml).toContain('https://galaxiora.example/uk/horoscope/aries');
  expect(xml).not.toContain('/en/admin');
 });
 test('keyboard has visible skip link, navigable main content and focus treatment',async({page})=>{
