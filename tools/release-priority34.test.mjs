@@ -50,7 +50,7 @@ test('public sign horoscope is relative to natal Moon sign, never assumed from W
  assert.notEqual(publicAries.headline.uk,natalGemini.headline.uk);
  const ui=file('apps/web/app/components/HoroscopeHub.tsx');
  assert.match(ui,/data-testid="personal-sign-basis"/);
- assert.match(ui,/personal\.selected\?\.moonSign/);
+ assert.match(ui,/personal\?\.selected\?\.moonSign/);
  assert.match(ui,/personal\.journey\?\.daily/);
  assert.match(ui,/personal\.journey\?\.horoscope/);
  assert.match(ui,/SIGN_SLUGS/);
