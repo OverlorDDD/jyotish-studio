@@ -91,17 +91,27 @@ export async function findOpenImage(topic:string,seed:string,fetcher:typeof fetc
 export async function enrichOpenNewsPhotos(prisma:PrismaService,fetcher:typeof fetch=fetch){
  if(process.env.NEWS_OPEN_MEDIA_ENABLED==='0')return {checked:0,filled:0};
  const retryBefore=new Date(Date.now()-48*3600000);
- const rows=await prisma.newsArticle.findMany({where:{status:'PUBLISHED',imageUrl:null,
-  OR:[{imageLookupAt:null},{imageLookupAt:{lt:retryBefore}}]},
+ // Older rows may contain RSS/OG URLs without a documented reuse grant.
+ // Those were hidden at delivery time, and must also qualify for remediation.
+ const rows=await prisma.newsArticle.findMany({where:{status:'PUBLISHED',
+  AND:[
+   {OR:[{imageUrl:null},{imageLicense:null,imageLicenseUrl:null}]},
+   {OR:[{imageLookupAt:null},{imageLookupAt:{lt:retryBefore}}]}
+  ]},
   orderBy:{publishedAt:'desc'},take:12,
-  select:{id:true,topic:true,urlHash:true}});
+  select:{id:true,topic:true,urlHash:true,source:true,imageUrl:true,imageLicense:true,imageLicenseUrl:true}});
  let cursor=0,filled=0;
  await Promise.all(Array.from({length:Math.min(3,rows.length)},async()=>{
   while(cursor<rows.length){
    const row=rows[cursor++];
+   // Preserve already approved publisher photos rather than overwriting them.
+   if(row.imageUrl&&safeImageUrl(row.imageUrl,row.imageLicenseUrl||row.imageLicense||'',row.source)){
+    await prisma.newsArticle.updateMany({where:{id:row.id,status:'PUBLISHED'},data:{imageLookupAt:new Date()}});
+    continue;
+   }
    const image=await findOpenImage(row.topic,row.urlHash,fetcher);
    const result=await prisma.newsArticle.updateMany({
-    where:{id:row.id,status:'PUBLISHED',imageUrl:null},
+    where:{id:row.id,status:'PUBLISHED',imageLicense:null,imageLicenseUrl:null},
     data:{imageLookupAt:new Date(),...(image||{})}
    });
    if(image&&result.count)filled++;
