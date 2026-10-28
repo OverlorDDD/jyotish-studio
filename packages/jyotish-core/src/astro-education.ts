@@ -15,6 +15,59 @@ const D:Record<EventKind,Record<Locale,EventInsight>>={
  direct_station:{uk:{meaning:'Директна станція — момент, коли видима геоцентрична довгота знову починає збільшуватися.',tradition:'У традиційному прочитанні це символ відновлення руху вперед після перегляду.',practice:'Повернися до одного відкладеного проєкту й визнач реалістичний наступний крок.',limits:'Символічна інтерпретація, а не гарантія успіху.'},en:{meaning:'Direct station marks the return to increasing apparent geocentric longitude.',tradition:'Traditionally associated with resuming movement after reflection.',practice:'Choose one realistic next step in a paused project.',limits:'A symbolic interpretation, not an outcome guarantee.'}}
 };
 export function eventInsight(kind:EventKind,locale:Locale):EventInsight{return D[kind][locale];}
+
+/** Contextual calendar interpretation: reuse measured event facts, never invent a
+ * natal house, a real-world event or a new transit to vary the daily prose.
+ * Adjacent entries for different planets/signs remain editorially distinct. */
+const PLANET_CONTEXT:Record<string,{uk:[string,string];en:[string,string]}>={
+ Sun:{uk:['самовираження та відповідальність','сформулюй одне рішення, за яке готовий відповідати'],en:['identity and responsibility','write down one choice you can own']},
+ Moon:{uk:['звички, дім і відчуття підтримки','визнач, яка щоденна звичка додає тобі спокою'],en:['habits, home and emotional support','notice one daily habit that restores calm']},
+ Mercury:{uk:['розмови, документи й навчання','перечитай одне важливе повідомлення перед надсиланням'],en:['communication, paperwork and learning','review one important message before sending it']},
+ Venus:{uk:['стосунки, творчість і цінності','обговори очікування з близькою людиною без натяків'],en:['relationships, creativity and values','communicate one expectation clearly']},
+ Mars:{uk:['ініціатива, межі й енергія дії','обери одне невелике завдання й виконай його без поспіху'],en:['initiative, boundaries and action','finish one small task without rushing']},
+ Jupiter:{uk:['знання, наставництво й довгострокові цілі','прочитай кілька сторінок корисної книги й занотуй висновок'],en:['learning, mentoring and longer-term goals','read a few useful pages and note one insight']},
+ Saturn:{uk:['дисципліна, строки й витривалість','переглянь свій графік і прибери одне зайве зобов’язання'],en:['discipline, deadlines and endurance','review your schedule and remove one unnecessary obligation']}
+};
+const SIGN_CONTEXT={
+ uk:['ініціативи та сміливого початку','матеріальної опори й послідовності','розмов та обміну знаннями','дому, родини та турботи','творчості та відкритого самовираження','порядку, здорових звичок та уваги до деталей','партнерства й справедливих домовленостей','довіри, змін і глибинної роботи','навчання, подорожей та пошуку сенсу','обов’язків, кар’єри й планування','спільнот, дружби та нових ідей','співпереживання, відпочинку й внутрішнього життя'],
+ en:['initiative and courageous beginnings','material stability and consistency','communication and shared knowledge','home, family and care','creativity and self-expression','order, everyday habits and detail','partnership and fair agreements','trust, change and deep inquiry','learning, travel and meaning','responsibility, work and planning','community, friendships and fresh ideas','compassion, rest and inner life']
+};
+const SIGN_LABELS={
+ uk:['Овна','Тельця','Близнюків','Рака','Лева','Діви','Терезів','Скорпіона','Стрільця','Козорога','Водолія','Риб'],
+ en:['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+};
+export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSign?:number;toSign?:number;atUtc?:string},locale:Locale):EventInsight{
+ const base=eventInsight(event.kind,locale);
+ const p=event.body?PLANET_CONTEXT[event.body]:undefined;
+ if(!p)return base;
+ const ctx=p[locale];
+ const destination=event.toSign;
+ if(event.kind==='sidereal_ingress'&&Number.isInteger(destination)&&destination!>=1&&destination!<=12){
+  const sign=SIGN_LABELS[locale][destination!-1],area=SIGN_CONTEXT[locale][destination!-1];
+  const origin=event.fromSign&&event.fromSign>=1&&event.fromSign<=12?SIGN_LABELS[locale][event.fromSign-1]:'';
+  return {
+   meaning:locale==='uk'?
+    `${event.body==='Sun'?'Сонце':event.body==='Moon'?'Місяць':{Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'}[event.body]||event.body} ${origin?'перейшов із попереднього знака у знак '+sign:'перейшов у знак '+sign}. Це обчислений момент зміни сидеричної довготи, а не зміна положення за календарем на довільну дату.`:
+    `${event.body} entered ${sign}${origin?' from '+origin:''}, at a calculated sidereal sign boundary.`,
+   tradition:locale==='uk'?
+    `У Джйотіш ${ctx[0]} тепер розглядають крізь теми ${area}. Для персонального висновку важливо знати дім і положення планети у твоїй натальній карті.`:
+    `Jyotish connects ${ctx[0]} with ${area} during this sign transit. Personal houses require a natal chart.`,
+   practice:locale==='uk'?
+    `Практика для цієї події: ${ctx[1]}. Пов’яжи це з темою ${area}, якщо вона зараз актуальна для тебе.`:
+    `A concrete practice: ${ctx[1]}. Relate it to ${area} only where it fits your life.`,
+   limits:base.limits
+  };
+ }
+ if(event.kind==='retrograde_station'||event.kind==='direct_station'){
+  return {...base,
+   tradition:locale==='uk'?
+    `У Джйотіш момент зміни видимого руху ${event.body==='Mercury'?'Меркурія':event.body==='Venus'?'Венери':event.body==='Mars'?'Марса':event.body==='Jupiter'?'Юпітера':event.body==='Saturn'?'Сатурна':event.body==='Sun'?'Сонця':'Місяця'} пов’язують із переосмисленням теми: ${ctx[0]}.`:
+    `This change in ${event.body}'s apparent motion is traditionally linked to revisiting ${ctx[0]}.`,
+   practice:locale==='uk'?`Конкретний крок: ${ctx[1]}.`:`A concrete step: ${ctx[1]}.`};
+ }
+ return base;
+}
+
 export function nearestEvents(events:AstronomicalEvent[],referenceUtc:string,max=4){
  const ms=Date.parse(referenceUtc);
  return events.filter(e=>Number.isFinite(Date.parse(e.atUtc))&&Math.abs(Date.parse(e.atUtc)-ms)<=7*86400000)
