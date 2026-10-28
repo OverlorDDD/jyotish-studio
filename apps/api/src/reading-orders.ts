@@ -72,6 +72,32 @@ export class ReadingOrdersController{
  }
 
  /** Persistent, author-owned question inbox; donation and paid checkout never gate access. */
+ /** A request reaches the administrator ONLY when a user explicitly opts in.
+  * Existing private TarotQuestion rows are never promoted to expert inbox. */
+ @Post('questions/expert')
+ async submitExpertQuestion(@Body()body:NewReadingDraftDto,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
+  const userId=cookieUser(req);
+  if(!userId)throw new UnauthorizedException('Sign in to contact a tarot expert');
+  if(body.privacyConsent!==true)throw new BadRequestException('Explicit consent to share with the Galaxiora administrator is required');
+  if(!allowDraft())throw new HttpException('Too many expert requests',HttpStatus.TOO_MANY_REQUESTS);
+  const question=body.question.trim(),context=body.context.trim();
+  if(question.length<12||question.length>600||context.length<20||context.length>2000)
+   throw new BadRequestException('Please provide a question (12–600) and context (20–2000)');
+  const now=new Date();
+  const recent=await this.prisma.tarotQuestion.count({
+   where:{userId,expertSubmittedAt:{gte:new Date(now.getTime()-86400000)}}
+  });
+  if(recent>=3)throw new HttpException('Expert inquiry daily limit reached',HttpStatus.TOO_MANY_REQUESTS);
+  const submission=await this.prisma.tarotQuestion.create({
+   data:{userId,topic:body.topic,question,context,timeframe:body.timeframe?.trim()||null,
+    consentAt:now,expertSubmittedAt:now},
+   select:{id:true,createdAt:true,expertSubmittedAt:true}
+  });
+  return {...submission,status:'SENT_TO_EXPERT_INBOX',paymentRequired:false,
+   telegramUrl:'https://t.me/Galaxiora',
+   note:'Question saved to Galaxiora administrator inbox. Telegram channel is a separate optional link, not an automated message.'};
+ }
  @Post('questions')
  async saveQuestion(@Body()body:NewReadingDraftDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
@@ -96,7 +122,7 @@ export class ReadingOrdersController{
   if(!userId)throw new UnauthorizedException('Sign in required');
   return this.prisma.tarotQuestion.findMany({
    where:{userId},orderBy:{createdAt:'desc'},take:100,
-   select:{id:true,createdAt:true,topic:true,question:true,context:true,timeframe:true}
+   select:{id:true,createdAt:true,topic:true,question:true,context:true,timeframe:true,expertSubmittedAt:true,expertReviewedAt:true}
   });
  }
  @Delete('questions/:id')
@@ -131,5 +157,6 @@ Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prot
 Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteDraft');
 
 Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'saveQuestion');
+Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'submitExpertQuestion');
 Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'myQuestions');
 Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteQuestion');
