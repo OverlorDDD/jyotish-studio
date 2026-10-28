@@ -20,6 +20,22 @@
 - `npm run news:images:repair`: non-destructive batch for existing local archive; after `npm run dev:full` and migrations, run from project root in **another** PowerShell. Up to 72 articles checked per manual invocation, individual queries capped at 5.5s, no broad publisher scraping. `NEWS_OPEN_MEDIA_ENABLED=0` disables lookups.
 - Sources: https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia, https://www.mediawiki.org/wiki/API:Imageinfo/en. File authors/licence must be attributed; publisher photo fallback still cannot bypass rights.
 
+## npm ci EUSAGE — Windows installation correction (2026-10-28)
+
+The repo does **not** commit a root `package-lock.json`, so `npm ci` fails with `EUSAGE` even when `git fetch` and `git pull` succeed. This is an installation-instruction error, **not** a failed update or Docker error. Both README and the current GitHub Actions workflow install using `npm install`.
+
+Run this from `C:\\Users\\Note\\jyotish-studio-git`:
+
+```powershell
+git status --short
+git fetch origin
+git switch fix/jqa3-windows-and-llm-recovery
+git pull --ff-only origin fix/jqa3-windows-and-llm-recovery
+npm install --no-audit --no-fund
+```
+
+`npm install` may create an untracked `package-lock.json` locally; this is expected. Do not commit the generated file as a verified lockfile without reviewing and testing its full dependency graph. For a reproducible future release, commit a generated workspace lockfile and switch CI/docs to `npm ci` together.
+
 ## Windows acceptance
 
 First **stop `npm run dev:full` with Ctrl+C**. Do not operate on `.next` while Next is running.
