@@ -10,7 +10,7 @@ type Topic=typeof TOPICS[number];
 const EXTRA_INTEREST_TAGS=['natal-charts','nakshatras','mantras','pranayama'] as const;
 const INTEREST_TAGS=[...TOPICS,...EXTRA_INTEREST_TAGS] as const;
 type InterestTag=typeof INTEREST_TAGS[number];
-type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null;personalReason?:'selected_topic'|'similar_to_liked'|'fresh_discovery'|'world_highlight';matchingTag?:InterestTag|null};
+type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null;imagePageUrl?:string|null;imageLicense?:string|null;imageLicenseUrl?:string|null;personalReason?:'selected_topic'|'similar_to_liked'|'fresh_discovery'|'world_highlight';matchingTag?:InterestTag|null};
 type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
@@ -112,16 +112,23 @@ function guestSimilar(story:Story,hint:GuestNewsHint){
 }
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 /** An authorized publisher thumbnail; broken external images fall back to site artwork. */
-function StoryArtwork({imageUrl,credit,title,topic,art}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;art:string}){
+function StoryArtwork({imageUrl,credit,title,topic,art,sourceUrl,licenseUrl,license}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;art:string;sourceUrl?:string|null;licenseUrl?:string|null;license?:string|null}){
  const [broken,setBroken]=useState(false);
  useEffect(()=>setBroken(false),[imageUrl]);
  let allowed=false;
  try{const u=new URL(imageUrl||'');allowed=u.protocol==='https:';}catch{}
  return <div className={styles.illustration} data-topic={topic}>
-  {allowed&&!broken?<img className={styles.storyImage} src={imageUrl!} alt={title} loading="lazy"
+  {allowed&&!broken?<img className={styles.storyImage} src={imageUrl!} alt={sourceUrl?"Ілюстративне фото за темою: "+title:title} loading="lazy"
    referrerPolicy="no-referrer" onError={()=>setBroken(true)}/>:
    <div className={styles.fallbackArt} aria-hidden="true"><span>{art}</span><i/></div>}
-  {allowed&&!broken&&credit&&<small className={styles.imageCredit}>{credit}</small>}
+  {allowed&&!broken&&credit&&<small className={styles.imageCredit}>
+   {sourceUrl&&sourceUrl.startsWith('https://commons.wikimedia.org/')?
+    <a href={sourceUrl} target="_blank" rel="noopener noreferrer" title="Photo source and author">{credit}</a>:credit}
+   {sourceUrl&&licenseUrl&&licenseUrl.startsWith('https://creativecommons.org/')&&
+    <a href={licenseUrl} target="_blank" rel="noopener noreferrer" title="Creative Commons license">
+     {' · '+(license||'CC license')}
+    </a>}
+  </small>}
  </div>;
 }
 export default function NewsWorld({locale}:{locale:PortalLocale}){
@@ -498,7 +505,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
         return <article className={i===0&&view!=='mine'?styles.lead:styles.card} key={story.id}>
-         <StoryArtwork imageUrl={story.imageUrl} credit={story.imageCredit} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} art={art(story.topic)}/>
+         <StoryArtwork imageUrl={story.imageUrl} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} art={art(story.topic)}/>
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
