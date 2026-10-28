@@ -24,8 +24,14 @@ async function statistics(){
   prisma.newsArticle.count({where:{...base,feedDescription:null}}),
   prisma.newsArticle.count({where:{...base,editorialAttempts:{gt:0}}})
  ]);
+ const rows=await prisma.newsArticle.findMany({where:base,
+  select:{imageUrl:true,imageLicense:true,imageLicenseUrl:true,source:true}});
+ const blockedImageUrls=rows.filter(r=>r.imageUrl&&
+  !safeImageUrl(r.imageUrl,r.imageLicenseUrl||r.imageLicense||'',r.source,false)).length;
  console.log('[GalaxiNews] articles:',total,'untranslated:',untranslated,'without Ukrainian teaser:',noTeasers,
-  'without image:',noCovers,'without source description:',contextMissing,'attempted:',attempted);
+  'without image URL:',noCovers,'image URLs hidden by licence check:',blockedImageUrls,
+  'visibly licensed photos:',total-noCovers-blockedImageUrls,
+  'without source description:',contextMissing,'attempted:',attempted);
  return untranslated+noTeasers;
 }
 async function metadataRecovery(){
