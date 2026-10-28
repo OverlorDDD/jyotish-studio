@@ -160,7 +160,7 @@ export class PersonalController{
     daily,horoscope:buildMoonSignHoroscope(transit,context)},
    transit,transitStatus,recentTarot:tarot,recentJournal:journal,privateQuestions:questions,
    recentPractices:practices,horoscope:{status:verified?'available':'requires_verified_chart',personal:verified},
-   news:{status:'planned_after_launch',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
+   news:{status:'available',topics:profile.profile.newsTopics,usesPrivateJournal:false}};
  }
  /** AE-P6: private lunar suitability, computed only from the owner's
   * verified natal Moon + actual local-sunrise Swiss Moon. No birth data in
