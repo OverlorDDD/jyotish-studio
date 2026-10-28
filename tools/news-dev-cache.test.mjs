@@ -29,7 +29,9 @@ test('build cache helper refuses unknown revision strings and linked cache direc
   assert.equal(refreshDevNextCache(dir,'not-a-commit').state,'no_revision');
   const elsewhere=mkdtempSync(join(tmpdir(),'galaxiora-elsewhere-'));
   try{
-   symlinkSync(elsewhere,join(dir,'.next'),'dir');
+   // Windows directory junctions work without Developer Mode or elevated SeCreateSymbolicLinkPrivilege.
+   // We still exercise the unsafe linked-cache rejection on both platforms.
+   symlinkSync(elsewhere,join(dir,'.next'),process.platform==='win32'?'junction':'dir');
    assert.throws(()=>refreshDevNextCache(dir,'aaaaaaa'),/linked/);
   }finally{rmSync(elsewhere,{recursive:true,force:true});}
  }finally{rmSync(dir,{recursive:true,force:true});}
