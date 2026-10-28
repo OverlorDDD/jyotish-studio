@@ -320,6 +320,11 @@ model NewsArticle {
  editorialAttempts Int @default(0)
  imageUrl String? @db.VarChar(1000)
  imageCredit String? @db.VarChar(160)
+ imageLicense String? @db.VarChar(80)
+ imageLicenseUrl String? @db.VarChar(500)
+ imagePageUrl String? @db.VarChar(1000)
+ imageLookupAt DateTime?
+ @@index([imageLookupAt])
  summaryKind String @default("title_context") @db.VarChar(32)
  summaryUk String? @db.VarChar(700)
  summaryEn String? @db.VarChar(700)
