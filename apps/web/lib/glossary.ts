@@ -25,7 +25,7 @@ export const GLOSSARY:GlossaryEntry[]=[
  {id:'dharma',uk:'Дгарма — в індійських традиціях поняття обов’язку, етичного шляху та належної дії.',en:'Dharma refers to duty, ethical order and proper conduct in Indian traditions.',forms:['дгарма','дгарми','дгарму','dharma']}
 ,
  {id:"panchanga",uk:"Панчанга — ведичний календар із п’яти показників дня: тітхі, накшатри, вара, йоги та карани.",en:"Panchanga is a Vedic almanac describing the day through five calendar factors.",forms:["панчанга","панчанги","панчангу","panchanga"]},
- {id:"tithi",uk:"Тітхі — одна з тридцяти частин місячного місяця, визначена кутом між Сонцем і Місяцем.",en:"Tithi is one of 30 lunar calendar divisions based on the Sun–Moon angular separation.",forms:["тітхі","tithi"]},
+ {id:"tithi",uk:"Тітхі — один із 30 ведичних місячних днів. Він визначається зміною кута між Сонцем і Місяцем, а не рівно 24 годинами.",en:"Tithi is one of 30 lunar calendar divisions based on the Sun–Moon angular separation.",forms:["тітхі","tithi"]},
  {id:"paksha",uk:"Пакша — половина місячного циклу: шукла (зростання) або крішна (спадання) Місяця.",en:"Paksha is a lunar fortnight: Shukla (waxing) or Krishna (waning).",forms:["пакша","пакші","paksha"]},
  {id:"shukla",uk:"Шукла — світла, зростаюча половина місячного місяця від молодика до повні.",en:"Shukla is the waxing lunar fortnight from new moon to full moon.",forms:["шукла","shukla"]},
  {id:"krishna-paksha",uk:"Крішна-пакша — темна, спадна половина місячного місяця від повні до молодика.",en:"Krishna Paksha is the waning fortnight from full moon to new moon.",forms:["крішна-пакша","krishna paksha"]},
