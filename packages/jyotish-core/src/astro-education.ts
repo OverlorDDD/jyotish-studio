@@ -36,36 +36,72 @@ const SIGN_LABELS={
  uk:['Овна','Тельця','Близнюків','Рака','Лева','Діви','Терезів','Скорпіона','Стрільця','Козорога','Водолія','Риб'],
  en:['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
 };
+const MOON_SIGN_READING={
+ uk:[
+  ['сміливі починання та бажання діяти одразу','обери одне невелике завдання і зроби перший крок, не беручись за все одночасно'],
+  ['побут, комфорт і відчуття стабільності','прибери одну незручність удома або впорядкуй щоденні витрати'],
+  ['спілкування, цікавість і обмін новинами','поговори з людиною, яку давно хотів почути, й постав їй конкретне запитання'],
+  ['рідних, дім і потребу в душевному спокої','знайди час для короткої щирої розмови з близькою людиною'],
+  ['творчість, радість і бажання проявитися','присвяти пів години заняттю, в якому можеш творити без оцінювання'],
+  ['увагу до деталей, здорові звички та порядок','упорядкуй одну справу, що давно накопичувала дрібні клопоти'],
+  ['партнерство, діалог і справедливий обмін','відкрито обговори одну домовленість, яку обидві сторони розуміють по-різному'],
+  ['глибокі переживання, довіру та внутрішні зміни','запиши, що саме тебе тривожить, і відокрем факти від припущень'],
+  ['нові знання, подорожі й пошук сенсу','прочитай або прослухай щось нове й запиши одну ідею для себе'],
+  ['відповідальність, плани та довгострокові цілі','перевір найближчий дедлайн і розбий складне завдання на два кроки'],
+  ['дружбу, спільні задуми та незалежне мислення','поділися ідеєю зі спільнотою або напиши другові з пропозицією'],
+  ['уяву, співчуття та необхідність відпочинку','вимкни зайві сповіщення й виділи час для тихої прогулянки']
+ ] as [string,string][],
+ en:[
+  ['new beginnings and the urge to act','take one small first step rather than starting everything at once'],
+  ['comfort, stability and everyday needs','improve one thing in your home or review a practical expense'],
+  ['conversation, curiosity and exchanging ideas','call someone you have meant to speak to and ask a thoughtful question'],
+  ['home, family and emotional security','make space for a sincere conversation with someone close'],
+  ['creativity, pleasure and self-expression','spend half an hour creating something without judging the result'],
+  ['daily routines, detail and practical care','tidy up one small unfinished task that has accumulated'],
+  ['partnership, fairness and dialogue','clarify one agreement that may have been understood differently'],
+  ['trust, change and difficult feelings','write down what worries you and separate facts from assumptions'],
+  ['learning, exploration and larger meaning','learn something new and note one idea worth keeping'],
+  ['responsibility, schedules and future goals','check an approaching deadline and divide the task into two steps'],
+  ['friendship, groups and independent thinking','share an idea with your community or reconnect with a friend'],
+  ['imagination, compassion and the need for rest','mute unnecessary notifications and take a quiet walk']
+ ] as [string,string][]
+};
 export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSign?:number;toSign?:number;atUtc?:string},locale:Locale):EventInsight{
  const base=eventInsight(event.kind,locale);
- const p=event.body?PLANET_CONTEXT[event.body]:undefined;
- if(!p)return base;
- const ctx=p[locale];
+ const planet=event.body;
+ const planetary=planet?PLANET_CONTEXT[planet]:undefined;
+ if(!planetary)return base;
+ const theme=planetary[locale];
  const destination=event.toSign;
  if(event.kind==='sidereal_ingress'&&typeof destination==='number'&&Number.isInteger(destination)&&destination>=1&&destination<=12){
-  const sign=SIGN_LABELS[locale][destination-1],area=SIGN_CONTEXT[locale][destination-1];
-  const origin=event.fromSign&&event.fromSign>=1&&event.fromSign<=12?SIGN_LABELS[locale][event.fromSign-1]:'';
-  const planetUk=({Sun:'Сонце',Moon:'Місяць',Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'} as Record<string,string>)[event.body||'']||event.body;
-  const moved=event.body==='Sun'?'перейшло':event.body==='Venus'?'перейшла':'перейшов';
+  const sign=SIGN_LABELS[locale][destination-1];
+  const origin=event.fromSign&&event.fromSign>=1&&event.fromSign<=12?SIGN_LABELS[locale][event.fromSign-1]:null;
+  const translated=({Sun:'Сонце',Moon:'Місяць',Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'} as Record<string,string>)[planet]||planet;
+  const verb=planet==='Sun'?'перейшло':planet==='Venus'?'перейшла':'перейшов';
+  const moon=MOON_SIGN_READING[locale][destination-1];
   return {
-   meaning:locale==='uk'?
-    `${planetUk} ${moved} ${origin?'зі знака '+origin+' до знака '+sign:'до знака '+sign}. Це розрахований момент переходу, а не загальне припущення для цього дня.`:
-    `${event.body} entered ${sign}${origin?' from '+origin:''}, at a calculated sidereal sign boundary.`,
-   tradition:locale==='uk'?
-    `У Джйотіш ${ctx[0]} тепер розглядають крізь теми ${area}. Для персонального висновку важливо знати дім і положення планети у твоїй натальній карті.`:
-    `Jyotish connects ${ctx[0]} with ${area} during this sign transit. Personal houses require a natal chart.`,
-   practice:locale==='uk'?
-    `Практика для цієї події: ${ctx[1]}. Пов’яжи це з темою ${area}, якщо вона зараз актуальна для тебе.`:
-    `A concrete practice: ${ctx[1]}. Relate it to ${area} only where it fits your life.`,
+   meaning:locale==='uk'
+    ?`${translated} ${verb} ${origin?'зі знака '+origin+' до знака '+sign:'до знака '+sign}.`
+    :`${planet} moved ${origin?'from '+origin+' into '+sign:'into '+sign}.`,
+   tradition:locale==='uk'
+    ?planet==='Moon'
+     ?`У Джйотіш Місяць у знаку ${sign} пов’язують із такими темами: ${moon[0]}. Це час звернути увагу на те, як ти спілкуєшся та реагуєш на повсякденні події.`
+     :`У Джйотіш перехід ${translated} до знака ${sign} пов’язують із темами ${SIGN_CONTEXT.uk[destination-1]}. Для ${translated} особливо важливі ${theme[0]}.`
+    :planet==='Moon'
+     ?`In Jyotish the Moon in ${sign} draws attention to ${moon[0]}.`
+     :`Jyotish associates ${planet} in ${sign} with ${SIGN_CONTEXT.en[destination-1]}, especially ${theme[0]}.`,
+   practice:planet==='Moon'
+    ?locale==='uk'?`Спробуй сьогодні: ${moon[1]}.`:`Try today: ${moon[1]}.`
+    :locale==='uk'?`Спробуй: ${theme[1]}.`:`Try: ${theme[1]}.`,
    limits:base.limits
   };
  }
  if(event.kind==='retrograde_station'||event.kind==='direct_station'){
   return {...base,
-   tradition:locale==='uk'?
-    `У Джйотіш момент зміни видимого руху ${event.body==='Mercury'?'Меркурія':event.body==='Venus'?'Венери':event.body==='Mars'?'Марса':event.body==='Jupiter'?'Юпітера':event.body==='Saturn'?'Сатурна':event.body==='Sun'?'Сонця':'Місяця'} пов’язують із переосмисленням теми: ${ctx[0]}.`:
-    `This change in ${event.body}'s apparent motion is traditionally linked to revisiting ${ctx[0]}.`,
-   practice:locale==='uk'?`Конкретний крок: ${ctx[1]}.`:`A concrete step: ${ctx[1]}.`};
+   tradition:locale==='uk'
+    ?`У традиції Джйотіш зміна видимого руху планети ${planet==='Mercury'?'Меркурій':planet==='Venus'?'Венера':planet==='Mars'?'Марс':planet==='Jupiter'?'Юпітер':planet==='Saturn'?'Сатурн':planet} звертає увагу на ${theme[0]}.`
+    :`Traditionally this change in ${planet}'s apparent motion invites attention to ${theme[0]}.`,
+   practice:locale==='uk'?`Спробуй: ${theme[1]}.`:`Try: ${theme[1]}.`};
  }
  return base;
 }
