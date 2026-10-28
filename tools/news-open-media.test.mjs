@@ -53,7 +53,10 @@ test('all eight news topics have self-contained, genuinely distinct offline artw
   assert.doesNotMatch(svg.replace('xmlns="http://www.w3.org/2000/svg"',''),/<script|<foreignObject|<image|https?:\/\//i);
  }
  const ui=readFileSync(new URL('../apps/web/app/components/NewsWorld.tsx',import.meta.url),'utf8');
- assert.match(ui,/src=\{newsFallbackArtwork\(topic\)\}/);
+ assert.match(ui,/src=\{newsFallbackArtwork\(topic,storyId\)\}/);
+ const coverIds=Array.from({length:80},(_,i)=>newsFallbackArtwork('yoga','news-'+i));
+ assert.equal(new Set(coverIds).size,80,'Article covers must not repeat within a topic');
+ assert.equal(newsFallbackArtwork('yoga','news-12'),coverIds[12],'Covers must be stable across renders');
  assert.match(ui,/loading="eager" data-image-role="fallback"/);
  assert.match(ui,/data-image-role="licensed-photo"/);
  assert.match(ui,/onLoad=\{\(\)=>setReadyUrl\(imageUrl!\)\}/);
