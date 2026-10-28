@@ -114,16 +114,22 @@ function guestSimilar(story:Story,hint:GuestNewsHint){
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 /** Prefer images with verified reuse rights; ensure every article has original offline artwork otherwise. */
 function StoryArtwork({imageUrl,credit,title,topic,locale,sourceUrl,licenseUrl,license}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;locale:PortalLocale;sourceUrl?:string|null;licenseUrl?:string|null;license?:string|null}){
- const [broken,setBroken]=useState(false);
- useEffect(()=>setBroken(false),[imageUrl]);
+ const [failedUrl,setFailedUrl]=useState<string|null>(null);
+ const [readyUrl,setReadyUrl]=useState<string|null>(null);
  let allowed=false;
  try{const u=new URL(imageUrl||'');allowed=u.protocol==='https:';}catch{}
- const showingPhoto=allowed&&!broken;
+ const canLoadPhoto=allowed&&imageUrl!==failedUrl;
+ const showingPhoto=canLoadPhoto&&readyUrl===imageUrl;
  return <div className={styles.illustration} data-topic={topic}>
-  <img className={styles.storyImage} src={showingPhoto?imageUrl!:newsFallbackArtwork(topic)}
-   alt={showingPhoto?title:(locale==='uk'?'Тематична ілюстрація: ':'Topic illustration: ')+title}
-   loading="lazy" referrerPolicy="no-referrer"
-   onError={()=>{if(showingPhoto)setBroken(true);}}/>
+  {/* Always paint first-party artwork immediately. A slow/offline external photo
+      must never leave the news card blank or hold up the page. */}
+  <img className={styles.storyImage} src={newsFallbackArtwork(topic)}
+   alt={showingPhoto?'':(locale==='uk'?'Тематична ілюстрація: ':'Topic illustration: ')+title}
+   loading="eager" data-image-role="fallback"/>
+  {canLoadPhoto&&<img className={styles.storyImage+' '+(showingPhoto?styles.photoReady:styles.photoPending)}
+   src={imageUrl!} alt={showingPhoto?title:''} loading="lazy" referrerPolicy="no-referrer"
+   data-image-role="licensed-photo" onLoad={()=>setReadyUrl(imageUrl!)}
+   onError={()=>setFailedUrl(imageUrl!)}/>}
   {showingPhoto&&credit&&<small className={styles.imageCredit}>
    {sourceUrl&&sourceUrl.startsWith('https://commons.wikimedia.org/')?
     <a href={sourceUrl} target="_blank" rel="noopener noreferrer" title="Photo source and author">{credit}</a>:credit}
