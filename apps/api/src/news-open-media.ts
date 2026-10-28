@@ -5,7 +5,7 @@
  */
 import {createHash} from 'node:crypto';
 import type {PrismaService} from './prisma.ts';
-import {cleanDescription,canonicalUrl,safeImageUrl} from './news-domain.ts';
+import {cleanDescription,safeImageUrl} from './news-domain.ts';
 type Topic= 'jyotish'|'astrology'|'tarot'|'yoga'|'meditation'|'vedic'|'self-development'|'astronomy';
 export type OpenImage={imageUrl:string;imagePageUrl:string;imageLicense:string;imageLicenseUrl:string;imageCredit:string};
 type MediaInfo={thumburl?:string;url?:string;descriptionurl?:string;mime?:string;width?:number;height?:number;
