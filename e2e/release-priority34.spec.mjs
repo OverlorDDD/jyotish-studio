@@ -43,7 +43,7 @@ test('a public Aries selection cannot silently override an authenticated Gemini 
  await expect(page.getByTestId('personal-moon-reading')).toContainText('Мій прогноз за Місяцем');
  await page.getByRole('button',{name:'Усі 12 знаків'}).click();
  await page.getByRole('button',{name:/Обрати мій місячний знак/}).click();
- await expect(page.getByRole('button',{name:'Близнюки'})).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByRole('button',{name:'Близнюки',exact:true})).toHaveAttribute('aria-pressed','true');
  await page.getByRole('button',{name:'Мій персональний'}).click();
  await expect(page.getByTestId('personal-sign-basis')).toContainText('Близнюки');
 });
