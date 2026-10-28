@@ -3,6 +3,7 @@
  */
 import {PrismaClient} from '@prisma/client';
 import {editorialPreviewState} from '../apps/api/src/news-editorial-coverage.ts';
+import {disabledNewsSourceKeys} from '../apps/api/src/news-sources.ts';
 const db=new PrismaClient();
 try{
  const [rows,lastScan,sources]=await Promise.all([
@@ -12,7 +13,8 @@ try{
   db.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,accepted:true,sources:true,errors:true}}),
   db.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:160,select:{sourceKey:true,status:true,failure:true,createdAt:true}})
  ]);
- const latest=new Map();for(const row of sources)if(!latest.has(row.sourceKey))latest.set(row.sourceKey,row);
+ const disabled=disabledNewsSourceKeys();
+ const latest=new Map();for(const row of sources)if(!disabled.has(row.sourceKey)&&!latest.has(row.sourceKey))latest.set(row.sourceKey,row);
  const states={ok:0,empty:0,error:0,cooldown:0,other:0};
  for(const row of latest.values()){if(Object.hasOwn(states,row.status))states[row.status]++;else states.other++;}
  const counts={ready:0,missing_source_facts:0,translation_pending:0};
@@ -37,7 +39,7 @@ try{
   noSourceContextExamples:unsupported.slice(0,25),actionableMissingExamples:pending.slice(0,25),
   latestScan:lastScan?{at:lastScan.createdAt,ageMinutes:Math.round(ageMin),accepted:lastScan.accepted,
    sources:lastScan.sources,errors:lastScan.errors}:null,
-  sourceStates:states,sourceDegraded:states.error>0||states.cooldown>0,
+  sourceStates:states,disabledSourceKeys:[...disabled].sort(),sourceDegraded:states.error>0||states.cooldown>0,
   degradedSources:[...latest.values()].filter(r=>r.status==='error').map(r=>({key:r.sourceKey,error:r.failure?.slice(0,120)})),
   note:'CONTENT_READY allows only provenance-safe title/link cards when the original source supplies no usable description. It does not mean every article has a teaser or each RSS publisher is healthy.',
   failures};
