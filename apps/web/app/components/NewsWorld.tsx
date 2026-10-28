@@ -4,6 +4,7 @@ import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,
 import PortalShell from './PortalShell';
 import styles from './NewsWorld.module.css';
 import {newsFallbackArtwork} from './news-fallback-artwork';
+import GlossaryText from './GlossaryText';
 import type {PortalLocale} from '../../lib/brand';
 
 const TOPICS=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'] as const;
@@ -518,8 +519,8 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
-          <h3>{locale==='uk'&&story.titleUk?story.titleUk:story.title}</h3>
-          {preview(story)&&<p className={styles.summary} data-testid="news-summary">{preview(story)}</p>}
+          <h3><GlossaryText text={locale==='uk'&&story.titleUk?story.titleUk:story.title} locale={locale}/></h3>
+          {preview(story)&&<p className={styles.summary} data-testid="news-summary"><GlossaryText text={preview(story)!} locale={locale}/></p>}
           <p className={styles.source}>{story.source}</p>
           {view==='mine'&&accountStatus==='member'&&story.personalReason&&
            <small className={styles.personalReason} data-testid="news-why">
