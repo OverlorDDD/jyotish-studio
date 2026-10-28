@@ -50,7 +50,7 @@ const T={
  maha_shivaratri:'Maha Shivaratri · night',diwali_amavasya:'Diwali · evening Amavasya',candidate:'Traditional observance',
  moment:'Astronomical instant',adhika:'Adhika month',regular:'Ordinary lunar month',
  kshaya:'Exceptional month: name requires additional reference review',
- warning:'Vedic festival observances vary by location and tradition. For fasting and Parana timings, consult your own community's calendar.',
+ warning:"Vedic festival observances vary by location and tradition. For fasting and Parana timings, consult your own community’s calendar.",
  info:'Amanta and Purnimanta share the same astronomy but may label the waning fortnight differently. Adhika months are detected from sidereal solar ingresses between consecutive New Moons.'}
 } as const;
 const monthNames:Record<string,[string,string]>={
