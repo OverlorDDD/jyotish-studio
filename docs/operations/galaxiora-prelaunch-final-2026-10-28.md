@@ -63,3 +63,41 @@ A local preview without a production domain should remain `SITE_NOINDEX=1` with 
 - RSS source reliability, translation coverage and visual quality of the licensed-photo corpus: Wikimedia may be inaccessible or rate-limited, and a first-party illustration is a distinct content type, not a real photo.
 - Human response operations: clear service expectations, privacy notice, abuse/moderation rules, handling of emails/questions, and deletion. No financial or bot integrations are active.
 - Full independent longitude/date quality certification (JQA3); numeric and historical reference checks must be green. Never claim sub-arcsecond 20/20 precision from 600/600 D1/D9/D10 sign parity alone.
+
+## Follow-up fixes and verified JQA-3 certificate (2026-10-28)
+
+- Calendar event explanations: concise named planet/sign transition, natural Ukrainian interpretation by planetary theme (12 Moon sign-specific practices), no technical self-justification, boilerplate about checking natal chart or repeated "Practice for this event" heading. No changes to planetary positions.
+- "Тітхі" glossary now says "один із 30 ведичних місячних днів" instead of the awkward phrase "місячний місяць". Glossary accessibility: spoken term keeps its own name, definition is its accessible description, preventing false matches in Panchanga form controls.
+- Expert inquiry no longer has a 12-character question or 20-character context minimum. Only a **nonempty question** is mandatory (maximum 600 chars); context is optional (maximum 2000). The independent private-draft/payment validation remains unchanged. A dark scoped CSS module styles textarea, select, input, focus and placeholders. Successful submission directs the visitor to contact the administrator **using contact details published in the @Galaxiora channel**; the Telegram channel link does not auto-forward the question.
+- Saved private question list and delete control retained below the expert inquiry form without restoring the obsolete paid form. The new Playwright check exercises a one-character expert request, dark input color, consent, and denial of administrator access to member accounts.
+- `npm run news:quality` is a **read-only database quality gate** for current Ukrainian titles, Ukrainian teasers, scan freshness and active source states. It blocks on missing UA material. `npm run news:repair` can attempt authorized metadata and AI backfill, but no provider or copyright restriction is bypassed. An external source HTTP 429/500 can still be degraded even if the content gate passes.
+
+**Numerical JQA-3 evidence confirmed:** in successful Actions run [40676861324](https://github.com/OverlorDDD/jyotish-studio/actions/runs/40676861324), `npm run jqa3:certify` printed `CERTIFIED`: **200/200** body/lagna longitudes within 1 arcsecond, including lagna 20/20 with max 0.880902417 arcsec and Moon 20/20 with max 0.005939286 arcsec. Exact original JHora printed dates: **180/180** mahadasha and **1620/1620** antardasha, birth Moon 20/20. Same-profile sign parity is certified. Scope caveat: historic JHora profile and printed civil calendar dates; it does **not** independently attest exact UTC transition instants to the second. Do not regress the mathematical engine merely because an old handoff report mentions lagna 19/20 or Moon 18/20.
+
+### Revised local commands
+
+After `git pull --ff-only`, with the servers stopped:
+
+```powershell
+npm run test:prelaunch-experts
+npm run test:glossary
+npm run test:news-open-media
+npm run test:platform
+npm run test:tarot:depth
+npm run build
+npm run jqa3:certify
+```
+
+After `npm run dev:full` starts the local API/web/DB, in another shell:
+
+```powershell
+npm run site:check
+npm run launch:verify
+npm run news:doctor
+npm run news:quality
+npm run news:verify-ui
+```
+
+Only if `news:quality` lists missing Ukrainian teasers, attempt `npm run news:repair` once, then repeat `npm run news:quality`. If translations remain missing, report that as a content-launch blocker and review provider errors; do not claim the archive is fully localized. For the news providers themselves, recent failures and cooldown should be examined separately from a successful public page load.
+
+Do not claim the final commit is CI green or verified on the owner's Windows machine without its new run and local results.
