@@ -106,3 +106,32 @@ If after a successful fixed build you still see stale `webpack.cache` errors: **
 
 ### Release gate (do not overpromise)
 Do not claim the owner's Windows network can reach RSS, Commons or paid providers on the basis of GitHub CI. Local `npm run news:images:repair` and admin RSS health reveal it. Do not claim professional content licensing for publisher images or present Commons generic illustrations as documentary photos of the article.
+
+## Local prelaunch follow-up: timeout diagnosis and nonblank cards (2026-10-28)
+
+User diagnostics: `npm run launch:verify` returned 13 PASS, 0 blockers, one expected NOINDEX preview note. `npm run site:check` failed with an anonymous 6-second fetch timeout, despite API and public route checks passing separately. `npm run news:verify-ui` failed on a 20-second `page.waitForFunction`; the old smoke test required **every article image** to load, although the photo `<img>` elements used native browser lazy loading, so offscreen images are intentionally unrequested. Neither timeout by itself proves the service is down.
+
+Fixes:
+- `tools/site-preflight.mjs`: 15-second *per-request* timeout, names and statuses for each probe. **No bypasses:** guest homepage 200, database-connected health, empty guest account session, history 401, Swagger 404, secure `AUTH_SECRET` and free/local AI mode are still required. A real access failure still blocks.
+- `NewsWorld.tsx`/`NewsWorld.module.css`: eager, independent first-party topic illustration beneath external lazily loaded Wikimedia photo. The remote image and attribution are revealed only after successful loading; if blocked, the illustration stays visible and the licensed-photo image is removed. Loading a remote image is no longer a prerequisite to a card illustration.
+- `tools/news-browser-check.mjs`: verifies decoded first-party artwork on all news cards, logs exact test phase on failure and attempts a diagnostic screenshot `apps/web/.next/diagnostics/galaxinews-v1.8-failed.png`.
+- Additional unit and Playwright assertions cover the gates and failed-image fallback.
+
+User's media report: 131 articles; 111 lack any stored image URL; 16 existing URLs hidden due to missing reusable licenses; 4 confirmed visibly licensed photos. Three photos were saved by the Commons repair, including 2 replacements of previously hidden URLs; 14 articles lack UA teasers. Six sources have errors (including 429/500 and network failures), and several are in cooldown. This is **news coverage and image quality debt**, not a reason to relax copyright metadata or assert the RSS source is recovered. Every card should still render proprietary artwork; adding more genuine licensed photos requires improving safe provider lookups and verifying live network availability.
+
+Local retest after stopping the running dev servers:
+```powershell
+cd "C:\Users\Note\jyotish-studio-git"
+git pull --ff-only origin fix/jqa3-windows-and-llm-recovery
+npm run test:bootstrap
+npm run test:news-open-media
+npm run build
+npm run dev:full
+```
+In another terminal while `dev:full` is running:
+```powershell
+npm run site:check
+npm run news:verify-ui
+npm run launch:verify
+```
+No need to repeatedly force `news:images:repair -- --retry`; that bypasses the normal 48-hour retry interval and can stress the Commons service. If `site:check` still times out, note the **named failing endpoint**. If the news browser check fails, send the **stage**, diagnostic, and screenshot. The fix was applied to the GitHub branch but not run on the owner's Windows instance; local PASS is required to approve launch.
