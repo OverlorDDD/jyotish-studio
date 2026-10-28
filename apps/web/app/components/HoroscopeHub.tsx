@@ -14,6 +14,7 @@ type PublicData={date:string;zone:string;sampledAtUtc:string;moon:{sign:number;n
 type PublicWeek={startDate:string;zone:string;reference:string;days:{date:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[]}[]};
 type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string;moonSign?:number|null;lagnaSign?:number|null}|null;journey?:{daily:Reading|null;horoscope:Reading|null}};
 type PersonalCalendar={horoscopeStatus:string;horoscopes:{date:string;guidance:Reading|null}[]};
+const SIGN_SLUGS=['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'] as const;
 const SIGNS={
  uk:['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'],
  en:['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
@@ -34,7 +35,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
   // Shareable canonical public sign deep links, with validation against
   // exactly twelve signs. Private natal selection remains independent.
   const slug=new URLSearchParams(window.location.search).get('sign')||'';
-  const index=['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'].indexOf(slug.toLowerCase());
+  const index=SIGN_SLUGS.indexOf(slug.toLowerCase() as typeof SIGN_SLUGS[number]);
   if(index>=0)setSelected(index+1);
  },[]);
  useEffect(()=>{let live=true;
@@ -168,6 +169,11 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     </button>}
     {!natalName&&<Link href={'/'+locale+'/astrology/jyotish'}>{uk?'Дізнатися свій місячний знак за натальною картою':'Find your natal Moon sign'} →</Link>}
    </div>
+   <p className={styles.signGuideLink}>
+    <Link href={'/'+locale+'/horoscope/'+SIGN_SLUGS[selected-1]}>
+     {uk?'Про знак Місяця ':'About the Moon sign '}{SIGNS[locale][selected-1]} · {uk?'значення й особливості':'meaning and characteristics'} ↗
+    </Link>
+   </p>
    {period==='day'&&reading&&detail({...reading,evidence:{...reading.evidence,house:reading.house}})}
    {period==='week'&&<section className={styles.week} data-testid="public-horoscope-week">
     <h2>{uk?'Тижневий ритм для знака ':'Weekly outlook for '}{SIGNS[locale][selected-1]}</h2>
