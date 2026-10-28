@@ -50,18 +50,37 @@ const SCENES:Record<NewsArtworkTopic,{from:string;to:string;glow:string;shape:st
   '<path d="M438 269L365 409 M438 269L528 411 M438 269L438 415" stroke="#d3b986" stroke-width="16" stroke-linecap="round"/>'+
   '<circle cx="437" cy="269" r="20" fill="#f2d8a2"/>'}
 };
-const memo=new Map<NewsArtworkTopic,string>();
-export function newsFallbackArtwork(topic:NewsArtworkTopic):string{
- const cached=memo.get(topic);if(cached)return cached;
+/** Distinct, first-party editorial cover per article, never an implied source photograph.
+ * Stable hash ensures SSR/CSR agree and the same story retains its artwork. */
+const memo=new Map<string,string>();
+function coverHash(value:string):number{
+ let h=2166136261;
+ for(const char of value){h=Math.imul(h^char.charCodeAt(0),16777619);}
+ return h>>>0;
+}
+export function newsFallbackArtwork(topic:NewsArtworkTopic,storyId=''):string{
+ const key=topic+'|'+storyId;
+ const cached=memo.get(key);if(cached)return cached;
  const t=SCENES[topic]||SCENES.astronomy;
+ const hash=coverHash(key);
+ const hue=hash%360;
+ const ringX=135+(hash%590),ringY=110+((hash>>>9)%240);
+ const stars=Array.from({length:14},(_,i)=>{
+  const x=34+((hash*(i+7)^(i*733))>>>0)%890;
+  const y=24+((hash*(i+11)^(i*577))>>>0)%470;
+  return '<circle cx="'+x+'" cy="'+y+'" r="'+(1+i%3)+'" fill="#ffebbe" opacity=".65"/>';
+ }).join('');
+ const ornament='<circle cx="'+ringX+'" cy="'+ringY+'" r="'+(50+hash%115)+
+  '" fill="none" stroke="#e9d3a5" stroke-opacity=".36" stroke-width="2"/>';
  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img">'+
   '<defs><linearGradient id="bg" x1="0" y1="1" x2="1" y2="0"><stop stop-color="'+t.from+'"/><stop offset="1" stop-color="'+t.to+'"/></linearGradient>'+
   '<radialGradient id="glow"><stop stop-color="'+t.glow+'" stop-opacity=".47"/><stop offset="1" stop-color="'+t.glow+'" stop-opacity="0"/></radialGradient></defs>'+
-  '<rect width="960" height="540" fill="url(#bg)"/><circle cx="510" cy="182" r="330" fill="url(#glow)"/>'+
-  '<g fill="#fff2cb"><circle cx="88" cy="84" r="3"/><circle cx="144" cy="199" r="2"/><circle cx="823" cy="88" r="3"/><circle cx="794" cy="312" r="2"/><circle cx="74" cy="319" r="2"/><circle cx="899" cy="240" r="2"/></g>'+
+  '<rect width="960" height="540" fill="url(#bg)"/><rect width="960" height="540" fill="hsl('+hue+' 35% 60%)" opacity=".14"/>'+
+  '<circle cx="510" cy="182" r="330" fill="url(#glow)"/>'+stars+ornament+
   '<g>'+t.shape+'</g><rect x="16" y="16" width="928" height="508" rx="18" stroke="'+t.glow+'" stroke-opacity=".32" stroke-width="2" fill="none"/>'+
   '</svg>';
  const src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
- memo.set(topic,src);
+ if(memo.size>=300)memo.clear();
+ memo.set(key,src);
  return src;
 }
