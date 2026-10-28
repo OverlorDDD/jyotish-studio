@@ -1,5 +1,5 @@
 import type {PrismaService} from './prisma.ts';
-import {cleanDescription} from './news-domain.ts';
+import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
 type Draft={id:string;title:string;feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
 type Output={id:string;titleUk:string;summaryUk:string;summaryEn:string};
 const boiler=/Це орієнтир за назвою|Орієнтир за заголовком|Публікація джерела|Матеріал джерела|Read the original article|This publication (?:by|from)|This article from|в першоджерелі|in its headline/i;
@@ -9,7 +9,7 @@ const providers=[
  ()=>process.env.OPENROUTER_API_KEY?{key:process.env.OPENROUTER_API_KEY,url:'https://openrouter.ai/api/v1/chat/completions',model:process.env.OPENROUTER_FREE_MODEL||'openrouter/free'}:null
 ];
 const good=(v:unknown,max:number):v is string=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!boiler.test(v)&&!/<[^>]*>/.test(v);
-const context=(x:Draft)=>cleanDescription(x.feedDescription||(x.summaryKind==='source_excerpt'?x.summary:'')||'').slice(0,700);
+const context=(x:Draft)=>editorialSourceFacts(x);
 export async function generateNewsMicrocopy(items:Draft[],fetcher:typeof fetch=fetch):Promise<Output[]>{
  const options=providers.map(p=>p()).filter((p):p is {key:string;url:string;model:string}=>p!==null);
  if(!options.length||!items.length)return [];
@@ -63,19 +63,20 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:typeof fetc
  const raw=Number(process.env.NEWS_EDITORIAL_BATCH_LIMIT);
  const limit=Math.min(12,Math.max(1,Number.isFinite(raw)&&raw>0?raw:12));
  const now=new Date();
- const rows=await prisma.newsArticle.findMany({
+ // Previously marked no_context records may now have publisher metadata.
+ // Fetch bounded candidates, then admit missing teasers only with real source facts.
+ const candidates=await prisma.newsArticle.findMany({
   where:{status:'PUBLISHED',
    AND:[
     {OR:[{editorialNextAttemptAt:null},{editorialNextAttemptAt:{lte:now}}]},
-    {OR:[{titleUk:null},
-     {summaryUk:null,feedDescription:{not:null},summaryKind:{notIn:['no_context','editorial_complete']}}]}
-    ]
-   },
-  orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:limit,
-  select:{id:true,title:true,titleUk:true,feedDescription:true,summary:true,summaryKind:true,
+    {OR:[{titleUk:null},{titleUk:''},{summaryUk:null},{summaryUk:''}]}
+   ]},
+  orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:350,
+  select:{id:true,title:true,titleUk:true,feedDescription:true,summary:true,summaryUk:true,summaryKind:true,
    language:true,editorialAttempts:true}
  });
- if(!rows.length)return {processed:0,reason:'queue_empty'};
+ const rows=candidates.filter(x=>!x.titleUk?.trim()||(!x.summaryUk?.trim()&&hasEditorialEvidence(x))).slice(0,limit);
+ if(!rows.length)return {processed:0,reason:'queue_empty_no_grounded_work',noEvidenceSkipped:candidates.filter(x=>!x.summaryUk?.trim()&&!hasEditorialEvidence(x)).length};
  const collected:Output[]=[];
  for(let i=0;i<rows.length;i+=3){
   collected.push(...await generateNewsMicrocopy(rows.slice(i,i+3),fetcher));
@@ -85,9 +86,9 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:typeof fetc
   const output=collected.find(x=>x.id===original.id);
   const facts=context(original);
   const translated=Boolean(output?.titleUk);
-  const useful=Boolean(facts.length>=45&&!boiler.test(facts));
+  const useful=hasEditorialEvidence(original);
   const teaser=useful&&Boolean(output?.summaryUk);
-  const success=translated&&(!useful||teaser);
+  const success=(Boolean(original.titleUk?.trim())||translated)&&(!useful||Boolean(original.summaryUk?.trim())||teaser);
   const nextAttempts=original.editorialAttempts+1;
   await prisma.newsArticle.updateMany({where:{id:original.id,status:'PUBLISHED'},data:{
    editorialAttempts:nextAttempts,editorialAttemptedAt:now,
