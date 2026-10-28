@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './PersonalPanchanga.module.css';
+import GlossaryText from './GlossaryText';
 type Quality='supportive'|'challenging'|'caution';
 type Report={status:string;date?:string;sunriseUtc?:string;timeZone?:string;version?:string;
  tarabala?:{name:string;taraNumber:number;cycle:number;inclusiveCount:number;quality:Quality;
@@ -44,7 +45,7 @@ export default function PersonalPanchanga({locale,point}:{locale:PortalLocale;po
  },[point.date,point.timeZone,point.latitude,point.longitude,retry]);
  const quality=(q:Quality)=>t[q];
  return <section className={styles.section} data-testid="personal-panchanga" aria-label={t.title}>
-  <h2>{t.title}</h2><p>{t.sub}</p>
+  <h2><GlossaryText text={t.title} locale={locale}/></h2><p><GlossaryText text={t.sub} locale={locale}/></p>
   {status==='loading'&&<p role="status">{t.pending}</p>}
   {status==='anon'&&<p>{t.noAuth}</p>}
   {status==='error'&&<div role="alert">{t.unavailable} <button type="button" onClick={()=>setRetry(v=>v+1)}>{t.retry}</button></div>}
@@ -53,16 +54,16 @@ export default function PersonalPanchanga({locale,point}:{locale:PortalLocale;po
   </div>}
   {status==='ready'&&data?.status==='available'&&data.tarabala&&data.chandrabala&&<>
    <div className={styles.grid}>
-    <article><small>{t.tara}</small><h3>{data.tarabala.name} · {data.tarabala.taraNumber}/9</h3>
+    <article><small><GlossaryText text={t.tara} locale={locale}/></small><h3>{data.tarabala.name} · {data.tarabala.taraNumber}/9</h3>
      <p>{quality(data.tarabala.quality)}</p><small>#{data.tarabala.birthNakshatraIndex} → #{data.tarabala.transitNakshatraIndex} · cycle {data.tarabala.cycle}</small></article>
-    <article><small>{t.chandra}</small><h3>{t.house}: {data.chandrabala.houseFromJanmaRashi}/12</h3>
+    <article><small><GlossaryText text={t.chandra} locale={locale}/></small><h3>{t.house}: {data.chandrabala.houseFromJanmaRashi}/12</h3>
      <p>{quality(data.chandrabala.quality)}</p>
-     {data.chandrabala.ashtamaChandra&&<strong>{t.ashtama}</strong>}
+     {data.chandrabala.ashtamaChandra&&<strong><GlossaryText text={t.ashtama} locale={locale}/></strong>}
     </article>
    </div>
    <p className={styles.note}>{t.at} · {new Intl.DateTimeFormat(locale==='uk'?'uk-UA':'en-GB',{
     dateStyle:'medium',timeStyle:'short',timeZone:data.timeZone
-   }).format(new Date(data.sunriseUtc!))}. {t.note}</p>
+   }).format(new Date(data.sunriseUtc!))}. <GlossaryText text={t.note} locale={locale}/></p>
   </>}
  </section>;
 }
