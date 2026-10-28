@@ -31,7 +31,7 @@ for(const [name,path,content] of routes){
   if(!body.includes(content))return false;
   if(published){
    if(!body.includes('rel="canonical"')||!body.includes(origin+path))return false;
-   if(!body.includes('hreflang="uk"')||!body.includes('hreflang="en"'))return false;
+   if(!/hreflang=["']uk["']/i.test(body)||!/hreflang=["']en["']/i.test(body))return false;
    if(/<meta[^>]*name="robots"[^>]*noindex/i.test(body))return false;
   }
   return true;
