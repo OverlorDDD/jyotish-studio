@@ -53,7 +53,7 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  await expect(page.getByTestId('public-horoscope-week')).toBeVisible();
  await expect(page.getByTestId('public-horoscope-week').locator('article').first()).toBeVisible();
  await page.getByRole('button',{name:'Мій персональний'}).click();
- await expect(page.getByText('Для справді персонального трактування',{exact:false})).toBeVisible();
+ await expect(page.getByText('Збережи власну натальну карту',{exact:false})).toBeVisible();
  await expect(page.getByRole('link',{name:/Перейти до «Мого Всесвіту»/})).toHaveAttribute('href','/uk/personal');
  await page.goto('/en/horoscope');
  await expect(page.getByRole('heading',{name:'Horoscopes'})).toBeVisible();
