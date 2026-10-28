@@ -14,7 +14,7 @@ export function publicSiteOrigin():string|null{
  }catch{return null;}
 }
 export function publicIndexingEnabled():boolean{
- return process.env.SITE_NOINDEX!=='1'&&publicSiteOrigin()!==null;
+ return process.env.SITE_NOINDEX==='0'&&publicSiteOrigin()!==null;
 }
 export function indexRobots(indexable=true){
  return {index:indexable&&publicIndexingEnabled(),follow:true};
