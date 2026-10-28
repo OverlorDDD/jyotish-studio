@@ -26,6 +26,21 @@ export class NewReadingDraftDto {
  @ApiProperty({type:Boolean,description:'Explicit consent to save an owner-controlled private question or temporary draft'})
  @IsBoolean() privacyConsent!:boolean;
 }
+/** Minimal expert inquiry: a nonempty question is sufficient; context is optional.
+ * Legacy saved draft/payment validation remains intentionally unchanged. */
+export class ExpertInquiryDto {
+ @ApiProperty({type:String,enum:['relationships','career','growth','decision','other']})
+ @IsString() @IsIn(['relationships','career','growth','decision','other']) topic!:string;
+ @ApiProperty({type:String,maxLength:600})
+ @IsString() @MaxLength(600) question!:string;
+ @ApiProperty({type:String,required:false,maxLength:2000})
+ @IsOptional() @IsString() @MaxLength(2000) context?:string;
+ @ApiProperty({type:String,required:false,maxLength:140})
+ @IsOptional() @IsString() @MaxLength(140) timeframe?:string;
+ @ApiProperty({type:Boolean,description:'Explicit consent to share this request with the Galaxiora administrator'})
+ @IsBoolean() privacyConsent!:boolean;
+}
+
 const allowDraft=createHourlyLimiter(80);
 
 /** Drafts may be submitted before checkout but are NEVER work orders.
@@ -75,15 +90,15 @@ export class ReadingOrdersController{
  /** A request reaches the administrator ONLY when a user explicitly opts in.
   * Existing private TarotQuestion rows are never promoted to expert inbox. */
  @Post('questions/expert')
- async submitExpertQuestion(@Body()body:NewReadingDraftDto,@Req()req:IncomingMessage){
+ async submitExpertQuestion(@Body()body:ExpertInquiryDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new ForbiddenException('Cross-origin request denied');
   const userId=cookieUser(req);
   if(!userId)throw new UnauthorizedException('Sign in to contact a tarot expert');
   if(body.privacyConsent!==true)throw new BadRequestException('Explicit consent to share with the Galaxiora administrator is required');
   if(!allowDraft())throw new HttpException('Too many expert requests',HttpStatus.TOO_MANY_REQUESTS);
-  const question=body.question.trim(),context=body.context.trim();
-  if(question.length<12||question.length>600||context.length<20||context.length>2000)
-   throw new BadRequestException('Please provide a question (12–600) and context (20–2000)');
+  const question=body.question.trim(),context=(body.context||'').trim();
+  if(!question||question.length>600||context.length>2000)
+   throw new BadRequestException('Please provide a nonempty question (max 600 characters); context is optional');
   const now=new Date();
   const recent=await this.prisma.tarotQuestion.count({
    where:{userId,expertSubmittedAt:{gte:new Date(now.getTime()-86400000)}}
@@ -157,6 +172,6 @@ Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prot
 Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteDraft');
 
 Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'saveQuestion');
-Reflect.defineMetadata('design:paramtypes',[NewReadingDraftDto,Object],ReadingOrdersController.prototype,'submitExpertQuestion');
+Reflect.defineMetadata('design:paramtypes',[ExpertInquiryDto,Object],ReadingOrdersController.prototype,'submitExpertQuestion');
 Reflect.defineMetadata('design:paramtypes',[Object],ReadingOrdersController.prototype,'myQuestions');
 Reflect.defineMetadata('design:paramtypes',[String,Object],ReadingOrdersController.prototype,'deleteQuestion');
