@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {selectOpenImage,findOpenImage} from '../apps/api/src/news-open-media.ts';
-import {safeImageUrl,readPublicSign} from '../apps/api/src/news-domain.ts';
+import {safeImageUrl} from '../apps/api/src/news-domain.ts';
 const photo=(license='CC BY 4.0',url='https://creativecommons.org/licenses/by/4.0/',author='<a>Original Photographer</a>')=>({
  query:{pages:[{pageid:42,title:'File:Sunrise meditation.jpg',imageinfo:[{
   thumburl:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Sunrise_meditation.jpg/760px-Sunrise_meditation.jpg',
