@@ -3,6 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit,Search,X,Settings2,Download,Trash2,Undo2,ShieldCheck} from 'lucide-react';
 import PortalShell from './PortalShell';
 import styles from './NewsWorld.module.css';
+import {newsFallbackArtwork} from './news-fallback-artwork';
 import type {PortalLocale} from '../../lib/brand';
 
 const TOPICS=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'] as const;
@@ -111,17 +112,19 @@ function guestSimilar(story:Story,hint:GuestNewsHint){
  return common>=2&&common/Math.min(a.size,b.size)>=0.6;
 }
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
-/** An authorized publisher thumbnail; broken external images fall back to site artwork. */
-function StoryArtwork({imageUrl,credit,title,topic,art,sourceUrl,licenseUrl,license}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;art:string;sourceUrl?:string|null;licenseUrl?:string|null;license?:string|null}){
+/** Prefer images with verified reuse rights; ensure every article has original offline artwork otherwise. */
+function StoryArtwork({imageUrl,credit,title,topic,locale,sourceUrl,licenseUrl,license}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;locale:PortalLocale;sourceUrl?:string|null;licenseUrl?:string|null;license?:string|null}){
  const [broken,setBroken]=useState(false);
  useEffect(()=>setBroken(false),[imageUrl]);
  let allowed=false;
  try{const u=new URL(imageUrl||'');allowed=u.protocol==='https:';}catch{}
+ const showingPhoto=allowed&&!broken;
  return <div className={styles.illustration} data-topic={topic}>
-  {allowed&&!broken?<img className={styles.storyImage} src={imageUrl!} alt={sourceUrl?"Ілюстративне фото за темою: "+title:title} loading="lazy"
-   referrerPolicy="no-referrer" onError={()=>setBroken(true)}/>:
-   <div className={styles.fallbackArt} aria-hidden="true"><span>{art}</span><i/></div>}
-  {allowed&&!broken&&credit&&<small className={styles.imageCredit}>
+  <img className={styles.storyImage} src={showingPhoto?imageUrl!:newsFallbackArtwork(topic)}
+   alt={showingPhoto?title:(locale==='uk'?'Тематична ілюстрація: ':'Topic illustration: ')+title}
+   loading="lazy" referrerPolicy="no-referrer"
+   onError={()=>{if(showingPhoto)setBroken(true);}}/>
+  {showingPhoto&&credit&&<small className={styles.imageCredit}>
    {sourceUrl&&sourceUrl.startsWith('https://commons.wikimedia.org/')?
     <a href={sourceUrl} target="_blank" rel="noopener noreferrer" title="Photo source and author">{credit}</a>:credit}
    {sourceUrl&&licenseUrl&&licenseUrl.startsWith('https://creativecommons.org/')&&
@@ -387,7 +390,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   if(!candidate||/Це орієнтир за назвою|Публікація джерела|Матеріал джерела|Орієнтир за заголовком|Read the original article|This publication by|This article from/i.test(candidate))return null;
   return candidate;
  };
- const art=(topic:Topic)=>topic==='tarot'?'✦':topic==='yoga'?'ॐ':topic==='jyotish'?'☾':topic==='meditation'?'◉':topic==='vedic'?'❂':topic==='astronomy'?'✧':'✺';
+
  return <PortalShell locale={locale} active="news">
   <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.8">
    <header className={styles.hero}>
@@ -505,7 +508,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
         return <article className={i===0&&view!=='mine'?styles.lead:styles.card} key={story.id}>
-         <StoryArtwork imageUrl={story.imageUrl} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} art={art(story.topic)}/>
+         <StoryArtwork imageUrl={story.imageUrl} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} locale={locale}/>
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
