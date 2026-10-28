@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/BoUAAAAASUVORK5CYII=','base64');
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGPsWX2fgYGBiYGBgYGBAQAY3wIamMxOkAAAAABJRU5ErkJggg==','base64');
 test('licensed Commons alternative photo is visible with creator and click-through license attribution',async({page})=>{
  const photo='https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Sunrise.jpg/760px-Sunrise.jpg';
  await page.route('https://upload.wikimedia.org/**',route=>route.fulfill({status:200,contentType:'image/png',body:png}));
