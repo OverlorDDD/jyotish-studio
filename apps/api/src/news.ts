@@ -60,7 +60,7 @@ export class NewsController {
    take:600,orderBy:{publishedAt:'desc'},select:{
     id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
     publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true,
-    titleUk:true,imageUrl:true,imageCredit:true
+    titleUk:true,imageUrl:true,imageCredit:true,imageLicense:true,imageLicenseUrl:true,imagePageUrl:true
    }
   });
   const ordered=articles.map(a=>({...a,relevance:rank(a.score,a.publishedAt)}))
@@ -92,7 +92,7 @@ export class NewsController {
   ]);
   return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>({...rest,
    // Legacy RSS thumbnails are rechecked at serving time, not trusted from old DB rows.
-   imageUrl:rest.imageUrl?safeImageUrl(rest.imageUrl,'',rest.source,false):null})),
+   imageUrl:rest.imageUrl?safeImageUrl(rest.imageUrl,rest.imageLicense||'',rest.source,false):null})),
    total:ranked.length,articleCount,page:Number(page),limit:size,lastScan,
    personalized:personalEnabled,sort};
  }
