@@ -69,4 +69,14 @@ test('expert question is sent only with explicit consent and never exposes older
  assert.match(dashboard,/expertReviewedAt/);
  assert.match(header,/expertUnread>0/);
  assert.doesNotMatch(frontend,/paymentProvider|paymentToken/);
+ assert.doesNotMatch(frontend,/minLength=/,'No UI minimum character restriction for human expert questions');
+ assert.match(frontend,/\.\/ExpertQuestionForm\.module\.css/);
+ const css=source('apps/web/app/components/ExpertQuestionForm.module.css');
+ assert.match(css,/\.form textarea/);
+ assert.match(css,/color-scheme:dark/);
+ const apiDto=api.slice(api.indexOf('export class ExpertInquiryDto'),api.indexOf('const allowDraft'));
+ assert.doesNotMatch(apiDto,/@Length\(|@MinLength\(/,'Expert inquiry must not inherit old draft minimums');
+ assert.match(api,/context=\(body\.context\|\|''\)\.trim\(\)/);
+ assert.match(frontend,/адміністратору/);
+ assert.match(source('apps/web/app/components/PrivateTarotQuestions.tsx'),/as-expert-drafts/);
 });
