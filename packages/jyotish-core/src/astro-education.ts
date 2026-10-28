@@ -76,8 +76,8 @@ export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSi
  if(event.kind==='sidereal_ingress'&&typeof destination==='number'&&Number.isInteger(destination)&&destination>=1&&destination<=12){
   const sign=SIGN_LABELS[locale][destination-1];
   const origin=event.fromSign&&event.fromSign>=1&&event.fromSign<=12?SIGN_LABELS[locale][event.fromSign-1]:null;
-  const translated=({Sun:'Сонце',Moon:'Місяць',Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'} as Record<string,string>)[planet]||planet;
-  const genitive=({Sun:'Сонця',Moon:'Місяця',Mercury:'Меркурія',Venus:'Венери',Mars:'Марса',Jupiter:'Юпітера',Saturn:'Сатурна'} as Record<string,string>)[planet]||planet;
+  const translated=({Sun:'Сонце',Moon:'Місяць',Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'} as Record<string,string>)[planet||'']||planet;
+  const genitive=({Sun:'Сонця',Moon:'Місяця',Mercury:'Меркурія',Venus:'Венери',Mars:'Марса',Jupiter:'Юпітера',Saturn:'Сатурна'} as Record<string,string>)[planet||'']||planet;
   const verb=planet==='Sun'?'перейшло':planet==='Venus'?'перейшла':'перейшов';
   const moon=MOON_SIGN_READING[locale][destination-1];
   return {
