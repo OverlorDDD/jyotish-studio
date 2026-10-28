@@ -6,6 +6,7 @@ import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
 import {publisherDomain,safeImageUrl} from '../apps/api/src/news-domain.ts';
 import {metadataHosts,fetchArticleMetadata} from '../apps/api/src/news-metadata.ts';
 import {rank,diversify} from '../apps/api/src/news-domain.ts';
+import {enrichOpenNewsPhotos} from '../apps/api/src/news-open-media.ts';
 
 const repair=process.argv.includes('--repair');
 if(process.argv.includes('--help')){
@@ -119,6 +120,14 @@ try{
   failures.map(s=>s.sourceKey+' ('+(s.failure||'unknown').slice(0,95)+')').join('; '));
  await verifyRunningFrontend();
  if(repair){
+  // Restore rights-checked photo alternatives before slow editorial LLM calls.
+  // Bounded batches: keep the repair command safe under limited upstream access.
+  for(let batch=0;batch<4;batch++){
+   const images=await enrichOpenNewsPhotos(prisma);
+   console.log('[GalaxiNews] Commons photo recovery',batch+1,
+    'checked:',images.checked,'restored:',images.filled);
+   if(images.checked===0||images.filled===0)break;
+  }
   await metadataRecovery();
   const configured=Boolean(process.env.GROQ_API_KEY||process.env.GEMINI_API_KEY||process.env.OPENROUTER_API_KEY);
   if(!configured||process.env.NEWS_EDITORIAL_AI_ENABLED==='0'){
