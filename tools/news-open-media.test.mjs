@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {newsFallbackArtwork} from '../apps/web/app/components/news-fallback-artwork.ts';
 import {selectOpenImage,findOpenImage} from '../apps/api/src/news-open-media.ts';
 import {safeImageUrl} from '../apps/api/src/news-domain.ts';
 const photo=(license='CC BY 4.0',url='https://creativecommons.org/licenses/by/4.0/',author='<a>Original Photographer</a>')=>({
@@ -37,4 +39,20 @@ test('invalid topic, provider errors and non-JSON responses never invent photos'
  assert.equal(await findOpenImage('whatever','seed',async()=>{throw Error('must not fetch')}),null);
  assert.equal(await findOpenImage('yoga','seed',async()=>new Response('<html>error</html>',{status:200})),null);
  assert.equal(await findOpenImage('yoga','seed',async()=>new Response('limit',{status:429})),null);
+});
+
+test('all eight news topics have self-contained, genuinely distinct offline artwork',()=>{
+ const topics=['jyotish','astrology','tarot','yoga','meditation','vedic','self-development','astronomy'];
+ const sources=topics.map(topic=>newsFallbackArtwork(topic));
+ assert.equal(new Set(sources).size,topics.length,'A theme-specific visual must not be a reused placeholder');
+ for(const src of sources){
+  assert.match(src,/^data:image\/svg\+xml;charset=utf-8,/);
+  const svg=decodeURIComponent(src.substring(src.indexOf(',')+1));
+  assert.match(svg,/<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+  assert.match(svg,/<rect width="960" height="540"/);
+  assert.doesNotMatch(svg,/<script|<foreignObject|<image|https?:\/\//i);
+ }
+ const ui=readFileSync(new URL('../apps/web/app/components/NewsWorld.tsx',import.meta.url),'utf8');
+ assert.match(ui,/src=\{showingPhoto\?imageUrl!:newsFallbackArtwork\(topic\)\}/);
+ assert.match(ui,/onError=\{\(\)=>\{if\(showingPhoto\)setBroken\(true\);\}\}/);
 });
