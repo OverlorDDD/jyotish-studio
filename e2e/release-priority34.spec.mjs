@@ -54,3 +54,13 @@ test('landing pages communicate available services without outdated coming-soon 
  await page.goto('/uk/astrology');
  await expect(page.getByText('транзити й місячний календар — у планах')).toHaveCount(0);
 });
+
+test('Open Graph share artwork is served as a valid public PNG',async({request})=>{
+ const res=await request.get('/opengraph-image');
+ expect(res.status()).toBe(200);
+ expect(res.headers()['content-type']).toMatch(/image\/png/);
+ const data=await res.body();
+ expect(data.length).toBeGreaterThan(1500);
+ // PNG signature: avoids passing with an HTML error document.
+ expect([...data.subarray(0,8)]).toEqual([137,80,78,71,13,10,26,10]);
+});
