@@ -39,13 +39,13 @@ const isCommons=(url:string,hostname:string)=>{
  try{const u=new URL(url);return u.protocol==='https:'&&u.hostname===hostname&&
   !u.username&&!u.password&&!u.port;}catch{return false;}
 };
-export function selectOpenImage(json:unknown):OpenImage|null{
+export function selectOpenImage(json:unknown,excludedUrls:ReadonlySet<string>=new Set()):OpenImage|null{
  const pages=Object.values((json as {query?:{pages?:Record<string,{imageinfo?:MediaInfo[];title?:string}>}})?.query?.pages||{});
  for(const page of pages){
   const photo=page?.imageinfo?.[0];if(!photo)continue;
   const imageUrl=photo.thumburl||photo.url||'';
   const pageUrl=photo.descriptionurl||'';
-  if(!isCommons(imageUrl,'upload.wikimedia.org')||
+  if(excludedUrls.has(imageUrl)||!isCommons(imageUrl,'upload.wikimedia.org')||
    !isCommons(pageUrl,'commons.wikimedia.org')||
    !/\.(?:jpe?g|png|webp)(?:\?|$)/i.test(imageUrl))continue;
   if(!['image/jpeg','image/png','image/webp'].includes(photo.mime||''))continue;
@@ -60,14 +60,15 @@ export function selectOpenImage(json:unknown):OpenImage|null{
  }
  return null;
 }
-export async function findOpenImage(topic:string,seed:string,fetcher:typeof fetch=fetch):Promise<OpenImage|null>{
+export async function findOpenImage(topic:string,seed:string,fetcher:typeof fetch=fetch,excludedUrls:ReadonlySet<string>=new Set()):Promise<OpenImage|null>{
  if(!TERMS.includes(topic as Topic))return null;
  const searches=SEARCH[topic as Topic];
  const hash=createHash('sha256').update(seed).digest();
  const term=searches[hash[0]%searches.length];
  const url=new URL('https://commons.wikimedia.org/w/api.php');
  for(const [k,v] of Object.entries({
-  action:'query',generator:'search',gsrsearch:term,gsrnamespace:'6',gsrlimit:'8',
+  action:'query',generator:'search',gsrsearch:term,gsrnamespace:'6',gsrlimit:'12',
+  gsroffset:String((hash[1]%5)*12),
   prop:'imageinfo',iiprop:'url|size|mime|extmetadata',iiurlwidth:'760',
   iiextmetadatafilter:'LicenseShortName|LicenseUrl|Artist',format:'json',formatversion:'2'
  }))url.searchParams.set(k,v);
@@ -81,7 +82,7 @@ export async function findOpenImage(topic:string,seed:string,fetcher:typeof fetc
   // formatversion 2 returns pages as an array, unlike v1 object.
   if(Array.isArray(data?.query?.pages))data.query.pages=Object.fromEntries(
    data.query.pages.map((p:{pageid?:number},i:number)=>[String(p.pageid??i),p]));
-  return selectOpenImage(data);
+  return selectOpenImage(data,excludedUrls);
  }catch{return null;}
 }
 /** Updates only articles without any permitted image. Does not contact article URLs.
@@ -100,6 +101,12 @@ export async function enrichOpenNewsPhotos(prisma:PrismaService,fetcher:typeof f
   ]},
   orderBy:{publishedAt:'desc'},take:12,
   select:{id:true,topic:true,urlHash:true,source:true,imageUrl:true,imageLicense:true,imageLicenseUrl:true}});
+ // Do not keep selecting the same first Commons search hit for different articles.
+ const approved=await prisma.newsArticle.findMany({
+  where:{status:'PUBLISHED',imageUrl:{not:null},imageLicense:{not:null}},
+  select:{imageUrl:true}
+ });
+ const usedUrls=new Set(approved.map(row=>row.imageUrl).filter((value):value is string=>Boolean(value)));
  let cursor=0,filled=0;
  await Promise.all(Array.from({length:Math.min(3,rows.length)},async()=>{
   while(cursor<rows.length){
@@ -109,7 +116,8 @@ export async function enrichOpenNewsPhotos(prisma:PrismaService,fetcher:typeof f
     await prisma.newsArticle.updateMany({where:{id:row.id,status:'PUBLISHED'},data:{imageLookupAt:new Date()}});
     continue;
    }
-   const image=await findOpenImage(row.topic,row.urlHash,fetcher);
+   const image=await findOpenImage(row.topic,row.urlHash,fetcher,usedUrls);
+   if(image)usedUrls.add(image.imageUrl);
    const result=await prisma.newsArticle.updateMany({
     where:{id:row.id,status:'PUBLISHED',imageLicense:null,imageLicenseUrl:null},
     data:{imageLookupAt:new Date(),...(image||{})}
