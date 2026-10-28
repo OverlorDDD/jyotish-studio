@@ -161,8 +161,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     <div><strong>{uk?'Зараз обрано: ':'Selected lunar sign: '}{SIGNS[locale][selected-1]}</strong>
      <p>{uk?'Це прогноз за місячним знаком Джйотіш, а не за звичним сонячним знаком. Положення Місяця у твоїй натальній карті може відповідати іншому знаку.':
       'This Jyotish reading uses the natal Moon sign, not the familiar Sun sign. Your birth-chart Moon may be in a different sign.'}</p>
-     {natalName&&<p><strong>{uk?'У твоїй підтвердженій карті Місяць у знаку ':'Your verified birth-chart Moon is in '}{natalName}.</strong>
-      {differs?' '+(uk?' Саме тому загальна й персональна поради відрізняються.':' That is why the general and personal readings differ.') :null}</p>}
+     {natalName&&<p><strong>{uk?'Твій місячний знак за натальною картою: ':'Your verified natal Moon sign: '}{natalName}.</strong>
+      {differs?' '+(uk?' Головна персональна порада додатково враховує лагну, дашу та планети; нижче є окремий гороскоп саме за натальним Місяцем.':' The main personal guidance also uses your ascendant, dasha and verified planets; the Moon-sign horoscope is shown separately.') :null}</p>}
     </div>
     {natalName&&<button type="button" className={styles.useNatal} onClick={()=>setSelected(natalMoon!)}>
       {uk?'Обрати мій місячний знак':'Use my natal Moon sign'}: {natalName}
@@ -209,11 +209,14 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
        'This view uses your saved natal Moon, current transit and, in the main guidance, ascendant and Dasha. Manually choosing a public sign never changes the personal result.'}</p>
      </div>
      {period==='day'&&<>
-      {personal.journey?.daily&&<section data-testid="personal-daily-core"><h3>{uk?'Головна порада за натальною картою':'Main guidance from your birth chart'}</h3>
-       {detail(personal.journey.daily)}</section>}
-      <section data-testid="personal-moon-reading"><h3>{uk?'Прогноз за натальним Місяцем':'Natal Moon-sign reading'}</h3>
+      <section data-testid="personal-moon-reading"><h3>{uk?'Гороскоп за твоїм місячним знаком':'Reading for your natal Moon sign'}</h3>
+       <p>{uk?'Саме цей блок можна порівнювати із загальним гороскопом, обравши там свій натальний знак Місяця.':'Compare this section with the public reading after selecting your true natal Moon sign.'}</p>
        {personal.journey?.horoscope?detail(personal.journey.horoscope):<p>{uk?'Сьогоднішнє читання Місяця недоступне.':'Moon-sign reading is temporarily unavailable.'}</p>}
       </section>
+      {personal.journey?.daily&&<details data-testid="personal-daily-core" className={styles.signExplanation}>
+       <summary style={{cursor:'pointer',fontWeight:700}}>{uk?'Поглиблена персональна порада · лагна, даша й транзити':'Deeper personal guidance · ascendant, dasha and transits'}</summary>
+       {detail(personal.journey.daily)}
+      </details>}
      </>}
      {period==='week'&&!week&&<p role="status">{uk?'Персональний тижневий прогноз недоступний.':'Personal weekly reading is currently unavailable.'}</p>}
      {period==='week'&&week?.horoscopeStatus==='personalized'&&<section className={styles.week}>
