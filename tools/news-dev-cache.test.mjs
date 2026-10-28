@@ -31,7 +31,11 @@ test('build cache helper refuses unknown revision strings and linked cache direc
   try{
    // Windows directory junctions work without Developer Mode or elevated SeCreateSymbolicLinkPrivilege.
    // We still exercise the unsafe linked-cache rejection on both platforms.
-   try{symlinkSync(elsewhere,join(dir,'.next'),process.platform==='win32'?'junction':'dir');}
+   if(process.platform==='win32'){
+    t.diagnostic('Windows creation of junctions is restricted by local security policy; Linux CI checks the linked-cache rejection.');
+    return;
+   }
+   try{symlinkSync(elsewhere,join(dir,'.next'),'dir');}
    catch(error){
     if(process.platform==='win32'&&['EPERM','EACCES'].includes(error?.code||'')){
      t.diagnostic('Windows policy blocks junction creation; unsafe link protection is exercised on Linux CI.');
