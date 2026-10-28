@@ -42,12 +42,12 @@ export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSi
  if(!p)return base;
  const ctx=p[locale];
  const destination=event.toSign;
- if(event.kind==='sidereal_ingress'&&Number.isInteger(destination)&&destination!>=1&&destination!<=12){
-  const sign=SIGN_LABELS[locale][destination!-1],area=SIGN_CONTEXT[locale][destination!-1];
+ if(event.kind==='sidereal_ingress'&&typeof destination==='number'&&Number.isInteger(destination)&&destination>=1&&destination<=12){
+  const sign=SIGN_LABELS[locale][destination-1],area=SIGN_CONTEXT[locale][destination-1];
   const origin=event.fromSign&&event.fromSign>=1&&event.fromSign<=12?SIGN_LABELS[locale][event.fromSign-1]:'';
   return {
    meaning:locale==='uk'?
-    `${event.body==='Sun'?'Сонце':event.body==='Moon'?'Місяць':{Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'}[event.body]||event.body} ${origin?'перейшов із попереднього знака у знак '+sign:'перейшов у знак '+sign}. Це обчислений момент зміни сидеричної довготи, а не зміна положення за календарем на довільну дату.`:
+    `${({Sun:'Сонце',Moon:'Місяць',Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'} as Record<string,string>)[event.body||'']||event.body} ${origin?'перейшов із попереднього знака у знак '+sign:'перейшов у знак '+sign}. Це обчислений момент зміни сидеричної довготи, а не зміна положення за календарем на довільну дату.`:
     `${event.body} entered ${sign}${origin?' from '+origin:''}, at a calculated sidereal sign boundary.`,
    tradition:locale==='uk'?
     `У Джйотіш ${ctx[0]} тепер розглядають крізь теми ${area}. Для персонального висновку важливо знати дім і положення планети у твоїй натальній карті.`:
