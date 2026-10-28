@@ -45,3 +45,18 @@ test('API build always regenerates Prisma Client with licensed-news fields befor
    'NewsArticle Prisma field missing: '+field);
  }
 });
+
+test('public site preflight keeps account isolation gates and reports which request timed out',()=>{
+ const source=readFileSync(new URL('./site-preflight.mjs',import.meta.url),'utf8');
+ assert.match(source,/const timeoutMs=15000/);
+ assert.match(source,/checkRequest\('\/api\/health','NestJS\/Prisma health'\)/);
+ assert.match(source,/checkRequest\('\/api\/v1\/account\/charts','Private history denial'\)/);
+ assert.match(source,/privateHistory\.status!==401/);
+ assert.match(source,/doc\.status!==404/);
+});
+test('news UI smoke check never waits for offscreen lazy licensed photos',()=>{
+ const source=readFileSync(new URL('./news-browser-check.mjs',import.meta.url),'utf8');
+ assert.match(source,/data-image-role="fallback"/);
+ assert.match(source,/checking all first-party artwork/);
+ assert.match(source,/failure screenshot:/);
+});
