@@ -226,7 +226,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
        <h3>{t(x.guidance!.goodFor)}</h3>
        <small>{uk?'Тема транзиту: ':'Transit theme: '}{t(x.guidance!.headline)}</small>
        <p>{t(x.guidance!.description)}</p>
-       {x.guidance!.action&&<p><strong>{uk?'Практичний крок: ':'Practical step: '}</strong>{t(x.guidance!.action)}</p>
+       {x.guidance!.action&&<p><strong>{uk?'Практичний крок: ':'Practical step: '}</strong>{t(x.guidance!.action)}</p>}
       </article>)}
      </section>}
      <Link href={'/'+locale+'/personal'} className={styles.toPersonal}>
