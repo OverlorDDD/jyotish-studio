@@ -125,6 +125,7 @@
     "jqa3:dasha-diagnostic": "node --experimental-strip-types tools/jqa3-dasha-year-diagnostic.mjs",
     "news:doctor": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs",
     "news:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs --repair",
+    "news:images:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-image-repair.mjs",
     "news:verify-ui": "node tools/news-browser-check.mjs"
   },
   "devDependencies": {
