@@ -14,7 +14,7 @@ test('Personal guest sees onboarding instead of private information',async({page
 test('Personal: primary chart ownership, private calendar, local journal editing, retries and isolation',async({page})=>{
  test.setTimeout(110000);
  const a=unique(),emailA='personal-a-'+a+'@example.invalid',emailB='personal-b-'+a+'@example.invalid';
- const register=await page.request.post('/api/v1/account/register',{data:{email:emailA,password:'Personal-strong-test-password-2026'}});
+ const register=await page.request.post('/api/v1/account/register',{data:{email:emailA,password:'Test-'+('p'.repeat(36))}});
  expect(register.status()).toBe(201);
  const save=await page.request.post('/api/v1/account/charts',{data:birth});
  expect(save.status()).toBe(201);
@@ -29,7 +29,7 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  const response=await overview.json();
  expect(response.selected.id).toBe(chartId);
  expect(response.profile.currentTimeZone).toBe('Europe/Kyiv');
- expect(response.news.status).toBe('planned_after_launch');
+ expect(response.news.status).toBe('available');
  expect(response.horoscope.status).toBe('available');
  expect(response.horoscope.personal).toBe(true);
  expect(response.transit?.observationType).toBe('SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON');
@@ -106,7 +106,7 @@ test('Personal: primary chart ownership, private calendar, local journal editing
  await expect(page.getByRole('heading',{name:'How to understand your Jyotish life cycle'})).toBeVisible();
  const other=await apiRequest.newContext({baseURL:process.env.PLAYWRIGHT_BASE_URL||'http://127.0.0.1:3000'});
  try{
-  expect((await other.post('/api/v1/account/register',{data:{email:emailB,password:'Personal-strong-test-password-2026'}})).status()).toBe(201);
+  expect((await other.post('/api/v1/account/register',{data:{email:emailB,password:'Test-'+('p'.repeat(36))}})).status()).toBe(201);
   expect((await other.put('/api/v1/personal/primary-chart',{data:{chartId}})).status()).toBe(400);
   expect((await other.get('/api/v1/personal/profile')).status()).toBe(200);
   expect((await other.get('/api/v1/account/journal')).status()).toBe(200);
@@ -123,7 +123,7 @@ test('Legacy saved chart is recovered without overwriting history, and divergent
  const prisma=new PrismaClient();
  try{
   const email='personal-legacy-'+unique()+'@example.invalid';
-  expect((await page.request.post('/api/v1/account/register',{data:{email,password:'Personal-strong-test-password-2026'}})).status()).toBe(201);
+  expect((await page.request.post('/api/v1/account/register',{data:{email,password:'Test-'+('p'.repeat(36))}})).status()).toBe(201);
   const response=await page.request.post('/api/v1/account/charts',{data:birth});
   expect(response.status()).toBe(201);
   const {id}=await response.json();
