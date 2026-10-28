@@ -77,6 +77,7 @@ export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSi
   const sign=SIGN_LABELS[locale][destination-1];
   const origin=event.fromSign&&event.fromSign>=1&&event.fromSign<=12?SIGN_LABELS[locale][event.fromSign-1]:null;
   const translated=({Sun:'Сонце',Moon:'Місяць',Mercury:'Меркурій',Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'} as Record<string,string>)[planet]||planet;
+  const genitive=({Sun:'Сонця',Moon:'Місяця',Mercury:'Меркурія',Venus:'Венери',Mars:'Марса',Jupiter:'Юпітера',Saturn:'Сатурна'} as Record<string,string>)[planet]||planet;
   const verb=planet==='Sun'?'перейшло':planet==='Venus'?'перейшла':'перейшов';
   const moon=MOON_SIGN_READING[locale][destination-1];
   return {
@@ -85,8 +86,8 @@ export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSi
     :`${planet} moved ${origin?'from '+origin+' into '+sign:'into '+sign}.`,
    tradition:locale==='uk'
     ?planet==='Moon'
-     ?`У Джйотіш Місяць у знаку ${sign} пов’язують із такими темами: ${moon[0]}. Це час звернути увагу на те, як ти спілкуєшся та реагуєш на повсякденні події.`
-     :`У Джйотіш перехід ${translated} до знака ${sign} пов’язують із темами ${SIGN_CONTEXT.uk[destination-1]}. Для ${translated} особливо важливі ${theme[0]}.`
+     ?`У Джйотіш із Місяцем у знаку ${sign} пов’язують ${moon[0]}.`
+     :`У Джйотіш перехід ${genitive} до знака ${sign} пов’язують із темами ${SIGN_CONTEXT.uk[destination-1]}. Для ${genitive} особливо важливі ${theme[0]}.`
     :planet==='Moon'
      ?`In Jyotish the Moon in ${sign} draws attention to ${moon[0]}.`
      :`Jyotish associates ${planet} in ${sign} with ${SIGN_CONTEXT.en[destination-1]}, especially ${theme[0]}.`,
