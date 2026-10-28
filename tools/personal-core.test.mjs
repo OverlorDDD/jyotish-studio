@@ -24,7 +24,7 @@ test('astrological source is Swiss/Lahiri and sampled transit is not misrepresen
  assert.match(TRANSIT_METHOD,/Lahiri sidereal/);
  assert.doesNotMatch(code,/Date\.now\(\).*Math\.random|fakeTransit|mockPosition/);
 });
-test('saved chart ownership, private practices and news/horoscope deferred scope survive new Personal routes',()=>{
+test('saved chart ownership, private practices and active news/horoscope sections survive new Personal routes',()=>{
  const schema=read('apps/api/prisma/schema.prisma');
  const controller=read('apps/api/src/personal.ts');
  const frontend=read('apps/web/app/components/personal/PersonalDashboard.tsx');
@@ -33,7 +33,7 @@ test('saved chart ownership, private practices and news/horoscope deferred scope
  assert.match(controller,/ownerId:uid/);
  assert.match(controller,/userId:uid/);
  assert.match(controller,/sameOrigin/);
- assert.match(controller,/news:\{status:'planned_after_launch'/);
+ assert.match(controller,/news:\{status:'available'/);
  assert.match(frontend,/GALAXIHOROSCOPE/);
  assert.match(frontend,/PERSONAL NEWS/);
  assert.match(frontend,/ga[laxiora]*:auth-changed|galaxiora:auth-changed/);
