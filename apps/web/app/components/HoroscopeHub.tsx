@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {Moon,ArrowRight,BookOpen,Compass,CalendarDays,RefreshCw} from 'lucide-react';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './HoroscopeHub.module.css';
+import GlossaryText from './GlossaryText';
 type L={uk:string;en:string};
 type Reading={headline:L;description:L;goodFor:L;caution:L;reflection?:L;action?:L;evidence:Record<string,string|number|null|undefined>};
 type SignReading=Reading&{referenceSign:number;house:number};
@@ -104,20 +105,20 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
  }
  function detail(g:Reading){
   return <article className={styles.reading} data-testid="horoscope-reading">
-   <h2>{t(g.headline)}</h2>
-   <p className={styles.story}>{t(g.description)}</p>
+   <h2><GlossaryText text={t(g.headline)} locale={locale}/></h2>
+   <p className={styles.story}><GlossaryText text={t(g.description)} locale={locale}/></p>
    <div className={styles.highlights}>
-    <section><strong>{uk?'Спробуй сьогодні':'Try this today'}</strong><p>{t(g.goodFor)}</p></section>
-    <section><strong>{uk?'Пам’ятай':'Keep in mind'}</strong><p>{t(g.caution)}</p></section>
+    <section><strong>{uk?'Спробуй сьогодні':'Try this today'}</strong><p><GlossaryText text={t(g.goodFor)} locale={locale}/></p></section>
+    <section><strong>{uk?'Пам’ятай':'Keep in mind'}</strong><p><GlossaryText text={t(g.caution)} locale={locale}/></p></section>
    </div>
    <div className={styles.reflection}><strong>{g.reflection?(uk?'Запитання для себе':'A question for yourself'):
      (uk?'Практичний крок':'One practical step')}</strong>
-    <p>{t(g.reflection||g.action||g.goodFor)}</p>
+    <p><GlossaryText text={t(g.reflection||g.action||g.goodFor)} locale={locale}/></p>
    </div>
    {g.evidence.kind==='PUBLIC_JANMA_RASHI_REFERENCE'&&data?.sky&&<section data-testid="horoscope-sky-context" style={{padding:'14px 0',borderTop:'1px solid #536a82'}}>
     <h3>{uk?'Астрономічні та ведичні події':'Astronomical and Vedic calendar context'}</h3>
     {data.sky.events.slice(0,2).map((e,i)=><p key={e.kind+e.atUtc+i}>
-     <strong>{e.localDate}: </strong>{t(e.meaning)} <span>{t(e.practice)}</span>
+     <strong>{e.localDate}: </strong><GlossaryText text={t(e.meaning)} locale={locale}/> <span><GlossaryText text={t(e.practice)} locale={locale}/></span>
     </p>)}
     {data.sky.observances.map((e,i)=><p key={e.id+e.atUtc+i}>
      <strong>{uk?'Календарна позначка':'Calendar observance'}: </strong>{e.id.replaceAll('_',' ')}.
@@ -186,8 +187,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     </div>}
     {weekPhases.map(phase=><article key={phase.start} className={styles.weekPhase}>
      <time>{dayLabel(phase.start)}{phase.end!==phase.start?' — '+dayLabel(phase.end):''}</time>
-     <h3>{t(phase.entry.headline)}</h3><p>{t(phase.entry.description)}</p>
-     <p><strong>{uk?'Спробуй: ':'Try this: '}</strong>{t(phase.entry.goodFor)}</p>
+     <h3><GlossaryText text={t(phase.entry.headline)} locale={locale}/></h3><p><GlossaryText text={t(phase.entry.description)} locale={locale}/></p>
+     <p><strong>{uk?'Спробуй: ':'Try this: '}</strong><GlossaryText text={t(phase.entry.goodFor)} locale={locale}/></p>
      {evidence({...phase.entry,evidence:{...phase.entry.evidence,house:phase.entry.house}})}
     </article>)}
    </section>}
@@ -225,8 +226,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
        <time dateTime={x.date}>{x.date}</time>
        <h3>{t(x.guidance!.goodFor)}</h3>
        <small>{uk?'Тема транзиту: ':'Transit theme: '}{t(x.guidance!.headline)}</small>
-       <p>{t(x.guidance!.description)}</p>
-       {x.guidance!.action&&<p><strong>{uk?'Практичний крок: ':'Practical step: '}</strong>{t(x.guidance!.action)}</p>}
+       <p><GlossaryText text={t(x.guidance!.description)} locale={locale}/></p>
+       {x.guidance!.action&&<p><strong>{uk?'Практичний крок: ':'Practical step: '}</strong><GlossaryText text={t(x.guidance!.action)} locale={locale}/></p>}
       </article>)}
      </section>}
      <Link href={'/'+locale+'/personal'} className={styles.toPersonal}>
