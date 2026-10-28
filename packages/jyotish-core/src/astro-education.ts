@@ -91,8 +91,8 @@ export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSi
      ?`In Jyotish the Moon in ${sign} draws attention to ${moon[0]}.`
      :`Jyotish associates ${planet} in ${sign} with ${SIGN_CONTEXT.en[destination-1]}, especially ${theme[0]}.`,
    practice:planet==='Moon'
-    ?locale==='uk'?`Спробуй сьогодні: ${moon[1]}.`:`Try today: ${moon[1]}.`
-    :locale==='uk'?`Спробуй: ${theme[1]}.`:`Try: ${theme[1]}.`,
+    ?moon[1].charAt(0).toLocaleUpperCase(locale)+moon[1].slice(1)+'.'
+    :theme[1].charAt(0).toLocaleUpperCase(locale)+theme[1].slice(1)+'.',
    limits:base.limits
   };
  }
@@ -101,7 +101,7 @@ export function contextualEventInsight(event:{kind:EventKind;body?:string;fromSi
    tradition:locale==='uk'
     ?`У традиції Джйотіш зміна видимого руху планети ${planet==='Mercury'?'Меркурій':planet==='Venus'?'Венера':planet==='Mars'?'Марс':planet==='Jupiter'?'Юпітер':planet==='Saturn'?'Сатурн':planet} звертає увагу на ${theme[0]}.`
     :`Traditionally this change in ${planet}'s apparent motion invites attention to ${theme[0]}.`,
-   practice:locale==='uk'?`Спробуй: ${theme[1]}.`:`Try: ${theme[1]}.`};
+   practice:theme[1].charAt(0).toLocaleUpperCase(locale)+theme[1].slice(1)+'.'};
  }
  return base;
 }
