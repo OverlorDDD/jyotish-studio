@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './VedicFestivalPanel.module.css';
+import GlossaryText from './GlossaryText';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string};
 type MonthSystem='amanta'|'purnimanta';
@@ -19,7 +20,7 @@ type Response={version:string;monthSystem:MonthSystem;days:FestivalDay[];
  observanceDayCertifiedByTradition:boolean};
 const T={
  uk:{title:'Ведичний календар · 7 днів',intro:'Тітхі на сході Сонця, Екадаші, Прадоша, місячні дні, Санкранті й Абхіджіт-мухурта. Кожна позначка має конкретне правило визначення.',
- amanta:'Аманта (місяць до молодика)',purnimanta:'Пурніманта (місяць до повні)',month:'Місячний місяць',
+ amanta:'Аманта (місяць до молодика)',purnimanta:'Пурніманта (місяць до повні)',month:'Місяць за ведичним календарем',
  loading:'Розраховуємо 7 днів за Swiss Ephemeris…',error:'Немає перевірених даних для цього місця й періоду. Перевір час, координати та Swiss Ephemeris.',
  retry:'Повторити',tithi:'Тітхі на сході',none:'Немає позначених особливих днів',abhijit:'Абхіджіт-мухурта',
  wed:'У середу за традицією цей період не рекомендують розглядати як універсально сприятливий',
@@ -80,7 +81,7 @@ export default function VedicFestivalPanel({locale,point}:{locale:PortalLocale;p
   {weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
  const localMonth=(name:string|null)=>!name?'—':monthNames[name]?.[locale==='uk'?0:1]||name;
  return <section id="vedic-festivals" className={styles.section} data-testid="vedic-festival-panel">
-  <header><div className={styles.kicker}>GALAXIORA · AE-P7</div><h2>{t.title}</h2><p>{t.intro}</p></header>
+  <header><div className={styles.kicker}>GALAXIORA · AE-P7</div><h2>{t.title}</h2><p><GlossaryText text={t.intro} locale={locale}/></p></header>
   <div className={styles.scheme} role="group" aria-label={t.month}>
    {(['amanta','purnimanta'] as const).map(v=><button type="button" key={v} aria-pressed={system===v}
     onClick={()=>setSystem(v)}>{t[v]}</button>)}
@@ -90,24 +91,24 @@ export default function VedicFestivalPanel({locale,point}:{locale:PortalLocale;p
   {!loading&&!error&&data&&<div className={styles.days}>
    {data.days.map(d=><article key={d.date} className={styles.day}>
     <div className={styles.heading}><strong>{dateLabel(d.date)}</strong>
-     <span>{t.month}: {localMonth(d.moonMonth.name)} {d.moonMonth.lunarMonthStatus==='adhika'?'· '+t.adhika:
+     <span><GlossaryText text={t.month} locale={locale}/>: <GlossaryText text={localMonth(d.moonMonth.name)} locale={locale}/> {d.moonMonth.lunarMonthStatus==='adhika'?'· '+t.adhika:
       d.moonMonth.lunarMonthStatus==='kshaya_review_required'?'· '+t.kshaya:''}</span>
     </div>
-    <div className={styles.tithi}>{t.tithi}: {d.tithi} / 30</div>
+    <div className={styles.tithi}><GlossaryText text={t.tithi} locale={locale}/>: {d.tithi} / 30</div>
     <div className={styles.flags}>
      {d.observances.length?d.observances.map((e,i)=><div key={e.id+e.atUtc+i}>
-      <strong>{t[e.id]}</strong>
+      <strong><GlossaryText text={t[e.id]} locale={locale}/></strong>
       <small>{e.category==='candidate'?t.candidate:t.moment}</small>
       <time dateTime={e.atUtc}>{fmt(e.atUtc)}</time>
      </div>):<p className={styles.quiet}>{t.none}</p>}
     </div>
-    <div className={styles.muhurta}><span>{t.abhijit}: </span>
+    <div className={styles.muhurta}><span><GlossaryText text={t.abhijit} locale={locale}/>: </span>
      <time dateTime={d.windows.abhijit.startUtc}>{fmt(d.windows.abhijit.startUtc)} — {fmt(d.windows.abhijit.endUtc)}</time>
      {d.windows.abhijit.weekdayCaution&&<small>{t.wed}</small>}
     </div>
    </article>)}
   </div>}
-  <footer><p>{t.warning}</p><p>{t.info}</p>
+  <footer><p><GlossaryText text={t.warning} locale={locale}/></p><p><GlossaryText text={t.info} locale={locale}/></p>
    <a href="https://www.drikpanchang.com/faq/ekadashi/about-ekadashi-timings.html" target="_blank" rel="noopener noreferrer">Drik Panchang · Ekadashi ↗</a>
    {' · '}<a href="https://www.drikpanchang.com/vrats/pradoshdates.html" target="_blank" rel="noopener noreferrer">Drik Panchang · Pradosha ↗</a>
   </footer>
