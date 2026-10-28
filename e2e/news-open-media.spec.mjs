@@ -19,3 +19,26 @@ test('licensed Commons alternative photo is visible with creator and click-throu
  await expect(page.getByRole('link',{name:/Photographer Example/})).toHaveAttribute('href','https://commons.wikimedia.org/wiki/File:Sunrise.jpg');
  await expect(page.locator('a[href="https://creativecommons.org/licenses/by/4.0/"]')).toHaveCount(1);
 });
+
+test('news card keeps an immediately readable illustration when the licensed photo fails',async({page})=>{
+ await page.route('https://upload.wikimedia.org/**',route=>route.abort('failed'));
+ await page.route('**/api/v1/news/feed?*',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({
+   items:[{id:'offline-illustration',url:'https://example.org/story',
+    title:'Yoga and meditation for morning practice',titleUk:'Ранкова йога і медитація',
+    source:'Publisher',language:'en',topic:'yoga',tags:['yoga'],
+    publishedAt:'2026-10-28T08:00:00Z',relevance:10,
+    imageUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/missing.jpg',
+    imageCredit:'Example author · CC BY 4.0 · Wikimedia Commons',
+    imagePageUrl:'https://commons.wikimedia.org/wiki/File:Missing.jpg',
+    imageLicense:'CC BY 4.0',imageLicenseUrl:'https://creativecommons.org/licenses/by/4.0/'}],
+   total:1,articleCount:1,lastScan:null
+  })
+ }));
+ await page.goto('/uk/news');
+ const fallback=page.locator('article img[data-image-role="fallback"]').first();
+ await expect(fallback).toBeVisible();
+ await expect.poll(()=>fallback.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+ await expect(page.locator('article img[data-image-role="licensed-photo"]')).toHaveCount(0);
+ await expect(page.getByRole('link',{name:/Example author/})).toHaveCount(0);
+});
