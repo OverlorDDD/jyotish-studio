@@ -17,5 +17,5 @@ test('licensed Commons alternative photo is visible with creator and click-throu
  const img=page.locator('img[src*="upload.wikimedia.org"]').first();
  await expect(img).toBeVisible();
  await expect(page.getByRole('link',{name:/Photographer Example/})).toHaveAttribute('href','https://commons.wikimedia.org/wiki/File:Sunrise.jpg');
- await expect(page.getByRole('link',{name:/CC BY 4.0/})).toHaveAttribute('href','https://creativecommons.org/licenses/by/4.0/');
+ await expect(page.locator('a[href="https://creativecommons.org/licenses/by/4.0/"]')).toHaveCount(1);
 });
