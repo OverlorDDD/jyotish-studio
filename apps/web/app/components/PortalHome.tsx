@@ -11,7 +11,7 @@ const COPY={
   status:'Explore',ready:'Explore',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Astrology',description:'Calculate your Vedic birth chart, explore the D1/D9/D10 charts, nakshatras and personal planetary periods.',live:true},
-   {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 cards, detailed interpretations, three daily spreads and human video-reading requests.',live:true},
+   {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 classic cards, meaningful interpretations, three popular spreads and a private reading journal.',live:true},
    {slug:'yoga',icon:'flower',title:'Yoga & mindfulness',description:'Visual box breathing with three rhythms, gentle movement and untimed mindful reflections.',live:true},
    {slug:'learn',icon:'book',title:'Learning library',description:'Eight original lessons on Jyotish, Tarot, yoga and mindful practice with knowledge checks.',live:true},
    {slug:'news',icon:'news',title:'Daily cosmic news',description:'Source-linked news, searchable topics and personal interests.',live:true},
@@ -27,7 +27,7 @@ const COPY={
   status:'Дослідити',ready:'Дослідити',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Створи натальну карту Джйотіш, досліджуй D1/D9/D10, накшатри та власні планетні періоди.',live:true},
-   {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 карт, детальні трактування, три розклади щодня та персональні розклади від експерток.',live:true},
+   {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 класичних карт, продумані трактування, популярні розклади й особистий журнал Таро.',live:true},
    {slug:'yoga',icon:'flower',title:'Йога та медитація',description:'Дихання по квадрату з анімацією, три ритми на вибір і вправи без зайвих таймерів.',live:true},
    {slug:'learn',icon:'book',title:'Бібліотека знань',description:'Вісім авторських уроків про Джйотіш, Таро та йогу із запитаннями для самоперевірки.',live:true},
    {slug:'news',icon:'news',title:'Космічні новини',description:'Актуальні новини з джерелами, пошуком та персональною добіркою.',live:true},
