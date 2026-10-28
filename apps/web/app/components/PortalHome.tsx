@@ -8,9 +8,9 @@ const COPY={
   eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Explore the unseen.',emphasis:'Connect with your universe.',
   intro:'Jyotish reveals the rhythms of destiny, Tarot speaks through symbols, and yoga brings you back to the power of breath. Explore your natal chart, draw the cards and find your practice today.',
   explore:'Explore the space',jyotish:'Open Vedic birth chart',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
-  status:'Coming next',ready:'Available now',
+  status:'Explore',ready:'Explore',
   cards:[
-   {slug:'astrology',icon:'orbit',title:'Astrology',description:'Your birth chart and traditional Jyotish calculations, with more chart tools to come.',live:true},
+   {slug:'astrology',icon:'orbit',title:'Astrology',description:'Calculate your Vedic birth chart, explore the D1/D9/D10 charts, nakshatras and personal planetary periods.',live:true},
    {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 cards, detailed interpretations, three daily spreads and human video-reading requests.',live:true},
    {slug:'yoga',icon:'flower',title:'Yoga & mindfulness',description:'Visual box breathing with three rhythms, gentle movement and untimed mindful reflections.',live:true},
    {slug:'learn',icon:'book',title:'Learning library',description:'Eight original lessons on Jyotish, Tarot, yoga and mindful practice with knowledge checks.',live:true},
@@ -18,15 +18,15 @@ const COPY={
    {slug:'community',icon:'community',title:'GalaxiCom forum',description:'Join real discussions and ask questions in the community.',live:true}
   ],
   quote:'The language of the stars, the wisdom of cards, a space for living practice.',
-  disclaimer:'Our readings are reflective and educational, not medical, legal or financial advice.'
+  disclaimer:'Explore your natal chart, Tarot and mindful practices in one place.'
  },
  uk:{
   eyebrow:'GALAXIORA · ПРОСТІР КОСМІЧНОГО ПІЗНАННЯ',headline:'Досліджуй невидиме.',emphasis:'Відчуй зв’язок зі Всесвітом.',
   intro:'Джйотіш відкриває ритми долі, Таро говорить мовою символів, а йога повертає до сили дихання. Відкрий свою натальну карту, обери розклад і знайди практику, що відгукнеться саме сьогодні.',
   explore:'Дослідити платформу',jyotish:'Відкрити натальну карту Джйотіш',choose:'З чого почнеться твій шлях?',sectionSub:'Одна платформа, багато шляхів для навчання та рефлексії.',
-  status:'Незабаром',ready:'Уже працює',
+  status:'Дослідити',ready:'Дослідити',
   cards:[
-   {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Натальна карта та розрахунки Джйотіш. Згодом додамо більше інструментів.',live:true},
+   {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Створи натальну карту Джйотіш, досліджуй D1/D9/D10, накшатри та власні планетні періоди.',live:true},
    {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 карт, детальні трактування, три розклади щодня та персональні розклади від експерток.',live:true},
    {slug:'yoga',icon:'flower',title:'Йога та медитація',description:'Дихання по квадрату з анімацією, три ритми на вибір і вправи без зайвих таймерів.',live:true},
    {slug:'learn',icon:'book',title:'Бібліотека знань',description:'Вісім авторських уроків про Джйотіш, Таро та йогу із запитаннями для самоперевірки.',live:true},
@@ -34,7 +34,7 @@ const COPY={
    {slug:'community',icon:'community',title:'GalaxiCom · Форум',description:'Живі обговорення, запитання, відповіді та допомога спільноти.',live:true}
   ],
   quote:'Мова зірок, мудрість карт і простір живої практики.',
-  disclaimer:'Трактування призначені для рефлексії та навчання, не замінюють медичних, юридичних чи фінансових консультацій.'
+  disclaimer:'Натальна карта, Таро й духовні практики — у твоєму космічному просторі.'
  }
 } as const;
 function IconFor({name}:{name:string}){
