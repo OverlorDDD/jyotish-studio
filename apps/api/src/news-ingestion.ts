@@ -2,7 +2,7 @@ import {Inject,Injectable,OnModuleDestroy,OnModuleInit} from '@nestjs/common';
 import {createHash,randomUUID} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
 import {classifyWithReason,parseXml,publisherDomain,safeImageUrl,type Candidate,type Topic} from './news-domain.ts';
-import {GDELT_QUERIES,RSS_SOURCES} from './news-sources.ts';
+import {selectedNewsSources} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
 import {sourceCooldownMs,gdeltCircuitFailure} from './news-source-health.ts';
@@ -68,9 +68,10 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
  }
  onModuleDestroy(){if(this.timer)clearInterval(this.timer);if(this.editorialTimer)clearInterval(this.editorialTimer);}
  private jobs(backfill:boolean):Job[]{
-  const rss:Job[]=RSS_SOURCES.map(s=>({key:s.key,hint:s.hint,allowSnippet:s.allowSnippet,isGdelt:false,
+  const selected=selectedNewsSources();
+  const rss:Job[]=selected.rss.map(s=>({key:s.key,hint:s.hint,allowSnippet:s.allowSnippet,isGdelt:false,
    run:()=>read(s.url,'application/rss+xml,application/atom+xml,application/xml,text/xml').then(x=>parseXml(x,s.name))}));
-  const gdeltJobs:Job[]=GDELT_QUERIES.map(([key,query,topic])=>({
+  const gdeltJobs:Job[]=selected.gdelt.map(([key,query,topic])=>({
    key:'gdelt-'+key,hint:topic,isGdelt:true,allowSnippet:false,
    run:async()=>{
     const u=new URL('https://api.gdeltproject.org/api/v2/doc/doc');
