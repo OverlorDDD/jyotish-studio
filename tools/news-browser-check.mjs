@@ -45,6 +45,16 @@ try{
    null,{timeout:15000}
   );
  }
+ // A news card is not ready unless its real licensed photo OR the offline SVG has loaded.
+ if(apiFeed.items.length){
+  await page.waitForFunction(()=>{
+   const cards=[...document.querySelectorAll('[data-testid="galaxinews-world"] article')];
+   return cards.length>0&&cards.every(card=>{
+    const img=card.querySelector('img');
+    return Boolean(img&&img.complete&&img.naturalWidth>0);
+   });
+  },null,{timeout:20000});
+ }
  const result=await page.evaluate((initialArticles)=>{
   const root=document.querySelector('[data-testid="galaxinews-world"]');
   const input=document.querySelector('#galaxinews-search');
@@ -57,6 +67,8 @@ try{
    tagCount:tags?.querySelectorAll('button').length,
    articleCounter:document.querySelector('[data-testid="news-article-count"]')?.textContent?.trim(),
    articleCards:document.querySelectorAll('[data-testid="galaxinews-world"] article').length,
+   validArtwork:[...document.querySelectorAll('[data-testid="galaxinews-world"] article img')].filter(
+    img=>img.complete&&img.naturalWidth>0).length,
    initiallyLoaded:initialArticles,
    obsoleteText:document.body.innerText.includes('Перевірка джерел приблизно кожні 15 хвилин')||
     document.body.innerText.includes('Астрономічні матеріали не змішуються')
@@ -65,7 +77,7 @@ try{
  const pass=response?.ok()&&result.revision==='world-v1.8'&&result.visibleSearch&&result.searchWithinTabs
    &&result.tagCount===12&&!result.obsoleteText&&Boolean(result.articleCounter)
    &&/\d/.test(result.articleCounter)&&initialStillVisible
-   &&(!apiFeed.items.length||result.articleCards>0);
+   &&(!apiFeed.items.length||(result.articleCards>0&&result.validArtwork>=result.articleCards));
  const imagePath=resolve('apps/web/.next/diagnostics/galaxinews-v1.8.png');
  mkdirSync(dirname(imagePath),{recursive:true});
  await page.screenshot({path:imagePath,fullPage:false});
