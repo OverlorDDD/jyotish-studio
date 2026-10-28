@@ -146,6 +146,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
          tags:c.tags,score:c.score,summary:c.summary||null,
          feedDescription:item.description?.slice(0,1200)||null,
          imageUrl:c.imageUrl||null,imageCredit:c.imageCredit||null,
+         imageLicense:c.imageUrl&&c.imageLicense?c.imageLicense.slice(0,80):null,
          summaryUk:null,summaryEn:null,
          summaryKind:c.summaryKind,publishedAccuracy:c.publishedAccuracy||'published',publishedAt:c.publishedAt
         }],skipDuplicates:true});
@@ -167,7 +168,8 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
           lastSeenAt:new Date(),
           ...(isNewContext?{feedDescription:received,summaryKind:'needs_editorial',
            editorialNextAttemptAt:null,editorialAttempts:0}:{}),
-          ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit}:{}),
+          ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit,
+           imageLicense:c.imageLicense?.slice(0,80)||null}:{}),
           ...(c.summaryKind==='source_excerpt'&&prior?.summaryKind!=='ai_editorial'?
            {summary:c.summary,summaryKind:'source_excerpt'}:{})
          }});
