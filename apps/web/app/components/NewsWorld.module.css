@@ -155,3 +155,6 @@
 .fallbackArt:after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 12% 18%,#fff4cf 1.5px,transparent 2px),radial-gradient(circle at 81% 77%,#c5deff 2px,transparent 3px),radial-gradient(circle at 27% 68%,#ffe0a0 1px,transparent 2px),radial-gradient(circle at 84% 18%,#f2d09e 1px,transparent 2px);pointer-events:none}
 .fallbackArt span{position:relative;z-index:1;font:clamp(70px,10vw,124px)/1 Georgia,serif;color:#f6dca0;text-shadow:0 0 40px #f9ddad99,0 8px 36px #070d20}
 .fallbackArt i{position:absolute;width:90%;height:44%;border:1px solid #d7c08b66;border-radius:50%;transform:rotate(-22deg);pointer-events:none}
+
+/* Commons author and license must remain readable/clickable, not visually truncated. */
+.imageCredit{max-width:94%;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;text-wrap:balance;pointer-events:auto}.imageCredit a{color:#fff1be;text-decoration:underline;text-underline-offset:2px}.imageCredit a:focus-visible{outline:2px solid #fff2bf;outline-offset:2px}
