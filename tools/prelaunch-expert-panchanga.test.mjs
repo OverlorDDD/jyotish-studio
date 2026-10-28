@@ -20,6 +20,14 @@ test('Panchanga guidance depends on real planet and sign, not the same generic a
  const en=contextualEventInsight({kind:'sidereal_ingress',body:'Mars',toSign:1},'en');
  assert.match(en.tradition,/initiative/);
  assert.match(en.meaning,/Aries/);
+ const moon=contextualEventInsight({kind:'sidereal_ingress',body:'Moon',fromSign:2,toSign:3},'uk');
+ assert.match(moon.meaning,/Місяць перейшов зі знака Тельця до знака Близнюків/);
+ assert.match(moon.tradition,/спілкування/);
+ assert.doesNotMatch(moon.meaning,/розрахований момент|припущення/);
+ assert.doesNotMatch(moon.tradition,/Для персонального висновку|натальній карті/);
+ assert.doesNotMatch(moon.practice,/Практика для цієї події|Спробуй сьогодні:/);
+ const panel=source('apps/web/app/components/AstronomicalEventsPanel.tsx');
+ assert.match(panel,/Що можна зробити/);
 });
 
 test('Vedic calendar eliminates repeated lunar month and keeps actual month field',()=>{
