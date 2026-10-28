@@ -68,7 +68,7 @@ export async function findOpenImage(topic:string,seed:string,fetcher:typeof fetc
  const url=new URL('https://commons.wikimedia.org/w/api.php');
  for(const [k,v] of Object.entries({
   action:'query',generator:'search',gsrsearch:term,gsrnamespace:'6',gsrlimit:'12',
-  gsroffset:String((hash[1]%5)*12),
+  gsroffset:String((hash[1]%3)*4),
   prop:'imageinfo',iiprop:'url|size|mime|extmetadata',iiurlwidth:'760',
   iiextmetadatafilter:'LicenseShortName|LicenseUrl|Artist',format:'json',formatversion:'2'
  }))url.searchParams.set(k,v);
