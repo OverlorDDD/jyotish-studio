@@ -50,7 +50,7 @@ test('all eight news topics have self-contained, genuinely distinct offline artw
   const svg=decodeURIComponent(src.substring(src.indexOf(',')+1));
   assert.match(svg,/<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
   assert.match(svg,/<rect width="960" height="540"/);
-  assert.doesNotMatch(svg,/<script|<foreignObject|<image|https?:\/\//i);
+  assert.doesNotMatch(svg.replace('xmlns="http://www.w3.org/2000/svg"',''),/<script|<foreignObject|<image|https?:\/\//i);
  }
  const ui=readFileSync(new URL('../apps/web/app/components/NewsWorld.tsx',import.meta.url),'utf8');
  assert.match(ui,/src=\{showingPhoto\?imageUrl!:newsFallbackArtwork\(topic\)\}/);
