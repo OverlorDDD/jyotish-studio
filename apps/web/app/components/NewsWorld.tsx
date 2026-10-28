@@ -389,6 +389,12 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   }},15*60*1000);
   return()=>clearInterval(timer);
  },[]);
+ // Never show one Commons photo as though it illustrated several unrelated stories.
+ const firstPhotoOwner=useMemo(()=>{
+  const owner=new Map<string,string>();
+  for(const story of visible)if(story.imageUrl&&!owner.has(story.imageUrl))owner.set(story.imageUrl,story.id);
+  return owner;
+ },[visible]);
  const canMore=items.length<total&&page<20;
  const date=(iso:string)=>{const d=new Date(iso);return Number.isFinite(d.getTime())?
   new Intl.DateTimeFormat(locale==='uk'?'uk-UA':'en-GB',{day:'numeric',month:'short',year:'numeric'}).format(d):'';};
@@ -515,7 +521,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
         return <article className={i===0&&view!=='mine'?styles.lead:styles.card} key={story.id}>
-         <StoryArtwork storyId={story.id} imageUrl={story.imageUrl} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} locale={locale}/>
+         <StoryArtwork storyId={story.id} imageUrl={story.imageUrl&&firstPhotoOwner.get(story.imageUrl)===story.id?story.imageUrl:null} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} locale={locale}/>
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
