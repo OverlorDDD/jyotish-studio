@@ -113,7 +113,7 @@ function guestSimilar(story:Story,hint:GuestNewsHint){
 }
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 /** Prefer images with verified reuse rights; ensure every article has original offline artwork otherwise. */
-function StoryArtwork({imageUrl,credit,title,topic,locale,sourceUrl,licenseUrl,license}:{imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;locale:PortalLocale;sourceUrl?:string|null;licenseUrl?:string|null;license?:string|null}){
+function StoryArtwork({storyId,imageUrl,credit,title,topic,locale,sourceUrl,licenseUrl,license}:{storyId:string;imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;locale:PortalLocale;sourceUrl?:string|null;licenseUrl?:string|null;license?:string|null}){
  const [failedUrl,setFailedUrl]=useState<string|null>(null);
  const [readyUrl,setReadyUrl]=useState<string|null>(null);
  let allowed=false;
@@ -123,7 +123,7 @@ function StoryArtwork({imageUrl,credit,title,topic,locale,sourceUrl,licenseUrl,l
  return <div className={styles.illustration} data-topic={topic}>
   {/* Always paint first-party artwork immediately. A slow/offline external photo
       must never leave the news card blank or hold up the page. */}
-  <img className={styles.storyImage} src={newsFallbackArtwork(topic)}
+  <img className={styles.storyImage} src={newsFallbackArtwork(topic,storyId)}
    alt={showingPhoto?'':(locale==='uk'?'Тематична ілюстрація: ':'Topic illustration: ')+title}
    loading="eager" data-image-role="fallback"/>
   {canLoadPhoto&&<img className={styles.storyImage+' '+(showingPhoto?styles.photoReady:styles.photoPending)}
@@ -514,7 +514,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
         return <article className={i===0&&view!=='mine'?styles.lead:styles.card} key={story.id}>
-         <StoryArtwork imageUrl={story.imageUrl} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} locale={locale}/>
+         <StoryArtwork storyId={story.id} imageUrl={story.imageUrl} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} locale={locale}/>
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
