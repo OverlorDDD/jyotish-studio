@@ -93,7 +93,7 @@ export default function AstronomicalEventsPanel({locale,start,zone}:{locale:Port
       <div style={{display:'grid',gap:8,paddingTop:10,lineHeight:1.65}}>
        <p><strong>{uk?'Що відбулося':'What happened'}: </strong><GlossaryText text={contextualEventInsight(e,locale).meaning} locale={locale}/></p>
        <p><strong>{uk?'У традиції Джйотіш':'In Jyotish tradition'}: </strong><GlossaryText text={contextualEventInsight(e,locale).tradition} locale={locale}/></p>
-       <p><strong>{uk?'Практика для цієї події':'Practice for this event'}: </strong><GlossaryText text={contextualEventInsight(e,locale).practice} locale={locale}/></p>
+       <p><strong>{uk?'Що можна зробити':'What you can do'}: </strong><GlossaryText text={contextualEventInsight(e,locale).practice} locale={locale}/></p>
        <small><GlossaryText text={contextualEventInsight(e,locale).limits} locale={locale}/></small>
       </div>
      </details>
