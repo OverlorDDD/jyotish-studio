@@ -31,7 +31,7 @@ function allowLicense(meta:MediaInfo['extmetadata']){
  if(/^\/publicdomain\/zero\/1\.0$/.test(path)&&/^cc0/i.test(name))return {name:'CC0 1.0',url:'https://creativecommons.org/publicdomain/zero/1.0/'};
  const m=/^\/licenses\/(by|by-sa)\/(2\.0|2\.5|3\.0|4\.0)$/.exec(path);
  if(!m)return null;
- const title=name.toLowerCase().replace(/[ -]+/g,'');
+ const title=name.toLowerCase().replace(/[ .-]+/g,'');
  if(title!==(m[1]==='by'?'ccby':'ccbysa')+m[2].replaceAll('.',''))return null;
  return {name:(m[1]==='by'?'CC BY ':'CC BY-SA ')+m[2],url:'https://creativecommons.org/licenses/'+m[1]+'/'+m[2]+'/'};
 }
