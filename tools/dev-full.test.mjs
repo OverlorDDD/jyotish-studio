@@ -30,3 +30,17 @@ test('local bootstrap detects stale Next and Nest listeners before showing updat
  assert.match(source,/Next\.js/);
  assert.match(source,/NestJS/);
 });
+
+test('API build always regenerates Prisma Client with licensed-news fields before TypeScript',()=>{
+ const root=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+ const api=JSON.parse(readFileSync(new URL('../apps/api/package.json',import.meta.url),'utf8'));
+ const schema=readFileSync(new URL('../apps/api/prisma/schema.prisma',import.meta.url),'utf8');
+ assert.match(root.scripts.build,/npm run build -w @jyotish\/api/);
+ assert.match(api.scripts.prebuild,/node --env-file-if-exists=\.\.\/\.\.\/\.env/);
+ assert.match(api.scripts.prebuild,/prisma\/build\/index\.js generate --schema=prisma\/schema\.prisma/);
+ assert.match(api.scripts.build,/^tsc -p tsconfig\.json$/);
+ const newsArticle=schema.slice(schema.indexOf('model NewsArticle {'),schema.indexOf('model NewsReaction {'));
+ for(const field of ['imageLicense','imageLicenseUrl','imagePageUrl','imageLookupAt']){
+  assert.match(newsArticle,new RegExp('\\\\b'+field+'\\\\s+'));
+ }
+});
