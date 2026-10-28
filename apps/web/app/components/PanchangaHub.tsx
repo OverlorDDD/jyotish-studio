@@ -40,7 +40,7 @@ const labels={
  tithi:'Тітхі',nakshatra:'Накшатра',vara:'Вара',yoga:'Нітья-йога',karana:'Карана',
  shukla:'Шукла',krishna:'Крішна',pada:'пада',
  profile:'Ті самі Swiss Ephemeris / Lahiri / Delta-T, що й у перевірених натальних картах Galaxiora.',
- limits:'Точність переходів — розвʼязання за часом до 1 секунди; незалежна перевірка Панчанги ще окремий етап.',
+ limits:'Моменти переходів знайдено чисельно з кроком уточнення до секунди. Методика й еталонні зіставлення наведені в технічній документації.',
  cities:{kyiv:'Київ',delhi:'Нью-Делі',london:'Лондон',custom:'Свої координати'}},
  en:{title:'Panchanga',intro:'The five limbs of the Vedic day, calculated from Sun and Moon positions at local sunrise. See real astronomical transition times rather than approximate noon forecasts.',
  subtitle:'Astronomical calendar',date:'Date',city:'Location',zone:'Time zone (IANA)',lat:'Latitude',lon:'Longitude',calculate:'Calculate day',busy:'Calculating transitions…',
@@ -49,7 +49,7 @@ const labels={
  source:'Method and source',started:'Started',ends:'Ends',notProphecy:'These are calculated calendar indicators, not predictions of specific life events.',
  tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana',
  shukla:'Shukla',krishna:'Krishna',pada:'pada',profile:'Same Swiss Ephemeris / Lahiri / Delta-T framework as verified Galaxiora natal charts.',
- limits:'Transition instants are numerically located to one second; independent Panchanga reference certification is a separate gate.',
+ limits:'Transition instants are numerically isolated to one second. Technical methodology and validation scope are documented separately.',
  cities:{kyiv:'Kyiv',delhi:'New Delhi',london:'London',custom:'Custom coordinates'}}
 } as const;
 const VARA_UK:Record<string,string>={
