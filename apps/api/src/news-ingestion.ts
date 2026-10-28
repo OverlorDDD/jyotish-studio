@@ -7,6 +7,7 @@ import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
 import {sourceCooldownMs,gdeltCircuitFailure} from './news-source-health.ts';
 import {publishAstronomicalNews} from './news-astronomy.ts';
+import {enrichOpenNewsPhotos} from './news-open-media.ts';
 /** Local development with an existing .env and no NEWS_* flag must not
  * silently stop news. CI/test and production remain explicitly opted in.
  */
@@ -110,6 +111,13 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
      }catch(e){console.warn('[news] astronomy digest:',String(e).slice(0,180));}
     }
 
+    // Restore actual licensed photos for older cards before unreliable RSS
+    // sources run. Commons metadata provides explicit artist and CC terms.
+    // Publisher photos still require their own independent reuse grant.
+    try{
+     const photos=await enrichOpenNewsPhotos(this.prisma);
+     if(photos.checked)console.log('[news] open photos: checked',photos.checked,'restored',photos.filled);
+    }catch(e){console.warn('[news] licensed image recovery:',String(e).slice(0,180));}
     for(const job of this.jobs(backfill)){
      const began=Date.now(),reasonCounts:Record<string,number>={};
      let candidates=0,accepted=0,duplicates=0,rejected=0,errors=0,status='ok',failure:string|null=null;
