@@ -36,6 +36,25 @@ npm install --no-audit --no-fund
 
 `npm install` may create an untracked `package-lock.json` locally; this is expected. Do not commit the generated file as a verified lockfile without reviewing and testing its full dependency graph. For a reproducible future release, commit a generated workspace lockfile and switch CI/docs to `npm ci` together.
 
+## TypeScript Prisma Client build recovery (2026-10-28, 13 TS errors)
+
+Owner's `npm run test:bootstrap`, `test:news-open-media`, `test:horoscope-basis`, and `test:vedic-calendar` all passed (26/26), then `npm run build` failed in `apps/api` with `TS2353` and `TS2339` for `NewsArticle.imageLicense`, `imageLicenseUrl`, `imagePageUrl`, and `imageLookupAt`. This is **stale generated Prisma Client**, not a source-level TypeScript schema omission: the fields are in `apps/api/prisma/schema.prisma` and their migration exists. The actual database migration is distinct from regenerating client types.
+
+Fix: `apps/api/package.json` now declares `prebuild` to run the Prisma generator from the canonical schema before `tsc`. npm runs `prebuild` automatically when the API workspace build is invoked, including the root `npm run build`. `tools/dev-full.test.mjs` guards the order and fields.
+
+Resume locally after syncing:
+```powershell
+cd "C:\Users\Note\jyotish-studio-git"
+git status --short
+git pull --ff-only origin fix/jqa3-windows-and-llm-recovery
+npm run db:generate       # optional explicit confirmation; now also automatic in API prebuild
+npm run test:bootstrap
+npm run build
+```
+Stop Next/Nest first before generating Prisma Client or rebuilding on Windows, to avoid locked DLL or generated files. If you see TypeScript errors referring to missing Prisma fields after `db:generate`, inspect the generator output and `npm ls prisma @prisma/client`; **do not** manually edit `node_modules/.prisma` or run destructive database resets.
+
+`npm run build` does **not** apply SQL migrations. Later `npm run dev:full` starts Docker database safely and applies pending migrations via `prisma migrate deploy`.
+
 ## Windows acceptance
 
 First **stop `npm run dev:full` with Ctrl+C**. Do not operate on `.next` while Next is running.
