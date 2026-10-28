@@ -14,7 +14,7 @@ const labels={
  solar:'Сонячне',lunar:'Місячне',total:'повне',partial:'часткове',annular:'кільцеподібне',
  hybrid:'гібридне',penumbral:'напівтіньове',yes:'Видиме в цій місцевості',no:'Не видиме з цих координат',
  local:'Місцевий максимум',global:'Глобальний максимум',none:'На обраний період затемнень немає.',
- note:'Глобальне затемнення не обовʼязково видиме тут. Для спостереження Сонця потрібні сертифіковані захисні фільтри; звичайні окуляри непридатні. Часові й локальні умови розраховані Swiss Ephemeris, незалежну сертифікацію видимості ще не завершено.'},
+ note:'Глобальне затемнення не обовʼязково видиме тут. Для спостереження Сонця потрібні сертифіковані захисні фільтри; звичайні окуляри непридатні. Час і місцева видимість розраховані за Swiss Ephemeris.'},
  en:{title:'Eclipses · local visibility',intro:'Solar and lunar eclipses occurring on Earth over the next year. Visibility for your selected coordinates is independently checked by Swiss Ephemeris.',
  find:'Find eclipses for a year',loading:'Checking eclipse geometry and local visibility…',
  error:'Verified eclipse data are unavailable. Check Python Swiss Ephemeris.',retry:'Retry',
