@@ -25,7 +25,7 @@ test('A4 index gate requires configured HTTPS hostname and no preview noindex',(
  }
 });
 test('A4 sitemap enumerates published tools but no future content or private views',()=>{
- assert.deepEqual([...SEO_PATHS],['','astrology','tarot','astrology/jyotish','yoga','learn','horoscope','panchanga','news','community']);
+ assert.deepEqual([...SEO_PATHS],['','astrology','tarot','astrology/jyotish','yoga','learn','horoscope','panchanga','news','community','methodology']);
  for(const p of SEO_PATHS)assert.ok(!/account|admin|personal/.test(p));
  assert.ok(SEO_PATHS.includes('news')&&SEO_PATHS.includes('community')&&SEO_PATHS.includes('panchanga'));
  const source=read('apps/web/app/[locale]/[section]/page.tsx');
