@@ -12,7 +12,7 @@ type Sky={events:{kind:string;atUtc:string;localDate:string;practice:L;meaning:L
  referenceLocation:{name:string}|null;observanceDayCertifiedByTradition:false};
 type PublicData={date:string;zone:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[];reference:string;sky?:Sky};
 type PublicWeek={startDate:string;zone:string;reference:string;days:{date:string;sampledAtUtc:string;moon:{sign:number;nakshatra:string;pada:number};signs:SignReading[]}[]};
-type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string}|null;journey?:{daily:Reading|null;horoscope:Reading|null}};
+type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string;moonSign?:number|null;lagnaSign?:number|null}|null;journey?:{daily:Reading|null;horoscope:Reading|null}};
 type PersonalCalendar={horoscopeStatus:string;horoscopes:{date:string;guidance:Reading|null}[]};
 const SIGNS={
  uk:['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'],
@@ -54,6 +54,10 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    .finally(()=>{if(live)setWeekBusy(false)});
   return()=>{live=false};
  },[mode,period,publicWeek,reload]);
+ const natalMoon=personal?.selected?.moonSign;
+ const natalLagna=personal?.selected?.lagnaSign;
+ const natalName=typeof natalMoon==='number'&&natalMoon>=1&&natalMoon<=12?SIGNS[locale][natalMoon-1]:null;
+ const differs=Boolean(natalName&&natalMoon!==selected);
  const reading=data?.signs[selected-1];
  // Combine consecutive noon samples in the same house: a coherent weekly arc,
  // not seven copies of the same paragraph or made-up exact ingress times.
@@ -140,12 +144,23 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     <button type="button" onClick={()=>setReload(x=>x+1)}><RefreshCw size={15}/>{uk?'Спробувати ще':'Retry'}</button></div>}
   {data&&mode==='signs'&&<>
    <div className={styles.info}><CalendarDays size={18}/>
-    {uk?'Прогноз на ':'Reading for '}{data.date} · {uk?'Місяць на 12:00 за Києвом. Не момент переходу між знаками.':
-      'Lunar position at noon Kyiv time, not an exact ingress moment.'}
+    {uk?'Прогноз на ':'Reading for '}{data.date} · {uk?'Сидеричний Місяць, спостереження о 12:00 (Київ).':'Sidereal Moon, observed at noon (Kyiv).'}
    </div>
    <div className={styles.signs} role="group" aria-label={uk?'Сидеричний місячний знак':'Sidereal Moon sign'}>
     {SIGNS[locale].map((name,i)=><button type="button" key={name}
      aria-pressed={selected===i+1} onClick={()=>setSelected(i+1)}>{name}</button>)}
+   </div>
+   <div className={styles.signExplanation} data-testid="lunar-sign-explanation">
+    <div><strong>{uk?'Зараз обрано: ':'Selected lunar sign: '}{SIGNS[locale][selected-1]}</strong>
+     <p>{uk?'Це прогноз за місячним знаком Джйотіш, а не за звичним сонячним знаком. Положення Місяця у твоїй натальній карті може відповідати іншому знаку.':
+      'This Jyotish reading uses the natal Moon sign, not the familiar Sun sign. Your birth-chart Moon may be in a different sign.'}</p>
+     {natalName&&<p><strong>{uk?'У твоїй підтвердженій карті Місяць у знаку ':'Your verified birth-chart Moon is in '}{natalName}.</strong>
+      {differs?' '+(uk?' Саме тому загальна й персональна поради відрізняються.':' That is why the general and personal readings differ.') :null}</p>}
+    </div>
+    {natalName&&<button type="button" className={styles.useNatal} onClick={()=>setSelected(natalMoon!)}>
+      {uk?'Обрати мій місячний знак':'Use my natal Moon sign'}: {natalName}
+    </button>}
+    {!natalName&&<Link href={'/'+locale+'/astrology/jyotish'}>{uk?'Дізнатися свій місячний знак за натальною картою':'Find your natal Moon sign'} →</Link>}
    </div>
    {period==='day'&&reading&&detail({...reading,evidence:{...reading.evidence,house:reading.house}})}
    {period==='week'&&<section className={styles.week} data-testid="public-horoscope-week">
@@ -169,12 +184,25 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
   </>}
   {mode==='mine'&&<div className={styles.personal}>
    {!personal?<div className={styles.empty}><h2>{uk?'Твій особистий гороскоп':'Your personal horoscope'}</h2>
-    <p>{uk?'Для справді персонального трактування потрібна збережена та перевірена натальна карта. Без неї не будемо вигадувати твої доми, дашу чи події.':
-      'A saved and verified birth chart is needed for personal house and Dasha readings. We will not fabricate them.'}</p>
+    <p>{uk?'Збережи власну натальну карту та обери її основною в «Моєму Всесвіті», щоб побачити гороскоп за своїми положеннями планет і періодами.':
+      'Save your birth chart and select it in Your Universe to read a forecast based on your actual planetary positions and periods.'}</p>
     <Link href={'/'+locale+'/personal'}>{uk?'Перейти до «Мого Всесвіту»':'Open Your Universe'} <ArrowRight size={16}/></Link></div>:
-    <><div className={styles.personalHeading}><h2>{uk?'Сьогодні у твоєму гороскопі':'Your reading for today'}</h2>
-      <span>{uk?'За перевіреною натальною картою':'From your verified birth chart'}</span></div>
-     {period==='day'&&(personal.journey?.horoscope?detail(personal.journey.horoscope):<p>{uk?'Поточне персональне трактування недоступне.':'Current personal reading unavailable.'}</p>)}
+    <><div className={styles.personalHeading}><h2>{uk?'Твій персональний гороскоп':'Your personal horoscope'}</h2>
+      <span>{uk?'За підтвердженою натальною картою':'From your verified birth chart'}</span></div>
+     <div className={styles.signExplanation} data-testid="personal-sign-basis">
+      <strong>{uk?'Вихідні дані твоєї карти':'Your birth-chart reference signs'}</strong>
+      <p>{uk?'Натальний Місяць':'Natal Moon'}: <b>{natalName||'—'}</b>
+       {' · '}{uk?'Лагна':'Ascendant'}: <b>{typeof natalLagna==='number'&&natalLagna>=1&&natalLagna<=12?SIGNS[locale][natalLagna-1]:'—'}</b></p>
+      <p>{uk?'Тут використовується твій справжній натальний місячний знак, поточний транзит і, для основної поради, лагна й даша. Обраний вручну знак у загальній вкладці на цей розрахунок не впливає.':
+       'This view uses your saved natal Moon, current transit and, in the main guidance, ascendant and Dasha. Manually choosing a public sign never changes the personal result.'}</p>
+     </div>
+     {period==='day'&&<>
+      {personal.journey?.daily&&<section data-testid="personal-daily-core"><h3>{uk?'Головна порада за натальною картою':'Main guidance from your birth chart'}</h3>
+       {detail(personal.journey.daily)}</section>}
+      <section data-testid="personal-moon-reading"><h3>{uk?'Прогноз за натальним Місяцем':'Natal Moon-sign reading'}</h3>
+       {personal.journey?.horoscope?detail(personal.journey.horoscope):<p>{uk?'Сьогоднішнє читання Місяця недоступне.':'Moon-sign reading is temporarily unavailable.'}</p>}
+      </section>
+     </>}
      {period==='week'&&!week&&<p role="status">{uk?'Персональний тижневий прогноз недоступний.':'Personal weekly reading is currently unavailable.'}</p>}
      {period==='week'&&week?.horoscopeStatus==='personalized'&&<section className={styles.week}>
       <h2>{uk?'Наступні сім днів':'The next seven days'}</h2>
@@ -190,8 +218,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
   </div>}
   <footer className={styles.sources}><BookOpen size={18}/><div>
    <strong>{uk?'Метод і джерела':'Method and sources'}</strong>
-   <p>{uk?'Астрономічні положення — Swiss Ephemeris, сидеричний зодіак Лагірі. Традиційні теми транзитів — Phaladīpikā, розділ 26. Персональний прогноз використовує лише збережені перевірені факти. Поради є редакційними інтерпретаціями традиції; ми не вигадуємо зустрічі, фінансові події чи доленосні обіцянки.':
-    'Astronomical positions: Swiss Ephemeris/Lahiri. Classical transit themes: Phaladipika chapter 26. Personal readings use verified saved facts only; no invented meetings, windfalls or assured events.'}</p>
+   <p>{uk?'Астрономічна основа: Swiss Ephemeris, сидеричний зодіак Лагірі. Тлумачення транзитів спираються на традицію Джйотіш, зокрема «Пхаладіпіку», розділ 26.':
+    'Astronomical basis: Swiss Ephemeris, Lahiri sidereal zodiac. Transit interpretations draw on classical Jyotish, including Phaladipika, chapter 26.'}</p>
    <a href="https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621598.html" target="_blank" rel="noopener noreferrer">
     {uk?'Читати першоджерело':'Classical source'}</a>
    </div>
