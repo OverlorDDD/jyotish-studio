@@ -9,7 +9,8 @@ export function publicSiteOrigin():string|null{
   if(url.protocol!=='https:'||!url.hostname||url.username||url.password||
    url.search||url.hash||url.pathname!=='/'||url.port)return null;
   if(url.hostname==='localhost'||url.hostname.endsWith('.localhost')||
-   url.hostname==='127.0.0.1')return null;
+   url.hostname==='127.0.0.1'||url.hostname.endsWith('.ngrok-free.dev')||
+   url.hostname.endsWith('.trycloudflare.com'))return null;
   return url.origin;
  }catch{return null;}
 }
