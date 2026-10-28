@@ -37,6 +37,9 @@ Open **http://localhost:4000**. This runs a working static UI and Node HTTP API 
 
 Requires Docker Desktop, Node.js 22+, npm and internet to download dependencies:
 
+**Dependency installation in this repository:** use `npm install --no-audit --no-fund`, **not `npm ci`**. The repository currently does not commit a root `package-lock.json`, which `npm ci` requires; its absence causes `EUSAGE` before anything is installed. Run the install command from the repository root, not from `apps/web` or `apps/api`. Both GitHub Actions and the full-stack setup use `npm install`. A local generated lockfile is not a release-certified dependency lock; a future reproducible `npm ci` workflow requires generating, reviewing and committing a workspace lockfile.
+
+
 ```powershell
 Copy-Item .env.example .env
 npm install
