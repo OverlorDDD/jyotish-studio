@@ -55,7 +55,7 @@ for(const locale of ['uk','en']){
   await expect(p.getByRole('button',{name:other})).toHaveAttribute('aria-pressed','true');
   await expect(p.locator('article')).toHaveCount(7,{timeout:90000});
   await expect(p.getByText(locale==='uk'?'Абхіджіт-мухурта':'Abhijit Muhurta').first()).toBeVisible();
-  const warning=locale==='uk'?'кандидати свят':'observance candidates';
+  const warning=locale==='uk'?'Дати ведичних свят залежать від місячного календаря':'Vedic festival observances vary by location';
   await expect(p.getByText(new RegExp(warning,'i')).last()).toBeVisible();
  });
 }
