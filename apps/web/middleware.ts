@@ -11,7 +11,11 @@ export function middleware(request:NextRequest){
  // Trust the route, not an incoming client-supplied locale header.
  requestHeaders.set('x-galaxiora-locale',/^\/uk(?:\/|$)/.test(request.nextUrl.pathname)?'uk':'en');
  const response=NextResponse.next({request:{headers:requestHeaders}});
- response.headers.set('Cache-Control','no-store, max-age=0, must-revalidate');
+ // Never cache authenticated views or frequently changing user-generated feeds.
+ // Public evergreen pages keep Next.js' own caching so search crawlers and
+ // visitors are not forced through a cold response on every request.
+ if(/^\\/api(?:\\/|$)|^\\/(?:uk|en)\\/(?:account|admin|personal|news|community)(?:\\/|$)/.test(request.nextUrl.pathname))
+  response.headers.set('Cache-Control','no-store, max-age=0, must-revalidate');
  if(/^\/(?:uk|en)\/news(?:\/|$)/.test(request.nextUrl.pathname)){
   response.headers.set('X-Galaxiora-News-Revision','world-v1.8');
  }
