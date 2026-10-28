@@ -52,12 +52,23 @@ const DAILY_QUESTIONS=[[["Якої межі тобі зараз хочеться
 /** A house theme legitimately spans 2-3 days. The subheading reflects a
  * different date-specific editorial angle, not a fabricated lunar ingress.
  */
-const DAILY_FOCUSES=[
- l('Усвідомити головне','Notice what matters'),
- l('Впорядкувати деталі','Organize the details'),
- l('Вибрати дію','Choose one action'),
- l('Підсумувати досвід','Reflect on progress')
-];
+/** Distinct, human-edited titles for all 12 lunar houses across four date steps.
+ * House is astronomical; step changes editorial phrasing, never invents a transit.
+ */
+const DAILY_HEADLINES=[
+ [l("Почути власні потреби","Listen to your needs"),l("Зберегти особисті межі","Protect personal boundaries"),l("Дати слово бажанням","Give your wishes a voice"),l("Повернутися до свого темпу","Return to your own pace")],
+ [l("На що варто витратити сили","What deserves your energy"),l("Цінність часу й уваги","Value your time and attention"),l("Вибирати без поспіху","Choose without rushing"),l("Зберегти свою опору","Keep what grounds you")],
+ [l("Уточнити найважливіше","Clarify what matters"),l("Висловитися простіше","Say it more simply"),l("Почати потрібну розмову","Begin a needed conversation"),l("Почути іншу сторону","Hear the other side")],
+ [l("Знайти хвилину спокою","Find a quiet moment"),l("Затишок із простих речей","Comfort in simple things"),l("Поговорити про особистий простір","Talk about personal space"),l("Помітити тепло свого дому","Notice the warmth of home")],
+ [l("Радість без результату","Enjoy without a goal"),l("Сміливість спробувати нове","Dare to try something new"),l("Знайти власний спосіб","Find your own approach"),l("Відчути смак моменту","Savour the moment")],
+ [l("Повернути обов’язкам межі","Put boundaries around duties"),l("Зменшити зайве навантаження","Release unnecessary burdens"),l("Попросити про потрібну підтримку","Ask for the support you need"),l("Залишити місце для звичного","Make room for familiar routines")],
+ [l("Почути того, хто поруч","Listen to someone close"),l("Сказати про свої потреби","Speak about your needs"),l("Зберегти простір для двох","Leave room for two voices"),l("Подякувати за турботу","Recognise an act of care")],
+ [l("Визначити правила довіри","Set terms for trust"),l("Дочекатися потрібних фактів","Wait for the facts"),l("Прояснити складну умову","Clarify a difficult term"),l("Зміцнити вдалі домовленості","Support agreements that work")],
+ [l("Не зраджувати своїм принципам","Stay true to your principles"),l("Побачити можливі шляхи","Consider different paths"),l("Поставити глибше запитання","Ask a deeper question"),l("Пригадати свій дороговказ","Remember what guides you")],
+ [l("Уточнити спільну мету","Clarify a shared goal"),l("Знайти одне конкретне рішення","Find one concrete answer"),l("Відділити суттєве від зайвого","Separate essentials from extras"),l("Визнати зроблену роботу","Recognise work already done")],
+ [l("Поділитися задумом","Share an idea"),l("Спокійно захистити свою думку","Express a different view calmly"),l("Поновити важливий зв’язок","Reconnect with someone important"),l("Відзначити підтримку друзів","Appreciate support from friends")],
+ [l("Почути власну тишу","Listen to the quiet"),l("Зняти зайві зобов’язання","Release optional commitments"),l("Залишити тривогу на папері","Put a worry on paper"),l("Повернути собі спокій","Return to inner calm")]
+] as const;
 const DAILY_CAUTIONS=[["Не поспішай із висновками, поки бракує фактів.","Do not rush to conclusions without the facts."],["Не створи собі новий обов’язок лише через звичку.","Do not invent another duty out of habit."],["Не вимагай від себе миттєвого результату.","Do not demand an instant result from yourself."],["Не шукай неполадок там, де вже все працює.","Do not look for a problem where things already work."]];
 export function editorialDayIndex(day:string){
  const utc=Date.parse(day+'T00:00:00Z');
@@ -81,9 +92,7 @@ export function readPublicSign(sign:number,transit:{date:string;sampledAtUtc:str
  const description=l(theme.story.uk+' '+intro[0],theme.story.en+' '+intro[1]);
  const q=DAILY_QUESTIONS[house-1][step],reflection=l(q[0],q[1]);
  const goodFor=l(day[0],day[1]),caution=l(theme.care.uk+' '+warning[0],theme.care.en+' '+warning[1]);
- return {referenceSign:sign,house,headline:l(
-  theme.title.uk+' · '+DAILY_FOCUSES[step].uk,
-  theme.title.en+' · '+DAILY_FOCUSES[step].en),description,goodFor,
+ return {referenceSign:sign,house,headline:DAILY_HEADLINES[house-1][step],description,goodFor,
   caution,reflection,evidence:{kind:'PUBLIC_JANMA_RASHI_REFERENCE',moonSign:transit.moon.sign,
    nakshatra:transit.moon.nakshatra,pada:transit.moon.pada,method:transit.method,
    date:transit.date,sampledAtUtc:transit.sampledAtUtc,editorialVariant:step,editorialPolicy:'DATE_BASED_STYLE_NOT_PLANETARY_EFFECT'}};
