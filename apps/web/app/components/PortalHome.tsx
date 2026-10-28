@@ -80,7 +80,7 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
    <div className="as-card-grid">
     {t.cards.map(card=><Link href={portalPath(locale,card.slug)} className="as-category-card" key={card.slug}>
      <span className="as-category-icon"><IconFor name={card.icon}/></span>
-     <span className="as-availability">{card.live?t.ready:t.status}</span>
+
      <h3>{moduleTitle(card.slug as 'astrology'|'tarot'|'yoga'|'learn'|'news'|'community')}</h3><p>{card.description}</p>
      <span className="as-category-next"><ArrowUpRight size={18}/></span>
     </Link>)}
