@@ -5,6 +5,7 @@ import {RefreshCcw,Sparkles,History,LockKeyhole} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
 import TarotCardArt from './TarotCardArt';
 import GlossaryText from './GlossaryText';
+import ExpertQuestionForm from './ExpertQuestionForm';
 import type {PortalLocale} from '../../lib/brand';
 
 type Localized={en:string;uk:string};
@@ -120,13 +121,14 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
       (uk?'AI-інтерпретація за згодою користувача · модель: ':'AI interpretation with your consent · model: ')+reading.aiReading?.model:
       (uk?'Авторська сценарна інтерпретація без AI. Прочитання ґрунтується на значеннях і взаємодії карт у розкладі.':'Original rule-based reading without AI. The reading follows the cards and their positions in the spread.')}
     </p>
-    <a href="#human-readings" className="as-button as-button-secondary">{uk?'Замовити персональне відео у живої експертки':'Get a personal video from a human reader'}</a>
+    <a href="#human-readings" className="as-button as-button-secondary">{uk?'Написати особисте запитання тарологу':'Write a personal question to a human reader'}</a>
    </article>}
 
    {revealed.length===reading.cards.length&&<PersonalJournal key={reading.id} locale={locale} kind="TAROT" sourceId={reading.id}/>}
    {revealed.length!==reading.cards.length&&<p className="as-tarot-hint">{uk?'Відкрий усі карти, щоб побачити їхній спільний підсумок і відповідь на запитання.':'Reveal all cards to see their combined narrative and answer.'}</p>}
    <p className="as-muted">{uk?'Ілюстрації: Pamela Colman Smith, класична колода Rider–Waite–Smith (1909). Таро не замінює медичних, юридичних або фінансових рішень.':'Artwork: Pamela Colman Smith, Rider–Waite–Smith (1909). Tarot does not replace medical, legal or financial advice.'}</p>
   </section>}
+  <ExpertQuestionForm locale={locale}/>
   <section className="as-tarot-history">
    <h2><History size={21}/>{uk?'Моя історія':'My reading history'}</h2>
    {history.length?history.map(h=><button type="button" key={h.id} onClick={()=>showSaved(h)}>
