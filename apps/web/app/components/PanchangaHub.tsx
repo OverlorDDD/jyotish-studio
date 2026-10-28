@@ -8,6 +8,7 @@ import PersonalPanchanga from './PersonalPanchanga';
 import EclipsePanel from './EclipsePanel';
 import VedicFestivalPanel from './VedicFestivalPanel';
 import CitySearch from './CitySearch';
+import GlossaryText from './GlossaryText';
 
 type AngaName={number:number;name:string};
 type Day={
@@ -104,7 +105,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  return <section className={styles.page} data-testid="panchanga-hub">
   <header className={styles.hero}>
    <div className={styles.eyebrow}>GALAXIORA · ASTRONOMY</div>
-   <h1>{t.title}</h1><p>{t.intro}</p>
+   <h1><GlossaryText text={t.title} locale={locale}/></h1><p><GlossaryText text={t.intro} locale={locale}/></p>
    <Link href={'/'+locale+'/horoscope'}>{uk?'До гороскопів':'Horoscopes'} ↗</Link>
   </header>
   <form className={styles.form} onSubmit={e=>{e.preventDefault();setRequested({...form});}}>
@@ -146,15 +147,15 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <section className={styles.timeline}><h2>{t.kalas}</h2>
     {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
      <time dateTime={result.daytimeKalas[key].fromUtc}>{fmt(result.daytimeKalas[key].fromUtc)} — {fmt(result.daytimeKalas[key].untilUtc)}</time>
-     <strong>{t[key]}</strong>
+     <strong><GlossaryText text={t[key]} locale={locale}/></strong>
      <span>#{result.daytimeKalas[key].part}/8</span>
     </div>)}
-    <p>{t.kalaNote}</p>
+    <p><GlossaryText text={t.kalaNote} locale={locale}/></p>
    </section>
    <section><h2>{t.titleFive}</h2>
     <div className={styles.cards} data-testid="panchanga-five-angas">
      {limbKeys.map(key=><article key={key}>
-      <small>{t[key]}</small><h3>{angaText(key)}</h3>
+      <small><GlossaryText text={t[key]} locale={locale}/></small><h3><GlossaryText text={angaText(key)} locale={locale}/></h3>
       {key!=='vara'&&<div className={styles.times}>
        <span>{t.started}: {fmt(result.boundaries[key].startUtc)}</span>
        <span>{t.ends}: {fmt(result.boundaries[key].endUtc)}</span>
@@ -165,12 +166,12 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <section className={styles.timeline}><h2>{t.transitions}</h2>
     {result.changes.map((event,i)=><div key={event.kind+event.atUtc+i}>
      <time dateTime={event.atUtc}>{fmt(event.atUtc)}</time>
-     <strong>{t[event.kind]}</strong>
+     <strong><GlossaryText text={t[event.kind]} locale={locale}/></strong>
      <span>#{event.nextIndex}</span>
     </div>)}
    </section>
    <aside className={styles.method}><h2>{t.source}</h2>
-    <p>{t.profile}</p><p>{result.sunriseMethod}</p><p>{t.limits}</p>
+    <p><GlossaryText text={t.profile} locale={locale}/></p><p><GlossaryText text={result.sunriseMethod} locale={locale}/></p><p><GlossaryText text={t.limits} locale={locale}/></p>
     <p>{t.notProphecy}</p>
     <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank" rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
    </aside>
