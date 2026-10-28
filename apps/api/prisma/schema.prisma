@@ -165,7 +165,10 @@ model TarotQuestion {
  context String @db.Text
  timeframe String? @db.VarChar(140)
  consentAt DateTime
+ expertSubmittedAt DateTime?
+ expertReviewedAt DateTime?
  @@index([userId,createdAt])
+ @@index([expertSubmittedAt,expertReviewedAt])
 }
 
 /** Audit trail of permissions changed through authenticated admin API. */
