@@ -30,10 +30,10 @@ const T={
  rama_navami:'Рама Навамі · опівдні',ganesh_chaturthi:'Ґанеша Чатуртхі · опівдні',
  chaitra_navratri:'Чайтра Наваратрі · початок',sharad_navratri:'Шарад Наваратрі · початок',
  guru_purnima:'Ґуру Пурніма',janmashtami:'Крішна Джанмаштамі · ніч',
- maha_shivaratri:'Маха Шиваратрі · ніч',diwali_amavasya:'Дівалі · амавасья ввечері',candidate:'Кандидат за правилом',
+ maha_shivaratri:'Маха Шиваратрі · ніч',diwali_amavasya:'Дівалі · амавасья ввечері',candidate:'Календарна традиція',
  moment:'Астрономічний момент',adhika:'Адхіка-маса',regular:'Звичайний місяць',
  kshaya:'Особливий місяць: назва потребує окремої звірки',
- warning:'Це календарні спостереження й кандидати свят, а не остаточні дати посту, час парани або персональне призначення мухурти. Смартські та вайшнавські правила, а також місцеві традиції можуть відрізнятися.',
+ warning:'Дати ведичних свят залежать від місячного календаря, місцевості й традиції. Для постів і часу парани дотримуйся календаря своєї духовної школи.',
  info:'Аманта й пурніманта використовують ті самі астрономічні дані, але можуть інакше називати темну половину місяця. Межі адхіка-маси визначаються за кількістю сидеричних сонячних переходів між молодиками.'},
  en:{title:'Vedic calendar · 7 days',intro:'Sunrise tithi, Ekadashi, Pradosha, lunar observance indicators, Sankranti and Abhijit Muhurta. Each marker has an explicit calculation rule.',
  amanta:'Amanta (new-moon ending)',purnimanta:'Purnimanta (full-moon ending)',month:'Lunar month',
@@ -47,10 +47,10 @@ const T={
  rama_navami:'Rama Navami · midday',ganesh_chaturthi:'Ganesh Chaturthi · midday',
  chaitra_navratri:'Chaitra Navratri · beginning',sharad_navratri:'Sharad Navratri · beginning',
  guru_purnima:'Guru Purnima',janmashtami:'Krishna Janmashtami · night',
- maha_shivaratri:'Maha Shivaratri · night',diwali_amavasya:'Diwali · evening Amavasya',candidate:'Rule-based candidate',
+ maha_shivaratri:'Maha Shivaratri · night',diwali_amavasya:'Diwali · evening Amavasya',candidate:'Traditional observance',
  moment:'Astronomical instant',adhika:'Adhika month',regular:'Ordinary lunar month',
  kshaya:'Exceptional month: name requires additional reference review',
- warning:'These are calendar observations and observance candidates, not definitive fasting dates, Parana windows or individual Muhurta prescriptions. Smarta, Vaishnava and regional rules can differ.',
+ warning:'Vedic festival observances vary by location and tradition. For fasting and Parana timings, consult your own community's calendar.',
  info:'Amanta and Purnimanta share the same astronomy but may label the waning fortnight differently. Adhika months are detected from sidereal solar ingresses between consecutive New Moons.'}
 } as const;
 const monthNames:Record<string,[string,string]>={
