@@ -5,6 +5,7 @@ import {classifyWithReason,parseXml,publisherDomain,safeImageUrl,type Candidate,
 import {GDELT_QUERIES,RSS_SOURCES} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
+import {commonsIllustration} from './news-commons.ts';
 import {sourceCooldownMs,gdeltCircuitFailure} from './news-source-health.ts';
 import {publishAstronomicalNews} from './news-astronomy.ts';
 import {enrichOpenNewsPhotos} from './news-open-media.ts';
@@ -195,6 +196,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
     }
     await this.prisma.newsScan.create({data:{sources,accepted:added,errors:errorsAll}});
     await this.enrichMetadata().catch(e=>console.warn('[news] metadata lookup failed',String(e)));
+    await this.enrichCommonsArtwork().catch(e=>console.warn('[news] commons image lookup failed',String(e)));
     await this.runEditorial();
     return {sources,newArticles:added,duplicates:duplicatesAll,rejected:rejectedAll,errors:errorsAll,backfill};
    }finally{
@@ -212,6 +214,32 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    console.log('[news] localization:',result.processed,'updated');
   }catch(e){console.warn('[news] editorial:',String(e));}
   finally{this.editorialRunning=false;}
+ }
+ /** Backfill existing image-less public articles using licensed thematic photographs.
+  * No unpublished story is touched; never treats a generic Commons photo as
+  * an original article image. Process a bounded batch each scheduled scan.
+  */
+ private async enrichCommonsArtwork(){
+  const rows=await this.prisma.newsArticle.findMany({
+   where:{status:'PUBLISHED',imageUrl:null},
+   orderBy:{publishedAt:'desc'},take:36,
+   select:{id:true,topic:true}
+  });
+  const topics=[...new Set(rows.map(x=>x.topic))];
+  const chosen=new Map<string,Awaited<ReturnType<typeof commonsIllustration>>>();
+  for(const topic of topics)chosen.set(topic,await commonsIllustration(topic));
+  let updated=0;
+  for(const row of rows){
+   const image=chosen.get(row.topic);
+   if(!image)continue;
+   const r=await this.prisma.newsArticle.updateMany({
+    where:{id:row.id,status:'PUBLISHED',imageUrl:null},
+    data:{imageUrl:image.imageUrl,imageCredit:image.imageCredit,
+     imageLicense:image.imageLicense,imageLicenseUrl:image.imageLicenseUrl,
+     imagePageUrl:image.imagePageUrl}
+   });updated+=r.count;
+  }
+  if(updated)console.log('[news] licensed thematic Commons images:',updated);
  }
  private async enrichMetadata(){
   const trusted=await this.prisma.newsDiscoveredSource.findMany({where:{status:'TRUSTED'},select:{domain:true}});
