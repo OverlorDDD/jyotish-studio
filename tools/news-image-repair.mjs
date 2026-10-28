@@ -7,6 +7,15 @@ import {enrichOpenNewsPhotos} from '../apps/api/src/news-open-media.ts';
 const prisma=new PrismaClient();
 try{
  await prisma.$connect();
+ // Explicit recovery after fixing Internet/DNS: retry previously unsuccessful
+ // lookups now instead of waiting for the ordinary 48-hour provider cooldown.
+ if(process.argv.includes('--retry')){
+  const again=await prisma.newsArticle.updateMany({
+   where:{status:'PUBLISHED',imageLicense:null,imageLicenseUrl:null},
+   data:{imageLookupAt:null}
+  });
+  console.log('[open media] Retrying prior image lookups:',again.count);
+ }
  const before=await prisma.newsArticle.count({where:{status:'PUBLISHED',imageUrl:null}});
  let checked=0,restored=0;
  for(let n=0;n<6;n++){
