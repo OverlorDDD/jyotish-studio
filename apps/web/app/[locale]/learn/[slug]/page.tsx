@@ -11,6 +11,7 @@ import {indexRobots} from '../../../../lib/site-indexing';
 import {publishedDetail} from '../../../../lib/editorial-public';
 import EditorialArticle from '../../../components/EditorialArticle';
 import GalaxiComBridge from '../../../components/GalaxiComBridge';
+import {articleStructuredData} from '../../../../lib/seo-structured';
 export const dynamicParams=true;
 type Params={params:Promise<{locale:string;slug:string}>};
 export function generateStaticParams(){return (['uk','en'] as const).flatMap(locale=>ACADEMY_LESSONS.map(item=>({locale,slug:item.slug})));}
@@ -36,7 +37,10 @@ export default async function AcademyLessonPage({params}:Params){
  }
  const uk=locale==='uk',position=ACADEMY_LESSONS.findIndex(l=>l.slug===slug),
   next=ACADEMY_LESSONS[position+1],topic=ACADEMY_TOPICS.find(t=>t.id===lesson.topic)!;
+ const jsonLd=articleStructuredData({locale,path:'/'+locale+'/learn/'+slug,
+  title:lesson.title[locale],description:lesson.description[locale]});
  return <PortalShell locale={locale} active="learn" languagePath={'learn/'+slug}>
+  {jsonLd&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd}}/>}
   <div className="as-wellness as-academy-detail">
    <Link href={'/'+locale+'/learn'} className="as-wellness-back"><ArrowLeft size={16}/>{uk?'Всі уроки':'All lessons'}</Link>
    <article className="as-academy-article">
