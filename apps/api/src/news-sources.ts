@@ -41,3 +41,16 @@ export const GDELT_QUERIES=[
  ['mainstream-yoga','"yoga" AND (practice OR traditions)','yoga'],
  ['mainstream-meditation','meditation AND (mindfulness OR practice)','meditation']
 ] as const;
+
+/** Optional operator quarantine, not a silent removal of unreliable publishers.
+ * Example: NEWS_SOURCE_DISABLED_KEYS=elephant-journal,astroved
+ * GDELT group keys use the full 'gdelt-' prefix. */
+export function disabledNewsSourceKeys(env=process.env):Set<string>{
+ return new Set((env.NEWS_SOURCE_DISABLED_KEYS||'').split(',').map(x=>x.trim()).filter(Boolean));
+}
+export function selectedNewsSources(env=process.env){
+ const disabled=disabledNewsSourceKeys(env);
+ return {rss:RSS_SOURCES.filter(s=>!disabled.has(s.key)),
+  gdelt:GDELT_QUERIES.filter(([key])=>!disabled.has('gdelt-'+key)),
+  disabled:[...disabled].sort()};
+}
