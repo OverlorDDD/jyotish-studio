@@ -1,9 +1,9 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import PortalShell from '../../../components/PortalShell';
-import {isPortalLocale,type PortalLocale} from '../../../../lib/brand';
-import {indexRobots,publicIndexingEnabled,publicSiteOrigin} from '../../../../lib/site-indexing';
+import PortalShell from '../../components/PortalShell';
+import {isPortalLocale,type PortalLocale} from '../../../lib/brand';
+import {indexRobots,publicIndexingEnabled,publicSiteOrigin} from '../../../lib/site-indexing';
 
 const COPY={
  uk:{
