@@ -37,3 +37,12 @@
 .weekPhase strong{color:#e9c990}
 .page button:focus-visible,.page a:focus-visible,.page summary:focus-visible{outline:2px solid #f1d49c;outline-offset:3px}
 @media(max-width:560px){.period button{flex:1;justify-content:center}}
+
+/* Release: explain natal Moon sign versus familiar Sun sign without hiding provenance. */
+.signExplanation{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:18px 0;padding:18px 22px;border-radius:14px;border:1px solid #806e4b;background:linear-gradient(110deg,#23344e,#182841);color:#ebdfcc}
+.signExplanation strong{color:#f5dca9}.signExplanation p{font-size:14px;line-height:1.65;margin:7px 0;color:#d8e2ef;max-width:85ch}
+.signExplanation a{color:#f4d38b;text-decoration:underline;text-underline-offset:3px}
+.useNatal{border:1px solid #e4c585;background:#d6b882;color:#172639;padding:11px 17px;border-radius:10px;font-weight:700;cursor:pointer;max-width:100%;text-align:center}
+.useNatal:hover{background:#ffe3a3}.useNatal:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.personal [data-testid="personal-daily-core"]>h3,.personal [data-testid="personal-moon-reading"]>h3{font-size:20px;margin:24px 0 4px;color:#f2d9a5}
+@media(max-width:560px){.signExplanation{padding:15px}.useNatal{width:100%}}
