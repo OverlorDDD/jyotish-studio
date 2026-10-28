@@ -121,7 +121,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     </p>)}
     {data.sky.observances.map((e,i)=><p key={e.id+e.atUtc+i}>
      <strong>{uk?'Календарна позначка':'Calendar observance'}: </strong>{e.id.replaceAll('_',' ')}.
-     <small> {uk?'Кандидат за традиційним правилом, не підтверджена дата посту.':'Rule-based candidate, not a certified fasting date.'}</small>
+     <small> {uk?'Час святкування може відрізнятися залежно від місцевої традиції.':'Observance times vary with local tradition.'}</small>
     </p>)}
     {data.sky.referenceLocation&&<small>{uk?'Святкові позначки розраховані для Києва; для іншого міста відкрий Панчангу.':'Observance reference city: Kyiv; open Panchanga for other locations.'}</small>}
    </section>}
