@@ -51,6 +51,7 @@
     "test:terminology": "node --experimental-strip-types --test tools/terminology.test.mjs",
     "test:access": "node --experimental-strip-types --test tools/account-access.test.mjs tools/auth-limit-policy.test.mjs",
     "site:check": "node --env-file=.env tools/site-preflight.mjs",
+    "launch:verify": "node --env-file-if-exists=.env tools/release-launch-verify.mjs",
     "test:engine2": "node --experimental-strip-types --test tools/engine2.test.mjs tools/interpretation-policy.test.mjs",
     "dev:public": "node tools/public-launch.mjs",
     "test:portal": "node --test tools/portal-stage1.test.mjs",
