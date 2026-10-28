@@ -53,6 +53,12 @@ test('all eight news topics have self-contained, genuinely distinct offline artw
   assert.doesNotMatch(svg.replace('xmlns="http://www.w3.org/2000/svg"',''),/<script|<foreignObject|<image|https?:\/\//i);
  }
  const ui=readFileSync(new URL('../apps/web/app/components/NewsWorld.tsx',import.meta.url),'utf8');
- assert.match(ui,/src=\{showingPhoto\?imageUrl!:newsFallbackArtwork\(topic\)\}/);
- assert.match(ui,/onError=\{\(\)=>\{if\(showingPhoto\)setBroken\(true\);\}\}/);
+ assert.match(ui,/src=\{newsFallbackArtwork\(topic\)\}/);
+ assert.match(ui,/loading="eager" data-image-role="fallback"/);
+ assert.match(ui,/data-image-role="licensed-photo"/);
+ assert.match(ui,/onLoad=\{\(\)=>setReadyUrl\(imageUrl!\)\}/);
+ assert.match(ui,/onError=\{\(\)=>setFailedUrl\(imageUrl!\)\}/);
+ const css=readFileSync(new URL('../apps/web/app/components/NewsWorld.module.css',import.meta.url),'utf8');
+ assert.match(css,/\.photoPending\{opacity:0;/);
+ assert.match(css,/\.photoReady\{opacity:1/);
 });
