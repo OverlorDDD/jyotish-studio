@@ -222,8 +222,11 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      {period==='week'&&week?.horoscopeStatus==='personalized'&&<section className={styles.week}>
       <h2>{uk?'Наступні сім днів':'The next seven days'}</h2>
       {week.horoscopes.filter(x=>x.guidance).map(x=><article key={x.date}>
-       <time dateTime={x.date}>{x.date}</time><h3>{t(x.guidance!.headline)}</h3>
-       <p>{t(x.guidance!.description)}</p><small>{uk?'Фокус: ':'Focus: '}{t(x.guidance!.goodFor)}</small>
+       <time dateTime={x.date}>{x.date}</time>
+       <h3>{t(x.guidance!.goodFor)}</h3>
+       <small>{uk?'Тема транзиту: ':'Transit theme: '}{t(x.guidance!.headline)}</small>
+       <p>{t(x.guidance!.description)}</p>
+       {x.guidance!.action&&<p><strong>{uk?'Практичний крок: ':'Practical step: '}</strong>{t(x.guidance!.action)}</p>
       </article>)}
      </section>}
      <Link href={'/'+locale+'/personal'} className={styles.toPersonal}>
