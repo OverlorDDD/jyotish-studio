@@ -84,7 +84,6 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:typeof fetc
  let processed=0,failed=0;
  for(const original of rows){
   const output=collected.find(x=>x.id===original.id);
-  const facts=context(original);
   const translated=Boolean(output?.titleUk);
   const useful=hasEditorialEvidence(original);
   const teaser=useful&&Boolean(output?.summaryUk);
