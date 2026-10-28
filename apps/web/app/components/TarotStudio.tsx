@@ -6,6 +6,7 @@ import {readApiJson} from '../../lib/api-response';
 import TarotCardArt from './TarotCardArt';
 import GlossaryText from './GlossaryText';
 import ExpertQuestionForm from './ExpertQuestionForm';
+import PrivateTarotQuestions from './PrivateTarotQuestions';
 import type {PortalLocale} from '../../lib/brand';
 
 type Localized={en:string;uk:string};
@@ -129,6 +130,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
    <p className="as-muted">{uk?'Ілюстрації: Pamela Colman Smith, класична колода Rider–Waite–Smith (1909). Таро не замінює медичних, юридичних або фінансових рішень.':'Artwork: Pamela Colman Smith, Rider–Waite–Smith (1909). Tarot does not replace medical, legal or financial advice.'}</p>
   </section>}
   <ExpertQuestionForm locale={locale}/>
+  <PrivateTarotQuestions locale={locale}/>
   <section className="as-tarot-history">
    <h2><History size={21}/>{uk?'Моя історія':'My reading history'}</h2>
    {history.length?history.map(h=><button type="button" key={h.id} onClick={()=>showSaved(h)}>
