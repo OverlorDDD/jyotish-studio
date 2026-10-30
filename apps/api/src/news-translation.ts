@@ -1,0 +1,191 @@
+/** GalaxiNews machine translation adapters: self-hosted Argos or explicit Azure NMT.
+ * STRICT: no generative AI, no hidden cloud fallback and no arbitrary URL fetch.
+ * Not a summarizer: only translates bounded publisher metadata already present.
+ */
+import {cleanDescription} from './news-domain.ts';
+import {headlineScriptSegments,isLocalizedNewsTitle,type NewsTitleLocale} from './news-localization.ts';
+
+export const NEWS_TRANSLATOR_DEFAULT='http://127.0.0.1:5100';
+export const NEWS_TRANSLATOR_ENGINE='libretranslate-argos';
+export type NewsTranslationProvider='local'|'azure';
+export function selectedNewsTranslationProvider(env:NodeJS.ProcessEnv=process.env):NewsTranslationProvider{
+ const provider=env.NEWS_TRANSLATION_PROVIDER||'local';
+ if(provider!=='local'&&provider!=='azure')throw Error('Unsupported NEWS_TRANSLATION_PROVIDER; expected local or azure');
+ return provider;
+}
+export function newsTranslationApproved(env:NodeJS.ProcessEnv=process.env):boolean{
+ return env.NEWS_TRANSLATION_QUALITY_APPROVED==='1';
+}
+export type NewsTranslationScope='headlines'|'full';
+export function newsTranslationScope(env:NodeJS.ProcessEnv=process.env):NewsTranslationScope{
+ const scope=env.NEWS_TRANSLATION_CONTENT_SCOPE||'headlines';
+ if(scope!=='headlines'&&scope!=='full')throw Error('NEWS_TRANSLATION_CONTENT_SCOPE must be headlines or full');
+ return scope;
+}
+export function newsScopeApproved(env:NodeJS.ProcessEnv=process.env):boolean{
+ return newsTranslationScope(env)==='headlines'
+  ?env.NEWS_TRANSLATION_HEADLINES_APPROVED==='1'
+  :newsTranslationApproved(env);
+}
+export function azureTranslatorCredentials(env:NodeJS.ProcessEnv=process.env){
+ const key=env.AZURE_TRANSLATOR_KEY?.trim()||'';
+ const region=env.AZURE_TRANSLATOR_REGION?.trim()||'';
+ if(!key||(region&&!/^[a-zA-Z0-9-]{2,70}$/.test(region)))
+  throw Error('Azure NMT requires AZURE_TRANSLATOR_KEY and a valid optional AZURE_TRANSLATOR_REGION');
+ // Azure Translator's global single-service resource does not need region.
+ // Multi-service and regional resources do require it.
+
+ return {key,region};
+}
+const KNOWN_UNSAFE_TRANSLATIONS:RegExp[]=[
+ /ведикськ/iu,/окшатра/iu,/тато-розклад/iu,/графік(?:у|ом)? народження/iu,
+ /особистого відображення/iu,/телескоп захопив/iu,/до скорпіо/iu,
+ /видавництво випустили/iu,/коротке визначення за ліцензією/iu,
+ /інструктор йога/iu,/ніжні ранкові дихальні/iu,/зображення юпітеру/iu
+];
+/** Deterministic red flags are a guard, NOT a proof of editorial quality. */
+export function translationQualityWarnings(text:string):string[]{
+ return KNOWN_UNSAFE_TRANSLATIONS.filter(re=>re.test(text)).map(re=>re.source);
+}
+export type TranslationFetch=typeof fetch;
+const SAFE_HOSTS=new Set(['localhost','127.0.0.1','[::1]','translator','libretranslate']);
+const terms:[RegExp,string][]=[
+ [/джйотиш/gi,'Джйотіш'],[/джиотиш/gi,'Джйотіш'],
+ [/навамша/gi,'Навамша'],[/даша/gi,'даша'],
+ [/накшатра/gi,'накшатра'],[/пранаяма/gi,'пранаяма'],
+ [/вімшоттарі/gi,'Вімшоттарі'],[/раху/gi,'Раху'],[/кету/gi,'Кету']
+];
+export function normalizeTranslatedNews(text:string):string{
+ let value=cleanDescription(text).replace(/[ \t]{2,}/g,' ').trim();
+ for(const [match,replacement] of terms)value=value.replace(match,replacement);
+ return value;
+}
+/** Evidence-constrained Ukrainian wording repairs. Only alter wording when the
+ * English SOURCE establishes the same astronomical/Tarot concept; do not turn
+ * arbitrary people, brands or non-astrology 'Mercury' into a planet. */
+export function improveNewsTerminology(source:string,translated:string):string{
+ let result=translated;
+ if(/\bTarot\s+spreads?\b/i.test(source)){
+  result=result.replace(/розворот(?:и|ів|ами)?\s+Таро/giu,'розклади Таро')
+    .replace(/Таро[-\s]+розворот(?:и|ів|ами)?/giu,'розклади Таро');
+ }
+ if(/\bMercury\b/i.test(source)&&
+   /\b(?:enter(?:s|ed|ing)?|retrograde|zodiac|planet|Scorpio|Pisces|Gemini|astrology|astrological)\b/i.test(source))
+  result=result.replace(/\bMercury\b/g,'Меркурій');
+ if(/\bTithi\b/i.test(source))
+  result=result.replace(/(?<![\p{L}])Тіті(?![\p{L}])/giu,'тітхі')
+    .replace(/(?<![\p{L}])Тітхі(?![\p{L}])/gu,'тітхі');
+ if(/\bTithi\s+and\s+Nakshatra\b/i.test(source))
+  result=result.replace(/тітхі\s+та\s+накшатра(?![\p{L}])/giu,'тітхі та накшатри');
+ if(/\byoga instructor\b/i.test(source))
+  result=result.replace(/інструктор йога/giu,match=>match.startsWith('І')?'Інструктор із йоги':'інструктор із йоги');
+ if(/\bgentle morning breathing exercises\b/i.test(source))
+  result=result.replace(/ніжні ранкові дихальні вправи/giu,'м’які ранкові дихальні вправи');
+ return result;
+}
+
+export function translationEndpoint(env:NodeJS.ProcessEnv=process.env):string{
+ const raw=env.NEWS_TRANSLATION_URL||NEWS_TRANSLATOR_DEFAULT;
+ let url:URL;
+ try{url=new URL(raw);}catch{throw Error('NEWS_TRANSLATION_URL is invalid');}
+ if(url.protocol!=='http:'||!SAFE_HOSTS.has(url.hostname.toLowerCase())||
+  url.username||url.password||url.search||url.hash||
+  (url.pathname!=='/'&&url.pathname!==''))
+  throw Error('Translator must be an internal HTTP service, not an arbitrary remote URL');
+ return url.origin;
+}
+export function preserveSourceNumbers(source:string,translated:string):boolean{
+ const numbers=(v:string)=>(v.match(/\d+(?:[.,]\d+)*/g)||[]).sort().join('|');
+ return numbers(source)===numbers(translated);
+}
+export async function translateNewsText(text:string,fetcher:TranslationFetch=fetch,env:NodeJS.ProcessEnv=process.env):Promise<string>{
+ const input=cleanDescription(text);
+ if(!input||input.length>1000)throw Error('Translator input must contain 1-1000 sanitized characters');
+ const provider=selectedNewsTranslationProvider(env);
+ let response:Response;
+ if(provider==='azure'){
+  const {key,region}=azureTranslatorCredentials(env);
+  response=await fetcher('https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=en&to=uk',{
+   method:'POST',signal:AbortSignal.timeout(25000),
+   headers:{'Content-Type':'application/json; charset=UTF-8',
+    'Ocp-Apim-Subscription-Key':key,
+    ...(region?{'Ocp-Apim-Subscription-Region':region}:{})},
+   body:JSON.stringify([{text:input}])
+  });
+ }else{
+ const base=translationEndpoint(env);
+ response=await fetcher(base+'/translate',{
+  method:'POST',signal:AbortSignal.timeout(25000),
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({q:input,source:'en',target:'uk',format:'text'})
+ });
+ }
+ if(!response.ok)throw Error('Machine translator HTTP '+response.status);
+ const data=await response.json() as unknown;
+ const raw=provider==='azure'
+  ?(Array.isArray(data)?data[0]?.translations?.find((x:{to?:string})=>x.to==='uk')?.text:undefined)
+  :(data as {translatedText?:unknown})?.translatedText;
+ if(typeof raw==='string'&&/<[^>]+>/.test(raw))
+  throw Error('Invalid machine translation: HTML is not accepted');
+ const output=typeof raw==='string'?normalizeTranslatedNews(improveNewsTerminology(input,raw)):'';
+ if(!output||output.length>1500||!/[А-Яа-яІіЇїЄєҐґ]/.test(output)||/<[^>]+>/.test(output)||!preserveSourceNumbers(input,output))
+  throw Error('Invalid machine translation or lost numerical facts');
+ if(translationQualityWarnings(output).length)
+  throw Error('Known poor Ukrainian translation: manual review or different NMT model required');
+ return output;
+}
+/** Azure NMT translates both requested languages without assuming the RSS
+ * title is English. Mixed Devanagari/Latin titles are translated by script
+ * spans so neither locale displays an untranslated Hindi clause.
+ * No generative model, private user data or article-body scraping involved. */
+export async function translateLocalizedHeadline(source:string,target:NewsTitleLocale,
+ fetcher:TranslationFetch=fetch,env:NodeJS.ProcessEnv=process.env):Promise<string>{
+ const value=cleanDescription(source);
+ if(!value||value.length>300)throw Error('Invalid publisher headline size');
+ if(selectedNewsTranslationProvider(env)!=='azure')
+  throw Error('Mixed-language bilingual headlines require the approved Azure NMT adapter');
+ const {key,region}=azureTranslatorCredentials(env);
+ const segments=headlineScriptSegments(value);
+ const translated:string[]=[];
+ for(const segment of segments){
+  const url='https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to='+target;
+  const response=await fetcher(url,{
+   method:'POST',signal:AbortSignal.timeout(25000),
+   headers:{'Content-Type':'application/json; charset=UTF-8',
+    'Ocp-Apim-Subscription-Key':key,
+    ...(region?{'Ocp-Apim-Subscription-Region':region}:{})},
+   body:JSON.stringify([{text:segment}])
+  });
+  if(!response.ok)throw Error('Azure headlines HTTP '+response.status);
+  const result=await response.json() as unknown;
+  const raw=Array.isArray(result)?result[0]?.translations?.find((x:{to?:string})=>x.to===target)?.text:undefined;
+  if(typeof raw!=='string'||/<[^>]+>/.test(raw))throw Error('Azure did not return safe headline text');
+  const clean=normalizeTranslatedNews(target==='uk'?improveNewsTerminology(segment,raw):raw);
+  if(!isLocalizedNewsTitle(clean,target)||!preserveSourceNumbers(segment,clean))
+   throw Error('Untranslated script or changed numeric facts in '+target+' headline');
+  translated.push(clean);
+ }
+ const final=translated.join(' ').replace(/\s+([,.;:!?])/g,'$1').replace(/\s+/g,' ').trim();
+ if(!isLocalizedNewsTitle(final,target)||!preserveSourceNumbers(value,final))
+  throw Error('Incomplete '+target+' localization of mixed-language headline');
+ if(target==='uk'&&translationQualityWarnings(final).length)
+  throw Error('Known poor Ukrainian translation: editor review required');
+ return final;
+}
+
+export async function checkNewsTranslator(fetcher:TranslationFetch=fetch,env:NodeJS.ProcessEnv=process.env){
+ const provider=selectedNewsTranslationProvider(env);
+ if(provider==='azure'){
+  const {region}=azureTranslatorCredentials(env);
+  return {available:true,endpoint:'azure-microsoft-translator-fixed-endpoint',source:'en',target:'uk',
+   region,engine:'azure-translator-nmt',qualityApproved:newsTranslationApproved(env),
+   note:'Configuration only: live credentials and translation must be verified with news:translate:sample.'};
+ }
+ const base=translationEndpoint(env);
+ const response=await fetcher(base+'/languages',{signal:AbortSignal.timeout(15000)});
+ if(!response.ok)throw Error('Translator languages endpoint HTTP '+response.status);
+ const languages=await response.json() as Array<{code?:string;targets?:string[]}>;
+ const en=Array.isArray(languages)?languages.find(x=>x.code==='en'):undefined;
+ const available=Boolean(en?.targets?.includes('uk'));
+ return {available,endpoint:base,source:'en',target:'uk',engine:NEWS_TRANSLATOR_ENGINE,qualityApproved:newsTranslationApproved(env)};
+}

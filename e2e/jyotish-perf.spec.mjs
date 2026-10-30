@@ -14,7 +14,10 @@ test('Jyotish opens calculator and delays saved-history network until account is
  await expect(page.locator('.jy-rashi-card')).toBeVisible();
  const openedMs=Date.now()-start;
  console.info('[Jyotish-perf] production calculator UI ready ms:',openedMs);
- await expect(page.locator('button.account-trigger')).toContainText('Мій кабінет');
+ await expect(page.locator('button.account-trigger')).toContainText('Зберегти карту');
+ await expect(page.locator('header.as-header')).toHaveCount(1);
+ await expect(page.locator('button.as-account-trigger')).toHaveCount(1);
+ await expect(page.locator('button.lang-button')).toHaveCount(0);
  expect(historyCalls).toBe(0);
  await page.locator('button.account-trigger').click();
  await expect.poll(()=>historyCalls).toBe(1);

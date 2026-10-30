@@ -1,6 +1,8 @@
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 import JyotishCalculator from '../../../astrology/jyotish/page';
+import PortalShell from '../../../components/PortalShell';
+import GalaxiComModuleLink from '../../../components/GalaxiComModuleLink';
 import {BRAND,moduleTitle,isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
 
@@ -19,5 +21,5 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
 export default async function JyotishPage({params}:{params:Promise<{locale:string}>}){
  const {locale}=await params;
  if(!isPortalLocale(locale))notFound();
- return <JyotishCalculator initialLang={locale as 'en'|'uk'}/>;
+ return <PortalShell locale={locale as 'en'|'uk'} active="astrology" languagePath="astrology/jyotish"><JyotishCalculator initialLang={locale as 'en'|'uk'}/><GalaxiComModuleLink locale={locale as 'en'|'uk'} kind="jyotish"/></PortalShell>;
 }

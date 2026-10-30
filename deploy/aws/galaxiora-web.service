@@ -1,0 +1,26 @@
+[Unit]
+Description=Galaxiora Next.js website
+After=network-online.target galaxiora-api.service
+Wants=network-online.target
+Requires=galaxiora-api.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/galaxiora/app
+Environment=NODE_ENV=production
+Environment=WEB_PORT=3000
+Environment=INTERNAL_API_ORIGIN=http://127.0.0.1:4000
+ExecStart=/usr/bin/npm run start -w @jyotish/web
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+UMask=0077
+LimitNOFILE=65535
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

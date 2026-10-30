@@ -64,6 +64,33 @@ export class AdminController {
   }
  }
 
+ /** Only explicit expert submissions are visible to staff.
+  * Old owner-private questions are excluded by expertSubmittedAt:null. */
+ @Get('expert-requests')
+ async expertRequests(@Req()req:IncomingMessage){
+  await this.requireAdmin(req);
+  const [unread,total,items]=await Promise.all([
+   this.prisma.tarotQuestion.count({where:{expertSubmittedAt:{not:null},expertReviewedAt:null}}),
+   this.prisma.tarotQuestion.count({where:{expertSubmittedAt:{not:null}}}),
+   this.prisma.tarotQuestion.findMany({where:{expertSubmittedAt:{not:null}},
+    take:100,orderBy:{expertSubmittedAt:'desc'},
+    select:{id:true,createdAt:true,expertSubmittedAt:true,expertReviewedAt:true,
+     topic:true,question:true,context:true,timeframe:true,
+     user:{select:{email:true}}}})
+  ]);
+  return {unread,total,items};
+ }
+ @Patch('expert-requests/:id/review')
+ async reviewExpertRequest(@Param('id')id:string,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new ForbiddenException('Cross-origin review denied');
+  await this.requireAdmin(req);
+  const changed=await this.prisma.tarotQuestion.updateMany({
+   where:{id,expertSubmittedAt:{not:null},expertReviewedAt:null},
+   data:{expertReviewedAt:new Date()}
+  });
+  if(changed.count!==1)throw new BadRequestException('Request not found or already reviewed');
+  return {reviewed:true};
+ }
  @Get('orders')
  async orders(@Req()req:IncomingMessage){
   await this.requireAdmin(req);
@@ -78,7 +105,7 @@ export class AdminController {
  async overview(@Req()req:IncomingMessage){
   await this.requireAdmin(req);
   const start=new Date(Date.now()-30*24*60*60*1000);
-  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts,tarotReadings]=await Promise.all([
+  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts,tarotReadings,expertRequestsUnread]=await Promise.all([
    this.prisma.user.count(),
    this.prisma.chart.count(),
    this.prisma.readingOrder.groupBy({by:['status'],_count:{_all:true}}),
@@ -93,10 +120,11 @@ export class AdminController {
    }),
    this.prisma.user.count({where:{subscriptionTier:'PREMIUM',subscriptionEndsAt:{gt:new Date()}}}),
    this.prisma.readingDraft.count({where:{expiresAt:{gt:new Date()}}}),
-   this.prisma.tarotReading.count()
+   this.prisma.tarotReading.count(),
+   this.prisma.tarotQuestion.count({where:{expertSubmittedAt:{not:null},expertReviewedAt:null}})
   ]);
   return {
-   windowDays:30,users,charts,subscribers,freeMembers:users-subscribers,unpaidDrafts,tarotReadings,
+   windowDays:30,users,charts,subscribers,freeMembers:users-subscribers,unpaidDrafts,tarotReadings,expertRequestsUnread,
    orders:orders.map(row=>({status:row.status,count:row._count._all})),
    ai:{
     requests:usage._count._all,
@@ -123,3 +151,6 @@ Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'o
 Reflect.defineMetadata('design:paramtypes',[Object,String],AdminController.prototype,'users');
 Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'roleAudit');
 Reflect.defineMetadata('design:paramtypes',[String,ChangeUserRoleDto,Object],AdminController.prototype,'changeRole');
+
+Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'expertRequests');
+Reflect.defineMetadata('design:paramtypes',[String,Object],AdminController.prototype,'reviewExpertRequest');

@@ -9,7 +9,7 @@ export type Position = {name:string;longitude:number;speed?:number};
 export type EphemerisData = {ayanamsa:number;ascendant:number;positions:Position[];julianDay:number;backend:string};
 export type Graha = {name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 export type DashaPeriod = {lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]};
-export type CalculatedChart = {input:BirthInput;utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;d1:Graha[];d9:Graha[];d10:Graha[];dasha:DashaPeriod[];config:{ayanamsa:string;houses:string;nodes:string;dashaYearDays:number};ephemeris:string};
+export type CalculatedChart = {input:BirthInput;utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;d1:Graha[];d9:Graha[];d10:Graha[];dasha:DashaPeriod[];config:{ayanamsa:string;houses:string;nodes:string;dashaYearDays:number;dashaYearMode?:string;ascendantConvention?:string};ephemeris:string};
 const NAK_LEN = 360/27;
 export const mod = (x:number,n=360)=>((x%n)+n)%n;
 export function signIndex(lon:number):number { return Math.min(11,Math.floor(mod(lon)/30)); }
@@ -26,6 +26,23 @@ export function graha(name:string,lon:number,ascLon:number,speed=0):Graha {
   const s=signIndex(lon),nak=nakshatraOf(lon);
   return {name,longitude:mod(lon),sign:s+1,signName:RASHIS[s],degreesInSign:mod(lon)%30,house:mod(s-signIndex(ascLon),12)+1,nakshatra:nak.name,pada:nak.pada,retrograde:speed<0};
 }
+/** Historical Lahiri mean ayanamsa shift between Swiss 2.02.01 (JHora 8)
+ * and Swiss 2.10.03, in arcseconds (modern minus historical).
+ * Derived from the two authentic DLL/library outputs on identical DE431
+ * input at jqa3-01, verified unchanged to <0.000001" on 19 held-out cards.
+ * Swiss 2.09 documented an explicit Lahiri convention correction.
+ * IMPORTANT: this is a VERSIONED HISTORICAL ASTROMETRY CONVENTION, not
+ * adjustment against a desired chart longitude or a blanket correction.
+ * Do not apply to graha positions or to apparent-ayanamsa metadata.
+ */
+export const JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS=0.13823494055031915;
+/** The same historical Lahiri offset affects *all* sidereal graha longitudes,
+ * not just Lagna: a 0.138" Moon discrepancy may displace a 20-year dasha
+ * boundary by ~30 minutes. Use one versioned correction for both.
+ */
+export const jhora8SiderealLongitude=(modernSiderealLongitude:number)=>
+ mod(modernSiderealLongitude+JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600);
+export const JHORA8_ASCENDANT_CONVENTION='jhora8-swiss20201-mean-lahiri-v3';
 export const DASHA_YEAR_DAYS=365.2425;
 const dashaDuration=(years:number)=>years*DASHA_YEAR_DAYS*86400000;
 /** Mahadasha + antardasha. The active-at-birth mahadasha begins before birth. */
@@ -52,12 +69,18 @@ export function localToUTC(date:string,time:string,timeZone:string):string {
   const constructed=new Date(wall);
   if(constructed.getUTCFullYear()!==y||constructed.getUTCMonth()!==m-1||constructed.getUTCDate()!==d||constructed.getUTCHours()!==h||constructed.getUTCMinutes()!==min)throw new Error('Invalid calendar date or time');
   let formatter:Intl.DateTimeFormat;
-  try {formatter=new Intl.DateTimeFormat('en-GB',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});}catch{throw new Error('Unknown IANA time zone');}
+  try {formatter=new Intl.DateTimeFormat('en-GB',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});}catch{throw new Error('Unknown IANA time zone');}
   const partsAt=(ms:number)=>Object.fromEntries(formatter.formatToParts(new Date(ms)).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));
+  // IANA historical offsets may include seconds (e.g. Dublin -00:25:21).
+  // Sampling actual zone offsets handles them without a misleading 15-minute grid.
+  // Probe on BOTH sides of civil-time transitions to detect DST folds/gaps.
   const matching=new Set<number>();
-  for(let offset=-14*60;offset<=14*60;offset+=15){
-    const ms=wall-offset*60000,p=partsAt(ms);
-    if(p.year===y&&p.month===m&&p.day===d&&p.hour===h&&p.minute===min)matching.add(ms);
+  for(const hours of [-36,-12,0,12,36]){
+    const probe=wall+hours*3600000,p=partsAt(probe);
+    const zoneLocalMs=Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second);
+    const candidateUtc=wall-(zoneLocalMs-probe);
+    const actual=partsAt(candidateUtc);
+    if(actual.year===y&&actual.month===m&&actual.day===d&&actual.hour===h&&actual.minute===min&&actual.second===0)matching.add(candidateUtc);
   }
   if(matching.size!==1)throw new Error(matching.size?'Ambiguous local time (DST): specify a different time':'Nonexistent local time (DST gap)');
   return new Date([...matching][0]).toISOString();
@@ -79,5 +102,5 @@ export function calculateChart(input:BirthInput,eph:EphemerisData):CalculatedCha
     const a=n===1?eph.ascendant:divisionalLongitude(eph.ascendant,n);
     return positions.map(p=>{const result=graha(p.name,n===1?p.longitude:divisionalLongitude(p.longitude,n),a,p.speed);return n===1?result:{...result,nakshatra:'—',pada:0};});
   };
-  return {input,utc,ayanamsa:eph.ayanamsa,ascendant:asc,lagnaD9:graha('Ascendant',divisionalLongitude(eph.ascendant,9),divisionalLongitude(eph.ascendant,9)),lagnaD10:graha('Ascendant',divisionalLongitude(eph.ascendant,10),divisionalLongitude(eph.ascendant,10)),d1:convert(1),d9:convert(9),d10:convert(10),dasha:vimshottari(byName.get('Moon')!.longitude,utc),ephemeris:eph.backend,config:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu',dashaYearDays:DASHA_YEAR_DAYS}};
+  return {input,utc,ayanamsa:eph.ayanamsa,ascendant:asc,lagnaD9:graha('Ascendant',divisionalLongitude(eph.ascendant,9),divisionalLongitude(eph.ascendant,9)),lagnaD10:graha('Ascendant',divisionalLongitude(eph.ascendant,10),divisionalLongitude(eph.ascendant,10)),d1:convert(1),d9:convert(9),d10:convert(10),dasha:vimshottari(byName.get('Moon')!.longitude,utc),ephemeris:eph.backend,config:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu',dashaYearDays:DASHA_YEAR_DAYS,ascendantConvention:JHORA8_ASCENDANT_CONVENTION}};
 }

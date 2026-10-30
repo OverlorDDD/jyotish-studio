@@ -1,5 +1,5 @@
 /** Original beginner-facing educational reading library, independent of external AI. */
-import type {Bilingual} from './yoga-content';
+import type {Bilingual} from './yoga-content.js';
 export type AcademyTopic='jyotish'|'tarot'|'practice';
 export type AcademyLesson={
  slug:string;topic:AcademyTopic;minutes:number;title:Bilingual;description:Bilingual;
@@ -14,6 +14,30 @@ export const ACADEMY_TOPICS:{id:AcademyTopic;title:Bilingual;subtitle:Bilingual}
  {id:'practice',title:{uk:'Йога й уважність',en:'Yoga & mindfulness'},subtitle:{uk:'Усвідомлена практика без міфів',en:'Mindful practice without myths'}}
 ];
 export const ACADEMY_LESSONS:AcademyLesson[]=[
+ {slug:'vimshottari-life-cycle',topic:'jyotish',minutes:8,related:'astrology/jyotish',
+  title:{uk:'Як читати свій життєвий цикл у Джйотіш',en:'How to understand your Jyotish life cycle'},
+  description:{uk:'Махадаша, антардаша й зв’язок періодів із натальною картою: практичний посібник.',en:'Mahadasha, Antardasha and their connection to your birth chart: a practical guide.'},
+  sections:[
+   {heading:{uk:'Що показує Vimshottari',en:'What Vimshottari describes'},paragraphs:[
+    {uk:'У традиції Джйотіш Vimshottari — послідовність планетарних періодів, відлічувана від накшатри натального Місяця. Махадаша — великий цикл, антардаша — його внутрішній підперіод. Кожен із них має власного управителя. Це астрологічна мова часу, а не список неминучих подій.',en:'In Jyotish, Vimshottari is a sequence of planetary periods based on the natal Moon’s nakshatra. A Mahadasha is a major cycle; an Antardasha is its inner subperiod. Each has a planetary lord. This is an astrological language of time, not a list of inevitable events.'},
+    {uk:'Дати початку залежать від точної натальної довготи Місяця й обраної тривалості року в календарному методі. Тому дві програми можуть показувати дещо різні дати переходу за однакової карти. Galaxiora відображає використаний метод поряд із розрахунком.',en:'Period dates depend on the exact natal lunar longitude and the year-length convention used by the calendar method. Two programs may therefore produce slightly different changeover dates for the same chart. Galaxiora displays its selected calculation method.'}]},
+   {heading:{uk:'Де шукати особистий сенс',en:'Where personal meaning comes from'},paragraphs:[
+    {uk:'Почни з управителя поточної махадаші. Подивись, у якому домі стоїть ця планета в D1, якими домами вона керує, з якими планетами взаємодіє і чи підтверджують тему інші частини карти. Антардаша не скасовує загальну тему, але уточнює, де саме ти можеш відчувати її в повсякденних питаннях.',en:'Start with the lord of your current Mahadasha. Examine its D1 house, the houses it rules, its planetary relationships, and whether the rest of the chart supports the theme. The Antardasha does not cancel the main cycle; it refines how the theme may be experienced in everyday life.'},
+    {uk:'Наприклад, Сатурн у 9-му домі традиційно спрямовує увагу на дисципліну в освіті, наставництві та довгострокових переконаннях. Якщо підперіодом керує Місяць із 12-го дому, додатковим фокусом може бути потреба у відпочинку й внутрішньому відновленні. Це приклад читання домів, не прогноз для кожної людини із Сатурном і Місяцем.',en:'For example, Saturn in house nine can bring a traditional focus on disciplined study, mentorship and long-range beliefs. If a Moon Antardasha is connected to house twelve, rest and inner restoration may become an additional theme. This illustrates house-based interpretation, not a universal Saturn–Moon prediction.'}]},
+   {heading:{uk:'Як застосувати це в Personal',en:'Using your period in Personal'},paragraphs:[
+    {uk:'У «Моїй астрологічній основі» знайди поточну махадашу й антардашу. Відкрий «Астрологічний орієнтир на сьогодні»: там рух Місяця додає короткостроковий контекст до довшого циклу. Не потрібно ухвалювати рішення лише через назву планети — перевір факти, можливості й реальні обставини.',en:'Find your Mahadasha and Antardasha in “My astrological foundation”. Open “Today’s astrological orientation” to see how the current Moon provides a shorter-term perspective alongside the larger cycle. Do not make decisions based on a planet’s name alone; check facts, capacity and real circumstances.'},
+    {uk:'Для практики обери одну сферу: стосунки, роботу, дім, освіту чи особисті межі. Запиши конкретне спостереження й дату у приватному журналі, а через тиждень перевір, чи справді тема повторювалась. Так ти створюєш власний досвід роботи з традицією без нав’язування готової історії.',en:'Choose one area—relationships, work, home, learning or boundaries. Record a concrete observation and date in your private journal; revisit it a week later to see whether the theme recurred. This builds your own experience with the tradition rather than imposing a ready-made story.'}]}
+  ],
+  takeaways:[{uk:'Махадаша — великий цикл, антардаша — підперіод.',en:'Mahadasha is the larger cycle; Antardasha is its subperiod.'},
+   {uk:'Особисте значення визначають положення й управління домами.',en:'Natal house placements and rulerships provide personal context.'},
+   {uk:'Період — інструмент традиційного тлумачення, не гарантія події.',en:'A period is a traditional interpretive tool, not a guaranteed event.'}],
+  quiz:{prompt:{uk:'Що уточнює особисту інтерпретацію махадаші?',en:'What refines a personal Mahadasha reading?'},
+   choices:[{uk:'Положення й управління планети в натальній карті',en:'The planet’s natal placement and house rulership'},
+    {uk:'Лише назва планети',en:'Only the planet’s name'},
+    {uk:'Випадкова загальна порада дня',en:'A random generic daily suggestion'}],
+   correct:0,explanation:{uk:'Доми й взаємозв’язки планети дають особистий контекст періоду.',en:'Natal houses and planetary relationships add the personal context.'}}
+ },
+
  {slug:'sidereal-and-tropical',topic:'jyotish',minutes:7,related:'astrology/jyotish',
   title:{uk:'Сидеричний і тропічний зодіаки',en:'Sidereal and tropical zodiacs'},
   description:{uk:'Чому знак у двох астрологічних системах може відрізнятися.',en:'Why the same birth data can yield different signs in different traditions.'},

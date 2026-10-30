@@ -53,15 +53,19 @@ test('Tarot experts are nested and legacy /experts links redirect correctly',()=
  const home=read('apps/web/app/components/PortalHome.tsx');
  const nav=read('apps/web/app/components/PortalShell.tsx');
  const profile=read('apps/web/app/components/AccountDashboard.tsx');
- assert.ok(section.includes('id="human-readings"'));
- assert.ok(section.includes("section==='tarot'&&<TarotStudio"));
- assert.ok(section.includes('<ExpertOffer locale={locale}/>'));
+ assert.ok(section.includes("section==='tarot'")&&section.includes("<TarotStudio locale={locale}/>"));
+ const tarot=read('apps/web/app/components/TarotStudio.tsx');
+ const expert=read('apps/web/app/components/ExpertQuestionForm.tsx');
+ assert.ok(tarot.includes('<ExpertQuestionForm locale={locale}/>'));
+ assert.ok(tarot.includes('<PrivateTarotQuestions locale={locale}/>'));
+ assert.ok(expert.includes('id="human-readings"'));
+ assert.ok(!section.includes('<ExpertOffer locale={locale}/>'),'The legacy payment form must not duplicate the new inquiry form');
  assert.ok(route.includes("redirect(portalPath(locale,'tarot')+'#human-readings')"));
  assert.ok(profile.includes("portalPath(locale,'tarot')+'#human-readings'"));
  assert.ok(!home.includes("slug:'experts'"));
  assert.ok(!nav.includes("['astrology','tarot','experts'"));
 });
-test('News and community hubs are discoverable and explicitly not functional yet',()=>{
+test('News and GalaxiCom are discoverable live modules without legacy coming-soon copy',()=>{
  const home=read('apps/web/app/components/PortalHome.tsx');
  const sections=read('apps/web/app/components/PortalSection.tsx');
  const nav=read('apps/web/app/components/PortalShell.tsx');
@@ -70,6 +74,27 @@ test('News and community hubs are discoverable and explicitly not functional yet
   assert.ok(sections.includes(slug+':{title:'));
   assert.ok(nav.includes("'"+slug+"'"));
  }
- assert.ok(sections.includes('Жива новинна стрічка ще не працює'));
- assert.ok(sections.includes('Дописи поки не приймаються'));
+ assert.ok(sections.includes("section==='news'")&&sections.includes('<NewsWorld locale={locale}/>'));
+ assert.ok(sections.includes("section==='community'")&&sections.includes('<GalaxiCom locale={locale}/>'));
+ assert.ok(home.includes("slug:'community'")&&home.includes("live:true"));
+ assert.ok(!sections.includes('Жива новинна стрічка ще не працює'));
+ assert.ok(!sections.includes('Дописи поки не приймаються'));
+});
+
+test('Tarologist advice is grounded in card sequence, not repeated generic instructions',async()=>{
+ const {readerReading}=await import('../apps/api/src/tarot-reader.ts');
+ const examples=[
+  {spread:'one',cards:[{id:'major-star',position:0,reversed:false}]},
+  {spread:'three',cards:[{id:'major-star',position:0,reversed:false},{id:'major-tower',position:1,reversed:true},{id:'major-sun',position:2,reversed:false}]}
+ ];
+ for(const {spread,cards} of examples){
+  for(const lang of ['uk','en']){
+   const response=readerReading(cards,spread,'Що показує цей розклад?',lang);
+   assert.ok(response.advice.length>90);
+   assert.ok(!response.advice.includes('Обери одну конкретну дію'));
+   assert.ok(!response.advice.includes('Choose one concrete action'));
+   if(cards.length>1)assert.ok(response.advice.includes(lang==='uk'?'Сонце':'Sun'));
+   assert.ok(response.caution.length>20);
+  }
+ }
 });

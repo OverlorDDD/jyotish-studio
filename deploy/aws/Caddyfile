@@ -1,0 +1,9 @@
+# Official Caddy auto HTTPS with the app reachable only on localhost:3000.
+# Both DNS names must resolve to this EC2 instance before automatic TLS.
+www.galaxiora.com {
+  redir https://galaxiora.com{uri} permanent
+}
+galaxiora.com {
+  encode zstd gzip
+  reverse_proxy 127.0.0.1:3000
+}

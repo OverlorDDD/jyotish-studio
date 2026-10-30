@@ -16,7 +16,7 @@ test('public homepage supports bilingual Galaxiora portal and retains root HTTP 
  assert.ok(shell.includes('aria-current'));
  assert.ok(home.includes('as-celestial'));
 });
-test('Jyotish calculator keeps bilingual routes, data flows and the shared geometric chart renderer',()=>{
+test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-sign chart renderer',()=>{
  const old=code('apps/web/app/astrology/jyotish/page.tsx');
  const wrapper=code('apps/web/app/[locale]/astrology/jyotish/page.tsx');
  const renderer=code('apps/web/app/components/NorthIndianChart.tsx');
@@ -24,10 +24,16 @@ test('Jyotish calculator keeps bilingual routes, data flows and the shared geome
  for(const token of ['<NorthIndianChart','<AccountPortal','<DetailedReport','calculate','interpret']){
   assert.ok(old.includes(token),token);
  }
- assert.match(renderer,/layoutHouses\(planets\)/);
+ assert.match(renderer,/SOUTH_SIGN_GRID\.map/);
+ assert.match(renderer,/chartHouseForSign/);
+ assert.match(renderer,/occupants\.map/);
+ assert.match(renderer,/jy-south-chart/);
+ assert.match(wrapper,/PortalShell/);
  assert.match(layout,/CHART_HOUSES/);
  assert.match(wrapper,/JyotishCalculator initialLang/);
- assert.match(old,/as-back-link/);
+ assert.match(old,/jy-section-nav/);
+ assert.doesNotMatch(old,/as-back-link|className="topbar"|className="lang-button"/);
+ assert.match(wrapper,/PortalShell/);
 });
 test('expert intake is never submitted to a fake API or payment system',()=>{
  const intake=code('apps/web/app/components/ReadingIntake.tsx');

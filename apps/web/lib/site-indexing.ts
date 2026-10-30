@@ -1,6 +1,6 @@
 /** Public indexing only when explicitly configured with an HTTPS origin. */
-export const INDEXED_SECTIONS=['astrology','tarot','yoga','learn'] as const;
-export const SEO_PATHS=['','astrology','tarot','astrology/jyotish','yoga','learn'] as const;
+export const INDEXED_SECTIONS=['astrology','tarot','yoga','learn','news','community','methodology'] as const;
+export const SEO_PATHS=['','astrology','tarot','astrology/jyotish','yoga','learn','horoscope','panchanga','news','community','methodology'] as const;
 export function publicSiteOrigin():string|null{
  const value=process.env.NEXT_PUBLIC_SITE_URL?.trim();
  if(!value)return null;
@@ -9,12 +9,13 @@ export function publicSiteOrigin():string|null{
   if(url.protocol!=='https:'||!url.hostname||url.username||url.password||
    url.search||url.hash||url.pathname!=='/'||url.port)return null;
   if(url.hostname==='localhost'||url.hostname.endsWith('.localhost')||
-   url.hostname==='127.0.0.1')return null;
+   url.hostname==='127.0.0.1'||url.hostname.endsWith('.ngrok-free.dev')||
+   url.hostname.endsWith('.trycloudflare.com'))return null;
   return url.origin;
  }catch{return null;}
 }
 export function publicIndexingEnabled():boolean{
- return process.env.SITE_NOINDEX!=='1'&&publicSiteOrigin()!==null;
+ return process.env.SITE_NOINDEX==='0'&&publicSiteOrigin()!==null;
 }
 export function indexRobots(indexable=true){
  return {index:indexable&&publicIndexingEnabled(),follow:true};

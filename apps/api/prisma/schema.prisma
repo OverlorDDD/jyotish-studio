@@ -41,10 +41,29 @@ model User {
  subscriptionEndsAt DateTime?
  editorialCreated EditorialEntry[] @relation("EditorialCreator")
  readingDrafts ReadingDraft[]
+ tarotQuestions TarotQuestion[]
  tarotReadings TarotReading[]
+ journalEntries PersonalJournalEntry[]
  roleChangesAsTarget RoleChange[] @relation("RoleChangeTarget")
  roleChangesAsActor RoleChange[] @relation("RoleChangeActor")
  charts Chart[]
+ personalProfile PersonalProfile?
+ newsReactions NewsReaction[]
+ comProfile ComProfile?
+ comThreads ComThread[]
+ comPosts ComPost[]
+ comReports ComReport[]
+ comModerationActions ComModerationAction[]
+ comHelpfulReactions ComHelpfulReaction[]
+ comFollows ComFollow[]
+ comNotifications ComNotification[]
+ comAppeals ComAppeal[] @relation("ComAppealAuthor")
+ comAppealReviews ComAppeal[] @relation("ComAppealReviewer")
+ comPrivacyRequests ComPrivacyRequest[] @relation("ComPrivacyOwner")
+ comPrivacyReviews ComPrivacyRequest[] @relation("ComPrivacyReviewer")
+ comContextApprovals ComContextLink[] @relation("ComContextApprover")
+ comBookmarks ComBookmark[]
+ practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
 }
@@ -58,6 +77,8 @@ model Chart {
  input      Json
  result     Json
  readings   Interpretation[]
+ selectedAsPrimary PersonalProfile?
+ personalRecovery PersonalChartRecovery?
  @@index([ownerId])
 }
 model Interpretation {
@@ -129,6 +150,25 @@ model ReadingDraft {
  consentAt DateTime
  @@index([customerId,createdAt])
  @@index([expiresAt])
+}
+
+/** Authenticated person's private Tarot questions, independent of any checkout or work order.
+ * The question stays until the owner deletes it. No expert access is implied.
+ */
+model TarotQuestion {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ topic String
+ question String @db.Text
+ context String @db.Text
+ timeframe String? @db.VarChar(140)
+ consentAt DateTime
+ expertSubmittedAt DateTime?
+ expertReviewedAt DateTime?
+ @@index([userId,createdAt])
+ @@index([expertSubmittedAt,expertReviewedAt])
 }
 
 /** Audit trail of permissions changed through authenticated admin API. */
@@ -204,4 +244,398 @@ model EditorialVersion {
  createdAt DateTime @default(now())
  @@unique([entryId,revision])
  @@index([entryId,createdAt])
+}
+
+/** A9.2: private, user-authored notes, optionally linked to an existing chart
+ * or tarot draw. No AI provider receives these notes.
+ */
+model PersonalJournalEntry {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ kind String @db.VarChar(20)
+ sourceId String? @db.VarChar(60)
+ title String @db.VarChar(120)
+ body String @db.VarChar(2000)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([userId,createdAt])
+ @@index([userId,kind,sourceId])
+}
+
+/** One personal home per user; selected chart must belong to the same user. */
+model PersonalProfile {
+ userId String @id
+ user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+ primaryChartId String? @unique
+ primaryChart Chart? @relation(fields: [primaryChartId],references: [id],onDelete: SetNull)
+ currentTimeZone String @default("UTC") @db.VarChar(64)
+ preferredLocale String @default("uk") @db.VarChar(2)
+ favoritePractice String? @db.VarChar(32)
+ newsTopics String[] @default([])
+ newsPersonalizationEnabled Boolean @default(true)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+
+/** Explicitly completed sessions only; eventId makes client retries idempotent. */
+model PersonalPracticeSession {
+ id String @id @default(uuid())
+ eventId String @unique @db.Uuid
+ userId String
+ user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+ practiceId String @db.VarChar(32)
+ durationSeconds Int
+ completedAt DateTime @default(now())
+ @@index([userId,completedAt])
+}
+
+/** Verified, immutable-by-source Personal projection.
+ * The original Chart.result and its historical interpretation are never rewritten.
+ */
+model PersonalChartRecovery {
+ chartId String @id
+ chart Chart @relation(fields:[chartId],references:[id],onDelete:Cascade)
+ sourceHash String @db.VarChar(64)
+ methodVersion String @db.VarChar(128)
+ verifiedResult Json
+ verifiedAt DateTime @default(now())
+}
+
+
+/** GalaxiNews World. Only linked metadata; no third-party article bodies. */
+model NewsArticle {
+ id String @id @default(uuid())
+ urlHash String @unique
+ url String
+ title String
+ titleUk String? @db.VarChar(300)
+ titleEn String? @db.VarChar(300)
+ source String
+ language String
+ topic String
+ tags String[] @default([])
+ score Float @default(0)
+ summary String? @db.VarChar(500)
+ feedDescription String? @db.VarChar(1200)
+ metadataCheckedAt DateTime?
+ editorialAttemptedAt DateTime?
+ editorialNextAttemptAt DateTime?
+ editorialAttempts Int @default(0)
+ imageUrl String? @db.VarChar(1000)
+ imageCredit String? @db.VarChar(160)
+ imageLicense String? @db.VarChar(80)
+ imageLicenseUrl String? @db.VarChar(500)
+ imagePageUrl String? @db.VarChar(1000)
+ imageLookupAt DateTime?
+ @@index([imageLookupAt])
+ summaryKind String @default("title_context") @db.VarChar(32)
+ summaryUk String? @db.VarChar(700)
+ summaryEn String? @db.VarChar(700)
+ publishedAccuracy String @default("published") @db.VarChar(16)
+ status String @default("PUBLISHED")
+ publishedAt DateTime
+ discoveredAt DateTime @default(now())
+ lastSeenAt DateTime @default(now())
+ reactions NewsReaction[]
+ @@index([status,publishedAt])
+ @@index([topic,publishedAt])
+ @@index([editorialNextAttemptAt])
+}
+
+// Personal news feedback: one reversible, owner-scoped reaction per published article.
+// No natal data, journal data, or passive reading/viewing history is stored.
+model NewsReaction {
+ userId String
+ articleId String
+ vote String @db.VarChar(3)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ article NewsArticle @relation(fields:[articleId],references:[id],onDelete:Cascade)
+ @@id([userId,articleId])
+ @@index([userId,updatedAt])
+ @@index([articleId])
+}
+
+model NewsScan {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ sources Int
+ accepted Int
+ errors Int
+}
+/** Monthly conservative character reservations for non-LLM Azure news translation.
+ * Atomic updates prevent concurrent API workers from exceeding the configured
+ * local budget. Counts attempted characters (including failed API requests). */
+model NewsTranslationUsage {
+ period String @id @db.VarChar(7)
+ characters Int @default(0)
+ updatedAt DateTime @updatedAt
+}
+
+model NewsIngestionLease {
+ id String @id
+ token String
+ expiresAt DateTime
+}
+
+/** One record per source attempt, including rejection reasons and failures. */
+model NewsSourceScan {
+ id String @id @default(uuid())
+ sourceKey String @db.VarChar(128)
+ scanToken String @db.VarChar(64)
+ createdAt DateTime @default(now())
+ status String @db.VarChar(24)
+ candidates Int @default(0)
+ accepted Int @default(0)
+ duplicates Int @default(0)
+ rejected Int @default(0)
+ errors Int @default(0)
+ rejectionReasons Json?
+ failure String? @db.VarChar(300)
+ durationMs Int @default(0)
+ @@index([createdAt])
+ @@index([sourceKey,createdAt])
+}
+
+/** Discovered through independent news-index results. Not automatically a trusted RSS source. */
+model NewsDiscoveredSource {
+ domain String @id @db.VarChar(200)
+ firstSeenAt DateTime @default(now())
+ lastSeenAt DateTime @default(now())
+ lastTitle String? @db.VarChar(240)
+ articleCount Int @default(0)
+ status String @default("DISCOVERED") @db.VarChar(24)
+ @@index([lastSeenAt])
+ @@index([status, articleCount])
+}
+
+/** GalaxiCom C0: community is deliberately separate from private natal/Personal data. */
+model ComCategory {
+ slug String @id @db.VarChar(48)
+ titleUk String @db.VarChar(80)
+ titleEn String @db.VarChar(80)
+ descriptionUk String @db.VarChar(220)
+ descriptionEn String @db.VarChar(220)
+ position Int @default(0)
+ enabled Boolean @default(true)
+ threads ComThread[]
+ @@index([enabled,position])
+}
+model ComProfile {
+ userId String @id
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ displayName String? @db.VarChar(40)
+ showPremiumBadge Boolean @default(false)
+ signature String? @db.VarChar(280)
+ accent String @default("default") @db.VarChar(20)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+model ComThread {
+ id String @id @default(uuid()) @db.Uuid
+ categorySlug String @db.VarChar(48)
+ category ComCategory @relation(fields:[categorySlug],references:[slug],onDelete:Restrict)
+ authorId String
+ author User @relation(fields:[authorId],references:[id],onDelete:Cascade)
+ title String @db.Text
+ body String @db.Text
+ status String @default("PUBLISHED") @db.VarChar(16)
+ pinned Boolean @default(false)
+ locked Boolean @default(false)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ lastActivityAt DateTime @default(now())
+ posts ComPost[]
+ reports ComReport[]
+ follows ComFollow[]
+ contextLinks ComContextLink[]
+ bookmarks ComBookmark[]
+ notifications ComNotification[]
+ revisions ComThreadRevision[]
+ fanout ComNotificationFanout[]
+ @@index([categorySlug,status,pinned,lastActivityAt])
+ @@index([status,lastActivityAt])
+ @@index([authorId,createdAt])
+}
+model ComPost {
+ id String @id @default(uuid()) @db.Uuid
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ authorId String
+ author User @relation(fields:[authorId],references:[id],onDelete:Cascade)
+ body String @db.Text
+ status String @default("PUBLISHED") @db.VarChar(16)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ reports ComReport[]
+ helpful ComHelpfulReaction[]
+ notifications ComNotification[]
+ revisions ComPostRevision[]
+ fanout ComNotificationFanout?
+ @@index([threadId,status,createdAt,id])
+ @@index([authorId,createdAt])
+}
+model ComReport {
+ id String @id @default(uuid()) @db.Uuid
+ reporterId String
+ reporter User @relation(fields:[reporterId],references:[id],onDelete:Cascade)
+ threadId String? @db.Uuid
+ thread ComThread? @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ postId String? @db.Uuid
+ post ComPost? @relation(fields:[postId],references:[id],onDelete:Cascade)
+ reason String @db.VarChar(300)
+ status String @default("OPEN") @db.VarChar(16)
+ reviewedAt DateTime?
+ createdAt DateTime @default(now())
+ @@unique([reporterId,threadId])
+ @@unique([reporterId,postId])
+ @@index([status,createdAt])
+}
+model ComModerationAction {
+ id String @id @default(uuid()) @db.Uuid
+ actorId String?
+ actor User? @relation(fields:[actorId],references:[id],onDelete:SetNull)
+ action String @db.VarChar(28)
+ targetType String @db.VarChar(12)
+ targetId String @db.Uuid
+ reason String @db.VarChar(300)
+ createdAt DateTime @default(now())
+ @@index([targetType,targetId,createdAt])
+ appeals ComAppeal[]
+ @@index([createdAt])
+}
+
+/** C2 likes are independent of PREMIUM and atomically unique per member/post. */
+model ComHelpfulReaction {
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ postId String @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([userId,postId])
+ @@index([postId])
+}
+model ComFollow {
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([userId,threadId])
+ @@index([threadId])
+}
+model ComNotification {
+ id String @id @default(uuid()) @db.Uuid
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ postId String @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ kind String @default("REPLY") @db.VarChar(16)
+ createdAt DateTime @default(now())
+ readAt DateTime?
+ @@unique([userId,postId,kind])
+ @@index([userId,readAt,createdAt])
+}
+model ComThreadRevision {
+ id String @id @default(uuid()) @db.Uuid
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ title String @db.Text
+ body String @db.Text
+ editedAt DateTime @default(now())
+ @@index([threadId,editedAt])
+}
+model ComPostRevision {
+ id String @id @default(uuid()) @db.Uuid
+ postId String @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ body String @db.Text
+ editedAt DateTime @default(now())
+ @@index([postId,editedAt])
+}
+
+/** C3: curated public connections; never persist user birth data or private reading IDs. */
+model ComContextLink {
+ id String @id @default(uuid()) @db.Uuid
+ sourceKind String @db.VarChar(16)
+ sourceSlug String @db.VarChar(80)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ approvedById String?
+ approvedBy User? @relation("ComContextApprover",fields:[approvedById],references:[id],onDelete:SetNull)
+ approvedAt DateTime @default(now())
+ @@unique([sourceKind,sourceSlug,threadId])
+ @@index([sourceKind,sourceSlug,approvedAt])
+ @@index([threadId])
+}
+
+/** C4: atomic fixed-window posting budgets shared across all API replicas. No raw IP/email stored. */
+model ComRateBucket {
+ key String @id @db.VarChar(100)
+ windowStart DateTime
+ count Int @default(0)
+ updatedAt DateTime @updatedAt
+ @@index([windowStart])
+}
+/** C4: transactional outbox; retry-safe batches and conditional leases. */
+model ComNotificationFanout {
+ postId String @id @db.Uuid
+ post ComPost @relation(fields:[postId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ cursorUserId String?
+ status String @default("PENDING") @db.VarChar(16)
+ lockedUntil DateTime?
+ attempts Int @default(0)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([status,lockedUntil,createdAt])
+}
+model ComAppeal {
+ id String @id @default(uuid()) @db.Uuid
+ authorId String
+ author User @relation("ComAppealAuthor",fields:[authorId],references:[id],onDelete:Cascade)
+ moderationActionId String @db.Uuid
+ action ComModerationAction @relation(fields:[moderationActionId],references:[id],onDelete:Restrict)
+ targetType String @db.VarChar(12)
+ targetId String @db.Uuid
+ reason String @db.VarChar(1000)
+ status String @default("OPEN") @db.VarChar(16)
+ decisionReason String? @db.VarChar(1000)
+ reviewerId String?
+ reviewer User? @relation("ComAppealReviewer",fields:[reviewerId],references:[id],onDelete:SetNull)
+ createdAt DateTime @default(now())
+ reviewedAt DateTime?
+ @@unique([authorId,moderationActionId])
+ @@index([status,createdAt])
+ @@index([authorId,createdAt])
+}
+model ComPrivacyRequest {
+ id String @id @default(uuid()) @db.Uuid
+ userId String
+ user User @relation("ComPrivacyOwner",fields:[userId],references:[id],onDelete:Cascade)
+ kind String @default("ERASE_FORUM") @db.VarChar(20)
+ status String @default("OPEN") @db.VarChar(16)
+ reason String? @db.VarChar(500)
+ reviewerId String?
+ reviewer User? @relation("ComPrivacyReviewer",fields:[reviewerId],references:[id],onDelete:SetNull)
+ createdAt DateTime @default(now())
+ reviewedAt DateTime?
+ @@index([status,createdAt])
+ @@index([userId,createdAt])
+}
+
+/** C5 saved discussions: private member-owned records, no third-party view. */
+model ComBookmark {
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ threadId String @db.Uuid
+ thread ComThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@id([userId,threadId])
+ @@index([userId,createdAt])
 }

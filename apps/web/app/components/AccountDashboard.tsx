@@ -1,11 +1,12 @@
 'use client';
+import PersonalJournal from './PersonalJournal';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {Trash2} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../lib/brand';
 type User={id:string;email:string;role:string;subscription:{tier:'FREE'|'PREMIUM';currentPeriodEnd:string|null}};
-type Draft={id:string;createdAt:string;expiresAt:string;topic:string;question:string;context:string;timeframe:string|null};
+type Draft={id:string;createdAt:string;topic:string;question:string;context:string;timeframe:string|null};
 export default function AccountDashboard({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
  const [user,setUser]=useState<User|null>(null),[drafts,setDrafts]=useState<Draft[]>([]);
@@ -14,7 +15,7 @@ export default function AccountDashboard({locale}:{locale:PortalLocale}){
   const me=await readApiJson<{user:User|null}>(await fetch('/api/v1/account/me',{credentials:'same-origin',cache:'no-store'}));
   setUser(me.user);
   if(me.user){
-   const d=await readApiJson<Draft[]>(await fetch('/api/v1/reading-orders/drafts',{credentials:'same-origin',cache:'no-store'}));
+   const d=await readApiJson<Draft[]>(await fetch('/api/v1/reading-orders/questions',{credentials:'same-origin',cache:'no-store'}));
    setDrafts(d);
   }else setDrafts([]);
  }
@@ -23,10 +24,10 @@ export default function AccountDashboard({locale}:{locale:PortalLocale}){
   return()=>{alive=false};
  },[]);
  async function removeDraft(id:string){
-  if(!confirm(uk?'Видалити цю приватну чернетку?':'Delete this private draft?'))return;
+  if(!confirm(uk?'Видалити це приватне запитання?':'Delete this private question?'))return;
   setBusy(true);setError('');
   try{
-   await readApiJson(await fetch('/api/v1/reading-orders/drafts/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'}));
+   await readApiJson(await fetch('/api/v1/reading-orders/questions/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'}));
    await load();
   }catch(e){setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false)}
@@ -41,17 +42,19 @@ export default function AccountDashboard({locale}:{locale:PortalLocale}){
     <p>{uk?'Підписка':'Subscription'}: <strong>{user.subscription?.tier==='PREMIUM'?'Premium':(uk?'Безкоштовна (Free)':'Free')}</strong></p>
     {user.subscription?.tier==='PREMIUM'&&user.subscription.currentPeriodEnd&&<p>{uk?'Активна до':'Active until'}: {new Date(user.subscription.currentPeriodEnd).toLocaleDateString(uk?'uk-UA':'en-US')}</p>}
     <p className="as-muted">{uk?'Підписка не змінює права адміністратора або експерта. Оплата підписки ще не підключена.':'Subscription is separate from staff roles. Subscription checkout has not launched yet.'}</p>
-    <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{uk?'Мої натальні карти — відкрити Джйотіш':'Saved birth charts — open Jyotish'}</Link>
+    <Link className="as-button as-button-primary" href={portalPath(locale,'personal')}>{uk?'Перейти до Galaxiora Personal':'Open Galaxiora Personal'}</Link>
+     <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{uk?'Мої натальні карти — відкрити Джйотіш':'Saved birth charts — open Jyotish'}</Link>
     {user.role==='ADMIN'&&<Link className="as-button as-button-primary" href={portalPath(locale,'admin')}>{uk?'Панель адміністратора':'Administrator dashboard'}</Link>}
-    <h2>{uk?'Приватні чернетки Таро':'Your private tarot drafts'} · {drafts.length}</h2>
+    <h2>{uk?'Мої запитання тарологу':'My Tarot questions'} · {drafts.length}</h2>
     {drafts.length?drafts.map(d=><article className="as-draft-row" key={d.id}>
      <div><small>{d.topic} · {new Date(d.createdAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
-      <p>{d.question}</p><p className="as-muted">{uk?'Очікує підключення оплати. Експертка не має доступу.':'Awaiting checkout integration. Not shared with any practitioner.'}</p>
-      <small>{uk?'Видалиться після':'Expires'}: {new Date(d.expiresAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
+      <p>{d.question}</p><p className="as-muted">{uk?'Приватно збережено. Таролог поки не має доступу.':'Saved privately. No practitioner has access yet.'}</p>
+      <small>{uk?'Збережено':'Saved'}: {new Date(d.createdAt).toLocaleDateString(uk?'uk-UA':'en-US')}</small>
      </div>
-     <button type="button" disabled={busy} onClick={()=>removeDraft(d.id)} aria-label={uk?'Видалити чернетку':'Delete draft'}><Trash2 size={18}/></button>
-    </article>):<p className="as-muted">{uk?'Чернеток поки немає.':'No drafts yet.'}</p>}
+     <button type="button" disabled={busy} onClick={()=>removeDraft(d.id)} aria-label={uk?'Видалити запитання':'Delete question'}><Trash2 size={18}/></button>
+    </article>):<p className="as-muted">{uk?'Запитань поки немає.':'No questions yet.'}</p>}
     <Link className="as-button as-button-secondary" href={portalPath(locale,'tarot')+'#human-readings'}>{uk?'Створити питання для експертки':'Ask a human reader'}</Link>
+    <PersonalJournal locale={locale}/>
     {error&&<p role="alert" className="as-account-error">{error}</p>}
    </div>}
  </section>;

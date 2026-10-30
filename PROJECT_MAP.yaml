@@ -1,9 +1,9 @@
 # Galaxiora canonical code/navigation map. Update with structural changes only.
 schema_version: 1
-updated: "2026-10-21"
+updated: "2026-10-26"
 verified_against:
-  branch: main
-  commit: "66ea0f18474d756d42e740e1242166cd861f256b"
+  branch: fix/jqa3-windows-and-llm-recovery
+  commit: "9ee3363ae8deea87a9ec8d7cab333e3fbc534b7f" # pre-Stage2 baseline
 product:
   brand: Galaxiora
   repo: "OverlorDDD/jyotish-studio"
@@ -26,17 +26,18 @@ runtimes:
     warning: "in-memory preview, not production or DB-equivalent"
 modules:
   jyotish:
-    status: "implemented; CI tested; independent JHora sign-off pending"
+    status: "JQA-3 600/600 signs certified on 20 JHora 8 captures; precision 19/20 Lagna, Moon 18/20, exact dasha dates pending"
     domain: "packages/jyotish-core/src/index.ts; packages/jyotish-core/src/rules.ts"
     adapter: "apps/api/src/ephemeris.ts"
-    application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
+    application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/direct-jyotish.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
     shared_saved_charts: "apps/api/src/chart-application.ts; apps/api/src/chart-prisma.ts"
     http: "apps/api/src/nest.ts"
-    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx"
-    notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic calculation/rule facts"
-    interpretation_v3: "apps/api/src/interpretation-v3.ts v4.0.0; expanded classical lordship/yogakarakas and eight narrative chapters; semantic claim gate in consultation-ai.ts"
+    web: "apps/web/app/[locale]/astrology/jyotish/page.tsx; apps/web/app/components/NorthIndianChart.tsx (now South Indian fixed-sign Rashi layout); apps/web/app/components/DetailedReport.tsx"
+    notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic facts; new ascendantConvention versioned after mean Lahiri correction; old saved charts unchanged"
+    interpretation_v3: "apps/api/src/interpretation-v3.ts v6.0.0; authored chart-based eight-chapter narrative in reader-narrative-v6.ts; evidence kept in calculation layer"
+    reader_preview: "GALAXIORA_READER_ONLY=1; deterministic report response without cloud inference; validation of user-facing prose"
     interpretation_rules_version: "3.0.0; separate from calculation ruleset 2.0.0"
-    interpretation_release: "A7.3 AI-authored eight chapter overlays with verified per-chapter fallback; actual cloud use requires live PASS"
+    interpretation_release: "Reader v6 deterministic; direct-v2 single LLM response + grounded six-theme CQv2 support/friction priorities; legacy A8.9 retired from reports"
   identity:
     status: "implemented; production hardening pending"
     http: "apps/api/src/account.ts"
@@ -78,12 +79,12 @@ modules:
       admin: 10
     privacy: "authenticated draw, user-private history, explicit AI consent"
   experts:
-    status: "private pre-checkout drafts implemented; payments/expert video delivery NOT live"
-    http: "apps/api/src/reading-orders.ts"
+    status: "permanent owner-only Tarot questions plus legacy 7-day drafts; payments/expert video delivery NOT live"
+    http: "apps/api/src/reading-orders.ts (owner-only /questions CRUD, legacy temporary /drafts)"
     web: "apps/web/app/components/ExpertOffer.tsx; apps/web/app/components/ReadingIntake.tsx"
     warning: "ReadingOrder DB skeleton is not a working commerce flow"
   yoga:
-    status: "Yoga v2: four guided practices; box visual 4-4-4-4 and two no-hold alternatives; reflection untimed"
+    status: "Yoga v2: four practices; breath pacer directly on Yoga landing; original guided detail routes remain"
     content: "apps/web/lib/yoga-content.ts"
     hub: "apps/web/app/components/YogaHub.tsx"
     player: "apps/web/app/components/YogaSession.tsx; apps/web/app/components/YogaBreathSession.tsx"
@@ -107,11 +108,36 @@ modules:
     user_interface: "apps/web/app/components/EditorialWorkspace.tsx"
     public: "apps/web/lib/editorial-public.ts; EditorialPublishedCards.tsx; EditorialArticle.tsx"
     invariant: "only PUBLISHED visible to public; immutable versions; CAS expectedRevision; A5 slugs reserved"
+  local_bootstrap:
+    source: "tools/dev-full.mjs"
+    entry: "npm run dev:full"
+    safety: "Docker Desktop / PostgreSQL health and Prisma migrations must pass before Next and Nest start; database volume preserved"
+    diagnostics: "npm run db:doctor; npm run site:check; npm run test:bootstrap"
+  news_world:
+    status: "GalaxiNews World + P1-P5 accepted; Stage 2 Quality & Discovery implemented; independent live-source/licensing QA pending"
+    http: "apps/api/src/news.ts; /api/v1/news/feed, /topics, admin moderation and health"
+    ingestion: "apps/api/src/news-ingestion.ts and news-metadata.ts; 25 RSS candidates, 13 GDELT queries, publisher domain registry, initial backfill, 15-minute polling, bounded OG extraction for trusted hosts"
+    ranking: "apps/api/src/news-domain.ts; news-relevance.ts (P1-P5 owner preference); news-quality.ts (event clustering / quality metrics)"
+    persistence: "NewsArticle, NewsScan, NewsSourceScan, NewsIngestionLease, NewsDiscoveredSource; additive migration chain through 20261026124000_galaxinews_discovery_backfill"
+    web: "apps/web/app/components/NewsWorld.tsx; NewsWorld.module.css; /{locale}/news; compact search beside tabs, data-release=world-v1.8, publisher feed thumbnails + fallback"
+    interests: "guest-local + server owner-scoped tags and reversible reactions, suppression of highly similar rejected news, history, export/reset, opt-out; no natal inference"
+    safeguard: "no full articles, no invented facts or meta-text; hide unsupported teasers; image CC licence / explicitly-approved hosts; GDELT seendate marked observation; astronomy separate"
+    tests: "npm run test:news; e2e/news-world.spec.mjs"
+    documentation: "docs/research/galaxinews-quality-discovery-2026-10-26.md; docs/research/galaxinews-p4-p5-acceptance-2026-10-26.md"
+  galaxicom:
+    status: "C0-C4 verified in CI; C5 growth/bookmarks/reputation/PREMIUM profile implemented; 2026-10-27 compact UX pass + editorial seed tool; UI acceptance and CI pending"
+    http: "apps/api/src/com.ts, com-social.ts, com-context.ts, com-safety.ts, com-growth.ts; public-source validation and member-owned bookmarks"
+    domain_policy: "apps/api/src/com-policy.ts; FREE posting, staff roles separate, premium has no moderation authority"
+    persistence: "C0-C4 plus ComBookmark and profile signature/accent; additive C5 migration 20261026235000_galaxicom_c5_growth"
+    web: "GalaxiCom.tsx, GalaxiComMember.tsx, GalaxiCom.module.css; /{uk|en}/community, topic/:id and member/:id"
+    safeguards: "plain-text privacy; C4 atomic DB budgets, appeal/audit, moderated privacy workflow; external worker and retention operations required"
+    tests: "npm run test:com; e2e/galaxicom.spec.mjs, galaxicom-c2/c3/c4/c5 and galaxicom-ux.spec.mjs; PostgreSQL CI, Chromium desktop/mobile"
+    documentation: "docs/research/galaxicom-c0-c1-implementation-2026-10-26.md; docs/research/galaxicom-c2-implementation-2026-10-26.md; docs/research/galaxicom-c3-implementation-2026-10-26.md; docs/research/galaxicom-c4-security-2026-10-26.md; docs/research/galaxicom-c5-final-and-launch-plan-2026-10-26.md; docs/research/galaxicom-usability-2026-10-27.md"
   portal:
-    status: "implemented bilingual shell; Yoga and Academy live; News and Community placeholders"
+    status: "unified bilingual header with dedicated /horoscope; 12 sidereal Janma-Rashi readings, verified natal personal reading, live Personal GalaxiNews feed, fixed GalaxiCom composer; public-release gates pending"
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
-    future: [western_astrology, panchang, news, community, mobile]
+    future: [western_astrology, panchang, community_enhancements, mobile]
   ai_usage:
     status: "usage storage and Gemini/GroqCloud/OpenRouter (cloud-only default) fallback implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
@@ -122,11 +148,12 @@ modules:
 persistence:
   schema: "apps/api/prisma/schema.prisma"
   migrations: "apps/api/prisma/migrations/"
-  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, RoleChange, TarotReading, EditorialEntry, EditorialVersion]
+  entities: [User, Chart, Interpretation, ReadingOrder, AiUsage, ReadingDraft, TarotQuestion, PersonalJournalEntry, RoleChange, TarotReading, EditorialEntry, EditorialVersion]
 routes:
   web:
     home: "/uk | /en"
     jyotish: "/{locale}/astrology/jyotish"
+    horoscope: "/{locale}/horoscope"
     tarot: "/{locale}/tarot"
     yoga: "/{locale}/yoga | /{locale}/yoga/{slug}"
     academy: "/{locale}/learn | /{locale}/learn/{slug}"
@@ -166,6 +193,13 @@ quality:
     a7_consultation: "npm run test:a7:consultation"
     a7_cloud: "npm run test:a7:cloud"
     a8_reader: "npm run test:a8:reader"
+    a8_reader_v6: "npm run test:a8:reader-v6"
+    jyotish_direct: "npm run test:jyotish:direct; npm run ai:verify-live"
+    jyotish_quality: "npm run test:jyotish:quality"
+    jyotish_acceptance: "npm run test:jyotish:acceptance; npm run test:reference"
+    jyotish_independent_jhora: "npm run test:jhora:independent"
+    jyotish_jqa2: "npm run test:jqa2:numerical; npm run test:jqa2:profiles"
+    jyotish_jqa3: "npm run test:jqa3:corpus; npm run jqa3:audit"
     a8_quality: "npm run test:a8:quality"
     a8_resilience: "npm run test:a8:resilience"
     a8_cloud: "npm run test:a8:cloud"
@@ -184,8 +218,8 @@ active_risks:
   - "Tarot imagery licensing and Swiss Ephemeris commercial terms require clearance."
   - "An unmerged diverged branch feat/tarot-ai-visual-expert-catalog exists; review separately."
 priorities:
-  now: "A8.9 Consultation Intelligence preview: graph, calculated claims, global theme plan, atomic cloud author/editor gate; human review NOT complete"
-  next: "A8.9 real cloud UA/EN quality acceptance, JHora parity on consented real charts, expert review 10-20 cases; do not begin A9 until acceptance"
+  now: "JQA-3.4 fixed ascendant method and source metadata guard; 20 genuine JHora records, 600/600 signs PASS, remaining full 1-arcsecond and Vimshottari exact-date certificate blocked on source equivalence"
+  next: "GalaxiCom C5 owner acceptance; Personal daily+weekly horoscope editorial QA; JQA3 Lagna 20/20, Moon 20/20, Vimshottari exact dates/full certify; lawful Tarot payment research; public release gates."
   later: "A9 forecasting, A10 Tarot v3, A11 yoga/Academy, lawful A12 checkout only with eligible seller, A13 public readiness, A14 mobile"
 docs:
   architecture: "docs/architecture-target.md"
@@ -199,6 +233,14 @@ docs:
   a7_full_consultation: "docs/a7-3-professional-consultation.md"
   a8_classical_sources: "docs/research/a8-classical-source-registry.md"
   a8_reader_v4: "docs/research/a8-professional-reader-v4.md"
+  a8_reader_v6: "docs/research/a8-10-reader-v6-editorial.md"
+  jyotish_audit: "docs/research/jyotish-end-to-end-audit-2026-10-22.md"
+  cqv2_research: "docs/research/consultation-quality-v2.md"
+  jyotish_module_audit: "docs/research/jyotish-module-audit-2026-10-23.md"
+  jyotish_acceptance: "docs/research/jyotish-quality-acceptance-v1.md"
+  jyotish_jhora_reference: "docs/research/jhora-independent-parity-2026-10-23.md"
+  jyotish_jqa2_numerical: "docs/research/jqa2-numerical-audit-2026-10-23.md"
+  jyotish_jqa3: "docs/research/jqa3-reproducible-reference-corpus.md"
   a8_future_roadmap: "docs/research/galaxiora-after-a7-roadmap.md"
   classics_downloader: "tools/research/download-classics.ps1"
   payment_without_fop: "docs/a7-payment-options-without-fop.md"

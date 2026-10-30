@@ -5,8 +5,8 @@ import GlobalAccount from './GlobalAccount';
 
 type Props={locale:PortalLocale;children:React.ReactNode;active?:string;languagePath?:string};
 const LABELS={
- en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'Learn',news:'News',community:'Community',language:'Language',caption:'Symbolic tools for reflection and discovery',disclaimer:'Astrology and tarot are cultural and symbolic practices, not guarantees about the future.'},
- uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'Знання',news:'Новини',community:'Форум',language:'Мова',caption:'Символічні інструменти для пізнання себе',disclaimer:'Астрологія і Таро — культурні та символічні практики, а не гарантія передбачення майбутнього.'}
+ en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'Learn',news:'News',community:'Community',horoscope:'Horoscopes',panchanga:'Panchanga',personal:'Personal',language:'Language',caption:'A place for celestial wisdom and mindful practice',disclaimer:'Discover Jyotish, Tarot, lunar calendars and mindful living.'},
+ uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'Знання',news:'Новини',community:'Форум',horoscope:'Гороскопи',panchanga:'Панчанга',personal:'Мій Всесвіт',language:'Мова',caption:'Простір астрології, Таро та живих практик',disclaimer:'Джйотіш, Таро, місячний календар та щоденні практики.'}
 } as const;
 const SECTIONS=['astrology','tarot','yoga','learn','news','community'] as const;
 export default function PortalShell({locale,children,active='',languagePath}:Props){
@@ -21,7 +21,10 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
     </Link>
     <nav className="as-main-nav" aria-label={locale==='uk'?'Основна навігація':'Main navigation'}>
      <Link href={portalPath(locale)} aria-current={!active?'page':undefined}>{t.home}</Link>
+     <Link href={portalPath(locale,'horoscope')} aria-current={active==='horoscope'?'page':undefined}>{t.horoscope}</Link>
+     <Link href={portalPath(locale,'panchanga')} aria-current={active==='panchanga'?'page':undefined}>{t.panchanga}</Link>
      {SECTIONS.map(s=><Link key={s} href={portalPath(locale,s)} aria-current={active===s?'page':undefined}>{t[s]}</Link>)}
+     <Link href={portalPath(locale,'personal')} className="as-personal-link" aria-current={active==='personal'?'page':undefined}>{t.personal}</Link>
     </nav>
     <GlobalAccount locale={locale}/>
     <div className="as-language" aria-label={t.language}>
@@ -34,6 +37,7 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
   <footer className="as-footer">
     <div><Link className="as-footer-brand" href={portalPath(locale)}>{BRAND.name}</Link><p>{t.caption}</p></div>
     <p className="as-footer-note">{t.disclaimer}</p>
+    <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Методологія й точність':'Methods and accuracy'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={portalPath(locale,'astrology/jyotish')}>{moduleTitle('jyotish')} <ArrowUpRight size={15} aria-hidden="true"/></Link>
   </footer>
  </div>;

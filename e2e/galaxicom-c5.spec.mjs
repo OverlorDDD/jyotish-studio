@@ -1,0 +1,54 @@
+import {test,expect} from '@playwright/test';
+import {randomUUID} from 'node:crypto';
+const who=()=>({email:'com-growth-'+randomUUID().slice(0,12)+'@example.invalid',password:'GalaxiCom-C5-2026-safe-password'});
+test('C5 bookmarks, profiles, verified premium perks and community discovery isolate members',async({page})=>{
+ test.setTimeout(90000);
+ if(!process.env.DATABASE_URL)test.skip();
+ const {PrismaClient}=await import('@prisma/client');const db=new PrismaClient();
+ const A=who(),B=who();let aid='',bid='',id='',pid='';
+ const api=p=>'/api/v1/com/'+p;
+ try{
+  const a=await page.request.post('/api/v1/account/register',{data:A});expect(a.status()).toBe(201);aid=(await a.json()).user.id;
+  const thread=await page.request.post(api('threads'),{data:{categorySlug:'jyotish',title:'Питання',body:'?' }});
+  expect(thread.status()).toBe(201);id=(await thread.json()).id;
+  expect((await page.request.put(api('growth/bookmarks/'+id))).status()).toBe(200);
+  expect((await page.request.put(api('growth/bookmarks/'+id))).status()).toBe(200);
+  const my=await(await page.request.get(api('growth/bookmarks'))).json();expect(my.total).toBe(1);expect(my.max).toBe(20);
+  const ownExport=await(await page.request.get(api('privacy/export?page=1'))).json();
+  expect(ownExport.bookmarks.some(x=>x.threadId===id)).toBe(true);
+  expect((await page.request.patch(api('growth/profile'),{data:{signature:'Мої інтереси',accent:'gold'}})).status()).toBe(403);
+  expect((await page.request.patch(api('growth/profile'),{data:{signature:'Мої інтереси',accent:'default'}})).status()).toBe(200);
+  const trends=await(await page.request.get(api('growth/featured'))).json();
+  expect(trends.editorialEndorsement).toBe(false);expect(trends.items.some(t=>t.id===id)).toBe(true);
+  const b=await page.request.post('/api/v1/account/register',{data:B});expect(b.status()).toBe(201);bid=(await b.json()).user.id;
+  expect((await(await page.request.get(api('growth/bookmarks'))).json()).total).toBe(0);
+  const reply=await page.request.post(api('threads/'+id+'/posts'),{data:{body:'Згоден'}});
+  expect(reply.status()).toBe(201);pid=(await reply.json()).id;
+  const calendar=await page.request.get('/api/v1/personal/calendar?days=7');
+  expect(calendar.status()).toBe(200);
+  const unauthenticatedForecast=await calendar.json();
+  expect(unauthenticatedForecast.horoscopeStatus).toBe('requires_verified_chart');
+  expect(unauthenticatedForecast.horoscopes).toHaveLength(7);
+  expect(unauthenticatedForecast.horoscopes.every(x=>x.guidance===null)).toBe(true);
+  await page.request.post('/api/v1/account/login',{data:A});
+  expect((await page.request.put(api('posts/'+pid+'/helpful'))).status()).toBe(200);
+  const reputation=await(await page.request.get(api('growth/members/'+bid))).json();
+  expect(reputation.helpful).toBe(1);expect(reputation.reputation).toBe('NEW');
+  expect(JSON.stringify(reputation)).not.toContain(B.email);
+  await db.user.update({where:{id:aid},data:{subscriptionTier:'PREMIUM',subscriptionEndsAt:new Date(Date.now()+86400000)}});
+  expect((await page.request.patch(api('growth/profile'),{data:{signature:'Мої зірки',accent:'violet'}})).status()).toBe(200);
+  expect((await(await page.request.get(api('growth/bookmarks'))).json()).max).toBe(200);
+  await page.goto('/uk/community/member/'+aid);
+  await expect(page.getByTestId('com-public-profile')).toHaveAttribute('data-accent','violet');
+  await db.user.update({where:{id:aid},data:{subscriptionEndsAt:new Date(Date.now()-86400000)}});
+  expect((await(await page.request.get(api('growth/bookmarks'))).json()).max).toBe(20);
+  expect((await(await page.request.get(api('growth/members/'+aid))).json()).accent).toBe('default');
+  await page.goto('/uk/community/topic/'+id);
+  await expect(page.getByTestId('com-growth')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Прибрати із закладок'})).toBeVisible();
+ }finally{
+  if(id)await db.comThread.deleteMany({where:{id}});
+  if(aid||bid)await db.user.deleteMany({where:{id:{in:[aid,bid]}}});
+  await db.$disconnect();
+ }
+});

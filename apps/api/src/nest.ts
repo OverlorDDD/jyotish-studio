@@ -3,14 +3,11 @@ import {ApiTags} from '@nestjs/swagger';
 import type {IncomingMessage} from 'node:http';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {runCalculation,interpretChart} from './logic.ts';
+import {CHART_VERIFICATION_VERSION} from './jyotish-integrity.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
-import {buildDetailedReport,detailedReportFacts} from './report.ts';
-import {ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
-import {generateFreeInterpretationDetailed} from './free-ai.ts';
-import {generateResilientFreeConsultation} from './resilient-consultation.ts';
-import {buildAiChapterSpecs} from './consultation-ai.ts';
-import {generateConsultationIntelligence} from './consultation-intelligence.ts';
-import {yogakarakasForLagna} from './reader-classical.ts';
+import {buildDetailedReport} from './report.ts';
+import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts';
+import {SuccessfulConsultationCache} from './consultation-replay.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
@@ -23,6 +20,20 @@ import {EditorialController,PublicContentController} from './editorial.ts';
 import {EDITORIAL_USE_CASES,EditorialUseCases} from './editorial-application.ts';
 import {PrismaEditorialStore} from './editorial-prisma.ts';
 import {ReadingOrdersController} from './reading-orders.ts';
+import {PersonalController} from './personal.ts';
+import {HoroscopeController} from './horoscope.ts';
+import {PanchangaController} from './panchanga-controller.ts';
+import {dailySkyContext} from './sky-context.ts';
+import {PanchangaPlacesController} from './panchanga-places-controller.ts';
+import {AstronomicalEventsController} from './astronomical-events-controller.ts';
+import {VedicCalendarController} from './vedic-calendar-controller.ts';
+import {NewsController} from './news.ts';
+import {ComController} from './com.ts';
+import {ComSocialController} from './com-social.ts';
+import {ComContextController} from './com-context.ts';
+import {ComSafetyController} from './com-safety.ts';
+import {ComGrowthController} from './com-growth.ts';
+import {NewsIngestionService} from './news-ingestion.ts';
 import {TarotController,TAROT_USE_CASES} from './tarot.ts';
 import {TarotUseCases} from './tarot-application.ts';
 import {PrismaTarotReadingRepository} from './tarot-prisma-repository.ts';
@@ -32,27 +43,8 @@ import {cookieUser} from './auth.ts';
 
 const allowCalculation=createHourlyLimiter(120);
 const allowInterpretation=createHourlyLimiter(50);
-/** Ephemeral, bounded replay cache: guests are NEVER stored in PostgreSQL.
- * Successful free-model prose is identical for repeated chart/lang/asOf in this process.
- * A restart drops the cache; the deterministic report remains identical. */
-type FreeReportAi=Awaited<ReturnType<typeof generateFreeInterpretationDetailed>>;
-const interpretationReplay=new Map<string,{expires:number;pending:Promise<FreeReportAi>}>();
-function replayFreeNarrative(key:string,generate:()=>Promise<FreeReportAi>){
- const now=Date.now(),existing=interpretationReplay.get(key);
- if(existing&&existing.expires>now)return existing.pending.then(outcome=>({outcome,cached:true}));
- if(interpretationReplay.size>=60){
-  const first=interpretationReplay.keys().next().value;
-  if(first)interpretationReplay.delete(first);
- }
- const pending=generate().then(result=>{
-  // Do not cache failures or quota exhaustion.
-  if(!result.result)interpretationReplay.delete(key);
-  return result;
- }).catch(error=>{interpretationReplay.delete(key);throw error;});
- interpretationReplay.set(key,{expires:now+30*60*1000,pending});
- return pending.then(outcome=>({outcome,cached:false}));
-}
-
+/** Bounded, successful-only AI consultation cache. No birth identifiers are stored. */
+const directCache=new SuccessfulConsultationCache<Awaited<ReturnType<typeof generateDirectJyotish>>>();
 function owner(req:IncomingMessage){
  const id=cookieUser(req);
  if(!id)throw new UnauthorizedException('Sign in to access saved charts.');
@@ -73,6 +65,21 @@ export class JyotishController{
    totalTokens:event.totalTokens,costUsd:event.costUsd
   }});
  }
+ @Get('v1/jyotish/runtime')
+ runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,verificationContract:CHART_VERIFICATION_VERSION,mode:process.env.AI_MODE||'free',
+  referenceBenchmark:{
+   // Versioned CI-pinned result, NOT a live JHora check of the current visitor.
+   // The CI release gate runs jqa3:certify-signs against all raw source hashes.
+   version:'jhora8-same-profile-v2',source:'20 original JHora 8.0 exports with captured INIs',cases:20,
+   status:'SIGN_PARITY_CERTIFIED',
+   d1SignMatches:200,d1Total:200,d9SignMatches:200,d9Total:200,
+   d10SignMatches:200,d10Total:200,
+   notes:['Same-method D1/D9/D10 sign parity is independently checked',
+    'Sub-arcsecond longitude and Vimshottari calendar dates remain separate quality gates',
+    'Legacy Gandhi reference uses different settings and is excluded from same-profile totals'],
+   perUserJhoraVerified:false
+  }};}
+
  @Get('health')
  async health(){
   try{await this.prisma.$queryRaw`SELECT 1`;return {status:'ok',service:'jyotish-nestjs',database:'connected'};}
@@ -110,25 +117,50 @@ export class JyotishController{
    const prepared=await this.reports.prepare(birth,birth.lang);
    chart=prepared.chart;report=prepared.report as ReturnType<typeof buildDetailedReport>;
   }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
-  if(birth.preferred==='local'||process.env.AI_MODE==='local')
-   return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'local_only'}};
+  // User intent is explicit: local Reader always responds without contacting providers.
+  // Old A8.9 eight-chapter gate is RETIRED from this route.
+  const verified=chart as CalculatedChart&{verification?:{status:string;version:string;digest:string}};
+  if(verified.verification?.status!=='verified_internal')
+   throw new ServiceUnavailableException('Jyotish verification missing. Report generation is blocked.');
+  // Additive, independently computed contemporary sky/calendar section.
+  // Never reinterpret the historic birth chart as if a current festival
+  // happened at the birth instant; the city is labelled reference only.
+  const asOf=report.asOf.slice(0,10);
+  const sky=await dailySkyContext(asOf,'Europe/Kyiv').catch(()=>null);
+  const nextSky=sky?.events[0],todayFestival=sky?.observances[0];
+  const skyParagraphs=[
+   nextSky?(birth.lang==='uk'?
+    'Найближча астрономічна подія ('+nextSky.atUtc+'): '+nextSky.meaning.uk+
+    ' Практичний крок: '+nextSky.practice.uk:
+    'Upcoming exact event ('+nextSky.atUtc+'): '+nextSky.meaning.en+
+    ' Practice: '+nextSky.practice.en):null,
+   todayFestival?(birth.lang==='uk'?
+    'Календарний орієнтир для Києва: '+todayFestival.id.replaceAll('_',' ')+
+    '. Це кандидат за традиційним правилом, а не остаточна дата посту.':
+    'Kyiv-reference calendar observance: '+todayFestival.id.replaceAll('_',' ')+
+    '. It is a rule-based candidate, not a certified fasting date.'):null
+  ].filter((x):x is string=>Boolean(x));
+  const skySection=skyParagraphs.length?{
+   id:'current-sky-context',eyebrow:'AE-P5 · AE-P7',
+   heading:birth.lang==='uk'?'Поточний небесний календар':'Current sky and observance calendar',
+   lead:birth.lang==='uk'?'Розрахунок на дату читання, не характеристика народження':'Calculated for reading date, not birth attributes',
+   paragraphs:skyParagraphs,
+   facts:['Swiss Ephemeris · Lahiri','Reference: Europe/Kyiv / Kyiv','Festival dates are candidates']
+  }:null;
+  const base={...report,sections:skySection?[...report.sections,skySection]:report.sections,
+   calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification};
+  if(birth.preferred==='local'||process.env.GALAXIORA_READER_ONLY==='1')
+   return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
-   return {...report,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const {outcome:free,cached}=await replayFreeNarrative(report.rulesDigest+':'+birth.lang+':'+report.asOf+(process.env.GALAXIORA_A89_PREVIEW==='1'?':a8.9-preview-2':':interpretation-v5-1-bounded-cloud-enrichment'),
-   ()=>process.env.GALAXIORA_A89_PREVIEW==='1'?
-     generateConsultationIntelligence(chart,birth.lang,report.asOf,report.editorial,{
-      onUsage:event=>this.recordAiUsage(event,'detailed_report')
-     }):generateResilientFreeConsultation(chart,birth.lang,{
-    chapterSpecs:buildAiChapterSpecs(report.editorial),
-    factsOverride:report.editorial.findings.map(f=>({id:f.id,
-      fact:'Verified rule: '+f.ruleId+'. Evidence: '+f.verifiedEvidence.join('; ')+'. Traditional reading: '+f.traditionalMeaning+
-       '. Supporting: '+f.supportingFactors.join('; ')+'. Limits: '+f.limitations.join('; ')})),reportMode:true,
-    onUsage:event=>this.recordAiUsage(event,'detailed_report'),
-    approvedYogas:[...ruleFindings(chart).yogas.map(y=>y.name),...(yogakarakasForLagna(chart.ascendant.sign).length?['yogakaraka']:[])]
-   }));
-  return {...report,ai:free.result?{...free.result,source:'llm' as const,cached,
-     ...(process.env.GALAXIORA_A89_PREVIEW==='1'?{documentMode:'unified' as const}:{} )}:
-   {provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:free.reason}};
+   return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
+  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION;
+  const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(chart,birth.lang,report.asOf,{
+   onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
+  }));
+  if(outcome.result)
+   return {...base,ai:{...outcome.result,source:'llm' as const,cached:reused}};
+  return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:outcome.reason||'no_provider'}};
+
  }
 
  /** Backward-compatible short reading: also stateless, no guest database write. */
@@ -159,8 +191,8 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController],
- providers:[PrismaService,
+@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,HoroscopeController,PanchangaController,PanchangaPlacesController,AstronomicalEventsController,VedicCalendarController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController,ComGrowthController],
+ providers:[PrismaService,NewsIngestionService,
   {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
    new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},
   {provide:JYOTISH_REPORT_USE_CASES,useFactory:()=>new JyotishReportUseCases(runCalculation,buildDetailedReport)},

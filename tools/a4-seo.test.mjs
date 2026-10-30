@@ -13,6 +13,8 @@ test('A4 index gate requires configured HTTPS hostname and no preview noindex',(
    assert.equal(publicIndexingEnabled(),false,url);
   }
   process.env.NEXT_PUBLIC_SITE_URL='https://galaxiora.example';
+  assert.equal(publicIndexingEnabled(),false,'explicit SITE_NOINDEX=0 required');
+  process.env.SITE_NOINDEX='0';
   assert.equal(publicIndexingEnabled(),true);
   assert.equal(indexRobots().index,true);assert.equal(indexRobots(false).index,false);
   process.env.SITE_NOINDEX='1';assert.equal(publicIndexingEnabled(),false);
@@ -23,8 +25,9 @@ test('A4 index gate requires configured HTTPS hostname and no preview noindex',(
  }
 });
 test('A4 sitemap enumerates published tools but no future content or private views',()=>{
- assert.deepEqual([...SEO_PATHS],['','astrology','tarot','astrology/jyotish','yoga','learn']);
- for(const p of SEO_PATHS)assert.ok(!/account|admin|news|community/.test(p));
+ assert.deepEqual([...SEO_PATHS],['','astrology','tarot','astrology/jyotish','yoga','learn','horoscope','panchanga','news','community','methodology']);
+ for(const p of SEO_PATHS)assert.ok(!/account|admin|personal/.test(p));
+ assert.ok(SEO_PATHS.includes('news')&&SEO_PATHS.includes('community')&&SEO_PATHS.includes('panchanga'));
  const source=read('apps/web/app/[locale]/[section]/page.tsx');
  assert.ok(source.includes('indexRobots(INDEXED_SECTIONS.some('));
  assert.ok(read('apps/web/app/sitemap.ts').includes('publicIndexingEnabled()'));

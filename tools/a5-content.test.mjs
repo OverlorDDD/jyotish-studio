@@ -24,9 +24,11 @@ test('A5 Yoga: four original nonempty safe bilingual practices, real durations a
   }
  }
 });
-test('A5 Academy: 7 articles across all 3 topics with bilingual paragraphs and quizzes',()=>{
- assert.equal(ACADEMY_LESSONS.length,7);
- assert.equal(new Set(ACADEMY_LESSONS.map(x=>x.slug)).size,7);
+test('A5 Academy: 8 articles across all 3 topics with bilingual paragraphs and quizzes',()=>{
+ assert.equal(ACADEMY_LESSONS.length,8);
+ assert.ok(academyBySlug('vimshottari-life-cycle'));
+ assert.equal(academyBySlug('vimshottari-life-cycle').topic,'jyotish');
+ assert.equal(new Set(ACADEMY_LESSONS.map(x=>x.slug)).size,ACADEMY_LESSONS.length);
  for(const topic of ACADEMY_TOPICS)assert.ok(ACADEMY_LESSONS.some(x=>x.topic===topic.id));
  for(const lesson of ACADEMY_LESSONS){
   assert.equal(academyBySlug(lesson.slug),lesson);

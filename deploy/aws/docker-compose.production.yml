@@ -1,0 +1,22 @@
+# Production-only PostgreSQL. Deliberately separate from the dev Compose
+# with its fixed jyotish_dev password. Use --env-file .env and keep it private.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: jyotish-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jyotish
+      POSTGRES_USER: jyotish
+      POSTGRES_PASSWORD: ${GALAXIORA_DB_PASSWORD:?Set a long random GALAXIORA_DB_PASSWORD in the private root .env}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - galaxiora-production-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jyotish -d jyotish"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+volumes:
+  galaxiora-production-postgres:

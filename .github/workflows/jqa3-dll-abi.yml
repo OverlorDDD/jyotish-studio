@@ -1,0 +1,143 @@
+name: JQA-3.6 Installed JHora DLL ABI and numeric investigation
+on:
+  push:
+    branches: [fix/jqa3-windows-and-llm-recovery]
+    paths:
+      - 'tools/jqa3-legacy-dll-probe.ps1'
+      - 'tools/jqa3-solar-year-diagnostic.py'
+      - 'tools/jqa3-modern-de431-probe.py'
+      - '.github/workflows/jqa3-dll-abi.yml'
+      - 'docs/research/jqa3-6-jhora202-vs-swiss210-2026-10-27.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  authentic-binary:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original Jagannatha Hora directly from its publisher
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $tmp=Join-Path $env:RUNNER_TEMP 'jqa3-original-installer'
+          New-Item -ItemType Directory -Force $tmp | Out-Null
+          Invoke-WebRequest 'https://vedicastrologer.org/jh/jh_short_install.zip' -TimeoutSec 120 -OutFile (Join-Path $tmp 'jhora.zip')
+          Expand-Archive (Join-Path $tmp 'jhora.zip') (Join-Path $tmp 'unpacked') -Force
+          $installer=Get-ChildItem (Join-Path $tmp 'unpacked') -Recurse -Filter *.exe | Select-Object -First 1
+          if (!$installer) { throw 'Publisher original JHora installer missing' }
+          $p=Start-Process $installer.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (!$p.WaitForExit(180000)) {
+             Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+             Write-Warning 'JHora installer timeout; verify installed binary exists'
+          }
+          $exe=@("${env:ProgramFiles(x86)}\Jagannatha Hora\bin\jhora.exe",
+                  "$env:ProgramFiles\Jagannatha Hora\bin\jhora.exe") |
+            Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (!$exe) { throw 'Publisher JHora executable not found after install' }
+          $dll=Join-Path (Split-Path $exe -Parent) 'swedll32.dll'
+          if (!(Test-Path $dll)) { throw 'JHora installed Swiss DLL absent' }
+          $exeHash=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $dllHash=(Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant()
+          $expectedExe='3ddbe5fb0458ad1f0ad91b002c7efb8bba9f08891d3f46190aba97d570b17908'
+          $matched=$exeHash -eq $expectedExe
+          $provenance=[ordered]@{
+             jhoraExeSha256=$exeHash
+             matchesOriginal20CapturedJHoraExe=$matched
+             original20CapturedJHoraExeSha256=$expectedExe
+             swedll32Sha256=$dllHash
+             swedll32PEFileVersion=(Get-Item $dll).VersionInfo.FileVersion
+             swedll32ProductVersion=(Get-Item $dll).VersionInfo.ProductVersion
+             note='No downloaded executable or DLL binary is published. Read-only source evidence.'
+          }
+          $provenance | ConvertTo-Json | Set-Content jqa3-installed-dll-provenance.json -Encoding utf8
+          Get-Content jqa3-installed-dll-provenance.json
+          Add-Content $env:GITHUB_ENV "JQA3_DLL=$dll"
+          Add-Content $env:GITHUB_ENV "JQA3_EXE_MATCH=$matched"
+          $files=Get-ChildItem (Split-Path $exe -Parent) -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^(semo|sepl).*\.se1$' } |
+            Select-Object -First 12
+          $files | ForEach-Object { Write-Host "Eph: $($_.FullName) sha256=$((Get-FileHash $_.FullName -Algorithm SHA256).Hash)" }
+          if($files.Count -gt 0) { Add-Content $env:GITHUB_ENV "JQA3_EPHE=$($files[0].DirectoryName)" }
+      - name: Inspect actual JHora DLL exports and version signature before binding
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check pefile
+          $code=@'
+          import os,hashlib,pefile
+          p=os.environ['JQA3_DLL']
+          pe=pefile.PE(p,fast_load=False)
+          print('actual_DllSha256',hashlib.sha256(open(p,'rb').read()).hexdigest())
+          print('actual_ExportNames',[s.name.decode('ascii',errors='replace') if s.name else 'ordinal:'+str(s.ordinal) for s in pe.DIRECTORY_ENTRY_EXPORT.symbols][:150])
+          data=open(p,'rb').read()
+          for needle in (b'2.02.01',b'2.02',b'1.78'):
+              print('embedded_version_pattern',needle.decode(),data.find(needle))
+          '@
+          $code|Set-Content inspect-jhora-dll.py -Encoding utf8
+          python inspect-jhora-dll.py
+      - name: Fetch pre-DE441 Swiss compressed DE431 ephemeris source snapshots
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $ephe=Join-Path $env:RUNNER_TEMP 'jqa3-original-DE431-ephe'
+          New-Item -ItemType Directory -Force $ephe | Out-Null
+          # Swiss repository snapshot predates the 2026 DE441 re-encoding.
+          $historical='ad0935c2993405b57db161240e0af7e451840efd'
+          foreach($filename in @('semo_18.se1','sepl_18.se1')){
+            $source="https://raw.githubusercontent.com/aloistr/swisseph/$historical/ephe/$filename"
+            $dest=Join-Path $ephe $filename
+            Invoke-WebRequest $source -TimeoutSec 120 -OutFile $dest
+            if((Get-Item $dest).Length -lt 50000){throw "Swiss historical ephemeris file looks incomplete: $filename"}
+            Write-Host "Pinned-pre-DE441 $filename SHA256=$((Get-FileHash $dest -Algorithm SHA256).Hash)"
+          }
+          Add-Content $env:GITHUB_ENV "JQA3_EPHE=$ephe"
+      - name: Differential 20-chart probe using original installed Win32 Swiss backend
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $ps32=Join-Path $env:WINDIR 'SysWOW64\WindowsPowerShell\v1.0\powershell.exe'
+          if(!(Test-Path $ps32)) { throw 'Native 32-bit PowerShell missing' }
+          $args=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
+            '-File', (Join-Path $env:GITHUB_WORKSPACE 'tools\jqa3-legacy-dll-probe.ps1'),
+            '-DllPath',$env:JQA3_DLL,'-OutputPath',(Join-Path $env:GITHUB_WORKSPACE 'jqa3-installed-dll-numerical.json'))
+          if($env:JQA3_EPHE){ $args+=@('-EphemerisPath',$env:JQA3_EPHE) }
+          & $ps32 @args
+          if($LASTEXITCODE -ne 0){throw 'Read-only JHora DLL probe failed'}
+          $report=Get-Content jqa3-installed-dll-numerical.json -Raw | ConvertFrom-Json
+          Write-Host "Version reported by JHora-supplied Swiss: $($report.libraryVersion)"
+          Write-Host "Original executable matched: $env:JQA3_EXE_MATCH"
+          Write-Host "True Swiss ephemeris data backend used: $($report.backendMethods -join ',')"
+          Write-Host "Lagna=$($report.results.lagnaPass)/20 Moon=$($report.results.moonPass)/20"
+      - name: Verify modern Swiss 2.10 with strict historical SWIEPH data, not MOSEPH
+        shell: pwsh
+        run: |
+          python -m pip install pyswisseph
+          python tools/jqa3-modern-de431-probe.py > jqa3-modern-swiss-de431.json
+          $result=Get-Content jqa3-modern-swiss-de431.json -Raw | ConvertFrom-Json
+          foreach($name in @('Lagna','Moon','Sun','Rahu')){
+            Write-Host "$name $($result.totals.$name.passing)/20 max $($result.totals.$name.maxAbsArcseconds) arcseconds"
+          }
+      - name: Independently test true solar-year Vimshottari theories against authentic source
+        shell: pwsh
+        run: |
+          python -m pip install pyswisseph
+          python tools/jqa3-solar-year-diagnostic.py > jqa3-solar-year-evidence.json
+          $result=Get-Content jqa3-solar-year-evidence.json -Raw | ConvertFrom-Json
+          $result.candidates | Select-Object -First 8 model,calendar,mahaMatches,antarMatches,maxAbsMajorDays,maxAbsAntarDays | Format-Table
+          $best=$result.candidates | Where-Object { $_.model -eq 'TRUE_SIDEREAL_SOLAR' -and $_.calendar -eq 'LOCAL_CAPTURED' } | Select-Object -First 1
+          Write-Host "Remaining true sidereal solar calendar discrepancies:"
+          $best.mismatches | ConvertTo-Json -Depth 5
+          if($result.candidates.Count -lt 12){throw 'Missing solar-year diagnostic candidates'}
+      - name: Preserve numerical comparisons without redistributing DLL
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jqa3-original-dll-numeric-diagnostics
+          path: |
+            jqa3-installed-dll-provenance.json
+            jqa3-installed-dll-numerical.json
+            jqa3-solar-year-evidence.json
+            jqa3-modern-swiss-de431.json
+          if-no-files-found: warn
+          retention-days: 30

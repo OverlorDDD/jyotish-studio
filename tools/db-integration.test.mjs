@@ -55,6 +55,31 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
   await prisma.$connect();await start();
   const [a,b,admin]=await Promise.all([register('a'),register('b'),register('admin')]);
   await prisma.user.update({where:{id:admin.id},data:{role:'ADMIN'}});
+  await t.test('Private Tarot questions persist, remain owner-only and are never orders',async()=>{
+   const path='/api/v1/reading-orders/questions';
+   const body={topic:'relationships',question:'What can the cards reveal about this new chapter?',
+    context:'I want to reflect on a new direction and consider what matters most.',privacyConsent:true};
+   assert.equal((await request(path)).status,401);
+   assert.equal((await post(path,body)).status,401);
+   assert.equal((await post(path,body,a.cookie,'https://evil.example')).status,403);
+   const created=await post(path,body,a.cookie);
+   assert.equal(created.status,201,JSON.stringify(created.data));
+   assert.match(created.data.id,/^[a-f0-9-]{36}$/i);
+   assert.equal(created.data.status,'SAVED_PRIVATE');
+   assert.equal(created.data.checkoutAvailable,false);
+   const mine=await request(path,{cookie:a.cookie});
+   assert.equal(mine.status,200);
+   assert.ok(mine.data.some(q=>q.id===created.data.id&&q.question===body.question));
+   assert.ok(!('expiresAt' in mine.data.find(q=>q.id===created.data.id)),'no seven-day expiry');
+   const other=await request(path,{cookie:b.cookie});
+   assert.equal(other.status,200);assert.equal(other.data.some(q=>q.id===created.data.id),false);
+   const denied=await request(path+'/'+created.data.id,{method:'DELETE',cookie:b.cookie,origin:base});
+   assert.equal(denied.data.deleted,false);
+   assert.equal((await prisma.tarotQuestion.findUnique({where:{id:created.data.id}})).userId,a.id);
+   const removed=await request(path+'/'+created.data.id,{method:'DELETE',cookie:a.cookie,origin:base});
+   assert.equal(removed.data.deleted,true);
+   assert.equal((await request(path,{cookie:a.cookie})).data.some(q=>q.id===created.data.id),false);
+  });
   await t.test('API request correlation is non-sensitive UUID',async()=>{
    const health=await request('/api/health');
    assert.match(health.requestId||'',/^[0-9a-f]{8}-[0-9a-f-]{27,}$/);

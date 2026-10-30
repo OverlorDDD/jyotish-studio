@@ -894,3 +894,282 @@
  .reading-editorial-chapter>p{font-size:14px;line-height:1.75}
  .reading-editorial .reading-glossary{margin:0 18px 18px}
 }
+
+/* Jyotish: separate deterministic reading from a single coherent AI consultation. */
+.jy-reader-launch-btn{width:100%;display:block;text-align:center;border:1px solid #4b6078;background:#1b2a3b;border-radius:10px;color:#e7d6b8;padding:13px 17px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.3px}
+.jy-reader-launch-btn:hover:not(:disabled){border-color:#b59a70;background:#26374a}
+.jy-reader-launch-btn:disabled{opacity:.45;cursor:not-allowed}
+.jy-version-warning{margin:8px 0;color:#f0b7a3;border:1px solid #835d55;border-radius:9px;padding:10px;background:#392b30;font-size:12px;line-height:1.5}
+.jy-direct-document{background:#172437;border:1px solid #52647c;border-radius:14px;padding:clamp(21px,4vw,50px);margin-top:20px;box-shadow:0 20px 65px #080e172f;color:#e0e4ed}
+.jy-direct-document>h2{color:#ead3a8;font:500 clamp(26px,3vw,39px)/1.3 'Playfair Display',Georgia,serif;margin:12px 0}
+.jy-direct-source{font-size:12px;color:#95a9bc;margin:0 0 24px;padding-bottom:22px;border-bottom:1px solid #364454}
+.jy-direct-article{max-width:92ch;line-height:1.95;font-size:clamp(15px,1.4vw,17px);overflow-wrap:break-word}
+.jy-direct-article h3{font:500 clamp(23px,2.3vw,30px)/1.25 'Playfair Display',Georgia,serif;color:#ecd4a9;margin:28px 0 17px}
+.jy-direct-article p{margin:0 0 21px;color:#d7e0ea;line-height:1.92}
+.jy-direct-section{border-top:1px solid #2c394b;padding-top:4px;margin-top:22px}
+@media(max-width:650px){.jy-direct-document{padding:19px}.jy-direct-article{font-size:15px;line-height:1.75}}
+
+/* CQv2: clear separate recommendations inside one consultation document. */
+.jy-direct-practice{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:start;gap:13px;margin:20px 0;padding:17px 19px;border-left:2px solid #bd9c66;background:#202c3a;border-radius:0 10px 10px 0}
+.jy-direct-practice-number{display:grid;place-items:center;width:30px;height:30px;border:1px solid #a08358;border-radius:50%;font:600 13px/1 Georgia,serif;color:#ecd3a5}
+.jy-direct-practice p{margin:0;line-height:1.8;color:#dde5ed}
+@media(max-width:620px){.jy-direct-practice{grid-template-columns:28px minmax(0,1fr);gap:10px;padding:12px 11px}.jy-direct-practice-number{width:25px;height:25px}}
+
+/* Historical JHora benchmark is explicitly distinct from personal-chart verification. */
+.jy-reference-details{margin-top:14px;padding:12px 14px;border:1px solid rgba(185,155,112,.25);border-radius:10px;background:rgba(25,35,48,.58);font-size:.83rem;line-height:1.65;color:#bdc9d5}
+.jy-reference-details summary{color:#dfc49b;font-weight:600;cursor:pointer}
+.jy-reference-details p{margin:9px 0 0}
+
+
+/* Galaxiora visual uplift — fixed-sign south Indian Rashi chart, clipped within the frame. */
+.jy-south-chart{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(105px,1fr));width:100%;max-width:950px;aspect-ratio:1.13;background:#fbf7ea;color:#2e291f;border:1px solid #dab977;border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 3px #fbf7ea,0 18px 60px #0003}
+.jy-south-center{grid-column:2 / span 2;grid-row:2 / span 2;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at 50% 45%,#fbf4dc,#f8eecf);border:1px solid #e4d2a4;gap:8px;min-width:0;overflow:hidden}
+.jy-south-center strong{font:600 clamp(24px,3.9vw,46px)/1 Georgia,serif;color:#bb8727;letter-spacing:.14em}
+.jy-south-center span{font:500 clamp(9px,1.3vw,15px)/1.5 Georgia,serif;color:#9b8669;letter-spacing:.22em}
+.jy-south-sign{border:1px solid #e7d8b5;position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;padding:8px 10px;gap:4px}
+.jy-south-sign.jy-south-lagna{background:#f5eac6}
+.jy-south-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:3px;min-width:0}
+.jy-south-name{font-weight:700;font-size:clamp(9px,1.07vw,12px);letter-spacing:.025em;color:#645342;overflow-wrap:anywhere}
+.jy-south-symbol{font-size:clamp(18px,2.35vw,32px);line-height:1;color:#c79936}
+.jy-south-house{align-self:flex-start;display:grid;place-items:center;min-width:20px;height:20px;padding:0 4px;border-radius:20px;border:1px solid #d5abe5;background:#f9edff;color:#8738b5;font-size:10px}
+.jy-south-ascendant{position:absolute;top:43%;left:50%;transform:translate(-50%,-50%);border:1px solid #ba881d;border-radius:24px;background:#f8e4a9;color:#906415;padding:5px 12px;font-weight:700;font-size:13px}
+.jy-south-positions{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:8px 13px;margin:auto 0;overflow:hidden;min-width:0}
+.jy-south-planet{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:27px;max-width:100%;overflow-wrap:anywhere;line-height:1.12;color:#2c271d}
+.jy-south-planet strong{font-size:clamp(15px,1.8vw,25px);line-height:1.12}
+.jy-south-planet span{font-size:clamp(8px,1vw,11px);color:#8f7962;font-weight:650;white-space:nowrap}
+.jy-primary-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.jy-primary-grid .jy-rashi-card{max-width:1050px;width:100%;margin:0 auto}
+.jy-primary-chart{display:flex;justify-content:center}
+.jy-data-workspace .jy-calc-data{margin:0 0 24px;padding:clamp(15px,2vw,24px)}
+.jy-reading-result-anchor{scroll-margin-top:110px}
+.jy-workbench{width:100%;min-height:0}
+.as-shell:has(.jy-workbench) .as-main{width:100%;max-width:100%;padding:0}
+.as-shell:has(.jy-workbench) .jy-workbench>.sidebar{top:77px;height:calc(100vh - 77px)}
+.as-shell:has(.jy-workbench) .jy-workbench>.main{min-width:0;max-width:100%}
+.as-shell:has(.jy-workbench) .jy-workbench .content{padding-block:26px 42px}
+.as-direct-module .as-tarot-workspace{margin-top:12px}
+.as-direct-module .as-tarot-studio{padding-top:18px}
+@media(max-width:800px){.jy-south-chart{grid-template-rows:repeat(4,minmax(80px,1fr));aspect-ratio:auto;min-height:410px}.jy-south-sign{padding:5px;gap:2px}.jy-south-positions{gap:3px 7px}.jy-south-house{height:16px;min-width:16px;font-size:9px}.jy-south-ascendant{padding:3px 8px;font-size:11px}}
+@media(max-width:490px){.jy-south-chart{grid-template-rows:repeat(4,minmax(74px,1fr));min-height:390px}.jy-south-name{font-size:9px}.jy-south-symbol{font-size:18px}.jy-south-planet strong{font-size:15px}.jy-south-planet span{font-size:8px}.jy-south-positions{gap:3px}.jy-south-center strong{font-size:23px}.jy-south-center span{font-size:9px;letter-spacing:.1em}}
+/* Celestial motion. CSS-only, deterministic and compositor-friendly; no WebGL bundle. */
+.as-cosmic-hero{isolation:isolate;overflow:hidden;border-radius:24px;min-height:430px;background:radial-gradient(ellipse at 76% 43%,rgba(50,80,137,.24),transparent 44%),radial-gradient(ellipse at 23% 73%,rgba(112,64,114,.13),transparent 50%)}
+.as-cosmic-hero>.as-hero-copy,.as-cosmic-hero>.as-celestial{position:relative;z-index:2}
+.as-constellation-field{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 14% 20%,#d8e8ff,transparent),radial-gradient(2px 2px at 72% 34%,#e1c594,transparent),radial-gradient(1px 1px at 51% 77%,#bbc9f9,transparent)}
+.as-stardust{position:absolute;display:block;border-radius:50%;background:#f9e4ba;box-shadow:0 0 12px 2px #b8a5ef88;animation:as-starlight 8s ease-in-out infinite alternate;will-change:opacity}
+.as-celestial-vfx{filter:drop-shadow(0 0 32px #b295592b)}
+.as-celestial-vfx .as-orbit{animation:as-orbital-spin 48s linear infinite;transform-origin:center}
+.as-celestial-vfx .as-orbit-mid{animation-duration:32s;animation-direction:reverse}
+.as-celestial-vfx .as-orbit-inner{animation-duration:24s}
+.as-celestial-vfx>span{filter:drop-shadow(0 0 18px #f4d08e)}
+.as-orbit-planet{position:absolute;display:block;width:13px;height:13px;background:radial-gradient(circle at 31% 26%,#f8dfac,#d48a4e 65%,#704833);border-radius:50%;box-shadow:0 0 18px #d5ab6770}
+.as-orbit-planet-1{top:19%;right:21%;animation:as-planet-float 9s ease-in-out infinite alternate}
+.as-orbit-planet-2{bottom:25%;left:27%;width:8px;height:8px;background:radial-gradient(circle at 30% 30%,#accffd,#465a9e);animation:as-planet-float 12s ease-in-out infinite alternate-reverse}
+@keyframes as-starlight{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:.95;transform:scale(1.3)}}
+@keyframes as-orbital-spin{to{transform:rotate(360deg)}}
+@keyframes as-planet-float{from{transform:translate3d(-14px,11px,0)}to{transform:translate3d(17px,-13px,0)}}
+@media(prefers-reduced-motion:reduce){.as-stardust,.as-celestial-vfx .as-orbit,.as-orbit-planet{animation:none!important;will-change:auto}.as-stardust{opacity:.7}}
+
+
+/* Show the breathing tool above all Yoga navigation, without a teaser detour. */
+.as-yoga-immediate-heading{max-width:880px;padding:clamp(17px,3vw,28px) 0 12px}
+.as-yoga-immediate-heading h1{font:500 clamp(28px,4vw,48px)/1.2 'Playfair Display',Georgia,serif;color:#e8d2a4;margin:10px 0}
+.as-yoga-immediate-heading p{max-width:68ch;line-height:1.75;color:#b4c0cc;margin:0 0 12px}
+.as-wellness>.as-breath-player{max-width:1080px;margin:0 auto 36px;scroll-margin-top:100px}
+.as-wellness-section{scroll-margin-top:90px}
+.as-journal-card{scroll-margin-top:95px;max-width:1150px;width:100%;margin:32px auto 20px;border:1px solid #80694965;background:linear-gradient(145deg,#1c2b3d,#142033);border-radius:19px;padding:clamp(18px,2.8vw,32px)}
+.as-journal-head{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:12px}
+.as-journal-head h2{display:flex;align-items:center;gap:10px;margin:0;font:500 clamp(19px,2.4vw,27px)/1.3 'Playfair Display',Georgia,serif}
+.as-journal-head span{font-size:10px;letter-spacing:.14em;color:#dbbe83;border:1px solid #9c815b;border-radius:40px;padding:7px 11px}
+.as-journal-card form{margin:12px 0 22px;max-width:760px}
+.as-journal-card textarea{width:100%;resize:vertical;background:#121b29;border:1px solid #445168;border-radius:8px;color:#f0e4d0;padding:12px;font:inherit}
+.as-journal-entries{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:14px;margin-top:20px}
+.as-journal-entries .as-draft-row{background:#101927;border:1px solid #39475c;border-radius:12px;padding:15px;overflow-wrap:anywhere}
+.as-journal-error{padding:10px;border:1px solid #89605b;border-radius:10px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.as-journal-error .as-button{width:auto}
+.jy-journal-link{display:inline-flex;margin:20px 0}
+
+/* A9 visual system: Jyotish lives in the same shell as all Galaxiora sections. */
+.as-shell .jy-portal-workbench{display:grid;grid-template-columns:minmax(190px,224px) minmax(0,1fr);gap:clamp(20px,3vw,40px);max-width:1440px;margin:0 auto;padding:30px clamp(18px,3vw,46px) 58px;background:transparent;min-height:0}
+.as-shell .jy-portal-workbench>.main{background:transparent;min-width:0;max-width:none;min-height:0}
+.as-shell .jy-portal-workbench>.main>.content{max-width:1150px;padding:0 0 38px;margin:0 auto}
+.as-shell .jy-portal-workbench>.jy-section-nav{position:sticky;top:105px;align-self:start;width:100%;height:auto;min-height:0;max-height:calc(100vh - 124px);overflow:auto;padding:23px 14px;border:1px solid #37455b;border-radius:15px;background:linear-gradient(160deg,#18263a,#101d2e);box-shadow:0 12px 44px #060e1a30}
+.as-shell .jy-portal-workbench .jy-section-nav .side-section{margin:0 12px 16px;color:#dfc592}
+.as-shell .jy-portal-workbench .jy-section-nav .side-nav{gap:6px}
+.as-shell .jy-portal-workbench .jy-section-nav .side-nav a{padding:12px 10px;border-radius:9px}
+.as-shell .jy-portal-workbench .jy-section-nav .side-bottom{margin-top:24px}
+.as-shell .jy-portal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #354258;margin-bottom:20px;color:#cfb789;font-size:11px;letter-spacing:.17em}
+.as-shell .jy-portal-toolbar b{color:#7f95ac;margin:0 13px}
+.as-shell .jy-portal-toolbar .account-trigger{border:1px solid #8f744e;background:#223249;color:#ead3a6;font-size:12px}
+.as-shell .jy-portal-workbench .jy-rashi-card,.as-shell .jy-portal-workbench .jy-data-workspace{border-color:#44536a;background:linear-gradient(145deg,#1b2a3f,#132033)}
+@media(max-width:900px){.as-shell .jy-portal-workbench{display:block;padding:14px 16px 32px}.as-shell .jy-portal-workbench>.jy-section-nav{position:relative;top:auto;max-height:none;overflow:visible;margin-bottom:16px;padding:12px}.as-shell .jy-portal-workbench .jy-section-nav .side-nav{display:flex;flex-wrap:wrap;gap:5px}.as-shell .jy-portal-workbench .jy-section-nav .side-section{margin:0 0 7px}.as-shell .jy-portal-workbench .jy-section-nav .side-bottom{display:none}}
+/* Retain original twelve-cell topology; use only the Galaxiora navy/gold visual language. */
+.as-shell .jy-south-chart{aspect-ratio:1.13;background:#0f1e32;color:#e7dfd2;border:1px solid #a78a58;box-shadow:inset 0 0 0 2px #23334a,0 22px 60px #060d1b88}
+.as-shell .jy-south-center{background:radial-gradient(ellipse at 50% 40%,#273750,#132136 76%);border:1px solid #4a5c73}
+.as-shell .jy-south-center strong{color:#e8bf7c;text-shadow:0 0 24px #bd904048}
+.as-shell .jy-south-center span{color:#a9b8cb}
+.as-shell .jy-south-sign{background:#142338;border-color:#35465c}
+.as-shell .jy-south-sign.jy-south-lagna{background:radial-gradient(ellipse at 42% 38%,#31405a,#1b2c42)}
+.as-shell .jy-south-name{color:#d4dfed}
+.as-shell .jy-south-symbol{color:#d8ac69}
+.as-shell .jy-south-house{background:#24344c;border-color:#967b54;color:#ebcd9f}
+.as-shell .jy-south-ascendant{color:#f2d49d;background:#4b3b26;border-color:#e7b75f}
+.as-shell .jy-south-planet{color:#f4ece0}
+.as-shell .jy-south-planet span{color:#aebed0}
+/* Full-width celestial stage; rotation of an orbital track is circular by construction. */
+.as-shell .as-cosmic-hero{max-width:none;width:100%;min-height:610px;border-radius:0;margin:0;background:radial-gradient(ellipse 50% 75% at 79% 44%,#39426d80,transparent 73%),radial-gradient(ellipse 60% 80% at 20% 85%,#6e4b7450,transparent 75%);box-shadow:none;isolation:isolate}
+.as-shell .as-cosmic-hero:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 76%,#111a2b 100%);z-index:0}
+.as-shell .as-cosmic-hero .as-hero-copy{z-index:3}
+.as-shell .as-cosmic-hero .as-constellation-field{background:transparent}
+.as-shell .as-cosmic-hero .as-celestial-vfx{width:min(40vw,470px);max-width:100%;aspect-ratio:1;z-index:2;filter:none;background:radial-gradient(circle,#ccac5e26 0%,#8891d21c 28%,transparent 67%);box-shadow:0 0 130px #6e68b532}
+.as-shell .as-cosmic-hero .as-celestial-vfx:before,.as-shell .as-cosmic-hero .as-celestial-vfx:after{display:none}
+.as-shell .as-cosmic-hero .as-cosmic-core{position:absolute;inset:0;display:grid;place-items:center;font:300 86px/1 Georgia,serif;color:#f0d39e;text-shadow:0 0 45px #ffdb817c;opacity:1}
+.as-orbit-ring,.as-orbit-track{position:absolute;display:block;border-radius:50%;transform-origin:center}
+.as-orbit-ring{border:1px solid #c6a97b55;pointer-events:none}
+.as-orbit-ring-inner{inset:30%;border-color:#9caed288}
+.as-orbit-ring-mid{inset:16%}
+.as-orbit-ring-outer{inset:2%;border-style:dashed;border-color:#bfa16b77}
+.as-orbit-track{border:0;inset:0;animation:galaxi-orbit 40s linear infinite;will-change:transform}
+.as-track-inner{inset:30%;animation-duration:18s}
+.as-track-mid{inset:16%;animation-duration:31s;animation-direction:reverse}
+.as-track-outer{inset:2%;animation-duration:47s}
+.as-orbit-body{position:absolute;display:block;left:50%;top:0;transform:translate(-50%,-50%);width:17px;height:17px;border-radius:50%;box-shadow:0 0 19px #d3ad75a9}
+.as-planet-azure{background:radial-gradient(circle at 32% 25%,#daecfc,#7b9ac8 60%,#354b85)}
+.as-planet-gold{width:21px;height:21px;background:radial-gradient(circle at 25% 26%,#ffe2a4,#d59a55 58%,#805438)}
+.as-moon-orb{width:35px;height:35px;background:transparent;box-shadow:none;color:#e8d5b0;font:34px/1 Georgia,serif;text-shadow:0 0 22px #d6b48d8c}
+@keyframes galaxi-orbit{to{transform:rotate(360deg)}}
+.as-cosmic-hero .as-stardust{animation:as-starlight 8s ease-in-out infinite alternate}
+@media(max-width:760px){.as-shell .as-cosmic-hero .as-celestial-vfx{width:min(67vw,300px)}.as-shell .as-cosmic-hero{min-height:540px;padding:40px 22px 55px}}
+@media(prefers-reduced-motion:reduce){.as-orbit-track{animation:none!important;will-change:auto}}
+.as-tarot-live-link{display:inline-flex;align-items:center;color:#eed4a4!important;max-width:34ch;font-size:13px;line-height:1.5;text-decoration:underline!important;text-underline-offset:4px}
+.as-tarot-live-link:hover{color:#ffe6b7!important}
+
+/* Galaxiora Personal: one coherent navy-and-gold workspace across all modules. */
+.as-main-nav .as-personal-link{color:#f0cd8a;border:1px solid #b89c6344;border-radius:999px;padding:8px 12px;white-space:nowrap}
+.as-main-nav .as-personal-link:hover,.as-main-nav .as-personal-link[aria-current=page]{background:#d5ad5c20;color:#ffdfa4}
+.gp-layout{max-width:1330px;margin:0 auto;padding:clamp(18px,3vw,42px);display:flex;flex-direction:column;gap:24px;color:#e9edf5}
+.gp-layout *{min-width:0}
+.gp-hero{position:relative;isolation:isolate;min-height:250px;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:22px;border:1px solid #a9895e6a;border-radius:24px;padding:clamp(24px,4vw,52px);background:radial-gradient(ellipse at 83% 48%,#344b7469,transparent 47%),linear-gradient(125deg,#1c2e46,#132034 70%,#1d293e);box-shadow:0 20px 55px #0711204a}
+.gp-hero:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 82% 27%,#fae2a2 1px,transparent 2px),radial-gradient(circle at 63% 61%,#fae2a2 1px,transparent 2px),radial-gradient(circle at 92% 81%,#fae2a2 1px,transparent 2px);opacity:.6}
+.gp-hero h1{margin:8px 0 10px;color:#f8ead3;font-size:clamp(32px,4vw,54px);line-height:1.14;font-family:Georgia,'Times New Roman',serif;font-weight:500;letter-spacing:-.02em}
+.gp-hero p{margin:0;color:#bfc9d8;max-width:680px;line-height:1.7}
+.gp-hero-date{display:inline-block;margin-top:18px;color:#ddc28f}
+.gp-eyebrow{color:#d9b77d;font-size:11px;letter-spacing:.2em;font-weight:700;text-transform:uppercase}
+.gp-hero-ornament{position:relative;flex:none;display:grid;place-items:center;width:145px;height:145px;color:#e6c58e;opacity:.85}
+.gp-hero-ornament svg+svg{position:absolute;filter:drop-shadow(0 0 16px #dcad6e)}
+.gp-panel{border:1px solid #3b4d64;background:linear-gradient(150deg,#17283d,#111e30);border-radius:18px;padding:clamp(19px,2.5vw,28px);box-shadow:0 15px 35px #040e1b26}
+.gp-panel h2{font-size:clamp(19px,2vw,25px);margin:6px 0;font-family:Georgia,'Times New Roman',serif;color:#f4e9d9;font-weight:500}
+.gp-panel p{color:#c9d2df;font-size:14px;line-height:1.7}
+.gp-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.gp-panel-heading>svg{color:#dbb975;flex:none}
+.gp-primary{background:linear-gradient(125deg,#1a2b42,#16253b 67%,#24314a)}
+.gp-chart-summary strong{color:#f1d7a4}
+.gp-form-inline{display:flex;align-items:end;gap:15px;flex-wrap:wrap;margin:18px 0}
+.gp-form-inline>label{flex:1 1 290px}
+.gp-layout label{display:flex;flex-direction:column;gap:7px;color:#d8e0e9;font-size:13px}
+.gp-layout input[type=text],.gp-layout input:not([type]),.gp-layout select{width:100%;background:#0d1b2d;color:#f6eddf;border:1px solid #58708a;border-radius:10px;padding:12px;font-size:14px;outline-offset:2px}
+.gp-layout input:focus-visible,.gp-layout select:focus-visible,.gp-layout button:focus-visible,.gp-layout a:focus-visible{outline:2px solid #edc783;outline-offset:3px}
+.gp-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:1px solid #d6ad6d;border-radius:10px;background:linear-gradient(135deg,#e3bb79,#be9054);color:#112137;font-size:13px;font-weight:700;min-height:43px}
+.gp-button:hover{filter:brightness(1.1)}
+.gp-button:disabled{opacity:.52;cursor:not-allowed}
+.gp-text-link{color:#eed2a2;display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:600;text-decoration:none}
+.gp-text-link:hover{text-decoration:underline;text-underline-offset:4px;color:#ffdfab}
+.gp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.gp-grid>.gp-panel{height:100%}
+.gp-feature-name{font-size:clamp(28px,3vw,39px);line-height:1.2;color:#efc887;font-family:Georgia,'Times New Roman',serif;font-weight:500}
+.gp-pill{border-radius:12px;background:#c6a66b1c;border:1px solid #ba955e44;padding:9px 12px;display:inline-block;font-size:13px}
+.gp-panel small,.gp-microcopy{color:#a7b7c9!important;font-size:12px!important}
+.gp-panel small{line-height:1.6}
+.gp-tabs{display:flex;gap:8px;margin:12px 0 18px}
+.gp-tabs button{border:1px solid #5f6f87;border-radius:24px;background:#14243a;color:#e5e9f0;padding:8px 15px;min-height:39px}
+.gp-tabs button[aria-pressed=true]{border-color:#d9b16f;background:#d6ae7040;color:#ffdfa5}
+.gp-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px}
+.gp-calendar-day{display:flex;align-items:center;flex-direction:column;justify-content:center;gap:6px;text-align:center;border:1px solid #455770;border-radius:11px;background:#0e1d31;padding:13px 5px;min-height:112px}
+.gp-calendar-day svg{color:#d2ae78}
+.gp-calendar-day strong{font-size:12px;color:#f2e8d7}
+.gp-calendar-day span{font-size:10px;color:#b6c4d4;overflow-wrap:anywhere}
+.gp-journal-preview>.as-journal-card{margin-top:18px}
+.gp-future{border-style:dashed;background:linear-gradient(130deg,#19273a,#17233a);border-color:#776c6599}
+.gp-future-status{display:inline-block;font-size:11px;color:#dcc18d;border:1px solid #aa946c63;border-radius:20px;padding:7px 11px}
+.gp-settings-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:12px 0 23px}
+.gp-interests{border:1px solid #485b70;border-radius:12px;padding:13px 16px;display:flex;flex-wrap:wrap;gap:12px}
+.gp-interests legend{color:#e7d2ad;font-size:13px;font-weight:600;padding:0 5px}
+.gp-interests label{display:inline-flex;align-items:center;flex-direction:row;gap:8px;padding:8px 12px;border:1px solid #506278;border-radius:9px;background:#142238;cursor:pointer}
+.gp-interests input{accent-color:#dfb671;width:17px;height:17px}
+.gp-settings-actions{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:18px}
+.gp-success,.gp-error{padding:13px 17px;border-radius:10px;display:flex;align-items:center;gap:12px;background:#243e365c;color:#d0f4e3}
+.gp-error{background:#6540465e;color:#ffe2d8}
+.gp-error button{background:transparent;border:1px solid currentColor;border-radius:7px;color:inherit;display:inline-flex;align-items:center;gap:7px;padding:6px 11px}
+.gp-notice{color:#f2caa1!important}
+.gp-loading{min-height:155px;display:grid;place-items:center;color:#cfbc9d}
+@media(max-width:940px){.gp-calendar-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.gp-grid{gap:14px}}
+@media(max-width:720px){.gp-layout{padding:15px;gap:15px}.gp-hero{min-height:210px}.gp-hero-ornament{width:72px;height:72px}.gp-hero-ornament>svg:first-child{width:65px}.gp-grid,.gp-settings-fields{grid-template-columns:1fr}.gp-calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gp-panel{padding:17px}.gp-form-inline{align-items:stretch}.gp-form-inline>.gp-button{width:100%}.gp-calendar-day{min-height:100px}.gp-interests{gap:6px}.gp-interests label{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.gp-layout *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+.gp-planet-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:17px}
+.gp-planet-highlights>div{display:flex;flex-direction:column;gap:4px;padding:11px;border:1px solid #57647c;border-radius:10px;background:#09192e}
+.gp-planet-highlights strong{color:#efd3a1;font-size:12px}
+.gp-planet-highlights span{font-size:13px;color:#e1e8f2}
+.gp-event-tag{display:inline-block;border-radius:6px;border:1px solid #c9ac754d;background:#d1ac6530;color:#f5d9a4;font-size:10px;font-style:normal;line-height:1.4;padding:4px}
+@media(max-width:460px){.gp-planet-highlights{grid-template-columns:1fr}.gp-planet-highlights>div{flex-direction:row;align-items:center;justify-content:space-between}}
+
+/* Personal release QA: the fixed-sign chart must contain all 4 grid rows.
+   Previously 4 × minmax(105px,1fr) could exceed the aspect-ratio box in a
+   402px-wide varga chart, clipping the last sign cells. Keep the full frame. */
+.as-shell .jy-south-chart{grid-template-rows:repeat(4,minmax(0,1fr));min-height:420px;aspect-ratio:auto}
+@media(max-width:800px){.as-shell .jy-south-chart{min-height:410px}}
+@media(max-width:490px){.as-shell .jy-south-chart{min-height:390px}}
+
+/* Geometry invariant for all D1 / D9 / D10 charts: exactly square.
+   This intentionally overrides historical min-height / ratio declarations. */
+.jy-south-chart,.as-shell .jy-south-chart{
+  width:100%;height:auto;min-height:0;max-width:780px;
+  aspect-ratio:1 / 1;grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:repeat(4,minmax(0,1fr));container-type:inline-size;
+}
+.jy-primary-chart .jy-south-chart,.jy-varga-chart .jy-south-chart{flex-shrink:1;min-width:0}
+.jy-south-center,.as-shell .jy-south-center{gap:6px;justify-content:center;padding:clamp(5px,1.4cqw,14px)}
+.jy-south-center strong,.as-shell .jy-south-center strong{
+  font:500 clamp(11px,3.8cqw,28px)/1.2 Georgia,'Playfair Display',serif;
+  letter-spacing:.02em;text-align:center;overflow-wrap:anywhere;
+}
+.jy-south-center .jy-south-center-index{
+  font:700 clamp(9px,1.8cqw,13px)/1.2 'DM Sans',Inter,sans-serif;
+  letter-spacing:.14em;color:#c9a56e;
+}
+.jy-south-name{font-size:clamp(8px,1.4cqw,12px);line-height:1.25}
+.jy-south-symbol{font-size:clamp(15px,4cqw,29px);flex:none}
+.jy-south-sign{padding:clamp(2px,.9cqw,9px);gap:clamp(1px,.6cqw,4px)}
+.jy-south-positions{gap:clamp(1px,.7cqw,7px);align-items:center}
+.jy-south-planet{min-width:0}
+.jy-south-planet strong{font-size:clamp(11px,2.8cqw,22px)}
+.jy-south-planet span{font-size:clamp(7px,1.45cqw,10px)}
+.jy-south-ascendant{padding:clamp(2px,.7cqw,5px) clamp(5px,1.2cqw,11px);font-size:clamp(9px,1.7cqw,13px)}
+@media(max-width:490px){
+ .jy-south-chart,.as-shell .jy-south-chart{min-height:0;aspect-ratio:1 / 1}
+ .jy-south-heading{gap:1px}
+ .jy-south-house{min-width:14px;height:14px;font-size:8px}
+ .jy-south-name{font-size:clamp(7px,1.55cqw,10px)}
+ .jy-south-symbol{font-size:clamp(13px,3.7cqw,20px)}
+ .jy-south-planet strong{font-size:clamp(10px,2.5cqw,16px)}
+ .jy-south-planet span{font-size:clamp(7px,1.4cqw,9px)}
+}
+
+/* Smooth lunar terminator: no opaque hard-edged dark circle.
+   Matching spherical palette with neighbouring orbital bodies. */
+.as-shell .as-moon-orb{
+ width:35px;height:35px;border-radius:50%;
+ background:radial-gradient(circle at 29% 27%,#fbf6e8 0%,#d5caba 24%,#a4acb8 53%,#647088 83%,#45516a 100%);
+ box-shadow:0 0 13px #f2e6d64f,0 0 28px #d6c8b320,inset -3px -2px 6px #24304c55;
+ overflow:hidden;
+}
+.as-shell .as-moon-orb::before{
+ content:'';position:absolute;inset:-1px;border-radius:50%;
+ background:linear-gradient(110deg,transparent 11%,#1a294010 35%,#18263b67 69%,#10182ca3 100%);
+ filter:blur(5px);transform:translateX(3px);
+}
+.as-shell .as-moon-orb::after{
+ content:'';position:absolute;inset:0;border-radius:50%;
+ border:1px solid #fff9e94d;
+ background:radial-gradient(circle at 25% 20%,#fff6df6a,transparent 42%);
+ opacity:.68;
+}

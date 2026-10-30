@@ -5,8 +5,10 @@ const makePlanet=(name,house,sign,deg=12.3)=>({
  nakshatra:'Ashwini',pada:1,retrograde:name==='Saturn'
 });
 const LAGNA=makePlanet('Ascendant',1,4,17.2);
+const FIXTURE_VERIFICATION={version:'jyotish-integrity-v3',status:'verified_internal',digest:'a'.repeat(64),checks:['d1_longitudes_houses'],externalReferenceChecked:false};
+// UI geometry mocks must obey the real integrity contract; otherwise they conceal a missing chart.
 const CHART={
- id:'geometry-e2e',input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:47.9105,longitude:33.3918},
+ verification:FIXTURE_VERIFICATION,id:'geometry-e2e',input:{date:'1996-03-27',time:'12:58',timeZone:'Europe/Kyiv',latitude:47.9105,longitude:33.3918},
  utc:'1996-03-27T10:58:00.000Z',ayanamsa:23.8,ephemeris:'Swiss Ephemeris',
  ascendant:LAGNA,lagnaD9:makePlanet('Ascendant',1,9,5.5),lagnaD10:makePlanet('Ascendant',1,5,6.1),
  d1:[makePlanet('Sun',9,12,13.2),makePlanet('Moon',12,3,17.3),makePlanet('Mars',9,12,8.2),
@@ -18,7 +20,7 @@ const CHART={
 };
 const CHAPTERS=['portrait','configuration','tensions','relationships','career','resources','timing','conclusion'];
 function fixture(lang){
- return {language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
+ return {readerVersion:'6.0.0',verification:FIXTURE_VERIFICATION,language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
   editorial:{
    highlights:[
     lang==='uk'?'Головний акцент: зв’язок між навчанням, волею та відповідальністю':'Central theme: learning and responsibility',
@@ -30,31 +32,38 @@ function fixture(lang){
   };
 }
 for(const lang of ['uk','en']){
- test('Jyotish '+lang+' keeps all chart labels inside the SVG and presents one reading document',async({page})=>{
+ test('Jyotish '+lang+' keeps all twelve sign cells inside their frame and presents one reading document',async({page})=>{
   await page.route('**/api/v1/charts/calculate',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(CHART)}));
   await page.route('**/api/v1/reports',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(fixture(lang))}));
   await page.goto('/'+lang+'/astrology/jyotish');
   await page.getByRole('button',{name:lang==='uk'?'Розрахувати карту':'Calculate birth chart'}).click();
-  const mainChart=page.locator('.jy-primary-chart .jy-north-chart');
+  const mainChart=page.locator('.jy-primary-chart .jy-south-chart');
   await expect(mainChart).toBeVisible();
-  await expect(mainChart.locator('.jy-chart-house')).toHaveCount(12);
+  await expect(mainChart.locator('.jy-south-sign')).toHaveCount(12);
+  const mainFrame=await mainChart.boundingBox();
+  expect(mainFrame).toBeTruthy();
+  expect(Math.abs(mainFrame.width-mainFrame.height),'D1 must be a square').toBeLessThanOrEqual(2);
+  await expect(mainChart.locator('.jy-south-center')).not.toContainText('RASHI');
   for(const view of ['d1','d9','d10']){
    await page.getByRole('button',{name:view.toUpperCase(),exact:true}).click();
-   const varga=page.locator('.jy-varga-chart .jy-north-chart');
+   const varga=page.locator('.jy-varga-chart .jy-south-chart');
    await expect(varga).toBeVisible();
-   await expect(varga.locator('.jy-chart-house')).toHaveCount(12);
+   await expect(varga.locator('.jy-south-sign')).toHaveCount(12);
+   const frame=await varga.boundingBox();
+   expect(frame).toBeTruthy();
+   expect(Math.abs(frame.width-frame.height),'Every varga must stay square at '+view).toBeLessThanOrEqual(2);
    const inside=await varga.evaluate(svg=>{
     const bounds=svg.getBoundingClientRect();
-    return [...svg.querySelectorAll('.jy-chart-house')].every(g=>{
+    return [...svg.querySelectorAll('.jy-south-sign')].every(g=>{
      const r=g.getBoundingClientRect();
      return r.left>=bounds.left-2&&r.right<=bounds.right+2&&r.top>=bounds.top-2&&r.bottom<=bounds.bottom+2;
     });
    });
    expect(inside,'House numbers, glyphs and degrees must remain within '+view+' frame').toBe(true);
   }
-  await page.getByRole('button',{name:lang==='uk'?'Створити AI-трактування':'Generate AI reading'}).click();
+  await page.getByRole('button',{name:lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}).click();
   const document=page.locator('.reading-editorial');
   await expect(document).toBeVisible();
   await expect(document.locator('.reading-principle')).toHaveCount(3);
@@ -68,3 +77,14 @@ for(const lang of ['uk','en']){
   expect(layout.separate&&layout.readable).toBe(true);
  });
 }
+
+test('old API proof cannot silently open a chart even when the calculation JSON looks valid',async({page})=>{
+ await page.route('**/api/v1/charts/calculate',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({...CHART,verification:{...FIXTURE_VERIFICATION,version:'jyotish-integrity-v1'}})
+ }));
+ await page.goto('/uk/astrology/jyotish');
+ await page.getByRole('button',{name:'Розрахувати карту'}).click();
+ await expect(page.getByRole('status')).toContainText('jyotish-integrity-v3');
+ await expect(page.locator('.jy-primary-chart .jy-south-chart')).toHaveCount(0);
+});
