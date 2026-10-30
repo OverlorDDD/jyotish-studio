@@ -4,6 +4,7 @@
 import {PrismaClient} from '@prisma/client';
 import {editorialPreviewState} from '../apps/api/src/news-editorial-coverage.ts';
 import {disabledNewsSourceKeys} from '../apps/api/src/news-sources.ts';
+import {publicTitleForLocale} from '../apps/api/src/news-localization.ts';
 const db=new PrismaClient();
 const headlinesOnly=process.argv.includes('--headlines-only');
 if(headlinesOnly&&!(process.env.NEWS_TRANSLATION_CONTENT_SCOPE==='headlines'&&
@@ -14,7 +15,7 @@ if(headlinesOnly&&!(process.env.NEWS_TRANSLATION_CONTENT_SCOPE==='headlines'&&
 try{
  const [rows,lastScan,sources]=await Promise.all([
   db.newsArticle.findMany({where:{status:'PUBLISHED'},
-   select:{id:true,source:true,titleUk:true,summaryUk:true,feedDescription:true,summary:true,summaryKind:true},
+   select:{id:true,source:true,title:true,titleUk:true,titleEn:true,summaryUk:true,feedDescription:true,summary:true,summaryKind:true},
    take:10000,orderBy:{discoveredAt:'desc'}}),
   db.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,accepted:true,sources:true,errors:true}}),
   db.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:160,select:{sourceKey:true,status:true,failure:true,createdAt:true}})
@@ -30,12 +31,14 @@ try{
   if(state==='translation_pending')pending.push({id:row.id,source:row.source,kind:row.summaryKind});
   if(state==='missing_source_facts')unsupported.push({id:row.id,source:row.source,kind:row.summaryKind});
  }
- const missingTitles=rows.filter(r=>!r.titleUk?.trim()).length;
+ const missingTitles=rows.filter(r=>!publicTitleForLocale(r,'uk')).length;
+ const missingEnglishTitles=rows.filter(r=>!publicTitleForLocale(r,'en')).length;
  const ageMin=lastScan?(Date.now()-new Date(lastScan.createdAt).getTime())/60000:null;
  const failures=[];
  if(!rows.length)failures.push('No published news articles');
  if(rows.length===10000)failures.push('Coverage exceeded 10000 articles; audit pagination');
- if(missingTitles)failures.push(missingTitles+' published titles have no Ukrainian translation');
+ if(missingTitles)failures.push(missingTitles+' published titles have no usable Ukrainian headline');
+ if(missingEnglishTitles)failures.push(missingEnglishTitles+' published titles have no usable English headline');
  if(counts.translation_pending&&!headlinesOnly)
   failures.push(counts.translation_pending+' articles have factual publisher context but no Ukrainian teaser');
  if(!lastScan||ageMin===null||ageMin>90)failures.push('News ingestion has no scan within 90 minutes');
@@ -44,7 +47,7 @@ try{
   ?'HEADLINES_READY_WITH_EDITORIAL_DEBT':'CONTENT_READY';
  const report={status,gate:headlinesOnly?'EXPLICIT_HEADLINES_ONLY':'STRICT_FULL_EDITORIAL',
   unlocalizedTeasersDeferred:headlinesOnly?counts.translation_pending:0,articles:rows.length,
-  missingTitles,missingTeasers:counts.missing_source_facts+counts.translation_pending,
+  missingTitles,missingEnglishTitles,missingTeasers:counts.missing_source_facts+counts.translation_pending,
   previewCoverage:counts,
   noSourceContextExamples:unsupported.slice(0,25),actionableMissingExamples:pending.slice(0,25),
   latestScan:lastScan?{at:lastScan.createdAt,ageMinutes:Math.round(ageMin),accepted:lastScan.accepted,
