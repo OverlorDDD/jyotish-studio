@@ -20,7 +20,9 @@ const mock=async(url,opts)=>{
  return new Response(JSON.stringify({translatedText:output}),{status:200});
 };
 test('legacy news translated oldest-first without a generated teaser for title-only records',async()=>{
- const old=process.env.NEWS_TRANSLATION_ENABLED;delete process.env.NEWS_TRANSLATION_ENABLED;
+ const old=process.env.NEWS_TRANSLATION_ENABLED,approved=process.env.NEWS_TRANSLATION_QUALITY_APPROVED;
+ delete process.env.NEWS_TRANSLATION_ENABLED;
+ process.env.NEWS_TRANSLATION_QUALITY_APPROVED='1';
  let select;const writes=[];
  const db={newsArticle:{findMany:async args=>{select=args;return rows;},
   updateMany:async args=>{writes.push(args);return {count:1};}}};
@@ -37,6 +39,22 @@ test('legacy news translated oldest-first without a generated teaser for title-o
   assert.equal(writes[0].data.editorialNextAttemptAt,null);
  }finally{
   if(old===undefined)delete process.env.NEWS_TRANSLATION_ENABLED;else process.env.NEWS_TRANSLATION_ENABLED=old;
+  if(approved===undefined)delete process.env.NEWS_TRANSLATION_QUALITY_APPROVED;else process.env.NEWS_TRANSLATION_QUALITY_APPROVED=approved;
+ }
+});
+test('unapproved translation is blocked before any database writes or network requests',async()=>{
+ const previous=process.env.NEWS_TRANSLATION_QUALITY_APPROVED;
+ delete process.env.NEWS_TRANSLATION_QUALITY_APPROVED;
+ let calls=0;
+ try{
+  const db={newsArticle:{findMany:async()=>{calls++;return rows;},
+    updateMany:async()=>{calls++;return {count:1};}}};
+  const result=await enrichPendingNews(db,async()=>{calls++;throw Error('must not run')});
+  assert.equal(result.reason,'translation_quality_not_approved');
+  assert.equal(calls,0);
+ }finally{
+  if(previous===undefined)delete process.env.NEWS_TRANSLATION_QUALITY_APPROVED;
+  else process.env.NEWS_TRANSLATION_QUALITY_APPROVED=previous;
  }
 });
 test('local NMT outage never burns retry budget and never calls a cloud fallback',async()=>{
