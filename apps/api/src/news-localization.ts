@@ -6,10 +6,26 @@ const DEVANAGARI=/[\u0900-\u097F]/u;
 const CYRILLIC=/[\u0400-\u052F]/u;
 const LATIN=/[A-Za-z]/;
 const ROMAN_HINDI=/\b(?:kal ka rashifal|aaj ka rashifal|rashifal 26|kundli ka)\b/i;
+/** Mechanical editorial warning signals, not a substitute for human review.
+ * Reject only verified nonsense and ungrammatical dates, leaving source titles
+ * intact for correction; never guess the original publisher's intended meaning. */
+const UK_BAD_DAY_MONTH=/(?:^|[^\\p{L}\\d])(?:0?[1-9]|[12]\\d|3[01])\\s+(?:січень|лютий|березень|квітень|травень|червень|липень|серпень|вересень|жовтень|листопад|грудень)(?![\\p{L}])/iu;
+export function headlineEditorialWarnings(value:string,locale:NewsTitleLocale):string[]{
+ const out:string[]=[];
+ if(locale==='uk'){
+  if(UK_BAD_DAY_MONTH.test(value))out.push('incorrect Ukrainian month case after day number');
+  if(/повн(?:ий|ого)\\s+плід\\s+місяця/iu.test(value))out.push('literal mistranslation of lunar effects');
+ }else if(/\\bfull fruit of the moon\\b/i.test(value)){
+  out.push('literal mistranslation of lunar effects');
+ }
+ return out;
+}
+
 export function hasDevanagari(value:string):boolean{return DEVANAGARI.test(value)}
 export function isLocalizedNewsTitle(value:string|null|undefined,locale:NewsTitleLocale):boolean{
  const text=value?.trim()||'';
- if(!text||text.length>300||DEVANAGARI.test(text)||ROMAN_HINDI.test(text))return false;
+ if(!text||text.length>300||DEVANAGARI.test(text)||ROMAN_HINDI.test(text)||
+  headlineEditorialWarnings(text,locale).length)return false;
  return locale==='uk'?CYRILLIC.test(text):LATIN.test(text)&&!CYRILLIC.test(text);
 }
 export function headlineNeedsTranslation(title:string|null|undefined,locale:NewsTitleLocale):boolean{
