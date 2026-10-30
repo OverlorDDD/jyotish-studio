@@ -42,17 +42,18 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
    console.warn('[news-nmt] source language unsupported:',article.language);
    continue;
   }
+  let titleUk=article.titleUk?.trim()||'';
   try{
    // Do not retranslate already published Ukrainian content.
-   const titleUk=article.titleUk?.trim()||(uk?title:await translateNewsText(title,fetcher));
+   if(!titleUk)titleUk=uk?title:await translateNewsText(title,fetcher);
    const summaryUk=article.summaryUk?.trim()||(src?(uk?src:await translateNewsText(src,fetcher)):'');
    outputs.push({id:article.id,titleUk,summaryUk,summaryEn:!uk&&src?src:''});
   }catch(error){
    console.warn('[news-nmt] Local translation unavailable for article',article.id,':',
     error instanceof Error?error.message:String(error));
-   // Preserve a valid translated headline even if the second request failed.
-   // The incomplete summary remains in queue with backoff; no fabricated fallback.
-   if(article.titleUk?.trim())outputs.push({id:article.id,titleUk:article.titleUk.trim(),summaryUk:'',summaryEn:''});
+   // Save the validated Ukrainian title even if the subsequent teaser fails;
+   // the incomplete teaser remains queued with backoff.
+   if(titleUk)outputs.push({id:article.id,titleUk,summaryUk:'',summaryEn:''});
   }
  }
  return outputs;
