@@ -65,7 +65,7 @@ docker compose --profile translation logs --tail=80 translator
 npm run news:translate:check
 ```
 
-The first startup may download language model packages and compile/warm the translator. A successful check must print `PASS EN -> UK local machine translation` and a Ukrainian translation of a controlled sentence. If it reports `English to Ukrainian package not installed`, inspect:
+The first startup may download language model packages and compile/warm the translator. The six-sample translation QA command helps compare real Ukrainian output for Jyotish, Tarot, yoga, astronomy and dates; human sign-off is required before publication. A successful check must print `PASS EN -> UK local machine translation` and a Ukrainian translation of a controlled sentence. If it reports `English to Ukrainian package not installed`, inspect:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:5100/languages
@@ -89,6 +89,7 @@ In a second PowerShell:
 ```powershell
 cd "C:\Users\Note\jyotish-studio-git"
 npm run news:translate:check
+npm run news:translate:sample
 npm run news:doctor
 npm run news:repair
 npm run news:quality
@@ -119,3 +120,7 @@ The new `tools/news-nmt.test.mjs` uses a fake LOCAL HTTP translator and verifies
 - Do not retranslate approved human-edited Ukrainian titles or summaries automatically. Existing saved translations are intentionally preserved.
 - When `NEWS_TRANSLATION_ENABLED=0`, the localization queue pauses; this affects only new translations, not published cards.
 - A later paid NMT option would require a new explicit provider switch, privacy review and budget. No such automatic fallback exists.
+
+## Licensing / production note
+
+LibreTranslate is distributed under AGPL-3.0; Argos Translate software is MIT-licensed. Review any separately downloaded model files and source feed reuse conditions before distributing the Docker image or operating an altered LibreTranslate service publicly. Galaxiora's existing repository already states AGPL-3.0-only. An unmodified internal translator accessed only over loopback is different from a publicly exposed translation service; keep the container private and honor applicable license obligations. Pin a reviewed Docker image digest before public production deployment rather than relying indefinitely on `latest`.
