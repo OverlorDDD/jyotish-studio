@@ -8,9 +8,13 @@ export const DEFAULT_NEWS_AZURE_MONTHLY_CHARS=100_000;
 const MAX_OPERATOR_BUDGET=1_800_000; // below F0 2,000,000/month
 
 export class NewsTranslationBudgetExceeded extends Error{
- constructor(public readonly period:string,public readonly limit:number){
+ readonly period:string;
+ readonly limit:number;
+ constructor(period:string,limit:number){
   super('Azure monthly news character budget exhausted: '+period+' (limit '+limit+')');
   this.name='NewsTranslationBudgetExceeded';
+  this.period=period;
+  this.limit=limit;
  }
 }
 
