@@ -39,6 +39,8 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
     <p className="as-footer-note">{t.disclaimer}</p>
     <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Методологія й точність':'Methods and accuracy'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={portalPath(locale,'astrology/jyotish')}>{moduleTitle('jyotish')} <ArrowUpRight size={15} aria-hidden="true"/></Link>
+    <Link href={'/'+locale+'/privacy'}>{locale==='uk'?'Конфіденційність':'Privacy'}</Link>
+    <Link href={'/'+locale+'/terms'}>{locale==='uk'?'Умови користування':'Terms of Use'}</Link>
   </footer>
  </div>;
 }
