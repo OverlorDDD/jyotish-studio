@@ -77,7 +77,7 @@ export function improveNewsTerminology(source:string,translated:string):string{
  if(/\bTithi\s+and\s+Nakshatra\b/i.test(source))
   result=result.replace(/тітхі\s+та\s+накшатра(?![\p{L}])/giu,'тітхі та накшатри');
  if(/\byoga instructor\b/i.test(source))
-  result=result.replace(/інструктор йога/giu,'інструктор із йоги');
+  result=result.replace(/інструктор йога/giu,match=>match.startsWith('І')?'Інструктор із йоги':'інструктор із йоги');
  if(/\bgentle morning breathing exercises\b/i.test(source))
   result=result.replace(/ніжні ранкові дихальні вправи/giu,'м’які ранкові дихальні вправи');
  return result;
