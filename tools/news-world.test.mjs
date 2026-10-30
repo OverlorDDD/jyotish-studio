@@ -65,31 +65,32 @@ test('RSS image metadata respects article-level license and safe URL constraints
  assert.equal(safeImageUrl('http://localhost/pic.jpg','https://creativecommons.org/licenses/by/4.0/'),null);
  assert.equal(safeImageUrl('https://assets.example.org/cover.jpg',''),null);
 });
-test('Editorial Ukrainian translation never fabricates missing article descriptions',async()=>{
- const prev=process.env.GROQ_API_KEY,gem=process.env.GEMINI_API_KEY,router=process.env.OPENROUTER_API_KEY;
- process.env.GROQ_API_KEY='unit-test-key';delete process.env.GEMINI_API_KEY;delete process.env.OPENROUTER_API_KEY;
+test('machine translation never fabricates article details when publisher supplies only a title',async()=>{
+ const prev=process.env.NEWS_TRANSLATION_ENABLED;
+ delete process.env.NEWS_TRANSLATION_ENABLED;
  const inputs=[
-  {id:'a',title:'Cotton Rose Pavilion',feedDescription:'',summary:null,summaryKind:'needs_editorial',language:'en'},
-  {id:'b',title:'Venus Retrograde in Scorpio in Birth Charts',feedDescription:'The discussion compares natal Venus retrograde configurations and reviews recurring eight-year patterns.',summary:null,summaryKind:'needs_editorial',language:'en'}
+  {id:'a',title:'Tarot Symbolism',feedDescription:'',summary:null,summaryKind:'needs_editorial',language:'en'},
+  {id:'b',title:'Venus Retrograde in Birth Charts',feedDescription:'The discussion compares natal Venus retrograde configurations and reviews recurring patterns in western astrology.',summary:null,summaryKind:'needs_editorial',language:'en'}
  ];
- let seen='';
+ const calls=[];
+ const fake=async(url,opts)=>{
+  assert.equal(url,'http://127.0.0.1:5100/translate');
+  const req=JSON.parse(opts.body);calls.push(req.q);
+  const text=req.q.includes('Tarot')?'Символіка Таро':
+   req.q.includes('Venus Retrograde')?'Ретроградна Венера у натальних картах':
+   'Обговорення порівнює положення ретроградної Венери у натальних картах і повторювані астрологічні цикли.';
+  return new Response(JSON.stringify({translatedText:text}),{status:200});
+ };
  try{
-  const translated=await generateNewsMicrocopy(inputs,async(url,opts)=>{
-   seen=String(opts.body);
-   return new Response(JSON.stringify({choices:[{message:{content:JSON.stringify([
-    {id:'a',titleUk:'Павільйон бавовняної троянди',summaryUk:'Немає підтверджених відомостей',summaryEn:''},
-    {id:'b',titleUk:'Ретроградна Венера у Скорпіоні в натальній карті',summaryUk:'Автори розглядають прояви ретроградної Венери в натальній карті та повторювані восьмирічні цикли.',summaryEn:'A discussion of retrograde Venus in birth charts and its recurring eight-year cycles.'}
-   ])}}]}),{status:200,headers:{'content-type':'application/json'}});
-  });
+  const translated=await generateNewsMicrocopy(inputs,fake);
   assert.equal(translated.length,2);
-  assert.equal(translated[0].titleUk,'Павільйон бавовняної троянди');
+  assert.equal(translated[0].titleUk,'Символіка Таро');
   assert.equal(translated[0].summaryUk,'');
   assert.match(translated[1].summaryUk,/Венери/);
-  assert.ok(!seen.includes('birth data'));
+  assert.equal(calls.length,3,'two titles plus only the factual description');
+  assert.ok(calls.every(x=>!x.includes('birth data')));
  }finally{
-  if(prev===undefined)delete process.env.GROQ_API_KEY;else process.env.GROQ_API_KEY=prev;
-  if(gem===undefined)delete process.env.GEMINI_API_KEY;else process.env.GEMINI_API_KEY=gem;
-  if(router===undefined)delete process.env.OPENROUTER_API_KEY;else process.env.OPENROUTER_API_KEY=router;
+  if(prev===undefined)delete process.env.NEWS_TRANSLATION_ENABLED;else process.env.NEWS_TRANSLATION_ENABLED=prev;
  }
 });
 
