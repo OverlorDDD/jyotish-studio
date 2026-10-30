@@ -85,3 +85,21 @@ test('headline approval disabled means zero network, zero DB and zero budget',as
   assert.equal(result.scope,'headlines');
  });
 });
+
+test('Panchanga title repairs tithi and nakshatra from matched English context',async()=>{
+ const env={NEWS_TRANSLATION_PROVIDER:'azure',AZURE_TRANSLATOR_KEY:'fake-ci-key',AZURE_TRANSLATOR_REGION:'eastus'};
+ const result=await translateNewsText('What is Panchanga? Tithi and Nakshatra explained',
+  async()=>new Response(JSON.stringify([{translations:[{
+   to:'uk',text:'Що таке Панчанга? Пояснення Тіті та накшатра'
+  }]}]),{status:200}),env);
+ assert.match(result,/тітхі та накшатри/);
+ assert.doesNotMatch(result,/Тіті|накшатра$/);
+});
+test('limited news readiness still keeps missing factual teasers visible as editorial debt',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const source=readFileSync(new URL('../tools/news-release-gate.mjs',import.meta.url),'utf8');
+ assert.match(source,/HEADLINES_READY_WITH_EDITORIAL_DEBT/);
+ assert.match(source,/unlocalizedTeasersDeferred/);
+ assert.match(source,/counts\.translation_pending&&!headlinesOnly/);
+ assert.match(source,/Explicit headline-only gate requires approved headlines scope/);
+});
