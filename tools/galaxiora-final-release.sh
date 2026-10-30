@@ -38,53 +38,109 @@ check_config(){
  echo "Previous HTTP: API $api, Web $web"
 }
 save_credentials(){
- read -r -p 'Turnstile Site Key: ' GX_SITE_KEY </dev/tty
- read -r -s -p 'Turnstile Secret Key: ' GX_SECRET_KEY </dev/tty; echo
- read -r -s -p 'Resend API Key: ' GX_RESEND_KEY </dev/tty; echo
- export GX_SITE_KEY GX_SECRET_KEY GX_RESEND_KEY
+ # Reuse previously validated secret inputs after a failed deployment.
+ # Secrets are stored in a private chmod 600 file, never in logs or Git.
+ # This avoids making the operator retype provider keys at every retry.
+ local cache="$STATE/provider-credentials.json"
+ if [ -s "$cache" ]; then
+  echo 'Reusing previously saved private Turnstile/Resend credentials.'
+ else
+  # Do not ask if all three values already exist in .env.
+  if python3 - <<'PY'
+from pathlib import Path
+import json
+raw=Path('.env').read_bytes()
+keys={}
+for line in raw.splitlines():
+ if b'=' not in line:continue
+ k,v=line.split(b'=',1)
+ try:
+  x=v.strip().decode('ascii')
+  keys[k.strip().decode('ascii')]=json.loads(x) if x.startswith('"') else x
+ except (UnicodeError,ValueError):continue
+names=('NEXT_PUBLIC_TURNSTILE_SITE_KEY','TURNSTILE_SECRET_KEY','RESEND_API_KEY')
+raise SystemExit(0 if all(keys.get(k) for k in names) else 1)
+PY
+  then
+   echo 'Reusing provider credentials from existing .env.'
+  else
+   echo 'Provider credentials are not saved. Enter them one time only.'
+   read -r -p 'Turnstile Site Key: ' GX_SITE_KEY </dev/tty
+   read -r -s -p 'Turnstile Secret Key: ' GX_SECRET_KEY </dev/tty; echo
+   read -r -s -p 'Resend API Key: ' GX_RESEND_KEY </dev/tty; echo
+   export GX_SITE_KEY GX_SECRET_KEY GX_RESEND_KEY
+  fi
+ fi
+ export GALAXIORA_CREDENTIAL_CACHE="$cache"
  python3 - <<'PY'
 from pathlib import Path
-import os, re, json
+import os,re,json
 p=Path('.env')
 raw=p.read_bytes()
 if not raw or b'AUTH_SECRET=' not in raw or b'DATABASE_URL=' not in raw:
  raise SystemExit('STOP: old .env is invalid')
+existing={}
+for line in raw.splitlines():
+ if b'=' not in line:continue
+ key,value=line.split(b'=',1)
+ try:
+  k=key.strip().decode('ascii')
+  v=value.strip().decode('ascii')
+  existing[k]=json.loads(v) if v.startswith('"') else v
+ except (UnicodeError,ValueError):continue
+cache=Path(os.environ['GALAXIORA_CREDENTIAL_CACHE'])
+if cache.is_file():
+ secret=json.loads(cache.read_text('ascii'))
+elif all(existing.get(k) for k in ('NEXT_PUBLIC_TURNSTILE_SITE_KEY','TURNSTILE_SECRET_KEY','RESEND_API_KEY')):
+ secret={
+  'site':existing['NEXT_PUBLIC_TURNSTILE_SITE_KEY'],
+  'turnstile':existing['TURNSTILE_SECRET_KEY'],
+  'resend':existing['RESEND_API_KEY']
+ }
+else:
+ secret={'site':os.environ.get('GX_SITE_KEY','').strip(),
+  'turnstile':os.environ.get('GX_SECRET_KEY','').strip(),
+  'resend':os.environ.get('GX_RESEND_KEY','').strip()}
+if not re.fullmatch('[A-Za-z0-9_-]{12,256}',secret['site']):
+ raise SystemExit('STOP: invalid Turnstile Site Key')
+if not re.fullmatch('[A-Za-z0-9_-]{12,256}',secret['turnstile']) or secret['turnstile']==secret['site']:
+ raise SystemExit('STOP: invalid Turnstile Secret Key')
+if not re.fullmatch('re_[A-Za-z0-9_-]{15,}',secret['resend']):
+ raise SystemExit('STOP: invalid Resend API Key')
+# Cache the validated provider values *before* changing the production .env.
+# A failed release can restore old env without forcing another input.
+if not cache.is_file():
+ temp=cache.with_suffix('.tmp')
+ with temp.open('w',encoding='ascii') as f:
+  json.dump(secret,f)
+  f.flush()
+  os.fsync(f.fileno())
+ temp.chmod(0o600)
+ temp.replace(cache)
 v={
  'PUBLIC_REGISTRATION_ENABLED':'1','SESSION_COOKIE_SECURE':'1',
  'NEXT_PUBLIC_SITE_URL':'https://galaxiora.com','SITE_NOINDEX':'1',
  'NEXT_PUBLIC_SITE_CONTACT_EMAIL':'support@galaxiora.com',
  'NEXT_PUBLIC_OPERATOR_NAME':'Denys Avramenko',
  'RESEND_FROM_EMAIL':'verify@mail.galaxiora.com',
- 'NEXT_PUBLIC_TURNSTILE_SITE_KEY':os.environ['GX_SITE_KEY'].strip(),
- 'TURNSTILE_SECRET_KEY':os.environ['GX_SECRET_KEY'].strip(),
- 'RESEND_API_KEY':os.environ['GX_RESEND_KEY'].strip(),
+ 'NEXT_PUBLIC_TURNSTILE_SITE_KEY':secret['site'],
+ 'TURNSTILE_SECRET_KEY':secret['turnstile'],
+ 'RESEND_API_KEY':secret['resend'],
  'NEWS_TRANSLATION_ENABLED':'0'
 }
-for k,x in v.items():
- try:x.encode('ascii','strict')
- except UnicodeError:raise SystemExit('STOP: invalid encoding in '+k)
- if not x or '\n' in x or '\r' in x:raise SystemExit('STOP: invalid value '+k)
-if not re.fullmatch('[A-Za-z0-9_-]{12,256}',v['NEXT_PUBLIC_TURNSTILE_SITE_KEY']):
- raise SystemExit('STOP: invalid Turnstile site key')
-if not re.fullmatch('[A-Za-z0-9_-]{12,256}',v['TURNSTILE_SECRET_KEY']):
- raise SystemExit('STOP: invalid Turnstile secret')
-if v['NEXT_PUBLIC_TURNSTILE_SITE_KEY']==v['TURNSTILE_SECRET_KEY']:
- raise SystemExit('STOP: Turnstile site and secret keys must differ')
-if not re.fullmatch('re_[A-Za-z0-9_-]{15,}',v['RESEND_API_KEY']):
- raise SystemExit('STOP: invalid Resend key')
 names={k.encode('ascii') for k in v}
-lines=[x for x in raw.splitlines() if x.split(b'=',1)[0].strip() not in names]
-lines += [(k+'='+json.dumps(x,ensure_ascii=True)).encode('ascii') for k,x in v.items()]
-temp=p.with_name('.env.final-write.tmp')
-with temp.open('wb') as f:
+lines=[line for line in raw.splitlines() if line.split(b'=',1)[0].strip() not in names]
+lines += [(k+'='+json.dumps(value,ensure_ascii=True)).encode('ascii') for k,value in v.items()]
+tmp=p.with_name('.env.final-write.tmp')
+with tmp.open('wb') as f:
  f.write(b'\n'.join(lines)+b'\n')
  f.flush()
  os.fsync(f.fileno())
-temp.chmod(0o600)
-temp.replace(p)
-print('PASS: new signup settings saved, no secrets displayed')
+tmp.chmod(0o600)
+tmp.replace(p)
+print('PASS: protected signup configured and provider keys retained privately')
 PY
- unset GX_SITE_KEY GX_SECRET_KEY GX_RESEND_KEY
+ unset GX_SITE_KEY GX_SECRET_KEY GX_RESEND_KEY GALAXIORA_CREDENTIAL_CACHE
 }
 recover_deploy(){
  local rc=$?
