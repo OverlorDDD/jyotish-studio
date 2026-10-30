@@ -148,7 +148,7 @@ deploy(){
  npm run build
  # Real HTTP startup smoke on an isolated loopback port catches missing
  # decorator metadata and module crashes that a TypeScript build cannot.
- if ss -ltn | grep -qE '127\\.0\\.0\\.1:4001[[:space:]]'; then
+ if ss -ltn | grep -qE '127\.0\.0\.1:4001[[:space:]]'; then
   echo 'STOP: API smoke port 4001 already in use'; exit 1
  fi
  local canary_pid http canary_ready=0
