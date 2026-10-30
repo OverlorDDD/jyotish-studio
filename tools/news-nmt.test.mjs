@@ -75,3 +75,20 @@ test('source-only summaries are bounded, and pre-existing translations are not r
  const noFacts={...row,summaryUk:null,feedDescription:null,summaryKind:'no_context'};
  assert.equal(extractSourceTeaser(noFacts),'');
 });
+
+test('translator named volumes are repaired before LibreTranslate starts as UID 1032',()=>{
+ const compose=source('docker-compose.yml');
+ const init=compose.slice(compose.indexOf('  translator-volume-init:'),compose.indexOf('  translator:',compose.indexOf('  translator-volume-init:')));
+ const translator=compose.slice(compose.indexOf('  translator:'),compose.indexOf('\nvolumes:',compose.indexOf('  translator:')));
+ assert.match(init,/user:\s*["']0:0["']/);
+ assert.match(init,/chown -R 1032:1032/);
+ assert.match(init,/galaxiora-argos-models:/);
+ assert.match(init,/galaxiora-argos-cache:/);
+ assert.match(init,/restart:\s*["']no["']/);
+ assert.match(translator,/translator-volume-init:\s*\n\s*condition: service_completed_successfully/);
+ assert.match(translator,/127\.0\.0\.1:5100:5000/);
+ assert.doesNotMatch(translator,/user:\s*["']0:0["']/,
+  'The permanently running translator must not be root');
+ assert.match(compose,/jyotish-postgres:\/var\/lib\/postgresql\/data/,
+  'Existing Postgres volume must remain untouched');
+});
