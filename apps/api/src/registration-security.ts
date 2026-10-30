@@ -1,6 +1,6 @@
 /** Fail-closed public signup: Cloudflare Turnstile + verified delivery through Resend. */
 import {createHmac,randomInt,timingSafeEqual} from 'node:crypto';
-import {ServiceUnavailableException,TooManyRequestsException,ForbiddenException} from '@nestjs/common';
+import {ServiceUnavailableException,ForbiddenException} from '@nestjs/common';
 
 export function registrationReady(env:NodeJS.ProcessEnv=process.env):boolean{
  return env.PUBLIC_REGISTRATION_ENABLED==='1'&&Boolean(env.AUTH_SECRET&&env.AUTH_SECRET.length>=32&&
