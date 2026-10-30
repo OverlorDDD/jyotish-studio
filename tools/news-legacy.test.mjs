@@ -20,8 +20,10 @@ const mock=async(url,opts)=>{
  return new Response(JSON.stringify({translatedText:output}),{status:200});
 };
 test('legacy news translated oldest-first without a generated teaser for title-only records',async()=>{
- const old=process.env.NEWS_TRANSLATION_ENABLED,approved=process.env.NEWS_TRANSLATION_QUALITY_APPROVED;
+ const old=process.env.NEWS_TRANSLATION_ENABLED,approved=process.env.NEWS_TRANSLATION_QUALITY_APPROVED,
+ scope=process.env.NEWS_TRANSLATION_CONTENT_SCOPE;
  delete process.env.NEWS_TRANSLATION_ENABLED;
+ process.env.NEWS_TRANSLATION_CONTENT_SCOPE='full';
  process.env.NEWS_TRANSLATION_QUALITY_APPROVED='1';
  let select;const writes=[];
  const db={newsArticle:{findMany:async args=>{select=args;return rows;},
@@ -40,6 +42,7 @@ test('legacy news translated oldest-first without a generated teaser for title-o
  }finally{
   if(old===undefined)delete process.env.NEWS_TRANSLATION_ENABLED;else process.env.NEWS_TRANSLATION_ENABLED=old;
   if(approved===undefined)delete process.env.NEWS_TRANSLATION_QUALITY_APPROVED;else process.env.NEWS_TRANSLATION_QUALITY_APPROVED=approved;
+  if(scope===undefined)delete process.env.NEWS_TRANSLATION_CONTENT_SCOPE;else process.env.NEWS_TRANSLATION_CONTENT_SCOPE=scope;
  }
 });
 test('unapproved translation is blocked before any database writes or network requests',async()=>{
@@ -58,8 +61,8 @@ test('unapproved translation is blocked before any database writes or network re
  }
 });
 test('local NMT outage never burns retry budget and never calls a cloud fallback',async()=>{
- const previous=process.env.NEWS_TRANSLATION_QUALITY_APPROVED;
- process.env.NEWS_TRANSLATION_QUALITY_APPROVED='1';
+ const previous=process.env.NEWS_TRANSLATION_HEADLINES_APPROVED;
+ process.env.NEWS_TRANSLATION_HEADLINES_APPROVED='1';
  const writes=[];const calls=[];
  const db={newsArticle:{findMany:async()=>[rows[0]],updateMany:async arg=>{writes.push(arg);return {count:1};}}};
  const fail=async url=>{calls.push(String(url));throw Error('offline');};
@@ -67,8 +70,8 @@ test('local NMT outage never burns retry budget and never calls a cloud fallback
  assert.equal(out.reason,'local_translator_unavailable');
  assert.equal(writes.length,0,'Do not mark articles failed while translator is offline');
  assert.ok(calls.every(u=>u.startsWith('http://127.0.0.1:5100/')));
- if(previous===undefined)delete process.env.NEWS_TRANSLATION_QUALITY_APPROVED;
- else process.env.NEWS_TRANSLATION_QUALITY_APPROVED=previous;
+ if(previous===undefined)delete process.env.NEWS_TRANSLATION_HEADLINES_APPROVED;
+ else process.env.NEWS_TRANSLATION_HEADLINES_APPROVED=previous;
 });
 test('news archive help is available without a database or translator',async()=>{
  const {spawnSync}=await import('node:child_process');
