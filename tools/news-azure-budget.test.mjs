@@ -42,7 +42,7 @@ test('Azure usage reservation persists and atomically blocks before threshold',a
 
 test('Azure budget blocks news ingest before API traffic and article mutations',async()=>{
  const keys=['NEWS_TRANSLATION_ENABLED','NEWS_TRANSLATION_PROVIDER','NEWS_TRANSLATION_QUALITY_APPROVED',
-  'AZURE_TRANSLATOR_KEY','AZURE_TRANSLATOR_REGION','NEWS_AZURE_MONTHLY_CHAR_LIMIT'];
+  'AZURE_TRANSLATOR_KEY','AZURE_TRANSLATOR_REGION','NEWS_AZURE_MONTHLY_CHAR_LIMIT','NEWS_TRANSLATION_CONTENT_SCOPE'];
  const previous=keys.map(k=>process.env[k]);
  const entries=[{id:'one',title:'Mercury enters Scorpio in 2026',
   titleUk:null,summaryUk:null,feedDescription:null,summary:null,
@@ -58,7 +58,7 @@ test('Azure budget blocks news ingest before API traffic and article mutations',
  try{
   Object.assign(process.env,{
    NEWS_TRANSLATION_ENABLED:'1',NEWS_TRANSLATION_PROVIDER:'azure',
-   NEWS_TRANSLATION_QUALITY_APPROVED:'1',
+   NEWS_TRANSLATION_QUALITY_APPROVED:'1',NEWS_TRANSLATION_CONTENT_SCOPE:'full',
    AZURE_TRANSLATOR_KEY:'fake-test-key',AZURE_TRANSLATOR_REGION:'westeurope',
    NEWS_AZURE_MONTHLY_CHAR_LIMIT:'2'
   });
@@ -85,7 +85,7 @@ test('Without human quality sign-off no Azure reservation is created',async()=>{
 
 test('Approved Azure batch reserves the actual headline length, then stores its Ukrainian translation',async()=>{
  const keys=['NEWS_TRANSLATION_ENABLED','NEWS_TRANSLATION_PROVIDER','NEWS_TRANSLATION_QUALITY_APPROVED',
-  'AZURE_TRANSLATOR_KEY','AZURE_TRANSLATOR_REGION','NEWS_AZURE_MONTHLY_CHAR_LIMIT'];
+  'AZURE_TRANSLATOR_KEY','AZURE_TRANSLATOR_REGION','NEWS_AZURE_MONTHLY_CHAR_LIMIT','NEWS_TRANSLATION_CONTENT_SCOPE'];
  const previous=keys.map(k=>process.env[k]);
  const headline='Mercury enters Scorpio in 2026';
  const row={id:'azure-one',title:headline,titleUk:null,summaryUk:null,
@@ -105,7 +105,7 @@ test('Approved Azure batch reserves the actual headline length, then stores its 
  };
  try{
   Object.assign(process.env,{NEWS_TRANSLATION_ENABLED:'1',NEWS_TRANSLATION_PROVIDER:'azure',
-   NEWS_TRANSLATION_QUALITY_APPROVED:'1',AZURE_TRANSLATOR_KEY:'fake-test-key',
+   NEWS_TRANSLATION_QUALITY_APPROVED:'1',NEWS_TRANSLATION_CONTENT_SCOPE:'full',AZURE_TRANSLATOR_KEY:'fake-test-key',
    AZURE_TRANSLATOR_REGION:'westeurope',NEWS_AZURE_MONTHLY_CHAR_LIMIT:'1000'});
   const out=await enrichPendingNews(db,fetcher);
   assert.equal(out.processed,1);
