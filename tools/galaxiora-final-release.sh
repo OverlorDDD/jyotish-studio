@@ -147,24 +147,43 @@ recover_deploy(){
  trap - EXIT
  [ "$rc" = 0 ] && return 0
  set +e
- echo 'DEPLOY FAILED. Attempting to restore original code and configuration.'
- sudo systemctl stop galaxiora-web.service galaxiora-api.service
+ echo 'DEPLOY FAILED. Restoring last healthy code and configuration.'
+ # During canary tests there has been no live service cutover: keep both
+ # production processes running while restoring files. This avoids the
+ # expensive outage observed during previous failed canary attempts.
+ if [ "${CUTOVER_STARTED:-0}" = 1 ]; then
+  sudo systemctl stop galaxiora-web.service galaxiora-api.service
+ fi
  if [ -s "$STATE/env-before-deploy" ]; then
   cp "$STATE/env-before-deploy" .env
   chmod 600 .env
  fi
- git stash push -m 'Galaxiora failed-release generated files' -- apps/web/next-env.d.ts package.json >/dev/null 2>&1 || true
  if [ -s "$STATE/previous.sha" ]; then
-  git switch --detach "$(cat "$STATE/previous.sha")"
-  npm ci --no-audit --no-fund
-  npm run db:generate
-  npm run build
+  local previous
+  previous=$(cat "$STATE/previous.sha")
+  if [ "$(git rev-parse HEAD)" != "$previous" ]; then
+   git stash push -m 'Galaxiora failed-release generated files' -- apps/web/next-env.d.ts package.json >/dev/null 2>&1 || true
+   git switch --detach "$previous"
+   npm ci --no-audit --no-fund
+   npm run db:generate
+   npm run build
+  fi
  fi
- sudo systemctl start galaxiora-api.service
+ # Restart only after old assets are safely built. In the early-failure
+ # path an unsuccessful rollback leaves the old processes running.
+ if [ "${CUTOVER_STARTED:-0}" = 1 ]; then
+  sudo systemctl start galaxiora-api.service
+ else
+  sudo systemctl restart galaxiora-api.service
+ fi
  ready galaxiora-api.service http://127.0.0.1:4000/api/health || echo 'MANUAL REPAIR: API'
- sudo systemctl start galaxiora-web.service
+ if [ "${CUTOVER_STARTED:-0}" = 1 ]; then
+  sudo systemctl start galaxiora-web.service
+ else
+  sudo systemctl restart galaxiora-web.service
+ fi
  ready galaxiora-web.service http://127.0.0.1:3000/uk || echo 'MANUAL REPAIR: web'
- echo 'Database migration was not rolled back; backup retained.'
+ echo 'Database migrations (if any) were not rolled back; backup retained.'
 }
 deploy(){
  check_config
@@ -258,6 +277,7 @@ PY
  wait "$canary_pid" 2>/dev/null || true
  echo 'PASS: candidate NestJS API starts and serves real DB health before production cutover'
  echo '=== SWITCH ACTIVE SERVICES ==='
+ CUTOVER_STARTED=1
  sudo systemctl stop galaxiora-web.service galaxiora-api.service
  sudo systemctl start galaxiora-api.service
  ready galaxiora-api.service http://127.0.0.1:4000/api/health
