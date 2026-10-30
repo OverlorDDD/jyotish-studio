@@ -187,12 +187,32 @@ deploy(){
  npm run launch:verify
  npm run r2:audit
  echo '=== FAKE TURNSTILE MUST BE REJECTED ==='
- code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 18 \
+ # example.invalid is rejected by some email validators BEFORE Turnstile is
+ # reached. Use IANA-reserved example.com with a valid format; no email can
+ # be sent because the fake bot token must be rejected first.
+ local response_file http_code
+ response_file=$(mktemp)
+ http_code=$(curl -sS -o "$response_file" -w '%{http_code}' --max-time 18 \
   -H 'Content-Type: application/json' \
-  --data '{"email":"signup-check@example.invalid","password":"Safe-Test-Password-2026","turnstileToken":"fake-token"}' \
+  --data '{"email":"galaxiora-smoke-check@example.com","password":"Safe-Test-Password-2026","turnstileToken":"fake-token"}' \
   http://127.0.0.1:4000/api/v1/account/register || true)
- [ "$code" = 403 ] || { echo "STOP: fake token returned HTTP $code, expected 403"; exit 1; }
- echo 'PASS: invalid Turnstile token blocked'
+ if [ "$http_code" != 403 ]; then
+  echo "STOP: fake Turnstile token returned HTTP $http_code, expected 403."
+  echo 'Server rejection detail (no secrets):'
+  python3 - "$response_file" <<'PY'
+import json,sys
+try:
+    data=json.load(open(sys.argv[1]))
+    print('statusCode:',data.get('statusCode'))
+    print('message:',str(data.get('message',''))[:500])
+except Exception:
+    print('Response was not JSON; inspect API logs without exposing credentials')
+PY
+  rm -f "$response_file"
+  exit 1
+ fi
+ rm -f "$response_file"
+ echo 'PASS: invalid Turnstile token blocked HTTP 403'
  printf '%s\n' "$TARGET" > "$STATE/deployed.sha"
  trap - EXIT
  echo '=== DEPLOY SUCCESS: PRIVATE REAL-USER TEST MODE ==='
