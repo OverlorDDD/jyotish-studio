@@ -1,7 +1,7 @@
 /** Human editorial QA sample against the REAL local Argos model.
  * No cloud traffic, no private data, no DB writes. */
 import {existsSync} from 'node:fs';
-import {checkNewsTranslator,translateNewsText} from '../apps/api/src/news-translation.ts';
+import {checkNewsTranslator,translateNewsText,translationQualityWarnings,selectedNewsTranslationProvider} from '../apps/api/src/news-translation.ts';
 if(existsSync('.env'))process.loadEnvFile('.env');
 const corpus=[
  {kind:'jyotish',en:'Vedic astrology explains how nakshatras and the Moon are used in a traditional birth chart.'},
@@ -15,15 +15,21 @@ try{
  const ready=await checkNewsTranslator();
  if(!ready.available)throw Error('EN to UK model absent');
  let ok=0;
+ const warnings=[];
+ console.log('NMT provider:',selectedNewsTranslationProvider());
  for(const [index,entry] of corpus.entries()){
   try{
    const uk=await translateNewsText(entry.en);
    console.log('['+(index+1)+'/6 '+entry.kind+']');
    console.log('EN: '+entry.en+'\nUK: '+uk+'\n');
+   const flags=translationQualityWarnings(uk);
+   if(flags.length)warnings.push(entry.kind+': '+flags.join(', '));
    ok++;
-  }catch(e){console.error('[QA] '+entry.kind+': '+(e instanceof Error?e.message:String(e)));}
+  }catch(e){const detail=entry.kind+': '+(e instanceof Error?e.message:String(e));warnings.push(detail);console.error('[QA] '+detail);}
  }
- console.log('TECHNICAL:',ok+'/6 validated');
- console.log('HUMAN REVIEW REQUIRED: Are Jyotish/Tarot terms, proper nouns, calendar dates and Ukrainian sentences natural?');
- if(ok!==corpus.length)process.exitCode=2;
+ console.log('TECHNICAL:',ok+'/6 translation API responses accepted');
+ console.log('AUTOMATED LANGUAGE RED FLAGS:',warnings.length?warnings:'none detected (this does not prove good Ukrainian)');
+ console.log('HUMAN REVIEW REQUIRED: Are all six translations fluent, accurate, and faithful to the original?');
+ console.log('Do not set NEWS_TRANSLATION_QUALITY_APPROVED=1 until a human has accepted the chosen provider.');
+ if(ok!==corpus.length||warnings.length){console.error('BLOCKED: Machine translation has not passed editorial acceptance.');process.exitCode=2;}
 }catch(e){console.error('BLOCKED: '+(e instanceof Error?e.message:String(e)));process.exitCode=2;}
