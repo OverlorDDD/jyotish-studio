@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {fixtureIdentity} from './support/disposable-accounts.mjs';
 
 test('localized home metadata, language, indexability and semantic main',async({page})=>{
  for(const locale of ['en','uk']){
@@ -61,14 +62,15 @@ test('360px-style responsiveness never forces document-level horizontal scrollin
   expect(geometry.content-geometry.screen, path+' horizontal overflow: '+JSON.stringify(geometry.offenders)).toBeLessThanOrEqual(2);
  }
 });
-test('live user flow: register, local Tarot draw, persisted history and logout',async({page})=>{
+test('live user flow: verified identity login, local Tarot draw, persisted history and logout',async({page})=>{
+ const email='a4-e2e-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'@example.invalid';
+ const password='A4-testing-only-password-2026';
+ await fixtureIdentity({data:{email,password}});
  await page.goto('/uk');
  await page.locator('button.as-account-trigger').click();
- await page.locator('button.as-mode-toggle').click();
- const email='a4-e2e-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'@example.invalid';
  await page.locator('#global-email').fill(email);
- await page.locator('#global-password').fill('A4-testing-only-password-2026');
- await page.locator('button[type="submit"]', {hasText:'Зареєструватися'}).click();
+ await page.locator('#global-password').fill(password);
+ await page.locator('button[type="submit"]', {hasText:'Увійти'}).click();
  await expect(page.locator('button.as-account-trigger')).toContainText('Кабінет');
  await page.goto('/uk/tarot');
  await expect(page.locator('button.as-button-primary', {hasText:'Розкласти карти'})).toBeEnabled();
