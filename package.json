@@ -131,6 +131,7 @@
     "jqa3:dasha-diagnostic": "node --experimental-strip-types tools/jqa3-dasha-year-diagnostic.mjs",
     "news:doctor": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs",
     "news:quality": "node --env-file-if-exists=.env tools/news-release-gate.mjs",
+    "news:quality:headlines": "node --env-file-if-exists=.env tools/news-release-gate.mjs --headlines-only",
     "news:translate:check": "node --experimental-strip-types tools/news-translate-check.mjs",
     "news:translate:sample": "node --experimental-strip-types tools/news-translate-sample.mjs",
     "news:translate:headlines": "node --experimental-strip-types tools/news-translate-headlines.mjs",
