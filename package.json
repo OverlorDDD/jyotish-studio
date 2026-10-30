@@ -132,6 +132,7 @@
     "news:doctor": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs",
     "news:quality": "node --env-file-if-exists=.env tools/news-release-gate.mjs",
     "news:translate:check": "node --experimental-strip-types tools/news-translate-check.mjs",
+    "news:translate:sample": "node --experimental-strip-types tools/news-translate-sample.mjs",
     "news:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs --repair",
     "news:images:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-image-repair.mjs",
     "news:verify-ui": "node tools/news-browser-check.mjs"
