@@ -67,8 +67,8 @@ export class AccountController{
  @Post('register')
  async register(@Req() req:IncomingMessage&{body?:unknown}){
   checkRequest(req);requireSetup();
-  // Express has already parsed JSON. Avoid @Body(), because Nest's global
-  // ValidationPipe under tsx/esbuild incorrectly whitelists turnstileToken.
+  // Express has already parsed JSON. Avoid decorator-bound body validation:
+  // Nest's global ValidationPipe under tsx/esbuild otherwise drops token fields.
   const body=parseRegistrationRequest(req.body);
   if(!registrationReady())throw new ServiceUnavailableException('Public signup requires verified email and anti-bot setup');
   const email=normalizedEmail(body.email);
