@@ -1,8 +1,9 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 test('Personal: styled and accessible dashboard, responsive grid and settings',async({page})=>{
  const account='personal-visual-'+randomUUID().slice(0,12)+'@example.invalid';
- const register=await page.request.post('/api/v1/account/register',{data:{email:account,password:'Personal-visual-test-2026-strong'}});
+ const register=await fixtureAccount(page,{data:{email:account,password:'Personal-visual-test-2026-strong'}});
  expect(register.status()).toBe(201);
  // Both Playwright projects must first inspect the same explicit desktop width;
  // subsequently assert single-column behavior in the same browser at 390px.
