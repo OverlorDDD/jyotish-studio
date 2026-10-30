@@ -25,7 +25,8 @@ export function azureTranslatorCredentials(env:NodeJS.ProcessEnv=process.env){
 const KNOWN_UNSAFE_TRANSLATIONS:RegExp[]=[
  /ведикськ/iu,/окшатра/iu,/тато-розклад/iu,/графік(?:у|ом)? народження/iu,
  /особистого відображення/iu,/телескоп захопив/iu,/до скорпіо/iu,
- /видавництво випустили/iu,/коротке визначення за ліцензією/iu
+ /видавництво випустили/iu,/коротке визначення за ліцензією/iu,
+ /інструктор йога/iu,/ніжні ранкові дихальні/iu,/зображення юпітеру/iu
 ];
 /** Deterministic red flags are a guard, NOT a proof of editorial quality. */
 export function translationQualityWarnings(text:string):string[]{
