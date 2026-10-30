@@ -82,8 +82,8 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   where:{status:'PUBLISHED',
    AND:[
     {OR:[{editorialNextAttemptAt:null},{editorialNextAttemptAt:{lte:now}}]},
-    ...(scope==='headlines'?{OR:[{titleUk:null},{titleUk:''}]}:
-     {OR:[{titleUk:null},{titleUk:''},{summaryUk:null},{summaryUk:''}]})
+    scope==='headlines'?{OR:[{titleUk:null},{titleUk:''}]}:
+     {OR:[{titleUk:null},{titleUk:''},{summaryUk:null},{summaryUk:''}]}
    ]},
   orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:1000,
   select:{id:true,title:true,titleUk:true,feedDescription:true,summary:true,summaryUk:true,summaryKind:true,
