@@ -15,6 +15,17 @@ export function selectedNewsTranslationProvider(env:NodeJS.ProcessEnv=process.en
 export function newsTranslationApproved(env:NodeJS.ProcessEnv=process.env):boolean{
  return env.NEWS_TRANSLATION_QUALITY_APPROVED==='1';
 }
+export type NewsTranslationScope='headlines'|'full';
+export function newsTranslationScope(env:NodeJS.ProcessEnv=process.env):NewsTranslationScope{
+ const scope=env.NEWS_TRANSLATION_CONTENT_SCOPE||'headlines';
+ if(scope!=='headlines'&&scope!=='full')throw Error('NEWS_TRANSLATION_CONTENT_SCOPE must be headlines or full');
+ return scope;
+}
+export function newsScopeApproved(env:NodeJS.ProcessEnv=process.env):boolean{
+ return newsTranslationScope(env)==='headlines'
+  ?env.NEWS_TRANSLATION_HEADLINES_APPROVED==='1'
+  :newsTranslationApproved(env);
+}
 export function azureTranslatorCredentials(env:NodeJS.ProcessEnv=process.env){
  const key=env.AZURE_TRANSLATOR_KEY?.trim()||'';
  const region=env.AZURE_TRANSLATOR_REGION?.trim()||'';
@@ -48,6 +59,25 @@ export function normalizeTranslatedNews(text:string):string{
  for(const [match,replacement] of terms)value=value.replace(match,replacement);
  return value;
 }
+/** Evidence-constrained Ukrainian wording repairs. Only alter wording when the
+ * English SOURCE establishes the same astronomical/Tarot concept; do not turn
+ * arbitrary people, brands or non-astrology 'Mercury' into a planet. */
+export function improveNewsTerminology(source:string,translated:string):string{
+ let result=translated;
+ if(/\\bTarot\\s+spreads?\\b/i.test(source)){
+  result=result.replace(/розворот(?:и|ів|ами)?\\s+Таро/giu,'розклади Таро')
+    .replace(/Таро[-\\s]+розворот(?:и|ів|ами)?/giu,'розклади Таро');
+ }
+ if(/\\bMercury\\b/i.test(source)&&
+   /\\b(?:entered?|retrograde|zodiac|planet|Scorpio|Pisces|Gemini|astrology|astrological)\\b/i.test(source))
+  result=result.replace(/\\bMercury\\b/g,'Меркурій');
+ if(/\\byoga instructor\\b/i.test(source))
+  result=result.replace(/інструктор йога/giu,'інструктор із йоги');
+ if(/\\bgentle morning breathing exercises\\b/i.test(source))
+  result=result.replace(/ніжні ранкові дихальні вправи/giu,'м’які ранкові дихальні вправи');
+ return result;
+}
+
 export function translationEndpoint(env:NodeJS.ProcessEnv=process.env):string{
  const raw=env.NEWS_TRANSLATION_URL||NEWS_TRANSLATOR_DEFAULT;
  let url:URL;
@@ -91,7 +121,7 @@ export async function translateNewsText(text:string,fetcher:TranslationFetch=fet
   :(data as {translatedText?:unknown})?.translatedText;
  if(typeof raw==='string'&&/<[^>]+>/.test(raw))
   throw Error('Invalid machine translation: HTML is not accepted');
- const output=typeof raw==='string'?normalizeTranslatedNews(raw):'';
+ const output=typeof raw==='string'?normalizeTranslatedNews(improveNewsTerminology(input,raw)):'';
  if(!output||output.length>1500||!/[А-Яа-яІіЇїЄєҐґ]/.test(output)||/<[^>]+>/.test(output)||!preserveSourceNumbers(input,output))
   throw Error('Invalid machine translation or lost numerical facts');
  if(translationQualityWarnings(output).length)
