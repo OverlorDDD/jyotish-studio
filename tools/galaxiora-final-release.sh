@@ -26,8 +26,16 @@ ready(){
 check_config(){
  test -s .env || { echo 'STOP: .env is empty'; exit 1; }
  test -s package-lock.json || { echo 'STOP: production package-lock.json missing'; exit 1; }
- ready galaxiora-api.service http://127.0.0.1:4000/api/health
- ready galaxiora-web.service http://127.0.0.1:3000/uk
+ # An earlier failed deployment can leave both services down. Do not
+ # require a working site before deploying a fixed application.
+ echo '=== CURRENT SERVICE HEALTH (NON-BLOCKING IF FAILED) ==='
+ for svc in galaxiora-api.service galaxiora-web.service caddy.service; do
+  echo "$svc: $(systemctl is-active "$svc" || true)"
+ done
+ local api web
+ api=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:4000/api/health || true)
+ web=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:3000/uk || true)
+ echo "Previous HTTP: API $api, Web $web"
 }
 save_credentials(){
  read -r -p 'Turnstile Site Key: ' GX_SITE_KEY </dev/tty
@@ -97,9 +105,9 @@ recover_deploy(){
   npm run build
  fi
  sudo systemctl start galaxiora-api.service
+ ready galaxiora-api.service http://127.0.0.1:4000/api/health || echo 'MANUAL REPAIR: API'
  sudo systemctl start galaxiora-web.service
- curl -fsS --max-time 10 http://127.0.0.1:3000/uk >/dev/null && echo 'RESTORED: web' || echo 'MANUAL REPAIR: web'
- curl -fsS --max-time 10 http://127.0.0.1:4000/api/health >/dev/null && echo 'RESTORED: API' || echo 'MANUAL REPAIR: API'
+ ready galaxiora-web.service http://127.0.0.1:3000/uk || echo 'MANUAL REPAIR: web'
  echo 'Database migration was not rolled back; backup retained.'
 }
 deploy(){
@@ -136,9 +144,33 @@ deploy(){
  npm run test:r2-r3
  echo '=== ADDITIVE POSTGRES MIGRATION ==='
  npm run db:migrate
- echo '=== BUILD AND RESTART ==='
- sudo systemctl stop galaxiora-web.service galaxiora-api.service
+ echo '=== BUILD AND TEST NEW API BEFORE STOPPING PRODUCTION ==='
  npm run build
+ # Real HTTP startup smoke on an isolated loopback port catches missing
+ # decorator metadata and module crashes that a TypeScript build cannot.
+ if ss -ltn | grep -qE '127\\.0\\.0\\.1:4001[[:space:]]'; then
+  echo 'STOP: API smoke port 4001 already in use'; exit 1
+ fi
+ local canary_pid http canary_ready=0
+ setsid env PORT=4001 NEWS_INGESTION_ENABLED=0 NEWS_TRANSLATION_ENABLED=0 \
+  npm run start -w @jyotish/api > "$STATE/api-canary.log" 2>&1 &
+ canary_pid=$!
+ for i in $(seq 1 35); do
+  http=$(curl -s -o /dev/null -w '%{http_code}' --max-time 2 http://127.0.0.1:4001/api/health || true)
+  if [ "$http" = 200 ]; then canary_ready=1; break; fi
+  if ! kill -0 "$canary_pid" 2>/dev/null; then break; fi
+  sleep 2
+ done
+ kill -- "-$canary_pid" 2>/dev/null || true
+ wait "$canary_pid" 2>/dev/null || true
+ if [ "$canary_ready" != 1 ]; then
+  echo 'STOP: candidate API failed HTTP boot smoke on port 4001'
+  tail -n 65 "$STATE/api-canary.log"
+  exit 1
+ fi
+ echo 'PASS: candidate NestJS API starts and serves real DB health before production cutover'
+ echo '=== SWITCH ACTIVE SERVICES ==='
+ sudo systemctl stop galaxiora-web.service galaxiora-api.service
  sudo systemctl start galaxiora-api.service
  ready galaxiora-api.service http://127.0.0.1:4000/api/health
  sudo systemctl start galaxiora-web.service
