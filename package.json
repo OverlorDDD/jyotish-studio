@@ -140,7 +140,8 @@
     "news:azure:budget": "node --experimental-strip-types tools/news-azure-budget.mjs",
     "news:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs --repair",
     "news:images:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-image-repair.mjs",
-    "news:verify-ui": "node tools/news-browser-check.mjs"
+    "news:verify-ui": "node tools/news-browser-check.mjs",
+    "auth:prune": "node --env-file-if-exists=.env tools/auth-prune.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
