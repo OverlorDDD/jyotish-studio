@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 test('Personal News shows real published GalaxiNews items and a full-feed link without requiring a natal chart',async({page})=>{
@@ -7,7 +8,7 @@ test('Personal News shows real published GalaxiNews items and a full-feed link w
  const code=randomUUID(),title='Перевірена добірка Джйотіш — '+code.slice(0,8);
  let userId='',articleId='';
  try{
-  const user=await page.request.post('/api/v1/account/register',{data:{
+  const user=await fixtureAccount(page,{data:{
    email:'personal-news-preview-'+code.slice(0,10)+'@example.invalid',
    password:'PersonalNews-v2-test-valid-password-2026'}});
   expect(user.status()).toBe(201);userId=(await user.json()).user.id;
