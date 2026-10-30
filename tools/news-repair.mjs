@@ -3,6 +3,7 @@ import {PrismaClient} from '@prisma/client';
 import {spawnSync} from 'node:child_process';
 import {probeLocalNewsFrontend} from './news-local-probe.mjs';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
+import {checkNewsTranslator} from '../apps/api/src/news-translation.ts';
 import {publisherDomain,safeImageUrl} from '../apps/api/src/news-domain.ts';
 import {metadataHosts,fetchArticleMetadata} from '../apps/api/src/news-metadata.ts';
 import {rank,diversify} from '../apps/api/src/news-domain.ts';
@@ -11,7 +12,7 @@ import {enrichOpenNewsPhotos} from '../apps/api/src/news-open-media.ts';
 const repair=process.argv.includes('--repair');
 if(process.argv.includes('--help')){
  console.log('Usage: npm run news:doctor (read-only) or npm run news:repair (safe metadata + translation backfill).');
- console.log('Requires database, at least one configured editorial provider for translation; article-body scraping is never performed.');
+ console.log('Requires PostgreSQL and optional local LibreTranslate on port 5100; no LLM calls or article-body scraping.');
  process.exit(0);
 }
 const prisma=new PrismaClient();
@@ -81,12 +82,11 @@ try{
  const sha=spawnSync('git',['rev-parse','--short','HEAD'],{encoding:'utf8',timeout:2500});
  console.log('[GalaxiNews] local checkout:',(branch.stdout||'?').trim(),(sha.stdout||'?').trim());
  await prisma.$connect();
- console.log('[GalaxiNews] AI providers:',{
-  groq:Boolean(process.env.GROQ_API_KEY),
-  gemini:Boolean(process.env.GEMINI_API_KEY),
-  openrouter:Boolean(process.env.OPENROUTER_API_KEY),
-  editorialEnabled:process.env.NEWS_EDITORIAL_AI_ENABLED!=='0'
- });
+ console.log('[GalaxiNews] translation engine: local LibreTranslate/Argos, no cloud LLM; enabled:',process.env.NEWS_TRANSLATION_ENABLED!=='0');
+ if(process.env.NEWS_TRANSLATION_ENABLED!=='0'){
+  try{console.log('[GalaxiNews] local translator:',await checkNewsTranslator());}
+  catch(error){console.warn('[GalaxiNews] local translator unavailable:',error instanceof Error?error.message:String(error));}
+ }
  await statistics();
  const [recentScans,recentArticles]=await Promise.all([
   prisma.newsScan.findMany({orderBy:{createdAt:'desc'},take:6,select:{createdAt:true,accepted:true,sources:true,errors:true}}),
@@ -129,14 +129,13 @@ try{
    if(images.checked===0||images.filled===0)break;
   }
   await metadataRecovery();
-  const configured=Boolean(process.env.GROQ_API_KEY||process.env.GEMINI_API_KEY||process.env.OPENROUTER_API_KEY);
-  if(!configured||process.env.NEWS_EDITORIAL_AI_ENABLED==='0'){
-   console.warn('[GalaxiNews] Ukrainian localization skipped: editorial AI provider is missing or disabled in root .env.');
+  if(process.env.NEWS_TRANSLATION_ENABLED==='0'){
+   console.warn('[GalaxiNews] Local NMT translation is disabled; no LLM fallback will occur.');
   }else{
    let total=0;
    for(let i=0;i<6;i++){
     const result=await enrichPendingNews(prisma);
-    console.log('[GalaxiNews] editorial batch',i+1,JSON.stringify(result));
+    console.log('[GalaxiNews] local NMT batch',i+1,JSON.stringify(result));
     total+=result.processed||0;
     if(result.reason||!(result.processed||0))break;
    }
