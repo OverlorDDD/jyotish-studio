@@ -45,7 +45,7 @@ export async function translateNewsText(text:string,fetcher:TranslationFetch=fet
  if(!response.ok)throw Error('Local translator HTTP '+response.status);
  const data=await response.json() as {translatedText?:unknown};
  const output=typeof data.translatedText==='string'?normalizeTranslatedNews(data.translatedText):'';
- if(!output||output.length>1500||/<[^>]+>/.test(output)||!preserveSourceNumbers(input,output))
+ if(!output||output.length>1500||!/[А-Яа-яІіЇїЄєҐґ]/.test(output)||/<[^>]+>/.test(output)||!preserveSourceNumbers(input,output))
   throw Error('Invalid local translation or lost numerical facts');
  return output;
 }
