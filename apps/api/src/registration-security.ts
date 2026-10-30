@@ -2,6 +2,50 @@
 import {createHmac,randomInt,timingSafeEqual} from 'node:crypto';
 import {ServiceUnavailableException,ForbiddenException} from '@nestjs/common';
 
+/** Runtime body validation deliberately does not rely on TS decorator metadata.
+ * The production API runs through tsx/esbuild (no design:paramtypes).
+ * Reject unknown keys and invalid types explicitly, before any DB/network calls. */
+import {BadRequestException} from '@nestjs/common';
+import {isEmail} from 'class-validator';
+type Credentials={email:string;password:string};
+type NewRegistration=Credentials&{turnstileToken:string};
+function fields(value:unknown,allowed:readonly string[]):Record<string,unknown>{
+ if(value===null||typeof value!=='object'||Array.isArray(value))
+  throw new BadRequestException('Expected a JSON object');
+ const body=value as Record<string,unknown>;
+ if(Object.keys(body).some(key=>!allowed.includes(key)))
+  throw new BadRequestException('Unexpected registration field');
+ return body;
+}
+function emailField(value:unknown):string{
+ if(typeof value!=='string'||value.length>150||!isEmail(value.trim()))
+  throw new BadRequestException('Enter a valid email address');
+ return value.trim();
+}
+function passwordField(value:unknown):string{
+ if(typeof value!=='string'||value.length<12||value.length>128)
+  throw new BadRequestException('Password must contain 12–128 characters');
+ return value;
+}
+export function parseRegistrationRequest(value:unknown):NewRegistration{
+ const body=fields(value,['email','password','turnstileToken']);
+ const email=emailField(body.email),password=passwordField(body.password);
+ if(typeof body.turnstileToken!=='string'||!body.turnstileToken||body.turnstileToken.length>2048)
+  throw new BadRequestException('Complete the bot protection challenge');
+ return {email,password,turnstileToken:body.turnstileToken};
+}
+export function parseLoginRequest(value:unknown):Credentials{
+ const body=fields(value,['email','password']);
+ return {email:emailField(body.email),password:passwordField(body.password)};
+}
+export function parseVerifyRegistrationRequest(value:unknown):{email:string;code:string}{
+ const body=fields(value,['email','code']);
+ const email=emailField(body.email);
+ if(typeof body.code!=='string'||!/^[0-9]{6}$/.test(body.code))
+  throw new BadRequestException('Enter the 6-digit email verification code');
+ return {email,code:body.code};
+}
+
 export function registrationReady(env:NodeJS.ProcessEnv=process.env):boolean{
  return env.PUBLIC_REGISTRATION_ENABLED==='1'&&Boolean(env.AUTH_SECRET&&env.AUTH_SECRET.length>=32&&
   env.TURNSTILE_SECRET_KEY&&env.NEXT_PUBLIC_TURNSTILE_SITE_KEY&&
