@@ -28,7 +28,7 @@ Source RSS/Atom metadata (title + optional publisher description)
 
 The local adapter accepts only loopback or internal Docker hosts, plain HTTP and the `/translate` API; it refuses arbitrary URLs (SSRF hardening). The Docker port binds ONLY to `127.0.0.1` and must never be exposed at AWS public ingress. Do not put personal natal-chart data into this translation service. Input text is public publisher RSS metadata only (at most 1,000 cleaned characters/request).
 
-If local NMT is absent, a row is preserved and retried only after a 3-hour/24-hour backoff. There is **NO fallback to LLM**. Existing published translations are preserved; title-only stories remain title-only without hallucinating what a whole article says. Translation output is checked for Ukrainian letters, safe text and preservation of digits/years. Personal names and nuanced grammar still need editorial QA.
+If the NMT service or EN→UK model is offline, the readiness check skips the batch without modifying records or consuming their retry quota. Individual translation errors after readiness may still use bounded 3-hour/24-hour backoff. There is **NO fallback to LLM**. Existing published translations are preserved; title-only stories remain title-only without hallucinating what a whole article says. Translation output is checked for Ukrainian letters, safe text and preservation of digits/years. Personal names and nuanced grammar still need editorial QA.
 
 A publisher-supplied description is shortened (up to 280 source characters) before translation. The translated excerpt is derivative material, so check feed terms and permission; display an attributed link to the original publisher. Respect copyright and never scrape complete article bodies without permission.
 
