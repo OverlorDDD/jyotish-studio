@@ -53,7 +53,7 @@
     "test:free-ai-retry": "node --experimental-strip-types --test tools/free-ai-retry.test.mjs",
     "test:report": "node --experimental-strip-types --test tools/detailed-report.test.mjs",
     "test:terminology": "node --experimental-strip-types --test tools/terminology.test.mjs",
-    "test:access": "node --experimental-strip-types --test tools/account-access.test.mjs tools/auth-limit-policy.test.mjs",
+    "test:access": "node --experimental-strip-types --test tools/account-access.test.mjs tools/auth-limit-policy.test.mjs tools/registration-security.test.mjs",
     "site:check": "node --env-file=.env tools/site-preflight.mjs",
     "r2:audit": "node --experimental-strip-types tools/r2-production-audit.mjs",
     "r2:perf": "node tools/r2-performance-probe.mjs",
