@@ -110,9 +110,11 @@ test('signup validates real JSON field types without decorator metadata',()=>{
 test('controllers parse request bodies explicitly rather than relying on erased reflect metadata',()=>{
  const account=readFileSync(new URL('../apps/api/src/account.ts',import.meta.url),'utf8');
  for(const phrase of [
-  'parseRegistrationRequest(untrusted)',
-  'parseVerifyRegistrationRequest(untrusted)',
-  'parseLoginRequest(untrusted)'
+  'parseRegistrationRequest(req.body)',
+  'parseVerifyRegistrationRequest(req.body)',
+  'parseLoginRequest(req.body)'
  ])assert.ok(account.includes(phrase),'Missing explicit parser: '+phrase);
  assert.doesNotMatch(account,/REGISTER_BODY_PIPE|VERIFY_BODY_PIPE|LOGIN_BODY_PIPE/);
+ const routes=account.slice(account.indexOf(" @Post('register')"),account.indexOf(" @Get('me')"));
+ assert.doesNotMatch(routes,/@Body\(/,'Never attach erased body metadata to signup, OTP or login');
 });
