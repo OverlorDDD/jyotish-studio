@@ -76,3 +76,21 @@ test('Registration route never creates User before verified-code handler',()=>{
  assert.match(verify,/user\.create/);
  assert.match(verify,/setSession/);
 });
+
+
+test('production Nest startup does not introspect Swagger with tsx missing paramtypes',()=>{
+ const main=readFileSync(new URL('../apps/api/src/main.ts',import.meta.url),'utf8');
+ assert.doesNotMatch(main,/SwaggerModule\.createDocument\s*\(/);
+ assert.doesNotMatch(main,/SwaggerModule\.setup\s*\(/);
+});
+test('auth endpoints explicitly bind input validators despite tsx stripping design metadata',()=>{
+ const account=readFileSync(new URL('../apps/api/src/account.ts',import.meta.url),'utf8');
+ for(const phrase of [
+  'expectedType:RegistrationDto',
+  'expectedType:VerifyRegistrationDto',
+  'expectedType:CredentialsDto',
+  '@Body(REGISTER_BODY_PIPE)',
+  '@Body(VERIFY_BODY_PIPE)',
+  '@Body(LOGIN_BODY_PIPE)'
+ ])assert.ok(account.includes(phrase),'Missing expected validation rule: '+phrase);
+});
