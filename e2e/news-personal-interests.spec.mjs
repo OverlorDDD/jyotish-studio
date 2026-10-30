@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 const distinct=()=>randomUUID().slice(0,12);
@@ -6,7 +7,7 @@ test('News Personal Interests P1: guests private; explicit save; legacy profile 
  expect(guestGet.status()).toBe(401);
  const guestPut=await page.request.put('/api/v1/news/interests',{data:{tags:['tarot']}});
  expect(guestPut.status()).toBe(401);
- const registerA=await page.request.post('/api/v1/account/register',{
+ const registerA=await fixtureAccount(page,{
   data:{email:'news-interests-a-'+distinct()+'@example.invalid',password:'News-interests-safe-test-password-2026'}
  });
  expect(registerA.status()).toBe(201);
@@ -37,7 +38,7 @@ test('News Personal Interests P1: guests private; explicit save; legacy profile 
  await page.reload();
  await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','true');
  // Account B gets its own empty server-side preferences on this same browser.
- const registerB=await page.request.post('/api/v1/account/register',{
+ const registerB=await fixtureAccount(page,{
   data:{email:'news-interests-b-'+distinct()+'@example.invalid',password:'News-interests-safe-test-password-2026'}
  });
  expect(registerB.status()).toBe(201);
