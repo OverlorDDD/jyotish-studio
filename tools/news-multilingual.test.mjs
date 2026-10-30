@@ -109,6 +109,6 @@ test('known wrong month case and literal lunar phrases fail closed in both local
      async()=>new Response(JSON.stringify([{translations:[{
        to:'uk',text:'Гороскоп 26 Жовтень 2026'
      }]}]),{status:200}),env),
-   /Incomplete uk localization/
+   /Untranslated script or changed numeric facts|Incomplete uk localization/
  );
 });
