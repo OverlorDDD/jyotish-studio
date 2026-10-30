@@ -310,6 +310,7 @@ model NewsArticle {
  url String
  title String
  titleUk String? @db.VarChar(300)
+ titleEn String? @db.VarChar(300)
  source String
  language String
  topic String
