@@ -92,3 +92,25 @@ test('translator named volumes are repaired before LibreTranslate starts as UID 
  assert.match(compose,/jyotish-postgres:\/var\/lib\/postgresql\/data/,
   'Existing Postgres volume must remain untouched');
 });
+
+test('Azure Translator NMT is an explicit fixed endpoint with no key leak and no generative fallback',async()=>{
+ const {selectedNewsTranslationProvider,translationQualityWarnings}=await import('../apps/api/src/news-translation.ts');
+ assert.equal(selectedNewsTranslationProvider({NEWS_TRANSLATION_PROVIDER:'azure'}),'azure');
+ assert.throws(()=>selectedNewsTranslationProvider({NEWS_TRANSLATION_PROVIDER:'unknown'}),/Unsupported/);
+ assert.ok(translationQualityWarnings('Тато-розклади Таро').length>0);
+ assert.ok(translationQualityWarnings('Ведикська астрологія').length>0);
+ const env={NEWS_TRANSLATION_PROVIDER:'azure',AZURE_TRANSLATOR_KEY:'test-key-not-real',AZURE_TRANSLATOR_REGION:'westeurope'};
+ let requests=0;
+ const mock=async(url,options)=>{
+  requests++;
+  assert.equal(url,'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=en&to=uk');
+  assert.equal(options.headers['Ocp-Apim-Subscription-Key'],env.AZURE_TRANSLATOR_KEY);
+  assert.equal(options.headers['Ocp-Apim-Subscription-Region'],env.AZURE_TRANSLATOR_REGION);
+  assert.deepEqual(JSON.parse(options.body),[{text:'Tarot reading in 2026'}]);
+  return new Response(JSON.stringify([{translations:[{text:'Розклад Таро у 2026 році',to:'uk'}]}]),{status:200});
+ };
+ const translation=await translateNewsText('Tarot reading in 2026',mock,env);
+ assert.equal(translation,'Розклад Таро у 2026 році');
+ assert.equal(requests,1);
+ await assert.rejects(()=>translateNewsText('Tarot',mock,{NEWS_TRANSLATION_PROVIDER:'azure'}),/AZURE_TRANSLATOR_KEY/);
+});
