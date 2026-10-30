@@ -136,6 +136,7 @@
     "news:translate:check": "node --experimental-strip-types tools/news-translate-check.mjs",
     "news:translate:sample": "node --experimental-strip-types tools/news-translate-sample.mjs",
     "news:translate:headlines": "node --experimental-strip-types tools/news-translate-headlines.mjs",
+    "news:translate:multilingual": "node --experimental-strip-types tools/news-translate-multilingual.mjs",
     "news:azure:budget": "node --experimental-strip-types tools/news-azure-budget.mjs",
     "news:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs --repair",
     "news:images:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-image-repair.mjs",
