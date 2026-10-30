@@ -119,7 +119,7 @@ export class NewsController {
    this.prisma.newsReaction.findMany({where:{userId},
     orderBy:{updatedAt:'desc'},take:1000,
     select:{articleId:true,vote:true,updatedAt:true,
-     article:{select:{title:true,titleUk:true,url:true,source:true,topic:true,publishedAt:true}}}}),
+     article:{select:{title:true,titleUk:true,titleEn:true,url:true,source:true,topic:true,publishedAt:true}}}}),
    this.prisma.newsReaction.count({where:{userId}})
   ]);
   return {items:rows,total};
