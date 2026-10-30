@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 const who=()=>({email:'com-growth-'+randomUUID().slice(0,12)+'@example.invalid',password:'GalaxiCom-C5-2026-safe-password'});
@@ -8,7 +9,7 @@ test('C5 bookmarks, profiles, verified premium perks and community discovery iso
  const A=who(),B=who();let aid='',bid='',id='',pid='';
  const api=p=>'/api/v1/com/'+p;
  try{
-  const a=await page.request.post('/api/v1/account/register',{data:A});expect(a.status()).toBe(201);aid=(await a.json()).user.id;
+  const a=await fixtureAccount(page,{data:A});expect(a.status()).toBe(201);aid=(await a.json()).user.id;
   const thread=await page.request.post(api('threads'),{data:{categorySlug:'jyotish',title:'Питання',body:'?' }});
   expect(thread.status()).toBe(201);id=(await thread.json()).id;
   expect((await page.request.put(api('growth/bookmarks/'+id))).status()).toBe(200);
@@ -20,7 +21,7 @@ test('C5 bookmarks, profiles, verified premium perks and community discovery iso
   expect((await page.request.patch(api('growth/profile'),{data:{signature:'Мої інтереси',accent:'default'}})).status()).toBe(200);
   const trends=await(await page.request.get(api('growth/featured'))).json();
   expect(trends.editorialEndorsement).toBe(false);expect(trends.items.some(t=>t.id===id)).toBe(true);
-  const b=await page.request.post('/api/v1/account/register',{data:B});expect(b.status()).toBe(201);bid=(await b.json()).user.id;
+  const b=await fixtureAccount(page,{data:B});expect(b.status()).toBe(201);bid=(await b.json()).user.id;
   expect((await(await page.request.get(api('growth/bookmarks'))).json()).total).toBe(0);
   const reply=await page.request.post(api('threads/'+id+'/posts'),{data:{body:'Згоден'}});
   expect(reply.status()).toBe(201);pid=(await reply.json()).id;
