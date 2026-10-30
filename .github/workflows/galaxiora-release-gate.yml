@@ -7,10 +7,25 @@ on:
 jobs:
   release-gate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     env:
       NEXT_PUBLIC_SITE_URL: https://galaxiora.com
       SITE_NOINDEX: '1'
       PUBLIC_REGISTRATION_ENABLED: '0'
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/galaxiora_a1_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,6 +37,12 @@ jobs:
         run: npm run db:generate
       - name: Authentication security
         run: npm run test:access
+      - name: Create isolated PostgreSQL schema
+        run: npm run db:migrate
+      - name: Real NestJS HTTP signup and login regression
+        env:
+          CI: 'true'
+        run: node --test tools/registration-http-smoke.test.mjs
       - name: Runtime Swagger crash regression
         run: npm run test:swagger
       - name: Bilingual GalaxiNews
