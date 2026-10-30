@@ -15,5 +15,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+  # Optional local/production NMT, disabled unless profile is explicitly started.
+  # API is loopback-only; the public Next/Nest stack never exposes this service.
+  translator:
+    image: libretranslate/libretranslate:latest
+    profiles: ["translation"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5100:5000"
+    command: ["--load-only", "en,uk"]
+    environment:
+      LT_DISABLE_WEB_UI: "true"
+      LT_UPDATE_MODELS: "false"
+      ARGOS_CHUNK_TYPE: "MINISBD"
+    volumes:
+      - galaxiora-argos-models:/home/libretranslate/.local/share
+      - galaxiora-argos-cache:/home/libretranslate/.local/cache
+    mem_limit: 1536m
+    cpus: 1.5
+
 volumes:
   jyotish-postgres:
+  galaxiora-argos-models:
+  galaxiora-argos-cache:
