@@ -22,6 +22,8 @@ jobs:
         run: npm run db:generate
       - name: Authentication security
         run: npm run test:access
+      - name: Runtime Swagger crash regression
+        run: npm run test:swagger
       - name: Bilingual GalaxiNews
         run: npm run test:news
       - name: GalaxiCom
