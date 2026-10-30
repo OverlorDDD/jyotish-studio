@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {registrationReady,registrationCode,registrationCodeDigest,secureCodeMatches,verifySignupTurnstile,
- sendSignupVerification,registrationCooldownMs,registrationExpiryMs} from '../apps/api/src/registration-security.ts';
+ sendSignupVerification,registrationCooldownMs,registrationExpiryMs,parseRegistrationRequest,parseVerifyRegistrationRequest,parseLoginRequest} from '../apps/api/src/registration-security.ts';
 
 const env={PUBLIC_REGISTRATION_ENABLED:'1',AUTH_SECRET:'z'.repeat(64),
  TURNSTILE_SECRET_KEY:'secret',NEXT_PUBLIC_TURNSTILE_SITE_KEY:'site-key',
@@ -83,14 +83,36 @@ test('production Nest startup does not introspect Swagger with tsx missing param
  assert.doesNotMatch(main,/SwaggerModule\.createDocument\s*\(/);
  assert.doesNotMatch(main,/SwaggerModule\.setup\s*\(/);
 });
-test('auth endpoints explicitly bind input validators despite tsx stripping design metadata',()=>{
+test('signup validates real JSON field types without decorator metadata',()=>{
+ const valid={email:'Reader@example.com',password:'Password-For-QA-2026',turnstileToken:'fake-token'};
+ assert.deepEqual(parseRegistrationRequest(valid),valid);
+ assert.deepEqual(parseLoginRequest({email:valid.email,password:valid.password}),
+  {email:valid.email,password:valid.password});
+ assert.deepEqual(parseVerifyRegistrationRequest({email:valid.email,code:'002184'}),
+  {email:valid.email,code:'002184'});
+ const invalid=[
+  {...valid,turnstileToken:123},
+  {...valid,turnstileToken:''},
+  {...valid,turnstileToken:'a'.repeat(2049)},
+  {...valid,password:'short'},
+  {...valid,email:'not-an-email'},
+  {...valid,isAdmin:true},
+  null,
+  []
+ ];
+ for(const payload of invalid)assert.throws(()=>parseRegistrationRequest(payload),
+   e=>e?.getStatus?.()===400);
+ assert.throws(()=>parseVerifyRegistrationRequest({email:valid.email,code:'1234567'}),
+   e=>e?.getStatus?.()===400);
+ assert.throws(()=>parseLoginRequest({...valid}),
+   e=>e?.getStatus?.()===400);
+});
+test('controllers parse request bodies explicitly rather than relying on erased reflect metadata',()=>{
  const account=readFileSync(new URL('../apps/api/src/account.ts',import.meta.url),'utf8');
  for(const phrase of [
-  'expectedType:RegistrationDto',
-  'expectedType:VerifyRegistrationDto',
-  'expectedType:CredentialsDto',
-  '@Body(REGISTER_BODY_PIPE)',
-  '@Body(VERIFY_BODY_PIPE)',
-  '@Body(LOGIN_BODY_PIPE)'
- ])assert.ok(account.includes(phrase),'Missing expected validation rule: '+phrase);
+  'parseRegistrationRequest(untrusted)',
+  'parseVerifyRegistrationRequest(untrusted)',
+  'parseLoginRequest(untrusted)'
+ ])assert.ok(account.includes(phrase),'Missing explicit parser: '+phrase);
+ assert.doesNotMatch(account,/REGISTER_BODY_PIPE|VERIFY_BODY_PIPE|LOGIN_BODY_PIPE/);
 });
