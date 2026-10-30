@@ -3,6 +3,7 @@
  * Not a summarizer: only translates bounded publisher metadata already present.
  */
 import {cleanDescription} from './news-domain.ts';
+import {headlineScriptSegments,isLocalizedNewsTitle,type NewsTitleLocale} from './news-localization.ts';
 
 export const NEWS_TRANSLATOR_DEFAULT='http://127.0.0.1:5100';
 export const NEWS_TRANSLATOR_ENGINE='libretranslate-argos';
@@ -133,6 +134,45 @@ export async function translateNewsText(text:string,fetcher:TranslationFetch=fet
   throw Error('Known poor Ukrainian translation: manual review or different NMT model required');
  return output;
 }
+/** Azure NMT translates both requested languages without assuming the RSS
+ * title is English. Mixed Devanagari/Latin titles are translated by script
+ * spans so neither locale displays an untranslated Hindi clause.
+ * No generative model, private user data or article-body scraping involved. */
+export async function translateLocalizedHeadline(source:string,target:NewsTitleLocale,
+ fetcher:TranslationFetch=fetch,env:NodeJS.ProcessEnv=process.env):Promise<string>{
+ const value=cleanDescription(source);
+ if(!value||value.length>300)throw Error('Invalid publisher headline size');
+ if(selectedNewsTranslationProvider(env)!=='azure')
+  throw Error('Mixed-language bilingual headlines require the approved Azure NMT adapter');
+ const {key,region}=azureTranslatorCredentials(env);
+ const segments=headlineScriptSegments(value);
+ const translated:string[]=[];
+ for(const segment of segments){
+  const url='https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to='+target;
+  const response=await fetcher(url,{
+   method:'POST',signal:AbortSignal.timeout(25000),
+   headers:{'Content-Type':'application/json; charset=UTF-8',
+    'Ocp-Apim-Subscription-Key':key,
+    ...(region?{'Ocp-Apim-Subscription-Region':region}:{})},
+   body:JSON.stringify([{text:segment}])
+  });
+  if(!response.ok)throw Error('Azure headlines HTTP '+response.status);
+  const result=await response.json() as unknown;
+  const raw=Array.isArray(result)?result[0]?.translations?.find((x:{to?:string})=>x.to===target)?.text:undefined;
+  if(typeof raw!=='string'||/<[^>]+>/.test(raw))throw Error('Azure did not return safe headline text');
+  const clean=normalizeTranslatedNews(target==='uk'?improveNewsTerminology(segment,raw):raw);
+  if(!isLocalizedNewsTitle(clean,target)||!preserveSourceNumbers(segment,clean))
+   throw Error('Untranslated script or changed numeric facts in '+target+' headline');
+  translated.push(clean);
+ }
+ const final=translated.join(' ').replace(/\s+([,.;:!?])/g,'$1').replace(/\s+/g,' ').trim();
+ if(!isLocalizedNewsTitle(final,target)||!preserveSourceNumbers(value,final))
+  throw Error('Incomplete '+target+' localization of mixed-language headline');
+ if(target==='uk'&&translationQualityWarnings(final).length)
+  throw Error('Known poor Ukrainian translation: editor review required');
+ return final;
+}
+
 export async function checkNewsTranslator(fetcher:TranslationFetch=fetch,env:NodeJS.ProcessEnv=process.env){
  const provider=selectedNewsTranslationProvider(env);
  if(provider==='azure'){
