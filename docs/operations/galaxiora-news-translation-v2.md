@@ -60,10 +60,17 @@ The retired `NEWS_EDITORIAL_AI_ENABLED` switch no longer controls the news trans
 ### B. Start the offline NMT service (first start downloads an image and model)
 
 ```powershell
-docker compose --profile translation up -d translator
+# Existing named model and cache volumes are kept.
+# One-shot translator-volume-init runs as root, grants UID 1032 access,
+# exits successfully, then translator starts as its original non-root user.
+docker compose --profile translation config --quiet
+docker compose --profile translation up -d --force-recreate translator
+docker compose --profile translation ps -a
 docker compose --profile translation logs --tail=80 translator
 npm run news:translate:check
 ```
+
+On Docker Desktop 29, freshly created named volumes may default to root ownership. The image runs as UID/GID 1032 and used to fail with `PermissionError: [Errno 13] '/home/libretranslate/.local/share/argos-translate'`. The `translator-volume-init` service now runs a narrowly scoped `chown -R 1032:1032` on **only the two translator volumes**. Compose waits for that job to succeed before starting the translator under its upstream unprivileged user. This procedure preserves existing model data and does not touch PostgreSQL. If the one-shot job fails, inspect `docker compose --profile translation logs translator-volume-init`.
 
 The first startup may download language model packages and compile/warm the translator. The six-sample translation QA command helps compare real Ukrainian output for Jyotish, Tarot, yoga, astronomy and dates; human sign-off is required before publication. A successful check must print `PASS EN -> UK local machine translation` and a Ukrainian translation of a controlled sentence. If it reports `English to Ukrainian package not installed`, inspect:
 
@@ -74,7 +81,7 @@ docker compose --profile translation logs --tail=100 translator
 
 Use the official Argos model index/LibreTranslate `--update-models` instructions to install missing EN→UK language support. Do not claim production readiness until `/languages` includes `en` with `uk` as a target. If the installed model offers no direct or pivot route, translation is blocked by design. Do not manually fabricate previews or silently turn on an external API.
 
-If `docker compose` gives port conflict, inspect port 5100; do not change PostgreSQL port 5433. On a small VPS, measure RAM and CPU before keeping translator resident: cap in the optional compose service is approximately 1.5 GiB memory and 1.5 vCPU. On under-provisioned hosts, use a separate private translation worker rather than reducing capacity of Next/Nest/PostgreSQL.
+If `docker compose` gives port conflict, inspect port 5100; do not change PostgreSQL port 5433. If the existing `jyotish-db` container is `Exited (255)`, restore it independently with `docker compose up -d db` and inspect `docker compose logs --tail=80 db`; never remove its named volume. On a small VPS, measure RAM and CPU before keeping translator resident: cap in the optional compose service is approximately 1.5 GiB memory and 1.5 vCPU. On under-provisioned hosts, use a separate private translation worker rather than reducing capacity of Next/Nest/PostgreSQL.
 
 ### C. Run Galaxiora and process the archive
 
