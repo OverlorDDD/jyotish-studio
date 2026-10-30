@@ -8,11 +8,19 @@ import {authReady,passwordHash,passwordMatches,normalizedEmail,sessionToken,cook
 import {createHourlyLimiter,createKeyedHourlyLimiter} from './ai.ts';
 import {publicUser} from './account-policy.ts';
 import {authAttemptCeiling} from './auth-limit-policy.ts';
+import {registrationReady,registrationExpiryMs,registrationCooldownMs,registrationCode,registrationCodeDigest,secureCodeMatches,verifySignupTurnstile,sendSignupVerification} from './registration-security.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
 
 export class CredentialsDto{
  @ApiProperty({type:String,example:'you@example.com'}) @IsEmail() @MaxLength(150) email!:string;
  @ApiProperty({type:String,minLength:12}) @IsString() @Length(12,128) password!:string;
+}
+export class RegistrationDto extends CredentialsDto{
+ @IsString() @MaxLength(2048) turnstileToken!:string;
+}
+export class VerifyRegistrationDto {
+ @IsEmail() @MaxLength(150) email!:string;
+ @IsString() @Matches(/^[0-9]{6}$/) code!:string;
 }
 export class SaveChartDto extends BirthDto{
  @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) asOf?:string;
@@ -55,16 +63,66 @@ export class AccountController{
   @Inject(CHART_USE_CASES)private readonly chartsService:SavedChartUseCases){}
 
  @Post('register')
- async register(@Body() body:CredentialsDto,@Req() req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
+ async register(@Body() body:RegistrationDto,@Req() req:IncomingMessage){
   checkRequest(req);requireSetup();
-  if(!allowAuthAttempt()||!allowAuthByEmail(normalizedEmail(body.email)))throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
+  if(!registrationReady())throw new ServiceUnavailableException('Public signup requires verified email and anti-bot setup');
   const email=normalizedEmail(body.email);
-  if(await this.prisma.user.findUnique({where:{email}}))throw new ConflictException('This email is already registered.');
-  const hash=await passwordHash(body.password);
-  let user:{id:string;email:string;role:string;subscriptionTier:'FREE'|'PREMIUM';subscriptionEndsAt:Date|null};
-  try{user=await this.prisma.user.create({data:{email,passwordHash:hash},select:{id:true,email:true,role:true,subscriptionTier:true,subscriptionEndsAt:true}});}
+  if(!allowAuthAttempt()||!allowAuthByEmail(email))
+   throw new HttpException('Too many attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
+  if(await this.prisma.user.findUnique({where:{email},select:{id:true}}))
+   throw new ConflictException('This email is already registered.');
+  const prior=await this.prisma.pendingRegistration.findUnique({where:{email}});
+  if(prior&&prior.sentAt.getTime()+registrationCooldownMs>Date.now())
+   throw new HttpException('Please wait before requesting another email.',HttpStatus.TOO_MANY_REQUESTS);
+  await verifySignupTurnstile(body.turnstileToken);
+  const code=registrationCode(),digest=registrationCodeDigest(email,code);
+  const now=new Date(),password=await passwordHash(body.password);
+  await this.prisma.pendingRegistration.upsert({where:{email},
+   create:{email,passwordHash:password,codeDigest:digest,
+    sentAt:now,expiresAt:new Date(now.getTime()+registrationExpiryMs),attempts:0},
+   update:{passwordHash:password,codeDigest:digest,
+    sentAt:now,expiresAt:new Date(now.getTime()+registrationExpiryMs),attempts:0}
+  });
+  try{await sendSignupVerification(email,code)}
   catch(error){
-   if(typeof error==='object'&&error&&'code' in error&&error.code==='P2002')throw new ConflictException('This email is already registered.');
+   await this.prisma.pendingRegistration.deleteMany({where:{email,codeDigest:digest}}).catch(()=>{});
+   throw error;
+  }
+  // Critically: no session, no User row, and no user privileges before email proof.
+  return {verificationRequired:true,expiresInSeconds:900};
+ }
+
+ @Post('register/verify')
+ async verifyRegistration(@Body() body:VerifyRegistrationDto,
+  @Req() req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
+  checkRequest(req);requireSetup();
+  if(!registrationReady())throw new ServiceUnavailableException('Registration verification is unavailable');
+  const email=normalizedEmail(body.email);
+  if(!allowAuthAttempt()||!allowAuthByEmail(email))
+   throw new HttpException('Too many attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
+  const now=new Date();
+  // Database-enforced attempt ceiling persists across service restarts.
+  const claimed=await this.prisma.pendingRegistration.updateMany({
+   where:{email,expiresAt:{gt:now},attempts:{lt:5}},
+   data:{attempts:{increment:1}}
+  });
+  if(claimed.count!==1)throw new BadRequestException('Invalid or expired verification code');
+  const pending=await this.prisma.pendingRegistration.findUnique({where:{email}});
+  if(!pending||!secureCodeMatches(pending.codeDigest,registrationCodeDigest(email,body.code)))
+   throw new BadRequestException('Invalid or expired verification code');
+  let user:{id:string;email:string;role:string;subscriptionTier:'FREE'|'PREMIUM';subscriptionEndsAt:Date|null};
+  try{
+   user=await this.prisma.$transaction(async tx=>{
+    const consumed=await tx.pendingRegistration.deleteMany({
+     where:{email,codeDigest:pending.codeDigest,expiresAt:{gt:now},attempts:{lte:5}}
+    });
+    if(consumed.count!==1)throw new BadRequestException('Invalid or expired verification code');
+    return tx.user.create({data:{email,passwordHash:pending.passwordHash},
+     select:{id:true,email:true,role:true,subscriptionTier:true,subscriptionEndsAt:true}});
+   });
+  }catch(error){
+   if(typeof error==='object'&&error&&'code' in error&&error.code==='P2002')
+    throw new ConflictException('This email is already registered.');
    throw error;
   }
   setSession(res,req,sessionToken(user.id));
