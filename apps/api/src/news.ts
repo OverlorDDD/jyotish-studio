@@ -6,6 +6,7 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,safeImageUrl} from './news-domain.ts';
 import {NewsIngestionService,newsIngestionEnabled} from './news-ingestion.ts';
+import {publicTitleForLocale} from './news-localization.ts';
 import {rankPersonalNews} from './news-relevance.ts';
 import {collapseNewsEvents,newsQualitySnapshot} from './news-quality.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
@@ -34,12 +35,13 @@ export class NewsController {
  topics(){return {...TOPIC_LABELS,...EXTRA_INTEREST_LABELS};}
  @Get('feed') @Header('Cache-Control','private,no-store')
  async feed(@Query('topic')topic='all',@Query('tag')tag='',@Query('limit')limit='24',
-  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q='',@Req()req:IncomingMessage){
+  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q='',@Req()req:IncomingMessage,@Query('lang')lang='all'){
   if(topic!=='all'&&!TOPICS.includes(topic as typeof TOPICS[number])||
    tag&&!INTEREST_TAGS.includes(tag as typeof INTEREST_TAGS[number]))throw new BadRequestException('Invalid category');
   if(!/^\d{1,2}$/.test(limit)||Number(limit)<1||Number(limit)>48||
    !/^\d{1,3}$/.test(page)||Number(page)<1||Number(page)>20)throw new BadRequestException('Invalid pagination');
   if(!['relevance','latest','personal'].includes(sort))throw new BadRequestException('Invalid sort');
+  if(!['uk','en','all'].includes(lang))throw new BadRequestException('Invalid news locale');
   const selectedTags=tags?tags.split(','):[];
   if(selectedTags.length>INTEREST_TAGS.length||selectedTags.some(x=>!INTEREST_TAGS.includes(x as typeof INTEREST_TAGS[number])))
    throw new BadRequestException('Invalid tags');
@@ -48,6 +50,7 @@ export class NewsController {
   const find=search.length>=2?{OR:[
    {title:{contains:search,mode:'insensitive' as const}},
    {titleUk:{contains:search,mode:'insensitive' as const}},
+   {titleEn:{contains:search,mode:'insensitive' as const}},
    {summaryUk:{contains:search,mode:'insensitive' as const}},
    {summaryEn:{contains:search,mode:'insensitive' as const}},
    {feedDescription:{contains:search,mode:'insensitive' as const}},
@@ -60,7 +63,7 @@ export class NewsController {
    take:600,orderBy:{publishedAt:'desc'},select:{
     id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
     publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true,
-    titleUk:true,imageUrl:true,imageCredit:true,imageLicense:true,imageLicenseUrl:true,imagePageUrl:true
+    titleUk:true,titleEn:true,imageUrl:true,imageCredit:true,imageLicense:true,imageLicenseUrl:true,imagePageUrl:true
    }
   });
   const ordered=articles.map(a=>({...a,relevance:rank(a.score,a.publishedAt)}))
@@ -85,6 +88,10 @@ export class NewsController {
   }
   // Reduce duplicated event cards only after ranking, before pagination; never delete source records.
   ranked=collapseNewsEvents(ranked);
+  // Do not leak Hindi/mixed-script originals when the visitor selected a
+  // specific language. New records join their localized feed after NMT.
+  if(lang==='uk'||lang==='en')
+   ranked=ranked.filter(article=>Boolean(publicTitleForLocale(article,lang)));
   const size=Number(limit),offset=(Number(page)-1)*size;
   const [lastScan,articleCount]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,sources:true,accepted:true,errors:true}}),
