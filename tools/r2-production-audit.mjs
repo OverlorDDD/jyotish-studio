@@ -19,12 +19,25 @@ if(!publicMode){
  check(Boolean(origin),'External HTTPS origin configured','Set NEXT_PUBLIC_SITE_URL to the owned HTTPS domain before SITE_NOINDEX=0');
  check(publicIndexingEnabled(),'Public index switch and URL agree','Site remains non-indexable');
  check(process.env.SESSION_COOKIE_SECURE==='1','HTTPS-only session cookies enabled','Set SESSION_COOKIE_SECURE=1 on HTTPS production');
+ check(Boolean(process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL&&
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL)),
+  'Public privacy contact configured','Set NEXT_PUBLIC_SITE_CONTACT_EMAIL before public launch');
+ check(Boolean(process.env.NEXT_PUBLIC_OPERATOR_NAME?.trim()),
+  'Public site operator identified','Set NEXT_PUBLIC_OPERATOR_NAME before public launch');
+ check(process.env.PUBLIC_REGISTRATION_ENABLED==='1',
+  'Public signup explicitly enabled','PUBLIC_REGISTRATION_ENABLED=1 is required for open registration');
+ for(const name of ['TURNSTILE_SECRET_KEY','NEXT_PUBLIC_TURNSTILE_SITE_KEY',
+  'RESEND_API_KEY','RESEND_FROM_EMAIL']){
+  check(Boolean(process.env[name]?.trim()),name+' configured',name+' is required for protected signup');
+ }
 }
 const files=[
  'apps/web/app/robots.ts','apps/web/app/sitemap.ts','apps/web/lib/site-indexing.ts',
  'apps/web/app/[locale]/methodology/page.tsx',
  'tools/backup-db.ps1','tools/site-preflight.mjs','tools/release-launch-verify.mjs',
- 'apps/api/src/auth.ts','apps/api/src/news-domain.ts',
+ 'apps/api/src/auth.ts','apps/api/src/registration-security.ts',
+ 'apps/web/app/[locale]/privacy/page.tsx','apps/web/app/[locale]/terms/page.tsx',
+ 'apps/api/src/news-domain.ts',
  'apps/api/src/news-editorial-coverage.ts','tools/news-release-gate.mjs'
 ];
 for(const p of files)check(existsSync(p),'Present: '+p,'Missing required file: '+p);
