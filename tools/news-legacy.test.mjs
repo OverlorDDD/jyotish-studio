@@ -9,6 +9,7 @@ const rows=[
   summary:null,summaryKind:'needs_editorial',language:'en',editorialAttempts:1}
 ];
 const mock=async(url,opts)=>{
+ if(String(url).endsWith('/languages'))return new Response(JSON.stringify([{code:'en',targets:['uk']}]),{status:200});
  assert.ok(String(url).endsWith('/translate'));
  assert.equal(opts.method,'POST');
  const payload=JSON.parse(opts.body);
@@ -38,13 +39,13 @@ test('legacy news translated oldest-first without a generated teaser for title-o
   if(old===undefined)delete process.env.NEWS_TRANSLATION_ENABLED;else process.env.NEWS_TRANSLATION_ENABLED=old;
  }
 });
-test('local NMT outage gives backoff and never calls a cloud fallback',async()=>{
+test('local NMT outage never burns retry budget and never calls a cloud fallback',async()=>{
  const writes=[];const calls=[];
  const db={newsArticle:{findMany:async()=>[rows[0]],updateMany:async arg=>{writes.push(arg);return {count:1};}}};
  const fail=async url=>{calls.push(String(url));throw Error('offline');};
  const out=await enrichPendingNews(db,fail);
- assert.equal(out.failed,1);
- assert.ok(writes[0].data.editorialNextAttemptAt.getTime()>Date.now());
+ assert.equal(out.reason,'local_translator_unavailable');
+ assert.equal(writes.length,0,'Do not mark articles failed while translator is offline');
  assert.ok(calls.every(u=>u.startsWith('http://127.0.0.1:5100/')));
 });
 test('news archive help is available without a database or translator',async()=>{
