@@ -82,3 +82,39 @@ test('Without human quality sign-off no Azure reservation is created',async()=>{
   assert.equal(db.rows.size,0);
  }finally{keys.forEach((k,i)=>previous[i]===undefined?delete process.env[k]:process.env[k]=previous[i]);}
 });
+
+test('Approved Azure batch reserves the actual headline length, then stores its Ukrainian translation',async()=>{
+ const keys=['NEWS_TRANSLATION_ENABLED','NEWS_TRANSLATION_PROVIDER','NEWS_TRANSLATION_QUALITY_APPROVED',
+  'AZURE_TRANSLATOR_KEY','AZURE_TRANSLATOR_REGION','NEWS_AZURE_MONTHLY_CHAR_LIMIT'];
+ const previous=keys.map(k=>process.env[k]);
+ const headline='Mercury enters Scorpio in 2026';
+ const row={id:'azure-one',title:headline,titleUk:null,summaryUk:null,
+  feedDescription:null,summary:null,summaryKind:'no_context',editorialAttempts:0,language:'en'};
+ const meter=mockMeter(),writes=[];
+ const db={...meter,newsArticle:{
+  findMany:async()=>[row],
+  updateMany:async args=>{writes.push(args);return {count:1}}
+ }};
+ let calls=0;
+ const fetcher=async (url,options)=>{
+  calls++;
+  assert.equal(url,'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=en&to=uk');
+  assert.equal(options.headers['Ocp-Apim-Subscription-Key'],'fake-test-key');
+  assert.equal(JSON.parse(options.body)[0].text,headline);
+  return new Response(JSON.stringify([{translations:[{to:'uk',text:'Меркурій увійшов у Скорпіон у 2026 році'}]}]),{status:200});
+ };
+ try{
+  Object.assign(process.env,{NEWS_TRANSLATION_ENABLED:'1',NEWS_TRANSLATION_PROVIDER:'azure',
+   NEWS_TRANSLATION_QUALITY_APPROVED:'1',AZURE_TRANSLATOR_KEY:'fake-test-key',
+   AZURE_TRANSLATOR_REGION:'westeurope',NEWS_AZURE_MONTHLY_CHAR_LIMIT:'1000'});
+  const out=await enrichPendingNews(db,fetcher);
+  assert.equal(out.processed,1);
+  assert.equal(out.engine,'azure_nmt_only');
+  assert.equal(calls,1);
+  assert.equal(writes.length,1);
+  assert.match(writes[0].data.titleUk,/Скорпіон/);
+  assert.equal(meter.rows.get(utcTranslationPeriod()).characters,headline.length);
+ }finally{
+  keys.forEach((k,i)=>previous[i]===undefined?delete process.env[k]:process.env[k]=previous[i]);
+ }
+});
