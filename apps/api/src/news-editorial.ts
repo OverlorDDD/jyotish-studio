@@ -4,7 +4,7 @@
 import type {PrismaService} from './prisma.ts';
 import {cleanDescription} from './news-domain.ts';
 import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
-import {checkNewsTranslator,newsTranslationApproved,selectedNewsTranslationProvider,translateNewsText,type TranslationFetch} from './news-translation.ts';
+import {checkNewsTranslator,newsScopeApproved,newsTranslationScope,selectedNewsTranslationProvider,translateNewsText,type TranslationFetch} from './news-translation.ts';
 import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded} from './news-translation-budget.ts';
 
 type Draft={id:string;title:string;titleUk?:string|null;summaryUk?:string|null;
@@ -34,10 +34,11 @@ const isEnglish=(language:string)=>/^(?:en)(?:$|[-_])/i.test(language);
 export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFetch=fetch):Promise<Output[]>{
  if(process.env.NEWS_TRANSLATION_ENABLED==='0'||!items.length)return [];
  const outputs:Output[]=[];
+ const scope=newsTranslationScope();
  for(const article of items){
   const title=cleanDescription(article.title).slice(0,240);
   if(!title)continue;
-  const src=extractSourceTeaser(article);
+  const src=scope==='full'?extractSourceTeaser(article):'';
   const uk=isUkrainian(article.language);
   if(!uk&&!isEnglish(article.language)){
    console.warn('[news-nmt] source language unsupported:',article.language);
@@ -63,7 +64,7 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
  if(process.env.NEWS_TRANSLATION_ENABLED==='0')return {processed:0,reason:'translation_disabled'};
  // No machine translations are persisted until the selected EN->UK engine
  // passes REAL examples and the site owner explicitly accepts the quality.
- if(!newsTranslationApproved())return {processed:0,reason:'translation_quality_not_approved'};
+ if(!newsScopeApproved())return {processed:0,reason:'translation_quality_not_approved',scope:newsTranslationScope()};
  // An offline or not-yet-installed EN→UK model must not consume the retry
  // budget for the whole archive. Nothing is written until readiness is proven.
  try{
@@ -76,19 +77,23 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
  const raw=Number(process.env.NEWS_TRANSLATION_BATCH_LIMIT);
  const limit=Math.min(12,Math.max(1,Number.isFinite(raw)&&raw>0?Math.floor(raw):6));
  const now=new Date();
+ const scope=newsTranslationScope();
  const candidates=await prisma.newsArticle.findMany({
   where:{status:'PUBLISHED',
    AND:[
     {OR:[{editorialNextAttemptAt:null},{editorialNextAttemptAt:{lte:now}}]},
-    {OR:[{titleUk:null},{titleUk:''},{summaryUk:null},{summaryUk:''}]}
+    ...(scope==='headlines'?{OR:[{titleUk:null},{titleUk:''}]}:
+     {OR:[{titleUk:null},{titleUk:''},{summaryUk:null},{summaryUk:''}]})
    ]},
   orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:1000,
   select:{id:true,title:true,titleUk:true,feedDescription:true,summary:true,summaryUk:true,summaryKind:true,
    language:true,editorialAttempts:true}
  });
- const rows=candidates.filter(x=>!x.titleUk?.trim()||(!x.summaryUk?.trim()&&hasEditorialEvidence(x))).slice(0,limit);
- if(!rows.length)return {processed:0,reason:'queue_empty_no_grounded_work',
-  noEvidenceSkipped:candidates.filter(x=>!x.summaryUk?.trim()&&!hasEditorialEvidence(x)).length};
+ const rows=candidates.filter(x=>!x.titleUk?.trim()||
+  (scope==='full'&&!x.summaryUk?.trim()&&hasEditorialEvidence(x))).slice(0,limit);
+ if(!rows.length)return {processed:0,
+  reason:scope==='headlines'?'queue_empty_headlines':'queue_empty_no_grounded_work',
+  noEvidenceSkipped:scope==='full'?candidates.filter(x=>!x.summaryUk?.trim()&&!hasEditorialEvidence(x)).length:0};
  // Reserve the *entire* scheduled Azure batch up front, before any paid
  // network call. This avoids partial batches after a quota stop and keeps
  // the cap consistent across concurrent API workers / process restarts.
@@ -96,7 +101,7 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   const estimated=rows.reduce((sum,row)=>{
    if(!isEnglish(row.language))return sum;
    const title=!row.titleUk?.trim()?cleanDescription(row.title).slice(0,240).length:0;
-   const teaser=!row.summaryUk?.trim()?extractSourceTeaser(row).length:0;
+   const teaser=scope==='full'&&!row.summaryUk?.trim()?extractSourceTeaser(row).length:0;
    return sum+title+teaser;
   },0);
   try{await reserveAzureNewsCharacters(prisma,estimated,now);}
@@ -115,21 +120,22 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   const existingTeaser=Boolean(original.summaryUk?.trim());
   const facts=hasEditorialEvidence(original);
   const titleReady=existingTitle||Boolean(output?.titleUk);
-  const teaserReady=!facts||existingTeaser||Boolean(output?.summaryUk);
+  const teaserReady=scope==='headlines'||!facts||existingTeaser||Boolean(output?.summaryUk);
   const success=titleReady&&teaserReady;
   const nextAttempts=original.editorialAttempts+1;
   const update={
    editorialAttempts:nextAttempts,editorialAttemptedAt:now,
    editorialNextAttemptAt:success?null:new Date(now.getTime()+(nextAttempts>=3?24:3)*3600000),
    ...(!existingTitle&&output?.titleUk?{titleUk:output.titleUk}:{}),
-   ...(!existingTeaser&&facts&&output?.summaryUk?{
+   ...(scope==='full'&&!existingTeaser&&facts&&output?.summaryUk?{
     summaryUk:output.summaryUk,
     ...(output.summaryEn?{summaryEn:output.summaryEn}:{}),
     summaryKind:'machine_translated_excerpt'}:{}),
-   ...(success&&!facts?{summaryKind:'no_context'}:{})
+   ...(scope==='full'&&success&&!facts?{summaryKind:'no_context'}:{})
   };
   await prisma.newsArticle.updateMany({where:{id:original.id,status:'PUBLISHED'},data:update});
   if(success)processed++;else failed++;
  }
- return {processed,attempted:rows.length,failed,engine:selectedNewsTranslationProvider()==='azure'?'azure_nmt_only':NEWS_TRANSLATION_MODE};
+ return {processed,attempted:rows.length,failed,scope,
+  engine:selectedNewsTranslationProvider()==='azure'?'azure_nmt_only':NEWS_TRANSLATION_MODE};
 }
