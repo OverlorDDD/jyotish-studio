@@ -71,6 +71,11 @@ export function improveNewsTerminology(source:string,translated:string):string{
  if(/\bMercury\b/i.test(source)&&
    /\b(?:enter(?:s|ed|ing)?|retrograde|zodiac|planet|Scorpio|Pisces|Gemini|astrology|astrological)\b/i.test(source))
   result=result.replace(/\bMercury\b/g,'Меркурій');
+ if(/\bTithi\b/i.test(source))
+  result=result.replace(/(?<![\p{L}])Тіті(?![\p{L}])/giu,'тітхі')
+    .replace(/(?<![\p{L}])Тітхі(?![\p{L}])/gu,'тітхі');
+ if(/\bTithi\s+and\s+Nakshatra\b/i.test(source))
+  result=result.replace(/тітхі\s+та\s+накшатра(?![\p{L}])/giu,'тітхі та накшатри');
  if(/\byoga instructor\b/i.test(source))
   result=result.replace(/інструктор йога/giu,'інструктор із йоги');
  if(/\bgentle morning breathing exercises\b/i.test(source))
