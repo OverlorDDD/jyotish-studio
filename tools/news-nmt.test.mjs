@@ -32,9 +32,9 @@ test('strict local machine translation keeps astronomical dates and never accept
  assert.equal(normalizeTranslatedNews('Джйотиш і навамша'), 'Джйотіш і Навамша');
  assert.equal(preserveSourceNumbers('2026 and 4', '2026 та 4'),true);
  assert.equal(preserveSourceNumbers('2026 and 4', '2025 та 4'),false);
- await assert.rejects(()=>translateNewsText('2026',async()=>new Response(JSON.stringify({translatedText:'2025'}))),/Invalid local/);
- await assert.rejects(()=>translateNewsText('Astrology',async()=>new Response(JSON.stringify({translatedText:'Astrology'}))),/Invalid local/);
- await assert.rejects(()=>translateNewsText('Astrology',async()=>new Response(JSON.stringify({translatedText:'<b>Астрологія</b>'}))),/Invalid local/);
+ await assert.rejects(()=>translateNewsText('2026',async()=>new Response(JSON.stringify({translatedText:'2025'}))),/Invalid (?:machine|local)/);
+ await assert.rejects(()=>translateNewsText('Astrology',async()=>new Response(JSON.stringify({translatedText:'Astrology'}))),/Invalid (?:machine|local)/);
+ await assert.rejects(()=>translateNewsText('Astrology',async()=>new Response(JSON.stringify({translatedText:'<b>Астрологія</b>'}))),/Invalid (?:machine|local)/);
 });
 
 test('news editorial never calls generative APIs regardless of available keys',async()=>{
