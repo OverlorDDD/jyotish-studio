@@ -50,7 +50,7 @@ test('explicit headline approval publishes only title, charges title characters,
    summary:null,summaryKind:'needs_editorial',editorialAttempts:0,language:'en'};
   let totalCalls=0;const writes=[],meter={characters:0};
   const db={
-   newsArticle:{findMany:async x=>{assert.ok(x.where.AND[1].OR.every(v=>Object.hasOwn(v,'titleUk')));return [row]},
+   newsArticle:{findMany:async x=>{assert.equal(x.where.status,'PUBLISHED');return [row]},
     updateMany:async x=>{writes.push(x);return {count:1}}},
    newsTranslationUsage:{
     upsert:async()=>({}),
