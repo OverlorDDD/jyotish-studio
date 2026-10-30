@@ -69,7 +69,7 @@ export function improveNewsTerminology(source:string,translated:string):string{
     .replace(/Таро[-\s]+розворот(?:и|ів|ами)?/giu,'розклади Таро');
  }
  if(/\bMercury\b/i.test(source)&&
-   /\b(?:entered?|retrograde|zodiac|planet|Scorpio|Pisces|Gemini|astrology|astrological)\b/i.test(source))
+   /\b(?:enter(?:s|ed|ing)?|retrograde|zodiac|planet|Scorpio|Pisces|Gemini|astrology|astrological)\b/i.test(source))
   result=result.replace(/\bMercury\b/g,'Меркурій');
  if(/\byoga instructor\b/i.test(source))
   result=result.replace(/інструктор йога/giu,'інструктор із йоги');
