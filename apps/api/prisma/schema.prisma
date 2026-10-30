@@ -364,6 +364,15 @@ model NewsScan {
  accepted Int
  errors Int
 }
+/** Monthly conservative character reservations for non-LLM Azure news translation.
+ * Atomic updates prevent concurrent API workers from exceeding the configured
+ * local budget. Counts attempted characters (including failed API requests). */
+model NewsTranslationUsage {
+ period String @id @db.VarChar(7)
+ characters Int @default(0)
+ updatedAt DateTime @updatedAt
+}
+
 model NewsIngestionLease {
  id String @id
  token String
