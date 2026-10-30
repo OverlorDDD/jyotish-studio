@@ -7,7 +7,7 @@ const scrypt=promisify(scryptCallback);
 async function passwordHash(password){
  const salt=randomBytes(16).toString('hex');
  return 'scrypt
-export async function fixtureAccount(pageOrRequest,{data}){
+export async function fixtureIdentity({data}){
  const raw=process.env.DATABASE_URL||'';
  let url;
  try{url=new URL(raw)}catch{throw new Error('Fixture requires isolated disposable CI database')}
@@ -24,6 +24,10 @@ export async function fixtureAccount(pageOrRequest,{data}){
  try{
   await client.user.create({data:{email:email.toLowerCase(),passwordHash:await passwordHash(password)}});
  }finally{await client.$disconnect()}
+ return {email,password};
+}
+export async function fixtureAccount(pageOrRequest,{data}){
+ const {email,password}=await fixtureIdentity({data});
  const request=pageOrRequest.request||pageOrRequest;
  return request.post('/api/v1/account/login',{data:{email,password}});
 }
