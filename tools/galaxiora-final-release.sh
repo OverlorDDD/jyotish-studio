@@ -116,6 +116,9 @@ deploy(){
  git fetch origin "$BRANCH"
  PREVIOUS=$(git rev-parse HEAD)
  TARGET=$(git rev-parse FETCH_HEAD)
+ if [ -n "${GALAXIORA_RELEASE_TARGET:-}" ] && [ "$TARGET" != "$GALAXIORA_RELEASE_TARGET" ]; then
+  echo 'STOP: release branch changed after this deployment was prepared'; exit 1
+ fi
  git merge-base --is-ancestor "$PREVIOUS" "$TARGET" || { echo 'STOP: unexpected Git history'; exit 1; }
  while IFS= read -r f; do
   case "$f" in apps/web/next-env.d.ts|package.json) ;; *) echo "STOP: unexpected changed file $f"; exit 1;; esac
