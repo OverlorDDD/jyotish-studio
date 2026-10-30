@@ -18,8 +18,11 @@ export function newsTranslationApproved(env:NodeJS.ProcessEnv=process.env):boole
 export function azureTranslatorCredentials(env:NodeJS.ProcessEnv=process.env){
  const key=env.AZURE_TRANSLATOR_KEY?.trim()||'';
  const region=env.AZURE_TRANSLATOR_REGION?.trim()||'';
- if(!key||!region||!/^[a-zA-Z0-9-]{2,70}$/.test(region))
-  throw Error('Azure NMT requires AZURE_TRANSLATOR_KEY and AZURE_TRANSLATOR_REGION; keys never go to the browser');
+ if(!key||(region&&!/^[a-zA-Z0-9-]{2,70}$/.test(region)))
+  throw Error('Azure NMT requires AZURE_TRANSLATOR_KEY and a valid optional AZURE_TRANSLATOR_REGION');
+ // Azure Translator's global single-service resource does not need region.
+ // Multi-service and regional resources do require it.
+
  return {key,region};
 }
 const KNOWN_UNSAFE_TRANSLATIONS:RegExp[]=[
@@ -69,7 +72,8 @@ export async function translateNewsText(text:string,fetcher:TranslationFetch=fet
   response=await fetcher('https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=en&to=uk',{
    method:'POST',signal:AbortSignal.timeout(25000),
    headers:{'Content-Type':'application/json; charset=UTF-8',
-    'Ocp-Apim-Subscription-Key':key,'Ocp-Apim-Subscription-Region':region},
+    'Ocp-Apim-Subscription-Key':key,
+    ...(region?{'Ocp-Apim-Subscription-Region':region}:{})},
    body:JSON.stringify([{text:input}])
   });
  }else{
