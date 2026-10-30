@@ -12,12 +12,12 @@ type Topic=typeof TOPICS[number];
 const EXTRA_INTEREST_TAGS=['natal-charts','nakshatras','mantras','pranayama'] as const;
 const INTEREST_TAGS=[...TOPICS,...EXTRA_INTEREST_TAGS] as const;
 type InterestTag=typeof INTEREST_TAGS[number];
-type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;imageUrl?:string|null;imageCredit?:string|null;imagePageUrl?:string|null;imageLicense?:string|null;imageLicenseUrl?:string|null;personalReason?:'selected_topic'|'similar_to_liked'|'fresh_discovery'|'world_highlight';matchingTag?:InterestTag|null};
+type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;titleEn?:string|null;imageUrl?:string|null;imageCredit?:string|null;imagePageUrl?:string|null;imageLicense?:string|null;imageLicenseUrl?:string|null;personalReason?:'selected_topic'|'similar_to_liked'|'fresh_discovery'|'world_highlight';matchingTag?:InterestTag|null};
 type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
 type GuestNewsHint={topic:Topic;tags:InterestTag[];title:string};
-type ReactionRow={articleId:string;vote:'YES'|'NO';updatedAt:string;article:{title:string;titleUk?:string|null;url:string;source:string;topic:string}};
+type ReactionRow={articleId:string;vote:'YES'|'NO';updatedAt:string;article:{title:string;titleUk?:string|null;titleEn?:string|null;url:string;source:string;topic:string}};
 const LABELS:Record<InterestTag,{uk:string;en:string}>={
  jyotish:{uk:'Джйотіш',en:'Jyotish'},astrology:{uk:'Астрологія',en:'Astrology'},tarot:{uk:'Таро',en:'Tarot'},
  yoga:{uk:'Йога',en:'Yoga'},meditation:{uk:'Медитація',en:'Meditation'},
@@ -254,7 +254,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
   const controller=new AbortController();
   setBusy(true);setError(false);
   const params=new URLSearchParams({limit:'48',page:String(page),
-   sort:view==='latest'?'latest':view==='mine'&&accountStatus==='member'?'personal':'relevance'});
+   sort:view==='latest'?'latest':view==='mine'&&accountStatus==='member'?'personal':'relevance',lang:locale});
   if(category!=='all')params.set('topic',category);
   if(view==='mine'&&selected.length)params.set('tags',selected.join(','));
   if(query.length>=2)params.set('q',query);
@@ -270,7 +270,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
    .catch(()=>{if(!controller.signal.aborted)setError(true);})
    .finally(()=>{if(!controller.signal.aborted)setBusy(false);});
   return()=>controller.abort();
- },[category,page,reload,view,selected,query,accountStatus]);
+ },[category,page,reload,view,selected,query,accountStatus,locale]);
  const resetCategory=(value:string)=>{setCategory(value);setPage(1);setItems([]);};
  const toggleTag=(tag:InterestTag)=>setSelected(old=>old.includes(tag)?old.filter(t=>t!==tag):[...old,tag]);
 
@@ -398,8 +398,14 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  const canMore=items.length<total&&page<20;
  const date=(iso:string)=>{const d=new Date(iso);return Number.isFinite(d.getTime())?
   new Intl.DateTimeFormat(locale==='uk'?'uk-UA':'en-GB',{day:'numeric',month:'short',year:'numeric'}).format(d):'';};
+ const titleFor=(story:Story)=>locale==='uk'?story.titleUk||story.title:story.titleEn||story.title;
  const preview=(story:Story)=>{
-  const candidate=locale==='uk'?(story.summaryUk||((story.language==='uk'||story.language==='uk-UA')?story.summary:null)):(story.summaryEn||story.summary);
+  const candidate=locale==='uk'?story.summaryUk:
+   (story.summaryEn||((story.language==='en'||story.language==='en-US')?story.summary:null));
+  // Do not mix original Hindi/cyrillic RSS previews with the selected language.
+  if(candidate&&/[\u0900-\u097F]/u.test(candidate))return null;
+  if(candidate&&locale==='uk'&&!/[\u0400-\u052F]/u.test(candidate))return null;
+  if(candidate&&locale==='en'&&(!/[A-Za-z]/.test(candidate)||/[\u0400-\u052F]/u.test(candidate)))return null;
   if(!candidate||/Це орієнтир за назвою|Публікація джерела|Матеріал джерела|Орієнтир за заголовком|Read the original article|This publication by|This article from/i.test(candidate))return null;
   return candidate;
  };
@@ -481,7 +487,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
          {history.slice(0,historyShown).map(row=><li key={row.articleId}>
           <span>{row.vote==='YES'?<Heart size={14}/>:<HeartOff size={14}/>}
            {safeLink(row.article.url)?<a href={row.article.url} target="_blank" rel="noopener noreferrer">
-            {locale==='uk'&&row.article.titleUk||row.article.title}</a>:
+            {(locale==='uk'?row.article.titleUk||row.article.title:row.article.titleEn||row.article.title)}</a>:
             (locale==='uk'&&row.article.titleUk||row.article.title)}
            <small>{row.article.source}</small></span>
           <button type="button" disabled={privacyBusy} onClick={()=>void undoHistory(row.articleId)}>
@@ -521,11 +527,11 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
         return <article className={i===0&&view!=='mine'?styles.lead:styles.card} key={story.id}>
-         <StoryArtwork storyId={story.id} imageUrl={story.imageUrl&&firstPhotoOwner.get(story.imageUrl)===story.id?story.imageUrl:null} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={locale==='uk'&&story.titleUk||story.title} topic={story.topic} locale={locale}/>
+         <StoryArtwork storyId={story.id} imageUrl={story.imageUrl&&firstPhotoOwner.get(story.imageUrl)===story.id?story.imageUrl:null} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={titleFor(story)} topic={story.topic} locale={locale}/>
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
-          <h3><GlossaryText text={locale==='uk'&&story.titleUk?story.titleUk:story.title} locale={locale}/></h3>
+          <h3><GlossaryText text={titleFor(story)} locale={locale}/></h3>
           {preview(story)&&<p className={styles.summary} data-testid="news-summary"><GlossaryText text={preview(story)!} locale={locale}/></p>}
           <p className={styles.source}>{story.source}</p>
           {view==='mine'&&accountStatus==='member'&&story.personalReason&&
