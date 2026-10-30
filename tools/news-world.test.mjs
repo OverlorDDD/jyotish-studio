@@ -66,8 +66,9 @@ test('RSS image metadata respects article-level license and safe URL constraints
  assert.equal(safeImageUrl('https://assets.example.org/cover.jpg',''),null);
 });
 test('machine translation never fabricates article details when publisher supplies only a title',async()=>{
- const prev=process.env.NEWS_TRANSLATION_ENABLED;
+ const prev=process.env.NEWS_TRANSLATION_ENABLED,scope=process.env.NEWS_TRANSLATION_CONTENT_SCOPE;
  delete process.env.NEWS_TRANSLATION_ENABLED;
+ process.env.NEWS_TRANSLATION_CONTENT_SCOPE='full';
  const inputs=[
   {id:'a',title:'Tarot Symbolism',feedDescription:'',summary:null,summaryKind:'needs_editorial',language:'en'},
   {id:'b',title:'Venus Retrograde in Birth Charts',feedDescription:'The discussion compares natal Venus retrograde configurations and reviews recurring patterns in western astrology.',summary:null,summaryKind:'needs_editorial',language:'en'}
@@ -91,6 +92,7 @@ test('machine translation never fabricates article details when publisher suppli
   assert.ok(calls.every(x=>!x.includes('birth data')));
  }finally{
   if(prev===undefined)delete process.env.NEWS_TRANSLATION_ENABLED;else process.env.NEWS_TRANSLATION_ENABLED=prev;
+  if(scope===undefined)delete process.env.NEWS_TRANSLATION_CONTENT_SCOPE;else process.env.NEWS_TRANSLATION_CONTENT_SCOPE=scope;
  }
 });
 
