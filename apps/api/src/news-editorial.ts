@@ -4,12 +4,13 @@
 import type {PrismaService} from './prisma.ts';
 import {cleanDescription} from './news-domain.ts';
 import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
-import {checkNewsTranslator,newsScopeApproved,newsTranslationScope,selectedNewsTranslationProvider,translateNewsText,type TranslationFetch} from './news-translation.ts';
+import {checkNewsTranslator,newsScopeApproved,newsTranslationScope,selectedNewsTranslationProvider,translateNewsText,translateLocalizedHeadline,type TranslationFetch} from './news-translation.ts';
 import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded} from './news-translation-budget.ts';
+import {isLocalizedNewsTitle} from './news-localization.ts';
 
-type Draft={id:string;title:string;titleUk?:string|null;summaryUk?:string|null;
+type Draft={id:string;title:string;titleUk?:string|null;titleEn?:string|null;summaryUk?:string|null;
  feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
-type Output={id:string;titleUk:string;summaryUk:string;summaryEn:string};
+type Output={id:string;titleUk:string;titleEn?:string;summaryUk:string;summaryEn:string};
 export const NEWS_TRANSLATION_MODE='local_nmt_only';
 const MAX_TEASER_SOURCE=280;
 
@@ -39,6 +40,22 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
   const title=cleanDescription(article.title).slice(0,240);
   if(!title)continue;
   const src=scope==='full'?extractSourceTeaser(article):'';
+  if(scope==='headlines'){
+   let titleUk=isLocalizedNewsTitle(article.titleUk,'uk')?article.titleUk!.trim():'';
+   let titleEn=isLocalizedNewsTitle(article.titleEn,'en')?article.titleEn!.trim():'';
+   const canReuseEnglish=isLocalizedNewsTitle(title,'en');
+   try{
+    if(!titleUk)titleUk=await translateLocalizedHeadline(title,'uk',fetcher);
+    if(!titleEn)titleEn=canReuseEnglish?title:await translateLocalizedHeadline(title,'en',fetcher);
+    outputs.push({id:article.id,titleUk,titleEn,summaryUk:article.summaryUk?.trim()||'',
+     summaryEn:''});
+   }catch(error){
+    console.warn('[news-nmt] Unverified bilingual headline',article.id,error instanceof Error?error.message:String(error));
+    if(titleUk||titleEn)outputs.push({id:article.id,titleUk,titleEn,
+     summaryUk:article.summaryUk?.trim()||'',summaryEn:''});
+   }
+   continue;
+  }
   const uk=isUkrainian(article.language);
   if(!uk&&!isEnglish(article.language)){
    console.warn('[news-nmt] source language unsupported:',article.language);
@@ -82,15 +99,16 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   where:{status:'PUBLISHED',
    AND:[
     {OR:[{editorialNextAttemptAt:null},{editorialNextAttemptAt:{lte:now}}]},
-    scope==='headlines'?{OR:[{titleUk:null},{titleUk:''}]}:
+    scope==='headlines'?{}:
      {OR:[{titleUk:null},{titleUk:''},{summaryUk:null},{summaryUk:''}]}
    ]},
-  orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:1000,
-  select:{id:true,title:true,titleUk:true,feedDescription:true,summary:true,summaryUk:true,summaryKind:true,
+  orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:scope==='headlines'?10000:1000,
+  select:{id:true,title:true,titleUk:true,titleEn:true,feedDescription:true,summary:true,summaryUk:true,summaryKind:true,
    language:true,editorialAttempts:true}
  });
- const rows=candidates.filter(x=>!x.titleUk?.trim()||
-  (scope==='full'&&!x.summaryUk?.trim()&&hasEditorialEvidence(x))).slice(0,limit);
+ const rows=candidates.filter(x=>scope==='headlines'
+  ?(!isLocalizedNewsTitle(x.titleUk,'uk')||!isLocalizedNewsTitle(x.titleEn,'en'))
+  :(!x.titleUk?.trim()||(!x.summaryUk?.trim()&&hasEditorialEvidence(x)))).slice(0,limit);
  if(!rows.length)return {processed:0,
   reason:scope==='headlines'?'queue_empty_headlines':'queue_empty_no_grounded_work',
   noEvidenceSkipped:scope==='full'?candidates.filter(x=>!x.summaryUk?.trim()&&!hasEditorialEvidence(x)).length:0};
@@ -99,10 +117,14 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
  // the cap consistent across concurrent API workers / process restarts.
  if(selectedNewsTranslationProvider()==='azure'){
   const estimated=rows.reduce((sum,row)=>{
+   const title=cleanDescription(row.title).slice(0,240);
+   if(scope==='headlines')
+    return sum+(!isLocalizedNewsTitle(row.titleUk,'uk')?title.length:0)
+     +(!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(title,'en')?title.length:0);
    if(!isEnglish(row.language))return sum;
-   const title=!row.titleUk?.trim()?cleanDescription(row.title).slice(0,240).length:0;
-   const teaser=scope==='full'&&!row.summaryUk?.trim()?extractSourceTeaser(row).length:0;
-   return sum+title+teaser;
+   const missing=!row.titleUk?.trim()?title.length:0;
+   const teaser=!row.summaryUk?.trim()?extractSourceTeaser(row).length:0;
+   return sum+missing+teaser;
   },0);
   try{await reserveAzureNewsCharacters(prisma,estimated,now);}
   catch(error){
@@ -116,17 +138,22 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
  let processed=0,failed=0;
  for(const original of rows){
   const output=translated.find(x=>x.id===original.id);
-  const existingTitle=Boolean(original.titleUk?.trim());
+  const existingTitle=scope==='headlines'?isLocalizedNewsTitle(original.titleUk,'uk'):Boolean(original.titleUk?.trim());
+  const existingEnglish=scope==='headlines'?isLocalizedNewsTitle(original.titleEn,'en'):true;
+  const sourceEnglish=isLocalizedNewsTitle(original.title,'en');
   const existingTeaser=Boolean(original.summaryUk?.trim());
   const facts=hasEditorialEvidence(original);
-  const titleReady=existingTitle||Boolean(output?.titleUk);
+  const titleReady=existingTitle||isLocalizedNewsTitle(output?.titleUk,'uk');
+  const englishReady=scope==='full'||existingEnglish||sourceEnglish||isLocalizedNewsTitle(output?.titleEn,'en');
   const teaserReady=scope==='headlines'||!facts||existingTeaser||Boolean(output?.summaryUk);
-  const success=titleReady&&teaserReady;
+  const success=titleReady&&englishReady&&teaserReady;
   const nextAttempts=original.editorialAttempts+1;
   const update={
    editorialAttempts:nextAttempts,editorialAttemptedAt:now,
    editorialNextAttemptAt:success?null:new Date(now.getTime()+(nextAttempts>=3?24:3)*3600000),
-   ...(!existingTitle&&output?.titleUk?{titleUk:output.titleUk}:{}),
+   ...(!existingTitle&&isLocalizedNewsTitle(output?.titleUk,'uk')?{titleUk:output!.titleUk}:{}),
+   ...(scope==='headlines'&&!existingEnglish&&isLocalizedNewsTitle(output?.titleEn,'en')?
+    {titleEn:output!.titleEn}:{}),
    ...(scope==='full'&&!existingTeaser&&facts&&output?.summaryUk?{
     summaryUk:output.summaryUk,
     ...(output.summaryEn?{summaryEn:output.summaryEn}:{}),
