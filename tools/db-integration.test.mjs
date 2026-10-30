@@ -6,6 +6,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
 import {PrismaClient} from '@prisma/client';
+import {passwordHash} from '../apps/api/src/auth.ts';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const db=process.env.DATABASE_URL;
@@ -30,11 +31,14 @@ const request=async(path,{method='GET',cookie,origin,fetchSite,body}={})=>{
  return {status:response.status,data,cookie:response.headers.get('set-cookie')?.split(';')[0]||'',requestId:response.headers.get('x-request-id')};
 };
 const post=(path,body,cookie,origin=base)=>request(path,{method:'POST',body,cookie,origin});
+/** Fixtures are inserted only in the disposable CI database, NOT via a bypass in public signup. */
 async function register(label){
- const result=await post('/api/v1/account/register',{email:'a1-'+label+'-'+nonce+'@example.invalid',password:'A1-testing-only-password-2026'});
+ const email='a1-'+label+'-'+nonce+'@example.invalid',password='A1-testing-only-password-2026';
+ const user=await prisma.user.create({data:{email,passwordHash:await passwordHash(password)},select:{id:true,email:true}});
+ const result=await post('/api/v1/account/login',{email,password});
  assert.equal(result.status,201,JSON.stringify(result.data));
  assert.ok(result.cookie.startsWith('jyotish_session='));
- return {id:result.data.user.id,email:result.data.user.email,cookie:result.cookie};
+ return {id:user.id,email:user.email,cookie:result.cookie};
 }
 async function start(){
  child=spawn(process.execPath,['node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','apps/api/src/main.ts'],{cwd:root,
@@ -53,6 +57,13 @@ async function start(){
 test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:90000},async t=>{
  try{
   await prisma.$connect();await start();
+  // Unverified public registration is unavailable in CI, even for valid-looking requests.
+  const unverified=await post('/api/v1/account/register',{
+   email:'no-verification-'+nonce+'@example.invalid',
+   password:'A1-testing-only-password-2026',turnstileToken:'fake-bot-proof'
+  });
+  assert.equal(unverified.status,503,'Public signup must fail closed without real Cloudflare/Resend configuration');
+  assert.equal(await prisma.user.count({where:{email:'no-verification-'+nonce+'@example.invalid'}}),0);
   const [a,b,admin]=await Promise.all([register('a'),register('b'),register('admin')]);
   await prisma.user.update({where:{id:admin.id},data:{role:'ADMIN'}});
   await t.test('Private Tarot questions persist, remain owner-only and are never orders',async()=>{
