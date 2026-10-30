@@ -4,7 +4,7 @@
 import type {PrismaService} from './prisma.ts';
 import {cleanDescription} from './news-domain.ts';
 import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
-import {checkNewsTranslator,translateNewsText,type TranslationFetch} from './news-translation.ts';
+import {checkNewsTranslator,newsTranslationApproved,selectedNewsTranslationProvider,translateNewsText,type TranslationFetch} from './news-translation.ts';
 
 type Draft={id:string;title:string;titleUk?:string|null;summaryUk?:string|null;
  feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
@@ -60,6 +60,9 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
 }
 export async function enrichPendingNews(prisma:PrismaService,fetcher:TranslationFetch=fetch){
  if(process.env.NEWS_TRANSLATION_ENABLED==='0')return {processed:0,reason:'translation_disabled'};
+ // No machine translations are persisted until the selected EN->UK engine
+ // passes REAL examples and the site owner explicitly accepts the quality.
+ if(!newsTranslationApproved())return {processed:0,reason:'translation_quality_not_approved'};
  // An offline or not-yet-installed EN→UK model must not consume the retry
  // budget for the whole archive. Nothing is written until readiness is proven.
  try{
@@ -109,5 +112,5 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   await prisma.newsArticle.updateMany({where:{id:original.id,status:'PUBLISHED'},data:update});
   if(success)processed++;else failed++;
  }
- return {processed,attempted:rows.length,failed,engine:NEWS_TRANSLATION_MODE};
+ return {processed,attempted:rows.length,failed,engine:selectedNewsTranslationProvider()==='azure'?'azure_nmt_only':NEWS_TRANSLATION_MODE};
 }
