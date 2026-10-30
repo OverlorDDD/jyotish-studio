@@ -164,13 +164,42 @@ deploy(){
   if ! kill -0 "$canary_pid" 2>/dev/null; then break; fi
   sleep 2
  done
- kill -- "-$canary_pid" 2>/dev/null || true
- wait "$canary_pid" 2>/dev/null || true
  if [ "$canary_ready" != 1 ]; then
+  kill -- "-$canary_pid" 2>/dev/null || true
+  wait "$canary_pid" 2>/dev/null || true
   echo 'STOP: candidate API failed HTTP boot smoke on port 4001'
   tail -n 65 "$STATE/api-canary.log"
   exit 1
  fi
+ echo '=== CANARY: SIGNUP PAYLOAD VALIDATION + FAKE TURNSTILE ==='
+ # Check the real NestJS HTTP pipeline BEFORE touching production. The fake
+ # token cannot send an email because Cloudflare rejects it first.
+ local probe_body probe_status
+ probe_body=$(mktemp)
+ probe_status=$(curl -sS --max-time 18 -o "$probe_body" -w '%{http_code}' \
+  -H 'Content-Type: application/json' \
+  --data '{"email":"galaxiora-smoke-check@example.com","password":"Safe-Test-Password-2026","turnstileToken":"fake-token"}' \
+  http://127.0.0.1:4001/api/v1/account/register || true)
+ if [ "$probe_status" != 403 ]; then
+  echo "STOP: candidate signup rejected fake token with HTTP $probe_status instead of 403"
+  python3 - "$probe_body" <<'PY'
+import json,sys
+try:
+    data=json.load(open(sys.argv[1]))
+    print('statusCode:',data.get('statusCode'))
+    print('message:',str(data.get('message',''))[:500])
+except Exception:
+    print('No diagnostic JSON returned')
+PY
+  rm -f "$probe_body"
+  kill -- "-$canary_pid" 2>/dev/null || true
+  wait "$canary_pid" 2>/dev/null || true
+  exit 1
+ fi
+ rm -f "$probe_body"
+ echo 'PASS: canary signup validates JSON and blocks fake Turnstile HTTP 403'
+ kill -- "-$canary_pid" 2>/dev/null || true
+ wait "$canary_pid" 2>/dev/null || true
  echo 'PASS: candidate NestJS API starts and serves real DB health before production cutover'
  echo '=== SWITCH ACTIVE SERVICES ==='
  sudo systemctl stop galaxiora-web.service galaxiora-api.service
