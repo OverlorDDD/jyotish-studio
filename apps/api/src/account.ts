@@ -65,9 +65,11 @@ export class AccountController{
   @Inject(CHART_USE_CASES)private readonly chartsService:SavedChartUseCases){}
 
  @Post('register')
- async register(@Body() untrusted:unknown,@Req() req:IncomingMessage){
+ async register(@Req() req:IncomingMessage&{body?:unknown}){
   checkRequest(req);requireSetup();
-  const body=parseRegistrationRequest(untrusted);
+  // Express has already parsed JSON. Avoid @Body(), because Nest's global
+  // ValidationPipe under tsx/esbuild incorrectly whitelists turnstileToken.
+  const body=parseRegistrationRequest(req.body);
   if(!registrationReady())throw new ServiceUnavailableException('Public signup requires verified email and anti-bot setup');
   const email=normalizedEmail(body.email);
   if(!allowAuthAttempt()||!allowAuthByEmail(email))
@@ -96,10 +98,10 @@ export class AccountController{
  }
 
  @Post('register/verify')
- async verifyRegistration(@Body() untrusted:unknown,
-  @Req() req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
+ async verifyRegistration(@Req() req:IncomingMessage&{body?:unknown},
+  @Res({passthrough:true})res:ServerResponse){
   checkRequest(req);requireSetup();
-  const body=parseVerifyRegistrationRequest(untrusted);
+  const body=parseVerifyRegistrationRequest(req.body);
   if(!registrationReady())throw new ServiceUnavailableException('Registration verification is unavailable');
   const email=normalizedEmail(body.email);
   if(!allowAuthAttempt()||!allowAuthByEmail(email))
@@ -134,9 +136,9 @@ export class AccountController{
  }
 
  @Post('login')
- async login(@Body() untrusted:unknown,@Req()req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
+ async login(@Req()req:IncomingMessage&{body?:unknown},@Res({passthrough:true})res:ServerResponse){
   checkRequest(req);requireSetup();
-  const body=parseLoginRequest(untrusted);
+  const body=parseLoginRequest(req.body);
   if(!allowAuthAttempt()||!allowAuthByEmail(normalizedEmail(body.email)))throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   const user=await this.prisma.user.findUnique({where:{email:normalizedEmail(body.email)}});
   if(!user||!await passwordMatches(body.password,user.passwordHash))
