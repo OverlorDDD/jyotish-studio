@@ -64,16 +64,16 @@ export function normalizeTranslatedNews(text:string):string{
  * arbitrary people, brands or non-astrology 'Mercury' into a planet. */
 export function improveNewsTerminology(source:string,translated:string):string{
  let result=translated;
- if(/\\bTarot\\s+spreads?\\b/i.test(source)){
-  result=result.replace(/розворот(?:и|ів|ами)?\\s+Таро/giu,'розклади Таро')
-    .replace(/Таро[-\\s]+розворот(?:и|ів|ами)?/giu,'розклади Таро');
+ if(/\bTarot\s+spreads?\b/i.test(source)){
+  result=result.replace(/розворот(?:и|ів|ами)?\s+Таро/giu,'розклади Таро')
+    .replace(/Таро[-\s]+розворот(?:и|ів|ами)?/giu,'розклади Таро');
  }
- if(/\\bMercury\\b/i.test(source)&&
-   /\\b(?:entered?|retrograde|zodiac|planet|Scorpio|Pisces|Gemini|astrology|astrological)\\b/i.test(source))
-  result=result.replace(/\\bMercury\\b/g,'Меркурій');
- if(/\\byoga instructor\\b/i.test(source))
+ if(/\bMercury\b/i.test(source)&&
+   /\b(?:entered?|retrograde|zodiac|planet|Scorpio|Pisces|Gemini|astrology|astrological)\b/i.test(source))
+  result=result.replace(/\bMercury\b/g,'Меркурій');
+ if(/\byoga instructor\b/i.test(source))
   result=result.replace(/інструктор йога/giu,'інструктор із йоги');
- if(/\\bgentle morning breathing exercises\\b/i.test(source))
+ if(/\bgentle morning breathing exercises\b/i.test(source))
   result=result.replace(/ніжні ранкові дихальні вправи/giu,'м’які ранкові дихальні вправи');
  return result;
 }
