@@ -44,6 +44,8 @@ export async function translateNewsText(text:string,fetcher:TranslationFetch=fet
  });
  if(!response.ok)throw Error('Local translator HTTP '+response.status);
  const data=await response.json() as {translatedText?:unknown};
+ if(typeof data.translatedText==='string'&&/<[^>]+>/.test(data.translatedText))
+  throw Error('Invalid local translation: HTML is not accepted');
  const output=typeof data.translatedText==='string'?normalizeTranslatedNews(data.translatedText):'';
  if(!output||output.length>1500||!/[А-Яа-яІіЇїЄєҐґ]/.test(output)||/<[^>]+>/.test(output)||!preserveSourceNumbers(input,output))
   throw Error('Invalid local translation or lost numerical facts');
