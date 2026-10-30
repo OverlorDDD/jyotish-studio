@@ -16,7 +16,7 @@
     "build": "npm run build -w @jyotish/core && npm run build -w @jyotish/api && npm run build -w @jyotish/web",
     "db:generate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
-    "test:news": "node --experimental-strip-types --test tools/news-world.test.mjs tools/news-nmt.test.mjs tools/news-discovery.test.mjs tools/news-legacy.test.mjs tools/news-source-health.test.mjs tools/news-personal-interests.test.mjs tools/news-initial-load.test.mjs tools/news-relevance.test.mjs tools/news-privacy.test.mjs tools/news-quality.test.mjs",
+    "test:news": "node --experimental-strip-types --test tools/news-world.test.mjs tools/news-nmt.test.mjs tools/news-azure-budget.test.mjs tools/news-discovery.test.mjs tools/news-legacy.test.mjs tools/news-source-health.test.mjs tools/news-personal-interests.test.mjs tools/news-initial-load.test.mjs tools/news-relevance.test.mjs tools/news-privacy.test.mjs tools/news-quality.test.mjs",
     "test:com": "node --experimental-strip-types --test tools/com-policy.test.mjs tools/com-context.test.mjs tools/com-security.test.mjs tools/com-growth.test.mjs",
     "com:fanout": "node --env-file-if-exists=.env --experimental-strip-types tools/com-fanout-worker.mjs",
     "com:seed": "node --env-file-if-exists=.env tools/com-seed-topics.mjs",
@@ -133,6 +133,7 @@
     "news:quality": "node --env-file-if-exists=.env tools/news-release-gate.mjs",
     "news:translate:check": "node --experimental-strip-types tools/news-translate-check.mjs",
     "news:translate:sample": "node --experimental-strip-types tools/news-translate-sample.mjs",
+    "news:azure:budget": "node --experimental-strip-types tools/news-azure-budget.mjs",
     "news:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-repair.mjs --repair",
     "news:images:repair": "node --env-file-if-exists=.env --experimental-strip-types tools/news-image-repair.mjs",
     "news:verify-ui": "node tools/news-browser-check.mjs"
