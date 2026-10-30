@@ -34,10 +34,12 @@ test('real Nest API register → Cloudflare → Resend OTP → verified user →
   RESEND_API_KEY:'re_ci-local-fake',
   RESEND_FROM_EMAIL:'verify@mail.galaxiora.com',
   GALAXIORA_SIGNUP_CI_MOCK:'1',GALAXIORA_SIGNUP_OTP_FILE:otpFile,
+  // tsx CLI starts the real application in another Node process; NODE_OPTIONS
+  // carries the test-only mock into that process instead of only the CLI.
+  NODE_OPTIONS:[process.env.NODE_OPTIONS||'','--import=./tools/registration-provider-ci-mock.mjs'].filter(Boolean).join(' '),
   NEWS_INGESTION_ENABLED:'0',NEWS_TRANSLATION_ENABLED:'0',AI_MODE:'local'};
  const child=spawn(process.execPath,
-  ['--import','./tools/registration-provider-ci-mock.mjs',
-   'node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json',
+  ['node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json',
    'apps/api/src/main.ts'],
   {cwd:process.cwd(),env,stdio:['ignore','pipe','pipe']});
  let logs='';
