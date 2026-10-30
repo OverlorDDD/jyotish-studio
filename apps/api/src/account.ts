@@ -1,4 +1,4 @@
-import {BadRequestException,ConflictException,Controller,Delete,Get,Post,Patch,Header,Query,Param,Body,Req,Res,Inject,HttpException,HttpStatus,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import {BadRequestException,ConflictException,Controller,Delete,Get,Post,Patch,Header,Query,Param,Body,Req,Res,Inject,HttpException,HttpStatus,ServiceUnavailableException,UnauthorizedException,ValidationPipe} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsEmail,IsIn,IsOptional,IsString,Length,MaxLength,Matches,IsUUID} from 'class-validator';
 import type {IncomingMessage,ServerResponse} from 'node:http';
@@ -22,6 +22,11 @@ export class VerifyRegistrationDto {
  @IsEmail() @MaxLength(150) email!:string;
  @IsString() @Matches(/^[0-9]{6}$/) code!:string;
 }
+// Explicit DTO classes are essential with tsx/esbuild, which lacks emitted
+// design:paramtypes. Never rely on implicit reflection for signup input validation.
+const REGISTER_BODY_PIPE=new ValidationPipe({expectedType:RegistrationDto,transform:true,whitelist:true,forbidNonWhitelisted:true});
+const VERIFY_BODY_PIPE=new ValidationPipe({expectedType:VerifyRegistrationDto,transform:true,whitelist:true,forbidNonWhitelisted:true});
+const LOGIN_BODY_PIPE=new ValidationPipe({expectedType:CredentialsDto,transform:true,whitelist:true,forbidNonWhitelisted:true});
 export class SaveChartDto extends BirthDto{
  @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) asOf?:string;
  @IsOptional() @IsIn(['uk','en']) language?:'uk'|'en';
@@ -63,7 +68,7 @@ export class AccountController{
   @Inject(CHART_USE_CASES)private readonly chartsService:SavedChartUseCases){}
 
  @Post('register')
- async register(@Body() body:RegistrationDto,@Req() req:IncomingMessage){
+ async register(@Body(REGISTER_BODY_PIPE) body:RegistrationDto,@Req() req:IncomingMessage){
   checkRequest(req);requireSetup();
   if(!registrationReady())throw new ServiceUnavailableException('Public signup requires verified email and anti-bot setup');
   const email=normalizedEmail(body.email);
@@ -93,7 +98,7 @@ export class AccountController{
  }
 
  @Post('register/verify')
- async verifyRegistration(@Body() body:VerifyRegistrationDto,
+ async verifyRegistration(@Body(VERIFY_BODY_PIPE) body:VerifyRegistrationDto,
   @Req() req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
   checkRequest(req);requireSetup();
   if(!registrationReady())throw new ServiceUnavailableException('Registration verification is unavailable');
@@ -130,7 +135,7 @@ export class AccountController{
  }
 
  @Post('login')
- async login(@Body() body:CredentialsDto,@Req()req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
+ async login(@Body(LOGIN_BODY_PIPE) body:CredentialsDto,@Req()req:IncomingMessage,@Res({passthrough:true})res:ServerResponse){
   checkRequest(req);requireSetup();
   if(!allowAuthAttempt()||!allowAuthByEmail(normalizedEmail(body.email)))throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   const user=await this.prisma.user.findUnique({where:{email:normalizedEmail(body.email)}});
