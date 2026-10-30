@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 import {drainForumFanout} from '../apps/api/src/com-fanout.ts';
@@ -10,13 +11,13 @@ test('C4: durable fanout, atomic quotas, independent appeals, private export, re
  const db=new PrismaClient();let aid='',bid='',cid='',threadId='',replyId='',privacyId='';
  const A=acc(),B=acc(),C=acc(),api=p=>'/api/v1/com/'+p;
  try{
-  const registeredA=await page.request.post('/api/v1/account/register',{data:A});
+  const registeredA=await fixtureAccount(page,{data:A});
   expect(registeredA.status()).toBe(201);aid=(await registeredA.json()).user.id;
   const created=await page.request.post(api('threads'),{data:{categorySlug:'jyotish',
    title:'Test forum security and appeal controls for public discussion',
    body:'A public, intentionally disposable forum discussion without any personal astrology details.'}});
   expect(created.status()).toBe(201);threadId=(await created.json()).id;
-  const registeredB=await page.request.post('/api/v1/account/register',{data:B});
+  const registeredB=await fixtureAccount(page,{data:B});
   expect(registeredB.status()).toBe(201);bid=(await registeredB.json()).user.id;
   const replied=await page.request.post(api('threads/'+threadId+'/posts'),{
    data:{body:'I will contribute a public reply for moderation testing.'}});
@@ -40,7 +41,7 @@ test('C4: durable fanout, atomic quotas, independent appeals, private export, re
   await expect(page.getByTestId('com-safety')).toBeVisible();
   await page.getByRole('button',{name:/Безпека, апеляції та мої дані/}).click();
   await expect(page.getByText('Мої форумні дані')).toBeVisible();
-  const registeredC=await page.request.post('/api/v1/account/register',{data:C});
+  const registeredC=await fixtureAccount(page,{data:C});
   expect(registeredC.status()).toBe(201);cid=(await registeredC.json()).user.id;
   await db.user.update({where:{id:cid},data:{role:'ADMIN'}});
   const hidden=await page.request.patch(api('mod/posts/'+replyId),{
