@@ -71,10 +71,13 @@ npm run news:doctor
 npm run news:repair
 npm run news:azure:budget
 npm run news:quality
+npm run news:quality:headlines
 npm run news:verify-ui
 ```
 
 `news:repair` also retries approved media metadata recovery. Headline translations process only records whose `titleUk` is missing; existing Ukrainian titles are kept. If the archive already has 133/133 Ukrainian titles, `queue_empty_headlines` is a **correct result**. The 14 missing teasers are NOT automatically fixed; `news:quality` may remain `BLOCKED` for `translation_pending`, and that is intentional until we separately solve summary quality.
+
+After the owner explicitly approves and enables headline-only translation, `news:quality:headlines` checks a **separate limited-release policy**: fresh ingestion, a live source, and 100% Ukrainian headlines are required, but missing source-backed teasers are reported as `HEADLINES_READY_WITH_EDITORIAL_DEBT` and are not represented as full translations. This command has no effect on the strict `news:quality` gate. Do not interpret the limited result as `CONTENT_READY`.
 
 Review new live incoming headlines. If errors appear, immediately set `NEWS_TRANSLATION_ENABLED=0` and restart API. No article or database rows are deleted. Do not expose Azure API key or `.env` in screenshots.
 
