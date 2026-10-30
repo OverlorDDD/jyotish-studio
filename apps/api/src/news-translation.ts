@@ -54,7 +54,7 @@ export async function checkNewsTranslator(fetcher:TranslationFetch=fetch,env:Nod
  const response=await fetcher(base+'/languages',{signal:AbortSignal.timeout(15000)});
  if(!response.ok)throw Error('Translator languages endpoint HTTP '+response.status);
  const languages=await response.json() as Array<{code?:string;targets?:string[]}>;
- const en=Array.isArray(languages)&&languages.find(x=>x.code==='en');
+ const en=Array.isArray(languages)?languages.find(x=>x.code==='en'):undefined;
  const available=Boolean(en?.targets?.includes('uk'));
  return {available,endpoint:base,source:'en',target:'uk',engine:NEWS_TRANSLATOR_ENGINE};
 }
