@@ -2,57 +2,55 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
 const rows=[
- {id:'older',title:'Tarot and the symbolism of the Major Arcana',titleUk:null,
+ {id:'older',title:'Tarot and the symbolism of the Major Arcana',titleUk:null,summaryUk:null,
   feedDescription:null,summary:null,summaryKind:'needs_editorial',language:'en',editorialAttempts:0},
- {id:'context',title:'Vedic astrology and the Moon in natal charts',titleUk:null,
+ {id:'context',title:'Vedic astrology and the Moon in natal charts',titleUk:null,summaryUk:null,
   feedDescription:'The guide explains lunar placements in Vedic natal charts and how traditional interpretation varies with the house position.',
   summary:null,summaryKind:'needs_editorial',language:'en',editorialAttempts:1}
 ];
-test('legacy records receive translations oldest-first and no fabricated teaser without source facts',async()=>{
- const saved=[process.env.GROQ_API_KEY,process.env.GEMINI_API_KEY,process.env.OPENROUTER_API_KEY,process.env.NEWS_EDITORIAL_AI_ENABLED];
- process.env.GROQ_API_KEY='dummy-ci';delete process.env.GEMINI_API_KEY;delete process.env.OPENROUTER_API_KEY;
- process.env.NEWS_EDITORIAL_AI_ENABLED='1';
- const writes=[];let select;
- const db={newsArticle:{
-  findMany:async args=>{select=args;return rows;},
-  updateMany:async args=>{writes.push(args);return {count:1};}
- }};
- const mock=async()=>new Response(JSON.stringify({choices:[{message:{content:JSON.stringify([
-  {id:'older',titleUk:'Таро та символіка Старших арканів',summaryUk:'Вигаданий факт',summaryEn:'Invented text'},
-  {id:'context',titleUk:'Ведична астрологія та Місяць у натальній карті',
-   summaryUk:'У посібнику розглянуто положення Місяця та традиційне трактування його дому в натальній карті.',
-   summaryEn:'An overview of lunar placements and traditional house interpretations in Vedic natal charts.'}
- ])}}]}),{status:200});
+const mock=async(url,opts)=>{
+ assert.ok(String(url).endsWith('/translate'));
+ assert.equal(opts.method,'POST');
+ const payload=JSON.parse(opts.body);
+ assert.equal(payload.source,'en');assert.equal(payload.target,'uk');
+ const output=payload.q.startsWith('Tarot')?'Таро та символіка старших арканів':
+  payload.q.startsWith('Vedic')?'Ведична астрологія та Місяць у натальних картах':
+  'Посібник пояснює положення Місяця в натальних картах Джйотіш і традиційне трактування його положення.';
+ return new Response(JSON.stringify({translatedText:output}),{status:200});
+};
+test('legacy news translated oldest-first without a generated teaser for title-only records',async()=>{
+ const old=process.env.NEWS_TRANSLATION_ENABLED;delete process.env.NEWS_TRANSLATION_ENABLED;
+ let select;const writes=[];
+ const db={newsArticle:{findMany:async args=>{select=args;return rows;},
+  updateMany:async args=>{writes.push(args);return {count:1};}}};
  try{
   const out=await enrichPendingNews(db,mock);
   assert.equal(out.processed,2);
+  assert.equal(out.engine,'local_nmt_only');
   assert.equal(select.orderBy[0].discoveredAt,'asc');
-  assert.equal(writes[0].data.titleUk,'Таро та символіка Старших арканів');
+  assert.match(writes[0].data.titleUk,/Таро/);
   assert.equal(writes[0].data.summaryKind,'no_context');
   assert.equal(writes[0].data.summaryUk,undefined);
-  assert.equal(writes[1].data.summaryKind,'ai_editorial');
+  assert.equal(writes[1].data.summaryKind,'machine_translated_excerpt');
   assert.match(writes[1].data.summaryUk,/Місяця/);
   assert.equal(writes[0].data.editorialNextAttemptAt,null);
  }finally{
-  for(const [key,value] of ['GROQ_API_KEY','GEMINI_API_KEY','OPENROUTER_API_KEY','NEWS_EDITORIAL_AI_ENABLED'].map((k,i)=>[k,saved[i]])){
-   if(value===undefined)delete process.env[key];else process.env[key]=value;
-  }
+  if(old===undefined)delete process.env.NEWS_TRANSLATION_ENABLED;else process.env.NEWS_TRANSLATION_ENABLED=old;
  }
 });
-test('editorial queue does not retry the same failed legacy record immediately',async()=>{
- const old=process.env.GROQ_API_KEY;process.env.GROQ_API_KEY='dummy-ci';
- const writes=[];
- try{
-  const db={newsArticle:{findMany:async()=>[rows[0]],updateMany:async x=>{writes.push(x);return {count:1};}}};
-  const result=await enrichPendingNews(db,async()=>new Response('{"choices":[]}',{status:200}));
-  assert.equal(result.failed,1);
-  assert.equal(writes[0].data.editorialAttempts,1);
-  assert.ok(writes[0].data.editorialNextAttemptAt.getTime()>Date.now());
- }finally{if(old===undefined)delete process.env.GROQ_API_KEY;else process.env.GROQ_API_KEY=old;}
+test('local NMT outage gives backoff and never calls a cloud fallback',async()=>{
+ const writes=[];const calls=[];
+ const db={newsArticle:{findMany:async()=>[rows[0]],updateMany:async arg=>{writes.push(arg);return {count:1};}}};
+ const fail=async url=>{calls.push(String(url));throw Error('offline');};
+ const out=await enrichPendingNews(db,fail);
+ assert.equal(out.failed,1);
+ assert.ok(writes[0].data.editorialNextAttemptAt.getTime()>Date.now());
+ assert.ok(calls.every(u=>u.startsWith('http://127.0.0.1:5100/')));
 });
-test('archive repair command is available without a running database when asking for help',async()=>{
+test('news archive help is available without a database or translator',async()=>{
  const {spawnSync}=await import('node:child_process');
- const x=spawnSync(process.execPath,['--experimental-strip-types','tools/news-repair.mjs','--help'],{encoding:'utf8'});
- assert.equal(x.status,0,x.stderr);
- assert.match(x.stdout,/news:repair/);
+ const result=spawnSync(process.execPath,['--experimental-strip-types','tools/news-repair.mjs','--help'],{encoding:'utf8'});
+ assert.equal(result.status,0,result.stderr);
+ assert.match(result.stdout,/news:repair/);
+ assert.doesNotMatch(result.stdout,/editorial provider/);
 });
