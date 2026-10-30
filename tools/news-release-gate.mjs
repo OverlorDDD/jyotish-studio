@@ -5,6 +5,12 @@ import {PrismaClient} from '@prisma/client';
 import {editorialPreviewState} from '../apps/api/src/news-editorial-coverage.ts';
 import {disabledNewsSourceKeys} from '../apps/api/src/news-sources.ts';
 const db=new PrismaClient();
+const headlinesOnly=process.argv.includes('--headlines-only');
+if(headlinesOnly&&!(process.env.NEWS_TRANSLATION_CONTENT_SCOPE==='headlines'&&
+ process.env.NEWS_TRANSLATION_HEADLINES_APPROVED==='1')){
+ console.error('BLOCKED: Explicit headline-only gate requires approved headlines scope in .env');
+ process.exit(2);
+}
 try{
  const [rows,lastScan,sources]=await Promise.all([
   db.newsArticle.findMany({where:{status:'PUBLISHED'},
@@ -30,10 +36,14 @@ try{
  if(!rows.length)failures.push('No published news articles');
  if(rows.length===10000)failures.push('Coverage exceeded 10000 articles; audit pagination');
  if(missingTitles)failures.push(missingTitles+' published titles have no Ukrainian translation');
- if(counts.translation_pending)failures.push(counts.translation_pending+' articles have factual publisher context but no Ukrainian teaser');
+ if(counts.translation_pending&&!headlinesOnly)
+  failures.push(counts.translation_pending+' articles have factual publisher context but no Ukrainian teaser');
  if(!lastScan||ageMin===null||ageMin>90)failures.push('News ingestion has no scan within 90 minutes');
  if(states.ok===0)failures.push('No news source has a recent OK state');
- const report={status:failures.length?'BLOCKED':'CONTENT_READY',articles:rows.length,
+ const status=failures.length?'BLOCKED':headlinesOnly&&counts.translation_pending
+  ?'HEADLINES_READY_WITH_EDITORIAL_DEBT':'CONTENT_READY';
+ const report={status,gate:headlinesOnly?'EXPLICIT_HEADLINES_ONLY':'STRICT_FULL_EDITORIAL',
+  unlocalizedTeasersDeferred:headlinesOnly?counts.translation_pending:0,articles:rows.length,
   missingTitles,missingTeasers:counts.missing_source_facts+counts.translation_pending,
   previewCoverage:counts,
   noSourceContextExamples:unsupported.slice(0,25),actionableMissingExamples:pending.slice(0,25),
@@ -41,7 +51,9 @@ try{
    sources:lastScan.sources,errors:lastScan.errors}:null,
   sourceStates:states,disabledSourceKeys:[...disabled].sort(),sourceDegraded:states.error>0||states.cooldown>0,
   degradedSources:[...latest.values()].filter(r=>r.status==='error').map(r=>({key:r.sourceKey,error:r.failure?.slice(0,120)})),
-  note:'CONTENT_READY allows only provenance-safe title/link cards when the original source supplies no usable description. It does not mean every article has a teaser or each RSS publisher is healthy.',
+  note:headlinesOnly
+   ?'HEADLINES_READY is not full editorial certification: source-backed missing Ukrainian teasers are visible as an explicit backlog. Do NOT claim CONTENT_READY.'
+   :'CONTENT_READY allows only provenance-safe title/link cards when the original source supplies no usable description. It does not mean every article has a teaser or each RSS publisher is healthy.',
   failures};
  console.log(JSON.stringify(report,null,2));
  if(failures.length)process.exitCode=2;
