@@ -4,7 +4,7 @@
 import type {PrismaService} from './prisma.ts';
 import {cleanDescription} from './news-domain.ts';
 import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
-import {translateNewsText,type TranslationFetch} from './news-translation.ts';
+import {checkNewsTranslator,translateNewsText,type TranslationFetch} from './news-translation.ts';
 
 type Draft={id:string;title:string;titleUk?:string|null;summaryUk?:string|null;
  feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
@@ -60,6 +60,15 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
 }
 export async function enrichPendingNews(prisma:PrismaService,fetcher:TranslationFetch=fetch){
  if(process.env.NEWS_TRANSLATION_ENABLED==='0')return {processed:0,reason:'translation_disabled'};
+ // An offline or not-yet-installed EN→UK model must not consume the retry
+ // budget for the whole archive. Nothing is written until readiness is proven.
+ try{
+  const ready=await checkNewsTranslator(fetcher);
+  if(!ready.available)return {processed:0,reason:'local_en_uk_model_missing'};
+ }catch(error){
+  return {processed:0,reason:'local_translator_unavailable',
+   detail:error instanceof Error?error.message:String(error)};
+ }
  const raw=Number(process.env.NEWS_TRANSLATION_BATCH_LIMIT);
  const limit=Math.min(12,Math.max(1,Number.isFinite(raw)&&raw>0?Math.floor(raw):6));
  const now=new Date();
