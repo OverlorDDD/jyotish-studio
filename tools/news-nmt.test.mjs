@@ -39,6 +39,8 @@ test('strict local machine translation keeps astronomical dates and never accept
 
 test('news editorial never calls generative APIs regardless of available keys',async()=>{
  const old=[process.env.GROQ_API_KEY,process.env.GEMINI_API_KEY,process.env.OPENROUTER_API_KEY,process.env.NEWS_EDITORIAL_AI_ENABLED];
+ const previousScope=process.env.NEWS_TRANSLATION_CONTENT_SCOPE;
+ process.env.NEWS_TRANSLATION_CONTENT_SCOPE='full';
  process.env.GROQ_API_KEY='fake-ci';process.env.GEMINI_API_KEY='fake-ci';
  process.env.OPENROUTER_API_KEY='fake-ci';process.env.NEWS_EDITORIAL_AI_ENABLED='1';
  let calls=0;
@@ -51,6 +53,8 @@ test('news editorial never calls generative APIs regardless of available keys',a
    summary:null,summaryKind:'needs_editorial',language:'en'}],mock);
   assert.equal(out.length,1);assert.equal(out[0].summaryUk,'');assert.equal(calls,1);
  }finally{
+  if(previousScope===undefined)delete process.env.NEWS_TRANSLATION_CONTENT_SCOPE;
+  else process.env.NEWS_TRANSLATION_CONTENT_SCOPE=previousScope;
   for(const [i,k] of ['GROQ_API_KEY','GEMINI_API_KEY','OPENROUTER_API_KEY','NEWS_EDITORIAL_AI_ENABLED'].entries()){
    if(old[i]===undefined)delete process.env[k];else process.env[k]=old[i];
   }
@@ -61,6 +65,8 @@ test('news editorial never calls generative APIs regardless of available keys',a
 });
 
 test('source-only summaries are bounded, and pre-existing translations are not regenerated',async()=>{
+ const previousScope=process.env.NEWS_TRANSLATION_CONTENT_SCOPE;
+ process.env.NEWS_TRANSLATION_CONTENT_SCOPE='full';
  const row={id:'s',title:'Tarot beginner guide',titleUk:'Довідник Таро',
   summaryUk:'Вже затверджений анонс.',summaryKind:'ai_editorial',
   feedDescription:'Explains three ways to interpret Tarot cards using a careful sequence of questions and practical notes.',
@@ -74,6 +80,8 @@ test('source-only summaries are bounded, and pre-existing translations are not r
  assert.equal(output[0].summaryUk,row.summaryUk);
  const noFacts={...row,summaryUk:null,feedDescription:null,summaryKind:'no_context'};
  assert.equal(extractSourceTeaser(noFacts),'');
+ if(previousScope===undefined)delete process.env.NEWS_TRANSLATION_CONTENT_SCOPE;
+ else process.env.NEWS_TRANSLATION_CONTENT_SCOPE=previousScope;
 });
 
 test('translator named volumes are repaired before LibreTranslate starts as UID 1032',()=>{
