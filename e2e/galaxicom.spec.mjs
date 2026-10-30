@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 const account=()=>({email:'galaxicom-'+randomUUID().slice(0,12)+'@example.invalid',
@@ -18,7 +19,7 @@ test('GalaxiCom C0/C1: guest, two users, moderation, PREMIUM isolation and UI',a
   await page.goto('/uk/community');
   await expect(page.getByRole('heading',{name:'GalaxiCom'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Створити тему'})).toHaveCount(0);
-  const first=await page.request.post('/api/v1/account/register',{data:account()});
+  const first=await fixtureAccount(page,{data:account()});
   expect(first.status()).toBe(201);aId=(await first.json()).user.id;
   const bad=await page.request.post('/api/v1/com/threads',{headers:{Origin:'https://hostile.example'},
    data:{categorySlug:'tarot',title:'A topic about a Tarot reading',body:'A long enough discussion body for a real thread.'}});
@@ -41,7 +42,7 @@ test('GalaxiCom C0/C1: guest, two users, moderation, PREMIUM isolation and UI',a
   await topicLink.click();
   await expect(page.getByTestId('com-thread')).toBeVisible();
   await expect(page.getByText('I would like to understand the difference between D1 and D9 without sharing personal birth data.')).toBeVisible();
-  const second=await page.request.post('/api/v1/account/register',{data:account()});
+  const second=await fixtureAccount(page,{data:account()});
   expect(second.status()).toBe(201);bId=(await second.json()).user.id;
   expect((await page.request.patch('/api/v1/com/me',{data:{showPremiumBadge:true}})).status()).toBe(403);
   const cross=await page.request.patch('/api/v1/com/threads/'+topicId,{
