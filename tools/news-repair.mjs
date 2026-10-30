@@ -3,7 +3,7 @@ import {PrismaClient} from '@prisma/client';
 import {spawnSync} from 'node:child_process';
 import {probeLocalNewsFrontend} from './news-local-probe.mjs';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
-import {checkNewsTranslator,selectedNewsTranslationProvider,newsTranslationApproved} from '../apps/api/src/news-translation.ts';
+import {checkNewsTranslator,selectedNewsTranslationProvider,newsScopeApproved,newsTranslationScope} from '../apps/api/src/news-translation.ts';
 import {publisherDomain,safeImageUrl} from '../apps/api/src/news-domain.ts';
 import {metadataHosts,fetchArticleMetadata} from '../apps/api/src/news-metadata.ts';
 import {rank,diversify} from '../apps/api/src/news-domain.ts';
@@ -82,7 +82,7 @@ try{
  const sha=spawnSync('git',['rev-parse','--short','HEAD'],{encoding:'utf8',timeout:2500});
  console.log('[GalaxiNews] local checkout:',(branch.stdout||'?').trim(),(sha.stdout||'?').trim());
  await prisma.$connect();
- console.log('[GalaxiNews] NMT provider:',selectedNewsTranslationProvider(),'enabled:',process.env.NEWS_TRANSLATION_ENABLED!=='0','approved:',newsTranslationApproved());
+ console.log('[GalaxiNews] NMT provider:',selectedNewsTranslationProvider(),'scope:',newsTranslationScope(),'enabled:',process.env.NEWS_TRANSLATION_ENABLED!=='0','approved:',newsScopeApproved());
  if(process.env.NEWS_TRANSLATION_ENABLED!=='0'){
   try{console.log('[GalaxiNews] translator:',await checkNewsTranslator());}
   catch(error){console.warn('[GalaxiNews] local translator unavailable:',error instanceof Error?error.message:String(error));}
