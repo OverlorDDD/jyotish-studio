@@ -1,6 +1,6 @@
 /** Safe read-only local NMT readiness check. No API keys or user data. */
 import {existsSync} from 'node:fs';
-import {checkNewsTranslator,translateNewsText,selectedNewsTranslationProvider,newsTranslationApproved} from '../apps/api/src/news-translation.ts';
+import {checkNewsTranslator,translateNewsText,selectedNewsTranslationProvider,newsScopeApproved,newsTranslationScope} from '../apps/api/src/news-translation.ts';
 if(existsSync('.env'))process.loadEnvFile('.env');
 if(process.env.NEWS_TRANSLATION_ENABLED==='0')
  console.warn('[GalaxiNews] Auto-publication disabled. Checking translator candidate without writing any articles.');
@@ -14,7 +14,7 @@ try{
  if(!/[А-Яа-яІіЇїЄєҐґ]/.test(translated))throw Error('Output contains no Ukrainian text');
  console.log('PASS EN -> UK machine translation API:',translated);
  console.log('No generative LLM involved. This is a connectivity check, NOT language certification.');
- console.log('Auto-publication quality approval:',newsTranslationApproved()?'APPROVED':'NOT APPROVED');
+ console.log('Scope:',newsTranslationScope(),'auto-publication:',newsScopeApproved()?'APPROVED':'NOT APPROVED');
 }catch(error){
  console.error('BLOCKED: Selected NMT translator not ready:',error instanceof Error?error.message:String(error));
  if(selectedNewsTranslationProvider()==='local'){
