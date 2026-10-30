@@ -5,6 +5,7 @@ import type {PrismaService} from './prisma.ts';
 import {cleanDescription} from './news-domain.ts';
 import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
 import {checkNewsTranslator,newsTranslationApproved,selectedNewsTranslationProvider,translateNewsText,type TranslationFetch} from './news-translation.ts';
+import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded} from './news-translation-budget.ts';
 
 type Draft={id:string;title:string;titleUk?:string|null;summaryUk?:string|null;
  feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
@@ -88,6 +89,24 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
  const rows=candidates.filter(x=>!x.titleUk?.trim()||(!x.summaryUk?.trim()&&hasEditorialEvidence(x))).slice(0,limit);
  if(!rows.length)return {processed:0,reason:'queue_empty_no_grounded_work',
   noEvidenceSkipped:candidates.filter(x=>!x.summaryUk?.trim()&&!hasEditorialEvidence(x)).length};
+ // Reserve the *entire* scheduled Azure batch up front, before any paid
+ // network call. This avoids partial batches after a quota stop and keeps
+ // the cap consistent across concurrent API workers / process restarts.
+ if(selectedNewsTranslationProvider()==='azure'){
+  const estimated=rows.reduce((sum,row)=>{
+   if(!isEnglish(row.language))return sum;
+   const title=!row.titleUk?.trim()?cleanDescription(row.title).slice(0,240).length:0;
+   const teaser=!row.summaryUk?.trim()?extractSourceTeaser(row).length:0;
+   return sum+title+teaser;
+  },0);
+  try{await reserveAzureNewsCharacters(prisma,estimated,now);}
+  catch(error){
+   if(error instanceof NewsTranslationBudgetExceeded)
+    return {processed:0,reason:'azure_monthly_budget_exhausted',
+     month:error.period,monthlyLimit:error.limit};
+   throw error;
+  }
+ }
  const translated=await generateNewsMicrocopy(rows,fetcher);
  let processed=0,failed=0;
  for(const original of rows){
