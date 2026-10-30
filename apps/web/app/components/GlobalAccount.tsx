@@ -8,13 +8,14 @@ import {portalPath,type PortalLocale} from '../../lib/brand';
 
 type User={id:string;email:string;role:'MEMBER'|'EXPERT'|'SUPPORT'|'ADMIN';subscription?:{tier:'FREE'|'PREMIUM';currentPeriodEnd:string|null}};
 const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY||'';
-type TurnstileApi={render:(element:HTMLElement,options:{sitekey:string;action:string;callback:(token:string)=>void;'expired-callback':()=>void;'error-callback':()=>void})=>string;remove:(id:string)=>void};
+type TurnstileApi={render:(element:HTMLElement,options:{sitekey:string;action:string;callback:(token:string)=>void;'expired-callback':()=>void;'error-callback':()=>void})=>string;remove:(id:string)=>void;reset:(id:string)=>void};
 export default function GlobalAccount({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
  const [user,setUser]=useState<User|null>(null),[loaded,setLoaded]=useState(false),[open,setOpen]=useState(false);
  const [mode,setMode]=useState<'login'|'register'|'verify'>('login'),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[code,setCode]=useState('');
  const [challengeReady,setChallengeReady]=useState(0),[turnstileToken,setTurnstileToken]=useState('');
  const challengeRef=useRef<HTMLDivElement|null>(null);
+ const widgetIdRef=useRef<string|null>(null);
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [expertUnread,setExpertUnread]=useState(0);
  useEffect(()=>{
@@ -51,7 +52,8 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
    'expired-callback':()=>setTurnstileToken(''),
    'error-callback':()=>setTurnstileToken('')
   });
-  return ()=>{api.remove(id);setTurnstileToken('')};
+  widgetIdRef.current=id;
+  return ()=>{widgetIdRef.current=null;api.remove(id);setTurnstileToken('')};
  },[open,mode,challengeReady]);
  async function authenticate(e:React.FormEvent){
   e.preventDefault();setBusy(true);setError('');
@@ -69,7 +71,14 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
    if(!data.user)throw new Error(uk?'Не вдалося завершити вхід':'Could not complete sign in');
    setUser(data.user);setPassword('');setCode('');setOpen(false);
    window.dispatchEvent(new Event('galaxiora:auth-changed'));
-  }catch(e){setError(e instanceof Error?e.message:String(e))}
+  }catch(e){
+   setError(e instanceof Error?e.message:String(e));
+   if(mode==='register'){
+    setTurnstileToken('');
+    const api=(window as Window & {turnstile?:TurnstileApi}).turnstile;
+    if(api&&widgetIdRef.current)api.reset(widgetIdRef.current);
+   }
+  }
   finally{setBusy(false)}
  }
  async function logout(){
