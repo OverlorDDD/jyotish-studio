@@ -1,0 +1,37 @@
+name: Galaxiora release safety gate
+on:
+  push:
+    branches:
+      - fix/galaxinews-editorial-qa-20261030
+  workflow_dispatch:
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.com
+      SITE_NOINDEX: '1'
+      PUBLIC_REGISTRATION_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install candidate dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma types
+        run: npm run db:generate
+      - name: Authentication security
+        run: npm run test:access
+      - name: Bilingual GalaxiNews
+        run: npm run test:news
+      - name: GalaxiCom
+        run: npm run test:com
+      - name: Release / SEO
+        run: npm run test:r2-r3
+      - name: Release script syntax and browser test syntax
+        run: |
+          bash -n tools/galaxiora-final-release.sh
+          node --check e2e/support/disposable-accounts.mjs
+          for file in e2e/*.spec.mjs; do node --check "$file"; done
+      - name: Full production build
+        run: npm run build
