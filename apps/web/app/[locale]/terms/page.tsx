@@ -1,8 +1,8 @@
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 import Link from 'next/link';
-import {BRAND,isPortalLocale} from '../../../../lib/brand';
-import PortalShell from '../../../components/PortalShell';
+import {BRAND,isPortalLocale} from '../../../lib/brand';
+import PortalShell from '../../components/PortalShell';
 
 export const metadata:Metadata={title:'Terms of Use | Galaxiora',robots:{index:false,follow:true}};
 export function generateStaticParams(){return BRAND.locales.map(locale=>({locale}));}
