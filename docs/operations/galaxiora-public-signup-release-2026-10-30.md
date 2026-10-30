@@ -26,6 +26,14 @@ NEXT_PUBLIC_OPERATOR_NAME=<accurate-operator-display-name>
 ```
 Preserve all existing .env entries. Set mode to 0 until all setup is complete. Production API must be restarted after env changes; **Next.js must be rebuilt** after any NEXT_PUBLIC_* variable changes.
 
+## QA installation correction — verified on AWS 30 Oct
+
+The repository currently does **not track** `package-lock.json`. The production checkout already has a generated local lockfile, but a new `git worktree` does not inherit untracked files, so `npm ci` on a clean worktree fails `EUSAGE`. This is an installation precondition, not an application defect.
+
+On AWS, before `npm ci` in `/opt/galaxiora/launch-qa-20261030`, copy the local production lockfile: `test -s /opt/galaxiora/app/package-lock.json && cp /opt/galaxiora/app/package-lock.json /opt/galaxiora/launch-qa-20261030/package-lock.json`. Confirm `npm ci` accepts it; if not, regenerate a matching lockfile **only in the QA worktree** with `npm install --package-lock-only --no-audit --no-fund`, then rerun `npm ci`. Do not run lock regeneration on the live checkout. Eventually commit a reviewed lockfile for reproducible installs.
+
+**Do not copy the production .env into the QA worktree.** Pass the already existing environment to the build process when necessary, or keep QA without secrets.
+
 ## Safe release order
 1. Keep IP block and SITE_NOINDEX=1 until inspection and email delivery work.
 2. Validate branch and clean/stash only expected generated tracked files (never discard secrets); take the existing production DB backup and off-host backup.
