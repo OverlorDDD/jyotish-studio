@@ -97,3 +97,146 @@ export function readPublicSign(sign:number,transit:{date:string;sampledAtUtc:str
    nakshatra:transit.moon.nakshatra,pada:transit.moon.pada,method:transit.method,
    date:transit.date,sampledAtUtc:transit.sampledAtUtc,editorialVariant:step,editorialPolicy:'DATE_BASED_STYLE_NOT_PLANETARY_EFFECT'}};
 }
+
+
+/** ASE-3 rule-authored original prose: no provider call, no hidden random rotation.
+ * Western Sun-sign references, Western natal aspects and Parashari evidence
+ * remain mathematically distinct and are disclosed in the evidence panels.
+ * The house topic tables below are traditional editorial correspondences.
+ */
+const WESTERN_HOUSES=[
+ {title:l('Особистий курс','Personal direction'),focus:l('самостійно визначити пріоритет і взяти відповідальність за рішення','make a decision independently and own its consequences'),step:l('Назви власний пріоритет і зроби його перший видимий крок.','Name your priority and take its first visible step.'),guard:l('Не витрачай сили на доведення власної правоти.','Do not waste energy proving you are right.'),question:l('Яке рішення залежить саме від тебе?','Which decision rests with you?')},
+ {title:l('Цінності та кошти','Values and money'),focus:l('переглянути витрати, особистий бюджет і ціну власного часу','review spending, your budget and the value of your time'),step:l('Зістав одну заплановану витрату з тим, що зараз справді важливо.','Compare a planned expense with what matters to you now.'),guard:l('Не погоджуйся на витрати лише заради чужого схвалення.','Do not spend just to win approval.'),question:l('Куди йдуть твої найцінніші ресурси?','Where do your most valuable resources go?')},
+ {title:l('Спілкування та рішення','Communication and decisions'),focus:l('прояснити слова, домовленості й поточні переговори','clarify words, agreements and ongoing negotiations'),step:l('Уточни одну нерозв’язану домовленість — хто, що і коли робить.','Clarify one unfinished agreement: who does what and when.'),guard:l('Не замінюй запитання припущенням про наміри іншої людини.','Do not replace a question with an assumption about someone’s intentions.'),question:l('Що варто проговорити вголос?','What needs to be said out loud?')},
+ {title:l('Дім і внутрішня опора','Home and inner grounding'),focus:l('налагодити домашні справи, межі й особистий простір','settle home matters, boundaries and personal space'),step:l('Заверши одну домашню справу й відведи час на спокій без зайвих домовленостей.','Finish a household task and keep time for quiet without new obligations.'),guard:l('Не перенось робочу напругу в розмови з близькими.','Do not carry work tensions into conversations at home.'),question:l('Що зараз повертає відчуття опори?','What gives you a sense of grounding now?')},
+ {title:l('Почуття і творчість','Affection and creativity'),focus:l('дати простір почуттям, радості та творчій ініціативі','make room for affection, joy and creative initiative'),step:l('Повернися до особистого творчого задуму або знайди час для щирої зустрічі.','Return to a creative idea or make time for a genuine connection.'),guard:l('Не оцінюй щирість за миттєвою реакцією співрозмовника.','Do not judge sincerity by someone’s immediate reaction.'),question:l('Що приносить радість без потреби в оцінці?','What brings joy without needing approval?')},
+ {title:l('Щоденні справи та здоровий ритм','Everyday work and a sound routine'),focus:l('упорядкувати обов’язки, графік і щоденні звички','organize obligations, schedules and daily habits'),step:l('Заверши важливу рутинну справу та скороти зайву частину розкладу.','Finish an essential routine task and trim an unnecessary part of the schedule.'),guard:l('Не перетворюй продуктивність на безперервну гонитву.','Do not turn productivity into a constant race.'),question:l('Який процес можна зробити простішим?','Which process can you simplify?')},
+ {title:l('Партнерство та взаємність','Partnership and reciprocity'),focus:l('почути очікування іншої сторони та уточнити взаємні умови','hear the other side’s expectations and clarify mutual terms'),step:l('Окресли в одній важливій домовленості, за що відповідає кожна сторона.','Set out who is responsible for what in one important agreement.'),guard:l('Не поступайся принциповим лише для уникнення незручної розмови.','Do not concede something important just to avoid an awkward conversation.'),question:l('Де потрібно більше взаємності?','Where do you need more reciprocity?')},
+ {title:l('Спільні ресурси та зміни','Shared resources and change'),focus:l('розібратися зі спільними грошима, зобов’язаннями та межами довіри','examine shared finances, obligations and boundaries of trust'),step:l('Перевір одну спільну фінансову або побутову домовленість: суму, строк і відповідального.','Review one shared financial or household agreement: amount, deadline and responsibility.'),guard:l('Не бери чужих обов’язків без чіткого розуміння умов.','Do not assume someone else’s obligations without clear terms.'),question:l('Що потрібно уточнити, перш ніж погоджуватися?','What should be clarified before agreeing?')},
+ {title:l('Знання й нові горизонти','Knowledge and new horizons'),focus:l('переосмислити переконання, навчання й далекі плани','reconsider beliefs, learning and longer-term plans'),step:l('Зістав два надійні джерела перед важливим рішенням.','Compare two reliable sources before a significant decision.'),guard:l('Не приймай перше переконливе пояснення за остаточне.','Do not accept the first convincing explanation as final.'),question:l('Якої інформації бракує для ширшої картини?','What information is missing from the bigger picture?')},
+ {title:l('Кар’єра та відповідальність','Career and responsibility'),focus:l('визначити професійну мету й показати реальний результат роботи','set a professional goal and show a tangible result'),step:l('Доведи одну помітну робочу справу до результату замість обіцяти нові.','Bring one visible work task to completion instead of making new promises.'),guard:l('Не плутай термінові запити з головними цілями.','Do not confuse urgent requests with the main goal.'),question:l('Який результат сьогодні зміцнить твою репутацію?','Which result would strengthen your reputation today?')},
+ {title:l('Друзі та спільні цілі','Friends and shared goals'),focus:l('зміцнити дружні зв’язки та перевірити реалістичність спільних задумів','strengthen friendships and check the realism of joint plans'),step:l('Запитай партнера по задуму, які ресурси й час у нього дійсно є.','Ask a collaborator what time and resources they actually have.'),guard:l('Не покладай весь план на обіцянки інших.','Do not base the entire plan on others’ promises.'),question:l('Хто поділяє твою мету на ділі?','Who supports your goal through action?')},
+ {title:l('Завершення та відновлення','Closure and renewal'),focus:l('звільнитися від зайвої метушні й завершити невидимі справи','clear unnecessary noise and close invisible loose ends'),step:l('Прибери одну виснажливу незавершену справу й збережи час для себе.','Close one draining unfinished task and protect time for yourself.'),guard:l('Не заповнюй звільнений час новими обіцянками автоматично.','Do not automatically fill freed-up time with new commitments.'),question:l('Що вже можна відпустити?','What are you ready to let go of?')}
+] as const;
+const PLANET_COPY:Record<string,{name:L,scope:L}>={
+ Sun:{name:l('Сонце','Sun'),scope:l('самовизначення та сміливості діяти','identity and the courage to act')},
+ Moon:{name:l('Місяць','Moon'),scope:l('почуттів та внутрішніх потреб','feelings and inner needs')},
+ Mercury:{name:l('Меркурій','Mercury'),scope:l('перемовин, думок і документів','communication, thoughts and documents')},
+ Venus:{name:l('Венера','Venus'),scope:l('стосунків і цінностей','relationships and values')},
+ Mars:{name:l('Марс','Mars'),scope:l('волі та ініціативи','will and initiative')},
+ Jupiter:{name:l('Юпітер','Jupiter'),scope:l('перспектив і навчання','perspective and learning')},
+ Saturn:{name:l('Сатурн','Saturn'),scope:l('дисципліни, меж і зобов’язань','discipline, boundaries and commitments')},
+ Rahu:{name:l('Раху','Rahu'),scope:l('амбіцій і незвичних рішень','ambition and unconventional decisions')},
+ Ketu:{name:l('Кету','Ketu'),scope:l('переоцінки звичного','re-evaluating what is familiar')}
+};
+const ASPECT_COPY:Record<string,{name:L,meaning:L}>={
+ conjunction:{name:l('з’єднання','conjunction'),meaning:l('підсилює нагальність цієї теми','puts that theme into sharper focus')},
+ sextile:{name:l('секстиль','sextile'),meaning:l('відкриває шлях до домовленості й нового підходу','opens room for cooperation and a fresh approach')},
+ square:{name:l('квадрат','square'),meaning:l('потребує узгодити суперечливі імпульси','calls for reconciling competing impulses')},
+ trine:{name:l('трин','trine'),meaning:l('дозволяє спертися на сильну сторону','lets you draw on an existing strength')},
+ opposition:{name:l('опозиція','opposition'),meaning:l('виводить назовні два протилежні бажання','brings opposing needs into view')},
+ semisextile:{name:l('напівсекстиль','semisextile'),meaning:l('просить невеликого уточнення','asks for a small adjustment')},
+ semisquare:{name:l('напівквадрат','semisquare'),meaning:l('виявляє приховане тертя','brings hidden friction into view')},
+ sesquiquadrate:{name:l('півтораквадрат','sesquiquadrate'),meaning:l('робить накопичену напругу помітнішою','brings accumulated friction into focus')},
+ quincunx:{name:l('квінконс','quincunx'),meaning:l('вимагає змінити звичну схему','calls for adjusting a familiar pattern')}
+};
+export function houseTheme(house:number){
+ if(!Number.isInteger(house)||house<1||house>12)throw Error('Invalid reference house');
+ return WESTERN_HOUSES[house-1];
+}
+export function editorialWesternReading({sunHouse,moonHouse,mercuryHouse}:{sunHouse:number;moonHouse:number;mercuryHouse:number}){
+ const sun=houseTheme(sunHouse),moon=houseTheme(moonHouse),mercury=houseTheme(mercuryHouse);
+ return {
+  headline:l(sun.title.uk+' · '+moon.title.uk,sun.title.en+' · '+moon.title.en),
+  description:l(
+   'Сонце у '+sunHouse+'-му домі від твого сонячного знака підкреслює потребу '+sun.focus.uk+'. '+
+   'Місяць у '+moonHouse+'-му домі додає інший акцент: '+moon.focus.uk+'. '+
+   'Меркурій у '+mercuryHouse+'-му домі звертає увагу на переговори та ясність рішень у сфері: '+mercury.focus.uk+'. '+
+   'Поєднай ці теми: обери конкретний крок і проясни, з ким його варто узгодити.',
+   'The Sun in house '+sunHouse+' from your Sun sign emphasizes the need to '+sun.focus.en+'. '+
+   'The Moon in house '+moonHouse+' adds a second focus: '+moon.focus.en+'. '+
+   'Mercury in house '+mercuryHouse+' brings communication and decisions to the area of '+mercury.focus.en+'. '+
+   'Bring these threads together with one concrete next step and a clear agreement.'
+  ),
+  goodFor:l(sun.step.uk+' '+moon.step.uk,sun.step.en+' '+moon.step.en),
+  caution:l(moon.guard.uk+' '+sun.guard.uk,moon.guard.en+' '+sun.guard.en),
+  reflection:l(sun.question.uk,sun.question.en)
+ };
+}
+export type EditorialSignal={id:string;planet:string;topic:string;aspect?:string;target?:string;house?:number};
+export function editorialSynthesis({western,vedic,topic,status}:{
+ western:readonly EditorialSignal[];vedic:readonly EditorialSignal[];
+ topic:L|null;status:'convergence'|'different_emphases'|'limited_evidence'}){
+ const w=western[0],v=vedic[0];
+ const wp=w?PLANET_COPY[w.planet]:null,vt=v?PLANET_COPY[v.planet]:null;
+ const ap=w?.aspect?ASPECT_COPY[w.aspect]:null;
+ const house=v?.house?houseTheme(v.house):null;
+ const shared=status==='convergence'&&topic;
+ const headline=shared?l('У центрі — '+topic.uk.toLowerCase(),'In focus: '+topic.en.toLowerCase()):
+  status==='limited_evidence'?l('Гочара задає ритм дня','Gochara sets the day’s rhythm'):
+   l('Як узгодити різні акценти','How to balance different emphases');
+ const westernLine=w&&wp&&ap?l(
+  'У західній карті транзитний '+wp.name.uk+' утворює '+ap.name.uk+' до натальної планети '+(PLANET_COPY[w.target||'']?.name.uk||w.target)+'. У традиційному читанні цей аспект '+ap.meaning.uk+' у питаннях '+wp.scope.uk+'.',
+  'In the Western chart, transiting '+wp.name.en+' forms a '+ap.name.en+' to natal '+(PLANET_COPY[w.target||'']?.name.en||w.target)+'. Traditionally this contact '+ap.meaning.en+' in matters of '+wp.scope.en+'.'):
+  l('Західних транзитних аспектів до натальних Сонця чи Місяця в обраному орбісі зараз немає.',
+    'No close Western transit to natal Sun or Moon meets the selected orb at this observation.');
+ const vedicLine=v&&vt&&house?l(
+  'У Джйотіш '+vt.name.uk+' проходить '+v.house+'-й дім від натальної точки відліку. Цей дім спрямовує увагу на потребу '+house.focus.uk+'.',
+  'In Jyotish, '+vt.name.en+' travels through house '+v.house+' from the natal reference. This house draws focus to '+house.focus.en+'.'):
+  l('Ведичний акцент визначається окремо обчисленою гочарою.','The Vedic emphasis comes from independently calculated gochara.');
+ const bridge=shared?l(
+  'Обидві традиції підкреслюють «'+topic.uk.toLowerCase()+'» різними методами. Розглянь це питання в конкретних взаєминах і обов’язках, які маєш зараз.',
+  'Both traditions point toward '+topic.en.toLowerCase()+' by different methods. Examine this theme within the responsibilities and relationships you actually have.'):
+  status==='different_emphases'?l(
+   'Західний аспект показує характер напруги чи можливості, а ведичний дім — сферу практичної уваги. Разом вони допомагають розставити пріоритети.',
+   'The Western contact describes the kind of tension or opening, while the Vedic house points to an area for practical attention. Together they clarify priorities.'):
+  l('Сьогодні виразніший орієнтир дає ведична гочара; західній карті не приписуємо аспектів, яких немає.',
+   'Vedic gochara supplies the clearer emphasis today; no absent Western aspect is added.');
+ return {
+  headline,description:l(westernLine.uk+' '+vedicLine.uk+' '+bridge.uk,westernLine.en+' '+vedicLine.en+' '+bridge.en),
+  advice:l(house?house.step.uk:'Вибери конкретний пріоритет і виріши, як його втілити.',
+   house?house.step.en:'Choose a concrete priority and decide how to carry it through.'),
+  reflection:l(house?house.question.uk:'Що зараз найважливіше?',house?house.question.en:'What matters most now?')
+ };
+}
+export function editorialAdvancedReading({contacts,gochara,periods}:{
+ contacts:readonly {id:string;planet:string;target:string;aspect:string;applying:string}[];
+ gochara:readonly {graha:string;houseFromMoon:number;houseFromLagna:number;bav:number;sav:number}[];
+ periods?:readonly {lord:string;level:string;natalHouse:number;ruledHouses:number[]}[]
+}){
+ const w=contacts[0],v=gochara.find(g=>g.graha==='Saturn')||gochara[0],period=periods?.[0];
+ const planet=w?PLANET_COPY[w.planet]:null,target=w?PLANET_COPY[w.target]:null;
+ const aspect=w?ASPECT_COPY[w.aspect]:null,vedPlanet=v?PLANET_COPY[v.graha]:null;
+ const western=w&&planet&&target&&aspect?l(
+  'У західному натальному читанні '+planet.name.uk+' утворює '+aspect.name.uk+' до натального '+target.name.uk+'. Це '+(w.applying==='applying'?'аспект, що наближається до точності':'аспект, що віддаляється від точності')+
+  ': він '+aspect.meaning.uk+'. Тут переплітаються питання '+planet.scope.uk+' та '+target.scope.uk+'.',
+  'In the Western natal reading, '+planet.name.en+' forms a '+aspect.name.en+' to natal '+target.name.en+'. This contact is '+(w.applying==='applying'?'applying toward exactness':'separating from exactness')+
+  ': it '+aspect.meaning.en+'. This links '+planet.scope.en+' with '+target.scope.en+'.'):
+  l('Близьких західних транзитних аспектів у вибраному наборі орбісів немає. Тут важливо читати повну натальну структуру, а не приписувати їй подію.',
+    'No close Western transits meet the chosen orbs. The natal structure remains the context without inventing an event.');
+ const vedic=v&&vedPlanet?l(
+  'Ведична гочара додає власний акцент: '+vedPlanet.name.uk+' у '+v.houseFromMoon+'-му домі від натального Місяця й '+v.houseFromLagna+'-му від Лагни. '+
+  'Його Бхінна-аштакаварга для поточного знака — '+v.bav+' із 8, а Сарваштакаварга — '+v.sav+'. Порівнюй ці бінду з домами та чинною дашею.',
+  'Jyotish adds its own layer: '+vedPlanet.name.en+' in house '+v.houseFromMoon+' from natal Moon and '+v.houseFromLagna+' from Lagna. '+
+  'Its Bhinna Ashtakavarga is '+v.bav+' of 8, and the sign Sarvashtakavarga is '+v.sav+'. Read these bindu figures alongside houses and the current dasha.'):
+  l('Для ведичної частини потрібна підтверджена гочара.','The Vedic section requires verified gochara.');
+ const d=period?l(
+  'Чинна '+(period.level==='mahadasha'?'махадаша':'антардаша')+' '+(PLANET_COPY[period.lord]?.name.uk||period.lord)+
+    ' підкреслює теми натального '+period.natalHouse+'-го дому'+
+    (period.ruledHouses.length?' та управління домами '+period.ruledHouses.join(', '):'')+'. Це триваліший фон сьогоднішнього прочитання.',
+  'The current '+(period.level==='mahadasha'?'mahadasha':'antardasha')+' of '+(PLANET_COPY[period.lord]?.name.en||period.lord)+
+    ' highlights natal house '+period.natalHouse+
+    (period.ruledHouses.length?' and its lordship of houses '+period.ruledHouses.join(', '):'')+
+    '. This is the longer backdrop of the current reading.'):null;
+ const action=v?houseTheme(v.houseFromLagna).step:l('Уточни одну реальну домовленість і наступну дію.','Clarify one real agreement and its next step.');
+ return {
+  version:'ASE_V3_DETERMINISTIC' as const,method:'VERIFIED_EVIDENCE_RULED_EDITORIAL_UK_EN_V1',
+  paragraphs:[
+   {id:'western',text:western,evidenceIds:w?[w.id]:[]},
+   {id:'vedic',text:vedic,evidenceIds:v?['V:GOCHARA:'+v.graha]:[]},
+   ...(d?[{id:'period',text:d,evidenceIds:['V:DASHA']}]:[])
+  ],
+  guidance:l('Практичний акцент: '+action.uk+' Зістав це з уже взятими зобов’язаннями.',
+    'Practical focus: '+action.en+' Keep it aligned with your existing commitments.')
+ };
+}
