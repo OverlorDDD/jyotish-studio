@@ -4,6 +4,7 @@ on:
     branches:
       - fix/galaxinews-editorial-qa-20261030
       - feat/western-vedic-horoscopes-20261031
+      - feat/astrological-synthesis-engine-v1-20261031
   workflow_dispatch:
 jobs:
   release-gate:
@@ -50,6 +51,8 @@ jobs:
         run: npm run test:news
       - name: Independent Western and Vedic Swiss horoscope verification
         run: node --test tools/western-horoscope.test.mjs && npm run test:horoscope-basis
+      - name: Astrological Synthesis Engine native Swiss and deterministic evidence
+        run: node --test tools/astrological-synthesis.test.mjs
       - name: GalaxiCom
         run: npm run test:com
       - name: Release / SEO
@@ -78,4 +81,4 @@ jobs:
             sleep 2
           done
           if [ "$ready" != 1 ]; then cat /tmp/galaxiora-browser-web.log; exit 1; fi
-          npx playwright test e2e/horoscope-switching.spec.mjs --project=desktop-chromium --project=mobile-chromium
+          npx playwright test e2e/horoscope-switching.spec.mjs e2e/horoscope-synthesis.spec.mjs --project=desktop-chromium --project=mobile-chromium
