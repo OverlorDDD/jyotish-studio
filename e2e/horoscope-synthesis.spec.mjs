@@ -73,6 +73,6 @@ for(const locale of ['uk','en']){
   await page.getByRole('button',{name:locale==='uk'?'Мій персональний':'My personal reading'}).click();
   await page.getByTestId('synthesis-switch').click();
   await expect(page.getByTestId('synthesis-day')).toHaveCount(0);
-  await expect(page.getByRole('alert')).toContainText(locale==='uk'?'увійти':'Sign in');
+  await expect(page.getByTestId('synthesis-panel').getByRole('alert')).toContainText(locale==='uk'?'увійти':'Sign in');
  });
 }
