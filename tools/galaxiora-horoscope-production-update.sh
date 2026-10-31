@@ -51,11 +51,15 @@ cp .env "$STATE/env.before"
 chmod 600 "$STATE/env.before"
 printf '%s\n' "$PREVIOUS" > "$STATE/previous.sha"
 CUTOVER=0
+CANARY=0
 roll_back(){
  local rc=$?
  trap - EXIT
  [ "$rc" = 0 ] && return
  set +e
+ if [ "$CANARY" != 0 ]; then
+  kill -- "-$CANARY" 2>/dev/null || true
+ fi
  echo 'HOROSCOPE UPDATE FAILED — restoring previous application.'
  # Old API stays running during pre-cutover canary.
  if [ "$CUTOVER" = 1 ]; then
@@ -121,6 +125,7 @@ print('PASS: real tropical day/week, independent vedic day and existing anonymou
 PY
 kill -- "-$CANARY" 2>/dev/null || true
 wait "$CANARY" 2>/dev/null || true
+CANARY=0
 echo '=== SWITCH WEB + API TO TESTED RELEASE ==='
 CUTOVER=1
 sudo systemctl stop galaxiora-web.service galaxiora-api.service
