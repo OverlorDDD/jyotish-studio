@@ -7,6 +7,7 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {verifyLunarContinuity} from './horoscope.ts';
+import {tropicalSkyAtUtc} from './western-horoscope.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
 import {dailySkyContext} from './sky-context.ts';
@@ -28,11 +29,23 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
  const input=(row.input||{}) as {date?:string;place?:string};
  const moon=result?.d1.find(x=>x.name==='Moon');
  const asc=result?.ascendant;
+ // The familiar Western sign must come from the precise tropical Sun at the
+ // owner's VERIFIED birth instant, never by re-labeling natal Moon or Lagna.
+ let westernSunSign:number|null=null;
+ let westernSunLongitude:number|null=null;
+ if(result?.utc){
+  try{
+   const sun=await tropicalSkyAtUtc(result.utc);
+   westernSunSign=sun.sun.sign;
+   westernSunLongitude=sun.sun.longitude;
+  }catch{ /* Do not fabricate a Western sign if exact Swiss data is unavailable. */ }
+ }
  return {id:row.id,createdAt:row.createdAt,date:input.date||'',place:input.place||'',
   verified:Boolean(result),recoveryStatus:recovery.status as RecoveryState,
   lagnaSign:result&&Number.isInteger(asc?.sign)?asc!.sign:null,
   lagnaName:asc?.signName||(row.result as ChartResult)?.ascendant?.signName||'',
   moonSign:result&&Number.isInteger(moon?.sign)?moon!.sign:null,
+  westernSunSign,westernSunLongitude,westernMethod:westernSunSign?'Swiss Ephemeris / tropical-of-date':null,
   moonLongitude:result&&Number.isFinite(moon?.longitude)?moon!.longitude:null,
   dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
 }
