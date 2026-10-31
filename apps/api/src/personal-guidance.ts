@@ -128,14 +128,14 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
  const major=context.period?.lord,minor=context.period?.antardasha?.lord;
  const majorNatalHouse=major?natalPeriodContext(context.lagnaSign,context.natalPositions,major)?.house??null:null;
  const minorNatalHouse=minor?natalPeriodContext(context.lagnaSign,context.natalPositions,minor)?.house??null:null;
- // Editorial rotation among FACTUALLY calculated non-lunar transits; no invented aspects.
- // Prefer a non-Moon house when available, distinct from Janma Rashi daily horoscope.
+ // Rank by actual active Vimshottari lords, then slower verified grahas.
+ // Calendar dates must never rotate a planet without a change in sky evidence.
  const verified=t.planets.filter(p=>p.name!=='Moon'&&p.name in names&&Number.isInteger(p.sign)&&
   p.sign>=1&&p.sign<=12&&p.houseFromLagna===houseFrom(p.sign,context.lagnaSign)&&
   context.natalPositions.some(n=>n.name===p.name&&n.sign>=1&&n.sign<=12));
  const distinct=verified.filter(p=>p.houseFromLagna!==moonHouse),candidates=distinct.length?distinct:verified;
- const serial=Math.floor(Date.parse(t.date+'T00:00:00Z')/86400000);
- const featured=candidates.length?candidates[((serial%candidates.length)+candidates.length)%candidates.length]:null;
+ const priorities=[minor,major,'Saturn','Jupiter','Mars','Venus','Mercury','Sun','Rahu','Ketu'];
+ const featured=priorities.map(name=>candidates.find(p=>p.name===name)).find((p):p is (typeof candidates)[number]=>Boolean(p))||null;
  const house=featured?.houseFromLagna??moonHouse;
  if(house==null)return null;
  const scene=lifeSituation(house),planet=featured?.name||'Moon';
@@ -157,7 +157,7 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
    natalLagnaSign:context.lagnaSign,natalMoonSign:context.moonSign,natalMoonHouse,
    major,minor,majorNatalHouse,minorNatalHouse,
    natalPlanetHouse:natal?houseFrom(natal.sign,context.lagnaSign):null,
-   selection:featured?'EDITORIAL_ROTATION_VERIFIED_PLANETS':'LUNAR_FALLBACK'}
+   selection:featured?'VERIFIED_DASHA_AND_GRAHA_PRIORITY':'LUNAR_FALLBACK'}
  };
 }
 
