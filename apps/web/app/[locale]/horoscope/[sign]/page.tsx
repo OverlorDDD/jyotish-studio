@@ -62,7 +62,7 @@ export default async function MoonSignGuide({params}:Props){
      'This describes the Moon-sign theme. To see the transiting Moon’s current house relative to this rashi, open the live horoscope below.'}</p>
    </section>
    <div className="as-actions" style={{display:'flex',gap:12,flexWrap:'wrap',marginTop:24}}>
-    <Link className="as-button as-button-primary" href={'/'+locale+'/horoscope?sign='+sign}>
+    <Link className="as-button as-button-primary" href={'/'+locale+'/horoscope?system=vedic&sign='+sign}>
      {uk?'Читати актуальний гороскоп '+name:'See today’s '+name+' horoscope'} ↗
     </Link>
     <Link className="as-button as-button-secondary" href={'/'+locale+'/astrology/jyotish'}>

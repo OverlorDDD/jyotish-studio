@@ -3,6 +3,7 @@ import {ApiTags} from '@nestjs/swagger';
 import {calendarDays,dailyTransit,localToday} from './personal-transits.ts';
 import {readPublicSign,EDITORIAL_REFERENCE} from './horoscope-editorial.ts';
 import {dailySkyContext} from './sky-context.ts';
+import {tropicalSkyForDay,westernSignReading,WESTERN_HOROSCOPE_SOURCES,TROPICAL_METHOD} from './western-horoscope.ts';
 /** Moon moves about 11–16 degrees per 24h. Reject reused/corrupted daily snapshots. */
 export function verifyLunarContinuity(days:Awaited<ReturnType<typeof dailyTransit>>[]){
  for(let i=1;i<days.length;i++){
@@ -45,6 +46,31 @@ export class HoroscopeController{
     moon:{sign:transit.moon.sign,nakshatra:transit.moon.nakshatra,pada:transit.moon.pada},
     signs:Array.from({length:12},(_,i)=>readPublicSign(i+1,transit))
    })),sources:EDITORIAL_REFERENCE};
+ }
+ @Get('western/today') @Header('Cache-Control','public,max-age=300')
+ async westernToday(){
+  const zone='Europe/Kyiv',date=localToday(zone);
+  let sky:Awaited<ReturnType<typeof tropicalSkyForDay>>;
+  try{sky=await tropicalSkyForDay(date,zone);}
+  catch{throw new ServiceUnavailableException('Verified tropical Swiss Ephemeris unavailable; cannot publish Western horoscope');}
+  return {date,zone,reference:'TROPICAL_SUN_SIGN',sampledAtUtc:sky.sampledAtUtc,
+   sun:sky.sun,moon:sky.moon,method:TROPICAL_METHOD,
+   signs:Array.from({length:12},(_,i)=>westernSignReading(i+1,sky,date)),
+   sources:WESTERN_HOROSCOPE_SOURCES,notAPersonalChart:true};
+ }
+
+ @Get('western/week') @Header('Cache-Control','public,max-age=300')
+ async westernWeek(){
+  const zone='Europe/Kyiv',startDate=localToday(zone);
+  let days:{date:string;sky:Awaited<ReturnType<typeof tropicalSkyForDay>>}[];
+  try{days=await Promise.all(calendarDays(startDate,7).map(async date=>
+   ({date,sky:await tropicalSkyForDay(date,zone)})));}
+  catch{throw new ServiceUnavailableException('Verified tropical Swiss Ephemeris unavailable; cannot publish Western week');}
+  return {startDate,zone,reference:'TROPICAL_SUN_SIGN',method:TROPICAL_METHOD,
+   days:days.map(({date,sky})=>({date,sampledAtUtc:sky.sampledAtUtc,
+    sun:sky.sun,moon:sky.moon,
+    signs:Array.from({length:12},(_,i)=>westernSignReading(i+1,sky,date))})),
+   sources:WESTERN_HOROSCOPE_SOURCES,notAPersonalChart:true};
  }
 }
 Reflect.defineMetadata('design:paramtypes',[],HoroscopeController.prototype,'today');

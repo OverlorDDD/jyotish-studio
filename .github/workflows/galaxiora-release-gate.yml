@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - fix/galaxinews-editorial-qa-20261030
+      - feat/western-vedic-horoscopes-20261031
   workflow_dispatch:
 jobs:
   release-gate:
@@ -47,6 +48,8 @@ jobs:
         run: npm run test:swagger
       - name: Bilingual GalaxiNews
         run: npm run test:news
+      - name: Independent Western and Vedic Swiss horoscope verification
+        run: node --test tools/western-horoscope.test.mjs && npm run test:horoscope-basis
       - name: GalaxiCom
         run: npm run test:com
       - name: Release / SEO
@@ -55,9 +58,24 @@ jobs:
         run: |
           bash -n tools/galaxiora-final-release.sh
           bash -n tools/galaxiora-web-hotfix-20261031.sh
+          bash -n tools/galaxiora-horoscope-production-update.sh
           node --check e2e/support/disposable-accounts.mjs
           for file in e2e/*.spec.mjs; do node --check "$file"; done
       - name: Natal city autocomplete and privacy disclosure regression
         run: node --test tools/galaxiora-city-privacy.test.mjs
       - name: Full production build
         run: npm run build
+      - name: Browser audit — all Western/Vedic switch states, UA/EN, desktop/mobile
+        run: |
+          npx playwright install --with-deps chromium
+          printf 'AUTH_SECRET=ci-temporary-browser-token-abcdefghijklmnopqrstuvwxyz0123456789\nDATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/galaxiora_a1_test\nNEXT_PUBLIC_SITE_URL=https://galaxiora.com\nSITE_NOINDEX=1\nAI_MODE=free\n' > .env
+          npm run start -w @jyotish/web > /tmp/galaxiora-browser-web.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for n in $(seq 1 80); do
+            if curl -fsS --max-time 3 http://127.0.0.1:3000/uk/horoscope >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" != 1 ]; then cat /tmp/galaxiora-browser-web.log; exit 1; fi
+          npx playwright test e2e/horoscope-switching.spec.mjs --project=desktop-chromium --project=mobile-chromium

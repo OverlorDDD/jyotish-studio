@@ -1,0 +1,99 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {tropicalSkyAtUtc,tropicalSkyForDay,westernSignReading} from '../apps/api/src/western-horoscope.ts';
+import {getEphemeris} from '../apps/api/src/ephemeris.ts';
+const source=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const example='1996-03-27T12:00:00.000Z';
+test('27 March 1996: tropical Aries Sun and Cancer Moon; sidereal Pisces Sun and Gemini Moon',
+ {timeout:40000},async()=>{
+ const sky=await tropicalSkyAtUtc(example);
+ assert.equal(sky.sun.sign,1,'Aries in tropical Western system');
+ assert.equal(sky.moon.sign,4,'Cancer in tropical Western system');
+ assert.ok(Math.abs(sky.sun.longitude-7.1043)<0.03,'Sun tropical longitude from independent Swiss control');
+ assert.ok(Math.abs(sky.moon.longitude-101.8687)<0.03,'Moon tropical longitude from independent Swiss control');
+ const eph=await getEphemeris({date:'1996-03-27',time:'12:00',timeZone:'UTC',latitude:50.4501,longitude:30.5234});
+ const sun=eph.positions.find(p=>p.name==='Sun'),moon=eph.positions.find(p=>p.name==='Moon');
+ assert.ok(sun&&moon);
+ assert.ok(sun.longitude>=330 && sun.longitude<360,'Jyotish Sun Pisces');
+ assert.ok(moon.longitude>=60 && moon.longitude<90,'Jyotish Moon Gemini');
+});
+test('sidereal Moon stays in Gemini on March 27 at 00/12/23 UTC', {timeout:50000},async()=>{
+ for(const time of ['00:00','12:00','23:00']){
+  const eph=await getEphemeris({date:'1996-03-27',time,timeZone:'UTC',latitude:0,longitude:0});
+  const moon=eph.positions.find(p=>p.name==='Moon');
+  assert.ok(moon && moon.longitude>=60 && moon.longitude<90,'Moon must be Gemini at '+time);
+ }
+});
+test('Western Sun-sign readings are independently computed and have traceable evidence',
+ {timeout:10000},async()=>{
+ const sky=await tropicalSkyForDay('2026-10-31','Europe/Kyiv');
+ const readings=Array.from({length:12},(_,i)=>westernSignReading(i+1,sky,'2026-10-31'));
+ assert.equal(readings.length,12);
+ assert.equal(new Set(readings.map(x=>x.house)).size,12);
+ assert.ok(readings.every(x=>x.evidence.kind==='PUBLIC_TROPICAL_SOLAR_REFERENCE'));
+ assert.ok(readings.every(x=>x.evidence.method.includes('tropical-of-date')));
+ assert.ok(readings.every(x=>x.goodFor.uk && x.goodFor.en && x.description.uk && x.description.en));
+ assert.notEqual(readings[0].description.uk,readings[2].description.uk);
+});
+test('readings never fabricate daily changes when the Sun and Moon houses have not moved',async()=>{
+ const sky=await tropicalSkyForDay('2026-10-31','Europe/Kyiv');
+ const a=westernSignReading(1,sky,'2026-10-31');
+ const b=westernSignReading(1,sky,'2026-11-01');
+ assert.deepEqual(a.headline,b.headline);
+ assert.deepEqual(a.description,b.description);
+ assert.deepEqual(a.goodFor,b.goodFor);
+ assert.equal(a.evidence.sunHouse,((sky.sun.sign-1+12)%12)+1);
+ assert.equal(a.evidence.house,((sky.moon.sign-1+12)%12)+1);
+ assert.equal(a.evidence.editorialPolicy,'SKY_DERIVED_WHOLE_SIGN_HOUSE_THEMES_NOT_EVENT_PREDICTION');
+ const changed=westernSignReading(1,{...sky,moon:{...sky.moon,sign:sky.moon.sign%12+1}},'2026-10-31');
+ assert.notDeepEqual(changed.headline,a.headline);
+ assert.notDeepEqual(changed.description,a.description);
+});
+test('all 12 Western house references match computed tropical longitudes',async()=>{
+ const sky=await tropicalSkyForDay('2026-10-31','Europe/Kyiv');
+ const readings=Array.from({length:12},(_,i)=>westernSignReading(i+1,sky,'2026-10-31'));
+ assert.deepEqual(readings.map(r=>r.house).sort((a,b)=>a-b),Array.from({length:12},(_,i)=>i+1));
+ assert.deepEqual(readings.map(r=>r.evidence.sunHouse).sort((a,b)=>a-b),Array.from({length:12},(_,i)=>i+1));
+ assert.ok(readings.every(r=>r.evidence.sunLongitude===sky.sun.longitude&&r.evidence.moonLongitude===sky.moon.longitude));
+});
+test('Native western forecast refuses malformed dates, signs or zones',async()=>{
+ const sky=await tropicalSkyAtUtc(example);
+ for(const sign of [0,13,1.1,NaN])assert.throws(()=>westernSignReading(sign,sky,'1996-03-27'));
+ assert.throws(()=>westernSignReading(1,sky,'1996-02-30'));
+ await assert.rejects(tropicalSkyForDay('2026-10-31','Invalid/Zone'));
+});
+test('public Western and Vedic APIs remain separate; moon sign guide links do not silently switch',
+ ()=>{
+ const api=source('apps/api/src/horoscope.ts');
+ const ui=source('apps/web/app/components/HoroscopeHub.tsx');
+ const moon=source('apps/web/app/[locale]/horoscope/[sign]/page.tsx');
+ const profile=source('apps/api/src/personal.ts');
+ assert.ok(api.includes("@Get('western/today')"));
+ assert.ok(api.includes("@Get('western/week')"));
+ assert.ok(api.includes("reference:'TROPICAL_SUN_SIGN'"));
+ assert.ok(api.includes("reference:'SIDEREAL_MOON_SIGN'"));
+ assert.ok(ui.includes("useState<'western'|'vedic'>('western')"));
+ assert.ok(ui.includes("TROPICAL_SUN_SIGN"));
+ assert.ok(ui.includes("Натальний Місяць")||ui.includes("Ведичний Місяць"));
+ assert.ok(moon.includes('system=vedic&sign='));
+ assert.ok(profile.includes('westernSunSign')&&profile.includes('tropicalSkyAtUtc(result.utc)'));
+});
+
+test('personal western API cannot return Vedic horoscope under Western state',()=>{
+ const personal=source('apps/api/src/personal.ts');
+ const ui=source('apps/web/app/components/HoroscopeHub.tsx');
+ assert.match(personal,/@Get\('horoscope\/western'\)/);
+ assert.match(personal,/PERSONAL_TROPICAL_NATAL_SUN_REFERENCE/);
+ assert.match(personal,/SUN_SIGN_TRANSITS_NOT_FULL_WESTERN_NATAL_CHART/);
+ assert.match(personal,/westernSignReading\(chart\.westernSunSign!/);
+ assert.ok(ui.includes("data-system={tradition}"));
+ assert.ok(ui.includes("personal-western-basis"));
+ assert.ok(ui.includes("personal-vedic-basis"));
+ assert.ok(ui.includes("personal-western-week"));
+ assert.ok(ui.includes("personal-vedic-week"));
+ assert.ok(ui.includes("visibleData=data?.reference===expectedReference"));
+ assert.ok(ui.includes("visibleWeek=publicWeek?.reference===expectedReference"));
+ assert.ok(ui.includes("weekDays.map(day=>"));
+ assert.doesNotMatch(ui,/weekPhases/,'Weekly periods must not collapse distinct days');
+});

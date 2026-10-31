@@ -10,6 +10,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
  const base=publicSiteOrigin()!;
  const [yoga,academy]=await Promise.all([publishedList('YOGA'),publishedList('ACADEMY')]);
  const allPages=[...new Set([...SEO_PATHS,...MOON_SIGN_GUIDES.map(s=>'horoscope/'+s.slug),
+  ...MOON_SIGN_GUIDES.map(s=>'horoscope/western/'+s.slug),
   ...YOGA_PRACTICES.map(p=>'yoga/'+p.slug),...ACADEMY_LESSONS.map(l=>'learn/'+l.slug),
   ...yoga.map(p=>'yoga/'+p.slug),...academy.map(p=>'learn/'+p.slug)])];
  return allPages.flatMap(suffix=>(['en','uk'] as const).map(locale=>({

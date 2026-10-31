@@ -7,6 +7,7 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {verifyLunarContinuity} from './horoscope.ts';
+import {tropicalSkyAtUtc,tropicalSkyForDay,westernSignReading,TROPICAL_METHOD} from './western-horoscope.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
 import {dailySkyContext} from './sky-context.ts';
@@ -28,11 +29,23 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
  const input=(row.input||{}) as {date?:string;place?:string};
  const moon=result?.d1.find(x=>x.name==='Moon');
  const asc=result?.ascendant;
+ // The familiar Western sign must come from the precise tropical Sun at the
+ // owner's VERIFIED birth instant, never by re-labeling natal Moon or Lagna.
+ let westernSunSign:number|null=null;
+ let westernSunLongitude:number|null=null;
+ if(result?.utc){
+  try{
+   const sun=await tropicalSkyAtUtc(result.utc);
+   westernSunSign=sun.sun.sign;
+   westernSunLongitude=sun.sun.longitude;
+  }catch{ /* Do not fabricate a Western sign if exact Swiss data is unavailable. */ }
+ }
  return {id:row.id,createdAt:row.createdAt,date:input.date||'',place:input.place||'',
   verified:Boolean(result),recoveryStatus:recovery.status as RecoveryState,
   lagnaSign:result&&Number.isInteger(asc?.sign)?asc!.sign:null,
   lagnaName:asc?.signName||(row.result as ChartResult)?.ascendant?.signName||'',
   moonSign:result&&Number.isInteger(moon?.sign)?moon!.sign:null,
+  westernSunSign,westernSunLongitude,westernMethod:westernSunSign?'Swiss Ephemeris / tropical-of-date':null,
   moonLongitude:result&&Number.isFinite(moon?.longitude)?moon!.longitude:null,
   dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
 }
@@ -108,6 +121,32 @@ export class PersonalController{
    await tx.personalProfile.upsert({where:{userId:uid},create:{userId:uid,primaryChartId:id},update:{primaryChartId:id}});
   });
   return this.profile(uid);
+ }
+ /** Authenticated Western interpretation anchored to the verified birth-time
+  * tropical Sun, not to the Vedic Moon. Explicitly Sun-sign-based, not a
+  * complete Western natal reading. No DB writes; private and uncached.
+  */
+ @Get('horoscope/western') @Header('Cache-Control','private, no-store')
+ async westernHoroscope(@Req()req:IncomingMessage){
+  const uid=owner(req),profile=await this.profile(uid),chart=profile.selected;
+  if(!chart?.verified||!chart.westernSunSign||!Number.isFinite(chart.westernSunLongitude))
+   return {status:'requires_verified_tropical_sun',reference:'TROPICAL_NATAL_SUN_SIGN',today:null,days:[]};
+  const zone=profile.profile.currentTimeZone;
+  const date=localToday(zone);
+  let days:{date:string;sky:Awaited<ReturnType<typeof tropicalSkyForDay>>}[];
+  try{
+   days=await Promise.all(calendarDays(date,7).map(async day=>({date:day,sky:await tropicalSkyForDay(day,zone)})));
+  }catch{throw new ServiceUnavailableException('Tropical Swiss Ephemeris unavailable; cannot give an accurate reading');}
+  const reading=(day:{date:string;sky:Awaited<ReturnType<typeof tropicalSkyForDay>>})=>{
+   const entry=westernSignReading(chart.westernSunSign!,day.sky,day.date);
+   return {...entry,evidence:{...entry.evidence,kind:'PERSONAL_TROPICAL_NATAL_SUN_REFERENCE',
+    natalSunSign:chart.westernSunSign,natalSunLongitude:chart.westernSunLongitude,
+    provenance:'VERIFIED_BIRTH_INSTANT_SWISS_TROPICAL_SUN',timeZone:zone}};
+  };
+  return {status:'available',reference:'TROPICAL_NATAL_SUN_SIGN',timeZone:zone,
+   date,natalSunSign:chart.westernSunSign,natalSunLongitude:chart.westernSunLongitude,
+   method:TROPICAL_METHOD,scope:'SUN_SIGN_TRANSITS_NOT_FULL_WESTERN_NATAL_CHART',
+   today:reading(days[0]),days:days.map(day=>({date:day.date,guidance:reading(day)}))};
  }
  @Get('overview') @Header('Cache-Control','private, no-store')
  async overview(@Req()req:IncomingMessage){

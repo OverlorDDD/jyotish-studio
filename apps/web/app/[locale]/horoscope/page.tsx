@@ -4,7 +4,7 @@ import PortalShell from '../../components/PortalShell';
 import HoroscopeHub from '../../components/HoroscopeHub';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
 import {indexRobots} from '../../../lib/site-indexing';
-const SEO_COPY={"uk":{"title":"Гороскопи Джйотіш для 12 місячних знаків","description":"Щоденні й тижневі гороскопи за сидеричним Місяцем, перевірений персональний прогноз за натальною картою, транзити й джерела."},"en":{"title":"Jyotish Horoscopes for All 12 Moon Signs","description":"Daily and weekly sidereal Moon-sign horoscopes, verified birth-chart readings, planetary transits and classical Jyotish sources."}} as const;
+const SEO_COPY={"uk":{"title":"Гороскопи для 12 знаків — західні та ведичні","description":"Західні гороскопи за тропічним Сонцем, ведичні прогнози за сидеричним Місяцем і персональний аналіз натальної карти. Точні розрахунки Swiss Ephemeris."},"en":{"title":"Horoscopes for 12 Signs — Western Sun & Vedic Moon","description":"Western tropical Sun-sign horoscopes, Vedic sidereal Moon-sign readings, and personalized birth-chart guidance computed from Swiss Ephemeris."}} as const;
 export async function generateMetadata({params}:{params:Promise<{locale:string}>}):Promise<Metadata>{
  const {locale}=await params;
  if(!isPortalLocale(locale))return {};

@@ -46,3 +46,11 @@
 .useNatal:hover{background:#ffe3a3}.useNatal:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .personal [data-testid="personal-daily-core"]>h3,.personal [data-testid="personal-moon-reading"]>h3{font-size:20px;margin:24px 0 4px;color:#f2d9a5}
 @media(max-width:560px){.signExplanation{padding:15px}.useNatal{width:100%}}
+
+/* Two distinct horoscopic traditions — not a cosmetic relabeling. */
+.traditions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;padding:5px;border:1px solid #657990;background:#0f2035;border-radius:14px;width:fit-content;max-width:100%}
+.traditions button{font:inherit;cursor:pointer;padding:12px 18px;min-height:46px;border:1px solid transparent;border-radius:10px;background:transparent;color:#dfebf2}
+.traditions button[aria-pressed=true]{background:#ddbf88;border-color:#f4d9ac;color:#172438;font-weight:700}
+.traditions button:hover:not([aria-pressed=true]){background:#2d435d}
+.traditionInfo{font-size:14px!important;margin:13px 0 4px;color:#e8d4b2!important}
+@media(max-width:560px){.traditions{width:100%}.traditions button{flex:1 1 135px;padding:10px 7px;font-size:13px}}
