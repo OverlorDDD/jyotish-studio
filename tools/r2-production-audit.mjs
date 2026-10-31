@@ -22,8 +22,8 @@ if(!publicMode){
  check(Boolean(process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL&&
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL)),
   'Public privacy contact configured','Set NEXT_PUBLIC_SITE_CONTACT_EMAIL before public launch');
- check(Boolean(process.env.NEXT_PUBLIC_OPERATOR_NAME?.trim()),
-  'Public site operator identified','Set NEXT_PUBLIC_OPERATOR_NAME before public launch');
+ // Legal identity disclosures require a jurisdiction-specific review; do not
+ // force a private individual's name into a public environment variable.
  check(process.env.PUBLIC_REGISTRATION_ENABLED==='1',
   'Public signup explicitly enabled','PUBLIC_REGISTRATION_ENABLED=1 is required for open registration');
  for(const name of ['TURNSTILE_SECRET_KEY','NEXT_PUBLIC_TURNSTILE_SITE_KEY',
