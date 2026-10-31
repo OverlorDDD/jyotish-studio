@@ -154,22 +154,22 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      (uk?'Практичний крок':'One practical step')}</strong>
     <p><GlossaryText text={t(g.reflection||g.action||g.goodFor)} locale={locale}/></p>
    </div>
-   {g.evidence.kind==='PUBLIC_JANMA_RASHI_REFERENCE'&&data?.sky&&<section data-testid="horoscope-sky-context" style={{padding:'14px 0',borderTop:'1px solid #536a82'}}>
+   {g.evidence.kind==='PUBLIC_JANMA_RASHI_REFERENCE'&&visibleData?.sky&&<section data-testid="horoscope-sky-context" style={{padding:'14px 0',borderTop:'1px solid #536a82'}}>
     <h3>{uk?'Астрономічні та ведичні події':'Astronomical and Vedic calendar context'}</h3>
-    {data.sky.events.slice(0,2).map((e,i)=><p key={e.kind+e.atUtc+i}>
+    {visibleData.sky.events.slice(0,2).map((e,i)=><p key={e.kind+e.atUtc+i}>
      <strong>{e.localDate}: </strong><GlossaryText text={t(e.meaning)} locale={locale}/> <span><GlossaryText text={t(e.practice)} locale={locale}/></span>
     </p>)}
-    {data.sky.observances.map((e,i)=><p key={e.id+e.atUtc+i}>
+    {visibleData.sky.observances.map((e,i)=><p key={e.id+e.atUtc+i}>
      <strong>{uk?'Календарна позначка':'Calendar observance'}: </strong>{e.id.replaceAll('_',' ')}.
      <small> {uk?'Час святкування може відрізнятися залежно від місцевої традиції.':'Observance times vary with local tradition.'}</small>
     </p>)}
-    {data.sky.referenceLocation&&<small>{uk?'Святкові позначки розраховані для Києва; для іншого міста відкрий Панчангу.':'Observance reference city: Kyiv; open Panchanga for other locations.'}</small>}
+    {visibleData.sky.referenceLocation&&<small>{uk?'Святкові позначки розраховані для Києва; для іншого міста відкрий Панчангу.':'Observance reference city: Kyiv; open Panchanga for other locations.'}</small>}
    </section>}
    {evidence(g)}
   </article>;
  }
  return <section className={styles.page} data-testid="horoscope-hub">
-  <header className={styles.hero}><span className={styles.kicker}>GALAXIORA · JYOTISH</span>
+  <header className={styles.hero}><span className={styles.kicker}>GALAXIORA · {tradition==='western'?'WESTERN':'JYOTISH'}</span>
    <h1>{uk?'Гороскопи':'Horoscopes'}</h1>
    <p>{uk?'Два різні підходи: звичний західний знак Сонця та ведичний знак Місяця. Обери традицію або відкрий глибоке персональне читання за натальною картою.':
     'Two distinct traditions: your familiar Western Sun sign and Vedic Moon sign. Choose a method or explore a deeper reading grounded in your verified birth chart.'}</p>
@@ -193,20 +193,20 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      {uk?'Цей тиждень':'This week'}</button>
    </div>
   </header>
-  {loading&&!data&&<p role="status">{uk?'Звіряємо положення Місяця…':'Checking the Moon position…'}</p>}
+  {loading&&!visibleData&&mode==='signs'&&<p role="status">{uk?'Розраховуємо астрономічні положення…':'Calculating planetary positions…'}</p>}
   {error&&<div role="alert" className={styles.error}>
     {uk?'Сьогоднішні ефемериди тимчасово недоступні. Онови сторінку трохи пізніше.':
      'Today’s ephemeris data is temporarily unavailable. Please retry shortly.'}
     <button type="button" onClick={()=>setReload(x=>x+1)}><RefreshCw size={15}/>{uk?'Спробувати ще':'Retry'}</button></div>}
-  {data&&mode==='signs'&&<>
+  {visibleData&&mode==='signs'&&<>
    <div className={styles.info}><CalendarDays size={18}/>
-    {uk?'Прогноз на ':'Reading for '}{data.date} · {tradition==='western'?
+    {uk?'Прогноз на ':'Reading for '}{visibleData.date} · {tradition==='western'?
      (uk?'Тропічне Сонце та Місяць, опівдні за Києвом.':'Tropical Sun and Moon at Kyiv noon.'):
      (uk?'Сидеричний Місяць, спостереження опівдні за Києвом.':'Sidereal Moon at Kyiv noon.')}
    </div>
    <div className={styles.signs} role="group" aria-label={tradition==='western'?(uk?'Тропічний знак Сонця':'Tropical Sun sign'):(uk?'Сидеричний місячний знак':'Sidereal Moon sign')}>
     {SIGNS[locale].map((name,i)=><button type="button" key={name}
-     aria-pressed={selected===i+1} onClick={()=>setSelected(i+1)}>{name}</button>)}
+     aria-pressed={selected===i+1} onClick={()=>{signManuallyChosen.current=true;setSelected(i+1)}}>{name}</button>)}
    </div>
    <div className={styles.signExplanation} data-testid="lunar-sign-explanation">
     <div><strong>{uk?'Обраний знак: ':'Selected sign: '}{SIGNS[locale][selected-1]}</strong>
@@ -220,35 +220,35 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
       (uk?'Твій ведичний знак Місяця: ':'Your sidereal natal Moon: ')}{selectedNatalName}.</strong>
       {differs?' '+(uk?'Обраний вручну знак не змінює твою натальну карту.':'Manual selection never changes your natal chart.') :null}</p>}
     </div>
-    {selectedNatalName&&<button type="button" className={styles.useNatal} onClick={()=>setSelected(selectedNatal!)}>
+    {selectedNatalName&&<button type="button" className={styles.useNatal} onClick={()=>{signManuallyChosen.current=true;setSelected(selectedNatal!)}}>
       {tradition==='western'?(uk?'Показати мій знак Сонця':'Use my Sun sign'):(uk?'Показати мій знак Місяця':'Use my Moon sign')}: {selectedNatalName}
     </button>}
     {!selectedNatalName&&<Link href={'/'+locale+'/astrology/jyotish'}>
      {tradition==='western'?(uk?'Розрахувати точний знак Сонця':'Calculate my exact Sun sign'):(uk?'Визначити натальний знак Місяця':'Calculate my natal Moon sign')} →</Link>}
    </div>
-   {tradition==='vedic'&&<p className={styles.signGuideLink}>
-    <Link href={'/'+locale+'/horoscope/'+SIGN_SLUGS[selected-1]}>
-     {uk?'Про знак Місяця ':'About the Moon sign '}{SIGNS[locale][selected-1]} · {uk?'значення й особливості':'meaning and characteristics'} ↗
+   <p className={styles.signGuideLink}>
+    <Link href={'/'+locale+'/horoscope/'+(tradition==='western'?'western/':'')+SIGN_SLUGS[selected-1]}>
+     {tradition==='western'?(uk?'Про західне Сонце в знаку ':'About the Western Sun in '):(uk?'Про ведичний Місяць у знаку ':'About the Vedic Moon in ')}{SIGNS[locale][selected-1]} ↗
     </Link>
    </p>}
-   {period==='day'&&reading&&detail({...reading,evidence:{...reading.evidence,house:reading.house}})}
+   {period==='day'&&reading&&detail({...reading,evidence:{...reading.evidence,house:reading.house,timeZone:visibleData?.zone}})}
    {period==='week'&&<section className={styles.week} data-testid="public-horoscope-week">
     <h2>{uk?'Тижневий ритм для знака ':'Weekly outlook for '}{SIGNS[locale][selected-1]}</h2>
     <p className={styles.note}>{tradition==='western'?
-     (uk?'Західний тропічний прогноз: теми Сонця та Місяця згруповано за місячними домами від обраного знака Сонця. Це не точні моменти переходів.':
-      'Western tropical reading: daily Sun and Moon themes grouped by lunar house relative to the chosen Sun sign, not exact ingress times.'):
-     (uk?'Теми згруповано за місячними положеннями опівдні; межі не є точними моментами переходу.':
-      'Themes are grouped by noon Moon positions, not exact sign-ingress times.')}</p>
+     (uk?'Сім окремих полуденних спостережень за Києвом. Сонячні та місячні транзити визначають символічні теми; якщо положення не змінилося, порада може повторюватися.':
+      'Seven distinct Kyiv-noon observations. Real Sun and Moon house positions determine the symbolic themes; readings can repeat when the sky reference remains unchanged.'):
+     (uk?'Сім окремих полуденних спостережень. Добові редакційні акценти відокремлені від астрономічних змін.':
+      'Seven separate noon samples. Date-based editorial emphasis is not a planetary event.')}</p>
     {weekBusy&&<p role="status">{uk?'Звіряємо сім днів ефемерид…':'Checking seven days of ephemerides…'}</p>}
     {weekError&&<div role="alert" className={styles.error}>
      {uk?'Не вдалося отримати астрономічні дані на тиждень.':'Weekly astronomical data is unavailable.'}
      <button type="button" onClick={()=>{setPublicWeek(null);setReload(x=>x+1)}}>{uk?'Повторити':'Retry'}</button>
     </div>}
-    {weekPhases.map(phase=><article key={phase.start} className={styles.weekPhase}>
-     <time>{dayLabel(phase.start)}{phase.end!==phase.start?' — '+dayLabel(phase.end):''}</time>
-     <h3><GlossaryText text={t(phase.entry.headline)} locale={locale}/></h3><p><GlossaryText text={t(phase.entry.description)} locale={locale}/></p>
-     <p><strong>{uk?'Спробуй: ':'Try this: '}</strong><GlossaryText text={t(phase.entry.goodFor)} locale={locale}/></p>
-     {evidence({...phase.entry,evidence:{...phase.entry.evidence,house:phase.entry.house}})}
+    {weekDays.map(day=><article key={day.date} className={styles.weekPhase}>
+     <time dateTime={day.date}>{dayLabel(day.date)}</time>
+     <h3><GlossaryText text={t(day.signs[selected-1].headline)} locale={locale}/></h3><p><GlossaryText text={t(day.signs[selected-1].description)} locale={locale}/></p>
+     <p><strong>{uk?'Спробуй: ':'Try this: '}</strong><GlossaryText text={t(day.signs[selected-1].goodFor)} locale={locale}/></p>
+     {evidence({...day.signs[selected-1],evidence:{...day.signs[selected-1].evidence,house:day.signs[selected-1].house,timeZone:visibleWeek?.zone}})}
     </article>)}
    </section>}
    <p className={styles.note}>{uk?'Для глибшого читання за натальною картою відкрий «Мій персональний».':
