@@ -15,7 +15,8 @@ type Advanced={
  timed:{id:string;startUtc:string;endUtc:string;exactUtc:string[];clippedStart:boolean;clippedEnd:boolean}[]};
  vedic:{ashtakavarga:{sav:number[];bav:Record<string,number[]>;total:number};
  gochara:{graha:string;sign:number;bav:number;sav:number;houseFromMoon:number;houseFromLagna:number}[];
- drishti:{graha:string;toSign:number;offset:number;natalTargets:string[]}[]};
+ drishti:{graha:string;toSign:number;offset:number;natalTargets:string[]}[];
+ periodFactors:{level:string;lord:string;natalSign:number;natalHouse:number;ruledHouses:number[];transitSign:number;transitHouseFromMoon:number;transitHouseFromLagna:number;bav:number|null;sav:number}[]};
 };
 type AiReading={status:'available'|'unavailable'|'disabled';reason?:string;
  paragraphs?:{id:string;text:string;evidenceIds:string[]}[];
@@ -153,6 +154,15 @@ export default function AstrologicalSynthesisPanel({locale,period}:{locale:Porta
       {' '}{uk?'знак':'sign'} {g.sign} · BAV {g.bav} · SAV {g.sav} ·
       {' '}{uk?'від Місяця дім':'house from Moon'} {g.houseFromMoon} ·
       {' '}{uk?'від Лагни дім':'house from Lagna'} {g.houseFromLagna}</p>)}
+     <h4>{uk?'Чинні даші та управління домами':'Active dashas and house lordship'}</h4>
+     {day.advanced.vedic.periodFactors.length?day.advanced.vedic.periodFactors.map(p=><p key={p.level}>
+      {p.level==='mahadasha'?(uk?'Махадаша':'Mahadasha'):(uk?'Антардаша':'Antardasha')}
+      {' · '}{p.lord} · {uk?'натальний знак':'natal sign'} {p.natalSign} ·
+      {' '}{uk?'натальний дім':'natal house'} {p.natalHouse} ·
+      {' '}{uk?'управляє домами':'rules houses'} {p.ruledHouses.length?p.ruledHouses.join(', '):'—'}
+      {' · '}{uk?'поточна гочара':'current gochara'} {p.transitSign}
+      {' · BAV '}{p.bav??'—'} · SAV {p.sav}
+     </p>):<p>{uk?'Чинні періоди поза перевіреним діапазоном.':'Active periods outside verified range.'}</p>}
      {day.advanced.vedic.drishti.filter(d=>d.natalTargets.length>0).map(d=><p key={d.graha+':'+d.offset}>
       {d.graha} → {d.natalTargets.join(', ')}
       {' · '}{uk?'повний аспект на':'full aspect to sign'} {d.toSign}</p>)}
