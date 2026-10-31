@@ -79,6 +79,12 @@ const caution=[
  l('Пам’ятай: астрологічний образ не замінює реальних обставин.','Remember that an astrological symbol does not replace real circumstances.'),
  l('Не сприймай загальний прогноз як гарантію події.','Do not treat a general forecast as a promise of an event.')
 ] as const;
+const dayTags=[
+ l('Тема дня','Today's theme'),
+ l('Новий погляд','A fresh angle'),
+ l('Свій ритм','Your pace'),
+ l('Малий крок','A small step')
+] as const;
 const variations=[
  l('Зверни увагу на практичну сторону цього питання.','Look at the practical side of this theme.'),
  l('Подивись, що можна змінити без зайвого поспіху.','Consider what can change without rushing.'),
@@ -95,12 +101,12 @@ export function westernSignReading(referenceSign:number,sky:TropicalSky,date:str
  const v=((dayNumber%4)+4)%4;
  return {
   referenceSign,house:moonHouse,
-  headline:solar.name,
+  headline:l(solar.name.uk+' · '+dayTags[v].uk,solar.name.en+' · '+dayTags[v].en),
   description:l(
    'У західній тропічній традиції Сонце зараз проходить '+sunHouse+'-й дім від обраного сонячного знака. Символічний акцент цього періоду — '+solar.focus.uk+'. Місячний транзит через '+moonHouse+'-й дім додає запитання: '+lunar.uk+'? '+variations[v].uk,
    'In the Western tropical whole-sign approach, today’s Sun falls in house '+sunHouse+' counted from the selected Sun sign. The traditional theme is '+solar.focus.en+'. The Moon in house '+moonHouse+' adds a question: '+lunar.en+'? '+variations[v].en
   ),
-  goodFor:solar.step,
+  goodFor:l(solar.step.uk+' '+variations[v].uk,solar.step.en+' '+variations[v].en),
   caution:caution[v],
   reflection:l('Який крок у цій темі буде доречним саме для твоїх обставин?','What small step would fit your actual circumstances?'),
   evidence:{
