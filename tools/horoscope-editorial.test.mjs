@@ -16,17 +16,20 @@ test('12 sidereal Janma-Rashi forecasts derive only from real supplied lunar obs
  assert.throws(()=>readPublicSign(13,transit));assert.throws(()=>horoscopeTheme(0));
 });
 
-test('Each sign delivers different text and direct action on adjacent calendar dates',()=>{
+test('Every sign is grounded in lunar nakshatra, not arbitrary calendar-day copy rotation',()=>{
  for(let sign=1;sign<=12;sign++)for(let d=0;d<32;d++){
   const date=new Date(Date.parse('2026-10-27T00:00:00Z')+d*86400000).toISOString().slice(0,10);
   const next=new Date(Date.parse(date+'T00:00:00Z')+86400000).toISOString().slice(0,10);
   const a=readPublicSign(sign,{...transit,date}),b=readPublicSign(sign,{...transit,date:next});
-  assert.notDeepEqual(a.description,b.description);
-  assert.notDeepEqual(a.goodFor,b.goodFor);
-  assert.notDeepEqual(a.caution,b.caution);
-  assert.notDeepEqual(a.reflection,b.reflection);
+  assert.deepEqual(a.description,b.description);
+  assert.deepEqual(a.goodFor,b.goodFor);
+  assert.deepEqual(a.caution,b.caution);
+  assert.deepEqual(a.reflection,b.reflection);
+  assert.equal(a.evidence.editorialPolicy,'CALCULATED_MOON_HOUSE_AND_NAKSHATRA_NO_DATE_ROTATION');
   assert.match(a.goodFor.uk,/^[А-ЯІЇЄҐ]/);
  }
+ const changed=readPublicSign(1,{...transit,moon:{...transit.moon,nakshatra:'Mrigashira',pada:2}});
+ assert.notDeepEqual(changed.description,readPublicSign(1,transit).description);
  assert.throws(()=>readPublicSign(1,{...transit,date:'2026-02-30'}));
  assert.throws(()=>readPublicSign(1,{...transit,moon:{...transit.moon,pada:0}}));
 });
