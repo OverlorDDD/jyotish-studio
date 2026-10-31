@@ -284,6 +284,9 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     <><p>{uk?'Астрономічна основа: Swiss Ephemeris, сидеричний зодіак Лагірі. Тлумачення транзитів спираються на традицію Джйотіш, зокрема «Пхаладіпіку», розділ 26.':
     'Astronomical basis: Swiss Ephemeris, Lahiri sidereal zodiac. Transit interpretations draw on classical Jyotish, including Phaladipika, chapter 26.'}</p>
    <a href="https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621598.html" target="_blank" rel="noopener noreferrer">{uk?'Читати першоджерело':'Classical source'}</a></>}
+    <a href="https://www.astro.com/swisseph/" target="_blank" rel="noopener noreferrer">
+     {uk?'Документація Swiss Ephemeris':'Swiss Ephemeris documentation'}
+    </a>
    </div>
   </footer>
  </section>;
