@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - fix/galaxinews-editorial-qa-20261030
+      - feat/western-vedic-horoscopes-20261031
   workflow_dispatch:
 jobs:
   release-gate:
@@ -47,6 +48,8 @@ jobs:
         run: npm run test:swagger
       - name: Bilingual GalaxiNews
         run: npm run test:news
+      - name: Independent Western and Vedic Swiss horoscope verification
+        run: node --test tools/western-horoscope.test.mjs && npm run test:horoscope-basis
       - name: GalaxiCom
         run: npm run test:com
       - name: Release / SEO
