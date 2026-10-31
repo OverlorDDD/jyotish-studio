@@ -9,7 +9,7 @@ import {portalPath,type PortalLocale} from '../../../lib/brand';
 import {calendarDayLabel} from '../../../lib/personal-date-label';
 import PersonalNewsPreview from './PersonalNewsPreview';
 const PersonalJournal=dynamic(()=>import('../PersonalJournal'),{loading:()=>null});
-type ChartSummary={id:string;createdAt:string;date:string;place:string;verified:boolean;recoveryStatus?:'current'|'recovered'|'needs_review'|'temporarily_unavailable';lagnaSign:number|null;lagnaName:string;moonSign:number|null};
+type ChartSummary={id:string;createdAt:string;date:string;place:string;verified:boolean;recoveryStatus?:'current'|'recovered'|'needs_review'|'temporarily_unavailable';lagnaSign:number|null;lagnaName:string;moonSign:number|null;westernSunSign?:number|null};
 type Transit={date:string;sampledAtUtc:string;timeZone:string;method:string;moon:{sign:number;nakshatra:string;pada:number;houseFromLagna:number|null;houseFromMoon:number|null};planets:{name:string;sign:number;houseFromLagna:number|null;houseFromMoon:number|null}[]};
 type Day={date:string;moon:Transit['moon'];sampledAtUtc:string};
 type TimelineEvent={type:'MAHADASHA_START'|'ANTARDASHA_START';lord:string;atUtc:string;date:string};
@@ -172,7 +172,12 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
      <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>NATAL · VIMSHOTTARI · GOCHARA</span><h2>{t.foundation}</h2></div><Compass size={25}/></div>
      <div className={styles['gp-foundation-grid']}>
       <div className={styles['gp-foundation-part']}>
-       {chosen?<p className={styles['gp-chart-summary']}><strong>{chosen.place||chosen.date||t.choose}</strong>{uk?'Лагна':'Lagna'}: {chosen.lagnaName}</p>:<p>{t.noChart}</p>}
+       {chosen?<p className={styles['gp-chart-summary']}>
+        <strong>{chosen.place||chosen.date||t.choose}</strong>
+        {uk?'Західне Сонце':'Western Sun'}: {chosen.westernSunSign?sign(chosen.westernSunSign):'—'}
+        {' · '}{uk?'Ведичний Місяць':'Vedic Moon'}: {chosen.moonSign?sign(chosen.moonSign):'—'}
+        {' · '}{uk?'Лагна':'Ascendant'}: {chosen.lagnaName||'—'}
+       </p>:<p>{t.noChart}</p>}
        <label htmlFor="gp-primary-select">{t.start}
         <select id="gp-primary-select" data-testid="primary-chart-select" value={chartChoice} onChange={e=>setChartChoice(e.target.value)}>
          <option value="">{t.select}</option>
