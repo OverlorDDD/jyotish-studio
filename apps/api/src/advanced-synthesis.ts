@@ -155,8 +155,35 @@ export function vedicAdvancedEvidence(transit:Transit,natalPositions:ReadonlyArr
    houseFromMoon:((p.sign-signs.Moon+12)%12)+1,
    houseFromLagna:((p.sign-lagnaSign+12)%12)+1};
  });
+
+ // Vimshottari is not scored with an invented weight. Instead identify
+ // each ACTIVE lord's verified natal sign, whole-sign house, classical
+ // houses ruled and observed gochara/BAV when the lord is a classical graha.
+ const signRulers=['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars',
+  'Jupiter','Saturn','Saturn','Jupiter'] as const;
+ const periodFactors=([
+  {level:'mahadasha' as const,lord:period?.lord},
+  {level:'antardasha' as const,lord:period?.antardasha}
+ ]).filter((x):x is {level:'mahadasha'|'antardasha';lord:string}=>Boolean(x.lord))
+  .map(({level,lord})=>{
+   const natal=natalPositions.find(x=>x.name===lord);
+   if(!natal)throw Error('Unverified dasha lord natal placement: '+lord);
+   const classical=AV_GRAHAS.some(x=>x===lord);
+   const observed=transit.planets.find(x=>x.name===lord);
+   if(!observed)throw Error('Missing dasha lord gochara: '+lord);
+   const ruledHouses=classical?signRulers.flatMap((r,i)=>
+    r===lord?[((i+1-lagnaSign+12)%12)+1]:[]):[];
+   return {level,lord,natalSign:natal.sign,
+    natalHouse:((natal.sign-lagnaSign+12)%12)+1,
+    ruledHouses,transitSign:observed.sign,
+    transitHouseFromMoon:((observed.sign-signs.Moon+12)%12)+1,
+    transitHouseFromLagna:((observed.sign-lagnaSign+12)%12)+1,
+    bav:classical?ashtakavarga.bav[lord as typeof AV_GRAHAS[number]][observed.sign-1]:null,
+    sav:ashtakavarga.sav[observed.sign-1],
+    strengthModel:'OBSERVED_CONTEXT_NO_QUANTITATIVE_DASHA_WEIGHT' as const};
+  });
  return {method:'SIDEREAL_LAHIRI_GRAHA_DRISHTI_ASHTAKAVARGA_V1',
-  ashtakavarga,drishti,gochara,
+  ashtakavarga,drishti,gochara,periodFactors,
   periodContext:period||null,
   periodRole:'VERIFIED_DASHA_TIMING_CONTEXT_NOT_NUMERIC_FATE_WEIGHT'};
 }
