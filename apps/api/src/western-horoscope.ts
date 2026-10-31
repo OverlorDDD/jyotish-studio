@@ -73,48 +73,33 @@ const lunarFocus=[
  l('який зв’язок хочеться підтримати','which connection you want to nurture'),
  l('що краще завершити або відкласти','what may be worth finishing or postponing')
 ] as const;
-const caution=[
- l('Не поспішай робити висновок лише за настроєм дня.','Do not draw sweeping conclusions from a passing mood.'),
- l('Не перенось чужі очікування у власні плани.','Do not let others’ expectations quietly become your plan.'),
- l('Пам’ятай: астрологічний образ не замінює реальних обставин.','Remember that an astrological symbol does not replace real circumstances.'),
- l('Не сприймай загальний прогноз як гарантію події.','Do not treat a general forecast as a promise of an event.')
-] as const;
-const dayTags=[
- l('Тема дня',"Today's theme"),
- l('Новий погляд','A fresh angle'),
- l('Свій ритм','Your pace'),
- l('Малий крок','A small step')
-] as const;
-const variations=[
- l('Зверни увагу на практичну сторону цього питання.','Look at the practical side of this theme.'),
- l('Подивись, що можна змінити без зайвого поспіху.','Consider what can change without rushing.'),
- l('Намагайся відрізнити справді важливе від другорядного.','Try to distinguish what matters from what can wait.'),
- l('Почни з маленького спостереження, а не великого висновку.','Begin with a small observation rather than a big conclusion.')
-] as const;
 export function westernSignReading(referenceSign:number,sky:TropicalSky,date:string){
  if(!Number.isInteger(referenceSign)||referenceSign<1||referenceSign>12||
     !validLocalDay(date))throw Error('Invalid tropical sign reading');
  const sunHouse=((sky.sun.sign-referenceSign+12)%12)+1;
  const moonHouse=((sky.moon.sign-referenceSign+12)%12)+1;
  const solar=solarHouses[sunHouse-1],lunar=lunarFocus[moonHouse-1];
- const dayNumber=Math.floor(Date.parse(date+'T00:00:00Z')/86400000);
- const v=((dayNumber%4)+4)%4;
  return {
   referenceSign,house:moonHouse,
-  headline:l(solar.name.uk+' · '+dayTags[v].uk,solar.name.en+' · '+dayTags[v].en),
+  // Do not invent a day-to-day change when the tropical bodies occupy the
+  // same whole-sign houses. Sky-derived themes may correctly recur.
+  headline:l(solar.name.uk+' · місячний дім '+moonHouse,
+   solar.name.en+' · lunar house '+moonHouse),
   description:l(
-   'У західній тропічній традиції Сонце зараз проходить '+sunHouse+'-й дім від обраного сонячного знака. Символічний акцент цього періоду — '+solar.focus.uk+'. Місячний транзит через '+moonHouse+'-й дім додає запитання: '+lunar.uk+'? '+variations[v].uk,
-   'In the Western tropical whole-sign approach, today’s Sun falls in house '+sunHouse+' counted from the selected Sun sign. The traditional theme is '+solar.focus.en+'. The Moon in house '+moonHouse+' adds a question: '+lunar.en+'? '+variations[v].en
+   'У західній тропічній традиції Сонце на момент спостереження перебуває у '+sunHouse+'-му цілознаковому домі від обраного сонячного знака. Його традиційна тема — '+solar.focus.uk+'. Місяць перебуває у '+moonHouse+'-му домі; його тема — '+lunar.uk+'. Це символічне загальне трактування, а не передбачення конкретних подій.',
+   'In the Western tropical framework, the observed Sun occupies whole-sign house '+sunHouse+' relative to the selected Sun sign. Its traditional theme is '+solar.focus.en+'. The Moon occupies house '+moonHouse+', associated with '+lunar.en+'. These are general symbolic themes, not predictions of specific events.'
   ),
-  goodFor:l(solar.step.uk+' '+variations[v].uk,solar.step.en+' '+variations[v].en),
-  caution:caution[v],
-  reflection:l('Який крок у цій темі буде доречним саме для твоїх обставин?','What small step would fit your actual circumstances?'),
+  goodFor:solar.step,
+  caution:l('Не сприймай загальний опис транзитів як гарантію подій чи доказ особистих обставин.',
+   'A general transit interpretation cannot guarantee events or establish personal circumstances.'),
+  reflection:l('Подумай, '+lunar.uk+'.','Consider '+lunar.en+'.'),
   evidence:{
    kind:'PUBLIC_TROPICAL_SOLAR_REFERENCE',method:TROPICAL_METHOD,
    sampledAtUtc:sky.sampledAtUtc,day:date,
    sunSign:sky.sun.sign,sunLongitude:sky.sun.longitude,
    moonSign:sky.moon.sign,moonLongitude:sky.moon.longitude,
-   sunHouse,house:moonHouse,referenceSign,editorialCycle:v
+   sunHouse,house:moonHouse,referenceSign,
+   editorialPolicy:'SKY_DERIVED_WHOLE_SIGN_HOUSE_THEMES_NOT_EVENT_PREDICTION'
   }
  };
 }
