@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
-import {Moon,ArrowRight,BookOpen,Compass,CalendarDays,RefreshCw} from 'lucide-react';
+import {Moon,Sun,ArrowRight,BookOpen,Compass,CalendarDays,RefreshCw} from 'lucide-react';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './HoroscopeHub.module.css';
 import GlossaryText from './GlossaryText';
@@ -50,6 +50,12 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     else setError(true);
     if(results[1].status==='fulfilled'&&results[1].value.selected?.verified){
      setPersonal(results[1].value);
+     // Choose the visitor's own reference sign, unless a shareable link
+     // explicitly requested a different sign.
+     if(!new URLSearchParams(window.location.search).has('sign')){
+      const candidate=tradition==='western'?results[1].value.selected.westernSunSign:results[1].value.selected.moonSign;
+      if(typeof candidate==='number'&&candidate>=1&&candidate<=12)setSelected(candidate);
+     }
      try{const calendar=await get<PersonalCalendar>('/api/v1/personal/calendar?days=7');
       if(live)setWeek(calendar);}catch{if(live)setWeek(null)}
     }else{setPersonal(null);setWeek(null)}
@@ -158,7 +164,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     (uk?'Джйотіш / Лахірі. Для прогнозу обирай свій натальний сидеричний знак Місяця (Джанма-раші), а не західний знак Сонця.':
     'Jyotish / Lahiri. Choose your natal sidereal Moon sign (Janma Rashi), not your Western Sun sign.')}</p>
    <div className={styles.mode} role="group" aria-label={uk?'Тип гороскопу':'Horoscope view'}>
-    <button type="button" aria-pressed={mode==='signs'} onClick={()=>setMode('signs')}><Moon size={17}/>{uk?'Усі 12 знаків':'All 12 signs'}</button>
+    <button type="button" aria-pressed={mode==='signs'} onClick={()=>setMode('signs')}>{tradition==='western'?<Sun size={17}/>:<Moon size={17}/>} {uk?'Усі 12 знаків':'All 12 signs'}</button>
     <button type="button" aria-pressed={mode==='mine'} onClick={()=>setMode('mine')}><Compass size={17}/>{uk?'Мій персональний':'My personal reading'}</button>
    </div>
    <div className={styles.period} role="group" aria-label={uk?'Період прогнозу':'Reading period'}>
