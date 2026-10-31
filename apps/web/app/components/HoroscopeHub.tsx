@@ -5,6 +5,7 @@ import {Moon,Sun,ArrowRight,BookOpen,Compass,CalendarDays,RefreshCw} from 'lucid
 import type {PortalLocale} from '../../lib/brand';
 import styles from './HoroscopeHub.module.css';
 import GlossaryText from './GlossaryText';
+import AstrologicalSynthesisPanel from './AstrologicalSynthesisPanel';
 type L={uk:string;en:string};
 type Reading={headline:L;description:L;goodFor:L;caution:L;reflection?:L;action?:L;evidence:Record<string,string|number|null|undefined>};
 type SignReading=Reading&{referenceSign:number;house:number};
@@ -34,6 +35,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
  const [loading,setLoading]=useState(true),[reload,setReload]=useState(0);
  const [westernPersonal,setWesternPersonal]=useState<WesternPersonal|null>(null),[westernBusy,setWesternBusy]=useState(false),[westernError,setWesternError]=useState(false);
  const [period,setPeriod]=useState<'day'|'week'>('day');
+ const [synthesisOpen,setSynthesisOpen]=useState(false);
  const [publicWeek,setPublicWeek]=useState<PublicWeek|null>(null),[weekBusy,setWeekBusy]=useState(false),[weekError,setWeekError]=useState(false);
  useEffect(()=>{
   // Shareable canonical public sign deep links, with validation against
@@ -98,6 +100,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
  const selectedNatal=tradition==='western'?natalSun:natalMoon;
  const selectedNatalName=tradition==='western'?westernName:(typeof natalMoon==='number'&&natalMoon>=1&&natalMoon<=12?SIGNS[locale][natalMoon-1]:null);
  const changeTradition=(next:'western'|'vedic')=>{
+  setSynthesisOpen(false);
   signManuallyChosen.current=false;
   setTradition(next);setPublicWeek(null);setWesternPersonal(null);setError(false);
   const n=next==='western'?natalSun:natalMoon;
@@ -180,8 +183,10 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    <p>{uk?'Два різні підходи: звичний західний знак Сонця та ведичний знак Місяця. Обери традицію або відкрий глибоке персональне читання за натальною картою.':
     'Two distinct traditions: your familiar Western Sun sign and Vedic Moon sign. Choose a method or explore a deeper reading grounded in your verified birth chart.'}</p>
    <div className={styles.traditions} role="group" aria-label={uk?'Астрологічна традиція':'Astrology tradition'}>
-    <button type="button" aria-pressed={tradition==='western'} onClick={()=>changeTradition('western')}>{uk?'Західний · Сонце':'Western · Sun'}</button>
-    <button type="button" aria-pressed={tradition==='vedic'} onClick={()=>changeTradition('vedic')}>{uk?'Ведичний · Місяць':'Vedic · Moon'}</button>
+    <button type="button" aria-pressed={tradition==='western'&&!synthesisOpen} onClick={()=>changeTradition('western')}>{uk?'Західний · Сонце':'Western · Sun'}</button>
+    <button type="button" aria-pressed={tradition==='vedic'&&!synthesisOpen} onClick={()=>changeTradition('vedic')}>{uk?'Ведичний · Місяць':'Vedic · Moon'}</button>
+    {mode==='mine'&&<button type="button" data-testid="synthesis-switch" aria-pressed={synthesisOpen}
+     onClick={()=>setSynthesisOpen(true)}>{uk?'Синтез карти':'Chart synthesis'}</button>}
    </div>
    <p className={styles.traditionInfo}>{tradition==='western'?
     (uk?'Західний тропічний зодіак. Для прогнозу обирай свій звичний знак за Сонцем. Транзити Сонця й Місяця обчислені незалежно від Джйотіш.':
@@ -189,7 +194,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     (uk?'Джйотіш / Лахірі. Для прогнозу обирай свій натальний сидеричний знак Місяця (Джанма-раші), а не західний знак Сонця.':
     'Jyotish / Lahiri. Choose your natal sidereal Moon sign (Janma Rashi), not your Western Sun sign.')}</p>
    <div className={styles.mode} role="group" aria-label={uk?'Тип гороскопу':'Horoscope view'}>
-    <button type="button" aria-pressed={mode==='signs'} onClick={()=>setMode('signs')}>{tradition==='western'?<Sun size={17}/>:<Moon size={17}/>} {uk?'Усі 12 знаків':'All 12 signs'}</button>
+    <button type="button" aria-pressed={mode==='signs'} onClick={()=>{setMode('signs');setSynthesisOpen(false)}}>{tradition==='western'?<Sun size={17}/>:<Moon size={17}/>} {uk?'Усі 12 знаків':'All 12 signs'}</button>
     <button type="button" aria-pressed={mode==='mine'} onClick={()=>setMode('mine')}><Compass size={17}/>{uk?'Мій персональний':'My personal reading'}</button>
    </div>
    <div className={styles.period} role="group" aria-label={uk?'Період прогнозу':'Reading period'}>
@@ -260,7 +265,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    <p className={styles.note}>{uk?'Для глибшого читання за натальною картою відкрий «Мій персональний».':
     'For a deeper reading grounded in your natal chart, open My personal reading.'}</p>
   </>}
-  {mode==='mine'&&<div className={styles.personal} data-testid="personal-horoscope-panel" data-system={tradition}>
+  {mode==='mine'&&synthesisOpen&&<AstrologicalSynthesisPanel locale={locale} period={period}/>}
+  {mode==='mine'&&!synthesisOpen&&<div className={styles.personal} data-testid="personal-horoscope-panel" data-system={tradition}>
    {!personal?<div className={styles.empty}><h2>{uk?'Твій особистий гороскоп':'Your personal horoscope'}</h2>
     <p>{uk?'Збережи перевірену натальну карту і зроби її основною в «Моєму Всесвіті». Для західного режиму потрібен точний натальний знак Сонця, для ведичного — Місяць і Лагна.':
      'Save and select a verified natal chart in Your Universe. Western mode needs your exact natal Sun; Vedic mode uses your natal Moon and Ascendant.'}</p>
@@ -340,7 +346,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
   </div>}
   <footer className={styles.sources}><BookOpen size={18}/><div>
    <strong>{uk?'Метод і джерела':'Method and sources'}</strong>
-   {tradition==='western'&&mode==='signs'?<p>{uk?'Західний режим: прямі тропічні довготи Сонця й Місяця за Swiss Ephemeris; традиційні цілознакові доми від сонячного знака. Редакційні поради є загальними символічними тлумаченнями, а не гарантіями подій.':
+   {tradition==='western'&&(mode==='signs'||(mode==='mine'&&!synthesisOpen))?<p>{uk?'Західний режим: прямі тропічні довготи Сонця й Місяця за Swiss Ephemeris; традиційні цілознакові доми від сонячного знака. Редакційні поради є загальними символічними тлумаченнями, а не гарантіями подій.':
     'Western mode: direct Swiss Ephemeris tropical Sun and Moon longitudes; traditional whole-sign houses from the Sun sign. Editorial guidance is symbolic and not an event prediction.'}</p>:
     <><p>{uk?'Астрономічна основа: Swiss Ephemeris, сидеричний зодіак Лагірі. Тлумачення транзитів спираються на традицію Джйотіш, зокрема «Пхаладіпіку», розділ 26.':
     'Astronomical basis: Swiss Ephemeris, Lahiri sidereal zodiac. Transit interpretations draw on classical Jyotish, including Phaladipika, chapter 26.'}</p>
