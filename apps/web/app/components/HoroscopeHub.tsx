@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {Moon,Sun,ArrowRight,BookOpen,Compass,CalendarDays,RefreshCw} from 'lucide-react';
 import type {PortalLocale} from '../../lib/brand';
@@ -15,6 +15,7 @@ type PublicData={date:string;zone:string;sampledAtUtc:string;sun?:{sign:number;l
 type PublicWeek={startDate:string;zone:string;reference:'SIDEREAL_MOON_SIGN'|'TROPICAL_SUN_SIGN';days:{date:string;sampledAtUtc:string;sun?:{sign:number;longitude:number};moon:{sign:number;nakshatra?:string;pada?:number};signs:SignReading[]}[]};
 type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string;moonSign?:number|null;lagnaSign?:number|null;westernSunSign?:number|null}|null;journey?:{daily:Reading|null;horoscope:Reading|null}};
 type PersonalCalendar={horoscopeStatus:string;horoscopes:{date:string;guidance:Reading|null}[]};
+type WesternPersonal={status:'available'|'requires_verified_tropical_sun';reference:'TROPICAL_NATAL_SUN_SIGN';timeZone?:string;natalSunSign?:number;scope?:string;today?:SignReading|null;days?:{date:string;guidance:SignReading}[]};
 const SIGN_SLUGS=['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'] as const;
 const SIGNS={
  uk:['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'],
@@ -26,10 +27,12 @@ async function get<T>(path:string):Promise<T>{
 }
 export default function HoroscopeHub({locale}:{locale:PortalLocale}){
  const uk=locale==='uk',t=(x:L)=>x[locale];
+ const signManuallyChosen=useRef(false);
  const [data,setData]=useState<PublicData|null>(null),[error,setError]=useState(false);
  const [selected,setSelected]=useState(1),[tradition,setTradition]=useState<'western'|'vedic'>('western'),[personal,setPersonal]=useState<Overview|null>(null),
  [week,setWeek]=useState<PersonalCalendar|null>(null),[mode,setMode]=useState<'signs'|'mine'>('signs');
  const [loading,setLoading]=useState(true),[reload,setReload]=useState(0);
+ const [westernPersonal,setWesternPersonal]=useState<WesternPersonal|null>(null),[westernBusy,setWesternBusy]=useState(false),[westernError,setWesternError]=useState(false);
  const [period,setPeriod]=useState<'day'|'week'>('day');
  const [publicWeek,setPublicWeek]=useState<PublicWeek|null>(null),[weekBusy,setWeekBusy]=useState(false),[weekError,setWeekError]=useState(false);
  useEffect(()=>{
@@ -39,77 +42,93 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
   if(params.get('system')==='vedic')setTradition('vedic');
   const slug=params.get('sign')||'';
   const index=SIGN_SLUGS.indexOf(slug.toLowerCase() as typeof SIGN_SLUGS[number]);
-  if(index>=0)setSelected(index+1);
+  if(index>=0){signManuallyChosen.current=true;setSelected(index+1);}
  },[]);
- useEffect(()=>{let live=true;
-  setLoading(true);
-  Promise.allSettled([get<PublicData>(tradition==='western'?'/api/v1/horoscope/western/today':'/api/v1/horoscope/today'),get<Overview>('/api/v1/personal/overview')])
-   .then(async results=>{
-    if(!live)return;
-    if(results[0].status==='fulfilled'){setData(results[0].value);setError(false)}
-    else setError(true);
-    if(results[1].status==='fulfilled'&&results[1].value.selected?.verified){
-     setPersonal(results[1].value);
-     // Choose the visitor's own reference sign, unless a shareable link
-     // explicitly requested a different sign.
-     if(!new URLSearchParams(window.location.search).has('sign')){
-      const candidate=tradition==='western'?results[1].value.selected.westernSunSign:results[1].value.selected.moonSign;
-      if(typeof candidate==='number'&&candidate>=1&&candidate<=12)setSelected(candidate);
-     }
-     try{const calendar=await get<PersonalCalendar>('/api/v1/personal/calendar?days=7');
-      if(live)setWeek(calendar);}catch{if(live)setWeek(null)}
-    }else{setPersonal(null);setWeek(null)}
-   }).finally(()=>{if(live)setLoading(false)});
-  return()=>{live=false};
- },[reload,tradition]);
+ const expectedReference=tradition==='western'?'TROPICAL_SUN_SIGN':'SIDEREAL_MOON_SIGN';
+ const visibleData=data?.reference===expectedReference?data:null;
+ const visibleWeek=publicWeek?.reference===expectedReference?publicWeek:null;
  useEffect(()=>{
-  if(mode!=='signs'||period!=='week'||(publicWeek&&publicWeek.reference===(tradition==='western'?'TROPICAL_SUN_SIGN':'SIDEREAL_MOON_SIGN')))return;
+  let live=true;
+  setLoading(true);setError(false);
+  Promise.allSettled([
+   get<PublicData>(tradition==='western'?'/api/v1/horoscope/western/today':'/api/v1/horoscope/today'),
+   get<Overview>('/api/v1/personal/overview')
+  ]).then(async results=>{
+   if(!live)return;
+   if(results[0].status==='fulfilled'&&results[0].value.reference===expectedReference){
+    setData(results[0].value);setError(false);
+   }else{setData(null);setError(true);}
+   if(results[1].status==='fulfilled'&&results[1].value.selected?.verified){
+    setPersonal(results[1].value);
+    if(!signManuallyChosen.current){
+     const candidate=tradition==='western'?
+      results[1].value.selected.westernSunSign:results[1].value.selected.moonSign;
+     if(typeof candidate==='number'&&candidate>=1&&candidate<=12)setSelected(candidate);
+    }
+    if(tradition==='vedic'){
+     try{const calendar=await get<PersonalCalendar>('/api/v1/personal/calendar?days=7');
+      if(live)setWeek(calendar);}catch{if(live)setWeek(null);}
+    }
+   }else{setPersonal(null);setWeek(null);}
+  }).finally(()=>{if(live)setLoading(false)});
+  return()=>{live=false};
+ },[reload,tradition,expectedReference]);
+ useEffect(()=>{
+  if(mode!=='mine'||tradition!=='western'||!personal?.selected?.verified)return;
+  let live=true;
+  setWesternBusy(true);setWesternError(false);
+  get<WesternPersonal>('/api/v1/personal/horoscope/western')
+   .then(result=>{if(live&&result.reference==='TROPICAL_NATAL_SUN_SIGN')setWesternPersonal(result);})
+   .catch(()=>{if(live){setWesternPersonal(null);setWesternError(true);}})
+   .finally(()=>{if(live)setWesternBusy(false)});
+  return()=>{live=false};
+ },[mode,tradition,personal?.selected?.id,reload]);
+ useEffect(()=>{
+  if(mode!=='signs'||period!=='week'||visibleWeek)return;
   let live=true;setWeekBusy(true);setWeekError(false);
   get<PublicWeek>(tradition==='western'?'/api/v1/horoscope/western/week':'/api/v1/horoscope/week')
-   .then(result=>{if(live)setPublicWeek(result)})
+   .then(result=>{if(live&&result.reference===expectedReference)setPublicWeek(result);})
    .catch(()=>{if(live)setWeekError(true)})
    .finally(()=>{if(live)setWeekBusy(false)});
   return()=>{live=false};
- },[mode,period,publicWeek,reload,tradition]);
+ },[mode,period,publicWeek,reload,tradition,visibleWeek,expectedReference]);
  const natalMoon=personal?.selected?.moonSign;
  const natalSun=personal?.selected?.westernSunSign;
  const westernName=typeof natalSun==='number'&&natalSun>=1&&natalSun<=12?SIGNS[locale][natalSun-1]:null;
  const selectedNatal=tradition==='western'?natalSun:natalMoon;
  const selectedNatalName=tradition==='western'?westernName:(typeof natalMoon==='number'&&natalMoon>=1&&natalMoon<=12?SIGNS[locale][natalMoon-1]:null);
  const changeTradition=(next:'western'|'vedic')=>{
-  setTradition(next);setPublicWeek(null);setError(false);
+  signManuallyChosen.current=false;
+  setTradition(next);setPublicWeek(null);setWesternPersonal(null);setError(false);
   const n=next==='western'?natalSun:natalMoon;
   if(typeof n==='number'&&n>=1&&n<=12)setSelected(n);
  };
  const natalLagna=personal?.selected?.lagnaSign;
  const natalName=typeof natalMoon==='number'&&natalMoon>=1&&natalMoon<=12?SIGNS[locale][natalMoon-1]:null;
  const differs=Boolean(selectedNatalName&&selectedNatal!==selected);
- const reading=data?.signs[selected-1];
- // Combine consecutive noon samples in the same house: a coherent weekly arc,
- // not seven copies of the same paragraph or made-up exact ingress times.
- const weekPhases=(publicWeek?.days||[]).reduce<{start:string;end:string;entry:SignReading}[]>((acc,day)=>{
-  const entry=day.signs[selected-1];if(!entry)return acc;
-  const last=acc[acc.length-1];
-  if(last&&last.entry.house===entry.house){last.end=day.date;return acc;}
-  acc.push({start:day.date,end:day.date,entry});return acc;
- },[]);
+ const reading=visibleData?.signs[selected-1];
+ // All seven astronomical observations stay visible, even when the same
+ // lunar house persists. Never merge away date-specific explanatory material.
+ const weekDays=visibleWeek?.days||[];
  const dayLabel=(day:string)=>new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{day:'numeric',month:'short',timeZone:'UTC'})
   .format(new Date(day+'T12:00:00Z'));
  function evidence(g:Reading){
   const facts=g.evidence,publicReading=facts.kind==='PUBLIC_JANMA_RASHI_REFERENCE';
-  const westernReading=facts.kind==='PUBLIC_TROPICAL_SOLAR_REFERENCE';
-  const zone=(publicReading||westernReading)?(data?.zone||'Europe/Kyiv'):(personal?.profile?.currentTimeZone||'UTC');
+  const westernReading=facts.kind==='PUBLIC_TROPICAL_SOLAR_REFERENCE'||facts.kind==='PERSONAL_TROPICAL_NATAL_SUN_REFERENCE';
+  const zone=typeof facts.timeZone==='string'?facts.timeZone:(publicReading||westernReading)?(visibleData?.zone||'Europe/Kyiv'):(personal?.profile?.currentTimeZone||'UTC');
   const date=typeof facts.sampledAtUtc==='string'?
    new Date(facts.sampledAtUtc).toLocaleString(uk?'uk-UA':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:zone}):
    String(facts.day??facts.date??'—');
-  const moonSign=(publicReading||westernReading)?(typeof facts.moonSign==='number'?facts.moonSign:data?.moon.sign):facts.sign;
+  const moonSign=(publicReading||westernReading)?(typeof facts.moonSign==='number'?facts.moonSign:visibleData?.moon.sign):facts.sign;
   const lunarName=typeof moonSign==='number'?SIGNS[locale][moonSign-1]:undefined;
-  const nakshatra=facts.nakshatra??(publicReading?data?.moon.nakshatra:undefined);
-  const pada=facts.pada??(publicReading?data?.moon.pada:undefined);
+  const nakshatra=facts.nakshatra??(publicReading?visibleData?.moon.nakshatra:undefined);
+  const pada=facts.pada??(publicReading?visibleData?.moon.pada:undefined);
   return <details className={styles.evidence}>
    <summary>{uk?'Астрологічна основа прогнозу':'Astrological basis of the reading'}</summary>
    <p>{String(facts.method||'Swiss Ephemeris / Lahiri')} · {date} ({zone})</p>
-   {westernReading&&typeof facts.sunSign==='number'&&<p>{uk?'Тропічне Сонце: ':'Tropical Sun: '}{SIGNS[locale][facts.sunSign-1]} · {uk?'Сонячний дім: ':'Solar house: '}{String(facts.sunHouse)}</p>}
+   {westernReading&&typeof facts.sunSign==='number'&&<p>{uk?'Транзитне тропічне Сонце: ':'Transiting tropical Sun: '}{SIGNS[locale][facts.sunSign-1]} · {uk?'Сонячний дім: ':'Solar house: '}{String(facts.sunHouse)}</p>}
+   {facts.kind==='PERSONAL_TROPICAL_NATAL_SUN_REFERENCE'&&typeof facts.natalSunSign==='number'&&<p>
+    {uk?'Натальне тропічне Сонце: ':'Natal tropical Sun: '}{SIGNS[locale][facts.natalSunSign-1]}</p>}
    {lunarName&&<p>{uk?(westernReading?'Тропічний Місяць: ':'Транзитний Місяць: '):(westernReading?'Tropical Moon: ':'Transiting Moon: ')}{lunarName}
     {nakshatra?' · '+nakshatra:''}{pada?' · '+(uk?'пада ':'pada ')+pada:''}</p>}
    {facts.house!=null&&<p>{uk?'Дім транзиту: ':'Transit house: '}{String(facts.house)}
