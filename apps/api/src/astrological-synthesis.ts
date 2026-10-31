@@ -105,6 +105,7 @@ export function buildAstrologicalSynthesis(input:SynthesisInputs){
     western.sampledAtUtc!==vedic.sampledAtUtc)
   throw Error('Mismatched dates or sampling instants: refusing synthesis');
  if(!validSign(natalVedic.moonSign)||!validSign(natalVedic.lagnaSign)||
+    !vedic.ephemerisBackend?.includes('verified-SWIEPH')||
     !western.planets||!Array.isArray(vedic.planets))
   throw Error('Incomplete verified natal/transit context');
  const westernSignals:Signal[]=[];
