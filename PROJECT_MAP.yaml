@@ -138,6 +138,17 @@ modules:
     web: "apps/web/app/components/PortalHome.tsx; apps/web/app/components/PortalSection.tsx; apps/web/app/components/PortalShell.tsx"
     brand: "apps/web/lib/brand.ts"
     future: [western_astrology, panchang, community_enhancements, mobile]
+  astrological_synthesis:
+    status: "ASE-1 remains stable; ASE-2 and ASE-3 on candidate feature branch; CI/manual acceptance pending"
+    private_api_v1: "/api/v1/personal/horoscope/synthesis?days=1|7"
+    private_api_v2: "/api/v1/personal/horoscope/synthesis/advanced?days=1|7"
+    private_api_v3: "POST /api/v1/personal/horoscope/synthesis/reading requires consent:true, locale, owner and same origin"
+    calculations: "apps/api/src/western-natal.ts; apps/api/src/advanced-synthesis.ts; apps/api/src/ashtakavarga.ts; apps/api/src/astrological-synthesis.ts"
+    narrative: "apps/api/src/synthesis-narrative.ts (ASE_AI_ENABLED=1 and explicitly confirmed free provider)"
+    web: "apps/web/app/components/AstrologicalSynthesisPanel.tsx"
+    tests: "tools/astrological-synthesis.test.mjs; tools/astrological-synthesis-v2-v3.test.mjs"
+    research: "docs/research/astrological-synthesis-engine-ase-v2-v3-2026-10-31.md"
+    guardrails: "Owner-only chart, no birth PII in AI prompt; SWIEPH no Moshier; no made-up aspect timing or fake dasha weighting; ASE-1 fail-closed fallback"
   ai_usage:
     status: "usage storage and Gemini/GroqCloud/OpenRouter (cloud-only default) fallback implemented; distributed budgets/throttles pending"
     http: "apps/api/src/ai.ts; apps/api/src/free-ai.ts; apps/api/src/tarot-ai.ts"
