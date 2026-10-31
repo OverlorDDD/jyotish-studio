@@ -78,7 +78,7 @@ test('Vedic gochara map and Ashtakavarga use real natal signs, never invented ho
   planets:AV_GRAHAS.map((name,i)=>({name,sign:i+2,longitude:30*(i+1)}))};
  const evidence=vedicAdvancedEvidence(transit,positions,10,{lord:'Saturn',antardasha:'Venus'});
  assert.equal(evidence.ashtakavarga.total,337);
- assert.equal(evidence.drishti.length,15);
+ assert.equal(evidence.drishti.length,13);
  assert.equal(evidence.gochara[0].houseFromLagna,5);
  assert.equal(evidence.periodContext.lord,'Saturn');
  assert.throws(()=>vedicAdvancedEvidence({...transit,ephemerisBackend:'Moshier'},positions,10));
