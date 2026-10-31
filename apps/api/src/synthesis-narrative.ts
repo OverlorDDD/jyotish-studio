@@ -7,6 +7,17 @@ type Locale='uk'|'en';
 export type ASEFact={id:string;tradition:'western'|'vedic';fact:string;topic:string};
 const BANNED=/(?:гарантован|неодмінно|неминуч|точно станеть|обов’язково стан|смерт|вагітн|хвороб|діагноз|розлучиш|одружиш|guarantee|inevitab|will definitely|death|diagnos|pregnan|certain to happen)/iu;
 const NUMERIC=/\d|[°%$€]/u;
+const PLANET_MENTIONS:readonly [RegExp,RegExp][]=[
+ [/\\bSun\\b|сонц/iu,/\\bSun\\b|сонц/iu],
+ [/\\bMoon\\b|місяц/iu,/\\bMoon\\b|місяц/iu],
+ [/\\bMercury\\b|меркур/iu,/\\bMercury\\b|меркур/iu],
+ [/\\bVenus\\b|венер/iu,/\\bVenus\\b|венер/iu],
+ [/\\bMars\\b|марс/iu,/\\bMars\\b|марс/iu],
+ [/\\bJupiter\\b|юпітер/iu,/\\bJupiter\\b|юпітер/iu],
+ [/\\bSaturn\\b|сатурн/iu,/\\bSaturn\\b|сатурн/iu],
+ [/\\bRahu\\b|раху/iu,/\\bRahu\\b|раху/iu],
+ [/\\bKetu\\b|кету/iu,/\\bKetu\\b|кету/iu]
+];
 export function selectASEFacts(advanced:{
  western:{contacts:ReadonlyArray<{id:string;planet:string;target:string;aspect:string;applying:string}>};
  vedic:{gochara:ReadonlyArray<{graha:string;houseFromLagna:number;houseFromMoon:number;bav:number;sav:number}>;
@@ -49,6 +60,9 @@ export function validateASE3Output(raw:unknown,allowed:ReadonlyArray<ASEFact>){
    row.evidenceIds.some(id=>typeof id!=='string'||!index.has(id))||
    new Set(row.evidenceIds).size!==row.evidenceIds.length)
    throw Error('AI unsupported evidence identifier');
+  const linked=row.evidenceIds.map(id=>index.get(id as string)!.fact).join(' ');
+  if(PLANET_MENTIONS.some(([mention,source])=>mention.test(row.text!)&&!source.test(linked)))
+   throw Error('AI mentioned planetary actor not established in cited facts');
   for(const id of row.evidenceIds)used.add(id);
   return {id:'ase3-paragraph-'+(i+1),text:row.text.trim(),evidenceIds:row.evidenceIds as string[]};
  });
