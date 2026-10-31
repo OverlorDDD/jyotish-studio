@@ -9,8 +9,9 @@ import {localToUTC,signIndex} from '../../../packages/jyotish-core/src/index.ts'
 import {validLocalDay,validTimeZone} from './personal-transits.ts';
 type L={uk:string;en:string};
 const l=(uk:string,en:string):L=>({uk,en});
-type Body={longitude:number;sign:number};
-type TropicalSky={sampledAtUtc:string;sun:Body;moon:Body;method:string};
+export type Body={longitude:number;sign:number};
+export type TropicalPlanet='Sun'|'Moon'|'Mercury'|'Venus'|'Mars'|'Jupiter'|'Saturn';
+export type TropicalSky={sampledAtUtc:string;sun:Body;moon:Body;planets:Record<TropicalPlanet,Body>;method:string};
 export const TROPICAL_METHOD='Swiss Ephemeris / tropical-of-date / whole-sign-from-natal-Sun / local-noon-sample-v1';
 const memo=new Map<string,Promise<TropicalSky>>();
 export async function tropicalSkyAtUtc(utc:string):Promise<TropicalSky>{
@@ -32,8 +33,13 @@ export async function tropicalSkyAtUtc(utc:string):Promise<TropicalSky>{
     const longitude=((p.longitude%360)+360)%360;
     return {longitude,sign:signIndex(longitude)+1};
    };
-   return {sampledAtUtc:utc,sun:compute(sw.Planet.Sun,'Sun'),
-    moon:compute(sw.Planet.Moon,'Moon'),method:TROPICAL_METHOD};
+   const planets={
+    Sun:compute(sw.Planet.Sun,'Sun'),Moon:compute(sw.Planet.Moon,'Moon'),
+    Mercury:compute(sw.Planet.Mercury,'Mercury'),Venus:compute(sw.Planet.Venus,'Venus'),
+    Mars:compute(sw.Planet.Mars,'Mars'),Jupiter:compute(sw.Planet.Jupiter,'Jupiter'),
+    Saturn:compute(sw.Planet.Saturn,'Saturn')
+   };
+   return {sampledAtUtc:utc,sun:planets.Sun,moon:planets.Moon,planets,method:TROPICAL_METHOD};
   })();
   memo.set(utc,cached);
   if(memo.size>96)memo.delete(memo.keys().next().value!);
