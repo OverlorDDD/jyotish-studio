@@ -126,8 +126,8 @@ export function readPublicSign(sign:number,transit:{date:string;sampledAtUtc:str
  const theme=horoscopeTheme(house),focus=houseTheme(house);
  const mansion=NAKSHATRA_FOCUS[transit.moon.nakshatra];
  const mansionStory=mansion?
-  l('Місяць перебуває в накшатрі '+transit.moon.nakshatra+': її мотив — '+mansion.uk+'.',
-    'The Moon occupies '+transit.moon.nakshatra+' nakshatra, with its traditional focus on '+mansion.en+'.'):
+  l('Місяць перебуває в накшатрі '+transit.moon.nakshatra+' (пада '+transit.moon.pada+'): її мотив — '+mansion.uk+'.',
+    'The Moon occupies '+transit.moon.nakshatra+' nakshatra (pada '+transit.moon.pada+'), with its traditional focus on '+mansion.en+'.'):
   l('Місяць перебуває в накшатрі '+transit.moon.nakshatra+'.',
     'The Moon occupies '+transit.moon.nakshatra+' nakshatra.');
  const description=l(
@@ -176,6 +176,10 @@ const PLANET_COPY:Record<string,{name:L,scope:L}>={
  Rahu:{name:l('Раху','Rahu'),scope:l('амбіцій і незвичних рішень','ambition and unconventional decisions')},
  Ketu:{name:l('Кету','Ketu'),scope:l('переоцінки звичного','re-evaluating what is familiar')}
 };
+const PLANET_GENITIVE:Record<string,string>={
+ Sun:'Сонця',Moon:'Місяця',Mercury:'Меркурія',Venus:'Венери',
+ Mars:'Марса',Jupiter:'Юпітера',Saturn:'Сатурна',Rahu:'Раху',Ketu:'Кету'
+};
 const ASPECT_COPY:Record<string,{name:L,meaning:L}>={
  conjunction:{name:l('з’єднання','conjunction'),meaning:l('підсилює нагальність цієї теми','puts that theme into sharper focus')},
  sextile:{name:l('секстиль','sextile'),meaning:l('відкриває шлях до домовленості й нового підходу','opens room for cooperation and a fresh approach')},
@@ -223,7 +227,7 @@ export function editorialSynthesis({western,vedic,topic,status}:{
   status==='limited_evidence'?l('Гочара задає ритм дня','Gochara sets the day’s rhythm'):
    l('Як узгодити різні акценти','How to balance different emphases');
  const westernLine=w&&wp&&ap?l(
-  'У західній карті транзитний '+wp.name.uk+' утворює '+ap.name.uk+' до натальної планети '+(PLANET_COPY[w.target||'']?.name.uk||w.target)+'. У традиційному читанні цей аспект '+ap.meaning.uk+' у питаннях '+wp.scope.uk+'.',
+  'У західній карті транзитний '+wp.name.uk+' утворює '+ap.name.uk+' до натальної планети '+(PLANET_GENITIVE[w.target||'']||w.target)+'. У традиційному читанні цей аспект '+ap.meaning.uk+' у питаннях '+wp.scope.uk+'.',
   'In the Western chart, transiting '+wp.name.en+' forms a '+ap.name.en+' to natal '+(PLANET_COPY[w.target||'']?.name.en||w.target)+'. Traditionally this contact '+ap.meaning.en+' in matters of '+wp.scope.en+'.'):
   l('Західних транзитних аспектів до натальних Сонця чи Місяця в обраному орбісі зараз немає.',
     'No close Western transit to natal Sun or Moon meets the selected orb at this observation.');
@@ -255,9 +259,9 @@ export function editorialAdvancedReading({contacts,gochara,periods}:{
  const planet=w?PLANET_COPY[w.planet]:null,target=w?PLANET_COPY[w.target]:null;
  const aspect=w?ASPECT_COPY[w.aspect]:null,vedPlanet=v?PLANET_COPY[v.graha]:null;
  const western=w&&planet&&target&&aspect?l(
-  'У західному натальному читанні '+planet.name.uk+' утворює '+aspect.name.uk+' до натального '+target.name.uk+'. Це '+(w.applying==='applying'?'аспект, що наближається до точності':'аспект, що віддаляється від точності')+
+  'У західному натальному читанні '+planet.name.uk+' утворює '+aspect.name.uk+' до натального '+(PLANET_GENITIVE[w.target]||target.name.uk)+'. Це '+(w.applying==='applying'?'аспект, що наближається до точності':w.applying==='separating'?'аспект, що віддаляється від точності':'аспект на межі зміни напряму')+
   ': він '+aspect.meaning.uk+'. Тут переплітаються питання '+planet.scope.uk+' та '+target.scope.uk+'.',
-  'In the Western natal reading, '+planet.name.en+' forms a '+aspect.name.en+' to natal '+target.name.en+'. This contact is '+(w.applying==='applying'?'applying toward exactness':'separating from exactness')+
+  'In the Western natal reading, '+planet.name.en+' forms a '+aspect.name.en+' to natal '+target.name.en+'. This contact is '+(w.applying==='applying'?'applying toward exactness':w.applying==='separating'?'separating from exactness':'near a turn of motion')+
   ': it '+aspect.meaning.en+'. This links '+planet.scope.en+' with '+target.scope.en+'.'):
   l('Близьких західних транзитних аспектів у вибраному наборі орбісів немає. Тут важливо читати повну натальну структуру, а не приписувати їй подію.',
     'No close Western transits meet the chosen orbs. The natal structure remains the context without inventing an event.');
