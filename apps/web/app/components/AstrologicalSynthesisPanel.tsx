@@ -11,6 +11,7 @@ type SynthesisDay={
  version:'ASE_V1';date:string;zone:string;status:'convergence'|'different_emphases'|'limited_evidence';
  headline:L;description:L;advice:L;reflection:L;
  commonTopics:{key:string;title:L}[];
+ separateTopics?:{western:{key:string;title:L}|null;vedic:{key:string;title:L}|null};
  western:{signals:Signal[];matchedCount:number;reference:string};
  vedic:{signals:Signal[];reference:string;periodContext?:{lord:string;antardasha?:string|null}|null};
  provenance:{sampledAtUtc:string;interpretation:string;comparison:string;warning:string};
@@ -68,6 +69,10 @@ export default function AstrologicalSynthesisPanel({locale,period}:{locale:Porta
    <small className={styles.kicker}>{day.date} · {day.zone}</small>
    <h3>{t(day.headline)}</h3>
    <p>{t(day.description)}</p>
+   {day.status==='different_emphases'&&day.separateTopics&&<p className={styles.synthesisMatch}>
+    {uk?'Західний акцент: ':'Western focus: '}{day.separateTopics.western?t(day.separateTopics.western.title):'—'}
+    {' · '}{uk?'Ведичний акцент: ':'Vedic focus: '}{day.separateTopics.vedic?t(day.separateTopics.vedic.title):'—'}
+   </p>}
    {day.status==='convergence'&&<p className={styles.synthesisMatch}>
     {uk?'Спільні теми: ':'Shared themes: '}{day.commonTopics.map(x=>t(x.title)).join(' · ')}</p>}
    {day.status!=='convergence'&&<p className={styles.note}>{day.status==='different_emphases'?
@@ -85,6 +90,11 @@ export default function AstrologicalSynthesisPanel({locale,period}:{locale:Porta
      <summary>{system==='western'?(uk?'Західні аспекти':'Western aspects'):(uk?'Ведична гочара':'Vedic gochara')}
       {' · '}{day[system].signals.length}
      </summary>
+     {system==='vedic'&&day.vedic.periodContext?.lord&&<p>
+      {uk?'Чинний період Вімшоттарі: ':'Current Vimshottari period: '}{day.vedic.periodContext.lord}
+      {day.vedic.periodContext.antardasha?' · '+day.vedic.periodContext.antardasha:''}
+      {' '}{uk?'(додатковий часовий контекст)':'(timing context only)'}
+     </p>}
      {day[system].signals.length===0&&<p>{uk?'Точних збігів у визначеному наборі правил немає.':
       'No matching evidence within the selected rules.'}</p>}
      {day[system].signals.map(signal=><div key={signal.id} className={styles.synthesisEvidence}>
