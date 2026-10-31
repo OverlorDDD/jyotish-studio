@@ -229,7 +229,10 @@ export class PersonalController{
      !('advanced' in payload.days[0])||!payload.days[0].advanced)
    throw new ServiceUnavailableException('Verified ASE-2 evidence required');
   const facts=selectASEFacts(payload.days[0].advanced,body.locale as 'uk'|'en');
-  return generateASE3Reading(facts,body.locale as 'uk'|'en');
+  return generateASE3Reading(facts,body.locale as 'uk'|'en',{
+   status:payload.days[0].status,
+   sharedTopics:payload.days[0].commonTopics.map(topic=>topic.key)
+  });
  }
 
  @Get('horoscope/western') @Header('Cache-Control','private, no-store')
