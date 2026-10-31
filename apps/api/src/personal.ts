@@ -9,6 +9,9 @@ import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from '
 import {verifyLunarContinuity} from './horoscope.ts';
 import {tropicalSkyAtUtc,tropicalSkyForDay,westernSignReading,TROPICAL_METHOD} from './western-horoscope.ts';
 import {buildAstrologicalSynthesis} from './astrological-synthesis.ts';
+import {tropicalNatalChartAtUtc} from './western-natal.ts';
+import {buildAdvancedSynthesis} from './advanced-synthesis.ts';
+import {selectASEFacts,generateASE3Reading} from './synthesis-narrative.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
 import {dailySkyContext} from './sky-context.ts';
@@ -21,6 +24,7 @@ const TOPICS=['astronomy','jyotish','tarot','yoga','vedic-traditions','academy',
  'astrology','meditation','vedic','self-development','natal-charts','nakshatras','mantras','pranayama'] as const;
 const PRACTICES=['box','equal','extended'] as const;
 const calendarLimiter=createKeyedHourlyLimiter(20);
+const synthesisAiLimiter=createKeyedHourlyLimiter(3);
 function owner(req:IncomingMessage){const id=cookieUser(req);if(!id)throw new UnauthorizedException('Sign in to your Personal space');return id;}
 function mutation(req:IncomingMessage){if(!sameOrigin(req))throw new BadRequestException('Cross-origin personal update denied');return owner(req);}
 async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;input:unknown;result:unknown}|null){
@@ -169,6 +173,66 @@ export class PersonalController{
   }catch{
    throw new ServiceUnavailableException('Verified planetary data unavailable; synthesis was not fabricated');
   }
+ }
+
+ /**
+  * ASE-2 owner scoped advanced calculation. ASE-1 response unchanged.
+  * Birth coordinates remain on the server: never included in JSON/URLs.
+  */
+ @Get('horoscope/synthesis/advanced') @Header('Cache-Control','private, no-store')
+ async advancedSynthesis(@Req()req:IncomingMessage,@Query('days')span?:string){
+  const uid=owner(req);
+  if(span!==undefined&&span!=='1'&&span!=='7')
+   throw new BadRequestException('days must be 1 or 7');
+  const base=await this.synthesisHoroscope(req,span);
+  if(base.status!=='available')return {...base,advancedStatus:'requires_verified_chart'};
+  const {profile,selected:chart}=await this.profile(uid);
+  if(!chart?.verified||!chart.id||!chart.natalUtc||!chart.lagnaSign)
+   return {...base,advancedStatus:'requires_verified_chart'};
+  const row=await this.prisma.chart.findFirst({
+   where:{id:chart.id,ownerId:uid},select:{input:true}});
+  const birth=(row?.input||{}) as {latitude?:unknown;longitude?:unknown};
+  if(typeof birth.latitude!=='number'||typeof birth.longitude!=='number'||
+     !Number.isFinite(birth.latitude)||!Number.isFinite(birth.longitude))
+   return {...base,advancedStatus:'requires_birth_coordinates'};
+  try{
+   const natal=await tropicalNatalChartAtUtc(chart.natalUtc,birth.latitude,birth.longitude);
+   const days=await Promise.all(base.days.map(async(day,index)=>{
+    const transit=await dailyTransit(day.date,profile.currentTimeZone,chart.lagnaSign,chart.moonSign);
+    const raw=verifiedContextAt(chart,transit.sampledAtUtc)?.period;
+    const period=raw?{lord:raw.lord,start:raw.start,end:raw.end,
+     antardasha:raw.antardasha?.lord||null}:null;
+    const advanced=await buildAdvancedSynthesis({
+     natal,transit,natalPositions:chart.natalPositions,
+     lagnaSign:chart.lagnaSign!,period,maxTimed:index===0?3:0});
+    return {...day,advanced};
+   }));
+   return {...base,reference:'ASTROLOGICAL_SYNTHESIS_V2' as const,
+    advancedStatus:'available',days};
+  }catch{
+   // Fail closed for unsupported Placidus geometry or unverifiable data.
+   return {...base,advancedStatus:'calculation_unavailable'};
+  }
+ }
+
+ /** ASE-3 uses explicit consent, same-origin request, ownership and a free AI limit. */
+ @Post('horoscope/synthesis/reading') @Header('Cache-Control','private, no-store')
+ async synthesisReading(@Req()req:IncomingMessage,
+  @Body()body:{consent?:boolean;locale?:string}){
+  const uid=mutation(req);
+  if(body?.consent!==true||!['uk','en'].includes(body?.locale||''))
+   throw new BadRequestException('Explicit AI consent and locale required');
+  if(!synthesisAiLimiter(uid))
+   throw new BadRequestException('ASE-3 per-user hourly request limit');
+  const payload=await this.advancedSynthesis(req,'1');
+  if(payload.advancedStatus!=='available'||!payload.days.length||
+     !('advanced' in payload.days[0])||!payload.days[0].advanced)
+   throw new ServiceUnavailableException('Verified ASE-2 evidence required');
+  const facts=selectASEFacts(payload.days[0].advanced,body.locale as 'uk'|'en');
+  return generateASE3Reading(facts,body.locale as 'uk'|'en',{
+   status:payload.days[0].status,
+   sharedTopics:payload.days[0].commonTopics.map(topic=>topic.key)
+  });
  }
 
  @Get('horoscope/western') @Header('Cache-Control','private, no-store')

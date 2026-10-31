@@ -5,7 +5,11 @@ on:
       - fix/galaxinews-editorial-qa-20261030
       - feat/western-vedic-horoscopes-20261031
       - feat/astrological-synthesis-engine-v1-20261031
+      - feat/astrological-synthesis-engine-v2-v3-20261031
   workflow_dispatch:
+concurrency:
+  group: galaxiora-release-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   release-gate:
     runs-on: ubuntu-latest
@@ -52,7 +56,7 @@ jobs:
       - name: Independent Western and Vedic Swiss horoscope verification
         run: node --test tools/western-horoscope.test.mjs && npm run test:horoscope-basis
       - name: Astrological Synthesis Engine native Swiss and deterministic evidence
-        run: node --test tools/astrological-synthesis.test.mjs
+        run: node --test tools/astrological-synthesis.test.mjs tools/astrological-synthesis-v2-v3.test.mjs
       - name: GalaxiCom
         run: npm run test:com
       - name: Release / SEO
