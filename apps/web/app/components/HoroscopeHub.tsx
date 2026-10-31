@@ -137,6 +137,12 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      (uk?' від натальної лагни':' from natal Lagna')}</p>}
    {!publicReading&&typeof facts.natalMoonSign==='number'&&<p>
     {uk?'Натальний Місяць: ':'Natal Moon: '}{SIGNS[locale][facts.natalMoonSign-1]}</p>}
+   {publicReading&&facts.editorialPolicy==='DATE_BASED_STYLE_NOT_PLANETARY_EFFECT'&&<p>
+    {uk?'Денні формулювання частково змінюються редакційним циклом; це не означає, що планета змінила знак чи що сталася передбачена подія.':
+      'Daily wording can vary through an editorial cycle; this does not imply a planetary sign change or a predicted event.'}</p>}
+   {westernReading&&<p>
+    {uk?'Цілознакові доми від натального знака Сонця — умовна основа загального гороскопу, не розраховані індивідуальні натальні доми. Поради є традиційними символічними орієнтирами.':
+     'Whole-sign houses counted from the natal Sun sign are general reference positions, not individually calculated natal houses. Guidance is traditional and symbolic.'}</p>}
    {(facts.major||facts.minor)&&<p>{uk?'Махадаша / антардаша':'Mahadasha / Antardasha'}:
     {' '+String(facts.major||'—')} / {String(facts.minor||'—')}</p>}
 
