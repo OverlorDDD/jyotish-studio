@@ -83,21 +83,68 @@ export const EDITORIAL_REFERENCE={
  limits:'Interpretive house and nakshatra themes; no prediction of verified future events',
 };
 export function horoscopeTheme(house:number){if(!Number.isInteger(house)||house<1||house>12)throw Error('Invalid house');return HOUSES[house-1];}
+/** Specific traditional lunar-mansion themes. A change in sampled nakshatra
+ * changes this part of the forecast; the calendar date by itself does not.
+ */
+const NAKSHATRA_FOCUS:Record<string,L>={
+ Ashwini:l('сміливого початку й відновлення','swift beginnings and renewal'),
+ Bharani:l('меж вибору та відповідальності','boundaries and responsibility for choices'),
+ Krittika:l('рішучості відділити важливе від зайвого','cutting away what is unnecessary'),
+ Rohini:l('послідовного плекання того, що росте','patient cultivation and steady growth'),
+ Mrigashira:l('пошуку відповіді й перевірки фактів','curiosity and checking the facts'),
+ Ardra:l('прояснення того, що вже потребує змін','clarifying what must change'),
+ Punarvasu:l('повернення до основ і відновлення','returning to essentials and restoring'),
+ Pushya:l('підтримки та відповідального піклування','support and responsible care'),
+ Ashlesha:l('мотивів, довіри й особистих кордонів','motives, trust and boundaries'),
+ Magha:l('спадкоємності, гідності й відповідальності','legacy, dignity and responsibility'),
+ 'Purva Phalguni':l('радості, творчості й близькості','joy, creativity and closeness'),
+ 'Uttara Phalguni':l('міцних союзів та взаємних зобов’язань','durable alliances and shared duties'),
+ Hasta:l('практичної майстерності й уваги до деталей','practical skill and attention to detail'),
+ Chitra:l('створення форми й точного задуму','design and purposeful craftsmanship'),
+ Swati:l('свободи вибору та гнучкості','independence and flexibility'),
+ Vishakha:l('цілеспрямованості та вірності наміру','commitment and focused intention'),
+ Anuradha:l('дружби, вірності й узгоджених дій','friendship, loyalty and cooperation'),
+ Jyeshtha:l('зрілого керівництва та захисту меж','mature leadership and protection'),
+ Mula:l('пошуку кореня проблеми','finding the root of the matter'),
+ 'Purva Ashadha':l('переконаності й завзятості','conviction and perseverance'),
+ 'Uttara Ashadha':l('послідовної праці заради тривкого результату','steady work toward lasting results'),
+ Shravana:l('слухання, навчання та обміну знаннями','listening and learning'),
+ Dhanishta:l('ритму, спільної праці й узгодженості','rhythm and coordinated effort'),
+ Shatabhisha:l('дослідження і потреби в особистому просторі','inquiry and personal space'),
+ 'Purva Bhadrapada':l('переоцінки цінностей і рішучості','reassessing values and resolve'),
+ 'Uttara Bhadrapada':l('спокою, витримки та внутрішньої глибини','patience and depth'),
+ Revati:l('турботливого завершення та підготовки шляху','kind closure and preparation')
+};
 export function readPublicSign(sign:number,transit:{date:string;sampledAtUtc:string;method:string;moon:{sign:number;nakshatra:string;pada:number}}){
- if(!Number.isInteger(sign)||sign<1||sign>12||transit.moon.sign<1||transit.moon.sign>12)throw Error('Invalid sign');
- const house=((transit.moon.sign-sign+12)%12)+1,theme=horoscopeTheme(house);
- if(!Number.isInteger(transit.moon.pada)||transit.moon.pada<1||transit.moon.pada>4||!transit.moon.nakshatra)throw Error('Invalid lunar observation');
- const step=editorialDayIndex(transit.date),day=DAILY_ACTIONS[house-1][step];
- const intro=DAILY_INTROS[step],warning=DAILY_CAUTIONS[step];
- const description=l(theme.story.uk+' '+intro[0],theme.story.en+' '+intro[1]);
- const q=DAILY_QUESTIONS[house-1][step],reflection=l(q[0],q[1]);
- const goodFor=l(day[0],day[1]),caution=l(theme.care.uk+' '+warning[0],theme.care.en+' '+warning[1]);
- return {referenceSign:sign,house,headline:DAILY_HEADLINES[house-1][step],description,goodFor,
-  caution,reflection,evidence:{kind:'PUBLIC_JANMA_RASHI_REFERENCE',moonSign:transit.moon.sign,
+ if(!Number.isInteger(sign)||sign<1||sign>12||!Number.isInteger(transit.moon.sign)||transit.moon.sign<1||transit.moon.sign>12)
+  throw Error('Invalid natal Moon reference sign');
+ editorialDayIndex(transit.date); // calendar validation ONLY, never editorial rotation
+ if(!Number.isInteger(transit.moon.pada)||transit.moon.pada<1||transit.moon.pada>4||
+    !transit.moon.nakshatra||typeof transit.moon.nakshatra!=='string')
+  throw Error('Invalid lunar nakshatra observation');
+ const house=((transit.moon.sign-sign+12)%12)+1;
+ const theme=horoscopeTheme(house),focus=houseTheme(house);
+ const mansion=NAKSHATRA_FOCUS[transit.moon.nakshatra];
+ const mansionStory=mansion?
+  l('Місяць перебуває в накшатрі '+transit.moon.nakshatra+': її мотив — '+mansion.uk+'.',
+    'The Moon occupies '+transit.moon.nakshatra+' nakshatra, with its traditional focus on '+mansion.en+'.'):
+  l('Місяць перебуває в накшатрі '+transit.moon.nakshatra+'.',
+    'The Moon occupies '+transit.moon.nakshatra+' nakshatra.');
+ const description=l(
+  'За Джанма-раші Місяць проходить '+house+'-й дім. Сьогодні цей дім висуває на передній план потребу '+
+   focus.focus.uk+'. '+mansionStory.uk+' Приділи увагу конкретним обставинам цієї сфери, а не загальним очікуванням.',
+  'From the natal Moon sign, the transiting Moon moves through house '+house+
+   '. This draws attention to the need to '+focus.focus.en+'. '+mansionStory.en+
+   ' Address the circumstances of this part of life with a concrete decision.'
+ );
+ return {referenceSign:sign,house,headline:l(theme.title.uk+' · '+transit.moon.nakshatra,
+    theme.title.en+' · '+transit.moon.nakshatra),description,
+  goodFor:focus.step,caution:focus.guard,reflection:focus.question,
+  evidence:{kind:'PUBLIC_JANMA_RASHI_REFERENCE',moonSign:transit.moon.sign,
    nakshatra:transit.moon.nakshatra,pada:transit.moon.pada,method:transit.method,
-   date:transit.date,sampledAtUtc:transit.sampledAtUtc,editorialVariant:step,editorialPolicy:'DATE_BASED_STYLE_NOT_PLANETARY_EFFECT'}};
+   date:transit.date,sampledAtUtc:transit.sampledAtUtc,
+   editorialPolicy:'CALCULATED_MOON_HOUSE_AND_NAKSHATRA_NO_DATE_ROTATION'}};
 }
-
 
 /** ASE-3 rule-authored original prose: no provider call, no hidden random rotation.
  * Western Sun-sign references, Western natal aspects and Parashari evidence
