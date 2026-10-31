@@ -69,6 +69,11 @@ roll_back(){
  chmod 600 .env
  git stash push -m 'Galaxiora horoscope aborted generated changes' -- apps/web/next-env.d.ts package.json >/dev/null 2>&1 || true
  git switch --detach "$PREVIOUS"
+ if [ "$CUTOVER" = 0 ]; then
+  echo 'PASS: failed candidate stopped before production cutover.'
+  echo 'Existing web and API processes were not restarted or interrupted.'
+  return
+ fi
  npm run build -w @jyotish/api
  npm run build -w @jyotish/web
  sudo systemctl restart galaxiora-api.service galaxiora-web.service
