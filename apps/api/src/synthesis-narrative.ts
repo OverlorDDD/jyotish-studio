@@ -8,15 +8,15 @@ export type ASEFact={id:string;tradition:'western'|'vedic';fact:string;topic:str
 const BANNED=/(?:гарантован|неодмінно|неминуч|точно станеть|обов’язково стан|смерт|вагітн|хвороб|діагноз|розлучиш|одружиш|guarantee|inevitab|will definitely|death|diagnos|pregnan|certain to happen)/iu;
 const NUMERIC=/\d|[°%$€]/u;
 const PLANET_MENTIONS:readonly [RegExp,RegExp][]=[
- [/\\bSun\\b|сонц/iu,/\\bSun\\b|сонц/iu],
- [/\\bMoon\\b|місяц/iu,/\\bMoon\\b|місяц/iu],
- [/\\bMercury\\b|меркур/iu,/\\bMercury\\b|меркур/iu],
- [/\\bVenus\\b|венер/iu,/\\bVenus\\b|венер/iu],
- [/\\bMars\\b|марс/iu,/\\bMars\\b|марс/iu],
- [/\\bJupiter\\b|юпітер/iu,/\\bJupiter\\b|юпітер/iu],
- [/\\bSaturn\\b|сатурн/iu,/\\bSaturn\\b|сатурн/iu],
- [/\\bRahu\\b|раху/iu,/\\bRahu\\b|раху/iu],
- [/\\bKetu\\b|кету/iu,/\\bKetu\\b|кету/iu]
+ [/\bSun\b|сонц/iu,/\bSun\b|сонц/iu],
+ [/\bMoon\b|місяц/iu,/\bMoon\b|місяц/iu],
+ [/\bMercury\b|меркур/iu,/\bMercury\b|меркур/iu],
+ [/\bVenus\b|венер/iu,/\bVenus\b|венер/iu],
+ [/\bMars\b|марс/iu,/\bMars\b|марс/iu],
+ [/\bJupiter\b|юпітер/iu,/\bJupiter\b|юпітер/iu],
+ [/\bSaturn\b|сатурн/iu,/\bSaturn\b|сатурн/iu],
+ [/\bRahu\b|раху/iu,/\bRahu\b|раху/iu],
+ [/\bKetu\b|кету/iu,/\bKetu\b|кету/iu]
 ];
 export function selectASEFacts(advanced:{
  western:{contacts:ReadonlyArray<{id:string;planet:string;target:string;aspect:string;applying:string}>};
