@@ -36,14 +36,26 @@ test('Western Sun-sign readings are independently computed and have traceable ev
  assert.ok(readings.every(x=>x.goodFor.uk && x.goodFor.en && x.description.uk && x.description.en));
  assert.notEqual(readings[0].description.uk,readings[2].description.uk);
 });
-test('Western forecast avoids verbatim repeat headlines and actions on adjacent days',async()=>{
- const days=['2026-10-28','2026-10-29','2026-10-30','2026-10-31'];
- const readings=await Promise.all(days.map(async day=>
-  westernSignReading(1,await tropicalSkyForDay(day,'Europe/Kyiv'),day)));
- for(let i=1;i<readings.length;i++){
-  assert.notEqual(readings[i].headline.uk,readings[i-1].headline.uk);
-  assert.notEqual(readings[i].goodFor.uk,readings[i-1].goodFor.uk);
- }
+test('readings never fabricate daily changes when the Sun and Moon houses have not moved',async()=>{
+ const sky=await tropicalSkyForDay('2026-10-31','Europe/Kyiv');
+ const a=westernSignReading(1,sky,'2026-10-31');
+ const b=westernSignReading(1,sky,'2026-11-01');
+ assert.deepEqual(a.headline,b.headline);
+ assert.deepEqual(a.description,b.description);
+ assert.deepEqual(a.goodFor,b.goodFor);
+ assert.equal(a.evidence.sunHouse,((sky.sun.sign-1+12)%12)+1);
+ assert.equal(a.evidence.house,((sky.moon.sign-1+12)%12)+1);
+ assert.equal(a.evidence.editorialPolicy,'SKY_DERIVED_WHOLE_SIGN_HOUSE_THEMES_NOT_EVENT_PREDICTION');
+ const changed=westernSignReading(1,{...sky,moon:{...sky.moon,sign:sky.moon.sign%12+1}},'2026-10-31');
+ assert.notDeepEqual(changed.headline,a.headline);
+ assert.notDeepEqual(changed.description,a.description);
+});
+test('all 12 Western house references match computed tropical longitudes',async()=>{
+ const sky=await tropicalSkyForDay('2026-10-31','Europe/Kyiv');
+ const readings=Array.from({length:12},(_,i)=>westernSignReading(i+1,sky,'2026-10-31'));
+ assert.deepEqual(readings.map(r=>r.house).sort((a,b)=>a-b),Array.from({length:12},(_,i)=>i+1));
+ assert.deepEqual(readings.map(r=>r.evidence.sunHouse).sort((a,b)=>a-b),Array.from({length:12},(_,i)=>i+1));
+ assert.ok(readings.every(r=>r.evidence.sunLongitude===sky.sun.longitude&&r.evidence.moonLongitude===sky.moon.longitude));
 });
 test('Native western forecast refuses malformed dates, signs or zones',async()=>{
  const sky=await tropicalSkyAtUtc(example);
@@ -66,4 +78,22 @@ test('public Western and Vedic APIs remain separate; moon sign guide links do no
  assert.ok(ui.includes("Натальний Місяць")||ui.includes("Ведичний Місяць"));
  assert.ok(moon.includes('system=vedic&sign='));
  assert.ok(profile.includes('westernSunSign')&&profile.includes('tropicalSkyAtUtc(result.utc)'));
+});
+
+test('personal western API cannot return Vedic horoscope under Western state',()=>{
+ const personal=source('apps/api/src/personal.ts');
+ const ui=source('apps/web/app/components/HoroscopeHub.tsx');
+ assert.match(personal,/@Get\('horoscope\/western'\)/);
+ assert.match(personal,/PERSONAL_TROPICAL_NATAL_SUN_REFERENCE/);
+ assert.match(personal,/SUN_SIGN_TRANSITS_NOT_FULL_WESTERN_NATAL_CHART/);
+ assert.match(personal,/westernSignReading\(chart\.westernSunSign!/);
+ assert.ok(ui.includes("data-system={tradition}"));
+ assert.ok(ui.includes("personal-western-basis"));
+ assert.ok(ui.includes("personal-vedic-basis"));
+ assert.ok(ui.includes("personal-western-week"));
+ assert.ok(ui.includes("personal-vedic-week"));
+ assert.ok(ui.includes("visibleData=data?.reference===expectedReference"));
+ assert.ok(ui.includes("visibleWeek=publicWeek?.reference===expectedReference"));
+ assert.ok(ui.includes("weekDays.map(day=>"));
+ assert.doesNotMatch(ui,/weekPhases/,'Weekly periods must not collapse distinct days');
 });
