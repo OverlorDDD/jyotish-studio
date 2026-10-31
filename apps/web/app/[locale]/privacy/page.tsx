@@ -10,13 +10,12 @@ export default async function PrivacyPage({params}:{params:Promise<{locale:strin
  const {locale}=await params;if(!isPortalLocale(locale))notFound();
  const uk=locale==='uk';
  const contact=process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL?.trim()||'';
- const operator=process.env.NEXT_PUBLIC_OPERATOR_NAME?.trim()||'';
  return <PortalShell locale={locale}><article className="as-subpage" style={{maxWidth:850,margin:'0 auto'}}>
  <h1>{uk?'Конфіденційність Galaxiora':'Galaxiora Privacy Notice'}</h1>
  <p>{uk?'Оновлено: 30 жовтня 2026 року':'Updated: October 30, 2026'}</p>
- <h2>{uk?'Оператор і зв’язок':'Operator and contact'}</h2>
- <p>{operator||(uk?'Інформація про оператора буде опублікована до відкриття реєстрації.':'Operator information will be supplied before public registration.')}
- {contact&&<> · <a href={'mailto:'+contact}>{contact}</a></>}</p>
+ <h2>{uk?'Про сервіс та зворотний зв’язок':'Service and contact'}</h2>
+ <p>{uk?'Galaxiora — назва цього онлайн-сервісу. Для запитань щодо конфіденційності, доступу до даних або їх видалення звертайтеся:':'Galaxiora is the name of this online service. For privacy questions and requests to access or erase your data, contact:'}
+ {' '}<a href={'mailto:'+(contact||'support@galaxiora.com')}>{contact||'support@galaxiora.com'}</a></p>
  <h2>{uk?'Які дані ми обробляємо':'Data we process'}</h2>
  <p>{uk?'Для акаунта: email, захищений хеш пароля і сесійний cookie. Якщо ви користуєтеся персональними інструментами: дані народження й натальні карти, збережені результати, нотатки та реакції на новини. У форумі: ваші повідомлення, скарги й налаштування профілю.':'For accounts: email, a secure password hash and a session cookie. If you use personal features: birth details and charts, saved readings, notes and news reactions. In the forum: messages, reports and profile settings.'}</p>
  <h2>{uk?'Мета обробки':'Why we process it'}</h2>
