@@ -36,6 +36,15 @@ test('Western Sun-sign readings are independently computed and have traceable ev
  assert.ok(readings.every(x=>x.goodFor.uk && x.goodFor.en && x.description.uk && x.description.en));
  assert.notEqual(readings[0].description.uk,readings[2].description.uk);
 });
+test('Western forecast avoids verbatim repeat headlines and actions on adjacent days',async()=>{
+ const days=['2026-10-28','2026-10-29','2026-10-30','2026-10-31'];
+ const readings=await Promise.all(days.map(async day=>
+  westernSignReading(1,await tropicalSkyForDay(day,'Europe/Kyiv'),day)));
+ for(let i=1;i<readings.length;i++){
+  assert.notEqual(readings[i].headline.uk,readings[i-1].headline.uk);
+  assert.notEqual(readings[i].goodFor.uk,readings[i-1].goodFor.uk);
+ }
+});
 test('Native western forecast refuses malformed dates, signs or zones',async()=>{
  const sky=await tropicalSkyAtUtc(example);
  for(const sign of [0,13,1.1,NaN])assert.throws(()=>westernSignReading(sign,sky,'1996-03-27'));
