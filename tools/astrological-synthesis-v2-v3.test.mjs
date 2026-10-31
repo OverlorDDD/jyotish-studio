@@ -98,7 +98,7 @@ test('Western natal sign editorial uses Sun, Moon and Mercury without the old wa
  assert.doesNotMatch(JSON.stringify(one),/не сприймай|не гаранті|символічне загальне|not a prediction/i);
  const other=editorialWesternReading({sunHouse:2,moonHouse:11,mercuryHouse:1});
  assert.notDeepEqual(other,one);
- for(let h=1;h<=12;h++)assert.ok(houseTheme(h).action.uk.length>30);
+ for(let h=1;h<=12;h++)assert.ok(houseTheme(h).step.uk.length>30);
  assert.throws(()=>houseTheme(13),/Invalid reference house/);
 });
 test('Synthesis foregrounds actual western transit aspect and independent Vedic house',()=>{
