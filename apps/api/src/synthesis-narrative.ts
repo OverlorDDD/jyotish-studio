@@ -92,6 +92,7 @@ function providerConfig(){
  return null;
 }
 export async function generateASE3Reading(facts:ReadonlyArray<ASEFact>,locale:Locale,
+ comparison:{status:string;sharedTopics:string[]}={status:'limited_evidence',sharedTopics:[]},
  fetcher:typeof fetch=fetch){
  if(process.env.ASE_AI_ENABLED!=='1')
   return {status:'disabled' as const,reason:'ASE_AI_NOT_OPTED_IN'};
@@ -114,6 +115,7 @@ export async function generateASE3Reading(facts:ReadonlyArray<ASEFact>,locale:Lo
       'Write 2-3 substantial fluent paragraphs in '+(locale==='uk'?'Ukrainian':'English')+
        '. Each paragraph must cite 1-4 exact evidenceIds from the supplied facts.',
       'Explain a shared theme only with actual Western and Vedic supporting facts, otherwise explain distinct emphases. Explain tensions between signals.',
+      'Verified ASE-1 independent topic comparison: '+comparison.status+'. Shared themes established independently: '+comparison.sharedTopics.join(', ')+'. Do not assert other common topics.',
       'Never invent planetary signs, houses, exact dates, numbers, events, planet positions, biographies, health, legal or financial outcomes. No certainty or fate claims. No new celestial facts. No extra names.',
       'Respond strictly JSON with paragraphs array, each containing text (110-650 chars; no digits), evidenceIds array. No Markdown.'
      ].join(' ')},
