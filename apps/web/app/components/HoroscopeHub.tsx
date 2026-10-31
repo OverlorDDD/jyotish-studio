@@ -98,14 +98,14 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
  function evidence(g:Reading){
   const facts=g.evidence,publicReading=facts.kind==='PUBLIC_JANMA_RASHI_REFERENCE';
   const westernReading=facts.kind==='PUBLIC_TROPICAL_SOLAR_REFERENCE';
-  const zone=publicReading?(data?.zone||'Europe/Kyiv'):(personal?.profile?.currentTimeZone||'UTC');
+  const zone=(publicReading||westernReading)?(data?.zone||'Europe/Kyiv'):(personal?.profile?.currentTimeZone||'UTC');
   const date=typeof facts.sampledAtUtc==='string'?
    new Date(facts.sampledAtUtc).toLocaleString(uk?'uk-UA':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:zone}):
    String(facts.day??facts.date??'—');
-  const moonSign=(publicReading||westernReading)?data?.moon.sign:facts.sign;
+  const moonSign=(publicReading||westernReading)?(typeof facts.moonSign==='number'?facts.moonSign:data?.moon.sign):facts.sign;
   const lunarName=typeof moonSign==='number'?SIGNS[locale][moonSign-1]:undefined;
-  const nakshatra=publicReading?data?.moon.nakshatra:facts.nakshatra;
-  const pada=publicReading?data?.moon.pada:facts.pada;
+  const nakshatra=facts.nakshatra??(publicReading?data?.moon.nakshatra:undefined);
+  const pada=facts.pada??(publicReading?data?.moon.pada:undefined);
   return <details className={styles.evidence}>
    <summary>{uk?'Астрологічна основа прогнозу':'Astrological basis of the reading'}</summary>
    <p>{String(facts.method||'Swiss Ephemeris / Lahiri')} · {date} ({zone})</p>
