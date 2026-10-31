@@ -80,7 +80,7 @@ const caution=[
  l('Не сприймай загальний прогноз як гарантію події.','Do not treat a general forecast as a promise of an event.')
 ] as const;
 const dayTags=[
- l('Тема дня','Today's theme'),
+ l('Тема дня',"Today's theme"),
  l('Новий погляд','A fresh angle'),
  l('Свій ритм','Your pace'),
  l('Малий крок','A small step')
