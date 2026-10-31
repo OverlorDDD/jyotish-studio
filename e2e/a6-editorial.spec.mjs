@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {PrismaClient} from '@prisma/client';
 
@@ -7,7 +8,7 @@ test('A6 real editor journey: bilingual draft, admin review, live article and ar
  const slug='a6-browser-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
  const email=slug+'@example.invalid';
  try{
-  const signed=await page.request.post('/api/v1/account/register',{data:{email,password:'A6-browser-only-password-2026'}});
+  const signed=await fixtureAccount(page,{data:{email,password:'A6-browser-only-password-2026'}});
   expect(signed.status()).toBe(201);
   await prisma.user.update({where:{email},data:{role:'ADMIN'}});
   await page.goto('/uk/editorial');
@@ -62,7 +63,7 @@ test('A6 Yoga: new guide saves without Safety notice; no required notice field',
  const slug='a6-yoga-no-safety-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
  const email=slug+'@example.invalid';
  try{
-  const signed=await page.request.post('/api/v1/account/register',{data:{email,password:'A6-browser-only-password-2026'}});
+  const signed=await fixtureAccount(page,{data:{email,password:'A6-browser-only-password-2026'}});
   expect(signed.status()).toBe(201);
   await prisma.user.update({where:{email},data:{role:'ADMIN'}});
   await page.goto('/uk/editorial');

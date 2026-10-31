@@ -1,0 +1,63 @@
+name: Galaxiora release safety gate
+on:
+  push:
+    branches:
+      - fix/galaxinews-editorial-qa-20261030
+  workflow_dispatch:
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.com
+      SITE_NOINDEX: '1'
+      PUBLIC_REGISTRATION_ENABLED: '0'
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/galaxiora_a1_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install candidate dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma types
+        run: npm run db:generate
+      - name: Authentication security
+        run: npm run test:access
+      - name: Create isolated PostgreSQL schema
+        run: npm run db:migrate
+      - name: Real NestJS HTTP signup and login regression
+        env:
+          CI: 'true'
+        run: node --test tools/registration-http-smoke.test.mjs
+      - name: Runtime Swagger crash regression
+        run: npm run test:swagger
+      - name: Bilingual GalaxiNews
+        run: npm run test:news
+      - name: GalaxiCom
+        run: npm run test:com
+      - name: Release / SEO
+        run: npm run test:r2-r3
+      - name: Release script syntax and browser test syntax
+        run: |
+          bash -n tools/galaxiora-final-release.sh
+          bash -n tools/galaxiora-web-hotfix-20261031.sh
+          node --check e2e/support/disposable-accounts.mjs
+          for file in e2e/*.spec.mjs; do node --check "$file"; done
+      - name: Natal city autocomplete and privacy disclosure regression
+        run: node --test tools/galaxiora-city-privacy.test.mjs
+      - name: Full production build
+        run: npm run build

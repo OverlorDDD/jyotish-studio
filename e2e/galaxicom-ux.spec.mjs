@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 test('GalaxiCom compact UX and focused creation, understandable moderation, visible helpful votes',async({page})=>{
@@ -8,7 +9,7 @@ test('GalaxiCom compact UX and focused creation, understandable moderation, visi
  const {PrismaClient}=await import('@prisma/client');
  const db=new PrismaClient();let userId='';
  try{
-  const registration=await page.request.post('/api/v1/account/register',{data:{email,password}});
+  const registration=await fixtureAccount(page,{data:{email,password}});
   expect(registration.status()).toBe(201);
   userId=(await registration.json()).user.id;
   await page.goto('/uk/community');

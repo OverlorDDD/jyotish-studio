@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {headlineScriptSegments,hasDevanagari,isLocalizedNewsTitle,publicTitleForLocale} from '../apps/api/src/news-localization.ts';
+import {headlineScriptSegments,headlineEditorialWarnings,hasDevanagari,isLocalizedNewsTitle,publicTitleForLocale} from '../apps/api/src/news-localization.ts';
 import {translateLocalizedHeadline} from '../apps/api/src/news-translation.ts';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
 const source='Kal Ka Rashifal 26 अक्टूबर: कल इन 5 राशियों के दिन रहेंगे रोमांचक';
@@ -86,4 +86,29 @@ test('mixed-language old title is reprocessed and does not overwrite existing so
   assert.equal(updates[0].data.summaryUk,undefined);
   assert.equal(updates[0].data.title,undefined);
  }finally{keys.forEach((k,i)=>prev[i]===undefined?delete process.env[k]:process.env[k]=prev[i]);}
+});
+
+
+test('known wrong month case and literal lunar phrases fail closed in both locale feeds',async()=>{
+ const badUk='Гороскоп завтрашнього дня 26 Жовтень: захопливий день для 5 знаків';
+ const badMoonUk='Астрологія Шарад Пурніма: повний плід місяця';
+ const badMoonEn='Astrology Sharad Purnima: the full fruit of the moon';
+ assert.ok(headlineEditorialWarnings(badUk,'uk').length);
+ assert.ok(headlineEditorialWarnings(badMoonUk,'uk').length);
+ assert.ok(headlineEditorialWarnings(badMoonEn,'en').length);
+ assert.equal(isLocalizedNewsTitle(badUk,'uk'),false);
+ assert.equal(isLocalizedNewsTitle(badMoonUk,'uk'),false);
+ assert.equal(isLocalizedNewsTitle(badMoonEn,'en'),false);
+ assert.equal(publicTitleForLocale({title:'कल राशिफल',titleUk:badUk},'uk'),null);
+ assert.equal(publicTitleForLocale({title:'कल राशिफल',titleEn:badMoonEn},'en'),null);
+ assert.equal(isLocalizedNewsTitle('Гороскоп на 26 жовтня: 5 знаків','uk'),true);
+ assert.equal(isLocalizedNewsTitle('October 26 horoscope: five zodiac signs','en'),true);
+ const env={NEWS_TRANSLATION_PROVIDER:'azure',AZURE_TRANSLATOR_KEY:'not-real',AZURE_TRANSLATOR_REGION:'eastus'};
+ await assert.rejects(
+   ()=>translateLocalizedHeadline('Horoscope for October 26, 2026','uk',
+     async()=>new Response(JSON.stringify([{translations:[{
+       to:'uk',text:'Гороскоп 26 Жовтень 2026'
+     }]}]),{status:200}),env),
+   /Untranslated script or changed numeric facts|Incomplete uk localization/
+ );
 });

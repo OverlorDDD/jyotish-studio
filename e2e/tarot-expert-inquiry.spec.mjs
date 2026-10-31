@@ -1,9 +1,10 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 
 test('minimal Tarot expert inquiry uses dark form, saves without payment and reveals Telegram afterwards',async({page})=>{
  test.setTimeout(65000);
  const email='expert-inquiry-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'@example.invalid';
- const account=await page.request.post('/api/v1/account/register',{
+ const account=await fixtureAccount(page,{
   data:{email,password:'A7-expert-test-only-password'}
  });
  expect(account.status()).toBe(201);

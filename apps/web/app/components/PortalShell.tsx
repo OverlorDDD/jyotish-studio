@@ -11,6 +11,7 @@ const LABELS={
 const SECTIONS=['astrology','tarot','yoga','learn','news','community'] as const;
 export default function PortalShell({locale,children,active='',languagePath}:Props){
  const t=LABELS[locale];
+ const publicContact=process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL?.trim()||'';
  return <div className="as-shell">
   <a href="#main-content" className="as-skip-link">{locale==='uk'?'Перейти до вмісту':'Skip to main content'}</a>
   <header className="as-header">
@@ -39,6 +40,12 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
     <p className="as-footer-note">{t.disclaimer}</p>
     <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Методологія й точність':'Methods and accuracy'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={portalPath(locale,'astrology/jyotish')}>{moduleTitle('jyotish')} <ArrowUpRight size={15} aria-hidden="true"/></Link>
+    <Link href={'/'+locale+'/privacy'}>{locale==='uk'?'Конфіденційність':'Privacy'}</Link>
+    <Link href={'/'+locale+'/terms'}>{locale==='uk'?'Умови користування':'Terms of Use'}</Link>
+    {publicContact&&<div className="as-footer-contact" aria-label={locale==='uk'?'Контактна інформація':'Contact information'}>
+      <strong>{locale==='uk'?'Зв’язок із нами':'Contact us'}</strong>
+      <a href={'mailto:'+publicContact}>{publicContact}</a>
+    </div>}
   </footer>
  </div>;
 }

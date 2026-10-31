@@ -7,12 +7,13 @@ import type {ReadingReport} from '../../components/DetailedReport';
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 const AccountPortal=dynamic(()=>import('../../components/AccountPortal'),{loading:()=>null});
 import NorthIndianChart from '../../components/NorthIndianChart';
+import CitySearch from '../../components/CitySearch';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
 type Graha={name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 type Period={lord:string;start:string;end:string;antardashas:{lord:string;start:string;end:string}[]};
 type Chart={verification?:{version:string;status:'verified_internal';digest:string;checks:string[];externalReferenceChecked:false};id?:string;input:{date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;ephemeris:string;d1:Graha[];d9:Graha[];d10:Graha[];dasha:Period[]};
-type Form={date:string;time:string;latitude:string;longitude:string;timeZone:string};
+type Form={date:string;time:string;latitude:string;longitude:string;timeZone:string;place?:string};
 const CITY:Record<string,Form>={delhi:{date:'2000-01-01',time:'12:00',latitude:'28.6139',longitude:'77.209',timeZone:'Asia/Kolkata'},kryvyi:{date:'2000-01-01',time:'12:00',latitude:'47.9105',longitude:'33.3918',timeZone:'Europe/Kyiv'},kyiv:{date:'2000-01-01',time:'12:00',latitude:'50.4501',longitude:'30.5234',timeZone:'Europe/Kyiv'},london:{date:'2000-01-01',time:'12:00',latitude:'51.5074',longitude:'-0.1278',timeZone:'Europe/London'}};
 const t={en:{title:'Your cosmic blueprint',subtitle:'Precision Vedic calculations. From planetary positions to symbolic interpretations — all in one place.',details:'Birth details',detail:'Enter date, exact local time and geographic coordinates.',date:'Date of birth',time:'Local time of birth',place:'Location preset',calculate:'Calculate birth chart',asc:'RISING SIGN',moon:'MOON SIGN',chart:'Natal chart',grahas:'Planetary positions',dasha:'Life cycles',dashadesc:'Traditional symbolic time cycles, not guaranteed predictions.',ai:'Chart reading',aidesc:'A clear explanation of the main themes in everyday language, followed by a detailed report.',aiButton:'Generate full reading',note:'Jyotish tradition',noteDesc:'A symbolic reading grounded in your calculated birth chart.',waiting:'Calculate a chart to begin.',working:'Calculating Swiss Ephemeris...',completed:'Calculated successfully.'},uk:{title:'Твоя космічна карта',subtitle:'Точні ведичні обчислення: від положень планет до символічних інтерпретацій.',details:'Дані народження',detail:'Введи дату, точний місцевий час і географічні координати.',date:'Дата народження',time:'Місцевий час',place:'Місце народження',calculate:'Розрахувати карту',asc:'ВИСХІДНИЙ ЗНАК',moon:'ЗНАК МІСЯЦЯ',chart:'Натальна карта',grahas:'Положення планет',dasha:'Життєві цикли',dashadesc:'Традиційні символічні періоди часу, а не гарантований прогноз.',ai:'Пояснення карти',aidesc:'Зрозуміле пояснення головних тем звичайною мовою, а нижче — детальний розбір карти.',aiButton:'Створити повне трактування',note:'Традиція Джйотіш',noteDesc:'Символічне трактування на основі розрахованої натальної карти.',waiting:'Спочатку розрахуй карту.',working:'Обчислюємо ефемериди...',completed:'Карту обчислено.'}};
 const FREE_AI_FALLBACK_UK:Record<string,string>={
@@ -54,7 +55,7 @@ const nakshatraName=(name:string,lang:'en'|'uk')=>lang==='uk'?(NAKSHATRA_UK[name
 const grahaFull=(name:string,lang:'en'|'uk')=>lang==='uk'?(GRAHA_UK[name]||name):name;
 const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-1];
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
- const lang=initialLang; const [form,setForm]=useState<Form>(CITY.delhi),[preset,setPreset]=useState('delhi'),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
+ const lang=initialLang; const [form,setForm]=useState<Form>(CITY.delhi),[cityReset,setCityReset]=useState(0),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
  const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false}|null>(null);
@@ -76,6 +77,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   const incoming=loaded as Chart;
   if(!incoming?.input||!Array.isArray(incoming.d1))return;
   setForm({...incoming.input,latitude:String(incoming.input.latitude),longitude:String(incoming.input.longitude)});
+  setCityReset(count=>count+1);
   // Legacy records never become visible without a fresh server-side integrity check.
   let ready=incoming;
   if(!verified(incoming)){
@@ -103,7 +105,16 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
 
  useEffect(()=>{if(report)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});},[report]);
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
- const edit=(key:keyof Form,value:string)=>setForm(old=>({...old,[key]:value}));
+ const edit=(key:keyof Form,value:string)=>{
+  setForm(old=>({...old,[key]:value,...(['latitude','longitude','timeZone'].includes(key)?{place:undefined}:{})}));
+  if(['latitude','longitude','timeZone'].includes(key))setCityReset(count=>count+1);
+ };
+ const chooseCity=(city:{name:string;region:string;country:string;latitude:number;longitude:number;timeZone:string})=>{
+  // Preserve the user's birth date/time; only location fields change.
+  setForm(old=>({...old,latitude:String(city.latitude),longitude:String(city.longitude),
+   timeZone:city.timeZone,place:[city.name,city.region,city.country].filter(Boolean).join(', ')}));
+  setStatus('');
+ };
  async function calculate(e:React.FormEvent){e.preventDefault();setBusy(true);setError(false);setChart(null);setReport(null);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'API повернуло карту без чинного підтвердження цілісності (потрібен jyotish-integrity-v3). Перезапустіть Next.js і NestJS з однієї оновленої гілки, потім повторіть розрахунок.':'API returned a chart without the current jyotish-integrity-v3 proof. Restart Next.js and NestJS from the same updated branch, then retry.');setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);}catch(e){setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
  async function interpret(mode:'auto'|'local'='auto'){
   if(!chart)return;
@@ -154,7 +165,10 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <form onSubmit={calculate} className="jy-input-grid">
       <label>{i.date}<input type="date" value={form.date} onChange={e=>edit('date',e.target.value)} required/></label>
       <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
-      <label>{i.place}<select value={preset} onChange={e=>{setPreset(e.target.value);if(CITY[e.target.value])setForm(old=>({...old,...Object.fromEntries(['latitude','longitude','timeZone'].map(k=>[k,CITY[e.target.value][k as keyof Form]]))}))}}><option value="delhi">{lang==='uk'?'Нью-Делі, Індія':'New Delhi, India'}</option><option value="kryvyi">{lang==='uk'?'Кривий Ріг, Україна':'Kryvyi Rih, Ukraine'}</option><option value="kyiv">{lang==='uk'?'Київ, Україна':'Kyiv, Ukraine'}</option><option value="london">{lang==='uk'?'Лондон, Велика Британія':'London, UK'}</option><option value="custom">{lang==='uk'?'Власні координати':'Custom coordinates'}</option></select></label>
+      <div className="jy-city-search-field">
+       <CitySearch locale={lang} onChoose={chooseCity} resetToken={cityReset}/>
+       {form.place&&<small className="jy-selected-city" role="status">{lang==='uk'?'Обрано місце народження: ':'Birthplace selected: '}{form.place}</small>}
+      </div>
       <label>{lang==='uk'?'Широта':'Latitude'}<input type="number" step="any" min="-90" max="90" value={form.latitude} onChange={e=>edit('latitude',e.target.value)} required/></label>
       <label>{lang==='uk'?'Довгота':'Longitude'}<input type="number" step="any" min="-180" max="180" value={form.longitude} onChange={e=>edit('longitude',e.target.value)} required/></label>
       <label>{lang==='uk'?'Часовий пояс':'Time zone'}<input value={form.timeZone} onChange={e=>edit('timeZone',e.target.value)} required/></label>

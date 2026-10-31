@@ -76,9 +76,15 @@ export function sameOrigin(req:IncomingMessage){
   // Next.js rewrites to a loopback-only NestJS listener. Some Next versions
   // preserve only the backend Host header instead of forwarding the browser Host.
   const backendHost=String(req.headers.host||'').toLowerCase();
-  if(['127.0.0.1:4000','localhost:4000'].includes(backendHost)&&
-     ['localhost:3000','127.0.0.1:3000'].includes(parsed.host.toLowerCase())&&
-     parsed.protocol==='http:')return true;
+  if(['127.0.0.1:4000','localhost:4000'].includes(backendHost)){
+   if(['localhost:3000','127.0.0.1:3000'].includes(parsed.host.toLowerCase())&&
+      parsed.protocol==='http:')return true;
+   // A Next.js rewrite can replace Host with the loopback NestJS listener.
+   // In that case permit only the exact configured HTTPS website origin;
+   // browser Fetch Metadata above still rejects cross-site and same-site writes.
+   const publicOrigin=process.env.NEXT_PUBLIC_SITE_URL?.trim()||'';
+   if(publicOrigin==='https://galaxiora.com'&&parsed.origin===publicOrigin)return true;
+  }
   return false;
  }catch{return false;}
 }

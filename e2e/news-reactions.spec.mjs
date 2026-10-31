@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 const unique=()=>randomUUID().slice(0,10);
@@ -17,7 +18,7 @@ test('P2 private reactions: persist, switch, undo, erase and two-account isolati
   const route='/api/v1/news/reactions/'+id;
   expect((await page.request.get('/api/v1/news/reactions')).status()).toBe(401);
   expect((await page.request.put(route,{data:{vote:'YES'}})).status()).toBe(401);
-  const accountA=await page.request.post('/api/v1/account/register',{data:{
+  const accountA=await fixtureAccount(page,{data:{
    email:'galaxinews-p2-a-'+unique()+'@example.invalid',password:'News-P2-safe-password-2026'
   }});
   expect(accountA.status()).toBe(201);
@@ -40,7 +41,7 @@ test('P2 private reactions: persist, switch, undo, erase and two-account isolati
   expect(personalAfter.items.some(x=>x.id===id)).toBe(false);
   const world=await (await page.request.get('/api/v1/news/feed?sort=relevance&limit=48')).json();
   expect(world.items.some(x=>x.id===id)).toBe(true);
-  const registerB=await page.request.post('/api/v1/account/register',{data:{
+  const registerB=await fixtureAccount(page,{data:{
    email:'galaxinews-p2-b-'+unique()+'@example.invalid',password:'News-P2-safe-password-2026'
   }});
   expect(registerB.status()).toBe(201);

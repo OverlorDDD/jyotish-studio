@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "node ../../tools/next-launch.mjs dev",
-    "build": "next build",
+    "build": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
     "start": "node ../../tools/next-launch.mjs start"
   },
   "dependencies": {

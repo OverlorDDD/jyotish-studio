@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 const identity=()=>({email:'galaxicom-c3-'+randomUUID().slice(0,12)+'@example.invalid',
@@ -21,7 +22,7 @@ test('GalaxiCom C3: published sources, editorial approvals, hidden posts and pri
   expect((await page.request.get(ctx('ACADEMY','draft-unknown-article'))).status()).toBe(404);
   expect((await page.request.post('/api/v1/com/context/links',{data:{
    kind:'ACADEMY',slug:'vimshottari-life-cycle',threadId:randomUUID()}})).status()).toBe(401);
-  const register=await page.request.post('/api/v1/account/register',{data:creds});
+  const register=await fixtureAccount(page,{data:creds});
   expect(register.status()).toBe(201);
   userId=(await register.json()).user.id;
   const posted=await page.request.post('/api/v1/com/threads',{data:{

@@ -31,6 +31,18 @@ enum ReadingOrderStatus {
  REFUNDED
 }
 
+/// Unverified signup credentials expire; never create a User until email proof succeeds.
+model PendingRegistration {
+ email String @id @db.VarChar(150)
+ passwordHash String
+ codeDigest String @db.VarChar(64)
+ expiresAt DateTime
+ sentAt DateTime
+ attempts Int @default(0)
+ createdAt DateTime @default(now())
+ @@index([expiresAt])
+}
+
 model User {
  id String @id @default(uuid())
  createdAt DateTime @default(now())

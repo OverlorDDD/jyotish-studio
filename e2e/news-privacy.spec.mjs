@@ -1,7 +1,8 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 const email=()=>`p4-${randomUUID().slice(0,12)}@example.invalid`;
-const register=page=>page.request.post('/api/v1/account/register',{
+const register=page=>fixtureAccount(page,{
  data:{email:email(),password:'P4-GalaxiNews-acceptance-2026'}});
 test('P4: reactions history, export, opt-out and confirmed news-only reset preserve Personal data',async({page})=>{
  test.setTimeout(100000);

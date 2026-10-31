@@ -249,9 +249,12 @@
 .as-statement span{font-size:25px;color:#d3b884}
 .as-statement p{font-family:'Playfair Display',Georgia,serif;font-size:clamp(23px,3vw,37px);line-height:1.5;max-width:900px;margin:12px auto 0;color:#e6dbc9}
 .as-disclaimer{font-size:12px;color:#8e9bab;padding:22px 24px;text-align:center}
-.as-footer{max-width:1440px;margin:auto;padding:34px clamp(20px,4vw,58px);border-top:1px solid #344255;display:flex;align-items:center;justify-content:space-between;gap:25px;color:#b6bfca;font-size:12px}
+.as-footer{max-width:1440px;margin:auto;padding:34px clamp(20px,4vw,58px);border-top:1px solid #344255;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:25px;color:#b6bfca;font-size:12px}
 .as-footer-brand{font-family:'Playfair Display',Georgia,serif;color:#e7ca98!important;font-size:22px}
 .as-footer p{margin:8px 0 0}.as-footer-note{max-width:390px;line-height:1.7}.as-footer>a{display:flex;align-items:center;gap:5px}
+.as-footer-contact{display:flex;flex-direction:column;gap:6px;max-width:100%;line-height:1.5}
+.as-footer-contact strong{font-weight:600;color:#ead3ab}
+.as-footer-contact a{color:#cfdfef;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .as-subpage{padding:55px clamp(20px,4vw,58px) 100px}
 .as-subpage-intro{position:relative;background:radial-gradient(circle at 90% 20%,#66507845,transparent 45%),#172132;border:1px solid #3b435b;border-radius:20px;padding:clamp(28px,4vw,60px)}
 .as-subpage-symbol{color:#dbb983;display:block;margin-bottom:20px}
@@ -696,6 +699,15 @@
 .jy-input-grid label{margin-top:15px}
 .jy-input-grid label input,.jy-input-grid label select{margin-top:7px}
 .jy-input-grid .jy-calc-btn{margin-top:37px;height:42px}
+.jy-city-search-field{grid-column:1/-1;padding:12px 0 2px;min-width:0}
+.jy-city-search-field .gp-global-city-search{max-width:720px}
+.jy-city-search-field .gp-global-city-search>label{display:block;margin:0 0 7px;color:#e3cfaa}
+.jy-city-search-field .gp-global-city-search>input{display:block;width:100%;padding:11px 13px;border:1px solid #526780;border-radius:8px;background:#111e30;color:#f5f1e9;outline-offset:2px}
+.jy-city-search-field .gp-global-city-search>input:focus-visible{border-color:#d5b77d;outline:2px solid #d5b77d}
+.jy-city-search-field #global-city-results{max-width:720px}
+.jy-city-search-field #global-city-results button:hover,.jy-city-search-field #global-city-results button:focus-visible{border-color:#d7b478!important;background:#273d5a!important}
+.jy-selected-city{display:block;margin-top:8px;color:#d9c393;overflow-wrap:anywhere}
+
 .jy-input-panel .status{padding:0 18px 14px;margin:0}
 .jy-primary-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.72fr);gap:18px;align-items:stretch}
 .jy-rashi-card,.jy-calc-data{padding:20px;min-width:0}

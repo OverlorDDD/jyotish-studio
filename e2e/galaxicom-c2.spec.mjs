@@ -1,3 +1,4 @@
+import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 const credentials=()=>({email:'galaxicom-c2-'+randomUUID().slice(0,12)+'@example.invalid',
@@ -11,7 +12,7 @@ test('GalaxiCom C2: long writing, full-width edit, revisions, follows, votes, no
  const url=(p)=>'/api/v1/com/'+p;
  try{
   expect((await page.request.get(url('notifications'))).status()).toBe(401);
-  const joinA=await page.request.post('/api/v1/account/register',{data:a});
+  const joinA=await fixtureAccount(page,{data:a});
   expect(joinA.status()).toBe(201);aid=(await joinA.json()).user.id;
   const original='Натальна карта Джйотіш та взаємодія між D1 і Навамшею';
   const longBody=('Розглядаю положення грах в різних варгах та порівнюю їх із класичними текстами. ').repeat(88);
@@ -46,7 +47,7 @@ test('GalaxiCom C2: long writing, full-width edit, revisions, follows, votes, no
   const revisions=await (await page.request.get(url('threads/'+tid+'/revisions'))).json();
   expect(revisions.items[0].title).toBe(original.trim());
   expect(revisions.items[0].body).toBe(longBody.trim());
-  const joinedB=await page.request.post('/api/v1/account/register',{data:b});
+  const joinedB=await fixtureAccount(page,{data:b});
   expect(joinedB.status()).toBe(201);bid=(await joinedB.json()).user.id;
   expect((await page.request.get(url('threads/'+tid+'/revisions'))).status()).toBe(404);
   const watch=await page.request.put(url('threads/'+tid+'/follow'));
