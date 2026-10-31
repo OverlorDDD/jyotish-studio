@@ -8,6 +8,7 @@ import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {verifyLunarContinuity} from './horoscope.ts';
 import {tropicalSkyAtUtc,tropicalSkyForDay,westernSignReading,TROPICAL_METHOD} from './western-horoscope.ts';
+import {buildAstrologicalSynthesis} from './astrological-synthesis.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
 import {dailySkyContext} from './sky-context.ts';
@@ -45,6 +46,7 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
   lagnaSign:result&&Number.isInteger(asc?.sign)?asc!.sign:null,
   lagnaName:asc?.signName||(row.result as ChartResult)?.ascendant?.signName||'',
   moonSign:result&&Number.isInteger(moon?.sign)?moon!.sign:null,
+  natalUtc:result?.utc||null,
   westernSunSign,westernSunLongitude,westernMethod:westernSunSign?'Swiss Ephemeris / tropical-of-date':null,
   moonLongitude:result&&Number.isFinite(moon?.longitude)?moon!.longitude:null,
   dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
@@ -126,6 +128,49 @@ export class PersonalController{
   * tropical Sun, not to the Vedic Moon. Explicitly Sun-sign-based, not a
   * complete Western natal reading. No DB writes; private and uncached.
   */
+ /** Astrological Synthesis Engine v1: natal private transit comparison.
+  * Never exposes birth details via query params or shared cache. Requires an
+  * authenticated user with a verified primary natal chart.
+  */
+ @Get('horoscope/synthesis') @Header('Cache-Control','private, no-store')
+ async synthesisHoroscope(@Req()req:IncomingMessage,@Query('days')span?:string){
+  const uid=owner(req);
+  if(span!==undefined&&span!=='1'&&span!=='7')
+   throw new BadRequestException('days must be 1 or 7');
+  const {profile,selected:chart}=await this.profile(uid);
+  if(!chart?.verified||!chart.natalUtc||!chart.moonSign||!chart.lagnaSign||
+     !chart.westernSunSign||!Number.isFinite(chart.westernSunLongitude))
+   return {status:'requires_verified_chart',reference:'ASTROLOGICAL_SYNTHESIS_V1',days:[]};
+  const zone=profile.currentTimeZone,date=localToday(zone);
+  try{
+   const natal=await tropicalSkyAtUtc(chart.natalUtc);
+   if(natal.sun.sign!==chart.westernSunSign)
+    throw Error('Natal Sun disagreement: refusing synthesis');
+   const dates=calendarDays(date,span==='7'?7:7).slice(0,span==='7'?7:1);
+   const days=await Promise.all(dates.map(async day=>{
+    const [western,vedic]=await Promise.all([
+     tropicalSkyForDay(day,zone),
+     dailyTransit(day,zone,chart.lagnaSign,chart.moonSign)
+    ]);
+    const period=verifiedContextAt(chart,vedic.sampledAtUtc)?.period;
+    return buildAstrologicalSynthesis({
+     date:day,western,vedic,
+     natalWestern:{Sun:natal.sun.longitude,Moon:natal.moon.longitude},
+     natalVedic:{moonSign:chart.moonSign!,lagnaSign:chart.lagnaSign!},
+     period:period?{lord:period.lord,antardasha:period.antardasha?.lord||null}:null
+    });
+   }));
+   return {status:'available',reference:'ASTROLOGICAL_SYNTHESIS_V1',
+    date,zone,natal:{westernSunSign:chart.westernSunSign,
+     vedicMoonSign:chart.moonSign,vedicLagnaSign:chart.lagnaSign},
+    method:'SWISS_VERIFIED_TROPICAL_ASPECTS_AND_LAHIRI_GOCHARA_V1',
+    scope:'TRADITIONAL_INTERPRETIVE_COMPARISON_NOT_CERTAINTY_OF_EVENTS',
+    today:days[0],days};
+  }catch{
+   throw new ServiceUnavailableException('Verified planetary data unavailable; synthesis was not fabricated');
+  }
+ }
+
  @Get('horoscope/western') @Header('Cache-Control','private, no-store')
  async westernHoroscope(@Req()req:IncomingMessage){
   const uid=owner(req),profile=await this.profile(uid),chart=profile.selected;

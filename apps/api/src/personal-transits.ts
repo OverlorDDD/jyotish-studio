@@ -57,6 +57,7 @@ export async function dailyTransit(day:string,zone:string,lagnaSign?:number|null
  });
  return {
   date:day,sampledAtUtc:utc,timeZone:zone,method:TRANSIT_METHOD,
+  ephemerisBackend:eph.backend,
   personalized:lagnaSign!=null&&moonSign!=null,
   observationType:'SIDEREAL_GEOCENTRIC_POSITION_AT_LOCAL_NOON',
   moon:{longitude:moon.longitude,sign:moonTransitSign,nakshatra:nak.name,pada:nak.pada,

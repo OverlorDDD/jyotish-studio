@@ -54,3 +54,23 @@
 .traditions button:hover:not([aria-pressed=true]){background:#2d435d}
 .traditionInfo{font-size:14px!important;margin:13px 0 4px;color:#e8d4b2!important}
 @media(max-width:560px){.traditions{width:100%}.traditions button{flex:1 1 135px;padding:10px 7px;font-size:13px}}
+
+/* ASE v1: distinct and independently sourced personal synthesis. */
+.synthesis{margin-top:20px}
+.synthesisDay{padding:clamp(19px,3vw,32px);margin:18px 0;border-radius:17px;border:1px solid #62718a;background:linear-gradient(160deg,#142840,#172239)}
+.synthesisDay h3{font-family:Georgia,serif;color:#f4dfbc;font-size:clamp(22px,3vw,30px);margin:8px 0 14px}
+.synthesisDay p{line-height:1.8;color:#dfebef}
+.synthesisMatch{color:#e7cf9f!important;font-weight:600}
+.synthesisAdvice{border-left:3px solid #d6ae78;background:#25354b;border-radius:8px;padding:16px 20px;margin:20px 0}
+.synthesisAdvice strong{color:#f1d6aa}
+.synthesisAdvice p{margin:10px 0}
+.synthesisAdvice small{color:#c8d5e5}
+.synthesisSources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0}
+.synthesisSources details{border:1px solid #586f86;border-radius:12px;padding:14px;background:#101e31;min-width:0}
+.synthesisSources summary{cursor:pointer;font-weight:700;color:#efd0a2}
+.synthesisEvidence{padding:13px 0;border-bottom:1px solid #40556e}
+.synthesisEvidence:last-child{border-bottom:0}
+.synthesisEvidence strong{display:block;font-size:13px;color:#e6d0ab}
+.synthesisEvidence p{font-size:13px;margin:6px 0}
+.synthesisEvidence small{display:block;color:#aebed2;overflow-wrap:anywhere;margin-top:5px}
+@media(max-width:680px){.synthesisSources{grid-template-columns:1fr}}
