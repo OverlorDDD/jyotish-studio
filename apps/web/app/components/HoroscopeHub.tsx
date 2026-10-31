@@ -254,45 +254,81 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    <p className={styles.note}>{uk?'Для глибшого читання за натальною картою відкрий «Мій персональний».':
     'For a deeper reading grounded in your natal chart, open My personal reading.'}</p>
   </>}
-  {mode==='mine'&&<div className={styles.personal}>
+  {mode==='mine'&&<div className={styles.personal} data-testid="personal-horoscope-panel" data-system={tradition}>
    {!personal?<div className={styles.empty}><h2>{uk?'Твій особистий гороскоп':'Your personal horoscope'}</h2>
-    <p>{uk?'Збережи власну натальну карту та обери її основною в «Моєму Всесвіті», щоб побачити гороскоп за своїми положеннями планет і періодами.':
-      'Save your birth chart and select it in Your Universe to read a forecast based on your actual planetary positions and periods.'}</p>
+    <p>{uk?'Збережи перевірену натальну карту і зроби її основною в «Моєму Всесвіті». Для західного режиму потрібен точний натальний знак Сонця, для ведичного — Місяць і Лагна.':
+     'Save and select a verified natal chart in Your Universe. Western mode needs your exact natal Sun; Vedic mode uses your natal Moon and Ascendant.'}</p>
     <Link href={'/'+locale+'/personal'}>{uk?'Перейти до «Мого Всесвіту»':'Open Your Universe'} <ArrowRight size={16}/></Link></div>:
-    <><div className={styles.personalHeading}><h2>{uk?'Твій персональний гороскоп':'Your personal horoscope'}</h2>
-      <span>{uk?'За підтвердженою натальною картою':'From your verified birth chart'}</span></div>
-     <div className={styles.signExplanation} data-testid="personal-sign-basis">
-      <strong>{uk?'Вихідні дані твоєї карти':'Your birth-chart reference signs'}</strong>
-      <p>{uk?'Західне Сонце':'Western Sun'}: <b>{westernName||'—'}</b>
-       {' · '}{uk?'Ведичний Місяць':'Vedic Moon'}: <b>{natalName||'—'}</b>
-       {' · '}{uk?'Лагна':'Ascendant'}: <b>{typeof natalLagna==='number'&&natalLagna>=1&&natalLagna<=12?SIGNS[locale][natalLagna-1]:'—'}</b></p>
-      {westernName&&<button type="button" className={styles.useNatal} onClick={()=>{changeTradition('western');setSelected(natalSun!);setMode('signs')}}>{uk?'Відкрити західний гороскоп за Сонцем':'Open my Western Sun-sign reading'}: {westernName}</button>}
-      <p>{uk?'Тут використовується твій справжній натальний місячний знак, поточний транзит і, для основної поради, лагна й даша. Обраний вручну знак у загальній вкладці на цей розрахунок не впливає.':
-       'This view uses your saved natal Moon, current transit and, in the main guidance, ascendant and Dasha. Manually choosing a public sign never changes the personal result.'}</p>
+    <>
+     <div className={styles.personalHeading}>
+      <h2>{tradition==='western'?(uk?'Мій західний гороскоп':'My Western horoscope'):
+       (uk?'Мій ведичний гороскоп':'My Vedic horoscope')}</h2>
+      <span>{tradition==='western'?(uk?'За перевіреним тропічним Сонцем':'Based on verified tropical Sun'):
+       (uk?'За підтвердженою натальною картою Джйотіш':'Based on verified Jyotish birth chart')}</span>
      </div>
-     {period==='day'&&<>
-      <section data-testid="personal-moon-reading"><h3>{uk?'Гороскоп за твоїм місячним знаком':'Reading for your natal Moon sign'}</h3>
-       <p>{uk?'Саме цей блок можна порівнювати із загальним гороскопом, обравши там свій натальний знак Місяця.':'Compare this section with the public reading after selecting your true natal Moon sign.'}</p>
-       {personal.journey?.horoscope?detail(personal.journey.horoscope):<p>{uk?'Сьогоднішнє читання Місяця недоступне.':'Moon-sign reading is temporarily unavailable.'}</p>}
-      </section>
-      {personal.journey?.daily&&<details data-testid="personal-daily-core" className={styles.signExplanation}>
-       <summary style={{cursor:'pointer',fontWeight:700}}>{uk?'Поглиблена персональна порада · лагна, даша й транзити':'Deeper personal guidance · ascendant, dasha and transits'}</summary>
+     {tradition==='western'?<>
+      <div className={styles.signExplanation} data-testid="personal-western-basis">
+       <div>
+        <strong>{uk?'Західний знак Сонця':'Western natal Sun sign'}: {westernName||'—'}</strong>
+        <p>{uk?'Цей прогноз використовує точний тропічний знак Сонця з твоєї натальної карти та розраховані транзити тропічних Сонця й Місяця. Це індивідуально обраний сонячний знак, а не повний західний натальний аналіз. Ведичні даші й Лагна не використовуються.':
+         'This uses the exact tropical Sun sign from your verified birth time plus computed tropical Sun and Moon transits. It is Sun-sign guidance selected for you, not a complete Western natal analysis. Vedic Dasha and Lagna are not used.'}</p>
+       </div>
+      </div>
+      {westernBusy&&<p role="status">{uk?'Розраховуємо західні транзити…':'Calculating Western transits…'}</p>}
+      {westernError&&<div role="alert" className={styles.error}>{uk?'Не вдалося отримати західний персональний гороскоп.':'Western personal reading is temporarily unavailable.'}
+       <button type="button" onClick={()=>setReload(i=>i+1)}>{uk?'Повторити':'Retry'}</button></div>}
+      {!westernBusy&&!westernError&&westernPersonal?.status!=='available'&&<p role="status">{uk?'Для точного західного знака потрібна перевірена натальна карта й доступні Swiss Ephemeris.':'A verified birth chart and Swiss Ephemeris are required to calculate your precise Western Sun sign.'}</p>}
+      {!westernBusy&&westernPersonal?.status==='available'&&westernPersonal.natalSunSign===natalSun&&<>
+       {period==='day'&&westernPersonal.today&&<section data-testid="personal-western-reading">
+        <h3>{uk?'Західний прогноз за моїм Сонцем':'Western reading for my natal Sun'}</h3>
+        {detail(westernPersonal.today)}
+       </section>}
+       {period==='week'&&<section className={styles.week} data-testid="personal-western-week">
+        <h3>{uk?'Сім днів за моїм західним Сонцем':'Seven days for my Western Sun sign'}</h3>
+        <p className={styles.note}>{uk?'Сім незалежних спостережень за часовим поясом твого профілю. Тема може залишатися тією самою, поки планети не змінили цілознакові доми.':
+         'Seven independent observations in your profile time zone. A theme may remain unchanged until the planets move to another whole-sign house.'}</p>
+        {westernPersonal.days?.map(day=><article key={day.date}>
+         <time dateTime={day.date}>{dayLabel(day.date)}</time>
+         <h3><GlossaryText text={t(day.guidance.headline)} locale={locale}/></h3>
+         <p><GlossaryText text={t(day.guidance.description)} locale={locale}/></p>
+         <p><strong>{uk?'Практична порада: ':'Practical guidance: '}</strong><GlossaryText text={t(day.guidance.goodFor)} locale={locale}/></p>
+         {evidence(day.guidance)}
+        </article>)}
+       </section>}
+      </>}
+     </>:<>
+      <div className={styles.signExplanation} data-testid="personal-vedic-basis">
+       <div>
+        <strong>{uk?'Ведичний натальний Місяць':'Vedic natal Moon'}: {natalName||'—'}</strong>
+        <p>{uk?'Лагна':'Ascendant'}: <b>{typeof natalLagna==='number'&&natalLagna>=1&&natalLagna<=12?SIGNS[locale][natalLagna-1]:'—'}</b></p>
+        <p>{uk?'Поради Джйотіш спираються на натальний сидеричний Місяць, його транзити та, у поглибленому читанні, Лагну й даші. Західний знак Сонця тут не визначає прогноз.':
+         'Jyotish guidance uses your natal sidereal Moon and transits, with Lagna and Dasha in the deeper reading. The Western Sun sign does not set this forecast.'}</p>
+       </div>
+      </div>
+      {period==='day'&&<section data-testid="personal-moon-reading">
+       <h3>{uk?'Гороскоп за моїм ведичним Місяцем':'Reading for my Vedic natal Moon'}</h3>
+       {personal.journey?.horoscope?detail(personal.journey.horoscope):
+        <p>{uk?'Сьогоднішній ведичний прогноз недоступний.':'The Vedic Moon reading is temporarily unavailable.'}</p>}
+      </section>}
+      {period==='day'&&personal.journey?.daily&&<details data-testid="personal-daily-core" className={styles.signExplanation}>
+       <summary style={{cursor:'pointer',fontWeight:700}}>{uk?'Поглиблена персональна порада · Лагна, даша, транзити':'Deeper guidance · Lagna, Dasha, transits'}</summary>
        {detail(personal.journey.daily)}
       </details>}
+      {period==='week'&&week?.horoscopeStatus!=='personalized'&&<p role="status">{uk?'Персональний ведичний тиждень недоступний.':'Vedic personal week is unavailable.'}</p>}
+      {period==='week'&&week?.horoscopeStatus==='personalized'&&<section className={styles.week} data-testid="personal-vedic-week">
+       <h3>{uk?'Наступні сім днів Джйотіш':'Next seven days · Jyotish'}</h3>
+       {week.horoscopes.map(day=><article key={day.date}>
+        <time dateTime={day.date}>{dayLabel(day.date)}</time>
+        {day.guidance?<><h3><GlossaryText text={t(day.guidance.headline)} locale={locale}/></h3>
+         <p><GlossaryText text={t(day.guidance.description)} locale={locale}/></p>
+         <p><strong>{uk?'Практична порада: ':'Practical guidance: '}</strong><GlossaryText text={t(day.guidance.goodFor)} locale={locale}/></p>
+         {evidence(day.guidance)}
+        </>:<p>{uk?'На цю дату немає перевіреного прогнозу.':'No verified reading for this date.'}</p>}
+       </article>)}
+      </section>}
      </>}
-     {period==='week'&&!week&&<p role="status">{uk?'Персональний тижневий прогноз недоступний.':'Personal weekly reading is currently unavailable.'}</p>}
-     {period==='week'&&week?.horoscopeStatus==='personalized'&&<section className={styles.week}>
-      <h2>{uk?'Наступні сім днів':'The next seven days'}</h2>
-      {week.horoscopes.filter(x=>x.guidance).map(x=><article key={x.date}>
-       <time dateTime={x.date}>{x.date}</time>
-       <h3>{t(x.guidance!.goodFor)}</h3>
-       <small>{uk?'Тема транзиту: ':'Transit theme: '}{t(x.guidance!.headline)}</small>
-       <p><GlossaryText text={t(x.guidance!.description)} locale={locale}/></p>
-       {x.guidance!.action&&<p><strong>{uk?'Практичний крок: ':'Practical step: '}</strong><GlossaryText text={t(x.guidance!.action)} locale={locale}/></p>}
-      </article>)}
-     </section>}
      <Link href={'/'+locale+'/personal'} className={styles.toPersonal}>
-       {uk?'Мій Всесвіт: натальна карта й календар':'Your Universe: birth chart and calendar'} <ArrowRight size={16}/>
+      {uk?'Мій Всесвіт: натальна карта та всі три знаки':'Your Universe: natal chart and all three signs'} <ArrowRight size={16}/>
      </Link>
     </>}
   </div>}
