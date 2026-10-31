@@ -58,6 +58,7 @@ jobs:
         run: |
           bash -n tools/galaxiora-final-release.sh
           bash -n tools/galaxiora-web-hotfix-20261031.sh
+          bash -n tools/galaxiora-horoscope-production-update.sh
           node --check e2e/support/disposable-accounts.mjs
           for file in e2e/*.spec.mjs; do node --check "$file"; done
       - name: Natal city autocomplete and privacy disclosure regression
