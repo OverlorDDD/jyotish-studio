@@ -172,7 +172,9 @@ export function buildAstrologicalSynthesis(input:SynthesisInputs){
  const westernTopics=new Set(westernChosen.map(x=>x.topic));
  const vedicTopics=new Set(vedicChosen.map(x=>x.topic));
  const common=(Object.keys(THEMES) as Topic[]).filter(topic=>westernTopics.has(topic)&&vedicTopics.has(topic));
- const primary=common[0]||vedicChosen[0]?.topic||westernChosen[0]?.topic||null;
+ const westernFocus=westernChosen[0]?.topic||null;
+ const vedicFocus=vedicChosen[0]?.topic||null;
+ const primary=common[0]||vedicFocus||westernFocus||null;
  const status=westernChosen.length===0||vedicChosen.length===0?'limited_evidence':
   common.length>0?'convergence':'different_emphases';
  const theme=primary?THEMES[primary]:null;
@@ -192,10 +194,17 @@ export function buildAstrologicalSynthesis(input:SynthesisInputs){
  return {
   version:'ASE_V1',date,zone:vedic.timeZone,
   status,headline,description,
-  advice:theme?theme.step:l('Спостерігай за власними рішеннями та обставинами; не вважай відсутність аспекту сигналом до дії.',
-    'Pay attention to your circumstances and decisions; the absence of a close aspect is not an instruction to act.'),
+  advice:status==='different_emphases'&&westernFocus&&vedicFocus?
+   l('Західний акцент: '+THEMES[westernFocus].step.uk+' Ведичний акцент: '+THEMES[vedicFocus].step.uk,
+     'Western emphasis: '+THEMES[westernFocus].step.en+' Vedic emphasis: '+THEMES[vedicFocus].step.en):
+   theme?theme.step:l('Спостерігай за власними рішеннями та обставинами; відсутність близького аспекту не є вказівкою до дії.',
+    'Attend to your own circumstances; the absence of a close aspect is not an instruction to act.'),
   reflection:theme?theme.question:l('Яка тема зараз справді важлива для тебе?','Which theme matters to you right now?'),
   commonTopics:common.map(key=>({key,...THEMES[key]})),
+  separateTopics:{
+   western:westernFocus?{key:westernFocus,title:THEMES[westernFocus].title}:null,
+   vedic:vedicFocus?{key:vedicFocus,title:THEMES[vedicFocus].title}:null
+  },
   western:{reference:'TROPICAL_NATAL_SUN_AND_MOON',signals:westernChosen,
    consideredAspects:ASPECTS.map(x=>({name:x.key,angle:x.angle})),
    consideredPlanets:PLANETS,matchedCount:westernSignals.length,
