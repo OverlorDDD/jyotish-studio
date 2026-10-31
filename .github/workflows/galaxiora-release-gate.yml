@@ -56,5 +56,7 @@ jobs:
           bash -n tools/galaxiora-final-release.sh
           node --check e2e/support/disposable-accounts.mjs
           for file in e2e/*.spec.mjs; do node --check "$file"; done
+      - name: Natal city autocomplete and privacy disclosure regression
+        run: node --test tools/galaxiora-city-privacy.test.mjs
       - name: Full production build
         run: npm run build
