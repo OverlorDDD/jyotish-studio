@@ -230,7 +230,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     <Link href={'/'+locale+'/horoscope/'+(tradition==='western'?'western/':'')+SIGN_SLUGS[selected-1]}>
      {tradition==='western'?(uk?'Про західне Сонце в знаку ':'About the Western Sun in '):(uk?'Про ведичний Місяць у знаку ':'About the Vedic Moon in ')}{SIGNS[locale][selected-1]} ↗
     </Link>
-   </p>}
+   </p>
    {period==='day'&&reading&&detail({...reading,evidence:{...reading.evidence,house:reading.house,timeZone:visibleData?.zone}})}
    {period==='week'&&<section className={styles.week} data-testid="public-horoscope-week">
     <h2>{uk?'Тижневий ритм для знака ':'Weekly outlook for '}{SIGNS[locale][selected-1]}</h2>
