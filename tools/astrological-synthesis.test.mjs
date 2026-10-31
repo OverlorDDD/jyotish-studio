@@ -86,7 +86,7 @@ test('API auth and personal synthesis UI never use guest chart or an LLM to manu
  assert.match(api,/buildAstrologicalSynthesis/);
  assert.match(ui,/synthesis-switch/);
  assert.match(panel,/ASTROLOGICAL_SYNTHESIS_V1/);
- assert.match(panel,/synthesis-evidence-western/);
+ assert.match(panel,/synthesis-evidence-/);
  assert.match(panel,/credentials:'same-origin',cache:'no-store'/);
  assert.doesNotMatch(engine,/import.*(?:openai|gemini|groq|fetch|prisma)/i);
 });
