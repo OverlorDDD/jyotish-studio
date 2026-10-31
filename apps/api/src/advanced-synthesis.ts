@@ -77,7 +77,7 @@ export async function traceContactWindow(natal:Natal,contact:Contact,atUtc:strin
  const center=Date.parse(atUtc),step=2*3600000,radius=(options.radiusDays??14)*86400000;
  if(!Number.isFinite(center)||radius<step||radius>45*86400000)throw Error('Invalid timing search');
  const target=natal.planets[contact.target].longitude;
- const sample=options.sample||async(utc:string)=>(await tropicalSkyAtUtc(utc)).planets[contact.planet].longitude;
+ const sample=options.sample||(async(utc:string)=>(await tropicalSkyAtUtc(utc)).planets[contact.planet].longitude);
  const at=async(t:number)=>angleOrb(await sample(stamp(t)),target,contact.angle)-contact.orbLimit;
  if(await at(center)>1e-6)throw Error('Timing contact not active at observation');
  // Bisection for first crossing to 5min (no extrapolation).
