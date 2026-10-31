@@ -16,6 +16,7 @@
  */
 import type {TropicalSky,TropicalPlanet} from './western-horoscope.ts';
 import {localToday,type dailyTransit} from './personal-transits.ts';
+import {editorialSynthesis} from './horoscope-editorial.ts';
 export type L={uk:string;en:string};
 const l=(uk:string,en:string):L=>({uk,en});
 const PLANETS:readonly TropicalPlanet[]=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'];
@@ -178,28 +179,13 @@ export function buildAstrologicalSynthesis(input:SynthesisInputs){
  const status=westernChosen.length===0||vedicChosen.length===0?'limited_evidence':
   common.length>0?'convergence':'different_emphases';
  const theme=primary?THEMES[primary]:null;
- const headline: L=common.length>0?
-  l('Спільна тема: '+theme!.title.uk,'Shared theme: '+theme!.title.en):
-  status==='different_emphases'?
-   l('Два астрологічні акценти','Two astrological emphases'):
-   l('Недостатньо близьких західних аспектів','No close Western aspects in the selected set');
- const description:L=common.length>0?
-  l('Обидві традиції незалежно звертають увагу на тему «'+theme!.title.uk.toLowerCase()+'», але через різні натальні точки та правила транзитів.',
-   'Both methods independently emphasize '+theme!.title.en.toLowerCase()+', using different natal anchors and transit conventions.'):
-  status==='different_emphases'?
-   l('Західна й ведична традиції зараз підкреслюють різні життєві теми. Це не обов’язково суперечність: їхні точки відліку й правила різні.',
-    'Western and Vedic methods currently emphasize different life themes. This need not be a contradiction: their natal anchors and rules differ.'):
-   l('Немає достатніх близьких західних аспектів у вибраному наборі правил. Ми не вигадуємо збіг — показуємо доступні ведичні транзити.',
-    'The selected aspect rules yield no close Western natal contacts. Rather than inventing convergence, the available Vedic transits remain visible.');
+ const editorial=editorialSynthesis({
+  western:westernChosen,vedic:vedicChosen,topic:theme?.title||null,status
+ });
  return {
   version:'ASE_V1',date,zone:vedic.timeZone,
-  status,headline,description,
-  advice:status==='different_emphases'&&westernFocus&&vedicFocus?
-   l('Західний акцент: '+THEMES[westernFocus].step.uk+' Ведичний акцент: '+THEMES[vedicFocus].step.uk,
-     'Western emphasis: '+THEMES[westernFocus].step.en+' Vedic emphasis: '+THEMES[vedicFocus].step.en):
-   theme?theme.step:l('Спостерігай за власними рішеннями та обставинами; відсутність близького аспекту не є вказівкою до дії.',
-    'Attend to your own circumstances; the absence of a close aspect is not an instruction to act.'),
-  reflection:theme?theme.question:l('Яка тема зараз справді важлива для тебе?','Which theme matters to you right now?'),
+  status,headline:editorial.headline,description:editorial.description,
+  advice:editorial.advice,reflection:editorial.reflection,
   commonTopics:common.map(key=>({key,...THEMES[key]})),
   separateTopics:{
    western:westernFocus?{key:westernFocus,title:THEMES[westernFocus].title}:null,
@@ -215,6 +201,6 @@ export function buildAstrologicalSynthesis(input:SynthesisInputs){
   provenance:{sampledAtUtc:western.sampledAtUtc,
    interpretation:'GALAXIORA_EDITORIAL_HOUSE_AND_PLANET_THEME_MAPPING_V1',
    comparison:'EXACT_TOPIC_INTERSECTION_NO_FORCED_CONSENSUS',
-   warning:'General traditional interpretive guidance; not a deterministic event forecast'}
+   warning:'Source-specific traditional interpretations; precise computation details are available separately'}
  };
 }
