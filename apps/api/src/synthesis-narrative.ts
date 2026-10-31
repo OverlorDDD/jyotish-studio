@@ -61,7 +61,7 @@ export function validateASE3Output(raw:unknown,allowed:ReadonlyArray<ASEFact>){
    new Set(row.evidenceIds).size!==row.evidenceIds.length)
    throw Error('AI unsupported evidence identifier');
   const linked=row.evidenceIds.map(id=>index.get(id as string)!.fact).join(' ');
-  if(PLANET_MENTIONS.some(([mention,source])=>mention.test(row.text!)&&!source.test(linked)))
+  if(PLANET_MENTIONS.some(([mention,source])=>mention.test(row.text as string)&&!source.test(linked)))
    throw Error('AI mentioned planetary actor not established in cited facts');
   for(const id of row.evidenceIds)used.add(id);
   return {id:'ase3-paragraph-'+(i+1),text:row.text.trim(),evidenceIds:row.evidenceIds as string[]};
