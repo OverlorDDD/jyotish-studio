@@ -15,7 +15,7 @@
  * mappings, not quoted traditional verses or empirical forecasts.
  */
 import type {TropicalSky,TropicalPlanet} from './western-horoscope.ts';
-import type {dailyTransit} from './personal-transits.ts';
+import {localToday,type dailyTransit} from './personal-transits.ts';
 export type L={uk:string;en:string};
 const l=(uk:string,en:string):L=>({uk,en});
 const PLANETS:readonly TropicalPlanet[]=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'];
@@ -101,8 +101,7 @@ const fmt=(x:number)=>Math.round(x*100)/100;
 export function buildAstrologicalSynthesis(input:SynthesisInputs){
  const {date,western,vedic,natalWestern,natalVedic}=input;
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date!==vedic.date||
-    date!==new Intl.DateTimeFormat('en-CA',{timeZone:vedic.timeZone,
-     year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(western.sampledAtUtc))||
+    date!==localToday(vedic.timeZone,new Date(western.sampledAtUtc))||
     western.sampledAtUtc!==vedic.sampledAtUtc)
   throw Error('Mismatched dates or sampling instants: refusing synthesis');
  if(!validSign(natalVedic.moonSign)||!validSign(natalVedic.lagnaSign)||
