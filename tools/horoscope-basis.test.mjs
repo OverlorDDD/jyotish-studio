@@ -26,12 +26,14 @@ test('manual Aries in public mode does not overwrite natal Gemini (distinct evid
  assert.equal(gemini.headline.uk,readPublicSign(3,t).headline.uk);
 });
 
-test('legitimate two-day Moon house residence retains the house but daily headings and advice progress',()=>{
+test('same Moon house and nakshatra have stable guidance across dates; only a real lunar change alters prose',()=>{
  const base={...t,moon:{...t.moon,sign:12,nakshatra:'Revati',pada:1}};
  const days=['2026-10-28','2026-10-29','2026-10-30','2026-10-31'].map(date=>
   readPublicSign(1,{...base,date,sampledAtUtc:date+'T10:00:00Z'}));
  assert.deepEqual(days.map(x=>x.house),[12,12,12,12]);
- assert.equal(new Set(days.map(x=>x.headline.uk)).size,4);
- assert.equal(new Set(days.map(x=>x.goodFor.uk)).size,4);
+ assert.equal(new Set(days.map(x=>x.headline.uk)).size,1);
+ assert.equal(new Set(days.map(x=>x.goodFor.uk)).size,1);
+ const changed=readPublicSign(1,{...base,moon:{...base.moon,nakshatra:'Uttara Bhadrapada',pada:4}});
+ assert.notDeepEqual(changed.description,days[0].description);
  assert.ok(days.every(x=>x.evidence.kind==='PUBLIC_JANMA_RASHI_REFERENCE'));
 });
