@@ -45,7 +45,7 @@ test('readings never fabricate daily changes when the Sun and Moon houses have n
  assert.deepEqual(a.goodFor,b.goodFor);
  assert.equal(a.evidence.sunHouse,((sky.sun.sign-1+12)%12)+1);
  assert.equal(a.evidence.house,((sky.moon.sign-1+12)%12)+1);
- assert.equal(a.evidence.editorialPolicy,'SKY_DERIVED_WHOLE_SIGN_HOUSE_THEMES_NOT_EVENT_PREDICTION');
+ assert.equal(a.evidence.editorialPolicy,'HOUSE_FOCUSED_DETERMINISTIC_UK_EN_V2');
  const changed=westernSignReading(1,{...sky,moon:{...sky.moon,sign:sky.moon.sign%12+1}},'2026-10-31');
  assert.notDeepEqual(changed.headline,a.headline);
  assert.notDeepEqual(changed.description,a.description);

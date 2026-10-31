@@ -6,6 +6,7 @@ on:
       - feat/western-vedic-horoscopes-20261031
       - feat/astrological-synthesis-engine-v1-20261031
       - feat/astrological-synthesis-engine-v2-v3-20261031
+      - fix/horoscope-deterministic-editorial-20261031
   workflow_dispatch:
 concurrency:
   group: galaxiora-release-${{ github.ref }}
@@ -67,6 +68,7 @@ jobs:
           bash -n tools/galaxiora-web-hotfix-20261031.sh
           bash -n tools/galaxiora-horoscope-production-update.sh
           bash -n tools/galaxiora-synthesis-production-update.sh
+          bash -n tools/galaxiora-horoscope-editorial-production-update.sh
           node --check e2e/support/disposable-accounts.mjs
           for file in e2e/*.spec.mjs; do node --check "$file"; done
       - name: Natal city autocomplete and privacy disclosure regression

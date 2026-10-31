@@ -144,8 +144,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
     {uk?'Денні формулювання частково змінюються редакційним циклом; це не означає, що планета змінила знак чи що сталася передбачена подія.':
       'Daily wording can vary through an editorial cycle; this does not imply a planetary sign change or a predicted event.'}</p>}
    {westernReading&&<p>
-    {uk?'Цілознакові доми від натального знака Сонця — умовна основа загального гороскопу, не розраховані індивідуальні натальні доми. Поради є традиційними символічними орієнтирами.':
-     'Whole-sign houses counted from the natal Sun sign are general reference positions, not individually calculated natal houses. Guidance is traditional and symbolic.'}</p>}
+    {uk?'Тут доми відраховано від знака твого Сонця за цілознаковою системою. Для повної натальної карти з куспідами та аспектами відкрий «Синтез карти».':
+     'These whole-sign houses are counted from your Sun sign. For full natal cusps and planetary contacts, open Chart synthesis.'}</p>}
    {(facts.major||facts.minor)&&<p>{uk?'Махадаша / антардаша':'Mahadasha / Antardasha'}:
     {' '+String(facts.major||'—')} / {String(facts.minor||'—')}</p>}
 
@@ -157,7 +157,7 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    <p className={styles.story}><GlossaryText text={t(g.description)} locale={locale}/></p>
    <div className={styles.highlights}>
     <section><strong>{uk?'Спробуй сьогодні':'Try this today'}</strong><p><GlossaryText text={t(g.goodFor)} locale={locale}/></p></section>
-    <section><strong>{uk?'Пам’ятай':'Keep in mind'}</strong><p><GlossaryText text={t(g.caution)} locale={locale}/></p></section>
+    <section><strong>{uk?'На що звернути увагу':'What deserves attention'}</strong><p><GlossaryText text={t(g.caution)} locale={locale}/></p></section>
    </div>
    <div className={styles.reflection}><strong>{g.reflection?(uk?'Запитання для себе':'A question for yourself'):
      (uk?'Практичний крок':'One practical step')}</strong>
@@ -246,8 +246,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
    {period==='week'&&<section className={styles.week} data-testid="public-horoscope-week">
     <h2>{uk?'Тижневий ритм для знака ':'Weekly outlook for '}{SIGNS[locale][selected-1]}</h2>
     <p className={styles.note}>{tradition==='western'?
-     (uk?'Сім окремих полуденних спостережень за Києвом. Сонячні та місячні транзити визначають символічні теми; якщо положення не змінилося, порада може повторюватися.':
-      'Seven distinct Kyiv-noon observations. Real Sun and Moon house positions determine the symbolic themes; readings can repeat when the sky reference remains unchanged.'):
+     (uk?'Сім полуденних спостережень за Києвом. Тема змінюється, коли змінюються розраховані положення Сонця, Місяця або Меркурія.':
+      'Seven Kyiv-noon observations; topics change with actual Sun, Moon or Mercury positions.'):
      (uk?'Сім окремих полуденних спостережень. Добові редакційні акценти відокремлені від астрономічних змін.':
       'Seven separate noon samples. Date-based editorial emphasis is not a planetary event.')}</p>
     {weekBusy&&<p role="status">{uk?'Звіряємо сім днів ефемерид…':'Checking seven days of ephemerides…'}</p>}
@@ -282,8 +282,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
       <div className={styles.signExplanation} data-testid="personal-western-basis">
        <div>
         <strong>{uk?'Західний знак Сонця':'Western natal Sun sign'}: {westernName||'—'}</strong>
-        <p>{uk?'Цей прогноз використовує точний тропічний знак Сонця з твоєї натальної карти та розраховані транзити тропічних Сонця й Місяця. Це індивідуально обраний сонячний знак, а не повний західний натальний аналіз. Ведичні даші й Лагна не використовуються.':
-         'This uses the exact tropical Sun sign from your verified birth time plus computed tropical Sun and Moon transits. It is Sun-sign guidance selected for you, not a complete Western natal analysis. Vedic Dasha and Lagna are not used.'}</p>
+        <p>{uk?'Твій точний натальний знак Сонця визначає початкову точку. Прогноз поєднує транзити Сонця, Місяця й Меркурія. Повна натальна карта з аспектами та домами доступна у «Синтезі карти».':
+         'Your verified natal Sun sign sets the reference point. This reading combines transits of Sun, Moon and Mercury. Open Chart synthesis for your full natal chart, aspects and houses.'}</p>
        </div>
       </div>
       {westernBusy&&<p role="status">{uk?'Розраховуємо західні транзити…':'Calculating Western transits…'}</p>}
@@ -346,8 +346,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
   </div>}
   <footer className={styles.sources}><BookOpen size={18}/><div>
    <strong>{uk?'Метод і джерела':'Method and sources'}</strong>
-   {tradition==='western'&&(mode==='signs'||(mode==='mine'&&!synthesisOpen))?<p>{uk?'Західний режим: прямі тропічні довготи Сонця й Місяця за Swiss Ephemeris; традиційні цілознакові доми від сонячного знака. Редакційні поради є загальними символічними тлумаченнями, а не гарантіями подій.':
-    'Western mode: direct Swiss Ephemeris tropical Sun and Moon longitudes; traditional whole-sign houses from the Sun sign. Editorial guidance is symbolic and not an event prediction.'}</p>:
+   {tradition==='western'&&(mode==='signs'||(mode==='mine'&&!synthesisOpen))?<p>{uk?'Західний режим: тропічні довготи Сонця, Місяця й Меркурія за Swiss Ephemeris. Доми відраховано від сонячного знака; повні натальні аспекти й куспіди показує «Синтез карти».':
+    'Western mode: Swiss Ephemeris tropical Sun, Moon and Mercury; whole-sign houses counted from the Sun sign. Chart synthesis shows the full natal contacts and cusps.'}</p>:
     <><p>{uk?'Астрономічна основа: Swiss Ephemeris, сидеричний зодіак Лагірі. Тлумачення транзитів спираються на традицію Джйотіш, зокрема «Пхаладіпіку», розділ 26.':
     'Astronomical basis: Swiss Ephemeris, Lahiri sidereal zodiac. Transit interpretations draw on classical Jyotish, including Phaladipika, chapter 26.'}</p>
    <a href="https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621598.html" target="_blank" rel="noopener noreferrer">{uk?'Читати першоджерело':'Classical source'}</a></>}

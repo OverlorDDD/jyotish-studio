@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {calculateAshtakavarga,avSignsFromNatal,grahaDrishti,AV_GRAHAS} from '../apps/api/src/ashtakavarga.ts';
 import {houseFromCusps,tropicalNatalChartAtUtc} from '../apps/api/src/western-natal.ts';
 import {angleOrb,westernNatalContacts,westernTransitContacts,traceContactWindow,vedicAdvancedEvidence} from '../apps/api/src/advanced-synthesis.ts';
-import {selectASEFacts,validateASE3Output,generateASE3Reading} from '../apps/api/src/synthesis-narrative.ts';
+import {editorialWesternReading,editorialSynthesis,editorialAdvancedReading,houseTheme} from '../apps/api/src/horoscope-editorial.ts';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('BPHS unreduced 7x8 tables conserve all 337 scores for 25 deterministic natal layouts',()=>{
@@ -90,38 +90,58 @@ test('Vedic gochara map and Ashtakavarga use real natal signs, never invented ho
 
  assert.throws(()=>vedicAdvancedEvidence({...transit,ephemerisBackend:'Moshier'},positions,10));
 });
-test('ASE-3 proof IDs required; unknown references or fabricated numbers fail closed',()=>{
- const facts=[{id:'T:Sun:Moon:trine',tradition:'western',topic:'Sun',fact:'Sun trine Moon'},
-  {id:'V:GOCHARA:Saturn',tradition:'vedic',topic:'Saturn',fact:'Saturn house from Moon'}];
- const make=()=>({paragraphs:[
-  {evidenceIds:[facts[0].id],text:'У західному підході акцент на внутрішньому напрямі допомагає побачити важливість послідовних рішень, але він не замінює живого контексту та уважності до власних дій.'},
-  {evidenceIds:[facts[1].id],text:'Ведичний погляд додає тему витримки й відповідальності, яка може поєднуватись із попереднім спостереженням, не стираючи різницю між традиціями та їхніми правилами.'}
- ]});
- assert.equal(validateASE3Output(make(),facts).length,2);
- assert.throws(()=>validateASE3Output({...make(),paragraphs:make().paragraphs.map(p=>({...p,evidenceIds:['V:FAKE']}))},facts));
- assert.throws(()=>validateASE3Output({...make(),paragraphs:make().paragraphs.map(p=>({...p,text:p.text+' 99%' }))},facts));
- const missing={...make(),paragraphs:make().paragraphs.map(p=>({...p,evidenceIds:[facts[0].id]}))};
- assert.throws(()=>validateASE3Output(missing,facts),/both traditions/);
+test('Western natal sign editorial uses Sun, Moon and Mercury without the old warnings',()=>{
+ const one=editorialWesternReading({sunHouse:8,moonHouse:4,mercuryHouse:7});
+ assert.match(one.description.uk,/спільн|довір|домашн/i);
+ assert.match(one.description.uk,/Меркурій/);
+ assert.match(one.goodFor.uk,/Перевір/);
+ assert.doesNotMatch(JSON.stringify(one),/не сприймай|не гаранті|символічне загальне|not a prediction/i);
+ const other=editorialWesternReading({sunHouse:2,moonHouse:11,mercuryHouse:1});
+ assert.notDeepEqual(other,one);
+ for(let h=1;h<=12;h++)assert.ok(houseTheme(h).step.uk.length>30);
+ assert.throws(()=>houseTheme(13),/Invalid reference house/);
 });
-test('Free cloud narrative remains disabled without explicit server opt-in',async()=>{
- const prior=process.env.ASE_AI_ENABLED;
- delete process.env.ASE_AI_ENABLED;
- try{assert.equal((await generateASE3Reading([{id:'V:DASHA',tradition:'vedic',topic:'timing',fact:'Verified dasha'}],'uk')).status,'disabled');}
- finally{if(prior===undefined)delete process.env.ASE_AI_ENABLED;else process.env.ASE_AI_ENABLED=prior;}
+test('Synthesis foregrounds actual western transit aspect and independent Vedic house',()=>{
+ const western=[{id:'W:1',planet:'Saturn',topic:'responsibility',aspect:'square',target:'Moon'}];
+ const vedic=[{id:'V:1',planet:'Saturn',topic:'responsibility',house:4}];
+ const synthesis=editorialSynthesis({western,vedic,status:'convergence',
+  topic:{uk:'Обов’язки та витримка',en:'Commitments and patience'}});
+ assert.match(synthesis.description.uk,/Сатурн/);
+ assert.match(synthesis.description.uk,/квадрат/);
+ assert.match(synthesis.description.uk,/4-й дім/);
+ assert.match(synthesis.description.en,/Western|Saturn/);
+ assert.doesNotMatch(JSON.stringify(synthesis),/не вигадуємо|символічне трактування|гарантія подій|not a deterministic/i);
+ const different=editorialSynthesis({western,vedic,status:'different_emphases',topic:null});
+ assert.notDeepEqual(different.headline,synthesis.headline);
 });
-test('ASE-2/3 code paths do not expose birth locations or accept client-supplied evidence',()=>{
+test('ASE-3 deterministic reading cites real source signals without calling providers',()=>{
+ const input={
+  contacts:[{id:'T:Sun:Moon:trine',planet:'Sun',target:'Moon',aspect:'trine',applying:'applying'}],
+  gochara:[{graha:'Saturn',houseFromMoon:4,houseFromLagna:8,bav:4,sav:28}],
+  periods:[{lord:'Saturn',level:'mahadasha',natalHouse:10,ruledHouses:[1,2]}]
+ };
+ const first=editorialAdvancedReading(input),second=editorialAdvancedReading(input);
+ assert.deepEqual(first,second);
+ assert.equal(first.version,'ASE_V3_DETERMINISTIC');
+ assert.equal(first.paragraphs.length,3);
+ assert.deepEqual(first.paragraphs[0].evidenceIds,['T:Sun:Moon:trine']);
+ assert.deepEqual(first.paragraphs[1].evidenceIds,['V:GOCHARA:Saturn']);
+ assert.match(first.paragraphs[1].text.uk,/Бхінна-аштакаварга/);
+ assert.match(first.paragraphs[2].text.uk,/махадаша/);
+ const api=read('apps/api/src/personal.ts'),ui=read('apps/web/app/components/AstrologicalSynthesisPanel.tsx');
+ assert.doesNotMatch(api,/horoscope\/synthesis\/reading|generateASE3Reading|selectASEFacts|synthesisAiLimiter/);
+ assert.doesNotMatch(ui,/synthesis-ai-v3|aiConsent|horoscope\/synthesis\/reading|AI-провайдер/);
+ assert.match(ui,/synthesis-editorial-v3/);
+ assert.match(ui,/credentials:'same-origin'/);
+});
+test('ASE-2/3 private data remain owner scoped and no model is imported by the horoscope engine',()=>{
  const api=read('apps/api/src/personal.ts');
  assert.match(api,/@Get\('horoscope\/synthesis\/advanced'\)/);
- assert.match(api,/@Post\('horoscope\/synthesis\/reading'\)/);
  assert.match(api,/owner\(req\)/);
- assert.match(api,/const uid=mutation\(req\)/);
- assert.match(api,/synthesisAiLimiter\(uid\)/);
  assert.match(api,/ownerId:uid/);
- assert.match(api,/consent!==true/);
- assert.match(api,/selectASEFacts\(payload.days\[0\].advanced/);
- const ui=read('apps/web/app/components/AstrologicalSynthesisPanel.tsx');
- assert.match(ui,/synthesis-advanced-v2/);
- assert.match(ui,/synthesis-ai-v3/);
- assert.match(ui,/aiConsent/);
- assert.match(ui,/credentials:'same-origin'/);
+ const advanced=read('apps/api/src/advanced-synthesis.ts');
+ assert.match(advanced,/editorialAdvancedReading/);
+ assert.doesNotMatch(advanced,/openai|gemini|groq|openrouter/i);
+ const western=read('apps/api/src/western-horoscope.ts');
+ assert.match(western,/editorialWesternReading/);
 });

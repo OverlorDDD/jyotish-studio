@@ -11,7 +11,6 @@ import {tropicalSkyAtUtc,tropicalSkyForDay,westernSignReading,TROPICAL_METHOD} f
 import {buildAstrologicalSynthesis} from './astrological-synthesis.ts';
 import {tropicalNatalChartAtUtc} from './western-natal.ts';
 import {buildAdvancedSynthesis} from './advanced-synthesis.ts';
-import {selectASEFacts,generateASE3Reading} from './synthesis-narrative.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
 import {dailySkyContext} from './sky-context.ts';
@@ -24,7 +23,6 @@ const TOPICS=['astronomy','jyotish','tarot','yoga','vedic-traditions','academy',
  'astrology','meditation','vedic','self-development','natal-charts','nakshatras','mantras','pranayama'] as const;
 const PRACTICES=['box','equal','extended'] as const;
 const calendarLimiter=createKeyedHourlyLimiter(20);
-const synthesisAiLimiter=createKeyedHourlyLimiter(3);
 function owner(req:IncomingMessage){const id=cookieUser(req);if(!id)throw new UnauthorizedException('Sign in to your Personal space');return id;}
 function mutation(req:IncomingMessage){if(!sameOrigin(req))throw new BadRequestException('Cross-origin personal update denied');return owner(req);}
 async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;input:unknown;result:unknown}|null){
@@ -213,26 +211,6 @@ export class PersonalController{
    // Fail closed for unsupported Placidus geometry or unverifiable data.
    return {...base,advancedStatus:'calculation_unavailable'};
   }
- }
-
- /** ASE-3 uses explicit consent, same-origin request, ownership and a free AI limit. */
- @Post('horoscope/synthesis/reading') @Header('Cache-Control','private, no-store')
- async synthesisReading(@Req()req:IncomingMessage,
-  @Body()body:{consent?:boolean;locale?:string}){
-  const uid=mutation(req);
-  if(body?.consent!==true||!['uk','en'].includes(body?.locale||''))
-   throw new BadRequestException('Explicit AI consent and locale required');
-  if(!synthesisAiLimiter(uid))
-   throw new BadRequestException('ASE-3 per-user hourly request limit');
-  const payload=await this.advancedSynthesis(req,'1');
-  if(payload.advancedStatus!=='available'||!payload.days.length||
-     !('advanced' in payload.days[0])||!payload.days[0].advanced)
-   throw new ServiceUnavailableException('Verified ASE-2 evidence required');
-  const facts=selectASEFacts(payload.days[0].advanced,body.locale as 'uk'|'en');
-  return generateASE3Reading(facts,body.locale as 'uk'|'en',{
-   status:payload.days[0].status,
-   sharedTopics:payload.days[0].commonTopics.map(topic=>topic.key)
-  });
  }
 
  @Get('horoscope/western') @Header('Cache-Control','private, no-store')

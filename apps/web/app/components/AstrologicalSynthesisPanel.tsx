@@ -9,6 +9,8 @@ type Signal={id:string;source:string;planet:string;title:L;detail:L;topic:string
  sampledAtUtc:string;};
 type Advanced={
  version:'ASE_V2';
+ narrative?:{version:'ASE_V3_DETERMINISTIC';method:string;
+  paragraphs:{id:string;text:L;evidenceIds:string[]}[];guidance:L};
  natal:{planets:Record<string,{longitude:number;sign:number;house:number}>;ascendant:number;midheaven:number;cusps:number[];
  contacts:{id:string;first:string;second:string;aspect:string;orb:number}[]};
  western:{contacts:{id:string;planet:string;target:string;aspect:string;orb:number;applying:string}[];
@@ -18,9 +20,6 @@ type Advanced={
  drishti:{graha:string;toSign:number;offset:number;natalTargets:string[]}[];
  periodFactors:{level:string;lord:string;natalSign:number;natalHouse:number;ruledHouses:number[];transitSign:number;transitHouseFromMoon:number;transitHouseFromLagna:number;bav:number|null;sav:number}[]};
 };
-type AiReading={status:'available'|'unavailable'|'disabled';reason?:string;
- paragraphs?:{id:string;text:string;evidenceIds:string[]}[];
- evidence?:{id:string;tradition:string;fact:string}[]};
 type SynthesisDay={
  advanced?:Advanced;version:'ASE_V1';date:string;zone:string;status:'convergence'|'different_emphases'|'limited_evidence';
  headline:L;description:L;advice:L;reflection:L;
@@ -39,26 +38,9 @@ export default function AstrologicalSynthesisPanel({locale,period}:{locale:Porta
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState<'unauthorized'|'unavailable'|null>(null);
  const [retry,setRetry]=useState(0);
- const [aiConsent,setAiConsent]=useState(false);
- const [aiReading,setAiReading]=useState<AiReading|null>(null);
- const [aiLoading,setAiLoading]=useState(false);
- const generateReading=async()=>{
-  if(!aiConsent||aiLoading)return;
-  setAiLoading(true);setAiReading(null);
-  try{
-   const response=await fetch('/api/v1/personal/horoscope/synthesis/reading',{
-    method:'POST',credentials:'same-origin',cache:'no-store',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({consent:true,locale})});
-   if(!response.ok)throw Error('reading unavailable');
-   const body=await response.json() as AiReading;
-   setAiReading(body);
-  }catch{setAiReading({status:'unavailable',reason:'REQUEST_FAILED'});}
-  finally{setAiLoading(false);}
- };
  useEffect(()=>{
   const controller=new AbortController();
-  setLoading(true);setData(null);setError(null);setAiReading(null);
+  setLoading(true);setData(null);setError(null);
   fetch('/api/v1/personal/horoscope/synthesis/advanced?days='+(period==='week'?'7':'1'),
    {credentials:'same-origin',cache:'no-store',signal:controller.signal})
    .then(async response=>{
@@ -80,7 +62,7 @@ export default function AstrologicalSynthesisPanel({locale,period}:{locale:Porta
  return <section className={styles.synthesis} data-testid="synthesis-panel" aria-label={uk?'Астрологічний синтез':'Astrological synthesis'}>
   <header className={styles.personalHeading}>
    <h2>{uk?'Синтез моєї карти':'My chart synthesis'}</h2>
-   <span>ASTROLOGICAL SYNTHESIS ENGINE · V2 / V3</span>
+   <span>ASTROLOGICAL SYNTHESIS · V2 / V3 · NO AI</span>
   </header>
   <p className={styles.note}>{uk?
    'Зіставлення західних аспектів до натальних Сонця й Місяця та ведичних транзитів від Джанма-раші й Лагни. Спільні теми виникають лише за наявності свідчень в обох традиціях.':
@@ -197,26 +179,19 @@ export default function AstrologicalSynthesisPanel({locale,period}:{locale:Porta
    <small className={styles.note}>{uk?'Дані: Swiss Ephemeris · тропічна та сидерична Лахірі · місцевий полудень. Символічне тлумачення: редакційні правила Galaxiora v1.':
     'Data: Swiss Ephemeris · tropical and Lahiri sidereal · local noon. Symbolic interpretation: Galaxiora editorial rules v1.'}</small>
   </article>)}
-  {data?.status==='available'&&data.days[0]?.advanced&&<section data-testid="synthesis-ai-v3" className={styles.synthesisAdvice}>
-   <h3>{uk?'ASE-3 · Глибоке AI-прочитання':'ASE-3 · Deep AI reading'}</h3>
-   <p>{uk?'AI створює лише текстове тлумачення перевірених астрологічних свідчень. Обчислення не змінюються.':
-    'AI writes only a narrative of verified astrological evidence. Calculations never change.'}</p>
-   <label><input type="checkbox" checked={aiConsent}
-    onChange={e=>setAiConsent(e.target.checked)}/>
-    {' '}{uk?'Погоджуюся передати знеособлені астрологічні свідчення AI-провайдеру.':
-     'I consent to sending de-identified astrological evidence to an AI provider.'}</label>
-   <p><button type="button" disabled={!aiConsent||aiLoading}
-    onClick={generateReading}>
-    {aiLoading?(uk?'Створюємо прочитання…':'Generating…'):
-     (uk?'Створити глибоке прочитання':'Generate deep reading')}</button></p>
-   {aiReading?.status==='available'&&aiReading.paragraphs?.map(p=><div key={p.id}
-    className={styles.synthesisEvidence}>
-    <p>{p.text}</p>
-    <small>{uk?'Підтверджені джерела: ':'Verified evidence: '}{p.evidenceIds.join(', ')}</small>
-   </div>)}
-   {aiReading&&aiReading.status!=='available'&&<p role="status">
-    {uk?'AI-прочитання недоступне або не пройшло перевірку. Жодних вигаданих фактів не показано.':
-     'AI reading unavailable or did not pass validation. No fabricated facts are shown.'}</p>}
-  </section>}
+  {data?.status==='available'&&data.days[0]?.advanced?.narrative&&
+   <section data-testid="synthesis-editorial-v3" className={styles.synthesisAdvice}>
+    <h3>{uk?'Глибоке прочитання моєї карти':'A deeper reading of my chart'}</h3>
+    <p className={styles.note}>{uk?
+     'Складено за розрахованими аспектами, ведичною гочарою та чинними дашами. Без AI: кожен висновок пов’язаний із конкретним показником карти.':
+     'Composed from calculated aspects, Vedic gochara and current dasha periods. No AI: each interpretation links to chart evidence.'}</p>
+    {data.days[0].advanced.narrative.paragraphs.map(p=><div key={p.id}
+     className={styles.synthesisEvidence}>
+      <p>{t(p.text)}</p>
+      <small>{uk?'Свідчення: ':'Evidence: '}{p.evidenceIds.join(' · ')}</small>
+    </div>)}
+    <p><strong>{uk?'Як використати цей період':'Working with this period'}</strong>{' '}
+     {t(data.days[0].advanced.narrative.guidance)}</p>
+   </section>}
  </section>;
 }

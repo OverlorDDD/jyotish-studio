@@ -12,6 +12,11 @@ const snapshot=(date)=>({version:'ASE_V1',date,zone:'Europe/Kyiv',
  provenance:{sampledAtUtc:'2026-10-31T10:00:00.000Z'}});
 const advanced={
  version:'ASE_V2',
+ narrative:{version:'ASE_V3_DETERMINISTIC',method:'VERIFIED_EVIDENCE_RULED_EDITORIAL_UK_EN_V1',
+ paragraphs:[
+  {id:'western',text:l('Сатурн утворює квадрат до натального Місяця: напруга між обов’язками й внутрішніми потребами.','Saturn makes a square to natal Moon: tension between responsibility and personal needs.'),evidenceIds:['T:Saturn:Moon:square']},
+  {id:'vedic',text:l('Сатурн у ведичній гочарі ставить на перший план питання дому та щоденної відповідальності.','Sidereal Saturn places home and responsibility into focus.'),evidenceIds:['V:GOCHARA:Saturn']}
+ ],guidance:l('Уточни спільну домовленість.','Clarify one shared agreement.')},
  natal:{ascendant:105.2,midheaven:13.3,
   cusps:Array.from({length:12},(_,i)=>(350+i*30)%360),
   planets:Object.fromEntries(['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn']
@@ -40,19 +45,6 @@ async function routeApi(page,guest=false){
    else data={status:'available',reference:path.endsWith('/advanced')?'ASTROLOGICAL_SYNTHESIS_V2':'ASTROLOGICAL_SYNTHESIS_V1',
     days:Array.from({length:days},(_,i)=>({...snapshot('2026-11-'+String(i+1).padStart(2,'0')),
      ...(path.endsWith('/advanced')?{advanced}: {})}))};
-  }else if(path==='/api/v1/personal/horoscope/synthesis/reading'){
-   if(guest)status=401;
-   else if(route.request().method()!=='POST')status=405;
-   else{
-    const payload=route.request().postDataJSON();
-    if(payload.consent!==true||!['uk','en'].includes(payload.locale))status=400;
-    else data={status:'available',version:'ASE_V3',paragraphs:[{
-     id:'ase3-paragraph-1',text:'A distinct Western insight, supported by the verified planetary evidence and balanced with the Vedic perspective, is shown in a carefully worded and specific reading.',
-     evidenceIds:['T:Sun:Moon:trine']},{
-     id:'ase3-paragraph-2',text:'A different Vedic consideration helps explain the tension without pretending that the two systems make precisely identical statements or guarantee future events.',
-     evidenceIds:['V:GOCHARA:Sun']}]
-    };
-   }
   }else if(path==='/api/v1/personal/horoscope/western'){
    data={status:'requires_verified_tropical_sun',reference:'TROPICAL_NATAL_SUN_SIGN',days:[]};
   }else if(path==='/api/v1/horoscope/western/today'||path==='/api/v1/horoscope/today'){
@@ -100,25 +92,21 @@ for(const locale of ['uk','en']){
   await page.getByRole('button',{name:locale==='uk'?'Усі 12 знаків':'All 12 signs'}).click();
   await expect(page.getByTestId('synthesis-panel')).toHaveCount(0);
  });
- test(locale+': ASE-3 reading is consent-gated and renders only linked text',async({page})=>{
-  let postCount=0;
+ test(locale+': ASE-3 automatic source-linked reading uses no cloud calls',async({page})=>{
+  let posts=0;
   await routeApi(page);
-  page.on('request',r=>{
-   if(r.url().includes('/horoscope/synthesis/reading')&&r.method()==='POST')postCount++;
-  });
+  page.on('request',r=>{if(r.method()==='POST')posts++;});
   await page.goto('/'+locale+'/horoscope');
   await page.getByRole('button',{name:locale==='uk'?'Мій персональний':'My personal reading'}).click();
   await page.getByTestId('synthesis-switch').click();
-  const ai=page.getByTestId('synthesis-ai-v3');
-  await expect(ai).toBeVisible();
-  const button=ai.getByRole('button',{name:locale==='uk'?'Створити глибоке прочитання':'Generate deep reading'});
-  await expect(button).toBeDisabled();
-  expect(postCount).toBe(0);
-  await ai.getByRole('checkbox').check();
-  await expect(button).toBeEnabled();
-  await button.click();
-  await expect(ai).toContainText('A distinct Western insight');
-  expect(postCount).toBe(1);
+  const editorial=page.getByTestId('synthesis-editorial-v3');
+  await expect(editorial).toBeVisible();
+  await expect(editorial).toContainText(locale==='uk'?'Сатурн':'Saturn');
+  await expect(editorial).toContainText('T:Saturn:Moon:square');
+  await expect(editorial).toContainText('V:GOCHARA:Saturn');
+  await expect(editorial.getByRole('checkbox')).toHaveCount(0);
+  await expect(editorial.getByRole('button')).toHaveCount(0);
+  expect(posts).toBe(0);
  });
  test(locale+': guests cannot see a synthesized private natal reading',async({page})=>{
   await routeApi(page,true);

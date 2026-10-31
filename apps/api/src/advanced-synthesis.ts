@@ -7,6 +7,7 @@ import {tropicalSkyAtUtc,type TropicalPlanet} from './western-horoscope.ts';
 import {calculateAshtakavarga,avSignsFromNatal,grahaDrishti,AV_GRAHAS} from './ashtakavarga.ts';
 import type {tropicalNatalChartAtUtc} from './western-natal.ts';
 import type {dailyTransit} from './personal-transits.ts';
+import {editorialAdvancedReading} from './horoscope-editorial.ts';
 const PLANETS:readonly TropicalPlanet[]=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'];
 const ASPECTS=[
  {key:'conjunction',angle:0,orb:4},{key:'semisextile',angle:30,orb:1.5},
@@ -196,13 +197,15 @@ export async function buildAdvancedSynthesis(input:{natal:Natal;transit:Transit;
  const contacts=await westernTransitContacts(natal,observed);
  const timed=await Promise.all(contacts.slice(0,Math.min(Math.max(input.maxTimed??6,0),8))
   .map(c=>traceContactWindow(natal,c,observed)));
+ const vedic=vedicAdvancedEvidence(transit,input.natalPositions,input.lagnaSign,input.period);
+ const narrative=editorialAdvancedReading({contacts,gochara:vedic.gochara,periods:vedic.periodFactors});
  return {version:'ASE_V2' as const,method:'SWISS_TROPICAL_PLACIDUS_AND_LAHIRI_ADVANCED',
   natal:{method:natal.method,planets:natal.planets,
    ascendant:natal.ascendant,midheaven:natal.midheaven,cusps:natal.cusps,
    contacts:westernNatalContacts(natal)},
   western:{contacts,activeContacts:contacts.length,timed,
    timingLimitation:'UTC samples; 14-day search bounds; clipped intervals are not full duration'},
-  vedic:vedicAdvancedEvidence(transit,input.natalPositions,input.lagnaSign,input.period),
+  vedic,narrative,
   sourceIds:['SWISS_EPHEMERIS_PROGRAMMING_MANUAL','BPHS_ASHTAKAVARGA_UNREDUCED',
    'PARASHARI_FULL_GRAHA_DRISHTI','VERIFIED_VIMSHOTTARI_CONTEXT']};
 }
