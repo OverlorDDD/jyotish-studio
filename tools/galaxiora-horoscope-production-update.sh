@@ -126,7 +126,13 @@ week=get('/api/v1/horoscope/western/week')
 assert week['reference']=='TROPICAL_SUN_SIGN' and len(week['days'])==7
 me=get('/api/v1/account/me')
 assert me['user'] is None
-print('PASS: real tropical day/week, independent vedic day and existing anonymous account')
+from urllib.error import HTTPError
+try:
+ get('/api/v1/personal/horoscope/western')
+ raise SystemExit('STOP: Western personal endpoint returned private data to guest')
+except HTTPError as error:
+ if error.code!=401:raise SystemExit('STOP: Western private guest access returned '+str(error.code)+' rather than 401')
+print('PASS: tropical day/week, independent Vedic day, private Western account 401')
 PY
 kill -- "-$CANARY" 2>/dev/null || true
 wait "$CANARY" 2>/dev/null || true
