@@ -121,7 +121,6 @@ v={
  'PUBLIC_REGISTRATION_ENABLED':'1','SESSION_COOKIE_SECURE':'1',
  'NEXT_PUBLIC_SITE_URL':'https://galaxiora.com','SITE_NOINDEX':'1',
  'NEXT_PUBLIC_SITE_CONTACT_EMAIL':'support@galaxiora.com',
- 'NEXT_PUBLIC_OPERATOR_NAME':'Denys Avramenko',
  'RESEND_FROM_EMAIL':'verify@mail.galaxiora.com',
  'NEXT_PUBLIC_TURNSTILE_SITE_KEY':secret['site'],
  'TURNSTILE_SECRET_KEY':secret['turnstile'],
