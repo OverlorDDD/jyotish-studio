@@ -7,6 +7,9 @@ on:
       - feat/astrological-synthesis-engine-v1-20261031
       - feat/astrological-synthesis-engine-v2-v3-20261031
   workflow_dispatch:
+concurrency:
+  group: galaxiora-release-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   release-gate:
     runs-on: ubuntu-latest
