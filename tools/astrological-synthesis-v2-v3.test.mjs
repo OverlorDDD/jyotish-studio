@@ -81,6 +81,13 @@ test('Vedic gochara map and Ashtakavarga use real natal signs, never invented ho
  assert.equal(evidence.drishti.length,13);
  assert.equal(evidence.gochara[0].houseFromLagna,5);
  assert.equal(evidence.periodContext.lord,'Saturn');
+ assert.equal(evidence.periodFactors.length,2);
+ assert.equal(evidence.periodFactors[0].lord,'Saturn');
+ assert.deepEqual(evidence.periodFactors[0].ruledHouses,[1,2]);
+ assert.equal(evidence.periodFactors[0].natalHouse,10);
+ assert.equal(evidence.periodFactors[1].lord,'Venus');
+ assert.ok(evidence.periodFactors.every(x=>x.strengthModel==='OBSERVED_CONTEXT_NO_QUANTITATIVE_DASHA_WEIGHT'));
+
  assert.throws(()=>vedicAdvancedEvidence({...transit,ephemerisBackend:'Moshier'},positions,10));
 });
 test('ASE-3 proof IDs required; unknown references or fabricated numbers fail closed',()=>{
