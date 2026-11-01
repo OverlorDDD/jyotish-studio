@@ -107,7 +107,7 @@ test('Native EN publisher excerpt is reused without charged translation; UK only
   assert.equal(out.processed,1);assert.equal(calls.length,1);
   assert.ok(calls[0].includes('to=uk'));
   assert.equal(db.meter.spent,teaserNmtCharacterCost(excerptSource(a),'uk'));
-  assert.equal(db.writes[0].data.summaryEn,undefined,'original English source is used by UI without a redundant translated field');
+  assert.equal(db.writes[0].data.summaryEn,excerptSource(a),'approved original English source is copied to public locale field without an Azure request');
  });
 });
 test('No publisher context: translate missing titles, but never generate a teaser',async()=>{
