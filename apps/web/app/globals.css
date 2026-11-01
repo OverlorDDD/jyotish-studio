@@ -1185,3 +1185,87 @@
  background:radial-gradient(circle at 25% 20%,#fff6df6a,transparent 42%);
  opacity:.68;
 }
+
+
+/* Mobile navigation + account stability (Android Chrome, webviews, OnePlus 11R).
+ * Header columns must never force the entire document wider than the viewport.
+ * Horizontal scrolling is intentionally scoped ONLY to the navigation row.
+ */
+.as-brand{min-width:0;max-width:100%}
+.as-brand-icon{flex:0 0 48px}
+.as-brand>span:last-child{min-width:0}
+.as-header-inner{min-width:0}
+.as-main-nav{min-width:0}
+.as-account-trigger{cursor:pointer;white-space:nowrap;min-height:44px}
+.as-account-trigger:focus-visible{outline:3px solid #f3d392;outline-offset:3px}
+@media(max-width:1130px){
+ .as-header-inner{
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;column-gap:12px;row-gap:12px;
+  padding:14px clamp(14px,3vw,26px)
+ }
+ .as-brand{grid-column:1;grid-row:1;min-width:0;overflow:hidden}
+ .as-brand strong{font-size:clamp(20px,2.7vw,26px);white-space:nowrap}
+ .as-brand small{overflow-wrap:anywhere;white-space:normal;line-height:1.4}
+ .as-account{grid-column:2;grid-row:1;margin:0;justify-self:end}
+ .as-header-inner>.as-language{grid-column:3;grid-row:1;order:initial}
+ .as-main-nav{
+  grid-column:1/-1;grid-row:2;order:initial;display:flex;flex-wrap:nowrap;
+  width:100%;max-width:100%;min-width:0;justify-content:flex-start;
+  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;gap:18px;padding:5px 0 9px;
+  scrollbar-width:thin
+ }
+ .as-main-nav a{flex:0 0 auto;white-space:nowrap;min-height:35px;display:inline-flex;align-items:center}
+}
+@media(max-width:580px){
+ .as-header-inner{grid-template-columns:minmax(0,1fr) auto auto;row-gap:10px}
+ .as-brand{grid-column:1/-1;grid-row:1;justify-self:start;overflow:visible}
+ .as-brand strong{font-size:26px}
+ .as-account{grid-column:2;grid-row:2;justify-self:end;margin:0}
+ .as-header-inner>.as-language{grid-column:3;grid-row:2;justify-self:end;order:initial}
+ .as-main-nav{grid-column:1/-1;grid-row:3;order:initial}
+}
+/* A portaled dialog is not a descendant of the sticky blurred header.
+ * This avoids fixed-position containing blocks and off-screen forms.
+ */
+.as-account-overlay{
+ position:fixed;inset:0;z-index:1000;background:rgba(5,9,18,.58);
+ overscroll-behavior:contain
+}
+.as-account-popover.as-account-dialog{
+ position:fixed;top:var(--account-top,80px);left:var(--account-left,16px);
+ right:auto;z-index:1;box-sizing:border-box;
+ width:min(360px,calc(100dvw - 28px));max-width:calc(100dvw - 28px);
+ max-height:calc(100dvh - 28px);overflow-y:auto;overflow-x:hidden;
+ overscroll-behavior:contain;padding:26px 20px 20px;
+ box-shadow:0 24px 85px #040913e8;color:#f5f0e8
+}
+.as-account-dialog .as-account-form{min-width:0}
+.as-account-dialog .as-account-form :is(input,button){box-sizing:border-box;max-width:100%}
+.as-account-dialog .as-account-form input{width:100%;min-width:0;font-size:16px}
+.as-account-dialog .as-password{width:100%;min-width:0}
+.as-account-dialog .as-account-form h3{padding-right:32px}
+.as-account-dialog .as-account-signed{min-width:0;overflow-wrap:anywhere}
+.as-account-close{
+ position:absolute;right:9px;top:9px;width:38px;height:38px;
+ display:grid;place-items:center;background:transparent;border:0;
+ color:#e8d2ae;border-radius:8px;cursor:pointer
+}
+.as-account-close:hover{background:#293851}
+.as-account-close:focus-visible,.as-account-dialog :is(a,button,input):focus-visible{
+ outline:3px solid #f3d392;outline-offset:2px
+}
+@media(max-width:760px){
+ .as-account-popover.as-account-dialog{
+  top:50%;left:50%;right:auto;
+  transform:translate(-50%,-50%);
+  width:calc(100dvw - 28px);
+  max-height:min(640px,calc(100dvh - 28px));
+  border-radius:16px
+ }
+}
+@media(max-width:380px){
+ .as-account-popover.as-account-dialog{padding:24px 14px 18px}
+ .as-brand small{font-size:7px;letter-spacing:.5px}
+}
