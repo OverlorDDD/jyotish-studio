@@ -1,4 +1,4 @@
-import {Controller,Get,Patch,Body,Param,Query,Req,Inject,UnauthorizedException,ForbiddenException,BadRequestException} from '@nestjs/common';
+import {Controller,Get,Header,Patch,Body,Param,Query,Req,Inject,UnauthorizedException,ForbiddenException,BadRequestException} from '@nestjs/common';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
@@ -101,11 +101,12 @@ export class AdminController {
     question:true,context:true,deliveryFileKey:true
   }});
  }
- @Get('overview')
+ @Get('overview') @Header('Cache-Control','private,no-store')
  async overview(@Req()req:IncomingMessage){
   await this.requireAdmin(req);
-  const start=new Date(Date.now()-30*24*60*60*1000);
-  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts,tarotReadings,expertRequestsUnread]=await Promise.all([
+  const now=new Date(),start=new Date(now.getTime()-30*24*60*60*1000);
+  const weekStart=new Date(now.getTime()-7*24*60*60*1000);
+  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts,tarotReadings,expertRequestsUnread,newUsers7d,newCharts7d,newOrders7d]=await Promise.all([
    this.prisma.user.count(),
    this.prisma.chart.count(),
    this.prisma.readingOrder.groupBy({by:['status'],_count:{_all:true}}),
@@ -121,10 +122,14 @@ export class AdminController {
    this.prisma.user.count({where:{subscriptionTier:'PREMIUM',subscriptionEndsAt:{gt:new Date()}}}),
    this.prisma.readingDraft.count({where:{expiresAt:{gt:new Date()}}}),
    this.prisma.tarotReading.count(),
-   this.prisma.tarotQuestion.count({where:{expertSubmittedAt:{not:null},expertReviewedAt:null}})
+   this.prisma.tarotQuestion.count({where:{expertSubmittedAt:{not:null},expertReviewedAt:null}}),
+   this.prisma.user.count({where:{createdAt:{gte:weekStart}}}),
+   this.prisma.chart.count({where:{createdAt:{gte:weekStart}}}),
+   this.prisma.readingOrder.count({where:{createdAt:{gte:weekStart}}})
   ]);
   return {
-   windowDays:30,users,charts,subscribers,freeMembers:users-subscribers,unpaidDrafts,tarotReadings,expertRequestsUnread,
+   generatedAt:now.toISOString(),windowDays:30,users,charts,subscribers,freeMembers:users-subscribers,
+   newUsers7d,newCharts7d,newOrders7d,unpaidDrafts,tarotReadings,expertRequestsUnread,
    orders:orders.map(row=>({status:row.status,count:row._count._all})),
    ai:{
     requests:usage._count._all,
