@@ -21,7 +21,9 @@ test('Azure automatically identifies mixed script portions for both target langu
  const calls=[];
  const fake=async (url,options)=>{
   const target=new URL(url).searchParams.get('to');
-  assert.equal(new URL(url).searchParams.has('from'),false);
+  const params=new URL(url).searchParams;
+  assert.ok([null,'en','hi'].includes(params.get('from')));
+  if(hasDevanagari(JSON.parse(options.body)[0].text))assert.equal(params.get('from'),'hi');
   const body=JSON.parse(options.body)[0].text;
   calls.push({target,body});
   const isHindi=hasDevanagari(body);
