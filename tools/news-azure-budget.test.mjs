@@ -98,7 +98,7 @@ test('Approved Azure batch reserves the actual headline length, then stores its 
  let calls=0;
  const fetcher=async (url,options)=>{
   calls++;
-  assert.equal(url,'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=en&to=uk');
+  assert.equal(url,'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=uk');
   assert.equal(options.headers['Ocp-Apim-Subscription-Key'],'fake-test-key');
   assert.equal(JSON.parse(options.body)[0].text,headline);
   return new Response(JSON.stringify([{translations:[{to:'uk',text:'Меркурій увійшов у Скорпіон у 2026 році'}]}]),{status:200});
