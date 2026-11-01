@@ -2,6 +2,7 @@ import {notFound} from 'next/navigation';
 import type {Metadata} from 'next';
 import PortalShell from '../../components/PortalShell';
 import PanchangaHub from '../../components/PanchangaHub';
+import {PanchangaSearchGuide} from '../../components/SearchGuides';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
 import {indexRobots} from '../../../lib/site-indexing';
 const SEO_COPY={"uk":{"title":"Панчанга — ведичний календар і фази Місяця","description":"Панчанга для будь-якого міста світу: тітхі, накшатра, йога, карана, схід Сонця, місячні фази та ведичні свята."},"en":{"title":"Panchanga — Vedic Calendar and Moon Phases","description":"Worldwide Panchanga: tithi, nakshatra, yoga, karana, sunrise, lunar phases and traditional Vedic observances."}} as const;
@@ -21,5 +22,6 @@ export default async function PanchangaPage({params}:{params:Promise<{locale:str
  const {locale}=await params;if(!isPortalLocale(locale))notFound();
  return <PortalShell locale={locale as PortalLocale} active="panchanga" languagePath="panchanga">
   <PanchangaHub locale={locale as PortalLocale}/>
+  <PanchangaSearchGuide locale={locale as PortalLocale}/>
  </PortalShell>;
 }
