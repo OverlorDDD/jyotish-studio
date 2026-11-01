@@ -5,7 +5,7 @@ export const GROWTH_PUBLIC_SECTIONS=new Set([
  '','about','astrology','astrology/jyotish','tarot','tarot/cards',
  'panchanga','eclipses/2027','horoscope','yoga','learn','news','community','methodology'
 ]);
-export type GrowthEvent='article_to_tool_click'|'public_resource_share';
+export type GrowthEvent='article_to_tool_click'|'public_resource_share'|'tarot_spread_started'|'tarot_spread_completed'|'panchanga_calculation_completed';
 export function safeGrowthPath(pathname:string):string|null{
  if(!/^\/(uk|en)(\/|$)/.test(pathname))return null;
  if(/[?#%]/.test(pathname))return null;
@@ -19,5 +19,11 @@ export function safeGrowthPath(pathname:string):string|null{
  return null;
 }
 export function safeGrowthEvent(name:string):name is GrowthEvent{
- return name==='article_to_tool_click'||name==='public_resource_share';
+ return ['article_to_tool_click','public_resource_share','tarot_spread_started','tarot_spread_completed','panchanga_calculation_completed'].includes(name);
+}
+
+/** Names only: no question, birth information, location, ID or user-input payload. */
+export function reportGrowthEvent(name:GrowthEvent):void{
+ if(typeof window==='undefined'||!safeGrowthEvent(name))return;
+ window.dispatchEvent(new CustomEvent('galaxiora:growth',{detail:{name}}));
 }
