@@ -2,6 +2,7 @@
  * Factual publisher metadata only, never full article bodies or headline speculation.
  */
 import type {PrismaService} from './prisma.ts';
+import {randomUUID} from 'node:crypto';
 import {cleanDescription} from './news-domain.ts';
 import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
 import {checkNewsTranslator,newsScopeApproved,newsTranslationScope,selectedNewsTranslationProvider,translateNewsText,translateLocalizedHeadline,type TranslationFetch} from './news-translation.ts';
@@ -113,7 +114,22 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
  }
  return outputs;
 }
+/** A DB lease prevents the 5-minute scheduler and manual archive repair from
+ * translating the same article simultaneously and double-reserving Azure cost.
+ * Tests can inject PrismaService-shaped fakes without a lease table.
+ */
 export async function enrichPendingNews(prisma:PrismaService,fetcher:TranslationFetch=fetch){
+ const db=prisma.newsIngestionLease;
+ if(!db)return enrichPendingNewsUnlocked(prisma,fetcher);
+ const id='news-translation',token=randomUUID(),now=new Date();
+ await db.upsert({where:{id},create:{id,token:'unclaimed',expiresAt:new Date(0)},update:{}});
+ const claimed=await db.updateMany({where:{id,expiresAt:{lte:now}},
+  data:{token,expiresAt:new Date(now.getTime()+25*60*1000)}});
+ if(!claimed.count)return {processed:0,reason:'translation_lease_held'};
+ try{return await enrichPendingNewsUnlocked(prisma,fetcher);}
+ finally{await db.updateMany({where:{id,token},data:{token:'unclaimed',expiresAt:new Date(0)}});}
+}
+async function enrichPendingNewsUnlocked(prisma:PrismaService,fetcher:TranslationFetch=fetch){
  if(process.env.NEWS_TRANSLATION_ENABLED==='0')return {processed:0,reason:'translation_disabled'};
  // No machine translations are persisted until the selected EN->UK engine
  // passes REAL examples and the site owner explicitly accepts the quality.
