@@ -1,5 +1,6 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
+import {reportGrowthEvent} from '../../lib/growth-metrics';
 import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './PanchangaHub.module.css';
@@ -70,6 +71,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [form,setForm]=useState<Form>(initialForm);
  const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(initialForm);
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
+ const pendingManualCalculation=useRef(false);
  // First-party GalaxiNews stories deep-link to their authentic event day.
  useEffect(()=>{
   const day=new URLSearchParams(window.location.search).get('date');
@@ -85,7 +87,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   const q=new URLSearchParams({date:requested.date,zone:requested.timeZone,latitude:requested.latitude,longitude:requested.longitude});
   fetch('/api/v1/panchanga/day?'+q,{cache:'no-store',signal:controller.signal})
    .then(async r=>{if(!r.ok)throw Error(String(r.status));return await r.json() as Day;})
-   .then(d=>{if(live){setResult(d);setError(false)}})
+   .then(d=>{if(live){setResult(d);setError(false);if(pendingManualCalculation.current){pendingManualCalculation.current=false;reportGrowthEvent('panchanga_calculation_completed')}}})
    .catch(()=>{if(live){setResult(null);setError(true)}})
    .finally(()=>{if(live)setLoading(false)});
   return()=>{live=false;controller.abort()};
@@ -108,7 +110,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <h1><GlossaryText text={t.title} locale={locale}/></h1><p><GlossaryText text={t.intro} locale={locale}/></p>
    <Link href={'/'+locale+'/horoscope'}>{uk?'До гороскопів':'Horoscopes'} ↗</Link>
   </header>
-  <form className={styles.form} onSubmit={e=>{e.preventDefault();setRequested({...form});}}>
+  <form className={styles.form} onSubmit={e=>{e.preventDefault();pendingManualCalculation.current=true;setRequested({...form});}}>
    <div className={styles.formGrid}>
     <label>{t.date}<input required type="date" min="1900-01-01" max="2099-12-31" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></label>
     <CitySearch locale={locale} onChoose={c=>{
