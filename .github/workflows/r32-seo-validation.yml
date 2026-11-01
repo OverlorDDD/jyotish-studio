@@ -94,3 +94,17 @@ jobs:
           exit 1
       - name: Browser SEO, responsive layout and favicon
         run: npx playwright test --config=playwright.config.mjs e2e/r32-seo.spec.mjs e2e/galaxiora-favicon.spec.mjs
+
+  public-baseline:
+    name: Read-only live Galaxiora sitemap crawl (pre-deploy baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Crawl public production sitemap (read-only, expected pre-deploy findings)
+        continue-on-error: true
+        env:
+          R32_SITE_ORIGIN: https://galaxiora.com
+        run: node tools/r32-seo-audit.mjs
