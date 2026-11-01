@@ -86,6 +86,19 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
     </Link>)}
    </div>
   </section>
+  <section className="as-section" aria-label={locale==='uk'?'Про Galaxiora':'About Galaxiora'}>
+   <div className="as-section-heading"><div>
+    <span className="as-overline">GALAXIORA.COM · OFFICIAL WEBSITE</span>
+    <h2>{locale==='uk'?'Що таке Galaxiora?':'What is Galaxiora?'}</h2>
+    <p>{locale==='uk'?
+     'Galaxiora — українсько-англійська платформа Джйотіш, західної астрології, Таро та усвідомлених практик. Обчислюйте натальні карти, досліджуйте Панчангу, дізнавайтеся про небесні події й знаходьте практичні пояснення в Академії.':
+     'Galaxiora is a Ukrainian-English platform for Jyotish, Western astrology, Tarot and mindful practice. Calculate a natal chart, explore Panchanga, follow celestial events and study original lessons in the Academy.'}</p>
+   </div></div>
+   <div className="as-actions">
+    <Link href={'/'+locale+'/about'} className="as-button as-button-secondary">{locale==='uk'?'Дізнатися про Galaxiora':'About Galaxiora'} <ArrowUpRight size={17}/></Link>
+    <Link href={'/'+locale+'/methodology'} className="as-button as-button-secondary">{locale==='uk'?'Методологія розрахунків':'How calculations work'} <ArrowUpRight size={17}/></Link>
+   </div>
+  </section>
   <aside className="as-statement"><span>✺</span><p>{t.quote}</p></aside>
   <p className="as-disclaimer">{t.disclaimer}</p>
  </PortalShell>;
