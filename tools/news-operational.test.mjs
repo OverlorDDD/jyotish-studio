@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {newsOperationalHealth} from '../apps/api/src/news-operational.ts';
-import {newsIngestionEnabled} from '../apps/api/src/news-ingestion.ts';
+import {newsIngestionEnabled} from '../apps/api/src/news-operational.ts';
 const src=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const now=new Date('2026-11-01T08:00:00.000Z');
 const minutes=n=>new Date(now.getTime()-n*60000);
