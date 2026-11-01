@@ -6,7 +6,7 @@ import {classifyWithReason,parseXml,publisherDomain,safeImageUrl,type Candidate,
 import {selectedNewsSources} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
-import {sourceCooldownMs,gdeltCircuitFailure} from './news-source-health.ts';
+import {sourceCooldownMs,gdeltCircuitFailure,sourceRetryStateFromHistory} from './news-source-health.ts';
 import {publishAstronomicalNews} from './news-astronomy.ts';
 import {enrichOpenNewsPhotos} from './news-open-media.ts';
 /** Local development with an existing .env and no NEWS_* flag must not
@@ -69,11 +69,23 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
   return {requested:true,completed:false,reason:'scan_started'};
  }
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
- onModuleInit(){
+ private async restoreSourceRetryHistory(){
+  const history=await this.prisma.newsSourceScan.findMany({
+   orderBy:{createdAt:'desc'},take:250,
+   select:{sourceKey:true,status:true,failure:true,createdAt:true}
+  });
+  const state=sourceRetryStateFromHistory(history);
+  this.sourceRetryUntil=state.retryUntil;
+  this.gdeltRetryUntil=state.gdeltRetryUntil;
+  if(state.retryUntil.size)console.log('[news] restored',state.retryUntil.size,'source backoffs');
+ }
+ async onModuleInit(){
   if(!newsIngestionEnabled()){
    console.warn('[news] automatic ingestion OFF by NEWS_INGESTION_ENABLED=0, CI or test mode');
    return;
   }
+  await this.restoreSourceRetryHistory().catch(error=>
+   console.warn('[news] source-backoff restore unavailable',String(error).slice(0,150)));
   this.schedulerStartedAt=new Date().toISOString();
   this.nextScanAt=new Date(Date.now()+15000).toISOString();
   console.log('[news] automatic ingestion active; interval 15 minutes');
