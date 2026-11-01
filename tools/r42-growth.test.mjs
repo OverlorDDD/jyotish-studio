@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {safeGrowthEvent,safeGrowthPath} from '../apps/web/lib/growth-metrics.ts';
+import {safeGrowthCampaign,safeGrowthEvent,safeGrowthPath} from '../apps/web/lib/growth-metrics.ts';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('R4.2 accepts only normalized public URL paths, without private query data',()=>{
@@ -60,4 +60,20 @@ test('R4.2 real Tarot and Panchanga tool events do not include PII',()=>{
  assert.match(code,/page_location:safeLocation/);
  assert.match(code,/source\.origin/);
  assert.match(code,/window\.addEventListener\('galaxiora:growth'/);
+});
+
+test('R4.2 campaign tags cannot smuggle personal inputs to GA4',()=>{
+ assert.deepEqual(safeGrowthCampaign('?utm_source=telegram&utm_medium=social&utm_campaign=tarot_cards'),
+  {campaign_source:'telegram',campaign_medium:'social',campaign_name:'tarot_cards'});
+ assert.deepEqual(safeGrowthCampaign('?utm_source=youtube&utm_medium=social&utm_campaign=astro_basics'),
+  {campaign_source:'youtube',campaign_medium:'social',campaign_name:'astro_basics'});
+ for(const query of [
+  '?utm_source=telegram&utm_medium=social&utm_campaign=my_private_email',
+  '?utm_source=telegram&utm_medium=email&utm_campaign=launch',
+  '?utm_source=private_user&utm_medium=social&utm_campaign=launch',
+  '?utm_source=telegram&utm_medium=social&utm_campaign=launch_birth_date_2000',
+  '?utm_source=telegram&utm_medium=social&utm_campaign=',
+ ])assert.equal(safeGrowthCampaign(query),null,query);
+ const loader=read('apps/web/app/components/GrowthConsent.tsx');
+ assert.match(loader,/safeGrowthCampaign\(window\.location\.search\)/);
 });
