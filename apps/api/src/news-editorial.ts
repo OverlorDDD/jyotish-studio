@@ -61,6 +61,23 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
    }
    continue;
   }
+  // Backward compatibility with self-hosted English-to-Ukrainian NMT.
+  // Production multilingual/full rollout is Azure-only and uses the branch below.
+  if(selectedNewsTranslationProvider()!=='azure'){
+   const uk=isUkrainian(article.language);
+   if(!uk&&!isEnglish(article.language))continue;
+   let titleUk=article.titleUk?.trim()||'';
+   try{
+    if(!titleUk)titleUk=uk?title:await translateNewsText(title,fetcher);
+    const src=extractSourceTeaser(article);
+    const summaryUk=article.summaryUk?.trim()||(src?(uk?src:await translateNewsText(src,fetcher)):'');
+    outputs.push({id:article.id,titleUk,summaryUk,summaryEn:!uk&&src?src:''});
+   }catch(error){
+    console.warn('[news-nmt] legacy local NMT unavailable',article.id,String(error));
+    if(titleUk)outputs.push({id:article.id,titleUk,summaryUk:'',summaryEn:''});
+   }
+   continue;
+  }
   // FULL mode: never use EN-only legacy translation for Hindi/mixed RSS.
   // Translate validated publisher-supplied bounded excerpt, not article body.
   const sourceExcerpt=excerptSource(article);
@@ -126,8 +143,10 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   select:{id:true,title:true,titleUk:true,titleEn:true,feedDescription:true,summary:true,summaryUk:true,summaryEn:true,summaryKind:true,
    language:true,editorialAttempts:true}
  });
+ const localLegacy=scope==='full'&&selectedNewsTranslationProvider()!=='azure';
  const rows=candidates.filter(x=>scope==='headlines'
   ?headlineNeedsWork(x)
+  :localLegacy?(!x.titleUk?.trim()||(!x.summaryUk?.trim()&&hasEditorialEvidence(x)))
   :(headlineNeedsWork(x)||teaserNeedsWork(x))).slice(0,limit);
  if(!rows.length)return {processed:0,
   reason:scope==='headlines'?'queue_empty_headlines':'queue_empty_no_grounded_work',
@@ -143,7 +162,8 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
      +(!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(title,'en')?
        headlineNmtBudgetCharacters(title,'en'):0);
    const source=excerptSource(row);
-   return sum+(!isLocalizedNewsTitle(row.titleUk,'uk')&&!isUkrainian(row.language)?
+   return sum+(!isLocalizedNewsTitle(row.titleUk,'uk')&&
+    !(isUkrainian(row.language)&&isLocalizedNewsTitle(title,'uk'))?
     headlineNmtBudgetCharacters(title,'uk'):0)
     +(!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(title,'en')?
       headlineNmtBudgetCharacters(title,'en'):0)
@@ -167,9 +187,10 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   const facts=Boolean(excerptSource(original));
   const existingTeaserUk=validNewsTeaser(original.summaryUk,'uk');
   const existingTeaserEn=validNewsTeaser(original.summaryEn,'en');
-  const titleReady=existingTitle||isLocalizedNewsTitle(output?.titleUk,'uk');
-  const englishReady=existingEnglish||isLocalizedNewsTitle(output?.titleEn,'en');
-  const teaserReady=scope==='headlines'||!facts||
+  const titleReady=existingTitle||(localLegacy?Boolean(output?.titleUk?.trim()):isLocalizedNewsTitle(output?.titleUk,'uk'));
+  const englishReady=localLegacy||existingEnglish||isLocalizedNewsTitle(output?.titleEn,'en');
+  const teaserReady=localLegacy?(!facts||Boolean(original.summaryUk?.trim())||Boolean(output?.summaryUk)):
+   scope==='headlines'||!facts||
    ((existingTeaserUk||validNewsTeaser(output?.summaryUk,'uk')||
       Boolean(sourceTeaserForLocale(excerptSource(original),original.language,'uk'))) &&
     (existingTeaserEn||validNewsTeaser(output?.summaryEn,'en')||
@@ -180,15 +201,18 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
    editorialAttempts:nextAttempts,editorialAttemptedAt:now,
    editorialNextAttemptAt:success?null:new Date(now.getTime()+
     (nextAttempts>=3?24:3)*3600000),
-   ...(!existingTitle&&isLocalizedNewsTitle(output?.titleUk,'uk')?{titleUk:output!.titleUk}:{}),
+   ...(!existingTitle&&(localLegacy?Boolean(output?.titleUk?.trim()):isLocalizedNewsTitle(output?.titleUk,'uk'))?{titleUk:output!.titleUk}:{}),
    ...(!existingEnglish&&isLocalizedNewsTitle(output?.titleEn,'en')?
     {titleEn:output!.titleEn}:{}),
-   ...(scope==='full'&&facts&&!existingTeaserUk&&validNewsTeaser(output?.summaryUk,'uk')?
+   ...(localLegacy&&facts&&!original.summaryUk?.trim()&&output?.summaryUk?
+    {summaryUk:output.summaryUk,summaryKind:'machine_translated_excerpt'}:{}),
+   ...(localLegacy&&!facts&&success?{summaryKind:'no_context'}:{}),
+   ...(scope==='full'&&!localLegacy&&facts&&!existingTeaserUk&&validNewsTeaser(output?.summaryUk,'uk')?
     {summaryUk:output!.summaryUk}:{}),
-   ...(scope==='full'&&facts&&!existingTeaserEn&&validNewsTeaser(output?.summaryEn,'en')?
+   ...(scope==='full'&&!localLegacy&&facts&&!existingTeaserEn&&validNewsTeaser(output?.summaryEn,'en')?
     {summaryEn:output!.summaryEn}:{}),
    // Retain 'source_excerpt' kind if the only legal source evidence is summary.
-   ...(scope==='full'&&facts&&original.feedDescription&&
+   ...(scope==='full'&&!localLegacy&&facts&&original.feedDescription&&
       (validNewsTeaser(output?.summaryUk,'uk')||validNewsTeaser(output?.summaryEn,'en'))?
     {summaryKind:'machine_translated_excerpt'}:{})
   };
