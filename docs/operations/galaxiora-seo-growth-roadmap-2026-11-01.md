@@ -1,6 +1,21 @@
 # Galaxiora — canonical SEO & audience-growth roadmap (R3–R5)
 
-**Approved strategy recap:** 2026-11-01. **Project:** https://galaxiora.com. **Repository:** https://github.com/OverlorDDD/jyotish-studio. **Languages:** Ukrainian `/uk/` and English `/en/`. **Current execution stage:** R3.1 PREPARATION (not certified complete). **Owner instruction:** Work in large coherent phases, investigate and resolve blockers, resume from the last verified gate on errors, preserve production, give exact owner actions, and report evidence. Do not scatter work into endless microtasks.
+**Approved strategy recap:** 2026-11-01. **Project:** https://galaxiora.com. **Repository:** https://github.com/OverlorDDD/jyotish-studio. **Languages:** Ukrainian `/uk/` and English `/en/`. **Current execution stage:** R3.1 GOOGLE SUBMISSION CONFIRMED; R3.2 comprehensive technical SEO audit NEXT. R3.1 production code/crawler-wide audit is still not independently certified. **Owner instruction:** Work in large coherent phases, investigate and resolve blockers, resume from the last verified gate on errors, preserve production, give exact owner actions, and report evidence. Do not scatter work into endless microtasks.
+
+## 2026-11-01 owner-verified Google Search Console checkpoint
+
+The owner provided **Google Search Console screenshots** with these trustworthy outcomes:
+- Domain property **galaxiora.com** is available to the owner (ownership verified).
+- Submitted `https://galaxiora.com/sitemap.xml`, Search Console status **Success** dated 2026-11-01, with **94 discovered URLs**. This is *discovery*, not 94 indexed pages.
+- URL Inspection for `https://galaxiora.com/uk` reports **"URL is on Google" / page indexed**, and HTTPS recognized.
+- The owner submitted an additional **Request Indexing**; Google accepted the request. No need to repeat this on all pages.
+- The owner opened `/robots.txt` and `/sitemap.xml` in their browser and reports both visibly load.
+- Search Console performance data are still processing (normal immediately after verification).
+- Assistant's external browsing environment could not directly access Galaxiora URLs; do not mistake this for evidence the live site is down or noindexed.
+
+**Next recommended whole phase R3.2**: audit all 94 sitemap URLs (canonical/redirects/noindex/errors/UA-EN), check server-rendered crawlable content especially news and community, validate title/description/hreflang/schema and privacy, measure mobile performance, build minimally invasive fixes and release only after confirming actual deployed SHA. Known code suspect: sitemap lists `/uk|en/astrology`, while `PortalSection.tsx` redirects `astrology` to `astrology/jyotish`. Don't assert production defect without testing; if true, omit redirected URL from sitemap. Watch for published CMS lessons omitted due to `publishedList` being unavailable at sitemap execution. Keep originality and syndicated-news limits.
+
+**Owner action now:** no more DNS/TXT work, no repeated sitemap submissions, no need to request indexing for all 94 URLs. After indexing report populates, owner may provide screenshot from Search Console > Pages and later Performance; for tests requiring AWS shell access, give minimal non-secret read-only commands. **Preserve completed Search Console property**. Resume at R3.2 audit first, only investigate individual R3.1 issues if evidence arises.
 
 ## Product and differentiation
 
