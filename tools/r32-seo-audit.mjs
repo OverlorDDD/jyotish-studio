@@ -38,10 +38,11 @@ async function inspect(url){
   const expectedLang=new URL(url).pathname.split('/')[1];
   if(item.language!==expectedLang)issue(errors,'LANG',url,'Found '+item.language+'; expected '+expectedLang);
   const languageLinks=tags(body,'link').filter(t=>attr(t,'rel')?.toLowerCase()==='alternate'&&attr(t,'hreflang'));
-  const pathWithoutLocale=new URL(url).pathname.replace(/^\\/(uk|en)(?=\\/|$)/,'');
+  // Avoid regex escaping pitfalls: sitemap paths are /{locale} or /{locale}/...
+  const pathWithoutLocale=new URL(url).pathname.split('/').slice(2).join('/');
   for(const loc of ['uk','en']){
    const href=languageLinks.find(t=>attr(t,'hreflang')===loc);
-   const expected=origin+'/'+loc+pathWithoutLocale;
+   const expected=origin+'/'+loc+(pathWithoutLocale?'/'+pathWithoutLocale:'');
    if(!href||attr(href,'href')!==expected)
     issue(errors,'HREFLANG_'+loc.toUpperCase(),url,'Found '+(href?attr(href,'href'):'none')+'; expected '+expected);
   }
