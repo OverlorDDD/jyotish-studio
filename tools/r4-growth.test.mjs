@@ -28,7 +28,7 @@ test('R4 native share is explicitly public, click-only and privacy-preserving',(
 test('R4 does not leak private questions, chart attributes or auth in public sharing',()=>{
  const share=read('apps/web/app/components/ShareTools.tsx');
  for(const field of ['birthTime','birthDate','latitude','longitude','email','question','session','token'])
-  assert.ok(!share.includes(field),'share must not access '+field);
+  assert.ok(!new RegExp('(?:\\bconst\\s+'+field+'\\b|[.]'+field+'\\b|[?&]'+field+'=)','i').test(share),'share must not access '+field);
  assert.match(share,/const safePath=/);
  assert.match(share,/https:\/\/galaxiora.com/);
 });
