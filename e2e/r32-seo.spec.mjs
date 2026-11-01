@@ -9,8 +9,8 @@ for(const locale of ['uk','en']){
   await about.click();
   await expect(page).toHaveURL(new RegExp('/'+locale+'/about$'));
   await expect(page.getByRole('heading',{level:1})).toContainText('Galaxiora');
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://galaxiora.example/'+locale+'/about');
-  await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute('content',/noindex/);
+  await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute('href','https://galaxiora.example/'+locale+'/about');
+  await expect(page.locator('head meta[name="robots"]')).not.toHaveAttribute('content',/noindex/);
   const lang=await page.locator('html').getAttribute('lang');
   expect(lang).toBe(locale);
   await expect(page.locator('script[type="application/ld+json"]')).not.toHaveCount(0);
