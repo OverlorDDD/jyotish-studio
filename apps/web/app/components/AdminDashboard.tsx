@@ -7,7 +7,7 @@ import EditorialWorkspace from './EditorialWorkspace';
 import NewsDiagnostics from './NewsDiagnostics';
 import AdminExpertRequests from './AdminExpertRequests';
 
-type Dashboard={generatedAt?:string;newUsers7d?:number;newCharts7d?:number;newOrders7d?:number;windowDays:number;users:number;charts:number;subscribers:number;freeMembers:number;unpaidDrafts:number;tarotReadings:number;expertRequestsUnread:number;orders:{status:string;count:number}[];ai:{
+type Dashboard={generatedAt?:string;newUsers7d?:number;newCharts7d?:number;newOrders7d?:number;editorialPipeline?:{status:string;count:number}[];windowDays:number;users:number;charts:number;subscribers:number;freeMembers:number;unpaidDrafts:number;tarotReadings:number;expertRequestsUnread:number;orders:{status:string;count:number}[];ai:{
  requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;
  costUsdReported:number|null;byProvider:{provider:string;model:string;requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;costUsdReported:number|null}[]
 }};
@@ -74,6 +74,13 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
    <p className="as-muted">{uk?'Нуль у токенах може означати, що провайдер не передав usage. Пропущені значення та витрати не оцінюються вигаданими числами.':'Some providers omit usage. Missing token figures and expenses must not be mistaken for confirmed zero cost.'}</p>
    <h2>{uk?'Цикл відеозамовлень':'Video order pipeline'}</h2>
    <div className="as-admin-grid">{data.orders.length?data.orders.map(o=><div className="as-admin-metric" key={o.status}><span>{o.status}</span><strong>{count(o.count)}</strong></div>):<p>{uk?'Оплачені замовлення ще не підключені.':'Payment and order intake are not enabled yet.'}</p>}</div>
+   <h2>{uk?'Редакційний конвеєр':'Editorial workflow'}</h2>
+   <p className="as-muted">{uk?'Кількість матеріалів у реальних статусах: чернетки, перевірка, схвалення, публікація.':'Actual article counts across drafts, review, approval and publication.'}</p>
+   <div className="as-admin-grid" data-testid="admin-editorial-pipeline">
+    {(data.editorialPipeline||[]).length?(data.editorialPipeline||[]).map(e=>
+     <div className="as-admin-metric" key={e.status}><span>{e.status}</span><strong>{count(e.count)}</strong></div>):
+     <p>{uk?'Редакційні записи ще не створені.':'No editorial entries yet.'}</p>}
+   </div>
    <AdminExpertRequests locale={locale}/>
    <NewsDiagnostics locale={locale}/>
    <EditorialWorkspace locale={locale}/>
