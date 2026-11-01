@@ -11,7 +11,7 @@ type Quality={sampledArticles:number;visibleAfterGrouping:number;duplicatePresen
  observedNotPublisherDated:number;scope:string};
 type Health={generatedAt?:string;freshness?:{state:string;lastScanAt:string|null;lastNewArticleAt:string|null;reason:string};
  runtime?:{schedulerStartedAt:string|null;nextScanAt:string|null;scanInProgress:boolean;lastAttemptError:string|null;lastSkipReason:string|null;editorial:string|null};
- editorial?:{translationEnabled:boolean;scope:string;qualityApproved:boolean;configError?:string|null;pending:number};
+ editorial?:{translationEnabled:boolean;scope:string;qualityApproved:boolean;configError?:string|null;pending:number;quarantined?:number};
  enabled:boolean;registeredSources:number;articleCount:number;publishers:number;
  quality?:Quality;
  untranslated:number;unsummarized:number;unillustrated:number;discoveredSources:Publisher[];editorialAiConfigured:boolean;
@@ -85,7 +85,8 @@ export default function NewsDiagnostics({locale}:{locale:PortalLocale}){
     {data.runtime?.editorial&&<p>{uk?'Переклад: ':'Translation: '}{data.runtime.editorial}</p>}
     {data.editorial?.configError&&<p role="alert">{uk?'Помилка конфігурації NMT: ':'NMT config error: '}{data.editorial.configError}</p>}
     {data.editorial&&<p>{uk?'Режим локалізації: ':'Localization scope: '}{data.editorial.scope}
-     {' · '}{uk?'Необроблених заголовків: ':'Unlocalized titles: '}{data.editorial.pending}</p>}
+     {' · '}{uk?'Необроблених заголовків: ':'Unlocalized titles: '}{data.editorial.pending}
+     {' · '}{uk?'Потрібна ручна перевірка: ':'Manual review needed: '}{data.editorial.quarantined??0}</p>}
    </div>
    <div className="as-admin-grid">
     <div className="as-admin-metric"><span>{uk?'Опублікованих':'Published'}</span><strong>{data.articleCount}</strong></div>
