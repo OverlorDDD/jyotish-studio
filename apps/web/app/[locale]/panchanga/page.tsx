@@ -1,5 +1,4 @@
 import {notFound} from 'next/navigation';
-import Link from 'next/link';
 import type {Metadata} from 'next';
 import PortalShell from '../../components/PortalShell';
 import PanchangaHub from '../../components/PanchangaHub';
@@ -24,10 +23,6 @@ export default async function PanchangaPage({params}:{params:Promise<{locale:str
  return <PortalShell locale={locale as PortalLocale} active="panchanga" languagePath="panchanga">
   <PanchangaHub locale={locale as PortalLocale}/>
   <PanchangaSearchGuide locale={locale as PortalLocale}/>
-  <section className="as-wellness as-academy-detail" aria-label={locale==='uk'?'Астрономічні події 2027':'2027 astronomical events'}>
-   <h2>{locale==='uk'?'Затемнення 2027 року: календар NASA':'2027 eclipses: NASA calendar'}</h2>
-   <p>{locale==='uk'?'П’ять затемнень 2027 року, їхні типи, дати за UTC і зони видимості за першоджерелами NASA.':'Five eclipses in 2027, with UTC dates, physical types and NASA-supported visibility regions.'}</p>
-   <p><Link href={'/'+locale+'/eclipses/2027'}>{locale==='uk'?'Переглянути календар затемнень':'See the eclipse calendar'} →</Link></p>
-  </section>
+
  </PortalShell>;
 }
