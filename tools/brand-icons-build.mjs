@@ -14,7 +14,7 @@ const out=join(root,'apps/web/public');
 await mkdir(out,{recursive:true});
 
 async function png(size){
- return sharp(source,{density:192})
+ return sharp(source,{density:640})
   .resize(size,size,{fit:'fill',kernel:'lanczos3'})
   .png({compressionLevel:9,palette:false})
   .toBuffer();
