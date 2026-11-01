@@ -7,6 +7,7 @@ on:
       - feat/astrological-synthesis-engine-v1-20261031
       - feat/astrological-synthesis-engine-v2-v3-20261031
       - fix/horoscope-deterministic-editorial-20261031
+      - fix/news-freshness-admin-ops-20261101
   workflow_dispatch:
 concurrency:
   group: galaxiora-release-${{ github.ref }}
@@ -54,6 +55,8 @@ jobs:
         run: npm run test:swagger
       - name: Bilingual GalaxiNews
         run: npm run test:news
+      - name: GalaxiNews freshness, production scheduler and admin operations
+        run: node --test tools/news-operational.test.mjs
       - name: Independent Western and Vedic Swiss horoscope verification
         run: node --test tools/western-horoscope.test.mjs && npm run test:horoscope-basis
       - name: Astrological Synthesis Engine native Swiss and deterministic evidence
