@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import PortalShell from '../../../components/PortalShell';
+import ShareTools from '../../../components/ShareTools';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../../lib/brand';
 import {indexRobots,publicIndexingEnabled,publicSiteOrigin} from '../../../../lib/site-indexing';
 
@@ -40,6 +41,8 @@ export default async function EclipseCalendar2027({params}:Props){
  return <PortalShell locale={loc} active="panchanga" languagePath="eclipses/2027">
   {crumbs&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:crumbs}}/>}
   <article className="as-wellness as-academy-detail" data-testid="eclipse-calendar-2027">
+   <ShareTools locale={loc} title={t.h1} path={url}/>
+
    <nav aria-label={loc==='uk'?'Навігація':'Breadcrumb'}><Link href={'/'+loc}>{t.home}</Link> / <Link href={'/'+loc+'/panchanga'}>{t.back}</Link> / 2027</nav>
    <header className="as-wellness-detail-head" style={{marginTop:30}}>
     <span className="as-overline">GALAXIORA · ASTRONOMICAL CALENDAR · NASA GSFC</span>
