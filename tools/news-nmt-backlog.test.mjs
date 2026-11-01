@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {headlineNeedsWork,headlineDebtState,headlineDebtSummary} from '../apps/api/src/news-headline-backlog.ts';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
+import {sourceRetryStateFromHistory} from '../apps/api/src/news-source-health.ts';
 const now=new Date('2026-11-01T12:00:00Z');
 const original='How to read a natal chart';
 const validUk='Як читати натальну карту';
@@ -71,4 +72,20 @@ test('A missing Ukrainian title is translated once; native English original is n
   assert.equal(writes[0].data.titleUk,validUk);
   assert.equal(writes[0].data.titleEn,undefined);
  });
+});
+
+test('External source cooldown is restored from newest persisted audit after API restart',()=>{
+ const history=[
+  {sourceKey:'gdelt-vedic-jyotish',status:'error',failure:'Error: HTTP 429',createdAt:'2026-11-01T11:30:00Z'},
+  {sourceKey:'elephant-journal',status:'error',failure:'Error: HTTP 500',createdAt:'2026-11-01T11:40:00Z'},
+  {sourceKey:'biddy-tarot',status:'cooldown',failure:'Retry after 2026-11-01T12:30:00.000Z',createdAt:'2026-11-01T11:50:00Z'},
+  {sourceKey:'astro-podcast',status:'ok',failure:null,createdAt:'2026-11-01T11:52:00Z'},
+  {sourceKey:'elephant-journal',status:'ok',failure:null,createdAt:'2026-11-01T10:00:00Z'},
+ ];
+ const r=sourceRetryStateFromHistory(history,Date.parse('2026-11-01T12:00:00Z'));
+ assert.equal(r.gdeltRetryUntil,Date.parse('2026-11-01T12:30:00Z'));
+ assert.equal(r.retryUntil.get('elephant-journal'),Date.parse('2026-11-01T12:25:00Z'));
+ assert.equal(r.retryUntil.get('biddy-tarot'),Date.parse('2026-11-01T12:30:00Z'));
+ assert.equal(r.retryUntil.has('astro-podcast'),false);
+ assert.equal(sourceRetryStateFromHistory(history,Date.parse('2026-11-01T14:00:00Z')).retryUntil.size,0);
 });
