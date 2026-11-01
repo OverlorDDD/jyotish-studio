@@ -151,6 +151,18 @@ modules:
     research: "docs/research/horoscope-deterministic-editorial-2026-10-31.md"
     guarded_aws_release: "tools/galaxiora-horoscope-editorial-production-update.sh"
     guardrails: "Owner-only private natal chart; no AI requests from horoscope; SWIEPH no Moshier; no artificial daily wording when sky is unchanged; ASE-1 fallback; full JQA-3 certification separate"
+  news_multilingual_nmt:
+    status: "candidate: script-aware Hindi/Latin UK/EN translation, strict numbers, bounded Azure reservations and six-attempt quarantine"
+    source_plan: "apps/api/src/news-headline-nmt-plan.ts"
+    adapter: "apps/api/src/news-translation.ts"
+    worker: "apps/api/src/news-editorial.ts"
+    tests: "tools/news-nmt-reliability.test.mjs; tools/news-multilingual.test.mjs; tools/news-headlines.test.mjs"
+    dry_run_requeue: "npm run news:localize:requeue"
+    explicit_capped_requeue: "npm run news:localize:requeue -- --apply"
+    safe_aws_release: "tools/galaxiora-nmt-production-update.sh"
+    research: "docs/research/galaxinews-multilingual-nmt-recovery-2026-11-01.md"
+    gate: "Real Azure NMT UK/EN sample and human language review before turning on mass archive repair"
+    guardrails: "No LLM, no quote rewriting without source evidence, no lost dates, no hidden budget retries"
   news_admin_operations:
     status: "news scheduler production-safe; independent scan/freshness diagnostics; admin overview auto-refresh"
     runbook: "docs/research/galaxinews-admin-operations-2026-11-01.md"
