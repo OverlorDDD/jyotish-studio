@@ -8,6 +8,7 @@ import GlossaryText from './GlossaryText';
 import ExpertQuestionForm from './ExpertQuestionForm';
 import PrivateTarotQuestions from './PrivateTarotQuestions';
 import type {PortalLocale} from '../../lib/brand';
+import {reportGrowthEvent} from '../../lib/growth-metrics';
 
 type Localized={en:string;uk:string};
 type Draw={id:string;position:number;reversed:boolean;name:Localized;meaning:Localized;detail:Localized;positionInsight:Localized;positionName:Localized};
@@ -42,12 +43,14 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
  },[locale]);
  async function draw(event:React.FormEvent){
   event.preventDefault();setBusy(true);setError('');
+  reportGrowthEvent('tarot_spread_started');
   try{
    const r=await readApiJson<DrawReply>(await fetch('/api/v1/tarot/readings',{
     method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({spread,question:question.trim()||undefined,language:locale,aiConsent:aiAvailable&&aiConsent})
    }));
    setReading(r);setRemaining(r.remaining);setLimit(r.limit);setHistory(prev=>[r,...prev].slice(0,20));setRevealed([]);
+   reportGrowthEvent('tarot_spread_completed');
   }catch(e){setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false)}
  }
