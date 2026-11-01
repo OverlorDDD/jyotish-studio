@@ -134,6 +134,8 @@
     "news:quality:headlines": "node --env-file-if-exists=.env tools/news-release-gate.mjs --headlines-only",
     "news:localize:repair": "node --experimental-strip-types tools/news-localize-backfill.mjs",
     "news:localize:requeue": "node --experimental-strip-types tools/news-nmt-requeue.mjs",
+    "news:teasers:backfill": "node --experimental-strip-types tools/news-teaser-backfill.mjs",
+    "news:quality:full": "node --env-file-if-exists=.env tools/news-release-gate.mjs",
     "news:translate:check": "node --experimental-strip-types tools/news-translate-check.mjs",
     "news:translate:sample": "node --experimental-strip-types tools/news-translate-sample.mjs",
     "news:translate:headlines": "node --experimental-strip-types tools/news-translate-headlines.mjs",
