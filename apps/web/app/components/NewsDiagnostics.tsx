@@ -12,7 +12,8 @@ type Quality={sampledArticles:number;visibleAfterGrouping:number;duplicatePresen
 type Health={generatedAt?:string;freshness?:{state:string;lastScanAt:string|null;lastNewArticleAt:string|null;reason:string};
  runtime?:{schedulerStartedAt:string|null;nextScanAt:string|null;scanInProgress:boolean;lastAttemptError:string|null;lastSkipReason:string|null;editorial:string|null};
  editorial?:{translationEnabled:boolean;scope:string;qualityApproved:boolean;configError?:string|null;pending:number;quarantined?:number;
-  headlineBacklog?:{sampled:number;ready:number;missingUk:number;missingEn:number;eligible:number;cooldown:number;manualReview:number}};
+  headlineBacklog?:{sampled:number;ready:number;missingUk:number;missingEn:number;eligible:number;cooldown:number;manualReview:number};
+  teaserDebt?:{sampled:number;sourceBacked:number;missingUk:number;missingEn:number;titleOnly:number}};
  enabled:boolean;registeredSources:number;articleCount:number;publishers:number;
  quality?:Quality;
  untranslated:number;unsummarized:number;unillustrated:number;discoveredSources:Publisher[];editorialAiConfigured:boolean;
@@ -92,6 +93,12 @@ export default function NewsDiagnostics({locale}:{locale:PortalLocale}){
      {' · '}{uk?'очікують повтору: ':'on cooldown: '}{data.editorial.headlineBacklog.cooldown}
      {' · '}{uk?'ручна перевірка: ':'manual review: '}{data.editorial.headlineBacklog.manualReview}
     </p>}
+    {data.editorial?.teaserDebt&&<p data-testid="news-teaser-coverage">
+      <strong>{uk?'Описи з підтверджених джерел: ':'Source-backed excerpts: '}{data.editorial.teaserDebt.sourceBacked}</strong>
+      {' · '}{uk?'Немає UK: ':'Missing UK: '}{data.editorial.teaserDebt.missingUk}
+      {' · '}{uk?'Немає EN: ':'Missing EN: '}{data.editorial.teaserDebt.missingEn}
+      {' · '}{uk?'Без опису джерела: ':'No publisher excerpt: '}{data.editorial.teaserDebt.titleOnly}
+     </p>}
     {data.editorial?.configError&&<p role="alert">{uk?'Помилка конфігурації NMT: ':'NMT config error: '}{data.editorial.configError}</p>}
     {data.editorial&&<p>{uk?'Режим локалізації: ':'Localization scope: '}{data.editorial.scope}
      {' · '}{uk?'Необроблених заголовків: ':'Unlocalized titles: '}{data.editorial.pending}
