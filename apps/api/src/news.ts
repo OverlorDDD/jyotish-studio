@@ -289,13 +289,17 @@ export class NewsController {
   ]);
   const seen=new Set<string>(),latest:typeof scans=[];
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
+  let translationScope='invalid',translationApproved=false,translationConfigError:string|null=null;
+  try{translationScope=newsTranslationScope();translationApproved=newsScopeApproved();}
+  catch(e){translationConfigError=e instanceof Error?e.message:String(e);}
   return {enabled:newsIngestionEnabled(),last,generatedAt:new Date().toISOString(),
    freshness:newsOperationalHealth({enabled:newsIngestionEnabled(),lastScanAt:last?.createdAt??null,
     lastDiscoveredAt:lastNew?.discoveredAt??null,lastPublishedAt:lastPublished?.publishedAt??null,
     recentErrors:last?.errors??0}),
    runtime:this.ingestion.runtimeStatus(),
    editorial:{translationEnabled:process.env.NEWS_TRANSLATION_ENABLED!=='0',
-    scope:newsTranslationScope(),qualityApproved:newsScopeApproved(),pending},
+    scope:translationScope,qualityApproved:translationApproved,
+    configError:translationConfigError,pending},
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
    // Legacy field retained for older dashboards; news translation never uses LLM.
    editorialAiConfigured:false,
