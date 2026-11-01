@@ -10,8 +10,8 @@ const DEV=/[\u0900-\u097F]/u;
 const HINDI_WORDS=/(?:कल|राशि|ज्योतिष|कुंडली|चंद्रमा|ग्रह|पूर्णिमा|रहेंगे|अक्टूबर|भाव|क्या|आपकी)/u;
 export type NmtHeadlineUnit={text:string;source:string;from:string|null;textType:'plain'|'html'};
 const romanizedHindi=[
- [/\bkal ka rashifal\b/gi,"Tomorrow's horoscope"],
- [/\baaj ka rashifal\b/gi,"Today's horoscope"],
+ [/\bkal ka rashifal\b/gi,'Horoscope for tomorrow'],
+ [/\baaj ka rashifal\b/gi,'Horoscope for today'],
  [/\bkundli ka\b/gi,'of the birth chart']
 ] as const;
 export function normalizeRomanizedHindi(text:string):string{
