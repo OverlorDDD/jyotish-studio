@@ -59,8 +59,10 @@ export function unwrapAzureHeadline(raw:string):string{
  const withoutTags=raw.replace(/<\/?div\s*>/gi,'')
   .replace(/<span\s+class=["']notranslate["']\s*>/gi,'').replace(/<\/span\s*>/gi,'');
  if(/<[^>]*>/.test(withoutTags))throw Error('Azure response contained unexpected HTML');
- return withoutTags.replace(/&(?:amp|lt|gt|quot|#39|apos);/gi,
+ const decoded=withoutTags.replace(/&(?:amp|lt|gt|quot|#39|apos);/gi,
   entity=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#39;':"'",'&apos;':"'"} as Record<string,string>)[entity.toLowerCase()]||entity);
+ if(/<[^>]*>/.test(decoded))throw Error('Azure response contained encoded HTML');
+ return decoded;
 }
 export function correctKnownHindiIdiom(source:string,value:string,target:NewsTitleLocale):string{
  // A factual gloss limited to this exact SOURCE phrase; not a generic rewriting.
