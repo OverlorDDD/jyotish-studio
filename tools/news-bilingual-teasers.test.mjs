@@ -130,3 +130,18 @@ test('Unapproved full-scope gate blocks before network, writes or metering',asyn
   assert.equal(out.reason,'translation_quality_not_approved');assert.equal(count,0);
  });
 });
+
+test('Shared PostgreSQL lease prevents concurrent full-mode Azure billing and DB writes',async()=>{
+ await scoped(config,async()=>{
+  const stored=dbOf([row('Tarot introduction',en,'en')]);
+  const calls=[];
+  const db={...stored,newsIngestionLease:{
+   upsert:async()=>({}),
+   updateMany:async args=>{calls.push(args);return {count:0}}
+  }};
+  const result=await enrichPendingNews(db,async()=>{throw Error('Should not call Azure')});
+  assert.equal(result.reason,'translation_lease_held');
+  assert.equal(stored.writes.length,0);assert.equal(stored.meter.spent,0);
+  assert.equal(calls.length,1);
+ });
+});
