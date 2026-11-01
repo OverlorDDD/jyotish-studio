@@ -38,6 +38,7 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
   <footer className="as-footer">
     <div><Link className="as-footer-brand" href={portalPath(locale)}>{BRAND.name}</Link><p>{t.caption}</p></div>
     <p className="as-footer-note">{t.disclaimer}</p>
+    <Link href={'/'+locale+'/about'}>{locale==='uk'?'Про Galaxiora':'About Galaxiora'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Методологія й точність':'Methods and accuracy'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={portalPath(locale,'astrology/jyotish')}>{moduleTitle('jyotish')} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={'/'+locale+'/privacy'}>{locale==='uk'?'Конфіденційність':'Privacy'}</Link>
