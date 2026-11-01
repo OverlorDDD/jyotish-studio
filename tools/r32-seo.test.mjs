@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {SEO_PATHS} from '../apps/web/lib/site-indexing.ts';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
@@ -64,6 +66,13 @@ test('R3.2 live audit uses only read-only HTTP fetch, checks all sitemap locs an
  assert.match(audit,/NOT_200/);
  assert.match(audit,/process.exitCode=errors.length\?2:0/);
  assert.doesNotMatch(audit,/method:\s*['"](POST|PUT|PATCH|DELETE)/);
+});
+
+test('R3.2 production audit script parses in Node before any network request',()=>{
+ const target=fileURLToPath(new URL('./r32-seo-audit.mjs',import.meta.url));
+ assert.doesNotThrow(()=>execFileSync(process.execPath,['--check',target],{stdio:'pipe'}));
+ const source=read('tools/r32-seo-audit.mjs');
+ assert.match(source,/pathname\.split\('\/'\)\.slice\(2\)/);
 });
 
 test('R3.2 Google favicon and Organization logo are actual square PNG assets',()=>{
