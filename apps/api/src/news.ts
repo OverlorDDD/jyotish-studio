@@ -6,6 +6,8 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,safeImageUrl} from './news-domain.ts';
 import {NewsIngestionService,newsIngestionEnabled} from './news-ingestion.ts';
+import {newsOperationalHealth} from './news-operational.ts';
+import {newsScopeApproved,newsTranslationScope} from './news-translation.ts';
 import {publicTitleForLocale} from './news-localization.ts';
 import {rankPersonalNews} from './news-relevance.ts';
 import {collapseNewsEvents,newsQualitySnapshot} from './news-quality.ts';
@@ -242,17 +244,22 @@ export class NewsController {
   });
   return {tags:dto.tags,updatedAt:result.updatedAt};
  }
- @Get('status') @Header('Cache-Control','public,max-age=120')
+ @Get('status') @Header('Cache-Control','public,no-store')
  async status(){
-  const [last,articles,sources,topics]=await Promise.all([
+  const [last,articles,sources,topics,lastNew,lastPublished]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,sources:true,accepted:true,errors:true}}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED'}}),
    this.prisma.newsArticle.groupBy({by:['source'],where:{status:'PUBLISHED'},_count:{_all:true}}),
-   this.prisma.newsArticle.groupBy({by:['topic'],where:{status:'PUBLISHED'},_count:{_all:true}})
+   this.prisma.newsArticle.groupBy({by:['topic'],where:{status:'PUBLISHED'},_count:{_all:true}}),
+   this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{discoveredAt:'desc'},select:{discoveredAt:true}}),
+   this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},select:{publishedAt:true}})
   ]);
   return {lastScan:last,articleCount:articles,activePublishers:sources.length,
    byTopic:topics.map(t=>({topic:t.topic,count:t._count._all})),intervalMinutes:15,
-   running:newsIngestionEnabled()};
+   running:newsIngestionEnabled(),
+   freshness:newsOperationalHealth({enabled:newsIngestionEnabled(),lastScanAt:last?.createdAt??null,
+    lastDiscoveredAt:lastNew?.discoveredAt??null,lastPublishedAt:lastPublished?.publishedAt??null,
+    recentErrors:last?.errors??0})};
  }
  @Patch('admin/:id/status') @Header('Cache-Control','private,no-store')
  async moderate(@Req()req:IncomingMessage,@Param('id')id:string,@Body()body:ModerateDto){
@@ -263,7 +270,7 @@ export class NewsController {
  @Get('admin/health') @Header('Cache-Control','private,no-store')
  async health(@Req()req:IncomingMessage){
   await this.admin(req);
-  const [last,scans,articleCount,byTopic,byPublisher,untranslated,unsummarized,unillustrated,publishers,qualitySample]=await Promise.all([
+  const [last,scans,articleCount,byTopic,byPublisher,untranslated,unsummarized,unillustrated,publishers,qualitySample,lastNew,lastPublished,pending]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'}}),
    this.prisma.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:120}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED'}}),
@@ -275,14 +282,23 @@ export class NewsController {
    this.prisma.newsDiscoveredSource.findMany({orderBy:{articleCount:'desc'},take:100}),
    this.prisma.newsArticle.findMany({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},take:600,
     select:{id:true,url:true,title:true,titleUk:true,topic:true,source:true,publishedAt:true,
-     publishedAccuracy:true,imageUrl:true,summaryUk:true,summaryEn:true,feedDescription:true,summary:true}})
+     publishedAccuracy:true,imageUrl:true,summaryUk:true,summaryEn:true,feedDescription:true,summary:true}}),
+   this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{discoveredAt:'desc'},select:{discoveredAt:true}}),
+   this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},select:{publishedAt:true}}),
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED',OR:[{titleUk:null},{titleEn:null}]}})
   ]);
   const seen=new Set<string>(),latest:typeof scans=[];
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
-  return {enabled:newsIngestionEnabled(),last,
+  return {enabled:newsIngestionEnabled(),last,generatedAt:new Date().toISOString(),
+   freshness:newsOperationalHealth({enabled:newsIngestionEnabled(),lastScanAt:last?.createdAt??null,
+    lastDiscoveredAt:lastNew?.discoveredAt??null,lastPublishedAt:lastPublished?.publishedAt??null,
+    recentErrors:last?.errors??0}),
+   runtime:this.ingestion.runtimeStatus(),
+   editorial:{translationEnabled:process.env.NEWS_TRANSLATION_ENABLED!=='0',
+    scope:newsTranslationScope(),qualityApproved:newsScopeApproved(),pending},
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
-   editorialAiConfigured:Boolean(process.env.GROQ_API_KEY||process.env.GEMINI_API_KEY||process.env.OPENROUTER_API_KEY)
-    &&process.env.NEWS_EDITORIAL_AI_ENABLED!=='0',
+   // Legacy field retained for older dashboards; news translation never uses LLM.
+   editorialAiConfigured:false,
    articleCount,publishers:byPublisher.length,untranslated,unsummarized,unillustrated,discoveredSources:publishers,
    byTopic:byTopic.map(t=>({topic:t.topic,count:t._count._all})),
    quality:newsQualitySnapshot(qualitySample),sources:latest,history:scans.slice(0,40)};
@@ -300,9 +316,7 @@ export class NewsController {
  async refresh(@Req()req:IncomingMessage,@Query('backfill')backfill='false'){
   await this.admin(req,true);
   if(!['true','false'].includes(backfill))throw new BadRequestException('Invalid backfill');
-  void this.ingestion.refresh({backfill:backfill==='true'})
-   .catch(e=>console.warn('[news] manual refresh:',String(e)));
-  return {requested:true,completed:false,details:'Inspect /api/v1/news/admin/health for actual results'};
+  return this.ingestion.requestManualRefresh(backfill==='true');
  }
 }
 for(const [method,types] of [
