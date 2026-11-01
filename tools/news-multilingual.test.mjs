@@ -91,7 +91,7 @@ test('mixed-language old title is reprocessed and does not overwrite existing so
 });
 
 
-test('known wrong month case and literal lunar phrases fail closed in both locale feeds',async()=>{
+test('wrong month case corrected from verifiable date, unverified literal lunar phrases still fail closed',async()=>{
  const badUk='Гороскоп завтрашнього дня 26 Жовтень: захопливий день для 5 знаків';
  const badMoonUk='Астрологія Шарад Пурніма: повний плід місяця';
  const badMoonEn='Astrology Sharad Purnima: the full fruit of the moon';
@@ -106,11 +106,9 @@ test('known wrong month case and literal lunar phrases fail closed in both local
  assert.equal(isLocalizedNewsTitle('Гороскоп на 26 жовтня: 5 знаків','uk'),true);
  assert.equal(isLocalizedNewsTitle('October 26 horoscope: five zodiac signs','en'),true);
  const env={NEWS_TRANSLATION_PROVIDER:'azure',AZURE_TRANSLATOR_KEY:'not-real',AZURE_TRANSLATOR_REGION:'eastus'};
- await assert.rejects(
-   ()=>translateLocalizedHeadline('Horoscope for October 26, 2026','uk',
-     async()=>new Response(JSON.stringify([{translations:[{
-       to:'uk',text:'Гороскоп 26 Жовтень 2026'
-     }]}]),{status:200}),env),
-   /Untranslated script or changed numeric facts|Incomplete uk localization/
- );
+ const repaired=await translateLocalizedHeadline('Horoscope for October 26, 2026','uk',
+   async()=>new Response(JSON.stringify([{translations:[{
+    to:'uk',text:'Гороскоп 26 Жовтень 2026'
+   }]}]),{status:200}),env);
+ assert.equal(repaired,'Гороскоп 26 жовтня 2026');
 });
