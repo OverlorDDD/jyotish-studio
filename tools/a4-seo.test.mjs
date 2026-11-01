@@ -25,7 +25,7 @@ test('A4 index gate requires configured HTTPS hostname and no preview noindex',(
  }
 });
 test('A4 sitemap enumerates published tools but no future content or private views',()=>{
- assert.deepEqual([...SEO_PATHS],['','about','tarot','astrology/jyotish','yoga','learn','horoscope','panchanga','news','community','methodology']);
+ assert.deepEqual([...SEO_PATHS],['','about','tarot','tarot/cards','astrology/jyotish','yoga','learn','horoscope','panchanga','eclipses/2027','news','community','methodology']);
  for(const p of SEO_PATHS)assert.ok(!/account|admin|personal/.test(p));
  assert.ok(SEO_PATHS.includes('news')&&SEO_PATHS.includes('community')&&SEO_PATHS.includes('panchanga'));
  assert.ok(!SEO_PATHS.includes('astrology'),'redirecting alias must not be indexed');
