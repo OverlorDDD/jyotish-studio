@@ -3,6 +3,8 @@ import {headers} from 'next/headers';
 import {publicSiteOrigin} from '../lib/site-indexing';
 import {BRAND} from '../lib/brand';
 import './globals.css';
+import {Suspense} from 'react';
+import GrowthConsent from './components/GrowthConsent';
 
 const siteUrl=publicSiteOrigin();
 export const metadata:Metadata={
@@ -47,5 +49,6 @@ export default async function RootLayout({children}:{children:React.ReactNode}){
  return <html lang={locale}><body>
   {structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:structured}}/>}
   {children}
+  <Suspense fallback={null}><GrowthConsent/></Suspense>
  </body></html>;
 }
