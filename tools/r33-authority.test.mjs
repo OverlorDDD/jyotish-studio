@@ -71,5 +71,6 @@ test('R3.3 only canonical curated routes are indexed; no account or preview URLs
  const portal=read('apps/web/app/components/PortalSection.tsx');
  const panchanga=read('apps/web/app/[locale]/panchanga/page.tsx');
  assert.match(portal,/tarot\/cards/);
- assert.match(panchanga,/eclipses\/2027/);
+ assert.match(read('apps/web/app/components/PanchangaHub.tsx'),/eclipses\/2027/,'NASA calendar should be linked adjacent to the local eclipse calculator');
+ assert.doesNotMatch(panchanga,/eclipses\/2027/,'no duplicate buried calendar CTA');
 });
