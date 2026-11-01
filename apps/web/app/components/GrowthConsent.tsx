@@ -74,8 +74,16 @@ export default function GrowthConsent(){
    if(fromArticle&&toTool&&safeGrowthEvent('article_to_tool_click'))
     window.gtag?.('event','article_to_tool_click',{from_section:from.split('/')[2],tool:to.split('/').slice(2).join('_')});
   };
+  const onGrowth=(event:Event)=>{
+   const detail=(event as CustomEvent<{name?:string}>).detail;
+   if(!detail||!safeGrowthEvent(detail.name||''))return;
+   if(!safeGrowthPath(window.location.pathname))return;
+   window.gtag?.('event',detail.name);
+  };
   document.addEventListener('click',onClick);
-  return()=>document.removeEventListener('click',onClick);
+  window.addEventListener('galaxiora:growth',onGrowth);
+  return()=>{document.removeEventListener('click',onClick);window.removeEventListener('galaxiora:growth',onGrowth)};
+
  },[loaded,choice]);
  if(!enabled||!loaded)return null;
  const decide=(value:'accepted'|'rejected')=>{
