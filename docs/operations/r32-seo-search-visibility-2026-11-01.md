@@ -3,7 +3,7 @@
 **Created:** 2026-11-01  
 **Source branch:** `fix/mobile-header-account-dialog-20261101` (includes earlier mobile, news NMT, horoscope and ASE work; verified by GitHub comparisons).  
 **Work branch:** `fix/r32-search-brand-and-sitemap-20261101`.  
-**Status:** CODE IMPLEMENTED; production deploy and end-to-end live audit NOT YET VERIFIED.
+**Status:** CODE IMPLEMENTED; production live baseline audit COMPLETED (94 URLs), CI rolling validation; deployment and post-deploy audit NOT YET VERIFIED.
 
 ## Evidence at start
 
@@ -12,7 +12,20 @@ Owner supplied Google Search Console screenshots dated November 1:
 - Sitemap `https://galaxiora.com/sitemap.xml` accepted as Success; 94 discovered URLs.
 - `https://galaxiora.com/uk` was already in Google index over HTTPS.
 - Google AI Overview for branded query `galaxiora` erroneously described it as a generic word or nickname, despite the official website showing as the first organic result. An AI answer is not proof of malware or domain blacklisting. It cannot be manually controlled.
-- Assistant requests to public site from web runtime failed; Google screenshots/user confirm public access. **No 94-URL live crawl, PageSpeed/Lighthouse measurement, deployment SHA or AWS console access has been independently completed.**
+- Assistant requests to public site from web runtime failed; Google screenshots/user confirm public access. **GitHub Actions runner subsequently performed a read-only 94-URL production crawl on November 1.** Production deployment SHA or AWS console access is still not independently established.
+
+### Actual pre-deploy public crawl (GitHub Actions run 41319286232)
+
+Read-only `node tools/r32-seo-audit.mjs` from a GitHub-hosted runner reached the public production website and reported **94 checked, 92 HTTP 200, six error signals, two H1 warnings**. Errors all come from the two already identified redirected aliases and the new About pages not yet deployed:
+- `/en/astrology` and `/uk/astrology`: listed in sitemap but return HTTP 307 to `/astrology/jyotish` (4 audit signals).
+- `/en/about` and `/uk/about`: required by new release but absent from **old** production sitemap (2 audit signals).
+- `/en/tarot` and `/uk/tarot`: initial HTML missing H1 (2 warnings); added original localized H1 in `PortalSection.tsx` to R3.2 branch.
+- No additional canonical, hreflang, language, noindex, title or HTTP failures were found in the initial crawl. The audit has since been tightened to check **exact alternate URLs** and meta descriptions, so results from the revised check must still be reviewed.
+
+CI initial production build and SEO checks were successful (run 41319039870). A follow-up browser run detected that a test locator incorrectly matched both a true HEAD canonical and a stale BODY canonical after client navigation; **not an independently verified server HTML problem**. The test was corrected to target `head link[rel=canonical]`. Re-run test + Chromium on the final SHA before deployment.
+
+Synthetic browser performance measurements were added for nine critical routes in desktop/mobile modes, but are **lab** measurements only; do not report them as CrUX 75th-percentile field INP/LCP. Real-world Core Web Vitals data are unverified until available from Search Console/PageSpeed.
+
 
 ## Changes made
 
@@ -36,7 +49,7 @@ Owner supplied Google Search Console screenshots dated November 1:
 1. **Identify current production SHA (do not replace with old main):** check live checkout/worktree and current branch on AWS; check `git status --short` for uncommitted production changes. If server is built from an older integration branch, reconcile rather than force checkout.
 2. **Run tests:** `npm install`, `npm run test:seo`, `npm run test:r32:seo`, `npm run test:all`, `npm run build` and `npm run test:e2e` with disposable test DB. Existing CI must be green for the actual head. E2E assumes `NEXT_PUBLIC_SITE_URL=https://galaxiora.example` and `SITE_NOINDEX=0` as in CI. Keep private DB/secrets untouched.
 3. **Only then deploy** tested code using existing guarded production deployment procedure and confirm live revision. Do not change DNS, site indexing switch, ephemeral preview, payments or database.
-4. **Run live audit from the deployment host or trusted external machine:** set `R32_SITE_ORIGIN=https://galaxiora.com`, run `npm run r32:seo:audit`. Expect all sitemap URLs 200, self-canonical, correct hreflang, noindex absent; new /uk/about /en/about in sitemap; no redirected astrology aliases. If errors, fix *root causes* before declaring acceptance.
+4. **Run live audit after deployment from the deployment host or GitHub Actions runner:** set `R32_SITE_ORIGIN=https://galaxiora.com`, run `npm run r32:seo:audit`. Expect all sitemap URLs 200, self-canonical, correct hreflang, noindex absent; new /uk/about /en/about in sitemap; no redirected astrology aliases. If errors, fix *root causes* before declaring acceptance.
 5. **Measure performance** (can't be faked): run Google PageSpeed Insights mobile and desktop for /uk, /en, /uk/astrology/jyotish, /uk/horoscope, /uk/panchanga, /uk/news, /uk/community, /uk/about. Capture LCP, INP/field data if available, CLS, mobile layout. Target good Core Web Vitals at p75 where field data exists: LCP ≤2.5s, INP ≤200ms, CLS ≤0.1. Without data, mark unverified.
 6. **Search Console:** after actual deploy, inspect and if necessary request fresh crawl of /uk and /uk/about (not all sitemap URLs). Check real Pages/Indexing and structured data. Google AI Overview is independently generated and may remain inaccurate until new crawl and third-party brand corroboration.
 
