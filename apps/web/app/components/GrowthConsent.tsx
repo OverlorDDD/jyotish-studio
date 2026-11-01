@@ -50,10 +50,14 @@ export default function GrowthConsent(){
   setLoaded(true);
  },[]);
  useEffect(()=>{
-  if(!loaded||choice!=='accepted'||!enabled)return;
-  startAnalytics();
+  if(!loaded||!enabled)return;
   const safe=safeGrowthPath(pathname||'');
-  if(safe)window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,page_title:'Galaxiora',send_to:measurementId});
+  if(choice!=='accepted'||!safe){
+   if(window.__galaxioraAnalyticsReady)stopAnalytics();
+   return;
+  }
+  startAnalytics();
+  window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,page_title:'Galaxiora',send_to:measurementId});
  },[loaded,choice,pathname]);
  useEffect(()=>{
   if(!loaded||choice!=='accepted'||!enabled)return;
