@@ -5,6 +5,7 @@ import {PrismaClient} from '@prisma/client';
 import {editorialPreviewState} from '../apps/api/src/news-editorial-coverage.ts';
 import {disabledNewsSourceKeys} from '../apps/api/src/news-sources.ts';
 import {publicTitleForLocale} from '../apps/api/src/news-localization.ts';
+import {headlineDebtSummary} from '../apps/api/src/news-headline-backlog.ts';
 const db=new PrismaClient();
 const headlinesOnly=process.argv.includes('--headlines-only');
 if(headlinesOnly&&!(process.env.NEWS_TRANSLATION_CONTENT_SCOPE==='headlines'&&
@@ -15,7 +16,8 @@ if(headlinesOnly&&!(process.env.NEWS_TRANSLATION_CONTENT_SCOPE==='headlines'&&
 try{
  const [rows,lastScan,sources]=await Promise.all([
   db.newsArticle.findMany({where:{status:'PUBLISHED'},
-   select:{id:true,source:true,title:true,titleUk:true,titleEn:true,summaryUk:true,feedDescription:true,summary:true,summaryKind:true},
+   select:{id:true,source:true,title:true,titleUk:true,titleEn:true,summaryUk:true,feedDescription:true,summary:true,summaryKind:true,
+    editorialAttempts:true,editorialNextAttemptAt:true},
    take:10000,orderBy:{discoveredAt:'desc'}}),
   db.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,accepted:true,sources:true,errors:true}}),
   db.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:160,select:{sourceKey:true,status:true,failure:true,createdAt:true}})
@@ -31,8 +33,9 @@ try{
   if(state==='translation_pending')pending.push({id:row.id,source:row.source,kind:row.summaryKind});
   if(state==='missing_source_facts')unsupported.push({id:row.id,source:row.source,kind:row.summaryKind});
  }
- const missingTitles=rows.filter(r=>!publicTitleForLocale(r,'uk')).length;
- const missingEnglishTitles=rows.filter(r=>!publicTitleForLocale(r,'en')).length;
+ const backlog=headlineDebtSummary(rows);
+ const missingTitles=backlog.missingUk;
+ const missingEnglishTitles=backlog.missingEn;
  const ageMin=lastScan?(Date.now()-new Date(lastScan.createdAt).getTime())/60000:null;
  const failures=[];
  if(!rows.length)failures.push('No published news articles');
@@ -45,7 +48,12 @@ try{
  if(states.ok===0)failures.push('No news source has a recent OK state');
  const status=failures.length?'BLOCKED':headlinesOnly&&counts.translation_pending
   ?'HEADLINES_READY_WITH_EDITORIAL_DEBT':'CONTENT_READY';
+ const nextAction=backlog.eligible>0?'RUN_APPROVED_HEADLINE_REPAIR':
+  backlog.cooldown>0?'WAIT_FOR_NEXT_RETRY':
+  backlog.manualReview>0?'REVIEW_QUARANTINED_TITLES':
+  states.error>0?'CHECK_EXTERNAL_SOURCE_ERRORS':'READY';
  const report={status,gate:headlinesOnly?'EXPLICIT_HEADLINES_ONLY':'STRICT_FULL_EDITORIAL',
+  headlineBacklog:backlog,nextAction,
   unlocalizedTeasersDeferred:headlinesOnly?counts.translation_pending:0,articles:rows.length,
   missingTitles,missingEnglishTitles,missingTeasers:counts.missing_source_facts+counts.translation_pending,
   previewCoverage:counts,
