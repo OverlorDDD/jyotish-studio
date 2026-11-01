@@ -10,6 +10,7 @@ on:
       - fix/news-freshness-admin-ops-20261101
       - fix/news-nmt-hindi-headlines-20261101
       - fix/news-nmt-backlog-drain-20261101
+      - feat/news-bilingual-teasers-20261101
   workflow_dispatch:
 concurrency:
   group: galaxiora-release-${{ github.ref }}
@@ -61,6 +62,8 @@ jobs:
         run: node --test tools/news-nmt-reliability.test.mjs
       - name: Bilingual headline backlog eligibility and source fallback
         run: node --test tools/news-nmt-backlog.test.mjs
+      - name: Bilingual source-backed teasers and no-fabrication Azure budget safeguards
+        run: node --test tools/news-bilingual-teasers.test.mjs
       - name: GalaxiNews freshness, production scheduler and admin operations
         run: node --test tools/news-operational.test.mjs
       - name: Independent Western and Vedic Swiss horoscope verification
