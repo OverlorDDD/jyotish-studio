@@ -9,8 +9,10 @@ import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded} from './news-t
 import {isLocalizedNewsTitle} from './news-localization.ts';
 import {headlineNmtBudgetCharacters} from './news-headline-nmt-plan.ts';
 import {headlineNeedsWork,NEWS_HEADLINE_RETRY_LIMIT} from './news-headline-backlog.ts';
+import {excerptSource,teaserNeedsWork,teaserLocaleReady,teaserNmtCharacterCost,
+ sourceTeaserForLocale,validNewsTeaser,translateLocalizedTeaser} from './news-teaser-nmt.ts';
 
-type Draft={id:string;title:string;titleUk?:string|null;titleEn?:string|null;summaryUk?:string|null;
+type Draft={id:string;title:string;titleUk?:string|null;titleEn?:string|null;summaryUk?:string|null;summaryEn?:string|null;
  feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
 type Output={id:string;titleUk:string;titleEn?:string;summaryUk:string;summaryEn:string};
 export const NEWS_TRANSLATION_MODE='local_nmt_only';
@@ -43,7 +45,6 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
  for(const article of items){
   const title=cleanDescription(article.title).slice(0,240);
   if(!title)continue;
-  const src=scope==='full'?extractSourceTeaser(article):'';
   if(scope==='headlines'){
    let titleUk=isLocalizedNewsTitle(article.titleUk,'uk')?article.titleUk!.trim():'';
    let titleEn=isLocalizedNewsTitle(article.titleEn,'en')?article.titleEn!.trim():'';
@@ -60,24 +61,38 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
    }
    continue;
   }
-  const uk=isUkrainian(article.language);
-  if(!uk&&!isEnglish(article.language)){
-   console.warn('[news-nmt] source language unsupported:',article.language);
-   continue;
+  // FULL mode: never use EN-only legacy translation for Hindi/mixed RSS.
+  // Translate validated publisher-supplied bounded excerpt, not article body.
+  const sourceExcerpt=excerptSource(article);
+  let titleUk=isLocalizedNewsTitle(article.titleUk,'uk')?article.titleUk!.trim():'';
+  let titleEn=isLocalizedNewsTitle(article.titleEn,'en')?article.titleEn!.trim():'';
+  let summaryUk=validNewsTeaser(article.summaryUk,'uk')?article.summaryUk!.trim():'';
+  let summaryEn=validNewsTeaser(article.summaryEn,'en')?article.summaryEn!.trim():'';
+  const sourceEnglish=isLocalizedNewsTitle(title,'en');
+  const sourceUkrainian=isUkrainian(article.language)&&isLocalizedNewsTitle(title,'uk');
+  // Each locale is independent: preserve valid UK even if EN fails, and vice versa.
+  if(!titleUk){
+   if(sourceUkrainian)titleUk=title;
+   else try{titleUk=await translateLocalizedHeadline(title,'uk',fetcher);}
+   catch(error){console.warn('[news-nmt] UK title pending',article.id,String(error));}
   }
-  let titleUk=article.titleUk?.trim()||'';
-  try{
-   // Do not retranslate already published Ukrainian content.
-   if(!titleUk)titleUk=uk?title:await translateNewsText(title,fetcher);
-   const summaryUk=article.summaryUk?.trim()||(src?(uk?src:await translateNewsText(src,fetcher)):'');
-   outputs.push({id:article.id,titleUk,summaryUk,summaryEn:!uk&&src?src:''});
-  }catch(error){
-   console.warn('[news-nmt] Local translation unavailable for article',article.id,':',
-    error instanceof Error?error.message:String(error));
-   // Save the validated Ukrainian title even if the subsequent teaser fails;
-   // the incomplete teaser remains queued with backoff.
-   if(titleUk)outputs.push({id:article.id,titleUk,summaryUk:'',summaryEn:''});
+  if(!titleEn&&!sourceEnglish){
+   try{titleEn=await translateLocalizedHeadline(title,'en',fetcher);}
+   catch(error){console.warn('[news-nmt] EN title pending',article.id,String(error));}
   }
+  if(sourceExcerpt){
+   if(!summaryUk){
+    summaryUk=sourceTeaserForLocale(sourceExcerpt,article.language,'uk')||'';
+    if(!summaryUk)try{summaryUk=await translateLocalizedTeaser(sourceExcerpt,'uk',fetcher);}
+    catch(error){console.warn('[news-nmt] UK excerpt pending',article.id,String(error));}
+   }
+   if(!summaryEn){
+    summaryEn=sourceTeaserForLocale(sourceExcerpt,article.language,'en')||'';
+    if(!summaryEn)try{summaryEn=await translateLocalizedTeaser(sourceExcerpt,'en',fetcher);}
+    catch(error){console.warn('[news-nmt] EN excerpt pending',article.id,String(error));}
+   }
+  }
+  outputs.push({id:article.id,titleUk,titleEn,summaryUk,summaryEn});
  }
  return outputs;
 }
@@ -105,15 +120,15 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
     {OR:[{editorialNextAttemptAt:null},{editorialNextAttemptAt:{lte:now}}]},
     {editorialAttempts:{lt:MAX_NEWS_TRANSLATION_ATTEMPTS}},
     scope==='headlines'?{}:
-     {OR:[{titleUk:null},{titleUk:''},{summaryUk:null},{summaryUk:''}]}
+     {OR:[{titleUk:null},{titleUk:''},{titleEn:null},{titleEn:''},{summaryUk:null},{summaryUk:''},{summaryEn:null},{summaryEn:''}]}
    ]},
   orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:scope==='headlines'?10000:1000,
-  select:{id:true,title:true,titleUk:true,titleEn:true,feedDescription:true,summary:true,summaryUk:true,summaryKind:true,
+  select:{id:true,title:true,titleUk:true,titleEn:true,feedDescription:true,summary:true,summaryUk:true,summaryEn:true,summaryKind:true,
    language:true,editorialAttempts:true}
  });
  const rows=candidates.filter(x=>scope==='headlines'
   ?headlineNeedsWork(x)
-  :(!x.titleUk?.trim()||(!x.summaryUk?.trim()&&hasEditorialEvidence(x)))).slice(0,limit);
+  :(headlineNeedsWork(x)||teaserNeedsWork(x))).slice(0,limit);
  if(!rows.length)return {processed:0,
   reason:scope==='headlines'?'queue_empty_headlines':'queue_empty_no_grounded_work',
   noEvidenceSkipped:scope==='full'?candidates.filter(x=>!x.summaryUk?.trim()&&!hasEditorialEvidence(x)).length:0};
@@ -127,10 +142,13 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
     return sum+(!isLocalizedNewsTitle(row.titleUk,'uk')?headlineNmtBudgetCharacters(title,'uk'):0)
      +(!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(title,'en')?
        headlineNmtBudgetCharacters(title,'en'):0);
-   if(!isEnglish(row.language))return sum;
-   const missing=!row.titleUk?.trim()?title.length:0;
-   const teaser=!row.summaryUk?.trim()?extractSourceTeaser(row).length:0;
-   return sum+missing+teaser;
+   const source=excerptSource(row);
+   return sum+(!isLocalizedNewsTitle(row.titleUk,'uk')&&!isUkrainian(row.language)?
+    headlineNmtBudgetCharacters(title,'uk'):0)
+    +(!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(title,'en')?
+      headlineNmtBudgetCharacters(title,'en'):0)
+    +(source&&!teaserLocaleReady(row,'uk')?teaserNmtCharacterCost(source,'uk'):0)
+    +(source&&!teaserLocaleReady(row,'en')?teaserNmtCharacterCost(source,'en'):0);
   },0);
   try{await reserveAzureNewsCharacters(prisma,estimated,now);}
   catch(error){
@@ -144,14 +162,18 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
  let processed=0,failed=0;
  for(const original of rows){
   const output=translated.find(x=>x.id===original.id);
-  const existingTitle=scope==='headlines'?isLocalizedNewsTitle(original.titleUk,'uk'):Boolean(original.titleUk?.trim());
-  const existingEnglish=scope==='headlines'?(isLocalizedNewsTitle(original.titleEn,'en')||isLocalizedNewsTitle(original.title,'en')):true;
-  const sourceEnglish=isLocalizedNewsTitle(original.title,'en');
-  const existingTeaser=Boolean(original.summaryUk?.trim());
-  const facts=hasEditorialEvidence(original);
+  const existingTitle=isLocalizedNewsTitle(original.titleUk,'uk');
+  const existingEnglish=isLocalizedNewsTitle(original.titleEn,'en')||isLocalizedNewsTitle(original.title,'en');
+  const facts=Boolean(excerptSource(original));
+  const existingTeaserUk=validNewsTeaser(original.summaryUk,'uk');
+  const existingTeaserEn=validNewsTeaser(original.summaryEn,'en');
   const titleReady=existingTitle||isLocalizedNewsTitle(output?.titleUk,'uk');
-  const englishReady=scope==='full'||existingEnglish||sourceEnglish||isLocalizedNewsTitle(output?.titleEn,'en');
-  const teaserReady=scope==='headlines'||!facts||existingTeaser||Boolean(output?.summaryUk);
+  const englishReady=existingEnglish||isLocalizedNewsTitle(output?.titleEn,'en');
+  const teaserReady=scope==='headlines'||!facts||
+   ((existingTeaserUk||validNewsTeaser(output?.summaryUk,'uk')||
+      Boolean(sourceTeaserForLocale(excerptSource(original),original.language,'uk'))) &&
+    (existingTeaserEn||validNewsTeaser(output?.summaryEn,'en')||
+      Boolean(sourceTeaserForLocale(excerptSource(original),original.language,'en'))));
   const success=titleReady&&englishReady&&teaserReady;
   const nextAttempts=original.editorialAttempts+1;
   const update={
@@ -159,13 +181,16 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
    editorialNextAttemptAt:success?null:new Date(now.getTime()+
     (nextAttempts>=3?24:3)*3600000),
    ...(!existingTitle&&isLocalizedNewsTitle(output?.titleUk,'uk')?{titleUk:output!.titleUk}:{}),
-   ...(scope==='headlines'&&!existingEnglish&&isLocalizedNewsTitle(output?.titleEn,'en')?
+   ...(!existingEnglish&&isLocalizedNewsTitle(output?.titleEn,'en')?
     {titleEn:output!.titleEn}:{}),
-   ...(scope==='full'&&!existingTeaser&&facts&&output?.summaryUk?{
-    summaryUk:output.summaryUk,
-    ...(output.summaryEn?{summaryEn:output.summaryEn}:{}),
-    summaryKind:'machine_translated_excerpt'}:{}),
-   ...(scope==='full'&&success&&!facts?{summaryKind:'no_context'}:{})
+   ...(scope==='full'&&facts&&!existingTeaserUk&&validNewsTeaser(output?.summaryUk,'uk')?
+    {summaryUk:output!.summaryUk}:{}),
+   ...(scope==='full'&&facts&&!existingTeaserEn&&validNewsTeaser(output?.summaryEn,'en')?
+    {summaryEn:output!.summaryEn}:{}),
+   // Retain 'source_excerpt' kind if the only legal source evidence is summary.
+   ...(scope==='full'&&facts&&original.feedDescription&&
+      (validNewsTeaser(output?.summaryUk,'uk')||validNewsTeaser(output?.summaryEn,'en'))?
+    {summaryKind:'machine_translated_excerpt'}:{})
   };
   await prisma.newsArticle.updateMany({where:{id:original.id,status:'PUBLISHED'},data:update});
   if(success)processed++;else failed++;
