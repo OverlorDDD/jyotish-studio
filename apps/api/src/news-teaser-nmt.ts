@@ -4,7 +4,7 @@
 import {cleanDescription} from './news-domain.ts';
 import {headlineNmtPlan,headlineNmtBudgetCharacters,unwrapAzureHeadline,
  validateTranslatedHeadline,correctKnownHindiIdiom,correctUkrainianDateCase} from './news-headline-nmt-plan.ts';
-import {isLocalizedNewsTitle,type NewsTitleLocale} from './news-localization.ts';
+import type {NewsTitleLocale} from './news-localization.ts';
 import {azureTranslatorCredentials,selectedNewsTranslationProvider,normalizeTranslatedNews,
  improveNewsTerminology,translationQualityWarnings,type TranslationFetch} from './news-translation.ts';
 
@@ -13,7 +13,7 @@ const DEV=/[\u0900-\u097F]/u;
 const ROMAN_HINDI=/\b(?:kal ka rashifal|aaj ka rashifal|kundli ka)\b/i;
 export function validNewsTeaser(text:string|null|undefined,locale:NewsTitleLocale):boolean{
  const value=text?.trim()||'';
- if(value.length<25||value.length>700||DEV.test(value)||ROMAN_HINDI.test(value)||
+ if(value.length<12||value.length>700||DEV.test(value)||ROMAN_HINDI.test(value)||
   /<[^>]*>/.test(value)||translationQualityWarnings(value).length)return false;
  return locale==='uk'?/[\u0400-\u052F]/u.test(value):
   /[A-Za-z]/.test(value)&&!/[\u0400-\u052F]/u.test(value);
