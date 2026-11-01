@@ -4,7 +4,7 @@
  */
 import {cleanDescription} from './news-domain.ts';
 import {isLocalizedNewsTitle,type NewsTitleLocale} from './news-localization.ts';
-import {headlineNmtPlan,unwrapAzureHeadline,validateTranslatedHeadline,correctKnownHindiIdiom} from './news-headline-nmt-plan.ts';
+import {headlineNmtPlan,unwrapAzureHeadline,validateTranslatedHeadline,correctKnownHindiIdiom,correctUkrainianDateCase} from './news-headline-nmt-plan.ts';
 
 export const NEWS_TRANSLATOR_DEFAULT='http://127.0.0.1:5100';
 export const NEWS_TRANSLATOR_ENGINE='libretranslate-argos';
@@ -172,11 +172,13 @@ export async function translateLocalizedHeadline(source:string,target:NewsTitleL
   let clean=normalizeTranslatedNews(target==='uk'?
    improveNewsTerminology(unit.source,unpacked):unpacked);
   clean=correctKnownHindiIdiom(unit.source,clean,target);
+  if(target==='uk')clean=correctUkrainianDateCase(clean);
   validateTranslatedHeadline(unit.source,clean,target);
   translated.push(clean);
  }
  let final=translated.join(' ').replace(/\s+([,.;:!?])/g,'$1').replace(/\s+/g,' ').trim();
  final=correctKnownHindiIdiom(value,final,target);
+ if(target==='uk')final=correctUkrainianDateCase(final);
  validateTranslatedHeadline(value,final,target);
  if(!isLocalizedNewsTitle(final,target))
   throw Error('Incomplete '+target+' localization of mixed-language headline');
