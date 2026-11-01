@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useCallback,useEffect,useState} from 'react';
 import {readApiJson} from '../../lib/api-response';
 import type {PortalLocale} from '../../lib/brand';
 import RoleManagement from './RoleManagement';
@@ -7,24 +7,36 @@ import EditorialWorkspace from './EditorialWorkspace';
 import NewsDiagnostics from './NewsDiagnostics';
 import AdminExpertRequests from './AdminExpertRequests';
 
-type Dashboard={windowDays:number;users:number;charts:number;subscribers:number;freeMembers:number;unpaidDrafts:number;tarotReadings:number;expertRequestsUnread:number;orders:{status:string;count:number}[];ai:{
+type Dashboard={generatedAt?:string;newUsers7d?:number;newCharts7d?:number;newOrders7d?:number;windowDays:number;users:number;charts:number;subscribers:number;freeMembers:number;unpaidDrafts:number;tarotReadings:number;expertRequestsUnread:number;orders:{status:string;count:number}[];ai:{
  requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;
  costUsdReported:number|null;byProvider:{provider:string;model:string;requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;costUsdReported:number|null}[]
 }};
 export default function AdminDashboard({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
- const [data,setData]=useState<Dashboard|null>(null),[busy,setBusy]=useState(true),[error,setError]=useState('');
- useEffect(()=>{
-  let alive=true;
-  fetch('/api/v1/admin/overview',{cache:'no-store',credentials:'same-origin'})
-   .then(r=>readApiJson<Dashboard>(r)).then(x=>{if(alive)setData(x)})
-   .catch(e=>{if(alive)setError(e instanceof Error?e.message:String(e))})
-   .finally(()=>{if(alive)setBusy(false)});
-  return()=>{alive=false};
+ const [data,setData]=useState<Dashboard|null>(null);
+ const [busy,setBusy]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState('');
+ const refresh=useCallback(async()=>{
+  setRefreshing(true);
+  try{
+   const response=await fetch('/api/v1/admin/overview',{cache:'no-store',credentials:'same-origin'});
+   setData(await readApiJson<Dashboard>(response));setError('');
+  }catch(e){setError(e instanceof Error?e.message:String(e));}
+  finally{setBusy(false);setRefreshing(false);}
  },[]);
+ useEffect(()=>{
+  void refresh();
+  const timer=setInterval(()=>{if(document.visibilityState==='visible')void refresh();},60000);
+  const focus=()=>{if(document.visibilityState==='visible')void refresh();};
+  window.addEventListener('focus',focus);
+  return()=>{clearInterval(timer);window.removeEventListener('focus',focus)};
+ },[refresh]);
+ const shownAt=(iso:string|undefined)=>iso?new Date(iso).toLocaleString(uk?'uk-UA':'en-GB'):'—';
  const count=(x:number)=>x.toLocaleString(uk?'uk-UA':'en-US');
  const fields=data?[
   {label:uk?'Користувачі':'Users',value:count(data.users)},
+  {label:uk?'Нові користувачі / 7 днів':'New users / 7 days',value:count(data.newUsers7d??0)},
+  {label:uk?'Нові карти / 7 днів':'New charts / 7 days',value:count(data.newCharts7d??0)},
+  {label:uk?'Замовлення / 7 днів':'Orders / 7 days',value:count(data.newOrders7d??0)},
   {label:uk?'Без підписки':'Free accounts',value:count(data.freeMembers)},
   {label:uk?'Платні підписники':'Premium accounts',value:count(data.subscribers)},
   {label:uk?'Чернетки до оплати':'Pending drafts',value:count(data.unpaidDrafts)},
@@ -36,8 +48,19 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
  ]:[];
  return <section className="as-profile">
   <h1>{uk?'Панель адміністратора':'Admin overview'}</h1>
-  <p className="as-muted">{uk?'Доступ лише ADMIN. Статистика за останні 30 днів; запитання клієнтів, персональні карти та паролі сюди не надходять.':'ADMIN only. Last 30 days; no private birth charts, reading questions or passwords are exposed.'}</p>
-  {busy?<p>{uk?'Завантаження…':'Loading…'}</p>:error?<p role="alert">{uk?'Доступ відхилено або сервер недоступний: ':'Access denied or API unavailable: '}{error}</p>:data&&<>
+  <p className="as-muted">{uk?
+   'Доступ лише ADMIN. Загальна статистика — за весь час, витрати AI — за 30 днів. Особисті тексти звернень і натальні дані не відображаються.':
+   'ADMIN only. Totals are all time, AI usage covers 30 days. Private requests and natal data are never shown.'}</p>
+  <p className="as-muted" aria-live="polite">
+   {uk?'Актуальність даних: ':'Data as of: '}<strong>{shownAt(data?.generatedAt)}</strong>{' '}
+   <button type="button" onClick={()=>void refresh()} disabled={refreshing}>
+    {refreshing?(uk?'Оновлення…':'Refreshing…'):(uk?'Оновити зараз':'Refresh now')}
+   </button>{' · '}{uk?'Автооновлення кожні 60 с':'Auto-refresh every 60s'}
+  </p>
+  {busy&&!data?<p>{uk?'Завантаження…':'Loading…'}</p>:null}
+  {error?<p role="alert">{uk?'Помилка отримання актуальних даних: ':'Fresh data unavailable: '}
+   {error}{data?(uk?' · Показано попередній знімок':' · Showing previous snapshot'):''}</p>:null}
+  {data&&<>
    <div className="as-admin-grid">{fields.map(f=><div className="as-admin-metric" key={f.label}><span>{f.label}</span><strong>{f.value}</strong></div>)}</div>
    <p className="as-muted">{uk?'Запитів із підтвердженими загальними токенами: ':'Calls with provider-reported total tokens: '}{count(data.ai.requestsWithTokenUsage)} / {count(data.ai.requests)}</p>
    <h2>{uk?'AI: провайдери та моделі':'AI provider and model usage'}</h2>
