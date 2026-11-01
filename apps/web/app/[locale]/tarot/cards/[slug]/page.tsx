@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import PortalShell from '../../../../components/PortalShell';
+import ShareTools from '../../../../components/ShareTools';
 import {TAROT_GUIDES,tarotGuideBySlug} from '../../../../../lib/tarot-guides';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../../../lib/brand';
 import {articleStructuredData} from '../../../../../lib/seo-structured';
@@ -46,6 +47,8 @@ export default async function TarotCardGuide({params}:Props){
   {json&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:json}}/>}
   {crumbs&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:crumbs}}/>}
   <article className="as-wellness as-academy-detail" data-testid="tarot-card-guide">
+   <ShareTools locale={loc} title={heading} path={url}/>
+
    <nav aria-label={uk?'Навігація':'Breadcrumb'}><Link href={'/'+loc+'/tarot'}>{uk?'Таро':'Tarot'}</Link> / <Link href={'/'+loc+'/tarot/cards'}>{uk?'Значення карт':'Card meanings'}</Link> / {card.title[loc]}</nav>
    <header className="as-wellness-detail-head" style={{marginTop:30}}>
     <span className="as-overline">GALAXIORA · MAJOR ARCANA</span>
