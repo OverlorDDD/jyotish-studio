@@ -7,6 +7,7 @@ import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-covera
 import {checkNewsTranslator,newsScopeApproved,newsTranslationScope,selectedNewsTranslationProvider,translateNewsText,translateLocalizedHeadline,type TranslationFetch} from './news-translation.ts';
 import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded} from './news-translation-budget.ts';
 import {isLocalizedNewsTitle} from './news-localization.ts';
+import {headlineNmtBudgetCharacters} from './news-headline-nmt-plan.ts';
 
 type Draft={id:string;title:string;titleUk?:string|null;titleEn?:string|null;summaryUk?:string|null;
  feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
@@ -119,8 +120,9 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
   const estimated=rows.reduce((sum,row)=>{
    const title=cleanDescription(row.title).slice(0,240);
    if(scope==='headlines')
-    return sum+(!isLocalizedNewsTitle(row.titleUk,'uk')?title.length:0)
-     +(!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(title,'en')?title.length:0);
+    return sum+(!isLocalizedNewsTitle(row.titleUk,'uk')?headlineNmtBudgetCharacters(title,'uk'):0)
+     +(!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(title,'en')?
+       headlineNmtBudgetCharacters(title,'en'):0);
    if(!isEnglish(row.language))return sum;
    const missing=!row.titleUk?.trim()?title.length:0;
    const teaser=!row.summaryUk?.trim()?extractSourceTeaser(row).length:0;
