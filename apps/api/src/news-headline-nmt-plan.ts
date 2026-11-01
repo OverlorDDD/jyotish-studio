@@ -24,6 +24,17 @@ export function sourceNumbers(text:string):string[]{
 }
 const escapeHtml=(text:string)=>text.replace(/&/g,'&amp;').replace(/</g,'&lt;')
  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+/** Escape RSS text and wrap ORIGINAL numeric tokens; never match digits inside HTML entities. */
+export function protectNumericFactsHtml(text:string):string{
+ let html='',cursor=0;
+ for(const match of text.matchAll(DIGITS)){
+  const offset=match.index??cursor;
+  html+=escapeHtml(text.slice(cursor,offset))+
+   '<span class="notranslate">'+match[0]+'</span>';
+  cursor=offset+match[0].length;
+ }
+ return '<div>'+html+escapeHtml(text.slice(cursor))+'</div>';
+}
 export function headlineNmtPlan(source:string,target:NewsTitleLocale):NmtHeadlineUnit[]{
  if(target!=='uk'&&target!=='en')throw Error('Unsupported headline locale');
  const title=cleanDescription(source);
@@ -36,8 +47,7 @@ export function headlineNmtPlan(source:string,target:NewsTitleLocale):NmtHeadlin
   const from=DEV.test(original)?(HINDI_WORDS.test(original)?'hi':null):romanized?'en':null;
   const normalized=normalizeRomanizedHindi(original);
   const protectedNumbers=isMixed&&/\d/.test(normalized);
-  const text=protectedNumbers?'<div>'+escapeHtml(normalized).replace(DIGITS,
-   n=>'<span class="notranslate">'+n+'</span>')+'</div>':normalized;
+  const text=protectedNumbers?protectNumericFactsHtml(normalized):normalized;
   return {text,source:original,from,textType:protectedNumbers?'html':'plain'};
  });
 }
