@@ -200,7 +200,7 @@
 .as-header{border-bottom:1px solid rgba(216,187,140,.14);background:rgba(11,20,33,.9);position:sticky;top:0;z-index:30;backdrop-filter:blur(18px)}
 .as-header-inner{max-width:1440px;margin:auto;padding:18px clamp(20px,4vw,58px);display:flex;align-items:center;justify-content:space-between;gap:24px}
 .as-brand{display:flex;align-items:center;gap:12px;min-width:max-content}
-.as-brand-icon{width:48px;height:48px;border:1px solid #897354;border-radius:50%;color:#e6c99a;display:grid;place-items:center}
+.as-brand-icon{width:48px;height:48px;border:0;border-radius:50%;display:grid;place-items:center;overflow:hidden}
 .as-brand strong{font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:600;letter-spacing:.4px;display:block}
 .as-brand small{display:block;color:#b1a391;letter-spacing:1.5px;font-size:8px;margin-top:3px}
 .as-main-nav{display:flex;align-items:center;gap:clamp(10px,1.65vw,24px);flex-wrap:wrap}
