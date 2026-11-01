@@ -21,8 +21,11 @@ for(const locale of ['uk','en']){
    await expect(section.locator('h3')).toHaveCount(4);
    await expect(section.locator('a[href^="/'+locale+'/learn/"]')).toHaveCount(2);
    await expect(section.locator('a[href="/'+locale+'/methodology"]')).toHaveCount(1);
-   await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute('href','https://galaxiora.example'+url);
-   await expect(page.locator('head meta[name="robots"]')).not.toHaveAttribute('content',/noindex/);
+   // Next 15 streams some metadata into the HTTP body for browsers.
+   // Inspect the full original response, not only the hydrated DOM <head>.
+   const canonicalLinks=[...html.matchAll(/<link\\b[^>]*rel="canonical"[^>]*>/g)].map(x=>x[0]);
+   expect(canonicalLinks.some(tag=>tag.includes('href="https://galaxiora.example'+url+'"'))).toBe(true);
+   expect(html).not.toMatch(/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/i);
   });
  }
 }
