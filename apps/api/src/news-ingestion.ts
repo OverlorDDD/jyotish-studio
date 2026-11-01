@@ -1,4 +1,5 @@
 import {Inject,Injectable,OnModuleDestroy,OnModuleInit} from '@nestjs/common';
+import {newsIngestionEnabled} from './news-operational.ts';
 import {createHash,randomUUID} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
 import {classifyWithReason,parseXml,publisherDomain,safeImageUrl,type Candidate,type Topic} from './news-domain.ts';
@@ -11,14 +12,7 @@ import {enrichOpenNewsPhotos} from './news-open-media.ts';
 /** Local development with an existing .env and no NEWS_* flag must not
  * silently stop news. CI/test and production remain explicitly opted in.
  */
-export function newsIngestionEnabled(env=process.env,args=process.argv){
- if(env.NEWS_INGESTION_ENABLED==='0')return false;
- if(env.NEWS_INGESTION_ENABLED==='1')return true;
- if(env.NODE_ENV==='test'||env.CI==='true')return false;
- // Production systemd API must not silently stop because a flag was omitted.
- if(env.NODE_ENV==='production')return true;
- return args.some(v=>/[\\/]src[\\/]main\.ts$|^src[\\/]main\.ts$/.test(v));
-}
+export {newsIngestionEnabled} from './news-operational.ts';
 const PERIOD_MS=15*60*1000,LEASE_MS=12*60*1000;
 type Job={key:string;run:()=>Promise<Candidate[]>;hint:Topic;allowSnippet:boolean;isGdelt:boolean};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
