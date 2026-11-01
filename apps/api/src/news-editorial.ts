@@ -8,13 +8,14 @@ import {checkNewsTranslator,newsScopeApproved,newsTranslationScope,selectedNewsT
 import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded} from './news-translation-budget.ts';
 import {isLocalizedNewsTitle} from './news-localization.ts';
 import {headlineNmtBudgetCharacters} from './news-headline-nmt-plan.ts';
+import {headlineNeedsWork,NEWS_HEADLINE_RETRY_LIMIT} from './news-headline-backlog.ts';
 
 type Draft={id:string;title:string;titleUk?:string|null;titleEn?:string|null;summaryUk?:string|null;
  feedDescription:string|null;summary:string|null;summaryKind:string;language:string};
 type Output={id:string;titleUk:string;titleEn?:string;summaryUk:string;summaryEn:string};
 export const NEWS_TRANSLATION_MODE='local_nmt_only';
 /** Stop repeated billed attempts on permanently untranslatable publisher titles. */
-export const MAX_NEWS_TRANSLATION_ATTEMPTS=6;
+export const MAX_NEWS_TRANSLATION_ATTEMPTS=NEWS_HEADLINE_RETRY_LIMIT;
 const MAX_TEASER_SOURCE=280;
 
 /** Translate a concise publisher-supplied RSS description, not a generated synopsis.
@@ -49,7 +50,7 @@ export async function generateNewsMicrocopy(items:Draft[],fetcher:TranslationFet
    const canReuseEnglish=isLocalizedNewsTitle(title,'en');
    try{
     if(!titleUk)titleUk=await translateLocalizedHeadline(title,'uk',fetcher);
-    if(!titleEn)titleEn=canReuseEnglish?title:await translateLocalizedHeadline(title,'en',fetcher);
+    if(!titleEn&&!canReuseEnglish)titleEn=await translateLocalizedHeadline(title,'en',fetcher);
     outputs.push({id:article.id,titleUk,titleEn,summaryUk:article.summaryUk?.trim()||'',
      summaryEn:''});
    }catch(error){
@@ -111,7 +112,7 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
    language:true,editorialAttempts:true}
  });
  const rows=candidates.filter(x=>scope==='headlines'
-  ?(!isLocalizedNewsTitle(x.titleUk,'uk')||!isLocalizedNewsTitle(x.titleEn,'en'))
+  ?headlineNeedsWork(x)
   :(!x.titleUk?.trim()||(!x.summaryUk?.trim()&&hasEditorialEvidence(x)))).slice(0,limit);
  if(!rows.length)return {processed:0,
   reason:scope==='headlines'?'queue_empty_headlines':'queue_empty_no_grounded_work',
@@ -144,7 +145,7 @@ export async function enrichPendingNews(prisma:PrismaService,fetcher:Translation
  for(const original of rows){
   const output=translated.find(x=>x.id===original.id);
   const existingTitle=scope==='headlines'?isLocalizedNewsTitle(original.titleUk,'uk'):Boolean(original.titleUk?.trim());
-  const existingEnglish=scope==='headlines'?isLocalizedNewsTitle(original.titleEn,'en'):true;
+  const existingEnglish=scope==='headlines'?(isLocalizedNewsTitle(original.titleEn,'en')||isLocalizedNewsTitle(original.title,'en')):true;
   const sourceEnglish=isLocalizedNewsTitle(original.title,'en');
   const existingTeaser=Boolean(original.summaryUk?.trim());
   const facts=hasEditorialEvidence(original);
