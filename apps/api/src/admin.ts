@@ -106,7 +106,7 @@ export class AdminController {
   await this.requireAdmin(req);
   const now=new Date(),start=new Date(now.getTime()-30*24*60*60*1000);
   const weekStart=new Date(now.getTime()-7*24*60*60*1000);
-  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts,tarotReadings,expertRequestsUnread,newUsers7d,newCharts7d,newOrders7d]=await Promise.all([
+  const [users,charts,orders,usage,providers,subscribers,unpaidDrafts,tarotReadings,expertRequestsUnread,newUsers7d,newCharts7d,newOrders7d,editorialPipeline]=await Promise.all([
    this.prisma.user.count(),
    this.prisma.chart.count(),
    this.prisma.readingOrder.groupBy({by:['status'],_count:{_all:true}}),
@@ -125,11 +125,13 @@ export class AdminController {
    this.prisma.tarotQuestion.count({where:{expertSubmittedAt:{not:null},expertReviewedAt:null}}),
    this.prisma.user.count({where:{createdAt:{gte:weekStart}}}),
    this.prisma.chart.count({where:{createdAt:{gte:weekStart}}}),
-   this.prisma.readingOrder.count({where:{createdAt:{gte:weekStart}}})
+   this.prisma.readingOrder.count({where:{createdAt:{gte:weekStart}}}),
+   this.prisma.editorialEntry.groupBy({by:['status'],_count:{_all:true}})
   ]);
   return {
    generatedAt:now.toISOString(),windowDays:30,users,charts,subscribers,freeMembers:users-subscribers,
-   newUsers7d,newCharts7d,newOrders7d,unpaidDrafts,tarotReadings,expertRequestsUnread,
+   newUsers7d,newCharts7d,newOrders7d,
+   editorialPipeline:editorialPipeline.map(e=>({status:e.status,count:e._count._all})),unpaidDrafts,tarotReadings,expertRequestsUnread,
    orders:orders.map(row=>({status:row.status,count:row._count._all})),
    ai:{
     requests:usage._count._all,
