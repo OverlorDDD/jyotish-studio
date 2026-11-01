@@ -1,3 +1,12 @@
+/** Pure production scheduler policy: explicit OFF takes precedence; tests never schedule. */
+export function newsIngestionEnabled(env:NodeJS.ProcessEnv=process.env,args:string[]=process.argv){
+ if(env.NEWS_INGESTION_ENABLED==='0')return false;
+ if(env.NEWS_INGESTION_ENABLED==='1')return true;
+ if(env.NODE_ENV==='test'||env.CI==='true')return false;
+ if(env.NODE_ENV==='production')return true;
+ return args.some(v=>/[\\/]src[\\/]main\.ts$|^src[\\/]main\.ts$/.test(v));
+}
+
 /** GalaxiNews monitoring: interpret persisted dates instead of masking failures with article totals.
  * All times are UTC instants. No DB migration, personal data or external calls.
  */
