@@ -16,7 +16,6 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
  return allPages.flatMap(suffix=>(['en','uk'] as const).map(locale=>({
   url:base+paths(locale,suffix),
   alternates:{languages:{en:base+paths('en',suffix),uk:base+paths('uk',suffix),'x-default':base+paths('en',suffix)}},
-  changeFrequency:'weekly' as const,
-  priority:suffix===''?1:0.7
+  // No invented lastmod: emit it only when a trustworthy content update timestamp exists.
  })));
 }
