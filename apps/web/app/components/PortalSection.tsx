@@ -44,7 +44,13 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
     <h1 style={{fontSize:'clamp(30px,3.1vw,44px)',lineHeight:1.18,margin:'10px 0 12px'}}>{copy.title} · GalaxiTarot</h1>
     <p style={{maxWidth:820}}>{copy.lead}</p>
    </header>
-   <TarotStudio locale={locale}/><GalaxiComModuleLink locale={locale} kind="tarot"/>
+   <TarotStudio locale={locale}/>
+   <section className="as-lesson-section" style={{marginTop:36}} aria-label={locale==='uk'?'Значення карт Таро':'Tarot card meanings'}>
+    <h2>{locale==='uk'?'Значення Старших Арканів: вивчай і практикуй':'Major Arcana meanings: learn and practice'}</h2>
+    <p>{locale==='uk'?'Розпочни з восьми змістовних гідів: символи, прямі та перевернуті значення, приклади у розкладі. Усі 78 карт доступні в інтерактивній колоді вище.':'Begin with eight detailed guides covering symbolism, upright and reversed meanings and real spread context. All 78 cards remain available in the interactive deck above.'}</p>
+    <Link href={'/'+locale+'/tarot/cards'}>{locale==='uk'?'Відкрити бібліотеку значень карт':'Explore the Tarot card meaning library'} →</Link>
+   </section>
+   <GalaxiComModuleLink locale={locale} kind="tarot"/>
   </div></PortalShell>;
  }
  if(section==='yoga')return <YogaHub locale={locale}/>;
