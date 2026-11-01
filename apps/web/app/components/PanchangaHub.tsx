@@ -88,7 +88,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   fetch('/api/v1/panchanga/day?'+q,{cache:'no-store',signal:controller.signal})
    .then(async r=>{if(!r.ok)throw Error(String(r.status));return await r.json() as Day;})
    .then(d=>{if(live){setResult(d);setError(false);if(pendingManualCalculation.current){pendingManualCalculation.current=false;reportGrowthEvent('panchanga_calculation_completed')}}})
-   .catch(()=>{if(live){setResult(null);setError(true)}})
+   .catch(()=>{if(live){pendingManualCalculation.current=false;setResult(null);setError(true)}})
    .finally(()=>{if(live)setLoading(false)});
   return()=>{live=false;controller.abort()};
  },[requested]);
