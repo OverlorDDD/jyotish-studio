@@ -64,6 +64,17 @@ export function unwrapAzureHeadline(raw:string):string{
  if(/<[^>]*>/.test(decoded))throw Error('Azure response contained encoded HTML');
  return decoded;
 }
+const UK_MONTH_GENITIVE:Record<string,string>={
+ 'січень':'січня','лютий':'лютого','березень':'березня','квітень':'квітня',
+ 'травень':'травня','червень':'червня','липень':'липня','серпень':'серпня',
+ 'вересень':'вересня','жовтень':'жовтня','листопад':'листопада','грудень':'грудня'
+};
+/** Correct objective Ukrainian month inflection without changing any source date or numeral. */
+export function correctUkrainianDateCase(value:string):string{
+ return value.replace(/(^|[^\p{L}\d])((?:0?[1-9]|[12]\d|3[01]))(\s+)(січень|лютий|березень|квітень|травень|червень|липень|серпень|вересень|жовтень|листопад|грудень)(?![\p{L}])/giu,
+  (_,prefix:string,day:string,space:string,month:string)=>
+   prefix+day+space+UK_MONTH_GENITIVE[month.toLowerCase()]);
+}
 export function correctKnownHindiIdiom(source:string,value:string,target:NewsTitleLocale):string{
  // A factual gloss limited to this exact SOURCE phrase; not a generic rewriting.
  if(!/चंद्रमा का पूरा फल/u.test(source))return value;
