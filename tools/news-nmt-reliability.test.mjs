@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {headlineNmtPlan,headlineNmtBudgetCharacters,sourceNumbers,
- unwrapAzureHeadline,correctKnownHindiIdiom} from '../apps/api/src/news-headline-nmt-plan.ts';
+ unwrapAzureHeadline,correctKnownHindiIdiom,correctUkrainianDateCase} from '../apps/api/src/news-headline-nmt-plan.ts';
 import {translateLocalizedHeadline} from '../apps/api/src/news-translation.ts';
 const mixed='Kal Ka Rashifal 26 अक्टूबर: कल इन 5 राशियों के दिन रहेंगे रोमांचक';
 const pure='ज्योतिष शरद पूर्णिमा: क्या आपकी कुंडली का ग्रह भाव बदल देता है चंद्रमा का पूरा फल';
@@ -70,6 +70,12 @@ test('Only verified literal Hindi idiom is clarified, unrelated source is unchan
  assert.match(correctKnownHindiIdiom(pure,bad,'en'),/full influence of the Moon/);
  assert.equal(correctKnownHindiIdiom('A fruit market opened',bad,'en'),bad);
  assert.equal(correctKnownHindiIdiom(pure,'повний плід місяця','uk'),'повний вплив Місяця');
+});
+test('Ukrainian day-month inflection corrects grammar but never changes a date or number',()=>{
+ assert.equal(correctUkrainianDateCase('Гороскоп 26 Жовтень 2026'),'Гороскоп 26 жовтня 2026');
+ assert.equal(correctUkrainianDateCase('1 Січень та 15 Березень'),'1 січня та 15 березня');
+ assert.equal(correctUkrainianDateCase('Жовтень та Листопад'),'Жовтень та Листопад');
+ assert.deepEqual(sourceNumbers(correctUkrainianDateCase('Гороскоп 26 Жовтень')),['26']);
 });
 test('Untranslated Devanagari never passes even when API returns HTTP 200',async()=>{
  const fake=async(url)=>new Response(JSON.stringify([{translations:[{
