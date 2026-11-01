@@ -12,7 +12,8 @@ test('Mixed script plan retains real Hindi clause, replaces known Roman Hindi ph
  assert.equal(units.length,2);
  assert.equal(units[0].from,'en');
  assert.equal(units[1].from,'hi');
- assert.match(units[0].text,/Tomorrow.s horoscope/);
+ assert.match(units[0].text,/Tomorrow&#39;s horoscope/);
+ assert.doesNotMatch(units[0].text,/<span class="notranslate">39<\/span>/);
  assert.match(units[0].text,/<span class="notranslate">26<\/span>/);
  assert.match(units[1].text,/<span class="notranslate">5<\/span>/);
  assert.equal(units[0].textType,'html');
