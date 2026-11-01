@@ -15,13 +15,14 @@ try{
   orderBy:[{editorialAttemptedAt:'desc'},{id:'asc'}],take:400,
   select:{id:true,title:true,titleUk:true,titleEn:true,editorialAttempts:true}
  });
+ const needsEnglish=row=>!isLocalizedNewsTitle(row.titleEn,'en')&&!isLocalizedNewsTitle(row.title,'en');
  const pending=candidates.filter(row=>!isLocalizedNewsTitle(row.titleUk,'uk')||
-  !isLocalizedNewsTitle(row.titleEn,'en')).slice(0,limit);
+  needsEnglish(row)).slice(0,limit);
  console.log(JSON.stringify({stage:'news-nmt-quarantine',mode:apply?'APPLY':'DRY_RUN',
   candidates:candidates.length,selected:pending.length,cap:limit,
   samples:pending.slice(0,12).map(row=>({id:row.id,attempts:row.editorialAttempts,
    needsUk:!isLocalizedNewsTitle(row.titleUk,'uk'),
-   needsEn:!isLocalizedNewsTitle(row.titleEn,'en')}))},null,2));
+   needsEn:needsEnglish(row)}))},null,2));
  if(apply){
   if(process.env.NEWS_TRANSLATION_ENABLED!=='1'||
     process.env.NEWS_TRANSLATION_CONTENT_SCOPE!=='headlines'||
