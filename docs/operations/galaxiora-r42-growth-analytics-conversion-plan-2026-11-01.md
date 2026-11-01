@@ -31,8 +31,8 @@ We cannot promise to make Galaxiora the most popular site through code alone. R4
 - Acceptance browser checks: with ID set and no consent, **no requests** to `googletagmanager.com`/`google-analytics.com`; Reject still no requests; Allow only public safe pageviews; navigate `/account`/private content → no sensitive page path emitted; withdraw → no new event hits. Check Chrome DevTools Network and GA4 Realtime/DebugView, allowing reporting delay.
 - Run privacy/legal review for jurisdiction, storage, notice and Google DPA before enabling; Google Consent Mode v2 documentation is the reference if migrating to a CMP. No user IDs or advertising features.
 
-### R4.2.2 — funnel completion events (follow-up implementation after browser-baseline validation)
-- Instrument **verified actual-success callbacks**, not button clicks alone: `jyotish_calculation_started`, `jyotish_calculation_completed`, `panchanga_calculation_completed`, `tarot_spread_started`, `tarot_spread_completed`, `sign_up` after verified confirmation. Do not emit on server response error, fake/demo success or merely pageview.
+### R4.2.2 — funnel completion events (partially implemented, remaining callbacks follow-on)
+- **Implemented in this branch:** after explicit consent, the real Tarot submission dispatches a start event; only a successful API result dispatches \`tarot_spread_completed\`. The Panchanga emits \`panchanga_calculation_completed\` only after the user submitted the form and the day API succeeds; the automatic initial day load and failed requests do not count. Events are name-only without private fields.\n- Remaining instrumentations: verified Jyotish calculation completion and confirmed signup success. Instrument **verified actual-success callbacks**, not button clicks alone: `jyotish_calculation_started`, `jyotish_calculation_completed`, `panchanga_calculation_completed`, `tarot_spread_started`, `tarot_spread_completed`, `sign_up` after verified confirmation. Do not emit on server response error, fake/demo success or merely pageview.
 - Strict payload shape: `tool` enum, `locale` enum, `success` boolean. **Never** birth date/time, place/coords, rendered chart, question, member ID, email, account existence or signed-in status.
 - Define stable versioned metrics interface shared by Next tool components, with unit and Playwright tests. Track no more than one start/completion per *real* interaction. Respect visitor consent across tool components.
 - No event inside a background publisher, scheduler or auto-refresh timer; avoid falsifying conversion by background computation.
@@ -56,7 +56,7 @@ We cannot promise to make Galaxiora the most popular site through code alone. R4
 - If the integration is blocked by consent/legal or a provider failure, leave ID unset and continue GSC/manual aggregate reporting. This preserves full site usability.
 
 ## Acceptance criteria
-- Unit tests for public route normalization and event allowlists; tests confirming GA4 disabled by default and no intrusive third-party scripts/PII payloads.
+- Unit tests for public route normalization, safe campaign mapping and event allowlists; tests confirming GA4 disabled by default and no intrusive third-party scripts/PII payloads. Chromium tests build with a dummy test ID and mock analytics requests to verify reject/accept/scrubbing/withdrawal without transmitting live test events.
 - Production Next.js build and existing SEO contracts pass; no regressions in signup, calculators or NMT news.
 - Post-deployment both systemd services active; site:check/launch:verify pass; all canonical sitemap URLs report 200/zero errors/warnings.
 - Analytics tests with GA4 enabled: deny by default, opt in explicitly, withdraw works, never send private paths or identifiable chart fields. Owner must approve measurement and verify their actual GA4 property.
