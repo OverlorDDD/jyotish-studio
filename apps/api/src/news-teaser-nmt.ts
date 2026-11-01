@@ -2,6 +2,7 @@
  * Uses fixed Azure NMT v3 endpoint. No LLM and no user-provided URL endpoints.
  */
 import {cleanDescription} from './news-domain.ts';
+import {hasEditorialEvidence} from './news-editorial-coverage.ts';
 import {headlineNmtPlan,headlineNmtBudgetCharacters,unwrapAzureHeadline,
  validateTranslatedHeadline,correctKnownHindiIdiom,correctUkrainianDateCase} from './news-headline-nmt-plan.ts';
 import type {NewsTitleLocale} from './news-localization.ts';
@@ -70,6 +71,7 @@ export async function translateLocalizedTeaser(source:string,target:NewsTitleLoc
 export type BilingualTeaserRow={feedDescription:string|null;summary:string|null;summaryKind:string;
  language:string;summaryUk?:string|null;summaryEn?:string|null};
 export function excerptSource(row:BilingualTeaserRow):string{
+ if(!hasEditorialEvidence(row))return '';
  // Require real publisher-supplied evidence. No title-derived summary.
  // Split long existing RSS descriptions to short factual excerpt.
  const text=cleanDescription(row.feedDescription||
