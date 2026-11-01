@@ -17,7 +17,7 @@
  <circle cx="32" cy="32" r="29" stroke="#C79D59" stroke-opacity="0.52" stroke-width="1.1" fill="none"/>
  <!-- The orbit itself is the G: one unmistakable thick stroke at small sizes. -->
  <path d="M44.5 19.5 C40.9 15.5 36.2 13.4 31.1 13.4 C20.2 13.4 13.8 21.8 13.8 32 C13.8 43.2 21.5 50.6 32.3 50.6 C41.2 50.6 47.6 45.6 47.6 37.8 L47.6 33.5 L35 33.5" fill="none" stroke="url(#orbit)" stroke-width="7.6" stroke-linecap="round" stroke-linejoin="round"/>
- <!-- The star touches the beginning of the orbital G instead of being a separate crescent. -->
+ <!-- The star touches the beginning of the orbital G as part of the monogram. -->
  <path d="M47.2 11.7 48.5 15.1 51.9 16.4 48.5 17.8 47.2 21.2 45.8 17.8 42.4 16.4 45.8 15.1Z" fill="#FFF8DA"/>
  <circle cx="35.1" cy="33.5" r="1.1" fill="#FFF3C5"/>
 </svg>
