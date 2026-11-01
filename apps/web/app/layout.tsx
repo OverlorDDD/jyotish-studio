@@ -33,7 +33,7 @@ export default async function RootLayout({children}:{children:React.ReactNode}){
    {'@type':'Organization','@id':siteUrl+'/#organization',
     name:BRAND.name,url:siteUrl+'/',
     description:'Galaxiora is an online platform offering Vedic and Western astrology tools, Tarot, lunar calendars and original learning materials.',
-    logo:{'@type':'ImageObject',url:siteUrl+'/icon.svg'}}
+    logo:{'@type':'ImageObject',url:siteUrl+'/galaxiora-logo-128.png',width:128,height:128}}
   ]
  }).replace(/</g,'\\u003c'):null;
  return <html lang={locale}><body>
