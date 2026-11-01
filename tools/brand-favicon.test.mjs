@@ -17,6 +17,6 @@ test('Galaxiora browser logo has a transparent square canvas with a circular bad
 test('Next.js icon/shortcut both use an updated, non-opaque cache key',()=>{
  const links=layout.match(/\/icon\.svg\?v=galaxiora-round-gold-v3-20261027/g)||[];
  assert.equal(links.length,1);
- assert.match(layout,/shortcut:'\/galaxiora-favicon\\.png'/);
+ assert.ok(layout.includes("shortcut:'/galaxiora-favicon.png'"));
  assert.doesNotMatch(layout,/galaxiora-opaque-solid/);
 });
