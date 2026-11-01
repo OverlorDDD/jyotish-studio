@@ -47,3 +47,17 @@ test('R4.2 has bilingual choice, withdrawal and truthful privacy notice',()=>{
  assert.ok(privacy.includes('Google may process'));
  assert.ok(privacy.includes('Google може обробляти'));
 });
+
+test('R4.2 real Tarot and Panchanga tool events do not include PII',()=>{
+ const tarot=read('apps/web/app/components/TarotStudio.tsx');
+ const panchanga=read('apps/web/app/components/PanchangaHub.tsx');
+ assert.match(tarot,/reportGrowthEvent\('tarot_spread_started'\)/);
+ assert.match(tarot,/reportGrowthEvent\('tarot_spread_completed'\)/);
+ assert.match(panchanga,/reportGrowthEvent\('panchanga_calculation_completed'\)/);
+ assert.match(panchanga,/pendingManualCalculation\.current=false/);
+ const code=read('apps/web/app/components/GrowthConsent.tsx');
+ assert.match(code,/safeGrowthPath\(window\.location\.pathname\)/);
+ assert.match(code,/page_location:safeLocation/);
+ assert.match(code,/source\.origin/);
+ assert.match(code,/window\.addEventListener\('galaxiora:growth'/);
+});
