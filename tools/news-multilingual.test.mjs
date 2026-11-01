@@ -59,7 +59,7 @@ test('publication guard rejects partial Devanagari even when Azure says successf
  await assert.rejects(
   ()=>translateLocalizedHeadline('कल राशिफल','en',
    async()=>new Response(JSON.stringify([{translations:[{to:'en',text:'Horoscope कल'}]}])),env),
-  /Untranslated script/);
+  /Untranslated (?:script|Devanagari)/);
 });
 test('mixed-language old title is reprocessed and does not overwrite existing source',async()=>{
  const keys=['NEWS_TRANSLATION_ENABLED','NEWS_TRANSLATION_CONTENT_SCOPE','NEWS_TRANSLATION_HEADLINES_APPROVED',
