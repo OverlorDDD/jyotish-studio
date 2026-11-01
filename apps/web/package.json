@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node ../../tools/next-launch.mjs dev",
     "build": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
-    "start": "node ../../tools/next-launch.mjs start"
+    "start": "node ../../tools/next-launch.mjs start",
+    "prebuild": "node ../../tools/brand-icons-build.mjs"
   },
   "dependencies": {
     "next": "^15.5.0",
@@ -17,7 +18,8 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "sharp": "^0.34.5"
   },
   "type": "module"
 }
