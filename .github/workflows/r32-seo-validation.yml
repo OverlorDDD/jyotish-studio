@@ -94,6 +94,8 @@ jobs:
           exit 1
       - name: Browser SEO, responsive layout and favicon
         run: npx playwright test --config=playwright.config.mjs e2e/r32-seo.spec.mjs e2e/galaxiora-favicon.spec.mjs
+      - name: Collect synthetic mobile and desktop performance (non-field baseline)
+        run: node tools/r32-browser-performance.mjs
 
   public-baseline:
     name: Read-only live Galaxiora sitemap crawl (pre-deploy baseline)
