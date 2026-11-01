@@ -129,6 +129,11 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   <PersonalPanchanga locale={locale} point={requested??form}/>
   <VedicFestivalPanel locale={locale} point={requested??form}/>
   <EclipsePanel locale={locale} point={requested??form}/>
+  <aside className={styles.empty} aria-label={uk?'Календар затемнень 2027':'2027 eclipse calendar'}>
+   <strong>{uk?'Усі затемнення 2027 року — дати й пояснення NASA':'Every eclipse in 2027 — dates and NASA explanations'}</strong>
+   <p>{uk?'Тут вище — точна видимість для вибраного міста. У календарі — всі п’ять глобальних затемнень року та пояснення їхніх фаз.':'The calculator above checks visibility for your city. The calendar lists all five worldwide eclipses and explains their phases.'}</p>
+   <Link href={'/'+locale+'/eclipses/2027'}>{uk?'Відкрити календар 2027':'Explore the 2027 calendar'} →</Link>
+  </aside>
   {!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
   {result&&<div className={styles.results}>
    <section className={styles.sun}><h2>{t.subtitle} · {result.date}</h2>
