@@ -74,7 +74,7 @@ export default function GrowthConsent(){
    const target=e.target;
    if(!(target instanceof Element))return;
    const a=target.closest('a[href]');
-   if(!a||!(a instanceof HTMLAnchorElement))return;
+   if(!a||!(a instanceof HTMLAnchorElement)||a.origin!==window.location.origin)return;
    const from=safeGrowthPath(window.location.pathname);
    const to=safeGrowthPath(a.pathname);
    if(!from||!to||from===to)return;
