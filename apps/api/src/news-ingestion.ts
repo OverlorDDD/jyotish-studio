@@ -14,8 +14,10 @@ import {enrichOpenNewsPhotos} from './news-open-media.ts';
 export function newsIngestionEnabled(env=process.env,args=process.argv){
  if(env.NEWS_INGESTION_ENABLED==='0')return false;
  if(env.NEWS_INGESTION_ENABLED==='1')return true;
- return env.NODE_ENV!=='production'&&env.NODE_ENV!=='test'&&
-  args.some(v=>/[\\/]src[\\/]main\.ts$|^src[\\/]main\.ts$/.test(v));
+ if(env.NODE_ENV==='test'||env.CI==='true')return false;
+ // Production systemd API must not silently stop because a flag was omitted.
+ if(env.NODE_ENV==='production')return true;
+ return args.some(v=>/[\\/]src[\\/]main\.ts$|^src[\\/]main\.ts$/.test(v));
 }
 const PERIOD_MS=15*60*1000,LEASE_MS=12*60*1000;
 type Job={key:string;run:()=>Promise<Candidate[]>;hint:Topic;allowSnippet:boolean;isGdelt:boolean};
@@ -54,10 +56,37 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
  private sourceRetryUntil=new Map<string,number>();
  private sourceFailures=new Map<string,number>();
  private gdeltRetryUntil=0;
+ private schedulerStartedAt:string|null=null;
+ private nextScanAt:string|null=null;
+ private lastAttemptAt:string|null=null;
+ private lastFinishedAt:string|null=null;
+ private lastAttemptError:string|null=null;
+ private lastSkipReason:string|null=null;
+ private lastEditorialOutcome:string|null=null;
+ runtimeStatus(){
+  return {enabled:newsIngestionEnabled(),schedulerStartedAt:this.schedulerStartedAt,
+   nextScanAt:this.nextScanAt,scanInProgress:this.running,lastAttemptAt:this.lastAttemptAt,
+   lastFinishedAt:this.lastFinishedAt,lastAttemptError:this.lastAttemptError,
+   lastSkipReason:this.lastSkipReason,editorial:this.lastEditorialOutcome};
+ }
+ requestManualRefresh(backfill:boolean){
+  if(this.running)return {requested:false,completed:false,reason:'local_cycle_running'};
+  void this.refresh({backfill}).catch(e=>console.warn('[news] manual scan',String(e)));
+  return {requested:true,completed:false,reason:'scan_started'};
+ }
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
  onModuleInit(){
-  if(!newsIngestionEnabled())return;
-  this.timer=setInterval(()=>{void this.refresh().catch(e=>console.warn('[news] scheduled scan',String(e)));},PERIOD_MS);
+  if(!newsIngestionEnabled()){
+   console.warn('[news] automatic ingestion OFF by NEWS_INGESTION_ENABLED=0, CI or test mode');
+   return;
+  }
+  this.schedulerStartedAt=new Date().toISOString();
+  this.nextScanAt=new Date(Date.now()+15000).toISOString();
+  console.log('[news] automatic ingestion active; interval 15 minutes');
+  this.timer=setInterval(()=>{
+   this.nextScanAt=new Date(Date.now()+PERIOD_MS).toISOString();
+   void this.refresh().catch(e=>console.warn('[news] scheduled scan',String(e)));
+  },PERIOD_MS);
   this.timer.unref?.();
   this.editorialTimer=setInterval(()=>{void this.runEditorial();},5*60*1000);
   this.editorialTimer.unref?.();
@@ -86,8 +115,9 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
   return [...rss,...gdeltJobs];
  }
  async refresh(options:{backfill?:boolean}={}){
-  if(this.running)return {skipped:true,reason:'local_cycle_running'};
-  this.running=true;
+  if(this.running){this.lastSkipReason='local_cycle_running';return {skipped:true,reason:'local_cycle_running'};}
+  this.running=true;this.lastAttemptAt=new Date().toISOString();
+  this.lastAttemptError=null;this.lastSkipReason=null;
   const token=randomUUID(),start=new Date();
   try{
    await this.prisma.newsIngestionLease.upsert({where:{id:'world'},
@@ -95,7 +125,7 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    const lease=await this.prisma.newsIngestionLease.updateMany({
     where:{id:'world',expiresAt:{lte:start}},
     data:{token,expiresAt:new Date(start.getTime()+LEASE_MS)}});
-   if(!lease.count)return {skipped:true,reason:'database_lease_held'};
+   if(!lease.count){this.lastSkipReason='database_lease_held';return {skipped:true,reason:'database_lease_held'};}
    let sources=0,added=0,duplicatesAll=0,rejectedAll=0,errorsAll=0;
    const domainPolicies=new Map<string,string>();
    try{
@@ -202,7 +232,10 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
     await this.prisma.newsIngestionLease.updateMany({where:{id:'world',token},
      data:{token:'unclaimed',expiresAt:new Date(0)}});
    }
-  }finally{this.running=false;}
+  }catch(error){
+   this.lastAttemptError=error instanceof Error?error.message.slice(0,240):String(error).slice(0,240);
+   throw error;
+  }finally{this.running=false;this.lastFinishedAt=new Date().toISOString();}
  }
  private editorialRunning=false;
  private async runEditorial(){
@@ -210,8 +243,11 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
   this.editorialRunning=true;
   try{
    const result=await enrichPendingNews(this.prisma);
-   console.log('[news] localization:',result.processed,'updated');
-  }catch(e){console.warn('[news] editorial:',String(e));}
+   this.lastEditorialOutcome='processed='+result.processed+
+    ('reason' in result&&result.reason?'; reason='+result.reason:'');
+   if(result.processed||('reason' in result&&result.reason))console.log('[news] localization:',this.lastEditorialOutcome);
+  }catch(e){this.lastEditorialOutcome='failed: '+String(e).slice(0,160);
+   console.warn('[news] editorial:',String(e));}
   finally{this.editorialRunning=false;}
  }
  private async enrichMetadata(){
