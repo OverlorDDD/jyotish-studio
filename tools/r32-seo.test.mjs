@@ -65,3 +65,15 @@ test('R3.2 live audit uses only read-only HTTP fetch, checks all sitemap locs an
  assert.match(audit,/process.exitCode=errors.length\?2:0/);
  assert.doesNotMatch(audit,/method:\s*['"](POST|PUT|PATCH|DELETE)/);
 });
+
+test('R3.2 Google favicon and Organization logo are actual square PNG assets',()=>{
+ for(const [file,expected] of [['galaxiora-favicon.png',64],['galaxiora-logo-128.png',128]]){
+  const data=readFileSync(new URL('../apps/web/public/'+file,import.meta.url));
+  assert.deepEqual([...data.subarray(0,8)],[137,80,78,71,13,10,26,10],'PNG signature '+file);
+  assert.equal(data.readUInt32BE(16),expected,'image width '+file);
+  assert.equal(data.readUInt32BE(20),expected,'image height '+file);
+ }
+ const layout=read('apps/web/app/layout.tsx');
+ assert.match(layout,/galaxiora-favicon\.png/);
+ assert.match(layout,/galaxiora-logo-128\.png/);
+});
