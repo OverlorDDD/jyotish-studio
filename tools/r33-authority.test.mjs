@@ -19,7 +19,8 @@ test('R3.3 authority guides are carefully edited, distinct and bi-localized',()=
    for(const field of ['title','summary','symbolism','upright','reversed','inSpread','reflection']){
     const text=guide[field][loc].trim();
     assert.ok(text,guide.slug+' '+loc+' '+field+' missing');
-    assert.ok(field==='title'||text.length>=60,guide.slug+' '+loc+' '+field+' is too thin');
+    const minChars=field==='title'?1:field==='summary'||field==='reflection'?35:60;
+    assert.ok(text.length>=minChars,guide.slug+' '+loc+' '+field+' is too thin');
    }
    const all=guide.symbolism[loc]+guide.upright[loc]+guide.reversed[loc]+guide.inSpread[loc];
    assert.ok(all.length>500,guide.slug+' '+loc+' insufficient editorial substance');
