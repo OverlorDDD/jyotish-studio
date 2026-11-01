@@ -14,8 +14,16 @@ export const metadata:Metadata={
    ...(process.env.GOOGLE_SITE_VERIFICATION?{google:process.env.GOOGLE_SITE_VERIFICATION}:{}),
    ...(process.env.BING_SITE_VERIFICATION?{other:{'msvalidate.01':process.env.BING_SITE_VERIFICATION}}:{})
   }}:{}),
-  icons:{icon:[{url:'/galaxiora-favicon.png',type:'image/png',sizes:'64x64'},
-  {url:'/icon.svg?v=galaxiora-round-gold-v3-20261027',type:'image/svg+xml'}],shortcut:'/galaxiora-favicon.png'},
+  icons:{
+   icon:[
+    {url:'/favicon.ico',type:'image/x-icon',sizes:'any'},
+    {url:'/galaxiora-favicon.png',type:'image/png',sizes:'64x64'},
+    {url:'/icon.svg?v=cosmic-g-20261101',type:'image/svg+xml'}
+   ],
+   shortcut:'/favicon.ico',
+   apple:[{url:'/apple-touch-icon.png',sizes:'180x180',type:'image/png'}]
+  },
+  manifest:'/site.webmanifest',
  openGraph:{siteName:BRAND.name,type:'website',title:BRAND.name+' — Jyotish, Tarot & Panchanga',description:'Vedic astrology, lunar calendar, Tarot and mindful living.'},
  twitter:{card:'summary_large_image',title:BRAND.name,description:'Jyotish, Tarot, Panchanga and Yoga in one space.'},
  robots:{index:false,follow:true}, // Root / is a duplicate; localized pages opt in explicitly.
