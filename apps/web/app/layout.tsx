@@ -23,8 +23,17 @@ export const metadata:Metadata={
 export default async function RootLayout({children}:{children:React.ReactNode}){
  const locale=(await headers()).get('x-galaxiora-locale')==='uk'?'uk':'en';
  const structured=siteUrl&&/^https:\/\//.test(siteUrl)?JSON.stringify({
-  '@context':'https://schema.org','@type':'WebSite',name:BRAND.name,url:siteUrl,
-  description:metadata.description,inLanguage:['en','uk']
+  '@context':'https://schema.org',
+  '@graph':[
+   {'@type':'WebSite','@id':siteUrl+'/#website',name:BRAND.name,
+    alternateName:['galaxiora.com'],url:siteUrl+'/',
+    description:'Galaxiora is a bilingual astrology, Tarot, Panchanga and learning platform.',
+    inLanguage:['en','uk'],publisher:{'@id':siteUrl+'/#organization'}},
+   {'@type':'Organization','@id':siteUrl+'/#organization',
+    name:BRAND.name,url:siteUrl+'/',
+    description:'Galaxiora is an online platform offering Vedic and Western astrology tools, Tarot, lunar calendars and original learning materials.',
+    logo:{'@type':'ImageObject',url:siteUrl+'/icon.svg'}}
+  ]
  }).replace(/</g,'\\u003c'):null;
  return <html lang={locale}><body>
   {structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:structured}}/>}
