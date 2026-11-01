@@ -9,7 +9,7 @@ const enabled=/^G-[A-Z0-9]{6,16}$/.test(measurementId);
 type Choice='accepted'|'rejected'|null;
 type Gtag=(command:string,...args:unknown[])=>void;
 declare global {interface Window {dataLayer?:unknown[][];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean}}
-function startAnalytics(){
+function startAnalytics(safePath:string){
  if(typeof window==='undefined'||!enabled||window.__galaxioraAnalyticsReady)return;
  window.__galaxioraAnalyticsReady=true;
  window.dataLayer=window.dataLayer||[];
@@ -18,7 +18,16 @@ function startAnalytics(){
  window.gtag('consent','default',{
   analytics_storage:'granted',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'
  });
- window.gtag('config',measurementId,{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false});
+ // Never let GA discover a raw URL query, birth details or private referrer.
+ const safeLocation='https://galaxiora.com'+safePath;
+ let safeReferrer='';
+ try{
+  if(document.referrer){
+   const source=new URL(document.referrer);
+   if(source.protocol==='https:'&&source.hostname!=='galaxiora.com')safeReferrer=source.origin+'/';
+  }
+ }catch{}
+ window.gtag('config',measurementId,{send_page_view:false,page_location:safeLocation,page_referrer:safeReferrer,allow_google_signals:false,allow_ad_personalization_signals:false});
  const script=document.createElement('script');
  script.async=true;
  script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(measurementId);
@@ -56,8 +65,8 @@ export default function GrowthConsent(){
    if(window.__galaxioraAnalyticsReady)stopAnalytics();
    return;
   }
-  startAnalytics();
-  window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,page_title:'Galaxiora',send_to:measurementId});
+  startAnalytics(safe);
+  window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,page_title:'Galaxiora',page_referrer:'',send_to:measurementId});
  },[loaded,choice,pathname]);
  useEffect(()=>{
   if(!loaded||choice!=='accepted'||!enabled)return;
