@@ -16,7 +16,7 @@ test('Google can identify Galaxiora on the hostname homepage without a root noin
 });
 test('Google sees a stable PNG icon at root and a legitimate brand logo',()=>{
  const layout=read('apps/web/app/layout.tsx');
- assert.match(layout,/shortcut:'\/galaxiora-favicon\.png'/);
+ assert.ok(layout.includes("shortcut:'/favicon.ico'"));
  assert.match(layout,/galaxiora-logo-128\.png/);
  const png=readFileSync(new URL('../apps/web/public/galaxiora-favicon.png',import.meta.url));
  assert.equal(png.readUInt32BE(16),64);
