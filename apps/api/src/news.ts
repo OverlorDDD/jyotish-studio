@@ -8,6 +8,7 @@ import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,s
 import {NewsIngestionService,newsIngestionEnabled} from './news-ingestion.ts';
 import {newsOperationalHealth} from './news-operational.ts';
 import {headlineDebtSummary} from './news-headline-backlog.ts';
+import {excerptSource,teaserLocaleReady} from './news-teaser-nmt.ts';
 import {newsScopeApproved,newsTranslationScope} from './news-translation.ts';
 import {publicTitleForLocale} from './news-localization.ts';
 import {rankPersonalNews} from './news-relevance.ts';
@@ -283,7 +284,7 @@ export class NewsController {
    this.prisma.newsDiscoveredSource.findMany({orderBy:{articleCount:'desc'},take:100}),
    this.prisma.newsArticle.findMany({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},take:600,
     select:{id:true,url:true,title:true,titleUk:true,titleEn:true,editorialAttempts:true,editorialNextAttemptAt:true,topic:true,source:true,publishedAt:true,
-     publishedAccuracy:true,imageUrl:true,summaryUk:true,summaryEn:true,feedDescription:true,summary:true}}),
+     publishedAccuracy:true,imageUrl:true,summaryUk:true,summaryEn:true,language:true,summaryKind:true,feedDescription:true,summary:true}}),
    this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{discoveredAt:'desc'},select:{discoveredAt:true}}),
    this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},select:{publishedAt:true}}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED',OR:[{titleUk:null},{titleUk:''}]}}),
@@ -296,6 +297,11 @@ export class NewsController {
   try{translationScope=newsTranslationScope();translationApproved=newsScopeApproved();}
   catch(e){translationConfigError=e instanceof Error?e.message:String(e);}
   const headlineBacklog=headlineDebtSummary(qualitySample);
+  const sourceBacked=qualitySample.filter(r=>Boolean(excerptSource(r)));
+  const teaserDebt={sampled:qualitySample.length,sourceBacked:sourceBacked.length,
+   missingUk:sourceBacked.filter(r=>!teaserLocaleReady(r,'uk')).length,
+   missingEn:sourceBacked.filter(r=>!teaserLocaleReady(r,'en')).length,
+   titleOnly:qualitySample.length-sourceBacked.length};
   return {enabled:newsIngestionEnabled(),last,generatedAt:new Date().toISOString(),
    freshness:newsOperationalHealth({enabled:newsIngestionEnabled(),lastScanAt:last?.createdAt??null,
     lastDiscoveredAt:lastNew?.discoveredAt??null,lastPublishedAt:lastPublished?.publishedAt??null,
@@ -304,7 +310,7 @@ export class NewsController {
    editorial:{translationEnabled:process.env.NEWS_TRANSLATION_ENABLED!=='0',
     scope:translationScope,qualityApproved:translationApproved,
     configError:translationConfigError,pending,quarantined,
-    headlineBacklog},
+    headlineBacklog,teaserDebt},
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
    // Legacy field retained for older dashboards; news translation never uses LLM.
    editorialAiConfigured:false,
