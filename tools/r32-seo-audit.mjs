@@ -38,11 +38,17 @@ async function inspect(url){
   const expectedLang=new URL(url).pathname.split('/')[1];
   if(item.language!==expectedLang)issue(errors,'LANG',url,'Found '+item.language+'; expected '+expectedLang);
   const languageLinks=tags(body,'link').filter(t=>attr(t,'rel')?.toLowerCase()==='alternate'&&attr(t,'hreflang'));
+  const pathWithoutLocale=new URL(url).pathname.replace(/^\\/(uk|en)(?=\\/|$)/,'');
   for(const loc of ['uk','en']){
    const href=languageLinks.find(t=>attr(t,'hreflang')===loc);
-   if(!href||!attr(href,'href')?.startsWith(origin+'/'+loc))
-    issue(errors,'HREFLANG_'+loc.toUpperCase(),url,'Missing or mismatched '+loc+' language alternate');
+   const expected=origin+'/'+loc+pathWithoutLocale;
+   if(!href||attr(href,'href')!==expected)
+    issue(errors,'HREFLANG_'+loc.toUpperCase(),url,'Found '+(href?attr(href,'href'):'none')+'; expected '+expected);
   }
+  const descTag=tags(body,'meta').find(t=>attr(t,'name')?.toLowerCase()==='description');
+  const desc=descTag?attr(descTag,'content'):null;
+  item.description=desc||null;
+  if(!desc||!desc.trim())issue(warnings,'DESCRIPTION',url,'Missing initial HTML meta description');
   item.title=body.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim()||null;
   item.h1=/<h1(?:\s|>)/i.test(body);
   if(!item.title)issue(errors,'TITLE',url,'Missing server-rendered title');
