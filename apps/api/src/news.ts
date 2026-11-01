@@ -270,7 +270,7 @@ export class NewsController {
  @Get('admin/health') @Header('Cache-Control','private,no-store')
  async health(@Req()req:IncomingMessage){
   await this.admin(req);
-  const [last,scans,articleCount,byTopic,byPublisher,untranslated,unsummarized,unillustrated,publishers,qualitySample,lastNew,lastPublished,pending]=await Promise.all([
+  const [last,scans,articleCount,byTopic,byPublisher,untranslated,unsummarized,unillustrated,publishers,qualitySample,lastNew,lastPublished,pending,quarantined]=await Promise.all([
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'}}),
    this.prisma.newsSourceScan.findMany({orderBy:{createdAt:'desc'},take:120}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED'}}),
@@ -285,7 +285,9 @@ export class NewsController {
      publishedAccuracy:true,imageUrl:true,summaryUk:true,summaryEn:true,feedDescription:true,summary:true}}),
    this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{discoveredAt:'desc'},select:{discoveredAt:true}}),
    this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},select:{publishedAt:true}}),
-   this.prisma.newsArticle.count({where:{status:'PUBLISHED',OR:[{titleUk:null},{titleUk:''}]}})
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED',OR:[{titleUk:null},{titleUk:''}]}}),
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED',editorialAttempts:{gte:6},
+    editorialNextAttemptAt:{not:null}}})
   ]);
   const seen=new Set<string>(),latest:typeof scans=[];
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
@@ -299,7 +301,7 @@ export class NewsController {
    runtime:this.ingestion.runtimeStatus(),
    editorial:{translationEnabled:process.env.NEWS_TRANSLATION_ENABLED!=='0',
     scope:translationScope,qualityApproved:translationApproved,
-    configError:translationConfigError,pending},
+    configError:translationConfigError,pending,quarantined},
    registeredSources:RSS_SOURCES.length+GDELT_QUERIES.length,
    // Legacy field retained for older dashboards; news translation never uses LLM.
    editorialAiConfigured:false,
