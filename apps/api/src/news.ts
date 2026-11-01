@@ -285,7 +285,7 @@ export class NewsController {
      publishedAccuracy:true,imageUrl:true,summaryUk:true,summaryEn:true,feedDescription:true,summary:true}}),
    this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{discoveredAt:'desc'},select:{discoveredAt:true}}),
    this.prisma.newsArticle.findFirst({where:{status:'PUBLISHED'},orderBy:{publishedAt:'desc'},select:{publishedAt:true}}),
-   this.prisma.newsArticle.count({where:{status:'PUBLISHED',OR:[{titleUk:null},{titleEn:null}]}})
+   this.prisma.newsArticle.count({where:{status:'PUBLISHED',OR:[{titleUk:null},{titleUk:''}]}})
   ]);
   const seen=new Set<string>(),latest:typeof scans=[];
   for(const row of scans){if(!seen.has(row.sourceKey)){seen.add(row.sourceKey);latest.push(row);}}
