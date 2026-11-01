@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {usePathname} from 'next/navigation';
-import {safeGrowthEvent,safeGrowthPath} from '../../lib/growth-metrics';
+import {safeGrowthCampaign,safeGrowthEvent,safeGrowthPath} from '../../lib/growth-metrics';
 
 const CONSENT_KEY='galaxiora-analytics-choice-v1';
 const measurementId=process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim()||'';
@@ -27,7 +27,7 @@ function startAnalytics(safePath:string){
    if(source.protocol==='https:'&&source.hostname!=='galaxiora.com')safeReferrer=source.origin+'/';
   }
  }catch{}
- window.gtag('config',measurementId,{send_page_view:false,page_location:safeLocation,page_referrer:safeReferrer,allow_google_signals:false,allow_ad_personalization_signals:false});
+ window.gtag('config',measurementId,{send_page_view:false,page_location:safeLocation,page_referrer:safeReferrer,...(safeGrowthCampaign(window.location.search)||{}),allow_google_signals:false,allow_ad_personalization_signals:false});
  const script=document.createElement('script');
  script.async=true;
  script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(measurementId);
