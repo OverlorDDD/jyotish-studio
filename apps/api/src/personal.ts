@@ -493,7 +493,18 @@ export class PersonalController{
         if(sign(mid,name)===prevSign)lo=mid;else hi=mid;
        }
        // Align to the source boundary-resolution second, on the NEW side.
-       const boundary=Math.ceil(hi/1000)*1000;
+       const rounded=Math.ceil(hi/1000)*1000;
+       // Moon sign ingress and a nakshatra ingress coincide geometrically
+       // at some 120-degree boundaries. Independent 1s Swiss roots may
+       // differ by subsecond amounts: do NOT manufacture a microscopic
+       // interval where the private Moon and public nakshatra disagree.
+       // Reuse the already verified public crossing when they agree to
+       // the stated one-second source resolution.
+       const publicLunarCrossings=day.periods.nakshatra.map(p=>Date.parse(p.startUtc))
+        .filter(t=>t>begin&&t<end);
+       const matching=name==='Moon'?publicLunarCrossings.find(t=>
+        Math.abs(t-rounded)<=1000):undefined;
+       const boundary=matching??rounded;
        if(boundary>begin&&boundary<end)
         events.push({atUtc:new Date(boundary).toISOString(),
          kind:name==='Moon'?'moon-sign':'planet-sign'});
