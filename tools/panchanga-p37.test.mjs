@@ -7,7 +7,7 @@ function day(n=4,tithi=8){
  const d={date:'2026-11-02',location:{timeZone:'Europe/Kyiv'},
   sunriseUtc:at('04:30'),sunsetUtc:at('14:30'),nextSunriseUtc:'2026-11-03T04:31:00.000Z',
   sunrise:{tithi:{number:tithi,paksha:'Shukla',numberWithinPaksha:tithi},
-   nakshatra:{number:n,name:n===4?'Rohini':n===11?'Purva Phalguni':n===15?'Swati':'Ashvini',pada:1},
+   nakshatra:{number:n,name:n===4?'Rohini':n===11?'Purva Phalguni':n===15?'Swati':'Ashwini',pada:1},
    vara:{number:2,name:'Somavara'},yoga:{number:16,name:'Siddhi'},karana:{slot:2,name:'Bava'}},
   periods:{},daytimeKalas:{rahuKalam:{fromUtc:at('05:45'),untilUtc:at('07:00')}}};
  for(const k of ['tithi','nakshatra','yoga','karana'])
