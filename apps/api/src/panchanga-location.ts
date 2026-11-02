@@ -3,8 +3,11 @@ export type PanchangaLocation={place:string;timeZone:string;latitude:number;long
 export function normalizePanchangaLocation(value:unknown,fallbackPlace='Birth chart location'):PanchangaLocation|null{
  if(!value||typeof value!=='object'||Array.isArray(value))return null;
  const input=value as Record<string,unknown>;
- const place=(typeof input.place==='string'?input.place:fallbackPlace).trim();
- if(!place||place.length>120||/[<>\\\r\n]/.test(place))return null;
+ const rawPlace=typeof input.place==='string'?input.place:fallbackPlace;
+ // Validate before trimming: hidden line breaks must never silently become profile names.
+ if(/[<>\\\r\n]/.test(rawPlace))return null;
+ const place=rawPlace.trim();
+ if(!place||place.length>120)return null;
  if(typeof input.timeZone!=='string'||input.timeZone.length>64)return null;
  try{new Intl.DateTimeFormat('en',{timeZone:input.timeZone});}
  catch{return null;}
