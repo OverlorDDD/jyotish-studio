@@ -62,9 +62,12 @@ const NAK_NATURE=['','swift','fierce','mixed','fixed','gentle','sharp','movable'
  'fierce','fierce','fixed','swift','gentle','movable','mixed','gentle','sharp','sharp',
  'fierce','fixed','movable','movable','movable','fierce','fixed','gentle'] as const;
 const GROUPS:Record<string,{topics:P31Topic[];tone:Tone;detail:Lang}[]>={
- fixed:[{topics:['work','money','personal','home'],tone:'supports',detail:speak(
+ fixed:[{topics:['work','money','personal'],tone:'supports',detail:speak(
   'Стійка накшатра традиційно підходить для довготривалих домовленостей.',
-  'A fixed nakshatra traditionally supports lasting commitments.')}],
+  'A fixed nakshatra traditionally supports lasting commitments.')},
+  {topics:['home'],tone:'supports',detail:speak(
+   'Дхрува (нерухома) традиційно обирається для закладання фундаменту та стійких споруд.',
+   'Dhruva (fixed) is traditionally chosen for laying foundations and lasting construction.')}],
  movable:[{topics:['travel'],tone:'supports',detail:speak(
   'Рухлива накшатра традиційно підходить для початку поїздки.',
   'A movable nakshatra traditionally supports starting a journey.')}],
