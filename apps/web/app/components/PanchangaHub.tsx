@@ -10,6 +10,7 @@ import EclipsePanel from './EclipsePanel';
 import VedicFestivalPanel from './VedicFestivalPanel';
 import CitySearch from './CitySearch';
 import GlossaryText from './GlossaryText';
+import PanchangaRangeView from './PanchangaRangeView';
 
 type AngaName={number:number;name:string};
 type Day={
@@ -24,7 +25,7 @@ type Day={
  astronomyProfile:string;sunriseMethod:string;
  methodology:{referenceFrame:string;boundaryResolutionSeconds:number;referenceCertification:string};
 };
-type Form={date:string;timeZone:string;latitude:string;longitude:string};
+type Form={date:string;timeZone:string;latitude:string;longitude:string;place:string};
 const presets:{
  [key:string]:{timeZone:string;latitude:string;longitude:string}
 }={
@@ -60,18 +61,68 @@ const VARA_UK:Record<string,string>={
 const YOGA_UK=['Вішкумбха','Пріті','Аюшман','Саубхагʼя','Шобхана','Атіганда','Сукарма','Дхріті','Шула','Ганда','Вріддхі','Дхрува','Вʼягхата','Харшана','Ваджра','Сіддхі','Вʼятіпата','Варіяна','Парігха','Шіва','Сіддха','Садхʼя','Шубха','Шукла','Брахма','Індра','Вайдхріті'];
 const KARANA_UK:Record<string,string>={Kimstughna:'Кімстугхна',Bava:'Бава',Balava:'Балава',Kaulava:'Каулава',Taitila:'Тайтіла',Garaja:'Гараджа',Vanija:'Ваніджа',Vishti:'Вішті',Shakuni:'Шакуні',Chatushpada:'Чатушпада',Naga:'Нага'};
 const NAK_UK=['Ашвіні','Бхарані','Кріттіка','Рохіні','Мрігашіра','Ардра','Пунарвасу','Пушʼя','Ашлеша','Магха','Пурва Пхалгуні','Уттара Пхалгуні','Хаста','Чітра','Сваті','Вішакха','Анурадха','Джʼєштха','Мула','Пурва Ашадха','Уттара Ашадха','Шравана','Дханіштха','Шатабхіша','Пурва Бхадрапада','Уттара Бхадрапада','Реваті'];
-function currentDay(){
- const parts=new Intl.DateTimeFormat('en',{timeZone:'Europe/Kyiv',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+function currentDay(zone='Europe/Kyiv'){
+ const parts=new Intl.DateTimeFormat('en',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
  const get=(k:string)=>parts.find(x=>x.type===k)?.value||'';
  return get('year')+'-'+get('month')+'-'+get('day');
 }
 export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const t=labels[locale],uk=locale==='uk';
- const initialForm={date:currentDay(),...presets.kyiv};
+ const initialForm:Form={date:currentDay(),...presets.kyiv,place:uk?'Київ':'Kyiv'};
  const [form,setForm]=useState<Form>(initialForm);
  const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(initialForm);
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  const pendingManualCalculation=useRef(false);
+ const [view,setView]=useState<'day'|'week'|'month'>('day');
+ const [locationSource,setLocationSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
+ const [autoSave,setAutoSave]=useState(true);
+ const [saveState,setSaveState]=useState<'idle'|'saving'|'saved'|'error'>('idle');
+ useEffect(()=>{
+  let live=true;const ctl=new AbortController();
+  fetch('/api/v1/personal/panchanga/location',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
+   .then(async r=>{if(r.status===401)return null;if(!r.ok)throw Error(String(r.status));
+    return await r.json() as {source:'saved'|'natal'|'none';
+     location:{place:string;timeZone:string;latitude:number;longitude:number}|null};})
+   .then(data=>{
+    if(!live)return;
+    if(!data){setLocationSource('guest');return;}
+    setLocationSource(data.source);
+    if(!data.location)return;
+    const loc=data.location;
+    const candidate=new URLSearchParams(window.location.search).get('date');
+    const day=candidate&&/^\\d{4}-\\d{2}-\\d{2}$/.test(candidate)&&
+     Number.isFinite(Date.parse(candidate+'T00:00:00Z'))&&
+     new Date(candidate+'T00:00:00Z').toISOString().slice(0,10)===candidate?candidate:currentDay(loc.timeZone);
+    const next:Form={date:day,place:loc.place,timeZone:loc.timeZone,
+     latitude:String(loc.latitude),longitude:String(loc.longitude)};
+    setForm(next);setRequested(next);setCity('custom');
+   }).catch(()=>{if(live)setLocationSource('guest')});
+  return()=>{live=false;ctl.abort()};
+ },[]);
+ async function saveCity(next:Form){
+  if(!autoSave||locationSource==='guest'||locationSource==='checking')return;
+  setSaveState('saving');
+  try{
+   const r=await fetch('/api/v1/personal/panchanga/location',{method:'PUT',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({
+     place:next.place,timeZone:next.timeZone,latitude:Number(next.latitude),longitude:Number(next.longitude)})});
+   if(!r.ok)throw Error(String(r.status));
+   setLocationSource('saved');setSaveState('saved');
+  }catch{setSaveState('error');}
+ }
+ async function restoreNatalCity(){
+  try{
+   const r=await fetch('/api/v1/personal/panchanga/location',{method:'DELETE',credentials:'same-origin'});
+   if(!r.ok)throw Error(String(r.status));
+   const data=await r.json() as {source:'saved'|'natal'|'none';
+    location:{place:string;timeZone:string;latitude:number;longitude:number}|null};
+   const next:Form=data.location?{...form,place:data.location.place,timeZone:data.location.timeZone,
+    latitude:String(data.location.latitude),longitude:String(data.location.longitude)}
+    :{...form,...presets.kyiv,place:uk?'Київ':'Kyiv'};
+   setForm(next);setRequested(next);setLocationSource(data.source);setSaveState('idle');
+  }catch{setSaveState('error');}
+ }
+ function selectDay(date:string){const next={...form,date};setForm(next);setRequested(next);setView('day');}
  // First-party GalaxiNews stories deep-link to their authentic event day.
  useEffect(()=>{
   const day=new URLSearchParams(window.location.search).get('date');
@@ -110,34 +161,53 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <h1><GlossaryText text={t.title} locale={locale}/></h1><p><GlossaryText text={t.intro} locale={locale}/></p>
    <Link href={'/'+locale+'/horoscope'}>{uk?'До гороскопів':'Horoscopes'} ↗</Link>
   </header>
-  <form className={styles.form} onSubmit={e=>{e.preventDefault();pendingManualCalculation.current=true;setRequested({...form});}}>
+  <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
+   {(['day','week','month'] as const).map(period=><button key={period} type="button"
+    aria-current={view===period?'page':undefined} onClick={()=>setView(period)}>
+     {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):(uk?'Місяць':'Month')}
+    </button>)}
+  </nav>
+  <form className={styles.form} onSubmit={e=>{
+   e.preventDefault();pendingManualCalculation.current=true;setRequested({...form});void saveCity(form);
+  }}>
    <div className={styles.formGrid}>
     <label>{t.date}<input required type="date" min="1900-01-01" max="2099-12-31" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></label>
     <CitySearch locale={locale} onChoose={c=>{
      setCity('custom');
-     setForm(f=>({...f,timeZone:c.timeZone,latitude:String(c.latitude),longitude:String(c.longitude)}));
+     setForm(f=>({...f,timeZone:c.timeZone,latitude:String(c.latitude),longitude:String(c.longitude),
+      place:[c.name,c.region,c.country].filter(Boolean).join(', ').slice(0,120)}));
     }}/>
     <label>{t.city}<select value={city} onChange={e=>{
      const next=e.target.value;setCity(next);
-     if(next!=='custom')setForm(f=>({...f,...presets[next]}));
+     if(next!=='custom')setForm(f=>({...f,...presets[next],place:t.cities[next as 'kyiv'|'delhi'|'london']}));
     }}>{Object.entries(t.cities).map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
+   </div>
+   <p className={styles.locationStatus}>{uk?'Місто':'Location'}: <strong>{form.place}</strong> · {form.timeZone}
+    {locationSource==='natal'&&(uk?' · із натальної карти':' · from natal chart')}
+    {locationSource==='saved'&&(uk?' · збережено в профілі':' · saved in profile')}</p>
+   <details className={styles.advanced}><summary>{uk?'Точні координати та часовий пояс':'Advanced settings'}</summary>
+    <div className={styles.formGrid}>
     <label>{t.zone}<input required value={form.timeZone} onChange={e=>{setCity('custom');setForm(f=>({...f,timeZone:e.target.value}))}}/></label>
     <label>{t.lat}<input required type="number" step="any" min="-89.999" max="89.999" value={form.latitude} onChange={e=>{setCity('custom');setForm(f=>({...f,latitude:e.target.value}))}}/></label>
     <label>{t.lon}<input required type="number" step="any" min="-180" max="180" value={form.longitude} onChange={e=>{setCity('custom');setForm(f=>({...f,longitude:e.target.value}))}}/></label>
-   </div><button type="submit" disabled={loading}>{loading?t.busy:t.calculate}</button>
+    </div>
+   </details>
+   <div className={styles.formActions}>
+    <button type="submit" disabled={loading}>{loading?t.busy:t.calculate}</button>
+    {!['guest','checking'].includes(locationSource)&&<label className={styles.saveCheck}>
+     <input type="checkbox" checked={autoSave} onChange={e=>setAutoSave(e.target.checked)}/>
+     {uk?'Зберігати місто в профілі':'Save this city to my profile'}</label>}
+    {locationSource==='saved'&&<button type="button" className={styles.secondaryButton}
+     onClick={()=>void restoreNatalCity()}>{uk?'Повернути місто натальної карти':'Restore natal-chart city'}</button>}
+   </div>
+   {saveState==='saving'&&<p role="status">{uk?'Зберігаємо місто…':'Saving city…'}</p>}
+   {saveState==='saved'&&<p role="status">{uk?'Місто збережено.':'City saved.'}</p>}
+   {saveState==='error'&&<p role="alert">{uk?'Помилка збереження міста.':'Could not save city.'}</p>
   </form>
   {error&&<div role="alert" className={styles.error}>{t.error}</div>}
-  <AstronomicalEventsPanel locale={locale} start={requested?.date??form.date} zone={requested?.timeZone??form.timeZone}/>
-  <PersonalPanchanga locale={locale} point={requested??form}/>
-  <VedicFestivalPanel locale={locale} point={requested??form}/>
-  <EclipsePanel locale={locale} point={requested??form}/>
-  <aside className={styles.empty} aria-label={uk?'Календар затемнень 2027':'2027 eclipse calendar'}>
-   <strong>{uk?'Усі затемнення 2027 року — дати й пояснення NASA':'Every eclipse in 2027 — dates and NASA explanations'}</strong>
-   <p>{uk?'Тут вище — точна видимість для вибраного міста. У календарі — всі п’ять глобальних затемнень року та пояснення їхніх фаз.':'The calculator above checks visibility for your city. The calendar lists all five worldwide eclipses and explains their phases.'}</p>
-   <Link href={'/'+locale+'/eclipses/2027'}>{uk?'Відкрити календар 2027':'Explore the 2027 calendar'} →</Link>
-  </aside>
-  {!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
-  {result&&<div className={styles.results}>
+  {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested} onPick={selectDay}/>}
+  {view==='day'&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
+  {view==='day'&&result&&<div className={styles.results}>
    <section className={styles.sun}><h2>{t.subtitle} · {result.date}</h2>
     <div className={styles.sunGrid}>
      <div><small>{t.sunrise}</small><strong>{fmt(result.sunriseUtc)}</strong></div>
@@ -183,5 +253,17 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank" rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
    </aside>
   </div>}
+  <div className={styles.extraSections}>
+   <h2>{uk?'Інші календарні можливості':'More calendar features'}</h2>
+  <AstronomicalEventsPanel locale={locale} start={requested?.date??form.date} zone={requested?.timeZone??form.timeZone}/>
+  <PersonalPanchanga locale={locale} point={requested??form}/>
+  <VedicFestivalPanel locale={locale} point={requested??form}/>
+  <EclipsePanel locale={locale} point={requested??form}/>
+  <aside className={styles.empty} aria-label={uk?'Календар затемнень 2027':'2027 eclipse calendar'}>
+   <strong>{uk?'Усі затемнення 2027 року — дати й пояснення NASA':'Every eclipse in 2027 — dates and NASA explanations'}</strong>
+   <p>{uk?'Тут вище — точна видимість для вибраного міста. У календарі — всі п’ять глобальних затемнень року та пояснення їхніх фаз.':'The calculator above checks visibility for your city. The calendar lists all five worldwide eclipses and explains their phases.'}</p>
+   <Link href={'/'+locale+'/eclipses/2027'}>{uk?'Відкрити календар 2027':'Explore the 2027 calendar'} →</Link>
+  </aside>
+  </div>
  </section>;
 }
