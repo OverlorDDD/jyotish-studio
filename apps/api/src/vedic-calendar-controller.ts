@@ -4,6 +4,22 @@ import {vedicCalendarWindow,validateVedicCalendar} from './vedic-calendar.ts';
 @ApiTags('Vedic Festivals & Muhurta')
 @Controller('api/v1/vedic-calendar')
 export class VedicCalendarController{
+ /** One verified astronomy batch for 1–31 sunrise days, festivals and phases.
+  * /week remains limited to seven days for backwards compatibility.
+  */
+ @Get('overview') @Header('Cache-Control','public,max-age=120')
+ async overview(@Query('start')start?:string,@Query('days')days?:string,@Query('zone')zone?:string,
+  @Query('latitude')latitude?:string,@Query('longitude')longitude?:string,
+  @Query('monthSystem')monthSystem?:string){
+  const values={start,days:days===undefined?undefined:Number(days),timeZone:zone,
+   latitude:latitude===undefined?undefined:Number(latitude),
+   longitude:longitude===undefined?undefined:Number(longitude),
+   monthSystem:monthSystem as 'amanta'|'purnimanta'|undefined};
+  try{validateVedicCalendar(values,31);}
+  catch(err){throw new BadRequestException(err instanceof Error?err.message:'Invalid overview range');}
+  try{return await vedicCalendarWindow(values,31);}
+  catch{throw new ServiceUnavailableException('Verified Swiss month overview unavailable; no guessed dates returned');}
+ }
  @Get('week') @Header('Cache-Control','public,max-age=120')
  async week(@Query('start')start?:string,@Query('days')days?:string,@Query('zone')zone?:string,
   @Query('latitude')latitude?:string,@Query('longitude')longitude?:string,
@@ -19,3 +35,5 @@ export class VedicCalendarController{
  }
 }
 Reflect.defineMetadata('design:paramtypes',[String,String,String,String,String,String],VedicCalendarController.prototype,'week');
+
+Reflect.defineMetadata('design:paramtypes',[String,String,String,String,String,String],VedicCalendarController.prototype,'overview');
