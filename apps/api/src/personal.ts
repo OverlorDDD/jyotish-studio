@@ -444,19 +444,25 @@ export class PersonalController{
    // Reuse P3.3's verified owner selection, JQA3 recovery and authentication.
    const anchor=await this.panchangaResonance(req,date,zone,latitude,longitude);
    if(anchor.status!=='available')return anchor;
+   // The P3.3 endpoint has a discriminated runtime status, but its NestJS
+   // inferred return union includes several short "requires chart" shapes.
+   const verifiedAnchor=anchor as {
+    status:'available';date:string;timeZone:string;latitude:number;longitude:number;
+    sunriseUtc:string;nextSunriseUtc:string;natal:{moonSign:number;lagnaSign:number}
+   };
    let day:Awaited<ReturnType<typeof calculatePanchangaDay>>;
    try{day=await calculatePanchangaDay(validatePanchangaLocation({
     date,timeZone:zone,latitude:Number(latitude),longitude:Number(longitude)
    }));}
    catch{throw new ServiceUnavailableException('P3.4 verified astronomical day unavailable');}
-   if(anchor.sunriseUtc!==day.sunriseUtc||anchor.nextSunriseUtc!==day.nextSunriseUtc||
-      anchor.timeZone!==day.location.timeZone||anchor.date!==day.date||
-      anchor.latitude!==day.location.latitude||anchor.longitude!==day.location.longitude)
+   if(verifiedAnchor.sunriseUtc!==day.sunriseUtc||verifiedAnchor.nextSunriseUtc!==day.nextSunriseUtc||
+      verifiedAnchor.timeZone!==day.location.timeZone||verifiedAnchor.date!==day.date||
+      verifiedAnchor.latitude!==day.location.latitude||verifiedAnchor.longitude!==day.location.longitude)
     throw new ServiceUnavailableException('P3.4 independent sunrise/source mismatch');
    const {selected:chart}=await this.profile(uid);
    if(!chart?.verified||!chart.id||!chart.moonSign||!chart.lagnaSign||
       chart.moonLongitude===null||!Number.isFinite(chart.moonLongitude)||
-      chart.moonSign!==anchor.natal?.moonSign||chart.lagnaSign!==anchor.natal?.lagnaSign)
+      chart.moonSign!==verifiedAnchor.natal?.moonSign||chart.lagnaSign!==verifiedAnchor.natal?.lagnaSign)
     return {status:'requires_verified_chart',method:'P34_OWNER_NATAL_MISMATCH'};
    // Exact sign ingress is found with repeated fresh Swiss longitude samples
    // and one-second bisection. 30-minute bracketing bounds server work; a
