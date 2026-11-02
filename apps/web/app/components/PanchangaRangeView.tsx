@@ -4,8 +4,14 @@ import type {PortalLocale} from '../../lib/brand';
 import styles from './PanchangaHub.module.css';
 
 type Observer={date:string;timeZone:string;latitude:string;longitude:string};
-type Day={date:string;sunrise:{tithi:{number:number;paksha:string;numberWithinPaksha:number};nakshatra:{number:number;name:string};vara:{name:string};yoga:{name:string};karana:{name:string}}};
+type Day={date:string;sunrise:{tithi:{number:number;paksha:string;numberWithinPaksha:number};nakshatra:{number:number;name:string};vara:{name:string};yoga:{name:string;number:number};karana:{name:string}}};
 type Range={days:Day[]};
+const NAK_UK=['Ашвіні','Бхарані','Кріттіка','Рохіні','Мрігашіра','Ардра','Пунарвасу','Пушʼя','Ашлеша','Магха','Пурва Пхалгуні','Уттара Пхалгуні','Хаста','Чітра','Сваті','Вішакха','Анурадха','Джʼєштха','Мула','Пурва Ашадха','Уттара Ашадха','Шравана','Дханіштха','Шатабхіша','Пурва Бхадрапада','Уттара Бхадрапада','Реваті'];
+const YOGA_UK=['Вішкумбха','Пріті','Аюшман','Саубхагʼя','Шобхана','Атіганда','Сукарма','Дхріті','Шула','Ганда','Вріддхі','Дхрува','Вʼягхата','Харшана','Ваджра','Сіддхі','Вʼятіпата','Варіяна','Парігха','Шіва','Сіддха','Садхʼя','Шубха','Шукла','Брахма','Індра','Вайдхріті'];
+const VARA_UK:Record<string,string>={
+ Ravivara:'Неділя (Сонце)',Somavara:'Понеділок (Місяць)',Mangalavara:'Вівторок (Марс)',
+ Budhavara:'Середа (Меркурій)',Guruvara:'Четвер (Юпітер)',Shukravara:'Пʼятниця (Венера)',Shanivara:'Субота (Сатурн)'};
+const KARANA_UK:Record<string,string>={Kimstughna:'Кімстугхна',Bava:'Бава',Balava:'Балава',Kaulava:'Каулава',Taitila:'Тайтіла',Garaja:'Гараджа',Vanija:'Ваніджа',Vishti:'Вішті',Shakuni:'Шакуні',Chatushpada:'Чатушпада',Naga:'Нага'};
 export default function PanchangaRangeView({locale,view,point,onPick}:{
  locale:PortalLocale;view:'week'|'month';point:Observer;onPick:(date:string)=>void;
 }){
@@ -24,6 +30,10 @@ export default function PanchangaRangeView({locale,view,point,onPick}:{
   return()=>{alive=false;ctl.abort()};
  },[start,count,point.timeZone,point.latitude,point.longitude,retry]);
  const tithi=(d:Day)=>(uk?(d.sunrise.tithi.paksha==='Shukla'?'Шукла':'Крішна'):d.sunrise.tithi.paksha)+' '+d.sunrise.tithi.numberWithinPaksha;
+ const nak=(d:Day)=>uk?NAK_UK[d.sunrise.nakshatra.number-1]||d.sunrise.nakshatra.name:d.sunrise.nakshatra.name;
+ const yoga=(d:Day)=>uk?YOGA_UK[d.sunrise.yoga.number-1]||d.sunrise.yoga.name:d.sunrise.yoga.name;
+ const vara=(d:Day)=>uk?VARA_UK[d.sunrise.vara.name]||d.sunrise.vara.name:d.sunrise.vara.name;
+ const karana=(d:Day)=>uk?KARANA_UK[d.sunrise.karana.name]||d.sunrise.karana.name:d.sunrise.karana.name;
  const label=(d:string)=>new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(d+'T12:00:00Z'));
  const offset=(new Date(start+'T12:00:00Z').getUTCDay()+6)%7;
  return <section data-testid="panchanga-calendar-range">
@@ -36,17 +46,17 @@ export default function PanchangaRangeView({locale,view,point,onPick}:{
    <div className={styles.rangeDays}>{data.days.map(d=><button key={d.date} type="button" className={styles.rangeDay} onClick={()=>onPick(d.date)}>
     <strong>{label(d.date)}</strong>
     <span>{uk?'Тітхі':'Tithi'}: {tithi(d)}</span>
-    <span>{uk?'Накшатра':'Nakshatra'}: {d.sunrise.nakshatra.name}</span>
-    <span>{uk?'Вара':'Vara'}: {d.sunrise.vara.name}</span>
-    <span>{uk?'Йога':'Yoga'}: {d.sunrise.yoga.name}</span>
-    <span>{uk?'Карана':'Karana'}: {d.sunrise.karana.name}</span>
+    <span>{uk?'Накшатра':'Nakshatra'}: {nak(d)}</span>
+    <span>{uk?'Вара':'Vara'}: {vara(d)}</span>
+    <span>{uk?'Йога':'Yoga'}: {yoga(d)}</span>
+    <span>{uk?'Карана':'Karana'}: {karana(d)}</span>
    </button>)}</div>:
    <div className={styles.monthGrid} role="group" aria-label={uk?'Дні календаря':'Calendar days'}>
     {(uk?['Пн','Вт','Ср','Чт','Пт','Сб','Нд']:['Mo','Tu','We','Th','Fr','Sa','Su']).map(x=><span className={styles.weekLabel} key={x}>{x}</span>)}
     {Array.from({length:offset},(_,i)=><span aria-hidden="true" key={i}/>)}
     {data.days.map(d=><button key={d.date} type="button" className={styles.monthDay}
-     aria-label={label(d.date)+' · '+tithi(d)+' · '+d.sunrise.nakshatra.name}
-     onClick={()=>onPick(d.date)}><strong>{Number(d.date.slice(-2))}</strong><small>{tithi(d)}</small><small>{d.sunrise.nakshatra.name}</small></button>)}
+     aria-label={label(d.date)+' · '+tithi(d)+' · '+nak(d)}
+     onClick={()=>onPick(d.date)}><strong>{Number(d.date.slice(-2))}</strong><small>{tithi(d)}</small><small>{nak(d)}</small></button>)}
    </div>)}
  </section>;
 }
