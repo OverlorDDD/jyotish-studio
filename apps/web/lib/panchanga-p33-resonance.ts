@@ -48,6 +48,12 @@ const activity:Record<Topic,{noun:L;prepare:L;consider:L}>={
  travel:{noun:L('початку поїздки','starting a journey'),
   prepare:L('Перевірте маршрут і квитки, але перенесіть початок нової поїздки.','Check the route and tickets, but postpone the start of a new trip.'),
   consider:L('Перевірте маршрут і можете розглядати виїзд.','Check the route and consider a departure.')},
+ study:{noun:L('початку курсу','starting a course'),
+  prepare:L('Перевірте програму й підготуйте матеріали; новий курс розпочніть пізніше.','Review the curriculum and materials; start the new course later.'),
+  consider:L('Перевірте розклад і можете планувати початок навчання.','Check the schedule and consider beginning the course.')},
+ home:{noun:L('закладання фундаменту','laying a foundation'),
+  prepare:L('Перевірте проєкт і дозвільні документи; початок робіт заплануйте на інший час.','Review the plan and permits; choose another time to start the work.'),
+  consider:L('Перевірте всі інженерні умови та плануйте дату початку будівництва.','Check engineering requirements and plan a start date.')},
  personal:{noun:L('нової особистої справи','a new personal undertaking'),
   prepare:L('Завершіть підготовку й перенесіть початок нової справи.','Finish preparations and postpone starting the new undertaking.'),
   consider:L('Складіть план і можете розглядати початок нової справи.','Write a plan and consider starting the new project.')}
@@ -179,7 +185,7 @@ export function synthesizePersonalResonance(calendar:P32Result,day:P32Day,point:
    'Mars is '+mars.houseFromLagna+' signs from the ascendant; this is context for initiative, not an outcome guarantee.'));
  const topic=calendar.topic;
  const guidePlanet=topic==='work'||topic==='money'?mercury:topic==='relationships'?venus:
-  topic==='travel'?mars:jupiter;
+  topic==='travel'?mars:topic==='home'?saturn:jupiter;
  add('TOPIC_PLANET_'+guidePlanet.name.toUpperCase(),'gochar','context',L(
   'Планета, пов’язана з темою, у '+guidePlanet.houseFromLagna+'-му знаку від лагни. Положення враховано без вигаданих аспектів.',
   'A planet associated with the topic is '+guidePlanet.houseFromLagna+' signs from the ascendant. No uncomputed aspects are assumed.'));
