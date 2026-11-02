@@ -56,7 +56,8 @@ for(const locale of ['uk','en']){
   await expect(grid.getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});
   await grid.getByRole('button',{name:locale==='uk'?'Фази':'Phases'}).click();
   await expect(grid.getByTestId('panchanga-day-cell')).toHaveCount(30);
-  await grid.getByRole('button',{name:locale==='uk'?'Пурніманта':'Purnimanta'}).click();
+  await page.getByTestId('panchanga-month-system').getByRole('button',
+   {name:locale==='uk'?'Пурніманта':'Purnimanta'}).click();
   await expect(grid.getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});
   await grid.getByRole('button',{name:locale==='uk'?'Наступний період':'Next period'}).click();
   await expect(grid.getByTestId('panchanga-day-cell')).toHaveCount(31,{timeout:90000});

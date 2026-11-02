@@ -5,6 +5,7 @@ on:
       - feat/panchanga-v2-p21-unified-location-and-range-20261102
       - feat/panchanga-v2-p22-live-day-20261102
       - feat/panchanga-v2-p23-smart-calendar-20261102
+      - feat/panchanga-v2-p24-unified-hub-20261102
   pull_request:
     paths:
       - 'apps/api/src/panchanga*'

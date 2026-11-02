@@ -1,9 +1,10 @@
-name: Panchanga P2.2–P2.3 Browser Integration
+name: Panchanga P2.1–P2.4 Browser Integration
 on:
   push:
     branches:
       - feat/panchanga-v2-p22-live-day-20261102
       - feat/panchanga-v2-p23-smart-calendar-20261102
+      - feat/panchanga-v2-p24-unified-hub-20261102
   pull_request:
     paths:
       - 'apps/web/app/components/Panchanga*'
@@ -70,7 +71,7 @@ jobs:
           npm run dev -w @jyotish/web > /tmp/panchanga-web.log 2>&1 &
           node --input-type=module -e 'let ok=false; for(let i=0;i<180;i++){try{const r=await fetch("http://127.0.0.1:3000/uk/panchanga");if(r.ok){ok=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000));} if(!ok)process.exit(1);'
       - name: Exercise day/range/live named timeline in desktop and phone Chromium
-        run: npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+        run: npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
       - name: Print development server logs if browser checks fail
         if: failure()
         run: |
