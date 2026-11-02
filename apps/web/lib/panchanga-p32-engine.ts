@@ -30,7 +30,7 @@ export type P32Result={version:'panchanga-interpretation-p32';scope:'traditional
  topic:P31Topic;date:string;timeZone:string;moment:'live'|'sunrise-snapshot';
  status:'avoid'|'caution'|'supported'|'neutral';
  headline:Lang;action:Lang;reason:Lang;untilUtc:string|null;
- moon:Lang;personalized:false;coverage:{fiveLimbs:true;moonPhase:true;rahu:true;
+ moon:Lang;subject:Lang;personalized:false;coverage:{fiveLimbs:true;moonPhase:true;rahu:true;
  natal:false;exactMuhurta:false};
  evidence:InterpretationEvidence[]};
 
@@ -84,6 +84,16 @@ const VARA_SUPPORT:Partial<Record<number,P31Topic[]>>={
 };
 const YOGA_BLOCK=new Set([17,27]); // Vyatipata, Vaidhriti (Nitya Yoga)
 const YOGA_SUPPORT=new Set([4,5,7,11,12,16,20,21,22,23,24,25]);
+const MOVABLE_KARANAS=['Bava','Balava','Kaulava','Taitila','Garaja','Vanija','Vishti'] as const;
+const YOGA_NAMES=['Vishkumbha','Priti','Ayushman','Saubhagya','Shobhana','Atiganda','Sukarma','Dhriti','Shoola','Ganda','Vriddhi','Dhruva','Vyaghata','Harshana','Vajra','Siddhi','Vyatipata','Variyana','Parigha','Shiva','Siddha','Sadhya','Shubha','Shukla','Brahma','Indra','Vaidhriti'] as const;
+const VARA_NAMES=['Ravivara','Somavara','Mangalavara','Budhavara','Guruvara','Shukravara','Shanivara'] as const;
+function expectedKarana(slot:number){
+ if(slot===1)return 'Kimstughna';
+ if(slot===58)return 'Shakuni';
+ if(slot===59)return 'Chatushpada';
+ if(slot===60)return 'Naga';
+ return MOVABLE_KARANAS[(slot-2)%7];
+}
 const SOURCE={tithi:'muhurta-tradition',nakshatra:'drik-nakshatra',vara:'muhurta-tradition',
  yoga:'muhurta-tradition',karana:'muhurta-tradition',moon:'rashtriya',rahu:'muhurta-tradition'} as const;
 function parse(iso:string){if(typeof iso!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(iso))throw Error('P32 invalid UTC time');const t=Date.parse(iso);if(!Number.isFinite(t))throw Error('P32 invalid UTC time');return t;}
@@ -101,7 +111,9 @@ function checkAngas(a:Angas){
   !Number.isInteger(a.vara.number)||a.vara.number<1||a.vara.number>7||
   !Number.isInteger(a.yoga.number)||a.yoga.number<1||a.yoga.number>27||
   !Number.isInteger(a.karana.slot)||a.karana.slot<1||a.karana.slot>60||
-  typeof a.karana.name!=='string'||!a.karana.name)
+  typeof a.karana.name!=='string'||a.karana.name!==expectedKarana(a.karana.slot)||
+  a.vara.name!==VARA_NAMES[a.vara.number-1]||
+  a.yoga.name!==YOGA_NAMES[a.yoga.number-1])
   throw Error('P32 inconsistent five limbs; no interpretation emitted');
 }
 export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic):P32Result{
@@ -110,6 +122,9 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic):P32Re
   rahuFrom=parse(day.daytimeKalas?.rahuKalam?.fromUtc??''),rahuEnd=parse(day.daytimeKalas?.rahuKalam?.untilUtc??'');
  if(!(sunrise<rahuFrom&&rahuFrom<rahuEnd&&rahuEnd<=sunset&&sunset<next&&
   next-sunrise>=20*3600000&&next-sunrise<=28*3600000))throw Error('P32 unverified sunrise/rahu times');
+ const expectedVara=new Date(day.date+'T12:00:00Z').getUTCDay()+1;
+ if(!Number.isFinite(expectedVara)||day.sunrise.vara?.number!==expectedVara)
+  throw Error('P32 sunrise weekday mismatch');
  const live=nowMs>=sunrise&&nowMs<next&&dayAt(nowMs,day.location.timeZone)===day.date;
  const sample=live?nowMs:sunrise,selected={} as Angas;
  const untils:number[]=[next];
@@ -211,6 +226,6 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic):P32Re
   timeZone:day.location.timeZone,moment:live?'live':'sunrise-snapshot',status,headline,
   action:advice,reason:reasons,untilUtc:nextChange===null?null:new Date(nextChange).toISOString(),
   moon:waxing?speak('Зростаючий Місяць','Waxing Moon'):speak('Спадний Місяць','Waning Moon'),
-  personalized:false,coverage:{fiveLimbs:true,moonPhase:true,rahu:true,natal:false,exactMuhurta:false},
+  subject:action,personalized:false,coverage:{fiveLimbs:true,moonPhase:true,rahu:true,natal:false,exactMuhurta:false},
   evidence:evidences};
 }
