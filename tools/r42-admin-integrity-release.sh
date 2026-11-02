@@ -20,7 +20,7 @@ node --env-file=.env -e "
 echo "=== RECONCILE HIDDEN / MISSING TRACKED FILES, SAVE BACKUPS ==="
 node tools/source-integrity-repair.mjs --repair
 node tools/source-integrity-repair.mjs
-test -s apps/web/app/icon.svg
+test -s apps/web/brand-assets/galaxiora-approved-spiral-6.png
 grep -q GrowthConsent apps/web/app/layout.tsx
 echo "=== TEST REPAIRED SOURCES / SECURITY ==="
 npm run test:source:integrity
