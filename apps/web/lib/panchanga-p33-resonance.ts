@@ -120,9 +120,12 @@ export function synthesizePersonalResonance(calendar:P32Result,day:P32Day,point:
  guard(calendar.topic in activity&&calendar.date===point.date&&
   calendar.timeZone===point.timeZone,'calendar topic/date');
  const at=Date.parse(expectedAtUtc);
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:point.timeZone,
+  year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(at));
+ const read=(k:string)=>parts.find(x=>x.type===k)?.value||'';
+ const localDay=read('year')+'-'+read('month')+'-'+read('day');
  guard(calendar.moment===(at>=Date.parse(day.sunriseUtc)&&at<Date.parse(day.nextSunriseUtc)&&
-  new Intl.DateTimeFormat('en-US',{timeZone:point.timeZone,year:'numeric',month:'2-digit',day:'2-digit'})
-   .format(new Date(at)).length>0?'live':'sunrise-snapshot'),'calendar time scope');
+  localDay===day.date?'live':'sunrise-snapshot'),'calendar time scope');
  const evidence:P33Evidence[]=[];
  const add=(id:string,category:P33Evidence['category'],verdict:P33Evidence['verdict'],note:L)=>{
   evidence.push({id,category,verdict,note});
