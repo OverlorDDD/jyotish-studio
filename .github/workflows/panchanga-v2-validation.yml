@@ -4,6 +4,7 @@ on:
     branches:
       - feat/panchanga-v2-p21-unified-location-and-range-20261102
       - feat/panchanga-v2-p22-live-day-20261102
+      - feat/panchanga-v2-p23-smart-calendar-20261102
   pull_request:
     paths:
       - 'apps/api/src/panchanga*'
@@ -13,6 +14,8 @@ on:
       - 'apps/web/app/components/Panchanga*'
       - 'apps/web/lib/panchanga-*'
       - 'tools/panchanga*'
+      - 'packages/jyotish-core/src/lunar-phase-calendar.ts'
+      - 'apps/api/src/vedic-calendar-controller.ts'
       - 'tools/vedic-calendar-rises.py'
       - 'e2e/panchanga*'
 jobs:
