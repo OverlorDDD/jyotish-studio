@@ -9,6 +9,8 @@ import {localToUTC} from '../../../packages/jyotish-core/src/index.ts';
 import {validLocalDay,validTimeZone,localToday} from './personal-transits.ts';
 import {createVerifiedSiderealPlanetAt,PANCHANGA_ASTRONOMY_PROFILE} from './panchanga.ts';
 import {daytimeKalas} from '../../../packages/jyotish-core/src/daytime-kalas.ts';
+import {fiveAngas} from '../../../packages/jyotish-core/src/panchanga.ts';
+import {lunarPhaseEvents} from '../../../packages/jyotish-core/src/lunar-phase-calendar.ts';
 import {VEDIC_CALENDAR_VERSION,tithiNumber,monthAtSunrise,
  sunriseObservances,namedFestivalCandidates,solarSankrantis,abhijitMuhurta,type MonthSystem,
  type NewMoonRecord} from '../../../packages/jyotish-core/src/vedic-calendar.ts';
@@ -22,26 +24,45 @@ const localDate=(utc:string,zone:string)=>{
  const get=(k:string)=>parts.find(p=>p.type===k)?.value||'';
  return get('year')+'-'+get('month')+'-'+get('day');
 };
-export function validateVedicCalendar(v:VedicCalendarInput){
+export function validateVedicCalendar(v:VedicCalendarInput,maxDays:7|31=7){
  const timeZone=v.timeZone??'Europe/Kyiv';
  if(!validTimeZone(timeZone))throw Error('Valid IANA time zone required');
  const start=v.start??localToday(timeZone),days=v.days??7;
  if(!validLocalDay(start)||start<'1900-01-01'||start>'2099-11-01')
   throw Error('Gregorian date outside verified 1900–2099 period');
- if(!Number.isSafeInteger(days)||days<1||days>7)throw Error('Calendar limited to 1–7 local dates');
+ if(!Number.isSafeInteger(days)||days<1||days>maxDays)throw Error('Calendar limited to 1–'+maxDays+' local dates');
  const latitude=v.latitude??50.4501,longitude=v.longitude??30.5234;
  if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||
  latitude<=-90||latitude>=90||longitude<-180||longitude>180)throw Error('Invalid observer coordinates');
  const monthSystem=v.monthSystem??'amanta';
  if(monthSystem!=='amanta'&&monthSystem!=='purnimanta')throw Error('Select amanta or purnimanta');
  const end=new Date(Date.parse(start+'T00:00:00Z')+days*DAY).toISOString().slice(0,10);
+ if(end>'2100-01-01')throw Error('Calendar exceeds verified era');
  return {start,days,timeZone,latitude,longitude,monthSystem,end};
 }
 let activeWorkers=0;
+const MAX_WORKERS=2,MAX_WAITING=6;
+const waiters:(()=>void)[]=[];
+async function acquireWorker(){
+ if(activeWorkers<MAX_WORKERS){activeWorkers++;return;}
+ if(waiters.length>=MAX_WAITING)throw Error('Swiss worker queue full');
+ await new Promise<void>((resolve,reject)=>{
+  let settled=false;
+  const grant=()=>{if(settled)return;settled=true;clearTimeout(timer);resolve();};
+  const timer=setTimeout(()=>{if(settled)return;settled=true;
+   const i=waiters.indexOf(grant);if(i>=0)waiters.splice(i,1);
+   reject(Error('Swiss worker wait timed out'));},15000);
+  waiters.push(grant);
+ });
+ // The releasing worker transferred ownership; activeWorkers stays unchanged.
+}
+function releaseWorker(){
+ const next=waiters.shift();
+ if(next)next();else activeWorkers--;
+}
 /** Shared bounded nonblocking Swiss sunrise worker. The festivals endpoint still permits at most 7 days. */
 export async function riseSetBatch(v:{start:string;days:number;timeZone:string;latitude:number;longitude:number}){
- if(activeWorkers>=2)throw Error('Vedic calendar worker capacity exceeded');
- activeWorkers++;
+ await acquireWorker();
  try{
   const script=resolve(dirname(fileURLToPath(import.meta.url)),'../../../tools/vedic-calendar-rises.py');
   const exe=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
@@ -50,7 +71,7 @@ export async function riseSetBatch(v:{start:string;days:number;timeZone:string;l
   return await new Promise<{events:{sunrise:string[];sunset:string[]};method:string}>((resolvePromise,reject)=>{
    const child=spawn(exe,[...(exe==='py'?['-3']:[]),script],{stdio:['pipe','pipe','pipe'],windowsHide:true});
    let out='',error='',settled=false;
-   const timeout=setTimeout(()=>{child.kill();done(new Error('Swiss observer batch timed out'));},20000);
+   const timeout=setTimeout(()=>{child.kill();done(new Error('Swiss observer batch timed out'));},Math.min(45000,16000+v.days*650));
    function done(err?:Error){
     if(settled)return;settled=true;clearTimeout(timeout);
     if(err){reject(err);return;}
@@ -72,7 +93,7 @@ export async function riseSetBatch(v:{start:string;days:number;timeZone:string;l
    child.on('close',(code:number|null)=>done(code===0?undefined:new Error('Swiss rise/set batch unavailable: '+error.slice(0,200))));
    child.stdin.end(json);
   });
- }finally{activeWorkers--;}
+ }finally{releaseWorker();}
 }
 function findNewMoons(firstMs:number,lastMs:number,at:(ms:number)=>{sun:number;moon:number}):NewMoonRecord[]{
  // Source samples < 6h apart and result bracketed to 1 second.
@@ -124,7 +145,9 @@ async function compute(v:ReturnType<typeof validateVedicCalendar>){
   const sunrise=Date.parse(sunriseUtc),sunset=Date.parse(sunsetUtc);
   const tithi=tithiNumber(at(sunrise));
   const weekday=new Date(date+'T12:00:00Z').getUTCDay();
-  const sample={date,sunriseUtc,sunsetUtc,nextSunriseUtc,tithi,
+  const sunriseAngas=fiveAngas(at(sunrise),weekday);
+  if(sunriseAngas.tithi.number!==tithi)throw Error('Inconsistent sunrise tithi');
+  const sample={date,sunriseUtc,sunsetUtc,nextSunriseUtc,tithi,sunriseAngas,
    arunodayaTithi:tithiNumber(at(sunrise-96*60000)),
    pradoshaTithi:tithiNumber(at(sunset)),
    pradoshaEndTithi:tithiNumber(at(sunset+90*60000)),
@@ -142,7 +165,13 @@ async function compute(v:ReturnType<typeof validateVedicCalendar>){
    daytimeKalas:daytimeKalas(sunriseUtc,sunsetUtc,weekday)};
   days.push({...sample,moonMonth,observances:observed,windows});
  }
- const solarChanges=solarSankrantis(startMs,endMs,ms=>at(ms).sun);
+ // Existing verified solar solver intentionally limits each search to 15 days.
+ // Split a 31-day month into contiguous half-open 14-day segments.
+ const solarChanges:ReturnType<typeof solarSankrantis>=[];
+ for(let from=startMs;from<endMs;from+=14*DAY)
+  solarChanges.push(...solarSankrantis(from,Math.min(endMs,from+14*DAY),ms=>at(ms).sun));
+ const phaseEvents=lunarPhaseEvents(startMs,endMs,at)
+  .map(event=>({...event,localDate:localDate(event.atUtc,v.timeZone)}));
  for(const change of solarChanges){
   const date=localDate(change.atUtc,v.timeZone);
   const record=days.find(x=>x.date===date);
@@ -162,7 +191,9 @@ async function compute(v:ReturnType<typeof validateVedicCalendar>){
  return {version:VEDIC_CALENDAR_VERSION,policy:'explicit-amanta-purnimanta-v1',
   scope:'calculated-observance-indications-not-definitive-religious-fasting-dates',
   observer:{latitude:v.latitude,longitude:v.longitude,timeZone:v.timeZone},
-  startDate:v.start,endDateExclusive:v.end,days,monthSystem:v.monthSystem,
+  startDate:v.start,endDateExclusive:v.end,days,phaseEvents,
+  phaseConvention:'Exact geocentric ecliptic Sun-Moon elongation, not an eclipse prediction',
+  phaseTimeResolutionSeconds:1,monthSystem:v.monthSystem,
   astronomyProfile:PANCHANGA_ASTRONOMY_PROFILE,
   astronomicalTimeCertifiedByIndependentReference:false,
   observanceDayCertifiedByTradition:false,
@@ -175,8 +206,8 @@ async function compute(v:ReturnType<typeof validateVedicCalendar>){
    months:'New Moon-to-New Moon solar sign mapping, 0-ingress adhika, 2-ingress kshaya fail closed for month naming'
   }};
 }
-export async function vedicCalendarWindow(raw:VedicCalendarInput){
- const v=validateVedicCalendar(raw),key=[v.start,v.days,v.timeZone,v.latitude,v.longitude,v.monthSystem].join('|');
+export async function vedicCalendarWindow(raw:VedicCalendarInput,maxDays:7|31=7){
+ const v=validateVedicCalendar(raw,maxDays),key=[v.start,v.days,v.timeZone,v.latitude,v.longitude,v.monthSystem].join('|');
  const prev=cache.get(key),now=Date.now();
  if(prev&&now-prev.created<5*60000)return prev.promise;
  const promise=compute(v);
