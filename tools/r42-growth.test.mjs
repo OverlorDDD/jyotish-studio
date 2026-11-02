@@ -6,7 +6,7 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('R4.2 accepts only normalized public URL paths, without private query data',()=>{
  for(const [path,expected] of [
-  ['/uk','/uk'],['/en/panchanga','/en/panchanga'],
+  ['/','/en'],['/uk','/uk'],['/en/panchanga','/en/panchanga'],
   ['/uk/astrology/jyotish','/uk/astrology/jyotish'],
   ['/uk/tarot/cards/moon','/uk/tarot/cards'],['/en/learn/nakshatras','/en/learn'],
   ['/en/yoga/gentle-breath','/en/yoga'],['/en/horoscope/aries','/en/horoscope'],
@@ -76,4 +76,35 @@ test('R4.2 campaign tags cannot smuggle personal inputs to GA4',()=>{
  ])assert.equal(safeGrowthCampaign(query),null,query);
  const loader=read('apps/web/app/components/GrowthConsent.tsx');
  assert.match(loader,/safeGrowthCampaign\(window\.location\.search\)/);
+});
+
+
+test('R4 diagnostics: GA4 consent default is queued before js/config, no tag before opt-in',()=>{
+ const code=read('apps/web/app/components/GrowthConsent.tsx');
+ const start=code.indexOf('function startAnalytics(');
+ const stop=code.indexOf('function stopAnalytics(');
+ const init=code.slice(start,stop);
+ const consent=init.indexOf("window.gtag('consent','default'");
+ const update=init.indexOf("window.gtag('consent','update'");
+ const js=init.indexOf("window.gtag('js'");
+ const config=init.indexOf("window.gtag('config'");
+ assert.ok(consent>0&&update>consent&&js>update&&config>js,'consent order is critical');
+ assert.ok(init.indexOf("if(typeof window==='undefined'||!enabled||window.__galaxioraAnalyticsReady)return;")>=0);
+ assert.match(init,/tagStatus\('loading'\)/);
+ assert.match(init,/tagStatus\('loaded'\)/);
+ assert.match(init,/tagStatus\('blocked'\)/);
+ assert.match(code,/data-testid="analytics-tag-status"/);
+ assert.match(code,/window\.location\.reload\(\)/);
+ const home=read('apps/web/app/components/PortalHome.tsx');
+ assert.match(home,/Астрологія, Таро та Панчанга/);
+ assert.match(home,/Astrology, Tarot & Panchanga/);
+});
+
+test('R4 read-only external audit includes Google discovery and additional root checks',()=>{
+ const code=read('tools/r4-search-discovery-audit.mjs');
+ for(const keyword of ['WEBSITE_SCHEMA','INDEXABLE','CANONICAL','NAVIGABLE_IA','SITEMAP','BRAND_ASSET','H1_TOPIC','SERVER_TIMING'])
+  assert.ok(code.includes(keyword),keyword);
+ assert.match(code,/galaxiora.com/);
+ assert.match(code,/redirect:'manual'/);
+ assert.doesNotMatch(code,/method:\s*['"](POST|PUT|PATCH|DELETE)/);
 });
