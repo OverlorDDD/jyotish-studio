@@ -57,3 +57,18 @@ bash /tmp/p25-release.sh rollback
 
 ## Completion gates
 Source integration and editor copy can be complete with green GitHub CI; actual AWS rollout cannot be certified without live operator SSH and browser verification. Leave P2.5 Draft until live deployment checks and approval; there is no need for P2.6 features unless verification reveals concrete defects. Only this main engineering conversation writes to GitHub; SEO conversation prepares research and drafts.
+
+
+## AWS blocked on dirty tracked files (observed 2026-11-02)
+The operator reported `STOP: tracked local modifications detected` after fetching the P2.5 branch. This proves **only that Git sees tracked differences**, not their contents or whether they are safe to discard. The script did not deploy or mutate the DB. Production may additionally have a divergent HEAD; diagnose both *before* any cleanup.
+
+Fetch the latest release script and run the read-only diagnostics:
+
+~~~bash
+cd /opt/galaxiora/app
+git fetch origin release/panchanga-v2-p25-integrated-20261102
+git show FETCH_HEAD:tools/panchanga-p25-release.sh > /tmp/p25-release.sh
+bash /tmp/p25-release.sh diagnose
+~~~
+
+The diagnostic prints only changed filenames, status, diff statistics and release ancestry. It intentionally does **not** print confidential contents or reset files. If only generated `apps/web/next-env.d.ts` or `package.json` are modified, inspect and privately back them up before any targeted cleanup. If there is a real application edit or `GIT_ANCESTRY=DIVERGED`, reconcile it in the main engineering GitHub-writing conversation. Never use `git reset --hard`, `git clean -fd`, blanket stash or forced checkout on production. The branch SHA must match the *new* CI-tested HEAD after editorial fixes; do not use the prior P2.5 SHA.

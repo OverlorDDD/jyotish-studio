@@ -12,12 +12,14 @@ const files=[
  'apps/web/app/components/PersonalPanchanga.tsx',
  'apps/web/app/components/AstronomicalEventsPanel.tsx'
 ];
-test('P2.5 visible Panchanga phrases state concrete astronomy or action',()=>{
+test('plain-language card summaries and precise technical hover/tap definitions are separate',()=>{
  const live=read(files[1]),hub=read(files[0]),range=read(files[3]);
- for(const phrase of ['Кожні 12° між Місяцем і Сонцем','Половина тітхі: кожні 6°',
-  'Сума довгот Сонця й Місяця: сектори по 13°20′',
-  'Every 12° of Moon–Sun separation','Half a tithi: every 6°'])
-  assert.ok(live.includes(phrase),'Missing measured definition: '+phrase);
+ for(const phrase of ['Місячний день','Ділянка шляху Місяця','Положення Сонця й Місяця',
+  'Половина місячного дня','Lunar day','Moon’s position in its lunar path','Half of a lunar day'])
+  assert.ok(live.includes(phrase),'Missing plain-language description: '+phrase);
+ for(const phrase of ['12°','13°20′','6°','27 секторів'])
+  assert.ok(live.includes(phrase),'Missing tooltip detail: '+phrase);
+ assert.match(live,/PanchangaInfoTip/);
  assert.match(hub,/Оновити календар/);
  assert.match(range,/Панчанга · місяць/);
 });
@@ -36,4 +38,17 @@ test('P2.5 distinguishes traditional candidate dates from exact astronomical pha
  for(const phrase of ['Дати свят попередні','Festival dates are provisional','Фази — астрономічний час',
   'Phases show astronomical times'])
   assert.ok(guide.includes(phrase)||month.includes(phrase),'Missing date qualification: '+phrase);
+});
+
+test('personal Moon rhythm is accessible and technical Tara/Chandra terms are in help',()=>{
+ const p=read(files[5]),rel=read(files[4]);
+ assert.match(rel,/Мій місячний ритм/);
+ assert.match(rel,/Порівняння Місяця з вашою натальною картою/);
+ assert.match(p,/taraHelp:.*Тарабала/);
+ assert.match(p,/chandraHelp:.*Чандрабала/);
+ assert.match(p,/PanchangaInfoTip/);
+ const help=read('apps/web/app/components/PanchangaInfoTip.tsx');
+ assert.match(help,/<details/);
+ assert.match(help,/<summary/);
+ assert.match(help,/title=\{text\}/);
 });

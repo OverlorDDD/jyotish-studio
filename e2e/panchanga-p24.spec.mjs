@@ -26,7 +26,7 @@ for(const locale of ['uk','en']){
   await related.getByRole('button',{name:locale==='uk'?/Переходи планет/:/Planetary transitions/}).click();
   await expect(page.getByTestId('astronomical-events-panel')).toBeVisible();
   await expect.poll(()=>extraSky).toBeGreaterThan(0);
-  await related.getByRole('button',{name:locale==='uk'?/Тарабала й Чандрабала/:/Tarabala & Chandrabala/}).click();
+  await related.getByRole('button',{name:locale==='uk'?/Мій місячний ритм/:/My lunar rhythm/}).click();
   await expect(page.getByTestId('personal-panchanga')).toBeVisible();
   await expect.poll(()=>extraPersonal).toBeGreaterThan(0);
   await related.getByRole('button',{name:locale==='uk'?/Видимість затемнень/:/Eclipse visibility/}).click();

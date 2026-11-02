@@ -37,11 +37,37 @@ if(!env.DATABASE_URL)throw Error('STOP: missing production database URL');
 console.log('PASS: existing public URL, indexing, GA4, session and database config verified (values hidden)');
 JS
 }
+diagnose(){
+ echo '=== P2.5 READ-ONLY GIT DIAGNOSTICS ==='
+ echo "WORKTREE=$(pwd)"
+ echo "CURRENT_SHA=$(git rev-parse HEAD)"
+ echo 'Tracked changes (filenames/status only; no file contents or secrets):'
+ git status --short --untracked-files=no || true
+ echo 'Unstaged change statistics:'
+ git diff --stat -- . ':(exclude).env' || true
+ echo 'Staged change statistics:'
+ git diff --cached --stat -- . ':(exclude).env' || true
+ echo 'Release branch ancestry:'
+ git fetch --no-tags origin "$BRANCH" || { echo 'FETCH_FAILED';return 2; }
+ local target
+ target=$(git rev-parse FETCH_HEAD)
+ echo "FETCHED_TARGET_SHA=$target"
+ if git merge-base --is-ancestor HEAD "$target";then
+  echo 'GIT_ANCESTRY=FAST_FORWARD'
+ else
+  echo 'GIT_ANCESTRY=DIVERGED'
+  echo "COMMON_BASE=$(git merge-base HEAD "$target" || true)"
+  echo 'STOP: the live commit has changes absent from the release branch; preserve and reconcile them first'
+ fi
+ echo 'This diagnostic does not modify any tracked files. Do not run git reset --hard or git clean.'
+}
 preflight(){
  local head target free
  head=$(git rev-parse HEAD)
  if [ -n "$(git status --porcelain --untracked-files=no)" ];then
-  echo 'STOP: tracked local modifications detected; inspect git status, do not reset';return 2
+  echo 'STOP: production has tracked local changes. Showing filenames and ancestry for safe reconciliation.'
+  diagnose
+  return 2
  fi
  [[ "${P25_TARGET_SHA:-}" =~ ^[0-9a-f]{40}$ ]] || {
   echo 'STOP: supply the exact tested 40-character P25_TARGET_SHA';return 2;
@@ -147,8 +173,9 @@ deploy(){
  echo 'Verify browser UA/EN and GA4 Realtime/consent separately; SEO indexing still depends on Google.'
 }
 case "$ACTION" in
+ diagnose)diagnose;;
  preflight)preflight;;
  deploy)deploy;;
  rollback)rollback;;
- *)echo 'Usage: bash tools/panchanga-p25-release.sh preflight|deploy|rollback';exit 2;;
+ *)echo 'Usage: bash tools/panchanga-p25-release.sh diagnose|preflight|deploy|rollback';exit 2;;
 esac

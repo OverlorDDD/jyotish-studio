@@ -1,14 +1,22 @@
 import {test,expect} from '@playwright/test';
 for(const locale of ['uk','en']){
- test('P2.5 '+locale+' measured descriptions replace vague slogans in one Panchanga hub',async({page})=>{
+ test('P2.5 '+locale+' simple labels and technical details in on-demand tooltips',async({page})=>{
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
   const hub=page.getByTestId('panchanga-hub');
   await expect(hub.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
   const expected=locale==='uk'?
-   ['Кожні 12° між Місяцем і Сонцем','Сектор Місяця серед 27','Половина тітхі: кожні 6°']:
-   ['Every 12° of Moon–Sun separation','Moon’s sector among 27','Half a tithi: every 6°'];
-  for(const phrase of expected)await expect(hub).toContainText(phrase);
+   ['Місячний день','Ділянка шляху Місяця','Половина місячного дня']:
+   ['Lunar day','Moon’s position in its lunar path','Half of a lunar day'];
+  const cards=hub.getByTestId('panchanga-five-angas');
+  for(const phrase of expected)await expect(cards).toContainText(phrase);
+  const help=cards.locator('details').first();
+  await expect(help).not.toHaveAttribute('open');
+  await help.locator('summary').click();
+  await expect(help).toHaveAttribute('open');
+  await expect(help).toContainText('12°');
+  await help.locator('summary').click();
+  await expect(help).not.toHaveAttribute('open');
   await expect(hub.getByTestId('panchanga-integrated-day')).toBeVisible();
   await expect(hub).not.toContainText(locale==='uk'?'Дослідити глибше':'Explore in depth');
   await hub.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'})

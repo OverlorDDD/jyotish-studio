@@ -9,3 +9,5 @@
 .grid h3{font:600 clamp(19px,2.2vw,24px)/1.35 Georgia,serif;color:#efe0c6;margin:9px 0}
 .grid strong{color:#e2b4ac;font-size:13px}.note{font-size:12px!important;color:#a9bacb!important}
 @media(max-width:620px){.grid{grid-template-columns:1fr}}
+
+.infoRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px}.infoRow small{color:#d8c8ad;font-size:13px}

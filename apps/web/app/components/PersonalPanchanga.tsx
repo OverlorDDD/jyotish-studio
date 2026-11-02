@@ -60,7 +60,7 @@ export default function PersonalPanchanga({locale,point}:{locale:PortalLocale;po
   {status==='ready'&&data?.status==='available'&&data.tarabala&&data.chandrabala&&<>
    <div className={styles.grid}>
     <article>
-     <div className="panchanga-personal-label"><small>{t.tara}</small>
+     <div className={styles.infoRow}><small>{t.tara}</small>
       <PanchangaInfoTip locale={locale} text={t.taraHelp+' '+data.tarabala.name+' ('+data.tarabala.taraNumber+'/9).'}/>
      </div>
      <h3>{quality(data.tarabala.quality)}</h3>
