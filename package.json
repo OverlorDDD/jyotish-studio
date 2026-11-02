@@ -22,7 +22,7 @@
     "com:seed": "node --env-file-if-exists=.env tools/com-seed-topics.mjs",
     "com:backup": "node --env-file-if-exists=.env tools/com-db-backup.mjs",
     "com:load": "node tools/com-load-probe.mjs",
-    "test:panchanga": "node --experimental-strip-types --test tools/panchanga-core.test.mjs",
+    "test:panchanga": "node --experimental-strip-types --test tools/panchanga-core.test.mjs tools/panchanga-v2-location.test.mjs",
     "test:astronomy": "node --experimental-strip-types --test tools/astronomical-events.test.mjs",
     "test:lunar-strength": "node --experimental-strip-types --test tools/lunar-strength.test.mjs",
     "test:daytime-kalas": "node --experimental-strip-types --test tools/daytime-kalas.test.mjs",

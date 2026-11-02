@@ -1,4 +1,4 @@
-"""AE-P7 batched sunrise/sunset for 7-day read-only Vedic indicators.
+"""AE-P7/P2.1 batched sunrise/sunset for 1–31 read-only local days.
 Only official compressed Swiss Ephemeris, without fallback. Returns UTC event
 candidates; Node chooses civil dates under a single IANA time-zone authority.
 """
@@ -14,7 +14,7 @@ def main():
     if noon.tzinfo is None:raise ValueError('Noon must have UTC offset')
     lon,lat=float(input['longitude']),float(input['latitude'])
     days=input['days']
-    if not isinstance(days,int) or days<1 or days>7:raise ValueError('Maximum seven local days')
+    if not isinstance(days,int) or days<1 or days>31:raise ValueError('Maximum 31 local days')
     if not -90<lat<90 or not -180<=lon<=180:raise ValueError('Invalid observer coordinates')
     ephe=Path(os.environ['GALAXIORA_SWISS_EPHE_PATH']) if os.environ.get('GALAXIORA_SWISS_EPHE_PATH') else ROOT/'node_modules/@swisseph/node/ephemeris'
     if not all((ephe/f).is_file() for f in ('sepl_18.se1','semo_18.se1')):

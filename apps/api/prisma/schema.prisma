@@ -282,6 +282,11 @@ model PersonalProfile {
  primaryChartId String? @unique
  primaryChart Chart? @relation(fields: [primaryChartId],references: [id],onDelete: SetNull)
  currentTimeZone String @default("UTC") @db.VarChar(64)
+ /** Preferred public Panchanga observer, intentionally separate from natal birth coordinates and horoscope zone. */
+ panchangaPlace String? @db.VarChar(120)
+ panchangaTimeZone String? @db.VarChar(64)
+ panchangaLatitude Float?
+ panchangaLongitude Float?
  preferredLocale String @default("uk") @db.VarChar(2)
  favoritePractice String? @db.VarChar(32)
  newsTopics String[] @default([])

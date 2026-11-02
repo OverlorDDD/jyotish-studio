@@ -38,7 +38,8 @@ export function validateVedicCalendar(v:VedicCalendarInput){
  return {start,days,timeZone,latitude,longitude,monthSystem,end};
 }
 let activeWorkers=0;
-async function riseSetBatch(v:ReturnType<typeof validateVedicCalendar>){
+/** Shared bounded nonblocking Swiss sunrise worker. The festivals endpoint still permits at most 7 days. */
+export async function riseSetBatch(v:{start:string;days:number;timeZone:string;latitude:number;longitude:number}){
  if(activeWorkers>=2)throw Error('Vedic calendar worker capacity exceeded');
  activeWorkers++;
  try{
@@ -56,7 +57,7 @@ async function riseSetBatch(v:ReturnType<typeof validateVedicCalendar>){
     try{
      const parsed=JSON.parse(out) as {events:{sunrise:string[];sunset:string[]};method:string};
      if(!parsed.events||!Array.isArray(parsed.events.sunrise)||!Array.isArray(parsed.events.sunset)||
-      !parsed.method||parsed.events.sunrise.length>20||parsed.events.sunset.length>20)
+      !parsed.method||parsed.events.sunrise.length>40||parsed.events.sunset.length>40)
       throw Error('Invalid Swiss sunrise/sunset batch');
      resolvePromise(parsed);
     }catch(e){reject(e);}

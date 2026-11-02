@@ -13,6 +13,7 @@ import {tropicalNatalChartAtUtc} from './western-natal.ts';
 import {buildAdvancedSynthesis} from './advanced-synthesis.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
+import {normalizePanchangaLocation} from './panchanga-location.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
@@ -134,6 +135,47 @@ export class PersonalController{
   * Never exposes birth details via query params or shared cache. Requires an
   * authenticated user with a verified primary natal chart.
   */
+ /**
+  * Private observer preference: explicit saved Panchanga city wins over the
+  * selected natal chart; an unselected account falls back to its newest chart.
+  * Never changes chart.input or the Personal horoscope time zone.
+  */
+ @Get('panchanga/location') @Header('Cache-Control','private, no-store')
+ async getPanchangaLocation(@Req()req:IncomingMessage){
+  const uid=owner(req);
+  const record=await this.prisma.personalProfile.findUnique({where:{userId:uid},
+   select:{primaryChartId:true,panchangaPlace:true,panchangaTimeZone:true,
+    panchangaLatitude:true,panchangaLongitude:true}});
+  const saved=normalizePanchangaLocation({place:record?.panchangaPlace,
+   timeZone:record?.panchangaTimeZone,latitude:record?.panchangaLatitude,longitude:record?.panchangaLongitude},'');
+  if(saved)return {source:'saved' as const,location:saved};
+  const chartFields={input:true} as const;
+  const primary=record?.primaryChartId?await this.prisma.chart.findFirst({
+   where:{id:record.primaryChartId,ownerId:uid},select:chartFields}):null;
+  const row=primary||await this.prisma.chart.findFirst({
+   where:{ownerId:uid},orderBy:{createdAt:'desc'},select:chartFields});
+  const natal=normalizePanchangaLocation(row?.input);
+  return {source:natal?'natal' as const:'none' as const,location:natal};
+ }
+ @Put('panchanga/location') @Header('Cache-Control','private, no-store')
+ async savePanchangaLocation(@Req()req:IncomingMessage&{body?:unknown}){
+  const uid=mutation(req);
+  // Validate the actual parsed JSON: transformer metadata can be absent under tsx.
+  const location=normalizePanchangaLocation(req.body,'');
+  if(!location)throw new BadRequestException('Use a city name, valid IANA timezone and finite coordinates');
+  const fields={panchangaPlace:location.place,panchangaTimeZone:location.timeZone,
+   panchangaLatitude:location.latitude,panchangaLongitude:location.longitude};
+  await this.prisma.personalProfile.upsert({
+   where:{userId:uid},create:{userId:uid,...fields},update:fields});
+  return {source:'saved' as const,location};
+ }
+ @Delete('panchanga/location') @Header('Cache-Control','private, no-store')
+ async clearPanchangaLocation(@Req()req:IncomingMessage){
+  const uid=mutation(req);
+  await this.prisma.personalProfile.updateMany({where:{userId:uid},
+   data:{panchangaPlace:null,panchangaTimeZone:null,panchangaLatitude:null,panchangaLongitude:null}});
+  return this.getPanchangaLocation(req);
+ }
  @Get('horoscope/synthesis') @Header('Cache-Control','private, no-store')
  async synthesisHoroscope(@Req()req:IncomingMessage,@Query('days')span?:string){
   const uid=owner(req);
@@ -411,5 +453,8 @@ for(const [name,types]of [
  ['removePractice',[Object,String]],
  ['calendar',[Object,String,String]],
  ['personalPanchanga',[Object,String,String,String,String]],
+ ['getPanchangaLocation',[Object]],
+ ['savePanchangaLocation',[Object]],
+ ['clearPanchangaLocation',[Object]],
  ['transits',[Object,String]]
 ] as const)Reflect.defineMetadata('design:paramtypes',types,PersonalController.prototype,name);
