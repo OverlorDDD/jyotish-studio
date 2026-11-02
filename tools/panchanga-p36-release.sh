@@ -10,7 +10,6 @@ APP="${P36_APP_ROOT:-/opt/galaxiora/app}"
 STATE="${P36_STATE_ROOT:-$HOME/.galaxiora-p36}"
 BRANCH="release/panchanga-p36-production-acceptance-20261102"
 P35_BASE="e13b5fe80f48fea382b5cec44f3704b264bec6aa"
-mkdir -p -m 700 "$STATE"
 cd "$APP"
 
 fail(){ printf 'P36_STOP: %s\n' "$*" >&2;return 2; }
@@ -79,6 +78,7 @@ JS
 }
 backup(){
  local previous dir archive
+ mkdir -p -m 700 "$STATE"
  previous=$(git rev-parse HEAD)
  dir="$STATE/backup-$(date -u +%Y%m%dT%H%M%SZ)"
  [ ! -e "$dir" ] || fail 'Backup stamp collision'
