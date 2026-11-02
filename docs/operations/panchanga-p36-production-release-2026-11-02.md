@@ -21,7 +21,7 @@ These URLs, tests, software interfaces and guarded shell instructions are the ve
 ## Audit: real blockers and dispositions
 | Severity | Blocker | Resolution / release gate |
 |---|---|---|
-| CRITICAL | **Main and P3.5/P3.6 history diverged** (GitHub compare on 2026-11-02 reports ahead 1569, behind 15 against main; merge base `2500242...`) | **OPEN integration gate**. The P3.6 release script uses `git merge-base --is-ancestor LIVE_SHA CANDIDATE_SHA` and aborts on divergent histories. Reconcile current production SHA, main changes, website icon pipeline, News and GA4 **in a dedicated reviewed integration PR**. No `git reset --hard`, force-push or destructive checkout on EC2. The P3.6 draft PR must stack on P3.5 until then. |
+| CRITICAL | **Main and P3.5/P3.6 history diverged** (GitHub compare on 2026-11-02 reports ahead 1569, behind 15 against main; merge base `2500242...`) | **OPEN integration gate**. The P3.6 release script uses `git merge-base --is-ancestor LIVE_SHA CANDIDATE_SHA` and aborts on divergent histories. Reconcile current production SHA, main changes, website icon pipeline, News and GA4 **in a dedicated reviewed integration PR and merge the approved integration into this P3.6 release branch**, then rerun CI on its new exact SHA. The guarded script fetches *this branch only*; changing the branch to bypass ancestry is forbidden. No `git reset --hard`, force-push or destructive checkout on EC2. The P3.6 draft PR must stack on P3.5 until then. |
 | HIGH | 30-min planet ingress scan missed retrograde double crossing | Implemented `apps/api/src/panchanga-ingress.ts`: adaptive Swiss `longitude+speed` edge checks, 1-second subdivision, cap 16 ingress events / body / sunrise day, bounded source samples, fail closed on ambiguous data; regression includes forward, reverse, 0° wrap and hidden twice-in-bin. The envelope is conservative **not formally independent certified exhaustive** across all dates. |
 | HIGH | A next-supported P3.4 interval may be active and printed with a past start | UI now shows `max(interval.start, availableFrom)`, never a recommended start before the user-selected instant. |
 | HIGH | Real birth records, session secrets and production DB | 401 unauthenticated endpoints, `private,no-store`, `Vary: Cookie`, selected primary chart belongs to owner, synthetic dual-account Chromium tests, no private user data in public sitemap or GitHub Actions. |
@@ -55,14 +55,18 @@ If the local branch already exists, use `git switch release/panchanga-p36-produc
 **Only when all GitHub checks are green, live code has a reviewed fast-forward reconciliation and the owner explicitly authorizes deployment.** SSH to the *existing* host with its already configured key; do not send a password or `.env` into chat.
 ```bash
 cd /opt/galaxiora/app
-bash tools/panchanga-p36-release.sh diagnose
+# The P3.6 script is not yet in the live checkout: fetch without checkout.
+git fetch --no-tags origin release/panchanga-p36-production-acceptance-20261102
+git show FETCH_HEAD:tools/panchanga-p36-release.sh > /tmp/panchanga-p36-release.sh
+bash -n /tmp/panchanga-p36-release.sh
+bash /tmp/panchanga-p36-release.sh diagnose
 ```
-This reports SHA, tracked-change count, disk and service health; it changes nothing on AWS.
+This reports SHA, tracked-change count, disk and service health; it does not change tracked files, databases or services. A private untracked `/tmp` copy of the script is used because the P3.6 release code cannot be assumed present in the older live checkout. The fetched SHA must match the reviewed PR head before any subsequent action.
 
 After reviewed integration PR and SHA selection, **replace the SHA value below with the precise 40-character HEAD of the fully green integrated candidate**:
 ```bash
 export P36_TARGET_SHA='<exact green integrated commit SHA>'
-bash tools/panchanga-p36-release.sh preflight
+bash /tmp/panchanga-p36-release.sh preflight
 ```
 The preflight **must fail** if the live checkout diverges. Do not change this guard or force reset to "make it pass". Reconcile upstream instead.
 
@@ -70,14 +74,14 @@ Only with a reviewed same-SHA tested candidate, intact private production DB bac
 ```bash
 export P36_ATTESTED_SHA="$P36_TARGET_SHA"
 export P36_APPROVAL='I_APPROVE_P36_PRODUCTION'
-bash tools/panchanga-p36-release.sh deploy
+bash /tmp/panchanga-p36-release.sh deploy
 ```
 The deploy copies the existing private `.env`, saves custom-format database snapshot outside webroot in `~/.galaxiora-p36`, checks the archive, builds and migrates, then restarts API/Web and runs read-only public and private safety checks. It does **not** claim an actual release happened until `P36_PRODUCTION_RELEASE_VERIFIED` is printed with the exact commit.
 
 If code has to be returned to the previous SHA, use the explicit guarded rollback **only after assessing whether the failure is code or database and protecting any tracked changes**:
 ```bash
 export P36_ROLLBACK_APPROVAL='I_APPROVE_P36_ROLLBACK'
-bash tools/panchanga-p36-release.sh rollback
+bash /tmp/panchanga-p36-release.sh rollback
 ```
 Rollback restores prior *code + private environment* and rebuilds, **not the database**. In a DB-corruption situation do not overwrite a live data set automatically; first take a new incident snapshot and follow PostgreSQL recovery with the owner. Track the production backup archive retention (encrypted/off-host); a local copy alone does not protect against full-instance loss.
 
