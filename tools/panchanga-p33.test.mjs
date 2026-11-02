@@ -101,5 +101,5 @@ test('P3.3 future/historic dates must use the sunrise snapshot, never false curr
  const x=synthesizePersonalResonance(base,d,point,r,sunrise);
  assert.equal(x.personalized,true);
  assert.throws(()=>synthesizePersonalResonance(
-  interpretPanchanga(d,Date.parse(time),'work'),d,point,r,sunrise),/time scope/);
+  interpretPanchanga(d,Date.parse(time),'work'),d,point,r,sunrise),/different UTC moment/);
 });
