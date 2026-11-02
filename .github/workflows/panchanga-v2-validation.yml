@@ -24,12 +24,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
       - name: Generate Prisma client for additive profile fields
         run: npm run db:generate
       - name: Validate Panchanga and seven-day Vedic calendar
