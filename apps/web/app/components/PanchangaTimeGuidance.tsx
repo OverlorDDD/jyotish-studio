@@ -105,7 +105,8 @@ export default function PanchangaTimeGuidance({locale,day,point,topic,now}:{
      <div className={styles.alternative} data-testid="p34-alternative">
       {timeline.nextSupported?<>
        <strong>{uk?'Найближче підтримувальне вікно':'Next supportive window'}</strong>
-       <p>{format(timeline.nextSupported.startUtc)} – {format(timeline.nextSupported.endUtc)}</p>
+       <p>{format(new Date(Math.max(Date.parse(timeline.nextSupported.startUtc),
+        Date.parse(timeline.availableFromUtc))).toISOString())} – {format(timeline.nextSupported.endUtc)}</p>
        <p>{uk?'Для початку справи доступно щонайменше 15 хвилин підтримувальних умов; не автоматична гарантія результату.':
         'At least 15 minutes of supportive conditions remain for the beginning; not a guarantee of outcome.'}</p>
       </>:<p>{uk?'Підтвердженого підтримувального вікна для цієї справи в обраний ведичний день немає.':
