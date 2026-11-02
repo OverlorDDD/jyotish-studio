@@ -211,7 +211,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   {locationSource==='checking'&&<p role="status" className={styles.locationStatus}>
    {uk?'Перевіряємо вашу локацію перед розрахунком…':'Checking your location before calculating…'}</p>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested}
-   monthSystem={monthSystem} onMonthSystemChange={setMonthSystem} onPick={selectDay}/>}
+   monthSystem={monthSystem} onPick={selectDay}/>}
   {view==='day'&&requested&&loading&&<p role="status" className={styles.empty}>{t.busy}</p>}
   {view==='day'&&requested&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
   {view==='day'&&result&&<div className={styles.results}>
