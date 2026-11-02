@@ -33,6 +33,8 @@ for(const locale of ['uk','en']){
  test('P2.1 '+locale+' shows first-class five limbs and week/month navigation',async({page})=>{
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga');
+  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
+  await page.getByTestId('p31-details').locator('summary').click();
   await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:60000});
   const periodNav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
   await periodNav.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();

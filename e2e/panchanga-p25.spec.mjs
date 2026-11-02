@@ -3,6 +3,8 @@ for(const locale of ['uk','en']){
  test('P2.5 '+locale+' simple labels and technical details in on-demand tooltips',async({page})=>{
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
+  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
+  await page.getByTestId('p31-details').locator('summary').click();
   const hub=page.getByTestId('panchanga-hub');
   await expect(hub.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
   const expected=locale==='uk'?

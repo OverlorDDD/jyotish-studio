@@ -11,6 +11,8 @@ for(const locale of ['uk','en']){
    if(path==='/api/v1/vedic-calendar/week')festivalOld++;
   });
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
+  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
+  await page.getByTestId('p31-details').locator('summary').click();
   await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
   const guide=page.getByTestId('panchanga-integrated-day');
   await expect(guide).toBeVisible();
@@ -29,8 +31,8 @@ for(const locale of ['uk','en']){
   await related.getByRole('button',{name:locale==='uk'?/Мій місячний ритм/:/My lunar rhythm/}).click();
   await expect(page.getByTestId('personal-panchanga')).toBeVisible();
   await expect.poll(()=>extraPersonal).toBeGreaterThan(0);
-  await related.getByRole('button',{name:locale==='uk'?/Видимість затемнень/:/Eclipse visibility/}).click();
-  await expect(page.getByTestId('eclipse-panel')).toBeVisible();
+  await expect(page.getByTestId('p31-sky').getByRole('button',
+   {name:locale==='uk'?'Перевірити затемнення':'Check eclipses'})).toBeVisible();
   // P2.4 keeps month choice when switching between day and grid.
   const monthSystem=page.getByTestId('panchanga-month-system');
   await monthSystem.getByRole('button',{name:locale==='uk'?'Пурніманта':'Purnimanta'}).click();
@@ -41,6 +43,8 @@ for(const locale of ['uk','en']){
   await expect(page.getByTestId('panchanga-related')).toHaveCount(0);
   await page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'})
    .getByRole('button',{name:locale==='uk'?'День':'Day',exact:true}).click();
+  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
+  await page.getByTestId('p31-details').locator('summary').click();
   await expect(page.getByTestId('panchanga-integrated-day')).toBeVisible({timeout:90000});
   await expect(monthSystem.getByRole('button',{name:locale==='uk'?'Пурніманта':'Purnimanta'})).toHaveAttribute('aria-pressed','true');
  });
@@ -59,6 +63,8 @@ test('P2.4 delays day computation until the profile-derived observer is resolved
  await page.waitForTimeout(350);
  expect(requests).toBe(0);
  release();
+ await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
+ await page.getByTestId('p31-details').locator('summary').click();
  await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
  expect(requests).toBe(1);
 });
@@ -71,6 +77,8 @@ test('P2.4 fails closed if moon-calendar observer or sunrise does not match deta
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(json)});
  });
  await page.goto('/uk/panchanga?date=2026-11-02');
+ await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
+ await page.getByTestId('p31-details').locator('summary').click();
  await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
  const guide=page.getByTestId('panchanga-integrated-day');
  await expect(guide.getByRole('alert')).toContainText('Дані про свята й фази',{timeout:90000});
@@ -80,6 +88,8 @@ test('P2.4 full day on narrow mobile has no horizontal overflow',async({page})=>
  test.setTimeout(120000);
  await page.setViewportSize({width:320,height:740});
  await page.goto('/uk/panchanga?date=2026-11-02');
+ await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
+ await page.getByTestId('p31-details').locator('summary').click();
  await expect(page.getByTestId('panchanga-integrated-day')).toBeVisible({timeout:90000});
  await expect(page.getByTestId('panchanga-related')).toBeVisible();
  const width=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:window.innerWidth}));
