@@ -12,7 +12,7 @@ import {buildAstrologicalSynthesis} from './astrological-synthesis.ts';
 import {tropicalNatalChartAtUtc} from './western-natal.ts';
 import {buildAdvancedSynthesis} from './advanced-synthesis.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
-import {calculatePanchangaDay,validatePanchangaLocation} from './panchanga.ts';
+import {calculatePanchangaDay,validatePanchangaLocation,createVerifiedSiderealPlanetAt} from './panchanga.ts';
 import {normalizePanchangaLocation} from './panchanga-location.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
@@ -334,6 +334,98 @@ export class PersonalController{
   * verified natal Moon + actual local-sunrise Swiss Moon. No birth data in
   * URL, no chart selections from unauthenticated callers, no persistence.
   */
+ /**
+  * P3.3 Personal Resonance: authenticated primary-chart-only verified facts.
+  * No birth date, raw birth coordinates or other users' charts in URLs/JSON.
+  * Moment and location are independently Swiss-verified on the server;
+  * public Panchanga must agree before the frontend accepts this response.
+  */
+ @Get('panchanga/resonance') @Header('Cache-Control','private, no-store')
+ @Header('Vary','Cookie')
+ async panchangaResonance(@Req()req:IncomingMessage,
+  @Query('date')date?:string,@Query('zone')zone?:string,
+  @Query('latitude')latitude?:string,@Query('longitude')longitude?:string,
+  @Query('at')at?:string){
+  const uid=owner(req);
+  if(!calendarLimiter(uid))throw new BadRequestException('Too many personal calendar requests');
+  const raw={date,timeZone:zone,
+   latitude:latitude===undefined?undefined:Number(latitude),
+   longitude:longitude===undefined?undefined:Number(longitude)};
+  let observer:ReturnType<typeof validatePanchangaLocation>;
+  try{
+   if(!date||!zone||latitude===undefined||longitude===undefined)
+    throw Error('Exact observer required');
+   observer=validatePanchangaLocation(raw);
+  }catch(e){throw new BadRequestException(e instanceof Error?e.message:'Invalid observer');}
+  const record=await this.prisma.personalProfile.findUnique({where:{userId:uid},
+   select:{primaryChartId:true}});
+  if(!record?.primaryChartId)
+   return {status:'requires_primary_chart',method:'NO_IMPLICIT_CHART_SELECTION'};
+  const owned=await this.prisma.chart.findFirst({
+   where:{id:record.primaryChartId,ownerId:uid},
+   select:{id:true,input:true,result:true}
+  });
+  if(!owned)return {status:'requires_verified_chart',method:'OWNER_CHART_MISSING'};
+  const recovery=await resolvePersonalChart(this.prisma,owned);
+  const chart=recovery.chart;
+  if(!chart||recovery.status==='needs_review'||recovery.status==='temporarily_unavailable')
+   return {status:'requires_verified_chart',method:'VERIFIED_JQA3_REQUIRED',
+    recoveryStatus:recovery.status};
+  const moon=chart.d1.find(x=>x.name==='Moon');
+  const moonLongitude=moon?.longitude,moonSign=moon?.sign,lagnaSign=chart.ascendant?.sign;
+  if(typeof moonLongitude!=='number'||!Number.isFinite(moonLongitude)||
+   moonLongitude<0||moonLongitude>=360||!Number.isInteger(moonSign)||
+   moonSign!==Math.floor(moonLongitude/30)+1||
+   !Number.isInteger(lagnaSign)||lagnaSign!<1||lagnaSign!>12)
+   return {status:'requires_verified_chart',method:'INCONSISTENT_VERIFIED_NATAL_ANCHORS'};
+  let day:Awaited<ReturnType<typeof calculatePanchangaDay>>;
+  try{day=await calculatePanchangaDay(observer);}
+  catch{throw new ServiceUnavailableException('Verified local Panchanga unavailable');}
+  let evaluationMs=Date.parse(day.sunriseUtc);
+  if(at!==undefined){
+   if(typeof at!=='string'||!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,3})?Z$/.test(at))
+    throw new BadRequestException('Use precise UTC moment');
+   evaluationMs=Date.parse(at);
+   if(!Number.isFinite(evaluationMs)||evaluationMs<Date.parse(day.sunriseUtc)||
+      evaluationMs>=Date.parse(day.nextSunriseUtc))
+    throw new BadRequestException('Moment must belong to the verified sunrise day');
+  }
+  try{
+   const planetAt=await createVerifiedSiderealPlanetAt();
+   const point=planetAt(evaluationMs,'Moon');
+   const moonTransitSign=Math.floor(point.longitude/30)+1;
+   const nakshatraNumber=Math.floor(point.longitude/(360/27))+1;
+   const strengths=verifiedDailyMoonStrength(
+    {moonLongitude,moonSign:moonSign!},{nakshatraNumber,moonSign:moonTransitSign});
+   const dashas=chart.dasha||[];
+   const major=dashas.find(d=>Date.parse(d.start)<=evaluationMs&&evaluationMs<Date.parse(d.end));
+   const minor=major?.antardashas?.find(d=>Date.parse(d.start)<=evaluationMs&&evaluationMs<Date.parse(d.end));
+   const bodies=['Mercury','Venus','Mars','Jupiter','Saturn'] as const;
+   const transits=bodies.map(name=>{
+    const pos=planetAt(evaluationMs,name);
+    const sign=Math.floor(pos.longitude/30)+1;
+    return {name,sign,
+     houseFromMoon:(sign-moonSign!+12)%12+1,
+     houseFromLagna:(sign-lagnaSign!+12)%12+1};
+   });
+   // Expose only the minimal private facts used by the synthesis, not birth input.
+   return {status:'available',version:'personal-resonance-v1',
+    observation:'VERIFIED_SWISS_SAME_MOMENT_AND_OWNED_NATAL',
+    scope:'TRADITIONAL_PERSONAL_COMPARISON_NOT_EVENT_GUARANTEE',
+    date:day.date,timeZone:day.location.timeZone,
+    latitude:day.location.latitude,longitude:day.location.longitude,
+    sunriseUtc:day.sunriseUtc,nextSunriseUtc:day.nextSunriseUtc,
+    evaluatedAtUtc:new Date(evaluationMs).toISOString(),
+    transitMoon:{sign:moonTransitSign,nakshatraNumber},
+    natal:{moonSign,lagnaSign},
+    tarabala:strengths.tarabala,chandrabala:strengths.chandrabala,
+    period:major?{lord:major.lord,start:major.start,end:major.end,
+      antardasha:minor?{lord:minor.lord,start:minor.start,end:minor.end}:null}:null,
+    gochar:transits};
+  }catch{
+   throw new ServiceUnavailableException('Verified natal-transit comparison unavailable');
+  }
+ }
  @Get('panchanga') @Header('Cache-Control','private, no-store')
  async personalPanchanga(@Req()req:IncomingMessage,
   @Query('date')date?:string,@Query('zone')zone?:string,
