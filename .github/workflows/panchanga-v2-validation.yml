@@ -10,6 +10,7 @@ on:
       - feat/panchanga-p31-my-day-ux-20261102
       - feat/panchanga-p32-interpretation-engine-20261102
       - feat/panchanga-p33-personal-resonance-20261102
+      - feat/panchanga-p34-time-guidance-20261102
   pull_request:
     paths:
       - 'apps/api/src/panchanga*'
