@@ -55,7 +55,7 @@ const TOPICS:Record<P31Topic,{act:Lang;prepare:Lang}>={
 const ALL_TOPICS=Object.keys(TOPICS) as P31Topic[];
 // Complete classical seven-nature grouping; index = Nakshatra number (1-based).
 const NAK_NATURE=['','swift','fierce','mixed','fixed','gentle','sharp','movable','swift','sharp',
- 'fierce','gentle','fixed','swift','gentle','movable','mixed','gentle','sharp','sharp',
+ 'fierce','fierce','fixed','swift','gentle','movable','mixed','gentle','sharp','sharp',
  'fierce','fixed','movable','movable','movable','fierce','fixed','gentle'] as const;
 const GROUPS:Record<string,{topics:P31Topic[];tone:Tone;detail:Lang}[]>={
  fixed:[{topics:['work','money','personal'],tone:'supports',detail:speak(
