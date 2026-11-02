@@ -1,0 +1,94 @@
+name: Panchanga P3.6 Release Acceptance (dry-run only)
+on:
+  push:
+    branches:
+      - release/panchanga-p36-production-acceptance-20261102
+  pull_request:
+    paths:
+      - 'tools/panchanga-p36-*'
+      - 'apps/api/src/panchanga-ingress.ts'
+      - 'docs/operations/panchanga-p36-*'
+      - '.github/workflows/panchanga-p36-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p36-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  release-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - '5433:5432'
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test
+      SITE_NOINDEX: '1'
+      NEWS_INGESTION_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing project dependencies (no repository lockfile)
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Generate Prisma schema and migrate ONLY disposable CI PostgreSQL
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: P3.1-P3.6 astronomy and guarded release contracts
+        run: |
+          npm run test:panchanga
+          npm run test:vedic-calendar
+          npm run test:p36:release
+          bash -n tools/panchanga-p36-release.sh
+          node --check tools/panchanga-p36-smoke.mjs
+      - name: Synthetic PostgreSQL 16 backup AND isolated restore rehearsal
+        run: |
+          set -Eeuo pipefail
+          archive="$RUNNER_TEMP/p36-disposable-ci.dump"
+          docker run --rm --network host -e PGPASSWORD=ci postgres:16 \
+            pg_dump -h 127.0.0.1 -p 5433 -U ci -d galaxiora_a1_test \
+            --format=custom --no-owner --no-acl > "$archive"
+          test -s "$archive"
+          docker run --rm -i --network host postgres:16 pg_restore --list < "$archive" >/dev/null
+          docker run --rm --network host -e PGPASSWORD=ci postgres:16 \
+            psql -h 127.0.0.1 -p 5433 -U ci -d postgres -v ON_ERROR_STOP=1 \
+            -c 'CREATE DATABASE p36_isolated_restore'
+          docker run --rm -i --network host -e PGPASSWORD=ci postgres:16 \
+            pg_restore -h 127.0.0.1 -p 5433 -U ci -d p36_isolated_restore \
+            --no-owner --no-privileges --exit-on-error < "$archive"
+          table_count=$(docker run --rm --network host -e PGPASSWORD=ci postgres:16 \
+            psql -h 127.0.0.1 -p 5433 -U ci -d p36_isolated_restore -tAc \
+            "SELECT count(*) FROM pg_tables WHERE schemaname='public'")
+          test "${table_count:-0}" -gt 0
+          echo "P36_RESTORE_REHEARSAL_PASS: disposable CI-only schema restored"
+          rm -f "$archive"
+      - name: Approved Galaxy #6 icons, SEO and bilingual content regression
+        run: |
+          npm run test:brand:icons
+          npm run test:r43:seo
+          npm run test:r43:visitors
+          npm run test:r32:seo
+      - name: Full NestJS / Next.js production build without real secrets
+        run: npm run build
+      - name: No production cutover from GitHub CI
+        run: |
+          echo "P36_RELEASE_CANDIDATE_TESTED SHA=$GITHUB_SHA"
+          echo "NO_DEPLOY: main merge, EC2 preflight, private DB backup, and explicit operator approval still required"
