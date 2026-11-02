@@ -28,7 +28,7 @@ export type InterpretationEvidence={id:string;factor:Factor;tone:Tone;detail:Lan
  startUtc?:string;endUtc?:string};
 export type P32Result={version:'panchanga-interpretation-p32';scope:'traditional-calendar-only';
  topic:P31Topic;date:string;timeZone:string;moment:'live'|'sunrise-snapshot';
- status:'avoid'|'caution'|'supported'|'neutral';
+ status:'avoid'|'caution'|'supported'|'neutral';evaluatedAtUtc:string;
  headline:Lang;action:Lang;reason:Lang;untilUtc:string|null;
  moon:Lang;subject:Lang;personalized:false;coverage:{fiveLimbs:true;moonPhase:true;rahu:true;
  natal:false;exactMuhurta:false};
@@ -223,7 +223,7 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic,mode:'
   speak('Показники не дають стійкого спільного висновку.','The evaluated factors do not give a consistent joint conclusion.');
  const nextChange=live?Math.min(...untils.filter(ms=>ms>nowMs)):null;
  return {version:'panchanga-interpretation-p32',scope:'traditional-calendar-only',topic,date:day.date,
-  timeZone:day.location.timeZone,moment:live?'live':'sunrise-snapshot',status,headline,
+  timeZone:day.location.timeZone,moment:live?'live':'sunrise-snapshot',evaluatedAtUtc:new Date(sample).toISOString(),status,headline,
   action:advice,reason:reasons,untilUtc:nextChange===null?null:new Date(nextChange).toISOString(),
   moon:waxing?speak('Зростаючий Місяць','Waxing Moon'):speak('Спадний Місяць','Waning Moon'),
   subject:action,personalized:false,coverage:{fiveLimbs:true,moonPhase:true,rahu:true,natal:false,exactMuhurta:false},

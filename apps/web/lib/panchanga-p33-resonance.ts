@@ -117,6 +117,7 @@ export function validateP33Report(report:P33Report,point:P33Point,day:P32Day,exp
 export function synthesizePersonalResonance(calendar:P32Result,day:P32Day,point:P33Point,
  report:P33Report,expectedAtUtc:string):P33Result{
  validateP33Report(report,point,day,expectedAtUtc);
+ guard(calendar.evaluatedAtUtc===expectedAtUtc,'calendar evaluated at different UTC moment');
  guard(calendar.topic in activity&&calendar.date===point.date&&
   calendar.timeZone===point.timeZone,'calendar topic/date');
  const at=Date.parse(expectedAtUtc);

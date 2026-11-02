@@ -47,7 +47,7 @@ test('P3.3 verified chart plus 2 favorable Moon indicators yields one supported 
  const x=combined();
  assert.equal(x.personalized,true);assert.equal(x.scope,'verified-own-natal');
  assert.equal(x.status,'supported');assert.equal(x.sourceCalendarStatus,'supported');
- assert.match(x.action.uk,/переговори про оплату/);
+ assert.match(x.action.uk,/розмову про оплату/);
  assert.equal(x.evidence.filter(e=>e.category==='lunar').length,2);
  assert.ok(x.evidence.some(e=>e.category==='dasha'&&/Mercury/.test(e.note.en)));
  assert.ok(x.evidence.some(e=>e.category==='gochar'));
