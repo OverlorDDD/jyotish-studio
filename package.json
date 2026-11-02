@@ -60,6 +60,7 @@
     "r3:seo:check": "node --experimental-strip-types tools/r3-seo-check.mjs",
     "r3:indexnow": "node --experimental-strip-types tools/r3-indexnow.mjs",
     "test:r43:seo": "node --test tools/r43-indexnow.test.mjs",
+    "test:r43:visitors": "node --experimental-strip-types --test tools/r43-first-visitors.test.mjs",
     "launch:verify": "node --env-file-if-exists=.env tools/release-launch-verify.mjs",
     "test:engine2": "node --experimental-strip-types --test tools/engine2.test.mjs tools/interpretation-policy.test.mjs",
     "dev:public": "node tools/public-launch.mjs",
