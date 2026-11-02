@@ -33,7 +33,7 @@
 | SEO-06 | P1 | Лінки на фахові інструменти й уроки | Наявні SSR URL, але жодної незалежної оцінки глибини внутрішньої перелінковки всіх 100+ сторінок | Новий crawler перевіряє ключові сторінки; далі аудит сиріт і тематичних кластерів |
 | SEO-07 | P2 | Чисельні Core Web Vitals production | Немає польового CrUX/PSI для нового домену; код має анімації й важкі модулі | Перевірити мобільний Lighthouse та LCP≤2.5s, INP≤200ms, CLS≤0.1; реальне прискорення тільки після профілювання |
 | SEO-08 | P2 | Змістовність загальних гороскопів / агрегованих новин | Потенційна канібалізація і похідний контент; без live GSC не відомо, що саме ранжується | Не масово публікувати шаблони. Розвивати оригінальні пояснення/порівняння та реальні калькулятори |
-| MKT-01 | P0 | Відсутність підтверджених реальних джерел аудиторії | 1 повідомлений відвідувач — недостатньо для тестів конверсії | Створити офіційний публічний Telegram-канал і 1 відеоформат, не накручувати трафік |
+| GSC-01 | P1 | Зв'язок Search Console ↔ Google Analytics 4 | Немає доказу, що Web stream GA4 зв'язаний із підтвердженим GSC Domain property; без цього не буде спільних звітів пошукових запитів, цільових сторінок і поведінки | **Потрібна дія власника в GA4 Admin → Product links → Search Console Links**, вибрати `galaxiora.com` і існуючий Web stream; не створювати новий ресурс |\n| MKT-01 | P0 | Відсутність підтверджених реальних джерел аудиторії | 1 повідомлений відвідувач — недостатньо для тестів конверсії | Створити офіційний публічний Telegram-канал і 1 відеоформат, не накручувати трафік |
 | MKT-02 | P1 | @Galaxiora | Власник має Telegram-акаунт, а не підтверджений канал із публічною адресою | Не додавати `sameAs` та посилання на канал, доки його немає |
 | FUN-01 | P1 | Фактичні conversion funnel події | Tarot/Panchanga мають перші події, але немає повного підтвердження Jyotish і signup | Далі: події лише після реального успіху, воронка article→tool→success→opt-in account |
 | PRIV-01 | P0 | Чутливі дані натальних карт і питань | Не мають потрапляти до GA4, search URL чи newsletter | Зберегти білий список маршрутів, без user_id, дат/часу/координат, авторських запитань |
@@ -90,7 +90,7 @@
 
 ## 6. Пріоритетний план зростання (шість тижнів після достовірного запуску)
 
-**Тиждень 1 — Дані:** R4.2 repair CI→AWS; root/site audit, Tag Assistant і Realtime; зафіксувати GSC Pages/Performance за UA/EN. Всі непідтверджені показники — «не виміряно».
+**Тиждень 1 — Дані:** R4.2 repair CI→AWS; root/site audit, Tag Assistant і Realtime; зв'язати GA4 Web stream із підтвердженим GSC Domain property (Admin → Product links → Search Console Links); зафіксувати GSC Pages/Performance за UA/EN. Дані GSC у GA4 можуть з'являтися приблизно через 48 год, колекцію звітів за потреби опублікувати через Library. Всі непідтверджені показники — «не виміряно».
 **Тиждень 2 — Перше органічне охоплення:** канал, створений і контрольований власником з акаунта @Galaxiora; два змістовні пости й один короткий авторський відеоприклад з посиланнями на Джйотіш/Таро/Панчангу. Звірити реальний URL каналу перед `sameAs`.
 **Тиждень 3 — Глибокі зв’язки:** доповнити 2 найважливіші уроки за запитами GSC; коректна перелінковка до безкоштовних калькуляторів; перевірка CTA на мобільному.
 **Тиждень 4 — Конверсійна воронка:** перевірені `jyotish_calculation_completed`, `sign_up`; owner-дашборд з GA4/GSC агрегатами і знаменниками, без імен/днів народження.
@@ -114,7 +114,7 @@
 - GA4 missing data: https://support.google.com/analytics/answer/9311124
 - GA4 Realtime vs DebugView: https://support.google.com/analytics/answer/9333790
 - GA4 debug events: https://support.google.com/analytics/answer/7201382
-- Google tag events/config: https://developers.google.com/tag-platform/gtagjs/reference
+- Google tag events/config: https://developers.google.com/tag-platform/gtagjs/reference\n- **Official GA4/Search Console integration (important):** https://support.google.com/analytics/answer/10737381?hl=uk\n- GA4 Traffic acquisition reports: https://support.google.com/analytics/answer/12923437?hl=uk
 - Telegram channels: https://telegram.org/faq_channels?setln=uk
 
 Це офіційні публічні джерела; не потрібно встановлювати сторонні «SEO-бібліотеки», котрі обіцяють доступ до внутрішніх алгоритмів Google.
