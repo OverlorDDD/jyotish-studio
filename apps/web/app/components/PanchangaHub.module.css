@@ -55,3 +55,55 @@
 .rangeDay:focus-visible,.monthDay:focus-visible,.calendarTabs button:focus-visible{outline:2px solid #f2d298;outline-offset:3px}
 @media(max-width:720px){.rangeDays{grid-template-columns:1fr}.monthGrid{gap:3px}.monthDay{padding:5px;min-height:64px}.monthDay small{font-size:10px}}
 @media(max-width:390px){.calendarTabs button{padding:10px 12px}.monthDay{min-height:58px}.monthDay small{font-size:9px}}
+
+
+/* P2.2 — exact sunrise-to-sunrise, readable at phone sizes without horizontal page scrolling. */
+.liveSection,.dayTimeline{margin:24px 0;border:1px solid #51637a;border-radius:18px;padding:clamp(16px,2.6vw,28px);background:#14233a;min-width:0}
+.liveHeading,.timelineTitle{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.liveHeading h2,.timelineTitle h2{font:600 clamp(22px,2.7vw,29px)/1.25 Georgia,serif;color:#f0dcbc;margin:0 0 8px}
+.liveHeading p,.timelineTitle p{color:#c7d4e4;font-size:13px;max-width:65ch;margin:0}
+.liveChip{border:1px solid #b7a072;color:#ffe9ba;background:#29364a;border-radius:24px;padding:6px 13px;font-size:13px;white-space:nowrap}
+.priorNotice{border-left:3px solid #d8b673;padding:12px 14px;color:#f2dfbe;background:#283348;border-radius:3px}
+.liveCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.liveCard{min-width:0;border:1px solid #516883;border-radius:13px;background:#1b2d46;padding:16px;display:flex;flex-direction:column;gap:7px}
+.liveCard small{color:#e6c58e;font-weight:700;letter-spacing:.02em;font-size:12px}
+.liveCard strong{font-size:clamp(16px,1.8vw,22px);color:#fff0d3;line-height:1.32;overflow-wrap:anywhere}
+.liveCard>p{font-size:12px;color:#cbd8e9;margin:0;flex:1}
+.liveTimes{border-top:1px solid #52667e;padding-top:8px;display:flex;flex-direction:column;gap:4px;color:#d5e3f0;font-size:12px}
+.liveTimes span{overflow-wrap:anywhere}
+.liveFootnote,.timelineExplanation{color:#bfcee0;font-size:12px;line-height:1.55;margin:12px 0 0}
+.timelineAxis{display:flex;justify-content:space-between;gap:8px;color:#d9b985;font-size:12px;flex-wrap:wrap;margin:10px 0 20px}
+.timelineAxis span{max-width:33%;overflow-wrap:anywhere}
+.timelineLane{display:grid;grid-template-columns:minmax(132px,210px) minmax(0,1fr);column-gap:14px;align-items:center;margin:14px 0}
+.laneHeader{display:flex;flex-direction:column;gap:3px}
+.laneHeader strong{color:#f0dcbc;font-size:14px}
+.laneHeader small{color:#b8cadb;font-size:11px;line-height:1.35}
+.laneTrack{position:relative;height:27px;border:1px solid #60748c;border-radius:6px;background:#0e1b2c;overflow:hidden;min-width:0}
+.laneSegment{position:absolute;top:0;bottom:0;min-width:1px;border-right:2px solid #0f1a2c;background:#668fba}
+.laneSegment[data-alternate="true"]{filter:brightness(1.23)}
+.laneSegment[data-anga="tithi"]{background:#7a85c3}
+.laneSegment[data-anga="nakshatra"]{background:#6e9aaf}
+.laneSegment[data-anga="yoga"]{background:#7c9a82}
+.laneSegment[data-anga="karana"]{background:#ae9571}
+.nowMarker{position:absolute;top:0;bottom:0;width:3px;background:#fff7e4;box-shadow:0 0 0 1px #19314e,0 0 9px #fff0c5;z-index:2}
+.laneSummary{grid-column:2;color:#b9cbdd;font-size:11px;line-height:1.4;overflow-wrap:anywhere;margin-top:4px}
+.transitionToggle{min-height:44px;border:1px solid #ab966f;border-radius:9px;background:#1d314b;color:#f3deb9;font-weight:700;padding:10px 14px;cursor:pointer;margin-top:18px}
+.transitionList{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:0;border-top:1px solid #455b74}
+.transitionList li{padding:11px 4px;border-bottom:1px solid #455b74;display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:14px;align-items:start;color:#e4edfa;font-size:13px}
+.transitionList time{color:#edcd94;font-variant-numeric:tabular-nums}
+.transitionList strong{color:#f1dcb8}
+.dayTimeline :is(button):focus-visible{outline:2px solid #ffe0a2;outline-offset:3px}
+@media(max-width:800px){.liveCards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){
+ .liveSection,.dayTimeline{padding:14px}
+ .liveCards{grid-template-columns:1fr}
+ .liveCard{padding:13px}
+ .timelineAxis{font-size:10px}
+ .timelineLane{display:block;margin:15px 0}
+ .laneHeader{margin:0 0 6px}
+ .laneHeader small{display:none}
+ .laneSummary{margin-top:5px}
+ .transitionList li{grid-template-columns:1fr;gap:3px}
+ .transitionList time{font-weight:600}
+}
+@media(prefers-reduced-motion:reduce){.liveSection,.dayTimeline,.laneSegment,.nowMarker{transition:none!important;animation:none!important}}
