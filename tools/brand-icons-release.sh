@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Galaxiora — official cosmic-G icon release (all brand formats).
 # Run after safely fast-forwarding AWS checkout to the exact CI-green commit.
-# No database migrations or DNS changes. Brand assets generated from icon.svg.
+# No database migrations or DNS changes. Brand assets generated from approved original spiral #6 PNG.
 set -Eeuo pipefail
 umask 077
 cd /opt/galaxiora/app
@@ -13,7 +13,7 @@ git merge-base --is-ancestor "$EXPECTED_BASE" "$CURRENT" || {
  exit 2
 }
 test -f tools/brand-icons-build.mjs
-test -f apps/web/app/icon.svg
+test -f apps/web/brand-assets/galaxiora-approved-spiral-6.png
 test -f apps/web/public/site.webmanifest
 node --env-file=.env -e "
 if(process.env.SITE_NOINDEX!=='0'||process.env.NEXT_PUBLIC_SITE_URL!=='https://galaxiora.com'){
@@ -60,7 +60,7 @@ npm run site:check
 npm run launch:verify
 npm run r32:seo:audit
 
-for path in /favicon.ico /icon.svg /galaxiora-favicon.png /galaxiora-logo-128.png /apple-touch-icon.png /galaxiora-192.png /galaxiora-512.png /site.webmanifest; do
+for path in /favicon.ico /icon.png /galaxiora-favicon.png /galaxiora-logo-128.png /apple-touch-icon.png /galaxiora-192.png /galaxiora-512.png /site.webmanifest; do
  curl --fail --silent --show-error --max-time 20 "https://galaxiora.com$path" -o /dev/null
 done
 
