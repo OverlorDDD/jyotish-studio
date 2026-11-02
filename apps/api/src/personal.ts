@@ -25,6 +25,7 @@ const TOPICS=['astronomy','jyotish','tarot','yoga','vedic-traditions','academy',
 const PRACTICES=['box','equal','extended'] as const;
 const calendarLimiter=createKeyedHourlyLimiter(20);
 const resonanceLimiter=createKeyedHourlyLimiter(40);
+const timingLimiter=createKeyedHourlyLimiter(12);
 function owner(req:IncomingMessage){const id=cookieUser(req);if(!id)throw new UnauthorizedException('Sign in to your Personal space');return id;}
 function mutation(req:IncomingMessage){if(!sameOrigin(req))throw new BadRequestException('Cross-origin personal update denied');return owner(req);}
 async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;input:unknown;result:unknown}|null){
@@ -427,6 +428,145 @@ export class PersonalController{
    throw new ServiceUnavailableException('Verified natal-transit comparison unavailable');
   }
  }
+  /**
+   * P3.4: one authenticated request for EVERY exact time segment. No N public
+   * HTTP requests or separate Python sunrise process per boundary; the existing
+   * P3.3 owner-checked report is the private anchor, and Swiss planetAt is
+   * reused for an in-memory UTC ingress sweep and per-segment samples.
+   */
+  @Get('panchanga/timing') @Header('Cache-Control','private, no-store')
+  @Header('Vary','Cookie')
+  async panchangaTiming(@Req()req:IncomingMessage,
+   @Query('date')date?:string,@Query('zone')zone?:string,
+   @Query('latitude')latitude?:string,@Query('longitude')longitude?:string){
+   const uid=owner(req);
+   if(!timingLimiter(uid))throw new BadRequestException('Too many personal timing requests');
+   // Reuse P3.3's verified owner selection, JQA3 recovery and authentication.
+   const anchor=await this.panchangaResonance(req,date,zone,latitude,longitude);
+   if(anchor.status!=='available')return anchor;
+   let day:Awaited<ReturnType<typeof calculatePanchangaDay>>;
+   try{day=await calculatePanchangaDay(validatePanchangaLocation({
+    date,timeZone:zone,latitude:Number(latitude),longitude:Number(longitude)
+   }));}
+   catch{throw new ServiceUnavailableException('P3.4 verified astronomical day unavailable');}
+   if(anchor.sunriseUtc!==day.sunriseUtc||anchor.nextSunriseUtc!==day.nextSunriseUtc||
+      anchor.timeZone!==day.location.timeZone||anchor.date!==day.date||
+      anchor.latitude!==day.location.latitude||anchor.longitude!==day.location.longitude)
+    throw new ServiceUnavailableException('P3.4 independent sunrise/source mismatch');
+   const {selected:chart}=await this.profile(uid);
+   if(!chart?.verified||!chart.id||!chart.moonSign||!chart.lagnaSign||
+      chart.moonLongitude===null||!Number.isFinite(chart.moonLongitude)||
+      chart.moonSign!==anchor.natal?.moonSign||chart.lagnaSign!==anchor.natal?.lagnaSign)
+    return {status:'requires_verified_chart',method:'P34_OWNER_NATAL_MISMATCH'};
+   // Exact sign ingress is found with repeated fresh Swiss longitude samples
+   // and one-second bisection. 30-minute bracketing bounds server work; a
+   // stationary planet oscillating twice across 0° within a single bracket
+   // is an acknowledged future certification gap, not a forecasted event.
+   try{
+    const planetAt=await createVerifiedSiderealPlanetAt();
+    const begin=Date.parse(day.sunriseUtc),end=Date.parse(day.nextSunriseUtc);
+    const sign=(t:number,body:'Moon'|'Mercury'|'Venus'|'Mars'|'Jupiter'|'Saturn')=>
+     Math.floor(planetAt(t,body).longitude/30)+1;
+    const names=['Moon','Mercury','Venus','Mars','Jupiter','Saturn'] as const;
+    const events:{atUtc:string;kind:'moon-sign'|'planet-sign'|'mahadasha'|'antardasha'}[]=[];
+    for(const name of names){
+     const step=30*60000;
+     let previous=begin,prevSign=sign(begin,name);
+     for(let t=begin+step;previous<end;t+=step){
+      const limit=Math.min(t,end-1);
+      if(limit<=previous)break;
+      const nextSign=sign(limit,name);
+      if(nextSign!==prevSign){
+       const distance=(nextSign-prevSign+12)%12;
+       if(distance!==1&&distance!==11)throw Error('Nonadjacent Swiss ingress');
+       let lo=previous,hi=limit;
+       for(let i=0;i<45&&hi-lo>1000;i++){
+        const mid=Math.floor((lo+hi)/2);
+        if(sign(mid,name)===prevSign)lo=mid;else hi=mid;
+       }
+       // Align to the source boundary-resolution second, on the NEW side.
+       const boundary=Math.ceil(hi/1000)*1000;
+       if(boundary>begin&&boundary<end)
+        events.push({atUtc:new Date(boundary).toISOString(),
+         kind:name==='Moon'?'moon-sign':'planet-sign'});
+      }
+      previous=limit;prevSign=nextSign;
+      if(limit===end-1)break;
+     }
+    }
+    for(const d of chart.dasha||[]){
+     for(const t of [d.start,d.end]){
+      const m=Date.parse(t);
+      if(Number.isFinite(m)&&m>begin&&m<end)
+       events.push({atUtc:new Date(m).toISOString(),kind:'mahadasha'});
+     }
+     for(const a of d.antardashas||[]){
+      for(const t of [a.start,a.end]){
+       const m=Date.parse(t);
+       if(Number.isFinite(m)&&m>begin&&m<end)
+        events.push({atUtc:new Date(m).toISOString(),kind:'antardasha'});
+      }
+     }
+    }
+    if(events.length>100)throw Error('Too many private ingress/period events');
+    events.sort((a,b)=>a.atUtc.localeCompare(b.atUtc)||a.kind.localeCompare(b.kind));
+    const ticks=new Set<number>([begin,end,Date.parse(day.sunsetUtc),
+     Date.parse(day.daytimeKalas.rahuKalam.fromUtc),
+     Date.parse(day.daytimeKalas.rahuKalam.untilUtc)]);
+    for(const key of ['tithi','nakshatra','yoga','karana'] as const)
+     for(const p of day.periods[key]){
+      for(const s of [p.startUtc,p.endUtc]){
+       const t=Date.parse(s);if(t>begin&&t<end)ticks.add(t);
+      }
+     }
+    for(const e of events)ticks.add(Date.parse(e.atUtc));
+    const times=[...ticks].filter(t=>Number.isFinite(t)&&t>=begin&&t<=end).sort((a,b)=>a-b);
+    if(times[0]!==begin||times[times.length-1]!==end||times.length>128)
+     throw Error('Invalid segmentation bounds');
+    const samples=[] as {atUtc:string;report:unknown}[];
+    for(let i=0;i<times.length-1;i++){
+     const a=times[i],b=times[i+1];
+     if(!(b>a))throw Error('Non-progressing timing segment');
+     const instant=a+Math.min(1000,Math.floor((b-a)/2));
+     const iso=new Date(instant).toISOString();
+     const moonAt=planetAt(instant,'Moon');
+     const transitMoonSign=Math.floor(moonAt.longitude/30)+1;
+     const nakshatraNumber=Math.floor(moonAt.longitude/(360/27))+1;
+     const lunar=verifiedDailyMoonStrength(
+      {moonLongitude:chart.moonLongitude!,moonSign:chart.moonSign},
+      {nakshatraNumber,moonSign:transitMoonSign});
+     const period=chart.dasha?.find(d=>Date.parse(d.start)<=instant&&instant<Date.parse(d.end));
+     const minor=period?.antardashas?.find(a=>Date.parse(a.start)<=instant&&instant<Date.parse(a.end));
+     const gochar=(['Mercury','Venus','Mars','Jupiter','Saturn'] as const).map(name=>{
+      const s=sign(instant,name);
+      return {name,sign:s,houseFromMoon:(s-chart.moonSign!+12)%12+1,
+       houseFromLagna:(s-chart.lagnaSign!+12)%12+1};
+     });
+     samples.push({atUtc:iso,report:{
+      status:'available',version:'personal-resonance-v1',
+      observation:'VERIFIED_SWISS_SAME_MOMENT_AND_OWNED_NATAL',
+      scope:'TRADITIONAL_PERSONAL_COMPARISON_NOT_EVENT_GUARANTEE',
+      date:day.date,timeZone:day.location.timeZone,
+      latitude:day.location.latitude,longitude:day.location.longitude,
+      sunriseUtc:day.sunriseUtc,nextSunriseUtc:day.nextSunriseUtc,evaluatedAtUtc:iso,
+      natal:{moonSign:chart.moonSign,lagnaSign:chart.lagnaSign},
+      transitMoon:{sign:transitMoonSign,nakshatraNumber},
+      tarabala:lunar.tarabala,chandrabala:lunar.chandrabala,
+      period:period?{lord:period.lord,start:period.start,end:period.end,
+       antardasha:minor?{lord:minor.lord,start:minor.start,end:minor.end}:null}:null,
+      gochar
+     }});
+    }
+    return {status:'available',version:'private-time-guidance-p34',
+     observation:'VERIFIED_SWISS_BOUNDARIES_AND_OWNED_NATAL',
+     date:day.date,timeZone:day.location.timeZone,
+     latitude:day.location.latitude,longitude:day.location.longitude,
+     sunriseUtc:day.sunriseUtc,nextSunriseUtc:day.nextSunriseUtc,
+     events,samples};
+   }catch{
+    throw new ServiceUnavailableException('Verified private time windows unavailable');
+   }
+  }
  @Get('panchanga') @Header('Cache-Control','private, no-store')
  async personalPanchanga(@Req()req:IncomingMessage,
   @Query('date')date?:string,@Query('zone')zone?:string,
@@ -546,6 +686,7 @@ for(const [name,types]of [
  ['removePractice',[Object,String]],
  ['calendar',[Object,String,String]],
  ['personalPanchanga',[Object,String,String,String,String]],
+ ['panchangaTiming',[Object,String,String,String,String]],
  ['getPanchangaLocation',[Object]],
  ['savePanchangaLocation',[Object]],
  ['clearPanchangaLocation',[Object]],
