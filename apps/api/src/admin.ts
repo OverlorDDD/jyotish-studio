@@ -5,6 +5,7 @@ import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {effectiveSubscription} from './account-policy.ts';
+import {readGa4Realtime} from './admin-ga4-realtime.ts';
 import {ADMIN_ROLE_USE_CASE,ChangeRoleUseCase,RoleChangeError} from './admin-role-application.ts';
 
 export class ChangeUserRoleDto {
@@ -101,6 +102,13 @@ export class AdminController {
     question:true,context:true,deliveryFileKey:true
   }});
  }
+ /** No browser-side GA4 key: Data API permission is checked server-side,
+  * after this existing admin auth gate. Not a count of registered accounts. */
+ @Get('traffic/realtime') @Header('Cache-Control','private,no-store')
+ async trafficRealtime(@Req()req:IncomingMessage){
+  await this.requireAdmin(req);
+  return readGa4Realtime();
+ }
  @Get('overview') @Header('Cache-Control','private,no-store')
  async overview(@Req()req:IncomingMessage){
   await this.requireAdmin(req);
@@ -153,6 +161,7 @@ export class AdminController {
   };
  }
 }
+Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'trafficRealtime');
 Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'overview');
 Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'orders');
 Reflect.defineMetadata('design:paramtypes',[Object,String],AdminController.prototype,'users');
