@@ -123,6 +123,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   }catch{setSaveState('error');}
  }
  function selectDay(date:string){const next={...form,date};setForm(next);setRequested(next);setView('day');}
+ function selectLocation(next:Form){setForm(next);setRequested(next);void saveCity(next);}
  // First-party GalaxiNews stories deep-link to their authentic event day.
  useEffect(()=>{
   const day=new URLSearchParams(window.location.search).get('date');
@@ -172,15 +173,16 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    e.preventDefault();pendingManualCalculation.current=true;setRequested({...form});void saveCity(form);
   }}>
    <div className={styles.formGrid}>
-    <label>{t.date}<input required type="date" min="1900-01-01" max="2099-12-31" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></label>
+    <label>{t.date}<input required type="date" min="1900-01-01" max="2099-12-31" value={form.date} onChange={e=>{const next={...form,date:e.target.value};setForm(next);
+     if(/^\\d{4}-\\d{2}-\\d{2}$/.test(next.date))setRequested(next);}}/></label>
     <CitySearch locale={locale} onChoose={c=>{
      setCity('custom');
-     setForm(f=>({...f,timeZone:c.timeZone,latitude:String(c.latitude),longitude:String(c.longitude),
-      place:[c.name,c.region,c.country].filter(Boolean).join(', ').slice(0,120)}));
+     selectLocation({...form,timeZone:c.timeZone,latitude:String(c.latitude),longitude:String(c.longitude),
+      place:[c.name,c.region,c.country].filter(Boolean).join(', ').slice(0,120)});
     }}/>
     <label>{t.city}<select value={city} onChange={e=>{
      const next=e.target.value;setCity(next);
-     if(next!=='custom')setForm(f=>({...f,...presets[next],place:t.cities[next as 'kyiv'|'delhi'|'london']}));
+     if(next!=='custom')selectLocation({...form,...presets[next],place:t.cities[next as 'kyiv'|'delhi'|'london']});
     }}>{Object.entries(t.cities).map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
    </div>
    <p className={styles.locationStatus}>{uk?'Місто':'Location'}: <strong>{form.place}</strong> · {form.timeZone}
