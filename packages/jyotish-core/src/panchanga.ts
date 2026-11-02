@@ -125,7 +125,7 @@ export function buildPanchangaSunrise(date:string,sunriseUtc:string,nextSunriseU
  for(const kind of ['tithi','nakshatra','yoga','karana'] as const){
   const own=changes.filter(x=>x.kind===kind);
   const atSunrise=sunrise[kind];
-  let previousIndex=kind==='karana'?atSunrise.slot:atSunrise.number;
+  let previousIndex='slot' in atSunrise?atSunrise.slot:atSunrise.number;
   let currentValue:ReturnType<typeof fiveAngas>[typeof kind]=atSunrise;
   let startUtc=bounds[kind].startUtc;
   const items:typeof periods[typeof kind]=[];
@@ -133,7 +133,7 @@ export function buildPanchangaSunrise(date:string,sunriseUtc:string,nextSunriseU
    if(Date.parse(event.atUtc)<=Date.parse(startUtc))throw Error('Non-progressing '+kind+' period');
    items.push({index:previousIndex,startUtc,endUtc:event.atUtc,value:currentValue});
    const sample=fiveAngas(at(Date.parse(event.atUtc)+2000),dayOfWeek)[kind];
-   const currentIndex=kind==='karana'?sample.slot:sample.number;
+   const currentIndex='slot' in sample?sample.slot:sample.number;
    if(currentIndex!==event.nextIndex)throw Error('Inconsistent '+kind+' crossing state');
    previousIndex=currentIndex;currentValue=sample;startUtc=event.atUtc;
   }
