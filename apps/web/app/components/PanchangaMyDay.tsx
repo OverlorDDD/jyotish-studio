@@ -5,6 +5,7 @@ import type {PortalLocale} from '../../lib/brand';
 import {p31DaySummary,P31_TOPICS,type P31Topic,type P31Day} from '../../lib/panchanga-p31-model';
 import {interpretPanchanga,type P32Day} from '../../lib/panchanga-p32-engine';
 import {synthesizePersonalResonance,validateP33Report,type P33Report,type P33Result} from '../../lib/panchanga-p33-resonance';
+import PanchangaTimeGuidance from './PanchangaTimeGuidance';
 import styles from './PanchangaMyDay.module.css';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
@@ -196,11 +197,13 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      </details>
     </div>:<p role="alert">{uk?'Не вдалося перевірити поєднання п’яти показників. Пораду не показано.':
      'Could not verify all five factors. No advice is displayed.'}</p>}
+    <PanchangaTimeGuidance locale={locale} day={day as P32Day} point={point}
+     topic={topic} now={now}/>
     <p className={styles.scopeNote}>{personal?
-     (uk?'Точний вибір сприятливої години буде доступний після P3.4.':
-      'A precise electional hour will be available after P3.4.'):
-     (uk?'Персональна оцінка доступна з перевіреною натальною картою.':
-      'A verified birth chart is required for a personal comparison.')}</p>
+     (uk?'Детальний вибір годин доступний у часовій шкалі; повна церемоніальна мухурта потребує окремої перевірки.':
+      'Hourly windows are available in the timeline; a full ceremonial muhurta requires separate verification.'):
+     (uk?'Персональні години доступні з перевіреною натальною картою.':
+      'A verified birth chart is required for personalized hours.')}</p>
     <Link className={styles.profileLink} href={'/'+locale+'/personal'}>
      {uk?'Створити або перевірити натальну карту для персонального аналізу':
       'Create or check your birth chart for a personal reading'}
