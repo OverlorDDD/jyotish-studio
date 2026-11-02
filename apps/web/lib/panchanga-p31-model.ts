@@ -2,7 +2,17 @@
  * the classical Rahu Kalam start-of-new-work convention. P3.2/P3.3 own
  * multi-limb and natal synthesis; NEVER infer that "outside Rahu" is auspicious.
  */
-import {calendarDateAt,withinVedicDay,needsPriorVedicDay,stateAt,type LivePanchangaDay} from './panchanga-live.ts';
+// Kept dependency-free for native Node --experimental-strip-types unit tests and
+// Next.js compilation; the actual sunrise/period facts always come from P2.2 API.
+type Tithi={paksha:string;numberWithinPaksha:number};
+type TimestampedTithi={startUtc:string;endUtc:string;value:Tithi};
+function calendarDateAt(nowMs:number,zone:string){
+ const x=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'})
+  .formatToParts(new Date(nowMs));
+ const get=(name:string)=>x.find(p=>p.type===name)?.value||'';
+ return get('year')+'-'+get('month')+'-'+get('day');
+}
+
 export type P31Topic='work'|'money'|'relationships'|'travel'|'personal';
 export type P31Verdict='calendar_only'|'mixed'|'personal'|'unavailable';
 export type P31Evidence={id:string;kind:'astronomy'|'tradition'|'natal';atUtc?:string;startUtc?:string;endUtc?:string};
@@ -12,7 +22,10 @@ export type P31AdviceContract={
  guidance:{uk:string;en:string};evidence:P31Evidence[];
  missing:string[];
 };
-export type P31Day=LivePanchangaDay&{
+export type P31Day={
+ date:string;sunriseUtc:string;sunsetUtc:string;nextSunriseUtc:string;
+ location:{timeZone:string};
+ sunrise:{tithi:Tithi};periods:{tithi:TimestampedTithi[]};
  daytimeKalas:{rahuKalam:{fromUtc:string;untilUtc:string}};
 };
 const subjects:Record<P31Topic,{uk:string;en:string}>={
@@ -32,10 +45,13 @@ export function p31DaySummary(day:P31Day,nowMs:number,topic:P31Topic){
   !(sunrise<from&&from<until&&until<=sunset&&sunset<next))
   throw Error('Invalid verified local sunrise or Rahu Kalam window');
  const today=calendarDateAt(nowMs,day.location.timeZone)===day.date;
- const live=today&&withinVedicDay(day,nowMs);
- const before=today&&needsPriorVedicDay(day,nowMs);
+ const live=today&&nowMs>=sunrise&&nowMs<next;
+ const before=today&&nowMs<sunrise&&day.date>'1900-01-01';
  const withinRahu=live&&nowMs>=from&&nowMs<until;
- const lunar=live?stateAt(day,nowMs)?.tithi.value:day.sunrise.tithi;
+ const active=live?day.periods?.tithi?.find(p=>
+  nowMs>=Date.parse(p.startUtc)&&nowMs<Date.parse(p.endUtc)):null;
+ if(live&&!active)throw Error('Verified current tithi interval missing');
+ const lunar=active?.value||day.sunrise.tithi;
  if(!lunar||!Number.isInteger(lunar.numberWithinPaksha)||lunar.numberWithinPaksha<1||lunar.numberWithinPaksha>15||
   !['Shukla','Krishna'].includes(lunar.paksha))throw Error('Unverified lunar day');
  const moon=lunar.paksha==='Shukla'?{uk:'Місяць зростає',en:'Waxing Moon'}:
