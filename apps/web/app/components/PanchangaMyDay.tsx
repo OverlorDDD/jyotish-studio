@@ -3,6 +3,7 @@ import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
 import {p31DaySummary,P31_TOPICS,type P31Topic,type P31Day} from '../../lib/panchanga-p31-model';
+import {interpretPanchanga,type P32Day} from '../../lib/panchanga-p32-engine';
 import styles from './PanchangaMyDay.module.css';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
@@ -26,6 +27,11 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
   const id=setInterval(tick,60000);return()=>clearInterval(id);
  },[]);
  const summary=useMemo(()=>now===null?null:p31DaySummary(day,now,topic),[day,now,topic]);
+ const interpretation=useMemo(()=>{
+  if(now===null)return null;
+  try{return interpretPanchanga(day as P32Day,now,topic);}
+  catch{return null;} // Fail closed: never emit a guessed tradition verdict.
+ },[day,now,topic]);
  const selectedKey=[point.date,point.timeZone,point.latitude,point.longitude].join('|');
  const queryKey=eclipseRequest?[eclipseRequest.date,eclipseRequest.timeZone,
    eclipseRequest.latitude,eclipseRequest.longitude].join('|'):null;
@@ -83,11 +89,36 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      {P31_TOPICS.map(key=><button key={key} type="button" aria-pressed={topic===key}
       onClick={()=>setTopic(key)}>{topics[key][locale]}</button>)}
     </div>
-    <h4>{summary.advice.headline[locale]}</h4>
-    <p className={styles.action}>{summary.advice.guidance[locale]}</p>
+    {interpretation?<div data-testid="p32-interpretation">
+     <p className={styles.scopeNote}>{uk?'Обрана тема':'Selected topic'}: <strong>{topics[topic][locale]}</strong> · {uk?
+      'Астрологічна традиція, не персональна натальна оцінка':
+      'Traditional calendar, not a natal reading'}</p>
+     <h4 data-testid="p32-headline">{interpretation.headline[locale]}</h4>
+     <p className={styles.action}>{interpretation.action[locale]}</p>
+     <p className={styles.scopeNote}>{interpretation.reason[locale]}</p>
+     <p className={styles.scopeNote}>{interpretation.moment==='live'?
+      (uk?'За показниками на поточний момент.':'Based on factors at this moment.'):
+      (uk?'Оцінка на схід Сонця обраної дати, не висновок на поточну годину.':
+       'Sunrise snapshot for the selected date, not a claim about this hour.')}</p>
+     {interpretation.untilUtc&&<p className={styles.scopeNote}>{uk?'Найближча зміна показника до':'Next evaluated change by'}: <strong>{fmt(interpretation.untilUtc,true)}</strong></p>}
+     <details className={styles.reasonDetails} data-testid="p32-evidence">
+      <summary>{uk?'Чому така порада? П’ять показників, Місяць і денний період':
+       'Why? Five limbs, Moon and daylight interval'}</summary>
+      <ol>{interpretation.evidence.map(f=><li key={f.id}>
+       <strong>{f.factor==='tithi'?(uk?'Місячний день':'Lunar day'):
+        f.factor==='nakshatra'?(uk?'Накшатра':'Nakshatra'):
+        f.factor==='vara'?(uk?'День тижня':'Weekday'):
+        f.factor==='yoga'?(uk?'Сонячно-місячна йога':'Sun–Moon Yoga'):
+        f.factor==='karana'?(uk?'Карана':'Karana'):
+        f.factor==='moon'?(uk?'Фаза Місяця':'Moon phase'):
+        (uk?'Раху-калам':'Rahu Kalam')}</strong> — {f.detail[locale]}
+      </li>)}</ol>
+     </details>
+    </div>:<p role="alert">{uk?'Не вдалося перевірити поєднання п’яти показників. Пораду не показано.':
+     'Could not verify all five factors. No advice is displayed.'}</p>}
     <p className={styles.scopeNote}>{uk?
-     'Це конкретне правило Раху-калам щодо початку справ. Повна оцінка п’яти показників і натальної карти ще не виконана.':
-     'This is the Rahu Kalam rule for starting an undertaking, not a full five-limb or natal assessment.'}</p>
+     'Для персонального висновку за натальною картою і точного вибору години потрібні наступні розрахунки.':
+     'A natal comparison and precise electional hour require further calculations.'}</p>
     <Link className={styles.profileLink} href={'/'+locale+'/personal'}>
      {uk?'Створити або перевірити натальну карту для персонального аналізу':
       'Create or check your birth chart for a personal reading'}
