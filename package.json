@@ -22,7 +22,7 @@
     "com:seed": "node --env-file-if-exists=.env tools/com-seed-topics.mjs",
     "com:backup": "node --env-file-if-exists=.env tools/com-db-backup.mjs",
     "com:load": "node tools/com-load-probe.mjs",
-    "test:panchanga": "node --experimental-strip-types --test tools/panchanga-core.test.mjs tools/panchanga-v2-location.test.mjs tools/panchanga-p22.test.mjs tools/panchanga-p23.test.mjs tools/panchanga-p24.test.mjs tools/panchanga-p25-copy.test.mjs tools/panchanga-p25-release.test.mjs tools/panchanga-p31.test.mjs tools/panchanga-p32.test.mjs tools/panchanga-p33.test.mjs tools/panchanga-p34.test.mjs tools/panchanga-p35.test.mjs tools/panchanga-p36-ingress.test.mjs",
+    "test:panchanga": "node --experimental-strip-types --test tools/panchanga-core.test.mjs tools/panchanga-v2-location.test.mjs tools/panchanga-p22.test.mjs tools/panchanga-p23.test.mjs tools/panchanga-p24.test.mjs tools/panchanga-p25-copy.test.mjs tools/panchanga-p25-release.test.mjs tools/panchanga-p31.test.mjs tools/panchanga-p32.test.mjs tools/panchanga-p33.test.mjs tools/panchanga-p34.test.mjs tools/panchanga-p35.test.mjs tools/panchanga-p36-ingress.test.mjs tools/panchanga-p37.test.mjs",
     "test:p36:release": "node --experimental-strip-types --test tools/panchanga-p36-release.test.mjs",
     "p36:smoke": "node tools/panchanga-p36-smoke.mjs",
     "test:astronomy": "node --experimental-strip-types --test tools/astronomical-events.test.mjs",
@@ -165,7 +165,8 @@
     "test:source:integrity": "node --test tools/source-integrity-repair.test.mjs",
     "test:admin:realtime": "node --experimental-strip-types --test tools/admin-realtime-ga4.test.mjs",
     "source:repair": "node tools/source-integrity-repair.mjs --repair",
-    "source:check": "node tools/source-integrity-repair.mjs"
+    "source:check": "node tools/source-integrity-repair.mjs",
+    "test:p37": "node --experimental-strip-types --test tools/panchanga-p37.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
