@@ -4,6 +4,13 @@ import {readFileSync} from 'node:fs';
 const file=p=>readFileSync(new URL('../apps/web/public/'+p,import.meta.url));
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 function pngSize(data){assert.deepEqual([...data.subarray(0,8)],[137,80,78,71,13,10,26,10]);return [data.readUInt32BE(16),data.readUInt32BE(20)];}
+test('Every 64px output and Next icon.png are byte-identical to the approved original #6',()=>{
+ const source=readFileSync(new URL('../apps/web/brand-assets/galaxiora-approved-spiral-6.png',import.meta.url));
+ const generated64=file('galaxiora-favicon.png');
+ const next=readFileSync(new URL('../apps/web/app/icon.png',import.meta.url));
+ assert.deepEqual(generated64,source);
+ assert.deepEqual(next,source);
+});
 test('every generated web, Google, Apple and Android brand PNG has its declared square size',()=>{
  for(const [name,size] of Object.entries({
   'galaxiora-favicon.png':64,'galaxiora-logo-128.png':128,
@@ -25,7 +32,7 @@ test('favicon.ico has valid 16, 32, 48 and 64 pixel PNG-backed frames',()=>{
  }
  assert.deepEqual(sizes,[16,32,48,64]);
 });
-test('PWA manifest and sitewide header refer to same generated cosmic G symbol',()=>{
+test('PWA manifest and sitewide header refer to the user-approved spiral galaxy #6',()=>{
  const manifest=JSON.parse(read('apps/web/public/site.webmanifest'));
  assert.equal(manifest.short_name,'Galaxiora');
  assert.deepEqual(manifest.icons.map(icon=>icon.sizes),['192x192','512x512']);
