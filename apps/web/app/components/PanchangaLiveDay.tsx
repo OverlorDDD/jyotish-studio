@@ -91,6 +91,7 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
  const next=useMemo(()=>[...day.changes].sort((a,b)=>a.atUtc.localeCompare(b.atUtc)||
   a.kind.localeCompare(b.kind)),[day.changes]);
  const progress=now!==null?positionInDay(day,now):null;
+ const sunsetPosition=positionInDay(day,Date.parse(day.sunsetUtc));
  const liveNow=Boolean(liveDay);
  const preSunrise=needsPrior&&priorStatus==='loading';
  const [showTransitions,setShowTransitions]=useState(true);
@@ -139,6 +140,16 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
     <span>{uk?'Захід':'Sunset'} · {clock(day.sunsetUtc,zone,locale)}</span>
     <span>{uk?'Наступний схід':'Next sunrise'} · {clock(day.nextSunriseUtc,zone,locale)}</span>
    </div>
+   {sunsetPosition!==null&&<div className={styles.dayNight}>
+    <div className={styles.dayNightLegend}>
+     <span>{uk?'Денний час':'Daylight'} · {clock(day.sunriseUtc,zone,locale)}–{clock(day.sunsetUtc,zone,locale)}</span>
+     <span>{uk?'Ніч':'Night'} · {clock(day.sunsetUtc,zone,locale)}–{clock(day.nextSunriseUtc,zone,locale)}</span>
+    </div>
+    <div className={styles.dayNightTrack} aria-hidden="true">
+     <div className={styles.dayNightLight} style={{width:sunsetPosition+'%'}}/>
+     <div className={styles.dayNightDark} style={{width:(100-sunsetPosition)+'%'}}/>
+    </div>
+   </div>}
    {CHANGING_ANGAS.map(kind=><div className={styles.timelineLane} key={kind} data-testid={'panchanga-lane-'+kind}>
     <div className={styles.laneHeader}>
      <strong><GlossaryText text={names[locale][kind]} locale={locale}/></strong>
@@ -151,6 +162,8 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
       className={styles.laneSegment} data-anga={kind} data-alternate={i%2===1?'true':'false'}
       style={{left:p.leftPercent+'%',width:p.widthPercent+'%'}}
       title={label(kind,p.value,locale)+' · '+shortTime(p.startUtc,zone,locale)+' — '+shortTime(p.endUtc,zone,locale)}/>)}
+     {sunsetPosition!==null&&<div className={styles.sunsetMarker}
+      style={{left:sunsetPosition+'%'}} aria-hidden="true"/>}
      {progress!==null&&<div className={styles.nowMarker} style={{left:progress+'%'}} aria-hidden="true"/>}
     </div>
     <div className={styles.laneSummary}>{slicesFor(day,kind).map((p,i)=><span key={p.startUtc}>
