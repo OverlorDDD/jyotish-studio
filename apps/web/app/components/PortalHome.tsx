@@ -5,7 +5,7 @@ import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
 const COPY={
  en:{
-  eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Explore the unseen.',emphasis:'Connect with your universe.',
+  eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Astrology, Tarot & Panchanga.',emphasis:'Explore your universe.',
   intro:'Jyotish reveals the rhythms of destiny, Tarot speaks through symbols, and yoga brings you back to the power of breath. Explore your natal chart, draw the cards and find your practice today.',
   explore:'Explore the space',jyotish:'Open Vedic birth chart',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
   status:'Explore',ready:'Explore',
@@ -21,7 +21,7 @@ const COPY={
   disclaimer:'Explore your natal chart, Tarot and mindful practices in one place.'
  },
  uk:{
-  eyebrow:'GALAXIORA · ПРОСТІР КОСМІЧНОГО ПІЗНАННЯ',headline:'Досліджуй невидиме.',emphasis:'Відчуй зв’язок зі Всесвітом.',
+  eyebrow:'GALAXIORA · ПРОСТІР КОСМІЧНОГО ПІЗНАННЯ',headline:'Астрологія, Таро та Панчанга.',emphasis:'Пізнавай свій Всесвіт.',
   intro:'Джйотіш відкриває ритми долі, Таро говорить мовою символів, а йога повертає до сили дихання. Відкрий свою натальну карту, обери розклад і знайди практику, що відгукнеться саме сьогодні.',
   explore:'Дослідити платформу',jyotish:'Відкрити натальну карту Джйотіш',choose:'З чого почнеться твій шлях?',sectionSub:'Одна платформа, багато шляхів для навчання та рефлексії.',
   status:'Дослідити',ready:'Дослідити',
