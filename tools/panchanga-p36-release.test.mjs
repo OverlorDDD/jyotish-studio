@@ -9,7 +9,7 @@ test('P3.6 release defaults to diagnostics and never mutates main or AWS automat
   'P36_PREFLIGHT_PASS','P36_PRODUCTION_RELEASE_VERIFIED',
   'P36_ROLLBACK_CODE_OK','P36_ROLLBACK_APPROVAL',
   'docker exec jyotish-db pg_dump','pg_restore --list',
-  'P36_SMOKE_PASS','P25_VERIFY_BRAND=1','SESSION_COOKIE_SECURE',
+  'panchanga-p36-smoke.mjs','P25_VERIFY_BRAND=1','SESSION_COOKIE_SECURE',
   'npm run db:migrate','npm run site:check','npm run launch:verify',
   'npm run r32:seo:audit'])
   assert.ok(script.includes(required),required);
