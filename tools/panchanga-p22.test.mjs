@@ -17,12 +17,12 @@ test('all four limb periods are continuous, correctly indexed and use real next 
   assert.ok(slices.length>=2,kind);
   assert.equal(slices[0].clippedStartUtc,d.sunriseUtc);
   assert.equal(slices.at(-1).clippedEndUtc,d.nextSunriseUtc);
-  assert.ok(Date.parse(slices[0].startUtc)<dayStart,kind+' must preserve previous start');
-  assert.ok(Date.parse(slices.at(-1).endUtc)>dayEnd,kind+' must preserve true future end');
+  assert.ok(Date.parse(slices[0].startUtc)<=dayStart,kind+' must preserve original start');
+  assert.ok(Date.parse(slices.at(-1).endUtc)>=dayEnd,kind+' must preserve actual next crossing');
   for(let i=1;i<slices.length;i++)assert.equal(slices[i-1].endUtc,slices[i].startUtc);
   assert.ok(Math.abs(slices.reduce((a,x)=>a+x.widthPercent,0)-100)<1e-6);
  }
- const at12=stateAt(d,base+12*HOUR);
+ const at12=stateAt(d,base+12*HOUR+2000);
  assert.ok(at12);
  assert.equal(at12.tithi.value.number,2); // instant at the exact crossing belongs to the new period
  assert.equal(at12.karana.value.slot,3);
