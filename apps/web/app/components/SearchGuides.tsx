@@ -86,6 +86,7 @@ function Guide({locale,copy,subject}:{locale:PortalLocale;copy:Record<PortalLoca
    <h3>{x.heading}</h3><p>{x.body}</p>
   </section>)}</div>
   <nav aria-label={locale==='uk'?'Корисні матеріали':'Further reading'}>
+   {subject==='jyotish'&&<p><Link href={prefix+'astrology/moon-sign-vs-sun-sign'}>{locale==='uk'?'Чому ведичний знак Місяця відрізняється від західного знака Сонця?':'Why your Vedic Moon sign differs from your Western Sun sign'}</Link></p>}
    <p><Link href={prefix+lesson}>{c.learn}</Link></p>
    <p><Link href={prefix+c.secondaryHref}>{c.secondary}</Link></p>
    <p><Link href={prefix+'methodology'}>{c.method}</Link></p>

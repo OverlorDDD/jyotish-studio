@@ -1,7 +1,7 @@
 /** Public indexing only when explicitly configured with an HTTPS origin. */
 export const INDEXED_SECTIONS=['astrology','tarot','yoga','learn','news','community','methodology'] as const;
 // Include only canonical public 200 pages; /astrology redirects to /astrology/jyotish.
-export const SEO_PATHS=['','about','tarot','tarot/cards','astrology/jyotish','yoga','learn','horoscope','panchanga','eclipses/2027','news','community','methodology'] as const;
+export const SEO_PATHS=['','about','tarot','tarot/cards','astrology/jyotish','astrology/moon-sign-vs-sun-sign','yoga','learn','horoscope','panchanga','eclipses/2027','news','community','methodology'] as const;
 export function publicSiteOrigin():string|null{
  const value=process.env.NEXT_PUBLIC_SITE_URL?.trim();
  if(!value)return null;

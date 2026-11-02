@@ -154,6 +154,8 @@
     "pretest:r32:seo": "npm run brand:icons:build",
     "pretest:brand-favicon": "npm run brand:icons:build",
     "test:brand:icons": "npm run brand:icons:build && node --test tools/brand-icons.test.mjs",
+    "test:r43:seo": "node --test tools/r43-indexnow.test.mjs",
+    "test:r43:visitors": "node --experimental-strip-types --test tools/r43-first-visitors.test.mjs",
     "test:r42:growth": "node --experimental-strip-types --test tools/r42-growth.test.mjs",
     "r42:ga:doctor": "node --env-file-if-exists=.env tools/r42-ga4-doctor.mjs",
     "r4:search:audit": "node tools/r4-search-discovery-audit.mjs",
