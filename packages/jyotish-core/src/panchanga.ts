@@ -115,7 +115,38 @@ export function buildPanchangaSunrise(date:string,sunriseUtc:string,nextSunriseU
   }
  }
  changes.sort((a,b)=>a.atUtc.localeCompare(b.atUtc)||a.kind.localeCompare(b.kind));
+ // P2.2: Every interval is anchored in a real Swiss crossing. Unlike a
+ // sunrise-only snapshot, the final interval's end can be AFTER next sunrise;
+ // that boundary must be solved, not invented as a 24-hour cutoff.
+ const periods={} as Record<AngaKind,{
+  index:number;startUtc:string;endUtc:string;
+  value:ReturnType<typeof fiveAngas>[AngaKind]
+ }[]>;
+ for(const kind of ['tithi','nakshatra','yoga','karana'] as const){
+  const own=changes.filter(x=>x.kind===kind);
+  const atSunrise=sunrise[kind];
+  let previousIndex='slot' in atSunrise?atSunrise.slot:atSunrise.number;
+  let currentValue:ReturnType<typeof fiveAngas>[typeof kind]=atSunrise;
+  let startUtc=bounds[kind].startUtc;
+  const items:typeof periods[typeof kind]=[];
+  for(const event of own){
+   if(Date.parse(event.atUtc)<=Date.parse(startUtc))throw Error('Non-progressing '+kind+' period');
+   items.push({index:previousIndex,startUtc,endUtc:event.atUtc,value:currentValue});
+   const sample=fiveAngas(at(Date.parse(event.atUtc)+2000),dayOfWeek)[kind];
+   const currentIndex='slot' in sample?sample.slot:sample.number;
+   if(currentIndex!==event.nextIndex)throw Error('Inconsistent '+kind+' crossing state');
+   previousIndex=currentIndex;currentValue=sample;startUtc=event.atUtc;
+  }
+  // The original sunrise boundary remains authoritative when there is no
+  // transition in this sunrise day; otherwise solve the next genuine crossing.
+  const endUtc=own.length?findAngaBoundary(Date.parse(startUtc)+2000,kind,at,1):bounds[kind].endUtc;
+  if(Date.parse(endUtc)<=Date.parse(startUtc))throw Error('Invalid final '+kind+' period');
+  items.push({index:previousIndex,startUtc,endUtc,value:currentValue});
+  if(Date.parse(items[0].startUtc)>begin||Date.parse(items[items.length-1].endUtc)<end)
+   throw Error('Incomplete '+kind+' period coverage');
+  periods[kind]=items;
+ }
  return {version:PANCHANGA_VERSION,date,sunriseUtc,nextSunriseUtc,
   observation:'GEOCENTRIC_SIDEREAL_SUN_MOON_AT_LOCAL_SUNRISE',
-  sunrise,boundaries:bounds,changes};
+  sunrise,boundaries:bounds,changes,periods};
 }
