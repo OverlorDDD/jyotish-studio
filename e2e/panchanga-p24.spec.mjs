@@ -40,7 +40,7 @@ for(const locale of ['uk','en']){
   await expect(page.getByTestId('panchanga-calendar-range').getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});
   await expect(page.getByTestId('panchanga-related')).toHaveCount(0);
   await page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'})
-   .getByRole('button',{name:locale==='uk'?'День':'Day'}).click();
+   .getByRole('button',{name:locale==='uk'?'День':'Day',exact:true}).click();
   await expect(page.getByTestId('panchanga-integrated-day')).toBeVisible({timeout:90000});
   await expect(monthSystem.getByRole('button',{name:locale==='uk'?'Пурніманта':'Purnimanta'})).toHaveAttribute('aria-pressed','true');
  });
