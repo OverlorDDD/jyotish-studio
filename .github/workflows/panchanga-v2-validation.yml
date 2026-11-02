@@ -12,6 +12,7 @@ on:
       - feat/panchanga-p33-personal-resonance-20261102
       - feat/panchanga-p34-time-guidance-20261102
       - feat/panchanga-p35-personal-calendar-7-30-20261102
+      - release/panchanga-p36-production-acceptance-20261102
   pull_request:
     paths:
       - 'apps/api/src/panchanga*'
