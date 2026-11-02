@@ -34,9 +34,10 @@ for(const locale of ['uk','en']){
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga');
   await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:60000});
-  await page.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();
+  const periodNav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
+  await periodNav.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();
   await expect(page.getByTestId('panchanga-calendar-range').locator('button')).toHaveCount(7,{timeout:90000});
-  await page.getByRole('button',{name:locale==='uk'?'Місяць':'Month'}).click();
+  await periodNav.getByRole('button',{name:locale==='uk'?'Місяць':'Month'}).click();
   await expect(page.getByTestId('panchanga-calendar-range').locator('button')).toHaveCount(30,{timeout:90000});
  });
 }
