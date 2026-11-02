@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import {ArrowUpRight, MoonStar} from 'lucide-react';
+import Image from 'next/image';
+import {ArrowUpRight} from 'lucide-react';
 import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 import GlobalAccount from './GlobalAccount';
 
@@ -16,7 +17,7 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
   <header className="as-header">
    <div className="as-header-inner">
     <Link href={portalPath(locale)} className="as-brand" aria-label={BRAND.name+' — '+t.home}>
-     <span className="as-brand-icon"><MoonStar size={26} strokeWidth={1.45}/></span>
+     <span className="as-brand-icon" aria-hidden="true"><Image src="/galaxiora-favicon.png?v=galaxy-round-v2" alt="" width={48} height={48} unoptimized style={{width:"100%",height:"100%",borderRadius:"50%",objectFit:"cover",display:"block"}}/></span>
      <span><strong>{BRAND.name}</strong><small>ASTROLOGY · TAROT · COSMIC WISDOM</small></span>
     </Link>
     <nav className="as-main-nav" aria-label={locale==='uk'?'Основна навігація':'Main navigation'}>
