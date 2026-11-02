@@ -5,5 +5,5 @@
 .content{display:none;position:absolute;top:calc(100% + 6px);left:0;width:min(280px,calc(100vw - 52px));background:#101d31;border:1px solid #a88b5c;border-radius:11px;color:#f0e9dc;padding:12px;font:400 13px/1.55 system-ui,sans-serif;letter-spacing:0;text-transform:none;white-space:normal;box-shadow:0 9px 24px #0008;z-index:40;overflow-wrap:break-word}
 .wrap[open],.wrap:hover,.wrap:focus-within{z-index:50}
 .wrap[open]>.content,.wrap:hover>.content,.wrap:focus-within>.content{display:block}
-@media(max-width:500px){.content{left:auto;right:-8px;width:min(275px,calc(100vw - 48px))}}
+@media(max-width:500px){.content{position:fixed;left:12px;right:12px;bottom:12px;top:auto;width:auto;max-width:none;z-index:100;border-width:2px}}
 @media(prefers-reduced-motion:reduce){.wrap *{transition:none!important}}
