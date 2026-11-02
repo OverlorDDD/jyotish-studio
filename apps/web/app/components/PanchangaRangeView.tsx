@@ -40,12 +40,12 @@ const PHASES:Record<Phase['kind'],[string,string]>={
  new_moon:['Молодик','New Moon'],first_quarter:['Перша чверть','First Quarter'],
  full_moon:['Повня','Full Moon'],last_quarter:['Остання чверть','Last Quarter']};
 const selected=<T,>(pair:[T,T],uk:boolean)=>pair[uk?0:1];
-export default function PanchangaRangeView({locale,view,point,onPick}:{
- locale:PortalLocale;view:'week'|'month';point:Observer;onPick:(date:string)=>void;
+export default function PanchangaRangeView({locale,view,point,monthSystem,onPick}:{
+ locale:PortalLocale;view:'week'|'month';point:Observer;
+ monthSystem:MonthSystem;onPick:(date:string)=>void;
 }){
  const uk=locale==='uk';
  const [anchor,setAnchor]=useState(point.date);
- const [monthSystem,setMonthSystem]=useState<MonthSystem>('amanta');
  const [filter,setFilter]=useState<CalendarFilter>('all');
  const [data,setData]=useState<Overview|null>(null);
  const [status,setStatus]=useState<'loading'|'ready'|'error'>('loading');
@@ -115,10 +115,6 @@ export default function PanchangaRangeView({locale,view,point,onPick}:{
    </div>
   </div>
   <div className={styles.smartControls}>
-   <fieldset><legend>{uk?'Система місяців':'Lunar month system'}</legend>
-    {(['amanta','purnimanta'] as const).map(s=><button type="button" key={s} aria-pressed={monthSystem===s}
-     onClick={()=>setMonthSystem(s)}>{s==='amanta'?(uk?'Аманта':'Amanta'):(uk?'Пурніманта':'Purnimanta')}</button>)}
-   </fieldset>
    <fieldset><legend>{uk?'Показати події':'Events'}</legend>
     {(['all','festivals','phases'] as const).map(f=><button type="button" key={f} aria-pressed={filter===f}
      onClick={()=>setFilter(f)}>{f==='all'?(uk?'Усі':'All'):f==='festivals'?(uk?'Свята':'Festivals'):(uk?'Фази':'Phases')}</button>)}
