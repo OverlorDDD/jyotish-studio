@@ -162,7 +162,11 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
       </div>
       <details className={styles.reasonDetails} data-testid="p33-evidence">
        <summary>{uk?'Інші перевірені персональні показники':'Other verified personal indicators'}</summary>
-       <ul>{personal.evidence.map(e=><li key={e.id}>{e.note[locale]}</li>)}</ul>
+       <ul>{personal.evidence.filter(e=>!e.id.startsWith('TARABALA')&&!e.id.startsWith('CHANDRABALA')).map(e=><li key={e.id}>{e.note[locale]}</li>)}</ul>
+       <p className={styles.scopeNote}>{uk?
+        'Метод Чандрабали: у цій версії застосована таблиця 1, 3, 6, 7, 10, 11 за традицією Мухурта-Чінтамані. Б. В. Раман відносить 6-те положення до застережень; школи не змішуються.':
+        'Chandrabala convention: this version uses positions 1, 3, 6, 7, 10, 11 (Muhurta Chintamani school). B. V. Raman cautions against the sixth position; the two schools are not mixed.'}</p>
+       <a href="https://epandit.in/learn/panchang/chandra-bala" target="_blank" rel="noopener noreferrer">{uk?'Метод Чандрабали':'Chandrabala methodology'} ↗</a>
       </details>
      </section>}
      {personalState==='loading'&&!personal&&<p className={styles.scopeNote} role="status">{uk?'Перевіряємо натальну карту…':'Checking your birth chart…'}</p>}
