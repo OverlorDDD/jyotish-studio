@@ -59,7 +59,7 @@ diagnose(){
   echo "COMMON_BASE=$(git merge-base HEAD "$target" || true)"
   echo 'STOP: the live commit has changes absent from the release branch; preserve and reconcile them first'
  fi
- echo 'This diagnostic does not modify any tracked files. Do not run git reset --hard or git clean.'
+ echo 'This diagnostic does not modify any tracked files. Do not discard tracked edits or clean the live checkout.'
 }
 preflight(){
  local head target free
