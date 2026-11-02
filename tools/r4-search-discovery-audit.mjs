@@ -6,6 +6,7 @@
  */
 const rawOrigin=process.env.R4_AUDIT_ORIGIN||'https://galaxiora.com';
 const origin=new URL(rawOrigin).origin;
+const canonicalOrigin=process.env.R4_CANONICAL_ORIGIN||origin;
 const site=new URL(rawOrigin);
 if(site.pathname!=='/'||site.search||site.hash||site.username||site.password||
  !(site.protocol==='https:'||(site.protocol==='http:'&&['127.0.0.1','localhost'].includes(site.hostname))))
@@ -56,7 +57,7 @@ for(let i=0;i<paths.length;i++){
  record(path,'HTML',p.contentType.includes('text/html'),'Content-Type '+p.contentType);
  record(path,'INDEXABLE',!noindex(p.text)&&!/noindex/i.test(p.xrobots),'No meta/X-Robots noindex');
  record(path,'H1',!!readableH1(p.text),'Visible server-rendered heading: '+readableH1(p.text).slice(0,110));
- record(path,'CANONICAL',canonical(p.text)===(origin+(path==='/'?'/en':path)),
+ record(path,'CANONICAL',canonical(p.text)===(canonicalOrigin+(path==='/'?'/en':path)),
   'canonical='+String(canonical(p.text)));
  record(path,'H1_TOPIC',!['/','/uk','/en'].includes(path)||/Astrology|Таро|Панчанга|Panchanga/i.test(readableH1(p.text)),
   'Homepage H1 should name an actual user tool', 'warning');
