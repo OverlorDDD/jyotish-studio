@@ -8,8 +8,8 @@ const base=()=>{
   sunriseUtc:stamp('04:30'),sunsetUtc:stamp('14:30'),nextSunriseUtc:'2026-11-03T04:31:00.000Z',
   sunrise:{tithi:{number:8,paksha:'Shukla',numberWithinPaksha:8},
    nakshatra:{number:4,name:'Rohini',pada:1},
-   vara:{number:5,name:'Guruvara'},yoga:{number:16,name:'Siddhi'},
-   karana:{slot:14,name:'Bava'}},
+   vara:{number:2,name:'Somavara'},yoga:{number:16,name:'Siddhi'},
+   karana:{slot:2,name:'Bava'}},
   periods:{},
   daytimeKalas:{rahuKalam:{fromUtc:stamp('05:45'),untilUtc:stamp('07:00')}}
  };
@@ -32,7 +32,7 @@ test('P3.2 evaluates all five limbs, Moon phase and Rahu in a single typed sourc
 });
 test('P3.2 hard traditional Bhadra/Vishti barrier overrides independent positive factors',()=>{
  const d=base();
- d.sunrise.karana={slot:14,name:'Vishti'};
+ d.sunrise.karana={slot:8,name:'Vishti'};
  d.periods.karana[0].value=d.sunrise.karana;
  const r=interpretPanchanga(d,ms('10:00'),'money');
  assert.equal(r.status,'avoid');
