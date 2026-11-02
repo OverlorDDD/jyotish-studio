@@ -61,6 +61,10 @@ const subjects:Record<P31Topic,{begin:Lang;prepare:Lang}> ={
  travel:{begin:L('відправлення у важливу поїздку','departure on an important trip'),
   prepare:L('Перевірте маршрут і квитки; для відправлення знайдіть інший часовий відрізок.',
    'Check your route and tickets; find another departure interval.')},
+ study:{begin:L('початку нового курсу','starting a study course'),
+  prepare:L('Підготуйте матеріали; перевірте інший час для першого заняття.','Prepare the materials; check another time for the first lesson.')},
+ home:{begin:L('закладання фундаменту','laying the foundation'),
+  prepare:L('Перевірте проєкт і дозвільні умови; точний початок робіт заплануйте окремо.','Verify plans and permits; schedule the exact starting time separately.')},
  personal:{begin:L('початку нової особистої справи','starting a new personal project'),
   prepare:L('Завершіть підготовку, а початок справи відкладіть.',
    'Finish the preparation and postpone beginning the project.')}
