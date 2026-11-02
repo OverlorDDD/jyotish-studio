@@ -14,6 +14,7 @@ import {buildAdvancedSynthesis} from './advanced-synthesis.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation,createVerifiedSiderealPlanetAt} from './panchanga.ts';
 import {normalizePanchangaLocation} from './panchanga-location.ts';
+import {buildP35Calendar} from './panchanga-personal-calendar.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
@@ -26,6 +27,7 @@ const PRACTICES=['box','equal','extended'] as const;
 const calendarLimiter=createKeyedHourlyLimiter(20);
 const resonanceLimiter=createKeyedHourlyLimiter(40);
 const timingLimiter=createKeyedHourlyLimiter(12);
+const personalP35Limiter=createKeyedHourlyLimiter(8);
 function owner(req:IncomingMessage){const id=cookieUser(req);if(!id)throw new UnauthorizedException('Sign in to your Personal space');return id;}
 function mutation(req:IncomingMessage){if(!sameOrigin(req))throw new BadRequestException('Cross-origin personal update denied');return owner(req);}
 async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;input:unknown;result:unknown}|null){
@@ -573,6 +575,55 @@ export class PersonalController{
     throw new ServiceUnavailableException('Verified private time windows unavailable');
    }
   }
+
+  /** P3.5 7/30 days — one authenticated request, shared sunrise batch and
+   * one Swiss cursor; not 30 calls to P3.4's exhaustive hourly endpoint.
+   * Every day is clearly a sunrise snapshot, with exact lunar/dasha events.
+   */
+  @Get('panchanga/calendar') @Header('Cache-Control','private, no-store')
+  @Header('Vary','Cookie')
+  async panchangaPersonalCalendar(@Req()req:IncomingMessage,
+   @Query('start')start?:string,@Query('days')days?:string,
+   @Query('zone')zone?:string,@Query('latitude')latitude?:string,
+   @Query('longitude')longitude?:string){
+   const uid=owner(req);
+   if(!personalP35Limiter(uid))throw new BadRequestException('Too many Personal calendar requests');
+   if(!start||!['7','30'].includes(days||'')||!zone||
+    latitude===undefined||longitude===undefined)
+    throw new BadRequestException('Require start, days=7 or 30 and exact observer');
+   const raw={date:start,timeZone:zone,latitude:Number(latitude),longitude:Number(longitude)};
+   let observer:ReturnType<typeof validatePanchangaLocation>;
+   try{observer=validatePanchangaLocation(raw);
+    // No midnight/date overflow past the independently supported source era.
+    const end=Date.parse(start+'T00:00:00Z')+Number(days)*86400000;
+    if(new Date(end-86400000).getUTCFullYear()>2099)throw Error('Date range out of bounds');
+   }catch(e){throw new BadRequestException(e instanceof Error?e.message:'Invalid observer');}
+   const record=await this.prisma.personalProfile.findUnique({where:{userId:uid},
+    select:{primaryChartId:true}});
+   if(!record?.primaryChartId)
+    return {status:'requires_primary_chart',method:'NO_IMPLICIT_CHART_SELECTION'};
+   const row=await this.prisma.chart.findFirst({
+    where:{id:record.primaryChartId,ownerId:uid},select:{id:true,input:true,result:true}
+   });
+   if(!row)return {status:'requires_verified_chart',method:'OWNER_CHART_MISSING'};
+   const recovery=await resolvePersonalChart(this.prisma,row),chart=recovery.chart;
+   if(!chart||recovery.status==='needs_review'||recovery.status==='temporarily_unavailable')
+    return {status:'requires_verified_chart',method:'VERIFIED_JQA3_REQUIRED'};
+   const moon=chart.d1.find(x=>x.name==='Moon');
+   const moonLongitude=moon?.longitude,moonSign=moon?.sign,lagnaSign=chart.ascendant?.sign;
+   if(typeof moonLongitude!=='number'||!Number.isFinite(moonLongitude)||
+     moonLongitude<0||moonLongitude>=360||!Number.isInteger(moonSign)||
+     moonSign!==Math.floor(moonLongitude/30)+1||
+     !Number.isInteger(lagnaSign)||lagnaSign!<1||lagnaSign!>12)
+     return {status:'requires_verified_chart',method:'INCONSISTENT_VERIFIED_NATAL_ANCHORS'};
+   try{return await buildP35Calendar({
+     start,days:Number(days) as 7|30,timeZone:observer.timeZone,
+     latitude:observer.latitude,longitude:observer.longitude
+    },{moonLongitude,moonSign:moonSign!,lagnaSign:lagnaSign!,dasha:chart.dasha||[]});}
+   catch{
+    throw new ServiceUnavailableException('Verified P3.5 calendar unavailable; no synthesized timing');
+   }
+  }
  @Get('panchanga') @Header('Cache-Control','private, no-store')
  async personalPanchanga(@Req()req:IncomingMessage,
   @Query('date')date?:string,@Query('zone')zone?:string,
@@ -693,6 +744,7 @@ for(const [name,types]of [
  ['calendar',[Object,String,String]],
  ['personalPanchanga',[Object,String,String,String,String]],
  ['panchangaTiming',[Object,String,String,String,String]],
+ ['panchangaPersonalCalendar',[Object,String,String,String,String,String]],
  ['getPanchangaLocation',[Object]],
  ['savePanchangaLocation',[Object]],
  ['clearPanchangaLocation',[Object]],
