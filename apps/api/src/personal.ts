@@ -24,6 +24,7 @@ const TOPICS=['astronomy','jyotish','tarot','yoga','vedic-traditions','academy',
  'astrology','meditation','vedic','self-development','natal-charts','nakshatras','mantras','pranayama'] as const;
 const PRACTICES=['box','equal','extended'] as const;
 const calendarLimiter=createKeyedHourlyLimiter(20);
+const resonanceLimiter=createKeyedHourlyLimiter(40);
 function owner(req:IncomingMessage){const id=cookieUser(req);if(!id)throw new UnauthorizedException('Sign in to your Personal space');return id;}
 function mutation(req:IncomingMessage){if(!sameOrigin(req))throw new BadRequestException('Cross-origin personal update denied');return owner(req);}
 async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;input:unknown;result:unknown}|null){
@@ -347,7 +348,7 @@ export class PersonalController{
   @Query('latitude')latitude?:string,@Query('longitude')longitude?:string,
   @Query('at')at?:string){
   const uid=owner(req);
-  if(!calendarLimiter(uid))throw new BadRequestException('Too many personal calendar requests');
+  if(!resonanceLimiter(uid))throw new BadRequestException('Too many personal resonance requests');
   const raw={date,timeZone:zone,
    latitude:latitude===undefined?undefined:Number(latitude),
    longitude:longitude===undefined?undefined:Number(longitude)};
@@ -383,7 +384,7 @@ export class PersonalController{
   catch{throw new ServiceUnavailableException('Verified local Panchanga unavailable');}
   let evaluationMs=Date.parse(day.sunriseUtc);
   if(at!==undefined){
-   if(typeof at!=='string'||!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,3})?Z$/.test(at))
+   if(typeof at!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(at))
     throw new BadRequestException('Use precise UTC moment');
    evaluationMs=Date.parse(at);
    if(!Number.isFinite(evaluationMs)||evaluationMs<Date.parse(day.sunriseUtc)||
