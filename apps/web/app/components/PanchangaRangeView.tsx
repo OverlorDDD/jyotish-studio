@@ -19,7 +19,7 @@ type Overview={version:string;scope:string;monthSystem:MonthSystem;days:Day[];ph
  observer:{timeZone:string};observanceDayCertifiedByTradition:boolean;
  astronomicalTimeCertifiedByIndependentReference:boolean};
 const NAK_UK=['Ашвіні','Бхарані','Кріттіка','Рохіні','Мрігашіра','Ардра','Пунарвасу','Пушʼя','Ашлеша','Магха','Пурва Пхалгуні','Уттара Пхалгуні','Хаста','Чітра','Сваті','Вішакха','Анурадха','Джʼєштха','Мула','Пурва Ашадха','Уттара Ашадха','Шравана','Дханіштха','Шатабхіша','Пурва Бхадрапада','Уттара Бхадрапада','Реваті'];
-const YOGA_UK=['Вішкумбха','Пріті','Аюшман','Саубхагʼя','Шобхана','Атіганда','Сукарма','Дхріті','Шула','Ганда','Вріддхі','Дхрува','Вʼягхата','Харшана','Сіддхі','Ваджра','Вʼятіпата','Варіяна','Парігха','Шіва','Сіддха','Садхʼя','Шубха','Шукла','Брахма','Індра','Вайдхріті'];
+const YOGA_UK=['Вішкумбха','Пріті','Аюшман','Саубхагʼя','Шобхана','Атіганда','Сукарма','Дхріті','Шула','Ганда','Вріддхі','Дхрува','Вʼягхата','Харшана','Ваджра','Сіддхі','Вʼятіпата','Варіяна','Парігха','Шіва','Сіддха','Садхʼя','Шубха','Шукла','Брахма','Індра','Вайдхріті'];
 const VARA_UK:Record<string,string>={
  Ravivara:'Неділя (Сонце)',Somavara:'Понеділок (Місяць)',Mangalavara:'Вівторок (Марс)',
  Budhavara:'Середа (Меркурій)',Guruvara:'Четвер (Юпітер)',Shukravara:'Пʼятниця (Венера)',Shanivara:'Субота (Сатурн)'};
@@ -145,7 +145,8 @@ export default function PanchangaRangeView({locale,view,point,onPick}:{
      {!isMonth&&<span className={styles.smartDetails}>
       {uk?'Вара':'Vara'}: {vara(d)} · {uk?'Йога':'Yoga'}: {yoga(d)} · {uk?'Карана':'Karana'}: {karana(d)}
      </span>}
-     <span className={styles.smartMonth}>{month(d)}{d.moonMonth.lunarMonthStatus==='adhika'?' · '+(uk?'Адхіка':'Adhika'):''}</span>
+     <span className={styles.smartMonth}>{month(d)}{d.moonMonth.lunarMonthStatus==='adhika'?' · '+(uk?'Адхіка':'Adhika'):
+      d.moonMonth.lunarMonthStatus==='kshaya_review_required'?' · '+(uk?'Особливий місяць':'Exceptional month'):''}</span>
      {events.slice(0,isMonth?2:8).map(e=><span className={styles.smartMarker} key={e.key}
       data-type={e.astronomical?'astronomical':'candidate'}>
       {e.label}{!isMonth?' · '+eventTime(e.atUtc):''}

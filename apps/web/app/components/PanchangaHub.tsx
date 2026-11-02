@@ -130,8 +130,8 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   setRequested(f=>({...initialForm,...(f||{}),date:day}));
  },[]);
  useEffect(()=>{
-  if(!requested)return;
-  let live=true;const controller=new AbortController();setLoading(true);setError(false);
+  if(!requested||view!=='day')return;
+  let live=true;const controller=new AbortController();setLoading(true);setError(false);setResult(null);
   const q=new URLSearchParams({date:requested.date,zone:requested.timeZone,latitude:requested.latitude,longitude:requested.longitude});
   fetch('/api/v1/panchanga/day?'+q,{cache:'no-store',signal:controller.signal})
    .then(async r=>{if(!r.ok)throw Error(String(r.status));return await r.json() as Day;})
@@ -139,7 +139,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    .catch(()=>{if(live){pendingManualCalculation.current=false;setResult(null);setError(true)}})
    .finally(()=>{if(live)setLoading(false)});
   return()=>{live=false;controller.abort()};
- },[requested]);
+ },[requested,view]);
  const fmt=(iso:string)=>new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{
   timeZone:result?.location.timeZone||form.timeZone,dateStyle:'medium',timeStyle:'short'
  }).format(new Date(iso));
@@ -226,7 +226,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank" rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
    </aside>
   </div>}
-  <div className={styles.extraSections}>
+  {view==='day'&&<div className={styles.extraSections}>
    <h2>{uk?'Інші календарні можливості':'More calendar features'}</h2>
   <AstronomicalEventsPanel locale={locale} start={requested?.date??form.date} zone={requested?.timeZone??form.timeZone}/>
   <PersonalPanchanga locale={locale} point={requested??form}/>
@@ -237,6 +237,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <p>{uk?'Тут вище — точна видимість для вибраного міста. У календарі — всі п’ять глобальних затемнень року та пояснення їхніх фаз.':'The calculator above checks visibility for your city. The calendar lists all five worldwide eclipses and explains their phases.'}</p>
    <Link href={'/'+locale+'/eclipses/2027'}>{uk?'Відкрити календар 2027':'Explore the 2027 calendar'} →</Link>
   </aside>
-  </div>
+  </div>}
  </section>;
 }
