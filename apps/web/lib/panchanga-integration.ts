@@ -56,6 +56,11 @@ export function verifyIntegratedOverview(overview:GuideOverview,day:ExactDay,poi
  for(const phase of overview.phaseEvents){
   if(phase.localDate!==point.date||!phaseNames.includes(phase.kind)||!Number.isFinite(parse(phase.atUtc)))
    throw Error('Unverified observer-local lunar phase');
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:point.timeZone,
+   year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(phase.atUtc));
+  const part=(key:string)=>parts.find(x=>x.type===key)?.value||'';
+  if(part('year')+'-'+part('month')+'-'+part('day')!==phase.localDate)
+   throw Error('Moon phase assigned to wrong observer-local date');
  }
  return {day:item,phases:overview.phaseEvents};
 }
