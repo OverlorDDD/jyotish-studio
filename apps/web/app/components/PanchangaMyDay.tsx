@@ -93,6 +93,7 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      <p className={styles.scopeNote}>{uk?'Обрана тема':'Selected topic'}: <strong>{topics[topic][locale]}</strong> · {uk?
       'Астрологічна традиція, не персональна натальна оцінка':
       'Traditional calendar, not a natal reading'}</p>
+     <p className={styles.scopeNote}>{uk?'Обрана справа':'Planned activity'}: <strong>{interpretation.subject[locale]}</strong></p>
      <h4 data-testid="p32-headline">{interpretation.headline[locale]}</h4>
      <p className={styles.action}>{interpretation.action[locale]}</p>
      <p className={styles.scopeNote}>{interpretation.reason[locale]}</p>
