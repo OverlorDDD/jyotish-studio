@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
 import {p31DaySummary,P31_TOPICS,type P31Topic,type P31Day} from '../../lib/panchanga-p31-model';
 import {interpretPanchanga,type P32Day} from '../../lib/panchanga-p32-engine';
+import {synthesizePersonalResonance,validateP33Report,type P33Report,type P33Result} from '../../lib/panchanga-p33-resonance';
 import styles from './PanchangaMyDay.module.css';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
@@ -22,6 +23,9 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
  const [eclipseRequest,setEclipseRequest]=useState<Point|null>(null);
  const [eclipses,setEclipses]=useState<EclipseResponse|null>(null);
  const [skyStatus,setSkyStatus]=useState<'idle'|'loading'|'ready'|'error'>('idle');
+ const [resonance,setResonance]=useState<{report:P33Report;atUtc:string;key:string}|null>(null);
+ const [personalState,setPersonalState]=useState<'loading'|'guest'|'no_chart'|'ready'|'error'>('loading');
+ const [personalRetry,setPersonalRetry]=useState(0);
  useEffect(()=>{
   const tick=()=>setNow(Date.now());tick();
   const id=setInterval(tick,60000);return()=>clearInterval(id);
@@ -33,6 +37,46 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
   catch{return null;} // Fail closed: never emit a guessed tradition verdict.
  },[day,now,topic]);
  const selectedKey=[point.date,point.timeZone,point.latitude,point.longitude].join('|');
+ // Once per selected observer/date: authenticated private result only; no shared
+ // cache, natal birth parameters in URLs, or expensive calls on topic changes.
+ useEffect(()=>{
+  let active=true;const controller=new AbortController();
+  setPersonalState('loading');setResonance(null);
+  const current=Date.now();
+  const local=new Intl.DateTimeFormat('en-US',{timeZone:point.timeZone,
+   year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(current));
+  const p=(k:string)=>local.find(x=>x.type===k)?.value||'';
+  const civil=p('year')+'-'+p('month')+'-'+p('day');
+  const live=civil===point.date&&current>=Date.parse(day.sunriseUtc)&&current<Date.parse(day.nextSunriseUtc);
+  const target=live?new Date(current).toISOString():day.sunriseUtc;
+  const search=new URLSearchParams({date:point.date,zone:point.timeZone,
+   latitude:point.latitude,longitude:point.longitude,at:target});
+  fetch('/api/v1/personal/panchanga/resonance?'+search,{credentials:'same-origin',
+   cache:'no-store',signal:controller.signal})
+   .then(async response=>{
+    if(response.status===401){if(active)setPersonalState('guest');return null;}
+    if(!response.ok)throw Error('Private resonance unavailable');
+    return response.json();
+   }).then(payload=>{
+    if(!active||!payload)return;
+    if(payload.status==='requires_primary_chart'||payload.status==='requires_verified_chart'){
+     setPersonalState('no_chart');return;
+    }
+    validateP33Report(payload as P33Report,point,day as P32Day,target);
+    setResonance({report:payload as P33Report,atUtc:target,key:selectedKey});
+    setPersonalState('ready');
+   }).catch(()=>{if(active&&!controller.signal.aborted)setPersonalState('error')});
+  return()=>{active=false;controller.abort()};
+ },[day,point.date,point.timeZone,point.latitude,point.longitude,selectedKey,personalRetry]);
+ const personal=useMemo(():P33Result|null=>{
+  if(!resonance||resonance.key!==selectedKey)return null;
+  try{
+   const at=Date.parse(resonance.atUtc);
+   return synthesizePersonalResonance(
+    interpretPanchanga(day as P32Day,at,topic),day as P32Day,point,resonance.report,resonance.atUtc);
+  }catch{return null;}
+ },[day,point,topic,resonance,selectedKey]);
+ const decision=personal||interpretation;
  const queryKey=eclipseRequest?[eclipseRequest.date,eclipseRequest.timeZone,
    eclipseRequest.latitude,eclipseRequest.longitude].join('|'):null;
  const visibleQuery=queryKey===selectedKey;
@@ -90,17 +134,43 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
       onClick={()=>setTopic(key)}>{topics[key][locale]}</button>)}
     </div>
     {interpretation?<div data-testid="p32-interpretation">
-     <p className={styles.scopeNote}>{uk?'Обрана тема':'Selected topic'}: <strong>{topics[topic][locale]}</strong> · {uk?
-      'Астрологічна традиція, не персональна натальна оцінка':
-      'Traditional calendar, not a natal reading'}</p>
+     <p className={styles.scopeNote}>{uk?'Обрана тема':'Selected topic'}: <strong>{topics[topic][locale]}</strong> · {personal?
+      (uk?'Персонально за перевіреною натальною картою':'Personal reading from verified birth chart'):
+      (uk?'Загальна Панчанга · без натальної оцінки':'General Panchanga · no natal comparison')}</p>
      <p className={styles.scopeNote}>{uk?'Обрана справа':'Planned activity'}: <strong>{interpretation.subject[locale]}</strong></p>
-     <h4 data-testid="p32-headline">{interpretation.headline[locale]}</h4>
-     <p className={styles.action}>{interpretation.action[locale]}</p>
-     <p className={styles.scopeNote}>{interpretation.reason[locale]}</p>
+     <h4 data-testid="p32-headline">{decision?.headline[locale]}</h4>
+     <p className={styles.action}>{decision?.action[locale]}</p>
+     <p className={styles.scopeNote}>{decision?.reason[locale]}</p>
+     {personal&&<div data-testid="p33-personal" className={styles.personalSummary}>
+      <p className={styles.scopeNote}>{uk?'Натальний Місяць, лагна, Тарабала, Чандрабала, транзити й Вімшоттарі':
+       'Natal Moon, ascendant, Tara/Chandra Bala, transits and Vimshottari'} ·
+       {' '}{fmt(personal.atUtc,true)}</p>
+      <details className={styles.reasonDetails} data-testid="p33-evidence">
+       <summary>{uk?'Чому це стосується саме мене?':'Why does this apply to me?'}</summary>
+       <ul>{personal.evidence.map(e=><li key={e.id}>{e.note[locale]}</li>)}</ul>
+      </details>
+     </div>}
+     {personalState==='loading'&&!personal&&<p className={styles.scopeNote} role="status">{uk?
+      'Перевіряємо натальну карту для персонального висновку…':
+      'Checking your birth chart for a personal reading…'}</p>}
+     {personalState==='no_chart'&&!personal&&<p className={styles.scopeNote} data-testid="p33-need-chart">{uk?
+      'Оберіть основну перевірену натальну карту в «Мій Всесвіт», щоб отримати особисту пораду.':
+      'Select a verified primary birth chart in Personal for an individual reading.'}</p>}
+     {personalState==='error'&&!personal&&<p className={styles.scopeNote} role="alert">
+      {uk?'Персональний розрахунок недоступний; показана лише загальна Панчанга.':
+       'Private calculations unavailable; showing the general Panchanga only.'}
+      {' '}<button type="button" onClick={()=>setPersonalRetry(v=>v+1)}>
+       {uk?'Повторити':'Retry'}</button>
+     </p>}
+     {personal&&<button type="button" className={styles.resonanceRefresh}
+      onClick={()=>setPersonalRetry(v=>v+1)}>{uk?'Оновити персональний розрахунок':'Refresh personal reading'}</button>}
      <p className={styles.scopeNote}>{uk?'Раху-калам, коли за традицією не починають важливих справ':
       'Rahu Kalam, traditionally avoided for new undertakings'}:
       {' '}<strong>{fmt(summary.rahuFromUtc)}–{fmt(summary.rahuUntilUtc)}</strong></p>
-     <p className={styles.scopeNote}>{interpretation.moment==='live'?
+     <p className={styles.scopeNote}>{personal?
+      (uk?'Персональна оцінка на вказаний точний момент; час інших переходів перевіряється на P3.4.':
+       'Personal comparison at the shown exact moment; other timing boundaries are evaluated in P3.4.'):
+      interpretation.moment==='live'?
       (uk?'За показниками на поточний момент.':'Based on factors at this moment.'):
       (uk?'Оцінка на схід Сонця обраної дати, не висновок на поточну годину.':
        'Sunrise snapshot for the selected date, not a claim about this hour.')}</p>
@@ -120,9 +190,11 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      </details>
     </div>:<p role="alert">{uk?'Не вдалося перевірити поєднання п’яти показників. Пораду не показано.':
      'Could not verify all five factors. No advice is displayed.'}</p>}
-    <p className={styles.scopeNote}>{uk?
-     'Для персонального висновку за натальною картою і точного вибору години потрібні наступні розрахунки.':
-     'A natal comparison and precise electional hour require further calculations.'}</p>
+    <p className={styles.scopeNote}>{personal?
+     (uk?'Точний вибір сприятливої години буде доступний після P3.4.':
+      'A precise electional hour will be available after P3.4.'):
+     (uk?'Персональна оцінка доступна з перевіреною натальною картою.':
+      'A verified birth chart is required for a personal comparison.')}</p>
     <Link className={styles.profileLink} href={'/'+locale+'/personal'}>
      {uk?'Створити або перевірити натальну карту для персонального аналізу':
       'Create or check your birth chart for a personal reading'}
