@@ -281,6 +281,10 @@ export default function PersonalDashboard({locale}:{locale:PortalLocale}){
    </section>
    <section className={styles['gp-panel']} data-testid="personal-calendar">
     <div className={styles['gp-panel-heading']}><div><span className={styles['gp-eyebrow']}>LUNAR PATH</span><h2>{t.calendar}</h2></div><CalendarDays size={26}/></div>
+    <Link href={'/'+locale+'/panchanga?view=personal'} className={styles['gp-text-link']}>
+     {uk?'Відкрити Панчангу 7/30: натальні показники на сході та точні переходи':
+      'Open Panchanga 7/30: natal sunrise indicators and exact transitions'}
+     <ArrowRight size={14}/></Link>
     <div className={styles['gp-tabs']} role="group" aria-label={t.calendar}>
      {([7,30] as const).map(n=><button type="button" key={n} aria-pressed={days===n} onClick={()=>setDays(n)}>{n===7?t.seven:t.thirty}</button>)}
     </div>
