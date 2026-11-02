@@ -107,7 +107,7 @@ function checkAngas(a:Angas){
 export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic):P32Result{
  if(!ALL_TOPICS.includes(topic)||!Number.isFinite(nowMs))throw Error('P32 invalid request');
  const sunrise=parse(day.sunriseUtc),sunset=parse(day.sunsetUtc),next=parse(day.nextSunriseUtc),
-  rahuFrom=parse(day.daytimeKalas?.rahuKalam?.fromUtc),rahuEnd=parse(day.daytimeKalas?.rahuKalam?.untilUtc);
+  rahuFrom=parse(day.daytimeKalas?.rahuKalam?.fromUtc??''),rahuEnd=parse(day.daytimeKalas?.rahuKalam?.untilUtc??'');
  if(!(sunrise<rahuFrom&&rahuFrom<rahuEnd&&rahuEnd<=sunset&&sunset<next&&
   next-sunrise>=20*3600000&&next-sunrise<=28*3600000))throw Error('P32 unverified sunrise/rahu times');
  const live=nowMs>=sunrise&&nowMs<next&&dayAt(nowMs,day.location.timeZone)===day.date;
@@ -192,7 +192,8 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic):P32Re
  const status:P32Result['status']=blocks.length?'avoid':cautions.length?'caution':supports.length>=2?'supported':'neutral';
  const first=blocks[0]||cautions[0]||supports[0]||evidences[0];
  const action=TOPICS[topic].act,prep=TOPICS[topic].prepare;
- const headline=status==='avoid'?speak('Не починайте цю справу зараз','Do not start this undertaking now'):
+ const headline=status==='avoid'?(live?speak('Не починайте цю справу зараз','Do not start this undertaking now'):
+  speak('На сході Сонця — несприятливі умови для початку','At sunrise — unfavourable for starting')):
   status==='caution'?speak('Краще відкласти початок','Better postpone the start'):
   status==='supported'?speak('Традиційні показники підтримують цей задум','Traditional factors support this plan'):
   speak('Немає достатніх підстав радити початок','Not enough evidence to recommend starting');
