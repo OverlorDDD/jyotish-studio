@@ -66,7 +66,7 @@ test('P3.4 searches EACH actual boundary, not noon/sunrise only',()=>{
  assert.ok(t.windows.some(w=>w.startUtc==='2026-11-02T05:45:00.000Z'&&w.status==='avoid'));
  assert.ok(t.windows.some(w=>w.startUtc==='2026-11-02T07:00:00.000Z'&&w.status==='supported'));
  assert.ok(t.windows.some(w=>w.startUtc==='2026-11-02T12:00:00.000Z'&&w.status==='caution'));
- assert.equal(t.nextSupported?.startUtc,'2026-11-02T07:00:00.000Z');
+ assert.equal(t.nextSupported?.startUtc,sunrise); // First verified window is before Rahu; separate test searches after Rahu starts.
  assert.equal(t.windows.at(-1).endUtc,next);
 });
 test('P3.4 search chooses a future window and does not cross its next hard boundary',()=>{
