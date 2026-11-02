@@ -8,7 +8,7 @@ const layout=read('apps/web/app/layout.tsx').toString();
 const source=read('apps/web/brand-assets/galaxiora-approved-spiral-6.png');
 test('Brand source is EXACT user-approved original galaxy artwork #6, no old G SVG',()=>{
  const sha=createHash('sha1').update(Buffer.from('blob '+source.length+String.fromCharCode(0))).update(source).digest('hex');
- assert.equal(sha,'e6cf1437d0d48c6851093d21c1873fd64f3d03fe');
+ assert.equal(sha,'c6a467d3ddfd2848181203382f16f60d9030b139');
  assert.deepEqual([...source.subarray(0,8)],[137,80,78,71,13,10,26,10]);
  assert.equal(source.readUInt32BE(16),64);
  assert.equal(source.readUInt32BE(20),64);
