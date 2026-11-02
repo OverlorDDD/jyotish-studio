@@ -27,7 +27,7 @@ export type InterpretationEvidence={id:string;factor:Factor;tone:Tone;detail:Lan
  source:'rashtriya'|'drik-nakshatra'|'muhurta-tradition'|'swiss-calendar';
  startUtc?:string;endUtc?:string};
 export type P32Result={version:'panchanga-interpretation-p32';scope:'traditional-calendar-only';
- topic:P31Topic;date:string;timeZone:string;moment:'live'|'sunrise-snapshot';
+ topic:P31Topic;date:string;timeZone:string;moment:'live'|'sunrise-snapshot'|'interval';
  status:'avoid'|'caution'|'supported'|'neutral';evaluatedAtUtc:string;
  headline:Lang;action:Lang;reason:Lang;untilUtc:string|null;
  moon:Lang;subject:Lang;personalized:false;coverage:{fiveLimbs:true;moonPhase:true;rahu:true;
@@ -116,7 +116,7 @@ function checkAngas(a:Angas){
   a.yoga.name!==YOGA_NAMES[a.yoga.number-1])
   throw Error('P32 inconsistent five limbs; no interpretation emitted');
 }
-export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic,mode:'auto'|'sunrise-snapshot'='auto'):P32Result{
+export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic,mode:'auto'|'sunrise-snapshot'|'at-instant'='auto'):P32Result{
  if(!ALL_TOPICS.includes(topic)||!Number.isFinite(nowMs))throw Error('P32 invalid request');
  const sunrise=parse(day.sunriseUtc),sunset=parse(day.sunsetUtc),next=parse(day.nextSunriseUtc),
   rahuFrom=parse(day.daytimeKalas?.rahuKalam?.fromUtc??''),rahuEnd=parse(day.daytimeKalas?.rahuKalam?.untilUtc??'');
@@ -125,7 +125,9 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic,mode:'
  const expectedVara=new Date(day.date+'T12:00:00Z').getUTCDay()+1;
  if(!Number.isFinite(expectedVara)||day.sunrise.vara?.number!==expectedVara)
   throw Error('P32 sunrise weekday mismatch');
- const live=mode!=='sunrise-snapshot'&&nowMs>=sunrise&&nowMs<next&&dayAt(nowMs,day.location.timeZone)===day.date;
+ const exact=mode==='at-instant';
+ if(exact&&(nowMs<sunrise||nowMs>=next))throw Error('P34 sample outside verified sunrise day');
+ const live=exact||(mode!=='sunrise-snapshot'&&nowMs>=sunrise&&nowMs<next&&dayAt(nowMs,day.location.timeZone)===day.date);
  const sample=live?nowMs:sunrise,selected={} as Angas;
  const untils:number[]=[next];
  for(const limb of ['tithi','nakshatra','yoga','karana'] as const){
@@ -223,7 +225,7 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic,mode:'
   speak('Показники не дають стійкого спільного висновку.','The evaluated factors do not give a consistent joint conclusion.');
  const nextChange=live?Math.min(...untils.filter(ms=>ms>nowMs)):null;
  return {version:'panchanga-interpretation-p32',scope:'traditional-calendar-only',topic,date:day.date,
-  timeZone:day.location.timeZone,moment:live?'live':'sunrise-snapshot',evaluatedAtUtc:new Date(sample).toISOString(),status,headline,
+  timeZone:day.location.timeZone,moment:exact?'interval':live?'live':'sunrise-snapshot',evaluatedAtUtc:new Date(sample).toISOString(),status,headline,
   action:advice,reason:reasons,untilUtc:nextChange===null?null:new Date(nextChange).toISOString(),
   moon:waxing?speak('Зростаючий Місяць','Waxing Moon'):speak('Спадний Місяць','Waning Moon'),
   subject:action,personalized:false,coverage:{fiveLimbs:true,moonPhase:true,rahu:true,natal:false,exactMuhurta:false},
