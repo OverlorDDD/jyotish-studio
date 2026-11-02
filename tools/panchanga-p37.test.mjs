@@ -62,3 +62,16 @@ test('P3.7: no invented classification when backend or P3.2 evidence is missing'
  assert.throws(()=>explainClassicalPanchanga(d,{...verified,evidence:verified.evidence.filter(e=>e.factor!=='yoga')}),/missing source-backed yoga/);
  assert.throws(()=>explainClassicalPanchanga(d,{...verified,evaluatedAtUtc:'2026-11-04T10:00:00.000Z'}),/outside verified/);
 });
+
+test('P3.7: added specific traditional education and foundation activities, never broad outcomes',()=>{
+ const education=compile(day(1,8),'study');
+ assert.equal(education[1].tone,'supports');
+ assert.match(education[1].application.uk,/навчан/);
+ const foundation=compile(day(4,8),'home');
+ assert.equal(foundation[1].tone,'supports');
+ assert.match(foundation[1].application.uk,/фундамент/);
+});
+test('P3.7: a wrong Nakshatra label cannot silently use a different class',()=>{
+ const d=day(11,8);d.sunrise.nakshatra.name='Rohini';
+ assert.throws(()=>compile(d,'relationships'),/number\/name mismatch/);
+});
