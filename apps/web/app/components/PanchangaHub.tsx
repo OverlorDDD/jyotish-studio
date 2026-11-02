@@ -145,6 +145,12 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    .finally(()=>{if(live)setLoading(false)});
   return()=>{live=false;controller.abort()};
  },[requested,view]);
+ // Never briefly display a previous city's/day's data as the new observer's
+ // first-screen advice during async location or date changes.
+ const dayMatches=Boolean(result&&requested&&result.date===requested.date&&
+  result.location.timeZone===requested.timeZone&&
+  Math.abs(result.location.latitude-Number(requested.latitude))<1e-8&&
+  Math.abs(result.location.longitude-Number(requested.longitude))<1e-8);
  const fmt=(iso:string)=>new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{
   timeZone:result?.location.timeZone||form.timeZone,dateStyle:'medium',timeStyle:'short'
  }).format(new Date(iso));
@@ -218,7 +224,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    monthSystem={monthSystem} onPick={selectDay}/>}
   {view==='day'&&requested&&loading&&<p role="status" className={styles.empty}>{t.busy}</p>}
   {view==='day'&&requested&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
-  {view==='day'&&result&&requested&&<>
+  {view==='day'&&dayMatches&&result&&requested&&<>
    <PanchangaMyDay locale={locale} day={result} point={requested}/>
    <details className={styles.p31Detail} data-testid="p31-details"
     onToggle={e=>setShowDetails(e.currentTarget.open)}>
