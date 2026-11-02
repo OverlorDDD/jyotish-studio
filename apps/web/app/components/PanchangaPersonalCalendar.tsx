@@ -10,7 +10,8 @@ import styles from './PanchangaPersonalCalendar.module.css';
 const topicLabels:Record<P31Topic,{uk:string;en:string}>={
  work:{uk:'Робота',en:'Work'},money:{uk:'Гроші',en:'Money'},
  relationships:{uk:'Стосунки',en:'Relationships'},travel:{uk:'Поїздки',en:'Travel'},
- personal:{uk:'Особисте',en:'Personal'}
+ personal:{uk:'Особисте',en:'Personal'},
+ study:{uk:'Навчання',en:'Study'},home:{uk:'Фундамент',en:'Foundation'}
 };
 const statusLabels={
  avoid:{uk:'Сильне обмеження на сході',en:'Hard sunrise restriction'},
