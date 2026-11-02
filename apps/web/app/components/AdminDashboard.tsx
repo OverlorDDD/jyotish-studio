@@ -11,10 +11,12 @@ type Dashboard={generatedAt?:string;newUsers7d?:number;newCharts7d?:number;newOr
  requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;
  costUsdReported:number|null;byProvider:{provider:string;model:string;requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;costUsdReported:number|null}[]
 }};
+type Traffic={status:'ok'|'not_configured'|'unavailable';activeUsers30m:number|null;generatedAt:string;provider:'ga4_data_api';message?:string};
 export default function AdminDashboard({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
  const [data,setData]=useState<Dashboard|null>(null);
  const [busy,setBusy]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState('');
+ const [traffic,setTraffic]=useState<Traffic|null>(null),[trafficError,setTrafficError]=useState('');
  const refresh=useCallback(async()=>{
   setRefreshing(true);
   try{
@@ -23,13 +25,19 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
   }catch(e){setError(e instanceof Error?e.message:String(e));}
   finally{setBusy(false);setRefreshing(false);}
  },[]);
+ const refreshTraffic=useCallback(async()=>{
+  try{
+   const response=await fetch('/api/v1/admin/traffic/realtime',{cache:'no-store',credentials:'same-origin'});
+   setTraffic(await readApiJson<Traffic>(response));setTrafficError('');
+  }catch(e){setTrafficError(e instanceof Error?e.message:String(e));}
+ },[]);
  useEffect(()=>{
-  void refresh();
-  const timer=setInterval(()=>{if(document.visibilityState==='visible')void refresh();},60000);
-  const focus=()=>{if(document.visibilityState==='visible')void refresh();};
-  window.addEventListener('focus',focus);
-  return()=>{clearInterval(timer);window.removeEventListener('focus',focus)};
- },[refresh]);
+  void refresh();void refreshTraffic();
+  const check=()=>{if(document.visibilityState==='visible'){void refresh();void refreshTraffic();}};
+  const timer=setInterval(check,60000);
+  window.addEventListener('focus',check);
+  return()=>{clearInterval(timer);window.removeEventListener('focus',check)};
+ },[refresh,refreshTraffic]);
  const shownAt=(iso:string|undefined)=>iso?new Date(iso).toLocaleString(uk?'uk-UA':'en-GB'):'—';
  const count=(x:number)=>x.toLocaleString(uk?'uk-UA':'en-US');
  const fields=data?[
@@ -53,7 +61,7 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
    'ADMIN only. Totals are all time, AI usage covers 30 days. Private requests and natal data are never shown.'}</p>
   <p className="as-muted" aria-live="polite">
    {uk?'Актуальність даних: ':'Data as of: '}<strong>{shownAt(data?.generatedAt)}</strong>{' '}
-   <button type="button" onClick={()=>void refresh()} disabled={refreshing}>
+   <button type="button" onClick={()=>{void refresh();void refreshTraffic()}} disabled={refreshing}>
     {refreshing?(uk?'Оновлення…':'Refreshing…'):(uk?'Оновити зараз':'Refresh now')}
    </button>{' · '}{uk?'Автооновлення кожні 60 с':'Auto-refresh every 60s'}
   </p>
@@ -61,6 +69,19 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
   {error?<p role="alert">{uk?'Помилка отримання актуальних даних: ':'Fresh data unavailable: '}
    {error}{data?(uk?' · Показано попередній знімок':' · Showing previous snapshot'):''}</p>:null}
   {data&&<>
+   <section aria-label={uk?'Реальні відвідувачі GA4':'GA4 live audience'} data-testid="admin-live-traffic">
+    <h2>{uk?'Відвідування зараз (GA4)':'Visitors now (GA4)'}</h2>
+    <p className="as-muted">{uk?'Джерело: Google Analytics 4 Data API, активні користувачі за останні 30 хвилин. Це не кількість зареєстрованих акаунтів. Статистика залежить від згоди користувачів і доступності Google.':'Source: Google Analytics 4 Data API, active users over the past 30 minutes. This is not registered accounts. Results reflect consenting visitors and Google availability.'}</p>
+    {traffic?.status==='ok'?<div className="as-admin-grid"><div className="as-admin-metric">
+     <span>{uk?'Активні за 30 хвилин':'Active in last 30 min'}</span>
+     <strong data-testid="ga4-active30">{count(traffic.activeUsers30m??0)}</strong>
+    </div></div>:<p role="status">{traffic?.status==='not_configured'?
+      (uk?'GA4 Data API ще не підключений. Дані реєстрацій PostgreSQL нижче працюють окремо.':'GA4 Data API is not connected yet. PostgreSQL registration metrics below remain active.'):
+      traffic?.status==='unavailable'?(uk?'GA4 тимчасово недоступний або відсутні права читання. Не показуємо вигаданий нуль.':'GA4 is unavailable or API access is missing. We do not display a fabricated zero.'):
+      (uk?'Перевірка стану GA4…':'Checking GA4 status…')}</p>}
+    {traffic?.status==='ok'&&<p className="as-muted">{uk?'Остання відповідь GA4: ':'Last GA4 response: '}{shownAt(traffic.generatedAt)}{' · '}{uk?'Оновлення приблизно щохвилини':'Refresh about once a minute'}</p>}
+    {trafficError&&<p role="alert">{uk?'Помилка зв’язку з API: ':'API connection error: '}{trafficError}</p>}
+   </section>
    <div className="as-admin-grid">{fields.map(f=><div className="as-admin-metric" key={f.label}><span>{f.label}</span><strong>{f.value}</strong></div>)}</div>
    <p className="as-muted">{uk?'Запитів із підтвердженими загальними токенами: ':'Calls with provider-reported total tokens: '}{count(data.ai.requestsWithTokenUsage)} / {count(data.ai.requests)}</p>
    <h2>{uk?'AI: провайдери та моделі':'AI provider and model usage'}</h2>
