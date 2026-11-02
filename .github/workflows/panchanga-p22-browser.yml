@@ -1,4 +1,4 @@
-name: Panchanga P2.1–P3.1 Browser Integration
+name: Panchanga P2.1–P3.2 Browser Integration
 on:
   push:
     branches:
@@ -7,6 +7,7 @@ on:
       - feat/panchanga-v2-p24-unified-hub-20261102
       - release/panchanga-v2-p25-integrated-20261102
       - feat/panchanga-p31-my-day-ux-20261102
+      - feat/panchanga-p32-interpretation-engine-20261102
   pull_request:
     paths:
       - 'apps/web/app/components/Panchanga*'
@@ -73,7 +74,7 @@ jobs:
           npm run dev -w @jyotish/web > /tmp/panchanga-web.log 2>&1 &
           node --input-type=module -e 'let ok=false; for(let i=0;i<180;i++){try{const r=await fetch("http://127.0.0.1:3000/uk/panchanga");if(r.ok){ok=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000));} if(!ok)process.exit(1);'
       - name: Exercise day/range/live named timeline in desktop and phone Chromium
-        run: npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs e2e/panchanga-p25.spec.mjs e2e/panchanga-p31.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+        run: npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs e2e/panchanga-p25.spec.mjs e2e/panchanga-p31.spec.mjs e2e/panchanga-p32.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
       - name: Print development server logs if browser checks fail
         if: failure()
         run: |
