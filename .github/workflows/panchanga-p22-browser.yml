@@ -28,15 +28,15 @@ jobs:
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
-          POSTGRES_DB: ci
+          POSTGRES_DB: galaxiora_a1_test
         ports:
           - 5433:5432
         options: >-
-          --health-cmd "pg_isready -U ci -d ci"
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
           --health-interval 5s --health-timeout 3s --health-retries 12
     env:
-      CI: '1'
-      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test
       AUTH_SECRET: panchanga-v2-ci-only-synthetic-secret-2026
       SITE_NOINDEX: '1'
       NEWS_INGESTION_ENABLED: '0'
@@ -63,7 +63,7 @@ jobs:
       - name: Create synthetic local-only runtime configuration
         run: |
           printf '%s\n' \
-            'DATABASE_URL=postgresql://ci:ci@127.0.0.1:5433/ci' \
+            'DATABASE_URL=postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test' \
             'AUTH_SECRET=panchanga-v2-ci-only-synthetic-secret-2026' \
             'SITE_NOINDEX=1' \
             'NEWS_INGESTION_ENABLED=0' \

@@ -7,7 +7,7 @@ for(const locale of ['uk','en']){
   const advice=screen.getByTestId('p32-interpretation');
   await expect(advice).toBeVisible({timeout:90000});
   await expect(advice.getByTestId('p32-headline')).toBeVisible();
-  await expect(advice).toContainText(locale==='uk'?'Астрологічна традиція':'Traditional calendar');
+  await expect(advice).toContainText(locale==='uk'?'Загальна Панчанга · без натальної оцінки':'General Panchanga · no natal comparison');
   await expect(advice).toContainText(locale==='uk'?'Обрана справа':'Planned activity');
   const details=screen.getByTestId('p32-evidence');
   await expect(details).not.toHaveAttribute('open');
