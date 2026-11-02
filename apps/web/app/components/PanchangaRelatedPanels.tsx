@@ -13,8 +13,8 @@ export default function PanchangaRelatedPanels({locale,point}:{locale:PortalLoca
  const uk=locale==='uk';
  const [selected,setSelected]=useState<Panel|null>(null);
  const sections:Record<Panel,{name:string;hint:string}>={
-  personal:{name:uk?'Тарабала й Чандрабала':'Tarabala & Chandrabala',
-   hint:uk?'Тарабала та Чандрабала за натальною картою':'Tarabala and Chandrabala from your natal chart'},
+  personal:{name:uk?'Мій місячний ритм':'My lunar rhythm',
+   hint:uk?'Порівняння Місяця з вашою натальною картою':'Moon position compared with your birth chart'},
   sky:{name:uk?'Переходи планет':'Planetary transitions',
    hint:uk?'Точні входження у знаки, ретроградність та фази':'Exact ingresses, stations and lunar phases'},
   eclipses:{name:uk?'Видимість затемнень':'Eclipse visibility',

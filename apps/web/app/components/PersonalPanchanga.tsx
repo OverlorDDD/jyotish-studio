@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './PersonalPanchanga.module.css';
 import GlossaryText from './GlossaryText';
+import PanchangaInfoTip from './PanchangaInfoTip';
 type Quality='supportive'|'challenging'|'caution';
 type Report={status:string;date?:string;sunriseUtc?:string;timeZone?:string;version?:string;
  tarabala?:{name:string;taraNumber:number;cycle:number;inclusiveCount:number;quality:Quality;
@@ -12,18 +13,22 @@ type Report={status:string;date?:string;sunriseUtc?:string;timeZone?:string;vers
   natalMoonSign:number;transitMoonSign:number}};
 type Point={date:string;timeZone:string;latitude:string;longitude:string};
 const tt={
- uk:{title:'Тарабала й Чандрабала',sub:'Порівняння натального Місяця з Місяцем на місцевому сході Сонця.',
+ uk:{title:'Мій місячний ритм',sub:'Положення Місяця на обрану дату порівняно з вашою натальною картою.',
  noAuth:'Увійди до акаунта, щоб побачити персональні показники.',noChart:'Обери основну перевірену натальну карту в «Мій Всесвіт».',
  toPersonal:'Відкрити Мій Всесвіт',retry:'Повторити',unavailable:'Персональний розрахунок зараз недоступний. Загальна Панчанга працює окремо.',
- pending:'Зіставляємо Місяць із натальною картою…',tara:'Тарабала · натальна накшатра',chandra:'Чандрабала · натальний знак',
- supportive:'Традиційно сприятлива оцінка',challenging:'Традиційно несприятлива оцінка',caution:'Змішана оцінка',ashtama:'Аштама-чандра: восьмий знак від натального Місяця',
+ pending:'Зіставляємо Місяць із натальною картою…',tara:'За місячною накшатрою',chandra:'За знаком Місяця',
+ taraHelp:'Тарабала — традиційне порівняння накшатри Місяця при народженні з накшатрою на вибрану дату.',
+ chandraHelp:'Чандрабала — традиційне порівняння знака Місяця при народженні зі знаком на вибрану дату.',
+ supportive:'Сприятливе поєднання',challenging:'Напружене поєднання',caution:'Змішане поєднання',ashtama:'Аштама-чандра: восьмий знак від натального Місяця',
  house:'Знак від натального Місяця',at:'На час місцевого сходу Сонця',
  note:'Оцінка за взаємним положенням натальної й поточної накшатр та знаків Місяця.'},
- en:{title:'Tarabala and Chandrabala',sub:'Natal Moon compared with the Moon at local sunrise.',
+ en:{title:'My lunar rhythm',sub:'Moon position on your selected date compared with your birth chart.',
  noAuth:'Sign in to see private lunar strength.',noChart:'Choose a verified primary natal chart in Personal.',
  toPersonal:'Open Personal',retry:'Retry',unavailable:'Private calculations are currently unavailable. Public Panchanga works separately.',
- pending:'Comparing the Moon with your natal chart…',tara:'Tarabala · birth nakshatra',chandra:'Chandrabala · natal Moon sign',
- supportive:'Traditionally favourable',challenging:'Traditionally unfavourable',caution:'Mixed classification',ashtama:'Ashtama Chandra: eighth sign from the natal Moon',
+ pending:'Comparing the Moon with your natal chart…',tara:'By Moon nakshatra',chandra:'By Moon sign',
+ taraHelp:'Tarabala compares the Moon’s birth nakshatra with its nakshatra on the selected date.',
+ chandraHelp:'Chandrabala compares the Moon’s birth sign with its sign on the selected date.',
+ supportive:'Traditionally supportive',challenging:'Traditionally challenging',caution:'Mixed rating',ashtama:'Ashtama Chandra: eighth sign from the natal Moon',
  house:'Sign counted from natal Moon',at:'At local sunrise',
  note:'Traditional rating based on birth and current Moon nakshatras and signs.'}
 } as const;
@@ -54,11 +59,19 @@ export default function PersonalPanchanga({locale,point}:{locale:PortalLocale;po
   </div>}
   {status==='ready'&&data?.status==='available'&&data.tarabala&&data.chandrabala&&<>
    <div className={styles.grid}>
-    <article><small><GlossaryText text={t.tara} locale={locale}/></small><h3>{data.tarabala.name} · {data.tarabala.taraNumber}/9</h3>
-     <p>{quality(data.tarabala.quality)}</p><small>#{data.tarabala.birthNakshatraIndex} → #{data.tarabala.transitNakshatraIndex} · {locale==='uk'?'цикл':'cycle'} {data.tarabala.cycle}</small></article>
-    <article><small><GlossaryText text={t.chandra} locale={locale}/></small><h3>{t.house}: {data.chandrabala.houseFromJanmaRashi}/12</h3>
-     <p>{quality(data.chandrabala.quality)}</p>
-     {data.chandrabala.ashtamaChandra&&<strong><GlossaryText text={t.ashtama} locale={locale}/></strong>}
+    <article>
+     <div className="panchanga-personal-label"><small>{t.tara}</small>
+      <PanchangaInfoTip locale={locale} text={t.taraHelp+' '+data.tarabala.name+' ('+data.tarabala.taraNumber+'/9).'}/>
+     </div>
+     <h3>{quality(data.tarabala.quality)}</h3>
+    </article>
+    <article>
+     <div className="panchanga-personal-label"><small>{t.chandra}</small>
+      <PanchangaInfoTip locale={locale} text={t.chandraHelp+' '+t.house+': '+data.chandrabala.houseFromJanmaRashi+'/12.'}/>
+     </div>
+     <h3>{quality(data.chandrabala.quality)}</h3>
+     {data.chandrabala.ashtamaChandra&&<p>{locale==='uk'?'Місяць у восьмому знаку від вашого натального Місяця.':
+      'The Moon is in the eighth sign from your birth Moon.'}</p>}
     </article>
    </div>
    <p className={styles.note}>{t.at} · {new Intl.DateTimeFormat(locale==='uk'?'uk-UA':'en-GB',{

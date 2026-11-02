@@ -2,6 +2,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import GlossaryText from './GlossaryText';
+import PanchangaInfoTip from './PanchangaInfoTip';
 import styles from './PanchangaHub.module.css';
 import {
  CHANGING_ANGAS,calendarDateAt,needsPriorVedicDay,previousCivilDate,
@@ -20,10 +21,22 @@ const names={
  en:{tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana'}
 } as const;
 const descriptions={
- uk:{tithi:'Кожні 12° між Місяцем і Сонцем',nakshatra:'Сектор Місяця серед 27 ділянок по 13°20′',
-  vara:'День тижня від сходу Сонця',yoga:'Сума довгот Сонця й Місяця: сектори по 13°20′',karana:'Половина тітхі: кожні 6°'},
- en:{tithi:'Every 12° of Moon–Sun separation',nakshatra:'Moon’s sector among 27 divisions of 13°20′',
-  vara:'Weekday beginning at sunrise',yoga:'Sum of solar and lunar longitudes in 13°20′ sectors',karana:'Half a tithi: every 6°'}
+ uk:{tithi:'Місячний день',nakshatra:'Ділянка шляху Місяця',
+  vara:'День тижня',yoga:'Положення Сонця й Місяця',karana:'Половина місячного дня'},
+ en:{tithi:'Lunar day',nakshatra:'Moon’s position in its lunar path',
+  vara:'Weekday',yoga:'Sun and Moon positions',karana:'Half of a lunar day'}
+} as const;
+const explanations={
+ uk:{tithi:'Тітхі — відрізок місячного циклу: кожні 12° різниці довгот Місяця й Сонця. Тривалість не завжди 24 години.',
+ nakshatra:'Накшатра — один із 27 секторів сидеричного зодіаку по 13°20′. Визначається положенням Місяця.',
+ vara:'Вара — ведичний день тижня від місцевого сходу Сонця до наступного сходу.',
+ yoga:'Нітья-йога — календарний показник за сумою сидеричних довгот Сонця й Місяця, поділеною на 27 секторів по 13°20′.',
+ karana:'Карана — половина тітхі, кожні 6° різниці довгот Місяця й Сонця.'},
+ en:{tithi:'Tithi is a lunar-calendar division: every 12° of Sun–Moon longitude separation. It does not always last 24 hours.',
+ nakshatra:'Nakshatra is one of 27 sidereal sectors of 13°20′ each, based on the Moon’s position.',
+ vara:'Vara is the traditional weekday from one local sunrise to the next.',
+ yoga:'Nitya Yoga divides the sum of the Sun’s and Moon’s sidereal longitudes into 27 sectors of 13°20′.',
+ karana:'Karana is half of a tithi: every 6° of Sun–Moon longitude separation.'}
 } as const;
 const keys=['tithi','nakshatra','vara','yoga','karana'] as const;
 function label(kind:Anga,value:AngaValues[Anga],locale:PortalLocale):string{
@@ -118,7 +131,10 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
    <div className={styles.liveCards} data-testid="panchanga-five-angas">
     {choices.map(item=><article key={item.kind} className={styles.liveCard}
       data-anga={item.kind}>
-      <small><GlossaryText text={names[locale][item.kind]} locale={locale}/></small>
+      <div className={styles.angaName}>
+       <small><GlossaryText text={names[locale][item.kind]} locale={locale}/></small>
+       <PanchangaInfoTip locale={locale} text={explanations[locale][item.kind]}/>
+      </div>
       <strong>{label(item.kind,item.value,locale)}</strong>
       <p>{descriptions[locale][item.kind]}</p>
       <div className={styles.liveTimes}>
@@ -152,7 +168,10 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
    </div>}
    {CHANGING_ANGAS.map(kind=><div className={styles.timelineLane} key={kind} data-testid={'panchanga-lane-'+kind}>
     <div className={styles.laneHeader}>
-     <strong><GlossaryText text={names[locale][kind]} locale={locale}/></strong>
+     <div className={styles.angaName}>
+      <strong><GlossaryText text={names[locale][kind]} locale={locale}/></strong>
+      <PanchangaInfoTip locale={locale} text={explanations[locale][kind]}/>
+     </div>
      <small>{descriptions[locale][kind]}</small>
     </div>
     <div className={styles.laneTrack} role="img" aria-label={names[locale][kind]+': '+

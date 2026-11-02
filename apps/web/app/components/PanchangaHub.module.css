@@ -194,3 +194,7 @@
 .guideSection button:focus-visible,.related button:focus-visible,.unifiedSystem button:focus-visible{outline:2px solid #ffe4a8;outline-offset:3px}
 @media(max-width:760px){.relatedNav{grid-template-columns:1fr}.relatedNav button{min-height:65px}}
 @media(max-width:560px){.guideEvents li{flex-direction:column;gap:5px}.guideEvents time{max-width:100%;text-align:left}.guideSection,.related{padding:14px}.relatedNav button{padding:12px}}
+
+/* Concise card label with optional technical explanation. */
+.angaName{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.angaName small{font-size:13px;color:#cfaf80}
