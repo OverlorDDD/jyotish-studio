@@ -1,0 +1,147 @@
+name: R4 Search Visibility & GA4 Diagnostics
+on:
+  push:
+    branches: [fix/r42-ga4-visibility-and-growth-audit-20261102]
+  workflow_dispatch:
+jobs:
+  content:
+    name: Build + crawl-readiness, homepage and no-PII regressions
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: 'true'
+      GALAXIORA_E2E_TEST_AUTH: '1'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
+      AUTH_SECRET: r33-ephemeral-ci-session-signing-secret-do-not-reuse
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+      WEB_PORT: '3000'
+      PORT: '4000'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and Swiss Ephemeris
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Generate and migrate disposable PostgreSQL
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: Existing SEO gates and crawler syntax
+        run: |
+          npm run test:seo
+          npm run test:r32:seo
+          npm run test:r33:authority
+          npm run test:r4:growth
+          npm run test:brand-favicon
+          npm run test:brand:icons
+          npm run test:r42:growth
+          node --test tools/google-brand-visibility.test.mjs
+          npm run test:astronomy:nasa
+          node --check tools/r32-seo-audit.mjs
+          node --check tools/r4-search-discovery-audit.mjs
+      - name: Build production website
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Launch isolated production-mode server
+        run: |
+          printf 'DATABASE_URL=%s\nAUTH_SECRET=%s\nAI_MODE=local\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' "$DATABASE_URL" "$AUTH_SECRET" > .env
+          npm run start:full > /tmp/galaxiora-r33.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/uk >/dev/null &&
+               curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -100 /tmp/galaxiora-r33.log
+          exit 1
+      - name: Audit local root, discovery pathways, icon assets and bot HTML
+        run: R4_AUDIT_ORIGIN=http://127.0.0.1:3000 R4_CANONICAL_ORIGIN=https://galaxiora.example node tools/r4-search-discovery-audit.mjs --json
+      - name: Test UA/EN indexable content and linked articles
+        run: npx playwright test --config=playwright.config.mjs e2e/galaxiora-favicon.spec.mjs e2e/r4-discovery.spec.mjs e2e/r33-authority-library.spec.mjs e2e/r33-content-seo.spec.mjs e2e/r32-seo.spec.mjs
+
+  consent:
+    name: Browser consent, root attribution, blocked tag and privacy
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: 'true'
+      GALAXIORA_E2E_TEST_AUTH: '1'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
+      AUTH_SECRET: r42-ephemeral-ci-session-signing-secret-do-not-reuse
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
+      SITE_NOINDEX: '0'
+      WEB_PORT: '3000'
+      PORT: '4000'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and Swiss Ephemeris
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Prepare disposable test PostgreSQL
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: Build with CI-only dummy GA4 ID (never sends real analytics)
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start test server
+        run: |
+          printf 'DATABASE_URL=%s\nAUTH_SECRET=%s\nAI_MODE=local\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' "$DATABASE_URL" "$AUTH_SECRET" > .env
+          npm run start:full > /tmp/galaxiora-r42-consent.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/uk >/dev/null &&
+               curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -100 /tmp/galaxiora-r42-consent.log
+          exit 1
+      - name: Consent accept, reject, private route, withdraw (both viewports)
+        run: npx playwright test --config=playwright.config.mjs e2e/r42-consent.spec.mjs e2e/r42-ga4-diagnostics.spec.mjs
