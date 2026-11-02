@@ -127,6 +127,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  useEffect(()=>{
   const day=new URLSearchParams(window.location.search).get('date');
   if(!day||!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||
+   !Number.isFinite(Date.parse(day+'T00:00:00Z'))||
    new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||
    day<'1900-01-01'||day>'2099-12-31')return;
   setForm(f=>({...f,date:day}));
@@ -208,6 +209,17 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested} onPick={selectDay}/>}
   {view==='day'&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
   {view==='day'&&result&&<div className={styles.results}>
+   <section><h2>{t.titleFive}</h2>
+    <div className={styles.cards} data-testid="panchanga-five-angas">
+     {limbKeys.map(key=><article key={key}>
+      <small><GlossaryText text={t[key]} locale={locale}/></small><h3><GlossaryText text={angaText(key)} locale={locale}/></h3>
+      {key!=='vara'&&<div className={styles.times}>
+       <span>{t.started}: {fmt(result.boundaries[key].startUtc)}</span>
+       <span>{t.ends}: {fmt(result.boundaries[key].endUtc)}</span>
+      </div>}
+     </article>)}
+    </div>
+   </section>
    <section className={styles.sun}><h2>{t.subtitle} · {result.date}</h2>
     <div className={styles.sunGrid}>
      <div><small>{t.sunrise}</small><strong>{fmt(result.sunriseUtc)}</strong></div>
@@ -229,17 +241,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     </div>)}
     <p><GlossaryText text={t.kalaNote} locale={locale}/></p>
    </section>
-   <section><h2>{t.titleFive}</h2>
-    <div className={styles.cards} data-testid="panchanga-five-angas">
-     {limbKeys.map(key=><article key={key}>
-      <small><GlossaryText text={t[key]} locale={locale}/></small><h3><GlossaryText text={angaText(key)} locale={locale}/></h3>
-      {key!=='vara'&&<div className={styles.times}>
-       <span>{t.started}: {fmt(result.boundaries[key].startUtc)}</span>
-       <span>{t.ends}: {fmt(result.boundaries[key].endUtc)}</span>
-      </div>}
-     </article>)}
-    </div>
-   </section>
+
    <section className={styles.timeline}><h2>{t.transitions}</h2>
     {result.changes.map((event,i)=><div key={event.kind+event.atUtc+i}>
      <time dateTime={event.atUtc}>{fmt(event.atUtc)}</time>
