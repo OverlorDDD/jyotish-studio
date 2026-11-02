@@ -124,8 +124,9 @@ export function synthesizePersonalResonance(calendar:P32Result,day:P32Day,point:
   year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(at));
  const read=(k:string)=>parts.find(x=>x.type===k)?.value||'';
  const localDay=read('year')+'-'+read('month')+'-'+read('day');
- guard(calendar.moment===(at>=Date.parse(day.sunriseUtc)&&at<Date.parse(day.nextSunriseUtc)&&
-  localDay===day.date?'live':'sunrise-snapshot'),'calendar time scope');
+ guard(calendar.moment==='sunrise-snapshot'&&at===Date.parse(day.sunriseUtc)||
+  calendar.moment==='live'&&at>=Date.parse(day.sunriseUtc)&&at<Date.parse(day.nextSunriseUtc)&&localDay===day.date,
+  'calendar time scope');
  const evidence:P33Evidence[]=[];
  const add=(id:string,category:P33Evidence['category'],verdict:P33Evidence['verdict'],note:L)=>{
   evidence.push({id,category,verdict,note});

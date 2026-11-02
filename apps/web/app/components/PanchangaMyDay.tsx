@@ -23,7 +23,7 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
  const [eclipseRequest,setEclipseRequest]=useState<Point|null>(null);
  const [eclipses,setEclipses]=useState<EclipseResponse|null>(null);
  const [skyStatus,setSkyStatus]=useState<'idle'|'loading'|'ready'|'error'>('idle');
- const [resonance,setResonance]=useState<{report:P33Report;atUtc:string;key:string}|null>(null);
+ const [resonance,setResonance]=useState<{report:P33Report;atUtc:string;key:string;mode:'live'|'sunrise-snapshot'}|null>(null);
  const [personalState,setPersonalState]=useState<'loading'|'guest'|'no_chart'|'ready'|'error'>('loading');
  const [personalRetry,setPersonalRetry]=useState(0);
  useEffect(()=>{
@@ -63,7 +63,7 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      setPersonalState('no_chart');return;
     }
     validateP33Report(payload as P33Report,point,day as P32Day,target);
-    setResonance({report:payload as P33Report,atUtc:target,key:selectedKey});
+    setResonance({report:payload as P33Report,atUtc:target,key:selectedKey,mode:live?'live':'sunrise-snapshot'});
     setPersonalState('ready');
    }).catch(()=>{if(active&&!controller.signal.aborted)setPersonalState('error')});
   return()=>{active=false;controller.abort()};
@@ -73,7 +73,7 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
   try{
    const at=Date.parse(resonance.atUtc);
    return synthesizePersonalResonance(
-    interpretPanchanga(day as P32Day,at,topic),day as P32Day,point,resonance.report,resonance.atUtc);
+    interpretPanchanga(day as P32Day,at,topic,resonance.mode==='live'?'auto':'sunrise-snapshot'),day as P32Day,point,resonance.report,resonance.atUtc);
   }catch{return null;}
  },[day,point,topic,resonance,selectedKey]);
  const decision=personal||interpretation;

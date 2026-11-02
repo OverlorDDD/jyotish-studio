@@ -116,7 +116,7 @@ function checkAngas(a:Angas){
   a.yoga.name!==YOGA_NAMES[a.yoga.number-1])
   throw Error('P32 inconsistent five limbs; no interpretation emitted');
 }
-export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic):P32Result{
+export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic,mode:'auto'|'sunrise-snapshot'='auto'):P32Result{
  if(!ALL_TOPICS.includes(topic)||!Number.isFinite(nowMs))throw Error('P32 invalid request');
  const sunrise=parse(day.sunriseUtc),sunset=parse(day.sunsetUtc),next=parse(day.nextSunriseUtc),
   rahuFrom=parse(day.daytimeKalas?.rahuKalam?.fromUtc??''),rahuEnd=parse(day.daytimeKalas?.rahuKalam?.untilUtc??'');
@@ -125,7 +125,7 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic):P32Re
  const expectedVara=new Date(day.date+'T12:00:00Z').getUTCDay()+1;
  if(!Number.isFinite(expectedVara)||day.sunrise.vara?.number!==expectedVara)
   throw Error('P32 sunrise weekday mismatch');
- const live=nowMs>=sunrise&&nowMs<next&&dayAt(nowMs,day.location.timeZone)===day.date;
+ const live=mode!=='sunrise-snapshot'&&nowMs>=sunrise&&nowMs<next&&dayAt(nowMs,day.location.timeZone)===day.date;
  const sample=live?nowMs:sunrise,selected={} as Angas;
  const untils:number[]=[next];
  for(const limb of ['tithi','nakshatra','yoga','karana'] as const){
