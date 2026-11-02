@@ -15,7 +15,8 @@ test('favicon uses selected original spiral galaxy PNG, not replacement SVG',()=
  assert.ok(png.readUInt32BE(16)>=48);
  assert.ok(png.readUInt32BE(20)>=48);
  assert.ok(png.length>2000);
+ assert.ok(png.includes(Buffer.from('tRNS')),'favicon must be circular with transparency');
  assert.equal(existsSync(join(root,'apps/web/app/icon.svg')),false,'incorrect vector icon must stay removed');
- assert.match(layout,/icon\.png\?v=galaxy-original-20261102/);
+ assert.match(layout,/icon\.png\?v=galaxy-round-v2/);
  assert.doesNotMatch(layout,/icon\.svg\?v=galaxy6/);
 });
