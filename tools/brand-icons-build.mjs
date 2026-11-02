@@ -1,57 +1,56 @@
-/** Deterministic, single-source Galaxiora icon pipeline.
- * The checked-in SVG is the source of truth. Every browser/search/mobile
- * bitmap is generated from it before Next.js production build.
- * Requires explicit sharp dependency in apps/web/package.json.
+/** Galaxiora: ONE immutable, owner-approved original galaxy spiral #6.
+ * Never substitute the rejected G letter SVG or generate a new logo.
+ * Original binary asset is restored unchanged from the approved 2026-11-02 commit.
+ * Next auto-discovers generated app/icon.png. All formats regenerated before builds.
  */
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {dirname,join,resolve} from 'node:path';
 import sharp from 'sharp';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-const source=await readFile(join(root,'apps/web/app/icon.svg'));
+const approved=join(root,'apps/web/brand-assets/galaxiora-approved-spiral-6.png');
+const original=await readFile(approved);
+// Exact blob taken from the user-approved original #6 file in GitHub.
+// Git's blob hashing protects against unintended brand changes.
+const gitSha=createHash('sha1').update(Buffer.from('blob '+original.length+String.fromCharCode(0))).update(original).digest('hex');
+if(gitSha!=='e6cf1437d0d48c6851093d21c1873fd64f3d03fe'){
+ throw new Error('BRAND_BLOCKED: selected original galaxy #6 asset changed; no icons overwritten');
+}
+const metadata=await sharp(original).metadata();
+if(metadata.format!=='png'||metadata.width!==64||metadata.height!==64||!metadata.hasAlpha){
+ throw new Error('BRAND_BLOCKED: approved galaxy must be transparent 64x64 PNG');
+}
 const out=join(root,'apps/web/public');
 await mkdir(out,{recursive:true});
-
 async function png(size){
- return sharp(source,{density:640})
-  .resize(size,size,{fit:'fill',kernel:'lanczos3'})
-  .png({compressionLevel:9,palette:false})
-  .toBuffer();
+ if(size===64)return original; // Preserve selected artwork byte-for-byte for Google/browser/header.
+ return sharp(original).resize(size,size,{kernel:'lanczos3'}).png({compressionLevel:9,palette:false}).toBuffer();
 }
-
-const files=[
+const generated=[
  ['galaxiora-favicon.png',64],
  ['galaxiora-logo-128.png',128],
  ['apple-touch-icon.png',180],
  ['galaxiora-192.png',192],
  ['galaxiora-512.png',512]
 ];
-for(const [name,size] of files){
- const buffer=await png(size);
- await writeFile(join(out,name),buffer);
- console.log('[brand-icons] '+name+' '+size+'x'+size);
+for(const [filename,size] of generated){
+ await writeFile(join(out,filename),await png(size));
+ console.log('[approved-galaxy-6] '+filename+' '+size+'x'+size);
 }
-
-// ICO accepts embedded PNG frames. Include 16, 32, 48 and 64 px.
-const icoSizes=[16,32,48,64];
-const frames=await Promise.all(icoSizes.map(png));
-const header=Buffer.alloc(6+16*frames.length);
-header.writeUInt16LE(0,0);
-header.writeUInt16LE(1,2);
-header.writeUInt16LE(frames.length,4);
-let offset=header.length;
-for(let i=0;i<frames.length;i++){
- const size=icoSizes[i],cursor=6+i*16;
- header.writeUInt8(size,cursor);
- header.writeUInt8(size,cursor+1);
- header.writeUInt8(0,cursor+2);
- header.writeUInt8(0,cursor+3);
- header.writeUInt16LE(1,cursor+4);
- header.writeUInt16LE(32,cursor+6);
- header.writeUInt32LE(frames[i].length,cursor+8);
- header.writeUInt32LE(offset,cursor+12);
- offset+=frames[i].length;
+await writeFile(join(root,'apps/web/app/icon.png'),original);
+console.log('[approved-galaxy-6] apps/web/app/icon.png (64x64, original)');
+const sizes=[16,32,48,64], frames=await Promise.all(sizes.map(png));
+const directory=Buffer.alloc(6+frames.length*16);
+directory.writeUInt16LE(0,0);directory.writeUInt16LE(1,2);directory.writeUInt16LE(frames.length,4);
+let offset=directory.length;
+for(let i=0;i<sizes.length;i++){
+ const p=6+i*16,frame=frames[i],size=sizes[i];
+ directory.writeUInt8(size,p);directory.writeUInt8(size,p+1);
+ directory.writeUInt16LE(1,p+4);directory.writeUInt16LE(32,p+6);
+ directory.writeUInt32LE(frame.length,p+8);directory.writeUInt32LE(offset,p+12);
+ offset+=frame.length;
 }
-await writeFile(join(out,'favicon.ico'),Buffer.concat([header,...frames]));
-console.log('[brand-icons] favicon.ico (16/32/48/64)');
+await writeFile(join(out,'favicon.ico'),Buffer.concat([directory,...frames]));
+console.log('[approved-galaxy-6] favicon.ico 16/32/48/64; original image remains canonical');
