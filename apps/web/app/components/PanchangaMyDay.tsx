@@ -68,7 +68,7 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      summary.vedicDay==='pre_sunrise'?(uk?'До сходу Сонця триває попередній ведичний день':'The previous Vedic day continues until sunrise'):
      uk?'Обрана дата — не поточний ведичний день':'Selected date — not the current Vedic day'}
    </p>
-   <h3>{summary.moon[locale]} · {uk?'місячний день':'lunar day'} {summary.observedTithi}/15</h3>
+   <h3>{summary.moon[locale]} · {uk?'місячний день':'lunar day'} {summary.observedTithi}</h3>
    <p className={styles.moonNote}>{summary.isLive?
      (uk?'Показник на поточний момент.':'Value at this moment.'):
      (uk?'Показник на сході Сонця обраної дати.':'Value at sunrise of the selected date.')}</p>

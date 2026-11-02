@@ -60,8 +60,9 @@ export function p31DaySummary(day:P31Day,nowMs:number,topic:P31Topic){
   {timeZone:day.location.timeZone,hour:'2-digit',minute:'2-digit'}).format(new Date(iso));
  const action=subjects[topic],intervalUk=clock(day.daytimeKalas.rahuKalam.fromUtc,'uk')+'–'+clock(day.daytimeKalas.rahuKalam.untilUtc,'uk'),
   intervalEn=clock(day.daytimeKalas.rahuKalam.fromUtc,'en')+'–'+clock(day.daytimeKalas.rahuKalam.untilUtc,'en');
- const headline=withinRahu?{uk:'Зараз триває Раху-калам',en:'Rahu Kalam is active now'}:
-  {uk:'Раху-калам: '+intervalUk,en:'Rahu Kalam: '+intervalEn};
+ const headline=withinRahu?{uk:'Зараз не починайте нових важливих справ',
+   en:'Do not start important new undertakings now'}:
+  {uk:'Період для обережності: '+intervalUk,en:'Caution window: '+intervalEn};
  const guidance=withinRahu?{
   uk:'За традиційним правилом не починайте '+action.uk+' до '+clock(day.daytimeKalas.rahuKalam.untilUtc,'uk')+'.',
   en:'By the traditional rule, do not start '+action.en+' until '+clock(day.daytimeKalas.rahuKalam.untilUtc,'en')+'.'
