@@ -60,6 +60,10 @@ const NAK_UK=['Ашвіні','Бхарані','Кріттіка','Рохіні',
  'Пуш’я','Ашлеша','Магха','Пурва Пхалгуні','Уттара Пхалгуні','Хаста','Чітра','Сваті',
  'Вішакха','Анурадха','Дж’єштха','Мула','Пурва Ашадха','Уттара Ашадха','Шравана',
  'Дханіштха','Шатабхіша','Пурва Бхадрапада','Уттара Бхадрапада','Реваті'];
+const NAK_EN=['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu',
+ 'Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati',
+ 'Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana',
+ 'Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati'] as const;
 export function p37NakshatraClass(number:number){
  if(!Number.isInteger(number)||number<1||number>27)throw Error('P3.7 invalid nakshatra');
  const matches=Object.entries(STAR_CLASSES).filter(([,members])=>members.includes(number));
@@ -101,6 +105,7 @@ export function explainClassicalPanchanga(day:P32Day,result:P32Result):P37Card[]
     t.paksha+' '+t.numberWithinPaksha),
   group.name,group.meaning);
  const n=values.nakshatra,kind=p37NakshatraClass(n.number),description=STAR_LANGUAGE[kind];
+ if(n.name!==NAK_EN[n.number-1])throw Error('P3.7 Nakshatra number/name mismatch');
  make('nakshatra',L('Накшатра','Nakshatra'),L(NAK_UK[n.number-1],n.name),
   description.label,description.meaning);
  const v=values.vara,ruler=VARA_RULERS[v.number-1];
