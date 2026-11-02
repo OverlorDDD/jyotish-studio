@@ -148,8 +148,8 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      <p className={styles.action}>{decision?.action[locale]}</p>
      <p className={styles.scopeNote}>{decision?.reason[locale]}</p>
      {personal&&<div data-testid="p33-personal" className={styles.personalSummary}>
-      <p className={styles.scopeNote}>{uk?'Натальний Місяць, лагна, Тарабала, Чандрабала, транзити й Вімшоттарі':
-       'Natal Moon, ascendant, Tara/Chandra Bala, transits and Vimshottari'} ·
+      <p className={styles.scopeNote}>{uk?'Місяць при народженні зіставлено з його поточним положенням, рухом планет і вашим планетарним періодом.':
+       'Your birth Moon is compared with its current position, planetary movements and your current planetary period.'} ·
        {' '}{fmt(personal.atUtc,true)}</p>
       <details className={styles.reasonDetails} data-testid="p33-evidence">
        <summary>{uk?'Чому це стосується саме мене?':'Why does this apply to me?'}</summary>
