@@ -30,8 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install locked packages
-        run: npm ci --no-audit --no-fund
+      - name: Install dependencies (repository has no lockfile)
+        run: npm install --no-audit --no-fund
       - name: 'No mutation: release shell and Node syntax'
         run: |
           bash -n tools/panchanga-p25-release.sh

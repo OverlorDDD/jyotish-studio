@@ -25,7 +25,7 @@ ready(){
  return 1
 }
 check_environment(){
- test -s .env && test -s package-lock.json || { echo 'STOP: production .env or lockfile missing';return 2; }
+ test -s .env && test -s package.json || { echo 'STOP: production .env or package.json missing';return 2; }
  node --env-file=.env - <<'JS'
 const env=process.env;
 if(env.NEXT_PUBLIC_SITE_URL!=='https://galaxiora.com'||env.SITE_NOINDEX!=='0')
@@ -96,7 +96,7 @@ rollback(){
  cp -a "$dir/env.before" .env
  chmod 600 .env
  git switch --detach "$old"
- npm ci --no-audit --no-fund
+ npm install --no-audit --no-fund
  npm run db:generate
  npm run build
  sudo systemctl restart galaxiora-api
@@ -123,7 +123,7 @@ deploy(){
  git switch --detach "$P25_TARGET_SHA"
  test ! -e apps/web/app/icon.svg || { echo 'STOP: legacy icon.svg could replace approved spiral';return 2; }
  test -s apps/web/brand-assets/galaxiora-approved-spiral-6.png
- npm ci --no-audit --no-fund
+ npm install --no-audit --no-fund
  npm run db:generate
  npm run test:panchanga
  npm run test:vedic-calendar

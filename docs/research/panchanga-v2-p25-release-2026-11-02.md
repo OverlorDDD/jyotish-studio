@@ -39,7 +39,7 @@ After PASS and the final user review/approval:
 P25_TARGET_SHA=EXACT_GREEN_SHA P25_DEPLOY_CONFIRM=DEPLOY_P25 bash /tmp/p25-release.sh deploy
 ~~~
 
-Script behavior: run existing DB backup service; retain private .env plus previous commit/build, test before switching service; use only approved pinned commit; npm ci, Prisma generate, full build, unit/SEO/brand tests, additive P2.1 profile migration, restart API then Web, require local health, site checks and HTTPS smoke including approved spiral #6 byte check. No IndexNow submission, no DNS change, no rewriting env. On failure, attempt code-only rollback and preserve DB backup. Database migrations are additive and not reversed automatically.
+Script behavior: run existing DB backup service; retain private .env plus previous commit/build, test before switching service; use only approved pinned commit; npm install (repository has no tracked package-lock.json), Prisma generate, full build, unit/SEO/brand tests, additive P2.1 profile migration, restart API then Web, require local health, site checks and HTTPS smoke including approved spiral #6 byte check. No IndexNow submission, no DNS change, no rewriting env. On failure, attempt code-only rollback and preserve DB backup. Database migrations are additive and not reversed automatically.
 
 Manual code rollback:
 
