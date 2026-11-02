@@ -5,7 +5,7 @@ const HOUR=3600000;
 const start=Date.parse('2026-11-02T04:30:00Z'),end=start+24*HOUR;
 test('P3.6 fixed forward exact ingress stays ordered and within observed sunrise',()=>{
  const t0=start+3*HOUR+9*60000;
- const at=ms=>({longitude:29.5+(ms-t0)/HOUR*0.5,longitudeSpeed:12});
+ const at=ms=>({longitude:30+(ms-t0)/HOUR*0.5,longitudeSpeed:12});
  const list=findVerifiedSignIngresses(start,start+6*HOUR,at);
  assert.equal(list.length,1);
  assert.equal(list[0].from,1);assert.equal(list[0].to,2);
