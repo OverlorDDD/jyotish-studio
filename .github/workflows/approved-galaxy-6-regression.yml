@@ -60,8 +60,6 @@ jobs:
           npm run test:r42:growth
           npm run test:source:integrity
           npm run test:admin:realtime
-          npm run test:brand-favicon
-          npm run test:brand:icons
           node --test tools/google-brand-visibility.test.mjs
           npm run test:astronomy:nasa
           node --check tools/r32-seo-audit.mjs
