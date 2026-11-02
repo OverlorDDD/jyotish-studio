@@ -48,6 +48,11 @@ test('P3.3 two independent accounts, selected verified primary chart and exact n
  await expect(card.getByTestId('p32-headline')).toHaveCount(1);
  await card.getByTestId('p33-evidence').locator('summary').click();
  await expect(card.getByTestId('p33-evidence').locator('li').count()).resolves.toBeGreaterThanOrEqual(7);
+ await page.goto('/en/panchanga?date=2026-11-02');
+ const english=page.getByTestId('p31-my-day');
+ await expect(english.getByTestId('p33-personal')).toBeVisible({timeout:90000});
+ await expect(english.getByTestId('p33-personal')).toContainText('Your birth Moon is compared');
+ await expect(english.getByTestId('p32-headline')).toHaveCount(1);
  const other=await browser.newContext();
  const second=await other.newPage();
  try{
