@@ -41,3 +41,25 @@ for(const locale of ['uk','en']){
   await expect(list).toBeVisible();
  });
 }
+
+test('P2.2 before sunrise correctly shows previous Vedic day instead of future sunrise snapshot',async({page})=>{
+ test.setTimeout(120000);
+ // Kyiv is still in the civil morning of Nov 2, but local sunrise has not occurred.
+ await page.clock.install({time:new Date('2026-11-02T02:00:00Z')});
+ await page.goto('/uk/panchanga?date=2026-11-02');
+ const section=page.getByTestId('panchanga-day-experience');
+ await expect(section).toContainText('Зараз у ведичному дні',{timeout:90000});
+ await expect(section).toContainText('До нового сходу Сонця');
+ await expect(section.getByText('2026-11-01',{exact:true})).toBeVisible();
+ await expect(section.locator('article')).toHaveCount(5);
+});
+test('P2.2 mobile timeline does not exceed viewport width',async({page})=>{
+ test.setTimeout(120000);
+ await page.goto('/uk/panchanga?date=2026-11-02');
+ await expect(page.getByTestId('panchanga-daily-timeline')).toBeVisible({timeout:90000});
+ const widths=await page.evaluate(()=>{
+  const el=document.querySelector('[data-testid="panchanga-daily-timeline"]');
+  return {viewport:window.innerWidth,width:el?.getBoundingClientRect().width??Infinity};
+ });
+ expect(widths.width).toBeLessThanOrEqual(widths.viewport);
+});
