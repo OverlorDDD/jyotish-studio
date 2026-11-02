@@ -48,7 +48,7 @@ test('P2.2 before sunrise correctly shows previous Vedic day instead of future s
  await page.clock.install({time:new Date('2026-11-02T02:00:00Z')});
  await page.goto('/uk/panchanga?date=2026-11-02');
  const section=page.getByTestId('panchanga-day-experience');
- await expect(section).toContainText('Зараз у ведичному дні',{timeout:90000});
+ await expect(section).toContainText('Показники зараз',{timeout:90000});
  await expect(section).toContainText('До нового сходу Сонця');
  await expect(section.getByText('2026-11-01',{exact:true})).toBeVisible();
  await expect(section.locator('article')).toHaveCount(5);
