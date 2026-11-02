@@ -130,6 +130,8 @@ jobs:
           npm run db:migrate
       - name: Build with CI-only dummy GA4 ID (never sends real analytics)
         run: npm run build
+      - name: Verify dummy GA4 Measurement ID is compiled into the public client
+        run: npm run r42:ga:doctor
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Start test server
