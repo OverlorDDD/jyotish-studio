@@ -97,6 +97,9 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
      <h4 data-testid="p32-headline">{interpretation.headline[locale]}</h4>
      <p className={styles.action}>{interpretation.action[locale]}</p>
      <p className={styles.scopeNote}>{interpretation.reason[locale]}</p>
+     <p className={styles.scopeNote}>{uk?'Раху-калам, коли за традицією не починають важливих справ':
+      'Rahu Kalam, traditionally avoided for new undertakings'}:
+      {' '}<strong>{fmt(summary.rahuFromUtc)}–{fmt(summary.rahuUntilUtc)}</strong></p>
      <p className={styles.scopeNote}>{interpretation.moment==='live'?
       (uk?'За показниками на поточний момент.':'Based on factors at this moment.'):
       (uk?'Оцінка на схід Сонця обраної дати, не висновок на поточну годину.':
