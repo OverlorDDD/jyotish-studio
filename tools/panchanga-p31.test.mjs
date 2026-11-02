@@ -23,7 +23,7 @@ test('P3.1 shows categorical Rahu rule only while the verified local daytime int
  const r=p31DaySummary(day,at('2026-11-02T06:00:00.000Z'),'work');
  assert.equal(r.vedicDay,'live');
  assert.equal(r.withinRahu,true);
- assert.match(r.advice.guidance.uk,/не починайте розмову про підвищення до 09:00/);
+ assert.match(r.advice.guidance.uk,/не починайте розмову про підвищення або нові посадові умови до 09:00/);
  assert.equal(r.advice.verdict,'calendar_only');
  assert.equal(r.advice.personalized,false);
  assert.ok(r.advice.missing.includes('FIVE_LIMB_SYNTHESIS_P32'));
