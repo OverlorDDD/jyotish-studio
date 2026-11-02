@@ -198,3 +198,10 @@
 /* Concise card label with optional technical explanation. */
 .angaName{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
 .angaName small{font-size:13px;color:#cfaf80}
+
+/* P3.1: calculations are available on demand; first screen is actionable and lightweight. */
+.p31Detail{border:1px solid #526980;border-radius:15px;background:#121f32;padding:16px 20px;margin:22px 0;overflow-wrap:break-word}
+.p31Detail>summary{cursor:pointer;color:#f4d39c;font-weight:700;padding:9px 2px;line-height:1.5}
+.p31Detail>summary:focus-visible{outline:2px solid #f4d39c;outline-offset:3px}
+.p31Detail>.results{margin-top:12px}
+@media(max-width:480px){.p31Detail{padding:12px}}

@@ -10,6 +10,7 @@ import PanchangaRangeView from './PanchangaRangeView';
 import PanchangaLiveDay from './PanchangaLiveDay';
 import PanchangaDayGuide from './PanchangaDayGuide';
 import PanchangaRelatedPanels from './PanchangaRelatedPanels';
+import PanchangaMyDay from './PanchangaMyDay';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
 
@@ -68,6 +69,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  const pendingManualCalculation=useRef(false);
  const [view,setView]=useState<'day'|'week'|'month'>('day');
+ const [showDetails,setShowDetails]=useState(false);
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
  const [locationSource,setLocationSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
  const [autoSave,setAutoSave]=useState(true);
@@ -149,7 +151,9 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  return <section className={styles.page} data-testid="panchanga-hub">
   <header className={styles.hero}>
    <div className={styles.eyebrow}>GALAXIORA · ASTRONOMY</div>
-   <h1><GlossaryText text={t.title} locale={locale}/></h1><p><GlossaryText text={t.intro} locale={locale}/></p>
+   <h1>{uk?'Мій день · Панчанга':'My day · Panchanga'}</h1><p>{uk?
+    'Поради за ведичним календарем, події в небі та точні розрахунки для обраного міста.':
+    'Vedic calendar guidance, sky events and verified calculations for your city.'}</p>
    <Link href={'/'+locale+'/horoscope'}>{uk?'До гороскопів':'Horoscopes'} ↗</Link>
   </header>
   <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
@@ -214,31 +218,33 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    monthSystem={monthSystem} onPick={selectDay}/>}
   {view==='day'&&requested&&loading&&<p role="status" className={styles.empty}>{t.busy}</p>}
   {view==='day'&&requested&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
-  {view==='day'&&result&&<div className={styles.results}>
-   <PanchangaLiveDay day={result} locale={locale}/>
-   <section className={styles.sun}><h2>{t.subtitle} · {result.date}</h2>
-    <div className={styles.sunGrid}>
-     <div><small>{t.sunrise}</small><strong>{fmt(result.sunriseUtc)}</strong></div>
-     <div><small>{t.sunset}</small><strong>{fmt(result.sunsetUtc)}</strong></div>
-     <div><small>{t.next}</small><strong>{fmt(result.nextSunriseUtc)}</strong></div>
-    </div>
-   </section>
-   {requested&&<PanchangaDayGuide locale={locale} point={requested} day={result} monthSystem={monthSystem}/>}
-   <section className={styles.timeline}><h2>{t.kalas}</h2>
-    {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
-     <time dateTime={result.daytimeKalas[key].fromUtc}>{fmt(result.daytimeKalas[key].fromUtc)} — {fmt(result.daytimeKalas[key].untilUtc)}</time>
-     <strong><GlossaryText text={t[key]} locale={locale}/></strong>
-     <span>#{result.daytimeKalas[key].part}/8</span>
-    </div>)}
-    <p><GlossaryText text={t.kalaNote} locale={locale}/></p>
-   </section>
-
-   <aside className={styles.method}><h2>{t.source}</h2>
-    <p><GlossaryText text={t.profile} locale={locale}/></p><p><GlossaryText text={result.sunriseMethod} locale={locale}/></p><p><GlossaryText text={t.limits} locale={locale}/></p>
- 
-    <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank" rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
-   </aside>
-  </div>}
-  {view==='day'&&result&&requested&&<PanchangaRelatedPanels locale={locale} point={requested}/>}
+  {view==='day'&&result&&requested&&<>
+   <PanchangaMyDay locale={locale} day={result} point={requested}/>
+   <details className={styles.p31Detail} data-testid="p31-details"
+    onToggle={e=>setShowDetails(e.currentTarget.open)}>
+    <summary>{uk?'Деталі розрахунку: п’ять показників, переходи та методика':
+     'Calculation details: five limbs, transitions and method'}</summary>
+    {showDetails&&<div className={styles.results}>
+     <PanchangaLiveDay day={result} locale={locale}/>
+     <PanchangaDayGuide locale={locale} point={requested} day={result} monthSystem={monthSystem}/>
+     <section className={styles.timeline}><h2>{t.kalas}</h2>
+      {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
+       <time dateTime={result.daytimeKalas[key].fromUtc}>{fmt(result.daytimeKalas[key].fromUtc)} — {fmt(result.daytimeKalas[key].untilUtc)}</time>
+       <strong><GlossaryText text={t[key]} locale={locale}/></strong>
+       <span>{uk?'Частина':'Part'} {result.daytimeKalas[key].part}/8</span>
+      </div>)}
+      <p><GlossaryText text={t.kalaNote} locale={locale}/></p>
+     </section>
+     <PanchangaRelatedPanels locale={locale} point={requested}/>
+     <aside className={styles.method}><h2>{t.source}</h2>
+      <p><GlossaryText text={t.profile} locale={locale}/></p>
+      <p><GlossaryText text={result.sunriseMethod} locale={locale}/></p>
+      <p><GlossaryText text={t.limits} locale={locale}/></p>
+      <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank"
+       rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
+     </aside>
+    </div>}
+   </details>
+  </>}
  </section>;
 }
