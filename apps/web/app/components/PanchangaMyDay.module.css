@@ -27,3 +27,10 @@
 .skyResults ul{padding-left:22px}.skyResults li{margin:8px 0}
 .sky button:disabled{opacity:.6;cursor:wait}
 @media(max-width:480px){.top h2{font-size:28px}.sunTimes{display:grid;grid-template-columns:1fr}.sunTimes span{justify-content:space-between}.topicButtons button{flex:1 1 42%}.dashboard{padding:14px}}
+
+.reasonDetails{margin:16px 0 8px;background:#17283e;border:1px solid #536b82;border-radius:12px;padding:12px 14px}
+.reasonDetails summary{cursor:pointer;color:#f2d29b;font-weight:700;line-height:1.5}
+.reasonDetails summary:focus-visible{outline:2px solid #f6d397;outline-offset:3px}
+.reasonDetails ol{margin:14px 0 0;padding-left:22px;font-size:13px;line-height:1.7;color:#dfe8f3}
+.reasonDetails li{padding:5px 0;border-bottom:1px solid #344862}
+.reasonDetails li:last-child{border:0}
