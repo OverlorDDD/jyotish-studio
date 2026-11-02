@@ -25,7 +25,7 @@ for(const locale of ['uk','en']){
   await mine.getByRole('group',{name:locale==='uk'?'Тема поради':'Advice topic'})
    .getByRole('button',{name:locale==='uk'?'Гроші':'Money'}).click();
   await expect(mine.getByTestId('p31-advice')).toContainText(
-   locale==='uk'?'фінансову домовленість':'financial agreement');
+   locale==='uk'?'фінансову угоду':'financial agreement');
   await detail.locator(':scope > summary').click();
   await expect(detail).toHaveAttribute('open');
   await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
