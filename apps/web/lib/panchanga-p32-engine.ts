@@ -196,9 +196,11 @@ export function interpretPanchanga(day:P32Day,nowMs:number,topic:P31Topic,mode:'
   speak('Місяць спадає; це фаза циклу, а не самостійна заборона.',
    'The Moon is waning; the phase alone is not a prohibition.'));
  const duringRahu=sample>=rahuFrom&&sample<rahuEnd;
- add('RAHU_KALAM','rahu',duringRahu?'blocks':'neutral',duringRahu?speak(
+ add('RAHU_KALAM','rahu',duringRahu?'blocks':'neutral',duringRahu?(exact?speak(
+  'У цьому часовому відрізку триває Раху-калам: важливі справи за традицією не починають.',
+  'Rahu Kalam covers this interval: traditionally, do not begin important undertakings.'):speak(
   'Зараз Раху-калам: за традицією нові важливі справи не починають.',
-  'Rahu Kalam is active: traditionally, do not begin important new undertakings.'):
+  'Rahu Kalam is active: traditionally, do not begin important new undertakings.')):
   speak('Раху-калам не триває у вибраний момент; це не підтверджує загальну сприятливість.',
    'Rahu Kalam is inactive at the selected instant; this does not prove the time auspicious.'),
   day.daytimeKalas.rahuKalam.fromUtc,day.daytimeKalas.rahuKalam.untilUtc);
