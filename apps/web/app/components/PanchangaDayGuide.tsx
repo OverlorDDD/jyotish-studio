@@ -2,7 +2,8 @@
 import {useEffect,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import {verifyIntegratedOverview,type CalendarSystem,type ExactDay,
- type SourcePoint,type GuideOverview,type GuidePhase,type GuideObservance} from '../../lib/panchanga-integration';
+ type SourcePoint,type GuidePhase,type GuideObservance} from '../../lib/panchanga-integration';
+import {fetchDayOverview} from '../../lib/panchanga-overview-client';
 import styles from './PanchangaHub.module.css';
 
 const FESTIVAL_NAMES:Record<string,[string,string]>={
@@ -54,15 +55,12 @@ export default function PanchangaDayGuide({locale,point,day,monthSystem}:{
  const [retry,setRetry]=useState(0);
  const [kind,setKind]=useState<'all'|'phases'|'observances'>('all');
  useEffect(()=>{
-  let alive=true;const ctl=new AbortController();setStatus('loading');setData(null);
-  const qs=new URLSearchParams({start:point.date,days:'1',zone:point.timeZone,
-   latitude:point.latitude,longitude:point.longitude,monthSystem});
-  fetch('/api/v1/vedic-calendar/overview?'+qs,{cache:'no-store',signal:ctl.signal})
-   .then(async r=>{if(!r.ok)throw Error('Swiss overview '+r.status);return await r.json() as GuideOverview})
+  let alive=true;setStatus('loading');setData(null);
+  fetchDayOverview(point,monthSystem,retry)
    .then(payload=>verifyIntegratedOverview(payload,day,point,monthSystem))
    .then(result=>{if(alive){setData(result);setStatus('ready')} })
-   .catch(()=>{if(alive&&!ctl.signal.aborted)setStatus('error')});
-  return()=>{alive=false;ctl.abort()};
+   .catch(()=>{if(alive)setStatus('error')});
+  return()=>{alive=false};
  },[point.date,point.timeZone,point.latitude,point.longitude,day,monthSystem,retry]);
  const events=data?eventsFor(data.phases,data.day.observances,uk).filter(event=>
   kind==='all'||kind==='phases'&&event.category==='phase'||
