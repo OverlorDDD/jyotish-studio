@@ -205,7 +205,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    </div>
    {saveState==='saving'&&<p role="status">{uk?'Зберігаємо місто…':'Saving city…'}</p>}
    {saveState==='saved'&&<p role="status">{uk?'Місто збережено.':'City saved.'}</p>}
-   {saveState==='error'&&<p role="alert">{uk?'Помилка збереження міста.':'Could not save city.'}</p>
+   {saveState==='error'&&<p role="alert">{uk?'Помилка збереження міста.':'Could not save city.'}</p>}
   </form>
   {error&&<div role="alert" className={styles.error}>{t.error}</div>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested} onPick={selectDay}/>}
