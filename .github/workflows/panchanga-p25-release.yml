@@ -32,7 +32,7 @@ jobs:
           node-version: '22'
       - name: Install locked packages
         run: npm ci --no-audit --no-fund
-      - name: No mutation: release shell and Node syntax
+      - name: 'No mutation: release shell and Node syntax'
         run: |
           bash -n tools/panchanga-p25-release.sh
           node --check tools/panchanga-p25-smoke.mjs
