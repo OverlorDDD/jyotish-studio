@@ -22,7 +22,10 @@ export default async function PanchangaPage({params}:{params:Promise<{locale:str
  const {locale}=await params;if(!isPortalLocale(locale))notFound();
  return <PortalShell locale={locale as PortalLocale} active="panchanga" languagePath="panchanga">
   <PanchangaHub locale={locale as PortalLocale}/>
-  <PanchangaSearchGuide locale={locale as PortalLocale}/>
+  <details className="as-wellness" style={{margin:'24px 0',padding:'16px',borderRadius:'14px'}}>
+   <summary style={{cursor:'pointer',fontWeight:700}}>{locale==='uk'?'Як читати Панчангу: короткий довідник':'How to read Panchanga: guide'}</summary>
+   <PanchangaSearchGuide locale={locale as PortalLocale}/>
+  </details>
 
  </PortalShell>;
 }
