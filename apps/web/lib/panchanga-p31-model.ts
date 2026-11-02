@@ -13,7 +13,7 @@ function calendarDateAt(nowMs:number,zone:string){
  return get('year')+'-'+get('month')+'-'+get('day');
 }
 
-export type P31Topic='work'|'money'|'relationships'|'travel'|'personal';
+export type P31Topic='work'|'money'|'relationships'|'travel'|'personal'|'study'|'home';
 export type P31Verdict='calendar_only'|'mixed'|'personal'|'unavailable';
 export type P31Evidence={id:string;kind:'astronomy'|'tradition'|'natal';atUtc?:string;startUtc?:string;endUtc?:string};
 export type P31AdviceContract={
@@ -33,9 +33,11 @@ const subjects:Record<P31Topic,{uk:string;en:string}>={
  money:{uk:'нову фінансову домовленість',en:'a new financial agreement'},
  relationships:{uk:'складну розмову про стосунки',en:'a difficult relationship discussion'},
  travel:{uk:'нову важливу поїздку',en:'an important new journey'},
- personal:{uk:'нову особисту справу',en:'a new personal undertaking'}
+ personal:{uk:'нову особисту справу',en:'a new personal undertaking'},
+ study:{uk:'початок навчального курсу',en:'starting a learning course'},
+ home:{uk:'закладання фундаменту будинку',en:'laying a home foundation'}
 };
-export const P31_TOPICS:ReadonlyArray<P31Topic>=['work','money','relationships','travel','personal'];
+export const P31_TOPICS:ReadonlyArray<P31Topic>=['work','money','relationships','travel','personal','study','home'];
 export function p31DaySummary(day:P31Day,nowMs:number,topic:P31Topic){
  if(!P31_TOPICS.includes(topic))throw Error('Invalid daily advice topic');
  const sunrise=Date.parse(day.sunriseUtc),sunset=Date.parse(day.sunsetUtc),
