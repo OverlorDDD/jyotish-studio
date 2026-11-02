@@ -48,6 +48,10 @@ const TOPICS:Record<P31Topic,{act:Lang;prepare:Lang}>={
  travel:{act:speak('нову важливу поїздку','an important new trip'),
   prepare:speak('Перевірте маршрут і квитки; початок нової поїздки перенесіть.',
     'Check your route and tickets; postpone the start of the new journey.')},
+ study:{act:speak('початок нового курсу навчання','starting a new course of study'),
+  prepare:speak('Уточніть програму й матеріали; час початку нового курсу перевірте окремо.','Review the curriculum and materials; check another time for beginning the course.')},
+ home:{act:speak('закладання фундаменту будинку','laying a house foundation'),
+  prepare:speak('Перевірте план і дозвільні документи; час закладання фундаменту перевірте окремо.','Review plans and permits; check another time for laying the foundation.')},
  personal:{act:speak('нову важливу особисту справу','an important new personal undertaking'),
   prepare:speak('Завершіть підготовку; початок нової справи перенесіть.',
     'Finish preparing; postpone starting the new undertaking.')}
@@ -58,13 +62,13 @@ const NAK_NATURE=['','swift','fierce','mixed','fixed','gentle','sharp','movable'
  'fierce','fierce','fixed','swift','gentle','movable','mixed','gentle','sharp','sharp',
  'fierce','fixed','movable','movable','movable','fierce','fixed','gentle'] as const;
 const GROUPS:Record<string,{topics:P31Topic[];tone:Tone;detail:Lang}[]>={
- fixed:[{topics:['work','money','personal'],tone:'supports',detail:speak(
+ fixed:[{topics:['work','money','personal','home'],tone:'supports',detail:speak(
   'Стійка накшатра традиційно підходить для довготривалих домовленостей.',
   'A fixed nakshatra traditionally supports lasting commitments.')}],
  movable:[{topics:['travel'],tone:'supports',detail:speak(
   'Рухлива накшатра традиційно підходить для початку поїздки.',
   'A movable nakshatra traditionally supports starting a journey.')}],
- swift:[{topics:['work','money','travel'],tone:'supports',detail:speak(
+ swift:[{topics:['work','money','travel','study'],tone:'supports',detail:speak(
   'Швидка накшатра традиційно підходить для торгівлі, навчання й коротких справ.',
   'A swift nakshatra traditionally suits trade, learning and short tasks.')}],
  gentle:[{topics:['relationships','personal'],tone:'supports',detail:speak(
@@ -79,7 +83,7 @@ const GROUPS:Record<string,{topics:P31Topic[];tone:Tone;detail:Lang}[]>={
  mixed:[], 
 };
 const VARA_SUPPORT:Partial<Record<number,P31Topic[]>>={
- 1:['work'],2:['relationships'],3:['personal'],4:['work','money'],5:['work','money'],
+ 1:['work'],2:['relationships'],3:['personal'],4:['work','money','study'],5:['work','money','study'],
  6:['relationships','personal'],7:['personal']
 };
 const YOGA_BLOCK=new Set([17,27]); // Vyatipata, Vaidhriti (Nitya Yoga)
