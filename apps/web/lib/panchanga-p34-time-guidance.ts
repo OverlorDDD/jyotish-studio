@@ -4,8 +4,8 @@
  * transition, then re-evaluate P3.2 + P3.3 at the exact segment's UTC instant.
  * No weighted luck score, LLM, estimated ingress, or fabricated natal facts.
  */
-import {interpretPanchanga,type P32Day,type P32Result} from './panchanga-p32-engine';
-import {synthesizePersonalResonance,type P33Point,type P33Report} from './panchanga-p33-resonance';
+import {interpretPanchanga,type P32Day,type P32Result} from './panchanga-p32-engine.ts';
+import {synthesizePersonalResonance,type P33Point,type P33Report} from './panchanga-p33-resonance.ts';
 
 type Lang={uk:string;en:string};
 type Status=P32Result['status'];
