@@ -29,7 +29,7 @@ for(const locale of ['uk','en']){
   await page.getByLabel(locale==='uk'?'Дата':'Date').fill('2026-11-02');
   await page.getByRole('button',{name:locale==='uk'?'Розрахувати день':'Calculate day'}).click();
   await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
-  await page.getByTestId('p31-details').locator('summary').click();
+  await page.getByTestId('p31-details').locator(':scope > summary').click();
   await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
   for(const kind of ['tithi','nakshatra','yoga','karana'])
    await expect(page.getByTestId('panchanga-lane-'+kind)).toBeVisible();
@@ -50,7 +50,7 @@ test('P2.2 before sunrise correctly shows previous Vedic day instead of future s
  await page.clock.install({time:new Date('2026-11-02T02:00:00Z')});
  await page.goto('/uk/panchanga?date=2026-11-02');
  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
- await page.getByTestId('p31-details').locator('summary').click();
+ await page.getByTestId('p31-details').locator(':scope > summary').click();
  const section=page.getByTestId('panchanga-day-experience');
  await expect(section).toContainText('Показники зараз',{timeout:90000});
  await expect(section).toContainText('До сходу Сонця триває попередній ведичний день');
@@ -61,7 +61,7 @@ test('P2.2 mobile timeline does not exceed viewport width',async({page})=>{
  test.setTimeout(120000);
  await page.goto('/uk/panchanga?date=2026-11-02');
  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
- await page.getByTestId('p31-details').locator('summary').click();
+ await page.getByTestId('p31-details').locator(':scope > summary').click();
  await expect(page.getByTestId('panchanga-daily-timeline')).toBeVisible({timeout:90000});
  const widths=await page.evaluate(()=>{
   const el=document.querySelector('[data-testid="panchanga-daily-timeline"]');

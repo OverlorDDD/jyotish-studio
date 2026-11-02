@@ -12,7 +12,7 @@ for(const locale of ['uk','en']){
   });
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
   await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
-  await page.getByTestId('p31-details').locator('summary').click();
+  await page.getByTestId('p31-details').locator(':scope > summary').click();
   await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
   const guide=page.getByTestId('panchanga-integrated-day');
   await expect(guide).toBeVisible();
@@ -44,7 +44,7 @@ for(const locale of ['uk','en']){
   await page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'})
    .getByRole('button',{name:locale==='uk'?'День':'Day',exact:true}).click();
   await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
-  await page.getByTestId('p31-details').locator('summary').click();
+  await page.getByTestId('p31-details').locator(':scope > summary').click();
   await expect(page.getByTestId('panchanga-integrated-day')).toBeVisible({timeout:90000});
   await expect(monthSystem.getByRole('button',{name:locale==='uk'?'Пурніманта':'Purnimanta'})).toHaveAttribute('aria-pressed','true');
  });
@@ -64,7 +64,7 @@ test('P2.4 delays day computation until the profile-derived observer is resolved
  expect(requests).toBe(0);
  release();
  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
- await page.getByTestId('p31-details').locator('summary').click();
+ await page.getByTestId('p31-details').locator(':scope > summary').click();
  await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
  expect(requests).toBe(1);
 });
@@ -78,7 +78,7 @@ test('P2.4 fails closed if moon-calendar observer or sunrise does not match deta
  });
  await page.goto('/uk/panchanga?date=2026-11-02');
  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
- await page.getByTestId('p31-details').locator('summary').click();
+ await page.getByTestId('p31-details').locator(':scope > summary').click();
  await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
  const guide=page.getByTestId('panchanga-integrated-day');
  await expect(guide.getByRole('alert')).toContainText('Дані про свята й фази',{timeout:90000});
@@ -89,7 +89,7 @@ test('P2.4 full day on narrow mobile has no horizontal overflow',async({page})=>
  await page.setViewportSize({width:320,height:740});
  await page.goto('/uk/panchanga?date=2026-11-02');
  await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
- await page.getByTestId('p31-details').locator('summary').click();
+ await page.getByTestId('p31-details').locator(':scope > summary').click();
  await expect(page.getByTestId('panchanga-integrated-day')).toBeVisible({timeout:90000});
  await expect(page.getByTestId('panchanga-related')).toBeVisible();
  const width=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:window.innerWidth}));

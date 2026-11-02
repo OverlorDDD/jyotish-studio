@@ -63,7 +63,7 @@ for(const locale of ['uk','en']){
   await expect(grid.getByTestId('panchanga-day-cell')).toHaveCount(31,{timeout:90000});
   await grid.getByTestId('panchanga-day-cell').first().click();
   await expect(page.getByTestId('p31-details')).toBeVisible({timeout:90000});
-  await page.getByTestId('p31-details').locator('summary').click();
+  await page.getByTestId('p31-details').locator(':scope > summary').click();
   await expect(page.getByTestId('panchanga-day-experience')).toBeVisible({timeout:90000});
  });
 }

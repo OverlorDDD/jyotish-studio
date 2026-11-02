@@ -226,9 +226,8 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   {view==='day'&&requested&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
   {view==='day'&&dayMatches&&result&&requested&&<>
    <PanchangaMyDay locale={locale} day={result} point={requested}/>
-   <details className={styles.p31Detail} data-testid="p31-details"
-    onToggle={e=>setShowDetails(e.currentTarget.open)}>
-    <summary>{uk?'Деталі розрахунку: п’ять показників, переходи та методика':
+   <details className={styles.p31Detail} data-testid="p31-details" open={showDetails}>
+    <summary onClick={e=>{e.preventDefault();setShowDetails(current=>!current)}}>{uk?'Деталі розрахунку: п’ять показників, переходи та методика':
      'Calculation details: five limbs, transitions and method'}</summary>
     {showDetails&&<div className={styles.results}>
      <PanchangaLiveDay day={result} locale={locale}/>

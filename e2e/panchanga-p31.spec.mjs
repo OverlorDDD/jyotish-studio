@@ -26,7 +26,7 @@ for(const locale of ['uk','en']){
    .getByRole('button',{name:locale==='uk'?'Гроші':'Money'}).click();
   await expect(mine.getByTestId('p31-advice')).toContainText(
    locale==='uk'?'фінансову домовленість':'financial agreement');
-  await detail.locator('summary').click();
+  await detail.locator(':scope > summary').click();
   await expect(detail).toHaveAttribute('open');
   await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
   await expect(page.getByTestId('panchanga-integrated-day')).toBeVisible();
