@@ -4,14 +4,13 @@ import {reportGrowthEvent} from '../../lib/growth-metrics';
 import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
 import styles from './PanchangaHub.module.css';
-import AstronomicalEventsPanel from './AstronomicalEventsPanel';
-import PersonalPanchanga from './PersonalPanchanga';
-import EclipsePanel from './EclipsePanel';
-import VedicFestivalPanel from './VedicFestivalPanel';
 import CitySearch from './CitySearch';
 import GlossaryText from './GlossaryText';
 import PanchangaRangeView from './PanchangaRangeView';
 import PanchangaLiveDay from './PanchangaLiveDay';
+import PanchangaDayGuide from './PanchangaDayGuide';
+import PanchangaRelatedPanels from './PanchangaRelatedPanels';
+import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
 
 type AngaName={number:number;name:string};
@@ -65,13 +64,16 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const t=labels[locale],uk=locale==='uk';
  const initialForm:Form={date:currentDay(),...presets.kyiv,place:uk?'Київ':'Kyiv'};
  const [form,setForm]=useState<Form>(initialForm);
- const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(initialForm);
+ const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(null);
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  const pendingManualCalculation=useRef(false);
  const [view,setView]=useState<'day'|'week'|'month'>('day');
+ const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
  const [locationSource,setLocationSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
  const [autoSave,setAutoSave]=useState(true);
  const [saveState,setSaveState]=useState<'idle'|'saving'|'saved'|'error'>('idle');
+ const saveSequence=useRef(0);
+ const saveQueue=useRef<Promise<unknown>>(Promise.resolve());
  useEffect(()=>{
   let live=true;const ctl=new AbortController();
   fetch('/api/v1/personal/panchanga/location',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
@@ -80,33 +82,43 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
      location:{place:string;timeZone:string;latitude:number;longitude:number}|null};})
    .then(data=>{
     if(!live)return;
-    if(!data){setLocationSource('guest');return;}
-    setLocationSource(data.source);
-    if(!data.location)return;
-    const loc=data.location;
-    const candidate=new URLSearchParams(window.location.search).get('date');
-    const day=candidate&&/^\\d{4}-\\d{2}-\\d{2}$/.test(candidate)&&
-     Number.isFinite(Date.parse(candidate+'T00:00:00Z'))&&
-     new Date(candidate+'T00:00:00Z').toISOString().slice(0,10)===candidate?candidate:currentDay(loc.timeZone);
-    const next:Form={date:day,place:loc.place,timeZone:loc.timeZone,
-     latitude:String(loc.latitude),longitude:String(loc.longitude)};
-    setForm(next);setRequested(next);setCity('custom');
-   }).catch(()=>{if(live)setLocationSource('guest')});
+    const loc=data?.location;
+    const next:Form=loc?{date:initialForm.date,place:loc.place,timeZone:loc.timeZone,
+     latitude:String(loc.latitude),longitude:String(loc.longitude)}:initialForm;
+    next.date=chooseInitialDay(new URLSearchParams(window.location.search).get('date'),next.timeZone);
+    setLocationSource(data?.source||'guest');
+    if(loc)setCity('custom');
+    setForm(next);setRequested(next);
+   }).catch(()=>{
+    if(!live)return;
+    const next={...initialForm,date:chooseInitialDay(
+     new URLSearchParams(window.location.search).get('date'),initialForm.timeZone)};
+    setLocationSource('guest');setForm(next);setRequested(next);
+   });
   return()=>{live=false;ctl.abort()};
  },[]);
- async function saveCity(next:Form){
+ function saveCity(next:Form){
   if(!autoSave||locationSource==='guest'||locationSource==='checking')return;
+  const version=++saveSequence.current;
   setSaveState('saving');
-  try{
+  const pending=saveQueue.current.catch(()=>{}).then(async()=>{
+   // Skip obsolete queued locations; an already submitted request must finish
+   // before its successor, so the final server preference is the latest city.
+   if(version!==saveSequence.current)return;
    const r=await fetch('/api/v1/personal/panchanga/location',{method:'PUT',credentials:'same-origin',
     headers:{'Content-Type':'application/json'},body:JSON.stringify({
      place:next.place,timeZone:next.timeZone,latitude:Number(next.latitude),longitude:Number(next.longitude)})});
    if(!r.ok)throw Error(String(r.status));
-   setLocationSource('saved');setSaveState('saved');
-  }catch{setSaveState('error');}
+   if(version===saveSequence.current){setLocationSource('saved');setSaveState('saved');}
+  });
+  saveQueue.current=pending.catch(()=>{if(version===saveSequence.current)setSaveState('error')});
  }
  async function restoreNatalCity(){
+  const version=++saveSequence.current;
+  setSaveState('saving');
   try{
+   await saveQueue.current.catch(()=>{});
+   if(version!==saveSequence.current)return;
    const r=await fetch('/api/v1/personal/panchanga/location',{method:'DELETE',credentials:'same-origin'});
    if(!r.ok)throw Error(String(r.status));
    const data=await r.json() as {source:'saved'|'natal'|'none';
@@ -114,21 +126,12 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    const next:Form=data.location?{...form,place:data.location.place,timeZone:data.location.timeZone,
     latitude:String(data.location.latitude),longitude:String(data.location.longitude)}
     :{...form,...presets.kyiv,place:uk?'Київ':'Kyiv'};
+   if(version!==saveSequence.current)return;
    setForm(next);setRequested(next);setLocationSource(data.source);setSaveState('idle');
-  }catch{setSaveState('error');}
+  }catch{if(version===saveSequence.current)setSaveState('error');}
  }
  function selectDay(date:string){const next={...form,date};setForm(next);setRequested(next);setView('day');}
  function selectLocation(next:Form){setForm(next);setRequested(next);void saveCity(next);}
- // First-party GalaxiNews stories deep-link to their authentic event day.
- useEffect(()=>{
-  const day=new URLSearchParams(window.location.search).get('date');
-  if(!day||!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||
-   !Number.isFinite(Date.parse(day+'T00:00:00Z'))||
-   new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day||
-   day<'1900-01-01'||day>'2099-12-31')return;
-  setForm(f=>({...f,date:day}));
-  setRequested(f=>({...initialForm,...(f||{}),date:day}));
- },[]);
  useEffect(()=>{
   if(!requested||view!=='day')return;
   let live=true;const controller=new AbortController();setLoading(true);setError(false);setResult(null);
@@ -155,8 +158,19 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
      {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):(uk?'Місяць':'Month')}
     </button>)}
   </nav>
+  <fieldset className={styles.unifiedSystem} data-testid="panchanga-month-system">
+   <legend>{uk?'Система ведичного місяця':'Vedic lunar-month system'}</legend>
+   {(['amanta','purnimanta'] as const).map(system=><button type="button" key={system}
+    aria-pressed={monthSystem===system} onClick={()=>setMonthSystem(system)}>
+    {system==='amanta'?(uk?'Аманта':'Amanta'):(uk?'Пурніманта':'Purnimanta')}
+   </button>)}
+  </fieldset>
   <form className={styles.form} onSubmit={e=>{
-   e.preventDefault();pendingManualCalculation.current=true;setRequested({...form});void saveCity(form);
+   e.preventDefault();pendingManualCalculation.current=view==='day'; 
+   const changed=!requested||['timeZone','latitude','longitude','place'].some(key=>
+    form[key as keyof Form]!==requested[key as keyof Form]);
+   setRequested({...form});
+   if(changed)saveCity(form);
   }}>
    <div className={styles.formGrid}>
     <label>{t.date}<input required type="date" min="1900-01-01" max="2099-12-31" value={form.date} onChange={e=>{const next={...form,date:e.target.value};setForm(next);
@@ -194,8 +208,12 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    {saveState==='error'&&<p role="alert">{uk?'Помилка збереження міста.':'Could not save city.'}</p>}
   </form>
   {error&&<div role="alert" className={styles.error}>{t.error}</div>}
-  {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested} onPick={selectDay}/>}
-  {view==='day'&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
+  {locationSource==='checking'&&<p role="status" className={styles.locationStatus}>
+   {uk?'Перевіряємо вашу локацію перед розрахунком…':'Checking your location before calculating…'}</p>}
+  {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested}
+   monthSystem={monthSystem} onMonthSystemChange={setMonthSystem} onPick={selectDay}/>}
+  {view==='day'&&requested&&loading&&<p role="status" className={styles.empty}>{t.busy}</p>}
+  {view==='day'&&requested&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
   {view==='day'&&result&&<div className={styles.results}>
    <PanchangaLiveDay day={result} locale={locale}/>
    <section className={styles.sun}><h2>{t.subtitle} · {result.date}</h2>
@@ -205,12 +223,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
      <div><small>{t.next}</small><strong>{fmt(result.nextSunriseUtc)}</strong></div>
     </div>
    </section>
-   <section className={styles.timeline}><h2>{t.events}</h2>
-    {result.astronomicalEvents.map((event,i)=><div key={event.type+event.atUtc+i}>
-     <time dateTime={event.atUtc}>{fmt(event.atUtc)}</time>
-     <strong>{event.type==='sunrise'?t.sunrise:event.type==='sunset'?t.sunset:t[event.type]}</strong>
-    </div>)}
-   </section>
+   {requested&&<PanchangaDayGuide locale={locale} point={requested} day={result} monthSystem={monthSystem}/>}
    <section className={styles.timeline}><h2>{t.kalas}</h2>
     {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
      <time dateTime={result.daytimeKalas[key].fromUtc}>{fmt(result.daytimeKalas[key].fromUtc)} — {fmt(result.daytimeKalas[key].untilUtc)}</time>
@@ -226,17 +239,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank" rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
    </aside>
   </div>}
-  {view==='day'&&<div className={styles.extraSections}>
-   <h2>{uk?'Інші календарні можливості':'More calendar features'}</h2>
-  <AstronomicalEventsPanel locale={locale} start={requested?.date??form.date} zone={requested?.timeZone??form.timeZone}/>
-  <PersonalPanchanga locale={locale} point={requested??form}/>
-  <VedicFestivalPanel locale={locale} point={requested??form}/>
-  <EclipsePanel locale={locale} point={requested??form}/>
-  <aside className={styles.empty} aria-label={uk?'Календар затемнень 2027':'2027 eclipse calendar'}>
-   <strong>{uk?'Усі затемнення 2027 року — дати й пояснення NASA':'Every eclipse in 2027 — dates and NASA explanations'}</strong>
-   <p>{uk?'Тут вище — точна видимість для вибраного міста. У календарі — всі п’ять глобальних затемнень року та пояснення їхніх фаз.':'The calculator above checks visibility for your city. The calendar lists all five worldwide eclipses and explains their phases.'}</p>
-   <Link href={'/'+locale+'/eclipses/2027'}>{uk?'Відкрити календар 2027':'Explore the 2027 calendar'} →</Link>
-  </aside>
-  </div>}
+  {view==='day'&&result&&requested&&<PanchangaRelatedPanels locale={locale} point={requested}/>}
  </section>;
 }
