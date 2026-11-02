@@ -24,7 +24,7 @@ test('P3.6 smoke is read-only, bilingual, verifies 401 and exact range',()=>{
  const content=read('tools/panchanga-p36-smoke.mjs');
  for(const word of ['private','401','no-store','/uk/panchanga',
   '/en/panchanga','panchanga/range','7,30','Swiss',
-  'P36_PUBLIC','sitemap.xml'])
+  'P36_PUBLIC','/robots.txt'])
   assert.ok(content.includes(word),word);
  for(const risk of ['fetch(url, {method:','credentials:','Authorization:','document.cookie',
   'POST','DELETE','PUT','sendBeacon','NEXT_PUBLIC_GA4']){
