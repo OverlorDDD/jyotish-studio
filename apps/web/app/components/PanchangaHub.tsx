@@ -8,8 +8,6 @@ import CitySearch from './CitySearch';
 import GlossaryText from './GlossaryText';
 import PanchangaRangeView from './PanchangaRangeView';
 import PanchangaLiveDay from './PanchangaLiveDay';
-import PanchangaDayGuide from './PanchangaDayGuide';
-import PanchangaRelatedPanels from './PanchangaRelatedPanels';
 import PanchangaMyDay from './PanchangaMyDay';
 import PanchangaPersonalCalendar from './PanchangaPersonalCalendar';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
@@ -161,8 +159,8 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   <header className={styles.hero}>
    <div className={styles.eyebrow}>GALAXIORA · ASTRONOMY</div>
    <h1>{uk?'Мій день · Панчанга':'My day · Panchanga'}</h1><p>{uk?
-    'Поради за ведичним календарем, події в небі та точні розрахунки для обраного міста.':
-    'Vedic calendar guidance, sky events and verified calculations for your city.'}</p>
+    'П’ять складників ведичного календаря, пояснення для ваших справ і точні розрахунки для обраного міста.':
+    'Five Vedic calendar limbs, activity-specific explanations and verified calculations for your city.'}</p>
    <Link href={'/'+locale+'/horoscope'}>{uk?'До гороскопів':'Horoscopes'} ↗</Link>
   </header>
   <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
@@ -232,11 +230,10 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   {view==='day'&&dayMatches&&result&&requested&&<>
    <PanchangaMyDay locale={locale} day={result} point={requested}/>
    <details className={styles.p31Detail} data-testid="p31-details" open={showDetails}>
-    <summary onClick={e=>{e.preventDefault();setShowDetails(current=>!current)}}>{uk?'Деталі розрахунку: п’ять показників, переходи та методика':
-     'Calculation details: five limbs, transitions and method'}</summary>
+    <summary onClick={e=>{e.preventDefault();setShowDetails(current=>!current)}}>{uk?'Технічні дані: точні переходи й методика':
+     'Technical detail: exact transitions and method'}</summary>
     {showDetails&&<div className={styles.results}>
      <PanchangaLiveDay day={result} locale={locale}/>
-     <PanchangaDayGuide locale={locale} point={requested} day={result} monthSystem={monthSystem}/>
      <section className={styles.timeline}><h2>{t.kalas}</h2>
       {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
        <time dateTime={result.daytimeKalas[key].fromUtc}>{fmt(result.daytimeKalas[key].fromUtc)} — {fmt(result.daytimeKalas[key].untilUtc)}</time>
@@ -245,7 +242,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
       </div>)}
       <p><GlossaryText text={t.kalaNote} locale={locale}/></p>
      </section>
-     <PanchangaRelatedPanels locale={locale} point={requested}/>
      <aside className={styles.method}><h2>{t.source}</h2>
       <p><GlossaryText text={t.profile} locale={locale}/></p>
       <p><GlossaryText text={result.sunriseMethod} locale={locale}/></p>
