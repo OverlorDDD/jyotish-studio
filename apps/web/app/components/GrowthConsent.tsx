@@ -8,16 +8,27 @@ const measurementId=process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim()||'';
 const enabled=/^G-[A-Z0-9]{6,16}$/.test(measurementId);
 type Choice='accepted'|'rejected'|null;
 type Gtag=(command:string,...args:unknown[])=>void;
-declare global {interface Window {dataLayer?:unknown[][];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean}}
+declare global {interface Window {dataLayer?:unknown[][];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean;__galaxioraTagStatus?:'loading'|'loaded'|'blocked'}}
+function tagStatus(status:'loading'|'loaded'|'blocked'){
+ if(typeof window==='undefined')return;
+ window.__galaxioraTagStatus=status;
+ window.dispatchEvent(new CustomEvent('galaxiora:tag-status',{detail:status}));
+}
 function startAnalytics(safePath:string){
  if(typeof window==='undefined'||!enabled||window.__galaxioraAnalyticsReady)return;
  window.__galaxioraAnalyticsReady=true;
  window.dataLayer=window.dataLayer||[];
  window.gtag=(...args:unknown[])=>{window.dataLayer?.push(args)};
- window.gtag('js',new Date());
+ // Basic Consent Mode: the script is not fetched before affirmative consent.
+ // Even after consent, queue the default DENIED state before js/config/event,
+ // then apply the visitor's affirmative update (Google's required order).
  window.gtag('consent','default',{
+  analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'
+ });
+ window.gtag('consent','update',{
   analytics_storage:'granted',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'
  });
+ window.gtag('js',new Date());
  // Never let GA discover a raw URL query, birth details or private referrer.
  const safeLocation='https://galaxiora.com'+safePath;
  let safeReferrer='';
@@ -32,6 +43,9 @@ function startAnalytics(safePath:string){
  script.async=true;
  script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(measurementId);
  script.dataset.galaxioraAnalytics='true';
+ tagStatus('loading');
+ script.addEventListener('load',()=>tagStatus('loaded'),{once:true});
+ script.addEventListener('error',()=>tagStatus('blocked'),{once:true});
  document.head.appendChild(script);
 }
 function stopAnalytics(){
@@ -50,13 +64,18 @@ export default function GrowthConsent(){
  const [choice,setChoice]=useState<Choice>(null);
  const [loaded,setLoaded]=useState(false);
  const [open,setOpen]=useState(false);
+ const [tagState,setTagState]=useState<'off'|'loading'|'loaded'|'blocked'>('off');
  const uk=pathname?.startsWith('/uk')??false;
  useEffect(()=>{
+  const onStatus=(e:Event)=>setTagState((e as CustomEvent<'loading'|'loaded'|'blocked'>).detail);
+  window.addEventListener('galaxiora:tag-status',onStatus);
+  setTagState(window.__galaxioraTagStatus||'off');
   try{
    const stored=localStorage.getItem(CONSENT_KEY);
    setChoice(stored==='accepted'||stored==='rejected'?stored:null);
   }catch{setChoice(null)}
   setLoaded(true);
+  return()=>window.removeEventListener('galaxiora:tag-status',onStatus);
  },[]);
  useEffect(()=>{
   if(!loaded||!enabled)return;
@@ -98,7 +117,12 @@ export default function GrowthConsent(){
  const decide=(value:'accepted'|'rejected')=>{
   try{localStorage.setItem(CONSENT_KEY,value)}catch{}
   setChoice(value);setOpen(false);
-  if(value==='rejected')stopAnalytics();
+  if(value==='rejected'){
+   stopAnalytics();
+   // Removing a script tag does not unload executing gtag.js. Reload once on
+   // withdrawal so no prior analytics runtime remains in this document.
+   if(choice==='accepted')window.location.reload();
+  }
  };
  return <>
   {choice===null&&<aside role="dialog" aria-label={uk?'Аналітика відвідувань':'Visitor analytics'} style={{position:'fixed',bottom:16,left:16,right:16,maxWidth:540,margin:'auto',zIndex:9999,background:'#161b30',color:'#fff',border:'1px solid #a08b67',borderRadius:14,padding:20,boxShadow:'0 12px 35px #0007'}}>
@@ -113,8 +137,9 @@ export default function GrowthConsent(){
   {choice!==null&&<div style={{position:'fixed',bottom:12,right:12,zIndex:100}}>
    <button type="button" style={{fontSize:12,opacity:.85}} onClick={()=>setOpen(v=>!v)}>{uk?'Налаштування аналітики':'Analytics settings'}</button>
   </div>}
-  {open&&choice!==null&&<aside role="dialog" aria-label={uk?'Змінити згоду':'Change analytics consent'} style={{position:'fixed',bottom:52,right:12,zIndex:10001,background:'#161b30',color:'#fff',borderRadius:10,padding:16}}>
+  {open&&choice!==null&&<aside role="dialog" aria-label={uk?'Змінити згоду':'Change analytics consent'} style={{position:'fixed',bottom:52,right:12,zIndex:10001,background:'#161b30',color:'#fff',borderRadius:10,padding:16,maxWidth:320}}>
    <p>{uk?'Аналітика необов’язкова. Зміни рішення:':'Analytics is optional. Change your choice:'}</p>
+   {choice==='accepted'&&<p role="status" data-testid="analytics-tag-status" style={{fontSize:12}}>{uk?'Стан Google-тега: ':'Google tag status: '}{tagState==='loaded'?(uk?'скрипт завантажено (доставка подій не підтверджена)':'script loaded (events not yet confirmed)'):tagState==='blocked'?(uk?'завантаження заблоковане або не вдалося':'blocked or failed to load'):(uk?'очікується завантаження':'waiting for script')}</p>}
    <button type="button" onClick={()=>decide('rejected')}>{uk?'Відкликати згоду':'Withdraw consent'}</button>{' '}
    <button type="button" onClick={()=>decide('accepted')}>{uk?'Дозволити':'Allow'}</button>
   </aside>}
