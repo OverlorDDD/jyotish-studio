@@ -70,6 +70,8 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  const pendingManualCalculation=useRef(false);
  const [view,setView]=useState<'day'|'week'|'month'|'personal'>('day');
+ useEffect(()=>{if(new URLSearchParams(window.location.search).get('view')==='personal')
+  setView('personal');},[]);
  const [showDetails,setShowDetails]=useState(false);
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
  const [locationSource,setLocationSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
