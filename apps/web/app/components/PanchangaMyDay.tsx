@@ -14,7 +14,8 @@ type Point={date:string;timeZone:string;latitude:string;longitude:string;place:s
 const topics:Record<P31Topic,{uk:string;en:string}>={
  work:{uk:'Робота',en:'Work'},money:{uk:'Гроші',en:'Money'},
  relationships:{uk:'Стосунки',en:'Relationships'},travel:{uk:'Поїздки',en:'Travel'},
- personal:{uk:'Особисті справи',en:'Personal matters'}
+ personal:{uk:'Особисті справи',en:'Personal matters'},
+ study:{uk:'Навчання',en:'Study'},home:{uk:'Фундамент',en:'Foundation'}
 };
 const factorIcons={tithi:Moon,vara:CalendarDays,nakshatra:Sparkles,yoga:Orbit,karana:CircleDot};
 const toneNames={
