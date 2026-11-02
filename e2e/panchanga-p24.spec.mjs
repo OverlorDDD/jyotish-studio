@@ -23,13 +23,13 @@ for(const locale of ['uk','en']){
   expect(extraPersonal).toBe(0);
   expect(festivalOld).toBe(0);
   expect(overview).toBe(1);
-  await related.getByRole('button',{name:locale==='uk'?/Рух планет та астрономія/:/Planetary movements/}).click();
+  await related.getByRole('button',{name:locale==='uk'?/Переходи планет/:/Planetary transitions/}).click();
   await expect(page.getByTestId('astronomical-events-panel')).toBeVisible();
   await expect.poll(()=>extraSky).toBeGreaterThan(0);
-  await related.getByRole('button',{name:locale==='uk'?/Мій місячний ритм/:/My lunar rhythm/}).click();
+  await related.getByRole('button',{name:locale==='uk'?/Тарабала й Чандрабала/:/Tarabala & Chandrabala/}).click();
   await expect(page.getByTestId('personal-panchanga')).toBeVisible();
   await expect.poll(()=>extraPersonal).toBeGreaterThan(0);
-  await related.getByRole('button',{name:locale==='uk'?/Затемнення за місцем/:/Eclipses at this location/}).click();
+  await related.getByRole('button',{name:locale==='uk'?/Видимість затемнень/:/Eclipse visibility/}).click();
   await expect(page.getByTestId('eclipse-panel')).toBeVisible();
   // P2.4 keeps month choice when switching between day and grid.
   const monthSystem=page.getByTestId('panchanga-month-system');
@@ -73,7 +73,7 @@ test('P2.4 fails closed if moon-calendar observer or sunrise does not match deta
  await page.goto('/uk/panchanga?date=2026-11-02');
  await expect(page.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
  const guide=page.getByTestId('panchanga-integrated-day');
- await expect(guide.getByRole('alert')).toContainText('Не вдалося узгодити',{timeout:90000});
+ await expect(guide.getByRole('alert')).toContainText('Дані про свята й фази',{timeout:90000});
  await expect(guide.locator('ol li')).toHaveCount(0);
 });
 test('P2.4 full day on narrow mobile has no horizontal overflow',async({page})=>{

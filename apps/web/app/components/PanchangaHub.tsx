@@ -36,8 +36,8 @@ const presets:{
 };
 const labels={
  uk:{title:'Панчанга',intro:'Тітхі, накшатра, вара, йога й карана для обраного міста. Переглядай день, тиждень або місяць і час переходів.',
- subtitle:'Астрономічний календар',date:'Дата',city:'Місцевість',zone:'Часовий пояс (IANA)',lat:'Широта',lon:'Довгота',calculate:'Розрахувати день',busy:'Розраховуємо переходи…',
- unknown:'Немає обчислення',error:'Немає перевірених астрономічних даних для цих умов. Перевір часовий пояс, координати та Swiss Ephemeris, тоді повтори.',
+ subtitle:'Астрономічний календар',date:'Дата',city:'Місцевість',zone:'Часовий пояс (IANA)',lat:'Широта',lon:'Довгота',calculate:'Розрахувати день',busy:'Розраховуємо день…',
+ unknown:'Немає обчислення',error:'Немає даних для цього міста й дати. Перевір координати та часовий пояс.',
  sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'П’ять показників',transitions:'Переходи протягом дня',kalas:'Традиційні денні періоди',rahuKalam:'Раху-калам',yamaganda:'Ямаганда',gulikaKalam:'Гуліка-калам',kalaNote:'Раху-калам, Ямаганда й Гуліка-калам — відрізки світлового дня. Це не персональний вибір сприятливого часу.',events:'Астрономічні події',new_moon:'Молодик',full_moon:'Повня',
  source:'Джерело розрахунку',started:'Початок',ends:'Закінчення',notProphecy:'Переходи показано за місцевим часом обраного міста.',
  tithi:'Тітхі',nakshatra:'Накшатра',vara:'Вара',yoga:'Нітья-йога',karana:'Карана',
@@ -46,8 +46,8 @@ const labels={
  limits:'Час переходів уточнено чисельно до секунди.',
  cities:{kyiv:'Київ',delhi:'Нью-Делі',london:'Лондон',custom:'Свої координати'}},
  en:{title:'Panchanga',intro:'Tithi, Nakshatra, Vara, Yoga and Karana for your location. View daily, weekly or monthly values and transition times.',
- subtitle:'Astronomical calendar',date:'Date',city:'Location',zone:'Time zone (IANA)',lat:'Latitude',lon:'Longitude',calculate:'Calculate day',busy:'Calculating transitions…',
- unknown:'No calculation yet',error:'Verified astronomical data are unavailable for this location. Check timezone, coordinates and Swiss Ephemeris, then retry.',
+ subtitle:'Astronomical calendar',date:'Date',city:'Location',zone:'Time zone (IANA)',lat:'Latitude',lon:'Longitude',calculate:'Calculate day',busy:'Calculating day…',
+ unknown:'No calculation yet',error:'No data for this city and date. Check coordinates and time zone.',
  sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',kalas:'Traditional daytime periods',rahuKalam:'Rahu Kalam',yamaganda:'Yamaganda',gulikaKalam:'Gulika Kalam',kalaNote:'Rahu Kalam, Yamaganda and Gulika Kalam divide daylight into traditional intervals, not a personal muhurta.',events:'Astronomical events',new_moon:'New Moon',full_moon:'Full Moon',
  source:'Calculation source',started:'Started',ends:'Ends',notProphecy:'All transition times use the selected location’s time zone.',
  tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana',
