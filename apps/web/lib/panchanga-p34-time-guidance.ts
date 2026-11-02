@@ -54,7 +54,7 @@ export function p34Boundaries(day:P32Day,extra:readonly string[]=[]){
    const a=ms(p.startUtc),b=ms(p.endUtc);
    guard(b>a,'non-positive '+limb+' interval');
    if(b<=start||a>=end)continue;
-   guard(a<=cursor&&b>cursor,'gap or overlap in '+limb+' intervals');
+   guard(Math.max(a,start)===cursor&&b>cursor,'gap or overlap in '+limb+' intervals');
    cursor=b;addInside(set,a,start,end);addInside(set,b,start,end);
   }
   guard(cursor>=end,'last '+limb+' interval ends before next sunrise');
