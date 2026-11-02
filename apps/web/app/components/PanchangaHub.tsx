@@ -132,7 +132,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    setForm(next);setRequested(next);setLocationSource(data.source);setSaveState('idle');
   }catch{if(version===saveSequence.current)setSaveState('error');}
  }
- function selectDay(date:string){const next={...form,date};setForm(next);setRequested(next);setView('day');}
+ function selectDay(date:string){const next={...form,date};setShowDetails(false);setForm(next);setRequested(next);setView('day');}
  function selectLocation(next:Form){setForm(next);setRequested(next);void saveCity(next);}
  useEffect(()=>{
   if(!requested||view!=='day')return;
@@ -158,7 +158,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   </header>
   <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
    {(['day','week','month'] as const).map(period=><button key={period} type="button"
-    aria-current={view===period?'page':undefined} onClick={()=>setView(period)}>
+    aria-current={view===period?'page':undefined} onClick={()=>{setShowDetails(false);setView(period)}}>
      {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):(uk?'Місяць':'Month')}
     </button>)}
   </nav>
