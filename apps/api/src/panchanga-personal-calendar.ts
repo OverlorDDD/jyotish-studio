@@ -72,7 +72,7 @@ export async function buildP35Calendar(input:CalendarInput,natal:CalendarNatal){
   const instant=stamp(d.sunriseUtc),sunriseMoon=planetAt(instant,'Moon');
   const sign=indexed(sunriseMoon.longitude,12),nak=indexed(sunriseMoon.longitude,27);
   if(sign!==d.sunrise.moonSign||nak!==d.sunrise.nakshatra.number||
-     !(stamp(d.nextSunriseUtc)>instant)&&true)
+     !(stamp(d.nextSunriseUtc)>instant))
     throw Error('P3.5 Moon/public Panchanga contradiction');
   const strength=verifiedDailyMoonStrength(
    {moonLongitude:natal.moonLongitude,moonSign:natal.moonSign},
@@ -92,13 +92,14 @@ export async function buildP35Calendar(input:CalendarInput,natal:CalendarNatal){
  const events=p35LunarEvents(start,end,atMoon);
  const unique=new Set<string>();
  for(const d of natal.dasha){
-  for(const x of [d,...d.antardashas||[]]){
+  for(const x of [d,...(d.antardashas||[])]){
    const kind:EventKind=x===d?'mahadasha':'antardasha';
    for(const iso of [x.start,x.end]){
     const utc=stamp(iso);
     if(utc<start||utc>=end)continue;
     const atUtc=new Date(utc).toISOString(),key=kind+'|'+atUtc;
-    if(!unique.has(key)){unique.add(key);events.push({kind,atUtc,lord:x.lord});}
+    if(!unique.has(key)){unique.add(key);events.push({kind,atUtc,lord:kind==='mahadasha'?
+      periodAt(natal.dasha,utc)?.lord||'':periodAt(natal.dasha,utc)?.antardasha?.lord||''});}
    }
   }
  }
