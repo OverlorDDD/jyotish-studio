@@ -107,3 +107,12 @@
  .transitionList time{font-weight:600}
 }
 @media(prefers-reduced-motion:reduce){.liveSection,.dayTimeline,.laneSegment,.nowMarker{transition:none!important;animation:none!important}}
+
+
+/* Light/dark segmentation derives from actual local Swiss sunrise and sunset, not 06:00/18:00. */
+.dayNight{margin:4px 0 24px}
+.dayNightLegend{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#cad7e7;font-size:11px}
+.dayNightTrack{margin-top:7px;height:13px;display:flex;overflow:hidden;border:1px solid #60748c;border-radius:6px}
+.dayNightLight{height:100%;background:#c2a474}
+.dayNightDark{height:100%;background:#536c94}
+.sunsetMarker{position:absolute;top:0;bottom:0;width:2px;border-left:2px dashed #ffe1a2;z-index:2;pointer-events:none}
