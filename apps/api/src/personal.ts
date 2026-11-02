@@ -15,6 +15,7 @@ import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/luna
 import {calculatePanchangaDay,validatePanchangaLocation,createVerifiedSiderealPlanetAt} from './panchanga.ts';
 import {normalizePanchangaLocation} from './panchanga-location.ts';
 import {buildP35Calendar} from './panchanga-personal-calendar.ts';
+import {findVerifiedSignIngresses} from './panchanga-ingress.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
@@ -477,40 +478,25 @@ export class PersonalController{
      Math.floor(planetAt(t,body).longitude/30)+1;
     const names=['Moon','Mercury','Venus','Mars','Jupiter','Saturn'] as const;
     const events:{atUtc:string;kind:'moon-sign'|'planet-sign'|'mahadasha'|'antardasha'}[]=[];
+    // Adaptive speed-aware Swiss enumeration. The 30-minute sweep alone
+    // could skip a stationary retrograde cross-and-return. Every ambiguous
+    // bin is subdivided down to 1 second; insufficient evidence fails closed.
     for(const name of names){
-     const step=30*60000;
-     let previous=begin,prevSign=sign(begin,name);
-     for(let t=begin+step;previous<end;t+=step){
-      const limit=Math.min(t,end-1);
-      if(limit<=previous)break;
-      const nextSign=sign(limit,name);
-      if(nextSign!==prevSign){
-       const distance=(nextSign-prevSign+12)%12;
-       if(distance!==1&&distance!==11)throw Error('Nonadjacent Swiss ingress');
-       let lo=previous,hi=limit;
-       for(let i=0;i<45&&hi-lo>1000;i++){
-        const mid=Math.floor((lo+hi)/2);
-        if(sign(mid,name)===prevSign)lo=mid;else hi=mid;
-       }
-       // Align to the source boundary-resolution second, on the NEW side.
-       const rounded=Math.ceil(hi/1000)*1000;
-       // Moon sign ingress and a nakshatra ingress coincide geometrically
-       // at some 120-degree boundaries. Independent 1s Swiss roots may
-       // differ by subsecond amounts: do NOT manufacture a microscopic
-       // interval where the private Moon and public nakshatra disagree.
-       // Reuse the already verified public crossing when they agree to
-       // the stated one-second source resolution.
-       const publicLunarCrossings=day.periods.nakshatra.map(p=>Date.parse(p.startUtc))
-        .filter(t=>t>begin&&t<end);
-       const matching=name==='Moon'?publicLunarCrossings.find(t=>
-        Math.abs(t-rounded)<=1000):undefined;
-       const boundary=matching??rounded;
-       if(boundary>begin&&boundary<end)
-        events.push({atUtc:new Date(boundary).toISOString(),
-         kind:name==='Moon'?'moon-sign':'planet-sign'});
-      }
-      previous=limit;prevSign=nextSign;
-      if(limit===end-1)break;
+     const ingresses=findVerifiedSignIngresses(begin,end,
+      t=>planetAt(t,name));
+     for(const ingress of ingresses){
+      const rounded=Date.parse(ingress.atUtc);
+      // Unify co-located 120-degree Moon-sign and nakshatra transitions
+      // against the independently verified seven-factor public boundary.
+      const publicLunarCrossings=day.periods.nakshatra.map(p=>Date.parse(p.startUtc))
+       .filter(t=>t>begin&&t<end);
+      const matching=name==='Moon'?publicLunarCrossings.find(t=>
+       Math.abs(t-rounded)<=1000):undefined;
+      const boundary=matching??rounded;
+      if(boundary>begin&&boundary<end)events.push({
+       atUtc:new Date(boundary).toISOString(),
+       kind:name==='Moon'?'moon-sign':'planet-sign'
+      });
      }
     }
     for(const d of chart.dasha||[]){
