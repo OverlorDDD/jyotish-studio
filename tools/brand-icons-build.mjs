@@ -1,6 +1,6 @@
 /** Galaxiora: ONE immutable, owner-approved original galaxy spiral #6.
  * Never substitute the rejected G letter SVG or generate a new logo.
- * Original binary asset is restored unchanged from the approved 2026-11-02 commit.
+ * Final circular transparent binary is restored unchanged from approved galaxy-round-v4 commit.
  * Next auto-discovers generated app/icon.png. All formats regenerated before builds.
  */
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
@@ -12,10 +12,10 @@ import sharp from 'sharp';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const approved=join(root,'apps/web/brand-assets/galaxiora-approved-spiral-6.png');
 const original=await readFile(approved);
-// Exact blob taken from the user-approved original #6 file in GitHub.
+// Exact blob taken from the final circular user-approved #6 file in GitHub.
 // Git's blob hashing protects against unintended brand changes.
 const gitSha=createHash('sha1').update(Buffer.from('blob '+original.length+String.fromCharCode(0))).update(original).digest('hex');
-if(gitSha!=='e6cf1437d0d48c6851093d21c1873fd64f3d03fe'){
+if(gitSha!=='c6a467d3ddfd2848181203382f16f60d9030b139'){
  throw new Error('BRAND_BLOCKED: selected original galaxy #6 asset changed; no icons overwritten');
 }
 const metadata=await sharp(original).metadata();
