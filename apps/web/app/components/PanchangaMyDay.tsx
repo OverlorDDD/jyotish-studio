@@ -76,6 +76,12 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
     interpretPanchanga(day as P32Day,at,topic,resonance.mode==='live'?'auto':'sunrise-snapshot'),day as P32Day,point,resonance.report,resonance.atUtc);
   }catch{return null;}
  },[day,point,topic,resonance,selectedKey]);
+ const calendarEvidence=useMemo(()=>{
+  if(!personal||!resonance)return interpretation;
+  try{return interpretPanchanga(day as P32Day,Date.parse(resonance.atUtc),topic,
+   resonance.mode==='live'?'auto':'sunrise-snapshot');}
+  catch{return null;}
+ },[day,interpretation,personal,resonance,topic]);
  const decision=personal||interpretation;
  const queryKey=eclipseRequest?[eclipseRequest.date,eclipseRequest.timeZone,
    eclipseRequest.latitude,eclipseRequest.longitude].join('|'):null;
@@ -174,11 +180,11 @@ export default function PanchangaMyDay({locale,day,point}:{locale:PortalLocale;d
       (uk?'За показниками на поточний момент.':'Based on factors at this moment.'):
       (uk?'Оцінка на схід Сонця обраної дати, не висновок на поточну годину.':
        'Sunrise snapshot for the selected date, not a claim about this hour.')}</p>
-     {interpretation.untilUtc&&<p className={styles.scopeNote}>{uk?'Найближча зміна показника до':'Next evaluated change by'}: <strong>{fmt(interpretation.untilUtc,true)}</strong></p>}
+     {calendarEvidence?.untilUtc&&<p className={styles.scopeNote}>{uk?'Найближча зміна показника до':'Next evaluated change by'}: <strong>{fmt(calendarEvidence.untilUtc,true)}</strong></p>}
      <details className={styles.reasonDetails} data-testid="p32-evidence">
       <summary>{uk?'Чому така порада? П’ять показників, Місяць і денний період':
        'Why? Five limbs, Moon and daylight interval'}</summary>
-      <ol>{interpretation.evidence.map(f=><li key={f.id}>
+      <ol>{(calendarEvidence?.evidence||[]).map(f=><li key={f.id}>
        <strong>{f.factor==='tithi'?(uk?'Місячний день':'Lunar day'):
         f.factor==='nakshatra'?(uk?'Накшатра':'Nakshatra'):
         f.factor==='vara'?(uk?'День тижня':'Weekday'):
