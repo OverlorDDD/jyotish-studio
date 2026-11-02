@@ -12,7 +12,7 @@ const overview={monthSystem:'amanta',observer:{timeZone:point.timeZone,latitude:
  moonMonth:{name:'Kartika',lunarMonthStatus:'regular'},observances:[{
  id:'ekadashi_sunrise',date:point.date,category:'candidate',atUtc:exact.sunriseUtc,
  rule:'Sunrise indicator, not final fasting date'}]}],
- phaseEvents:[{kind:'full_moon',atUtc:'2026-11-02T21:30:00.000Z',localDate:point.date}]};
+ phaseEvents:[{kind:'full_moon',atUtc:'2026-11-02T17:30:00.000Z',localDate:point.date}]};
 test('only identical observer and sunrise data are joined into the day experience',()=>{
  assert.equal(verifyIntegratedOverview(overview,exact,point,'amanta').phases.length,1);
  assert.throws(()=>verifyIntegratedOverview({...overview,monthSystem:'purnimanta'},exact,point,'amanta'),/mismatch/i);
@@ -29,6 +29,8 @@ test('festival candidates are never promoted to certified fasting dates',()=>{
 test('phases belong to the selected observer civil date, even after UTC midnight',()=>{
  assert.throws(()=>verifyIntegratedOverview({...overview,phaseEvents:[{
   ...overview.phaseEvents[0],localDate:'2026-11-01'}]},exact,point,'amanta'),/observer-local lunar phase/);
+ assert.throws(()=>verifyIntegratedOverview({...overview,phaseEvents:[{
+  ...overview.phaseEvents[0],atUtc:'2026-11-02T22:30:00.000Z'}]},exact,point,'amanta'),/wrong observer-local date/);
 });
 test('deep-linked dates stay valid; current day uses visitor location timezone not UTC',()=>{
  assert.equal(chooseInitialDay('2026-12-31','Europe/Kyiv'),'2026-12-31');
