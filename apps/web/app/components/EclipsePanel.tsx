@@ -8,20 +8,20 @@ type Eclipse={type:'solar'|'lunar';eclipseKind:'total'|'partial'|'annular'|'hybr
 type Data={version:string;timeZone:string;days:number;events:Eclipse[];
  independentVisibilityCertified:boolean};
 const labels={
- uk:{title:'Затемнення · астрономічна видимість',intro:'Сонячні й місячні затемнення на Землі протягом року. Видимість перевіряється окремо для обраних координат за Swiss Ephemeris.',
+ uk:{title:'Затемнення · астрономічна видимість',intro:'Сонячні й місячні затемнення за 366 днів. Окремо — видимість для обраного міста.',
  find:'Знайти затемнення на рік',loading:'Перевіряємо геометрію затемнень і локальну видимість…',
- error:'Не вдалося отримати перевірені дані затемнень. Перевір Python Swiss Ephemeris.',retry:'Спробувати ще раз',
+ error:'Не вдалося розрахувати затемнення для цієї локації.',retry:'Спробувати ще раз',
  solar:'Сонячне',lunar:'Місячне',total:'повне',partial:'часткове',annular:'кільцеподібне',
  hybrid:'гібридне',penumbral:'напівтіньове',yes:'Видиме в цій місцевості',no:'Не видиме з цих координат',
  local:'Місцевий максимум',global:'Глобальний максимум',none:'На обраний період затемнень немає.',
- note:'Глобальне затемнення не обовʼязково видиме тут. Для спостереження Сонця потрібні сертифіковані захисні фільтри; звичайні окуляри непридатні. Час і місцева видимість розраховані за Swiss Ephemeris.'},
- en:{title:'Eclipses · local visibility',intro:'Solar and lunar eclipses occurring on Earth over the next year. Visibility for your selected coordinates is independently checked by Swiss Ephemeris.',
+ note:'Глобальне затемнення може бути невидимим у твоєму місті. Для Сонця потрібен спеціальний сертифікований фільтр; звичайні окуляри небезпечні.'},
+ en:{title:'Eclipses · local visibility',intro:'Solar and lunar eclipses over 366 days, with visibility at your location.',
  find:'Find eclipses for a year',loading:'Checking eclipse geometry and local visibility…',
- error:'Verified eclipse data are unavailable. Check Python Swiss Ephemeris.',retry:'Retry',
+ error:'Could not calculate eclipses for this location.',retry:'Retry',
  solar:'Solar',lunar:'Lunar',total:'total',partial:'partial',annular:'annular',
  hybrid:'hybrid',penumbral:'penumbral',yes:'Visible from this location',no:'Not visible from these coordinates',
  local:'Local maximum',global:'Global maximum',none:'No eclipses in the selected time window.',
- note:'A global eclipse need not be visible here. Solar observations require certified solar filters; ordinary sunglasses are unsafe. Calculated times and local visibility use Swiss Ephemeris, with independent observational certification still separate.'}
+ note:'An eclipse may not be visible here. Observe the Sun only through a certified solar filter; ordinary sunglasses are unsafe.'}
 } as const;
 export default function EclipsePanel({locale,point}:{locale:PortalLocale;point:Point}){
  const t=labels[locale];

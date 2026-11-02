@@ -35,24 +35,24 @@ const presets:{
  london:{timeZone:'Europe/London',latitude:'51.5074',longitude:'-0.1278'}
 };
 const labels={
- uk:{title:'Панчанга',intro:'Пʼять складових ведичного дня, визначених за положеннями Сонця й Місяця на місцевому сході Сонця. Переглянь реальні моменти переходів, а не приблизні прогнози на полудень.',
+ uk:{title:'Панчанга',intro:'Тітхі, накшатра, вара, йога й карана для обраного міста. Переглядай день, тиждень або місяць і час переходів.',
  subtitle:'Астрономічний календар',date:'Дата',city:'Місцевість',zone:'Часовий пояс (IANA)',lat:'Широта',lon:'Довгота',calculate:'Розрахувати день',busy:'Розраховуємо переходи…',
  unknown:'Немає обчислення',error:'Немає перевірених астрономічних даних для цих умов. Перевір часовий пояс, координати та Swiss Ephemeris, тоді повтори.',
- sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'Пʼять анг Панчанги',transitions:'Переходи протягом дня',kalas:'Традиційні денні періоди',rahuKalam:'Раху-калам',yamaganda:'Ямаганда',gulikaKalam:'Гуліка-калам',kalaNote:'Вісім рівних частин світлового дня, визначених за місцевим сходом і заходом Сонця. Це традиційні календарні інтервали, не готова персональна мухурта.',events:'Астрономічні події',new_moon:'Молодик',full_moon:'Повня',
- source:'Методика та джерело',started:'Початок',ends:'Закінчення',notProphecy:'Порівнюй календарні періоди, обирай практики та досліджуй ведичну традицію.',
+ sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'П’ять показників',transitions:'Переходи протягом дня',kalas:'Традиційні денні періоди',rahuKalam:'Раху-калам',yamaganda:'Ямаганда',gulikaKalam:'Гуліка-калам',kalaNote:'Раху-калам, Ямаганда й Гуліка-калам — відрізки світлового дня. Це не персональний вибір сприятливого часу.',events:'Астрономічні події',new_moon:'Молодик',full_moon:'Повня',
+ source:'Джерело розрахунку',started:'Початок',ends:'Закінчення',notProphecy:'Переходи показано за місцевим часом обраного міста.',
  tithi:'Тітхі',nakshatra:'Накшатра',vara:'Вара',yoga:'Нітья-йога',karana:'Карана',
  shukla:'Шукла',krishna:'Крішна',pada:'пада',
- profile:'Ті самі Swiss Ephemeris / Lahiri / Delta-T, що й у перевірених натальних картах Galaxiora.',
- limits:'Моменти переходів знайдено чисельно з кроком уточнення до секунди. Методика й еталонні зіставлення наведені в технічній документації.',
+ profile:'Swiss Ephemeris; сидеричні координати з аянамшею Лахірі.',
+ limits:'Час переходів уточнено чисельно до секунди.',
  cities:{kyiv:'Київ',delhi:'Нью-Делі',london:'Лондон',custom:'Свої координати'}},
- en:{title:'Panchanga',intro:'The five limbs of the Vedic day, calculated from Sun and Moon positions at local sunrise. See real astronomical transition times rather than approximate noon forecasts.',
+ en:{title:'Panchanga',intro:'Tithi, Nakshatra, Vara, Yoga and Karana for your location. View daily, weekly or monthly values and transition times.',
  subtitle:'Astronomical calendar',date:'Date',city:'Location',zone:'Time zone (IANA)',lat:'Latitude',lon:'Longitude',calculate:'Calculate day',busy:'Calculating transitions…',
  unknown:'No calculation yet',error:'Verified astronomical data are unavailable for this location. Check timezone, coordinates and Swiss Ephemeris, then retry.',
- sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',kalas:'Traditional daytime periods',rahuKalam:'Rahu Kalam',yamaganda:'Yamaganda',gulikaKalam:'Gulika Kalam',kalaNote:'Eight equal daylight segments from the local sunrise and sunset. These traditional windows do not constitute a personalized muhurta verdict.',events:'Astronomical events',new_moon:'New Moon',full_moon:'Full Moon',
- source:'Method and source',started:'Started',ends:'Ends',notProphecy:'Explore lunar cycles, traditional observances, and mindful practices.',
+ sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',kalas:'Traditional daytime periods',rahuKalam:'Rahu Kalam',yamaganda:'Yamaganda',gulikaKalam:'Gulika Kalam',kalaNote:'Rahu Kalam, Yamaganda and Gulika Kalam divide daylight into traditional intervals, not a personal muhurta.',events:'Astronomical events',new_moon:'New Moon',full_moon:'Full Moon',
+ source:'Calculation source',started:'Started',ends:'Ends',notProphecy:'All transition times use the selected location’s time zone.',
  tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana',
- shukla:'Shukla',krishna:'Krishna',pada:'pada',profile:'Same Swiss Ephemeris / Lahiri / Delta-T framework as verified Galaxiora natal charts.',
- limits:'Transition instants are numerically isolated to one second. Technical methodology and validation scope are documented separately.',
+ shukla:'Shukla',krishna:'Krishna',pada:'pada',profile:'Swiss Ephemeris; sidereal positions with Lahiri ayanamsha.',
+ limits:'Transition times are numerically resolved to one second.',
  cities:{kyiv:'Kyiv',delhi:'New Delhi',london:'London',custom:'Custom coordinates'}}
 } as const;
 function currentDay(zone='Europe/Kyiv'){
@@ -196,7 +196,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     </div>
    </details>
    <div className={styles.formActions}>
-    <button type="submit" disabled={loading}>{loading?t.busy:t.calculate}</button>
+    <button type="submit" disabled={loading}>{loading?t.busy:view==='day'?t.calculate:(uk?'Оновити календар':'Update calendar')}</button>
     {!['guest','checking'].includes(locationSource)&&<label className={styles.saveCheck}>
      <input type="checkbox" checked={autoSave} onChange={e=>setAutoSave(e.target.checked)}/>
      {uk?'Зберігати місто в профілі':'Save this city to my profile'}</label>}
@@ -235,7 +235,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
 
    <aside className={styles.method}><h2>{t.source}</h2>
     <p><GlossaryText text={t.profile} locale={locale}/></p><p><GlossaryText text={result.sunriseMethod} locale={locale}/></p><p><GlossaryText text={t.limits} locale={locale}/></p>
-    <p>{t.notProphecy}</p>
+ 
     <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank" rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
    </aside>
   </div>}

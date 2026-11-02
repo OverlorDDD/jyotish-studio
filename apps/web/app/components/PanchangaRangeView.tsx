@@ -102,9 +102,9 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
  const offset=(new Date(window.start+'T12:00:00Z').getUTCDay()+6)%7;
  return <section data-testid="panchanga-calendar-range" className={styles.smartCalendar}>
   <div className={styles.smartTop}>
-   <div><h2>{view==='week'?(uk?'Розумний календар · 7 днів':'Smart calendar · 7 days'):
-    (uk?'Розумний календар · місяць':'Smart monthly calendar')}</h2>
-    <p>{uk?'Дані на місцевому сході Сонця':'Calculated at local sunrise'} · {point.timeZone}</p></div>
+   <div><h2>{view==='week'?(uk?'Панчанга · 7 днів':'Panchanga · 7 days'):
+    (uk?'Панчанга · місяць':'Panchanga · month')}</h2>
+    <p>{uk?'П’ять анг на місцевому сході':'Five limbs at local sunrise'} · {point.timeZone}</p></div>
    <div className={styles.smartNav}>
     <button type="button" onClick={()=>setAnchor(before)} disabled={!enabled(before)}
      aria-label={uk?'Попередній період':'Previous period'}>‹</button>
@@ -117,12 +117,12 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
   <div className={styles.smartControls}>
    <fieldset><legend>{uk?'Показати події':'Events'}</legend>
     {(['all','festivals','phases'] as const).map(f=><button type="button" key={f} aria-pressed={filter===f}
-     onClick={()=>setFilter(f)}>{f==='all'?(uk?'Усі':'All'):f==='festivals'?(uk?'Свята':'Festivals'):(uk?'Фази':'Phases')}</button>)}
+     onClick={()=>setFilter(f)}>{f==='all'?(uk?'Усі':'All'):f==='festivals'?(uk?'Свята й переходи':'Observances & ingresses'):(uk?'Фази':'Phases')}</button>)}
    </fieldset>
   </div>
   {status==='loading'&&<p role="status" className={styles.smartState}>{uk?'Обчислюємо астрономічний календар…':'Calculating verified calendar…'}</p>}
-  {status==='error'&&<p role="alert" className={styles.smartState}>{uk?'Перевірені календарні дані недоступні для цього місця або періоду.':
-   'Verified calendar data unavailable for this location or period.'}
+  {status==='error'&&<p role="alert" className={styles.smartState}>{uk?'Не вдалося розрахувати календар для цієї локації.':
+   'Calendar calculation failed for this location.'}
    <button type="button" onClick={()=>setRetry(n=>n+1)} disabled={!valid}>{uk?'Повторити':'Retry'}</button></p>}
   {status==='ready'&&data&&<div className={view==='week'?styles.rangeDays:styles.monthGrid}>
    {view==='month'&&(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as const).map((w,i)=><span className={styles.weekLabel} key={w}>
@@ -152,7 +152,7 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
    })}
   </div>}
   <p className={styles.smartFootnote}>{uk?
-   'П’ять анг і назва місяця визначаються на сході Сонця; фази Місяця позначають точний астрономічний момент. Свята — календарні кандидати, а не підтверджені традицією дати постів і парани. Натисни дату, щоб побачити точні переходи.':
-   'Five limbs and lunar-month names refer to local sunrise; Moon phases mark the actual astronomical instant. Festival markers are candidates, not certified fasting or Parana dates. Select a date for exact transitions.'}</p>
+   'П’ять анг — на сході Сонця; фази — на точний момент. Дати свят попередні. Натисни дату для часу переходів.':
+   'Five limbs use local sunrise; Moon phases use exact event times. Festival dates are provisional. Select a date for transitions.'}</p>
  </section>;
 }

@@ -20,10 +20,10 @@ const names={
  en:{tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana'}
 } as const;
 const descriptions={
- uk:{tithi:'Місячний день',nakshatra:'Ділянка неба, де перебуває Місяць',
-  vara:'День тижня за місцевим сходом Сонця',yoga:'Комбінація положень Сонця й Місяця',karana:'Половина тітхі'},
- en:{tithi:'Lunar day',nakshatra:'Lunar mansion of the Moon',
-  vara:'Weekday at local sunrise',yoga:'Combined Sun and Moon positions',karana:'Half of a tithi'}
+ uk:{tithi:'Кожні 12° між Місяцем і Сонцем',nakshatra:'Сектор Місяця серед 27 ділянок по 13°20′',
+  vara:'День тижня від сходу Сонця',yoga:'Сума довгот Сонця й Місяця: сектори по 13°20′',karana:'Половина тітхі: кожні 6°'},
+ en:{tithi:'Every 12° of Moon–Sun separation',nakshatra:'Moon’s sector among 27 divisions of 13°20′',
+  vara:'Weekday beginning at sunrise',yoga:'Sum of solar and lunar longitudes in 13°20′ sectors',karana:'Half a tithi: every 6°'}
 } as const;
 const keys=['tithi','nakshatra','vara','yoga','karana'] as const;
 function label(kind:Anga,value:AngaValues[Anga],locale:PortalLocale):string{
@@ -100,19 +100,19 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
   <section data-testid="panchanga-day-experience" className={styles.liveSection}>
    <div className={styles.liveHeading}>
     <div>
-     <h2>{liveNow?(uk?'Зараз у ведичному дні':'Active right now'):
+     <h2>{liveNow?(uk?'Показники зараз':'Current values'):
       (uk?'П’ять показників на сході Сонця':'Five limbs at sunrise')}</h2>
-     <p>{liveNow?(uk?'За поточним часом пристрою, для обраного міста.':'Based on device time in the selected location.'):
-      (uk?'Це значення на сході Сонця, а не прогноз поточного стану.':'These are local-sunrise values, not a live-current claim.')}</p>
+     <p>{liveNow?(uk?'На поточний момент для обраного міста.':'At this moment in the selected city.'):
+      (uk?'Показники на сході Сонця цієї дати.':'Values at sunrise on this date.')}</p>
     </div>
     {liveNow&&<span className={styles.liveChip}>{uk?'Зараз':'Now'} · {clock(new Date(now!).toISOString(),zone,locale)}</span>}
    </div>
    {liveNow&&liveDay?.date!==day.date&&<p className={styles.priorNotice}>
-    {uk?'До нового сходу Сонця ще триває ведичний день':'Before the next sunrise, the previous Vedic day is still active'}: <strong>{liveDay!.date}</strong>.
-    {' '}{uk?'Нижче показана шкала обраної календарної дати.':'The timeline below describes your selected calendar date.'}
+    {uk?'До сходу Сонця триває попередній ведичний день':'Before sunrise, the previous Vedic day continues'}: <strong>{liveDay!.date}</strong>.
+    {' '}{uk?'Нижче — переходи для вибраної дати.':'Below are transitions for the selected date.'}
    </p>}
-   {preSunrise&&<p role="status">{uk?'Уточнюємо поточний ведичний день за попереднім сходом Сонця…':
-    'Checking the previous sunrise day before showing live values…'}</p>}
+   {preSunrise&&<p role="status">{uk?'Завантажуємо дані до сходу Сонця…':
+    'Loading pre-sunrise values…'}</p>}
    {needsPrior&&priorStatus==='error'&&<p role="alert">{uk?'Поточний стан недоступний: немає перевірених даних попереднього дня.':
     'Live status unavailable: verified previous-day data could not be loaded.'}</p>}
    <div className={styles.liveCards} data-testid="panchanga-five-angas">
@@ -127,12 +127,12 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
       </div>
      </article>)}
    </div>
-   {liveNow&&<p className={styles.liveFootnote}>{uk?'Час завершення кожного показника обчислено за реальним наступним переходом.':
-    'Each ending time is tied to the next calculated transition.'}</p>}
+   {liveNow&&<p className={styles.liveFootnote}>{uk?'Час «До» — наступний розрахований перехід.':
+    '“Until” is the next calculated transition.'}</p>}
   </section>
   <section className={styles.dayTimeline} data-testid="panchanga-daily-timeline" aria-label={uk?'Хронологія ведичного дня':'Vedic day timeline'}>
    <div className={styles.timelineTitle}>
-    <h2>{uk?'Хронологія від сходу до сходу':'Sunrise-to-sunrise timeline'}</h2>
+    <h2>{uk?'Переходи від сходу до наступного сходу':'Transitions from sunrise to sunrise'}</h2>
     <p>{day.date} · {zone}</p>
    </div>
    <div className={styles.timelineAxis}>
@@ -170,8 +170,8 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
      {i>0?' · ':''}{label(kind,p.value,locale)}
     </span>)}</div>
    </div>)}
-   <p className={styles.timelineExplanation}>{uk?'Шкали охоплюють саме проміжок між двома місцевими сходами. Кожна межа обчислена окремо; періоди можуть тривати за межами зображеного дня.':
-    'Tracks cover the exact interval between local sunrises. Every boundary is computed independently; a period can continue beyond the displayed day.'}</p>
+   <p className={styles.timelineExplanation}>{uk?'Шкали: від сходу Сонця до наступного сходу. Період може початися раніше або закінчитися пізніше.':
+    'Tracks run from one sunrise to the next. A period may begin earlier or end later.'}</p>
    <button className={styles.transitionToggle} type="button"
     aria-expanded={showTransitions} onClick={()=>setShowTransitions(v=>!v)}>
     {showTransitions?(uk?'Сховати всі переходи':'Hide all transitions'):(uk?'Показати всі переходи':'Show all transitions')}
@@ -186,8 +186,8 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
      </li>;
     })}
    </ol>}
-   <p className={styles.timelineExplanation}>{uk?'Вара залишається однаковою від сходу до наступного сходу.':
-    'Vara is fixed from local sunrise to the following sunrise.'}</p>
+   <p className={styles.timelineExplanation}>{uk?'Вара змінюється на місцевому сході Сонця.':
+    'Vara changes at local sunrise.'}</p>
   </section>
  </>;
 }

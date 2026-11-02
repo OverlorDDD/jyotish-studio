@@ -13,17 +13,17 @@ export default function PanchangaRelatedPanels({locale,point}:{locale:PortalLoca
  const uk=locale==='uk';
  const [selected,setSelected]=useState<Panel|null>(null);
  const sections:Record<Panel,{name:string;hint:string}>={
-  personal:{name:uk?'Мій місячний ритм':'My lunar rhythm',
+  personal:{name:uk?'Тарабала й Чандрабала':'Tarabala & Chandrabala',
    hint:uk?'Тарабала та Чандрабала за натальною картою':'Tarabala and Chandrabala from your natal chart'},
-  sky:{name:uk?'Рух планет та астрономія':'Planetary movements',
+  sky:{name:uk?'Переходи планет':'Planetary transitions',
    hint:uk?'Точні входження у знаки, ретроградність та фази':'Exact ingresses, stations and lunar phases'},
-  eclipses:{name:uk?'Затемнення за місцем':'Eclipses at this location',
+  eclipses:{name:uk?'Видимість затемнень':'Eclipse visibility',
    hint:uk?'Локальна видимість за координатами спостерігача':'Local visibility for selected coordinates'}
  };
  return <section className={styles.related} data-testid="panchanga-related">
-  <header><h2>{uk?'Дослідити глибше':'Explore in depth'}</h2>
-   <p>{uk?'Оберіть потрібний розділ. Важкі розрахунки запускаються лише після вашого вибору.':
-    'Choose an area to explore. Additional computations run only after you select it.'}</p></header>
+  <header><h2>{uk?'Додаткові розрахунки':'More calculations'}</h2>
+   <p>{uk?'Обери розрахунок: персональні показники, планети або затемнення.':
+    'Choose natal indicators, planetary events or eclipses.'}</p></header>
   <div className={styles.relatedNav} role="group"
    aria-label={uk?'Додаткові розділи Панчанги':'Additional Panchanga modules'}>
    {(['personal','sky','eclipses'] as const).map(id=><button key={id} type="button"

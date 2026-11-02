@@ -18,22 +18,22 @@ const SIGNS={
 const PLANET_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mercury:'Меркурій',
  Venus:'Венера',Mars:'Марс',Jupiter:'Юпітер',Saturn:'Сатурн'};
 const COPY={
- uk:{title:'Астрономічні події',intro:'Точний час місячних фаз, переходів планет між сидеричними знаками та моментів стаціонарності. Події шукаються за ефемеридами, а не за датами зі статичного календаря.',
+ uk:{title:'Астрономічні події',intro:'Фази Місяця, входження планет у знаки та зміни прямого й ретроградного руху.',
  seven:'7 днів',thirty:'30 днів',all:'Усі',moon:'Фази Місяця',ingresses:'Переходи знаків',stations:'Ретроградність',
  loading:'Визначаємо точні моменти подій…',
  empty:'Для цього періоду обраних подій немає.',error:'Астрономічний рушій тимчасово недоступний. Перевір Swiss Ephemeris і повтори.',
  refresh:'Повторити',new_moon:'Молодик',first_quarter:'Перша чверть',full_moon:'Повня',last_quarter:'Остання чверть',
  direct_station:'Перехід до прямого руху',retrograde_station:'Початок ретроградного руху',
  ingress:'Перехід до знака',backward:'ретроградно',forward:'прямо',
- source:'Метод: Swiss Ephemeris · Lahiri · геоцентричні координати. Час переходів обчислюється за ефемеридами. Деталі методики доступні за посиланням. Фази не позначають затемнення.'},
- en:{title:'Astronomical events',intro:'Exact lunar phases, sidereal planetary ingresses and stationary instants, computed from ephemerides rather than static calendar dates.',
+ source:'Swiss Ephemeris · Лахірі. Фази Місяця не означають затемнення.'},
+ en:{title:'Astronomical events',intro:'Moon phases, sidereal sign changes and direct/retrograde stations.',
  seven:'7 days',thirty:'30 days',all:'All',moon:'Lunar phases',ingresses:'Sign ingresses',stations:'Retrograde stations',
  loading:'Locating astronomical events…',
  empty:'No selected events occur in this period.',error:'The astronomical source is temporarily unavailable. Check Swiss Ephemeris and retry.',
  refresh:'Retry',new_moon:'New Moon',first_quarter:'First Quarter',full_moon:'Full Moon',last_quarter:'Last Quarter',
  direct_station:'Station direct',retrograde_station:'Station retrograde',
  ingress:'Ingress into',backward:'retrograde',forward:'direct',
- source:'Method: Swiss Ephemeris · Lahiri · geocentric coordinates. Event times are calculated from astronomical ephemerides. See the technical methodology for details. Lunar phases do not imply eclipses.'}
+ source:'Swiss Ephemeris · Lahiri. Lunar phases do not imply eclipses.'}
 } as const;
 const phaseKinds:Kind[]=['new_moon','first_quarter','full_moon','last_quarter'];
 export default function AstronomicalEventsPanel({locale,start,zone}:{locale:PortalLocale;start:string;zone:string}){
@@ -89,7 +89,7 @@ export default function AstronomicalEventsPanel({locale,start,zone}:{locale:Port
      <strong>{desc(e)}</strong>
      {e.kind==='sidereal_ingress'&&<small>{SIGNS[locale][(e.fromSign||1)-1]} → {SIGNS[locale][(e.toSign||1)-1]}</small>}
      <details style={{gridColumn:'1 / -1',borderTop:'1px solid #45617b',paddingTop:10}}>
-      <summary style={{cursor:'pointer',color:'#f4d69b',fontWeight:600}}>{uk?'Що це означає і що можна зробити?':'What does this mean and what can I do?'}</summary>
+      <summary style={{cursor:'pointer',color:'#f4d69b',fontWeight:600}}>{uk?'Астрономія та традиційне тлумачення':'Astronomy and traditional meaning'}</summary>
       <div style={{display:'grid',gap:8,paddingTop:10,lineHeight:1.65}}>
        <p><strong>{uk?'Що відбулося':'What happened'}: </strong><GlossaryText text={contextualEventInsight(e,locale).meaning} locale={locale}/></p>
        <p><strong>{uk?'У традиції Джйотіш':'In Jyotish tradition'}: </strong><GlossaryText text={contextualEventInsight(e,locale).tradition} locale={locale}/></p>

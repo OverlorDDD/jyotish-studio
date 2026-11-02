@@ -39,11 +39,11 @@ const dateFormat=(date:string,zone:string,locale:PortalLocale)=>
 function eventsFor(phases:GuidePhase[],observances:GuideObservance[],uk:boolean):Event[]{
  return [
   ...phases.map((p,i)=>({key:'phase-'+p.atUtc+i,name:t(PHASE_NAMES,p.kind,uk),atUtc:p.atUtc,
-   category:'phase' as const,note:uk?'Точний астрономічний момент':'Exact astronomical instant'})),
+   category:'phase' as const,note:uk?'Астрономічна фаза':'Astronomical phase'})),
   ...observances.map((e,i)=>({key:e.id+e.atUtc+i,name:t(FESTIVAL_NAMES,e.id,uk),atUtc:e.atUtc,
    category:e.category==='astronomical_event'?'astronomical' as const:'candidate' as const,
-   note:uk?(e.category==='candidate'?'Календарний кандидат, не підтверджена дата посту':'Точний сидеричний перехід'):
-    (e.category==='candidate'?'Calendar candidate, not a certified fasting date':'Exact sidereal transition')}))
+   note:uk?(e.category==='candidate'?'Можлива дата за календарним правилом':'Точний сидеричний перехід'):
+    (e.category==='candidate'?'Traditional date candidate':'Exact sidereal ingress')}))
  ].sort((a,b)=>a.atUtc.localeCompare(b.atUtc)||a.name.localeCompare(b.name));
 }
 export default function PanchangaDayGuide({locale,point,day,monthSystem}:{
@@ -70,16 +70,16 @@ export default function PanchangaDayGuide({locale,point,day,monthSystem}:{
  return <section className={styles.guideSection} data-testid="panchanga-integrated-day">
   <header className={styles.guideHeader}>
    <div><h2>{uk?'Події обраного дня':'Events for selected date'}</h2>
-    <p>{uk?'У тому самому місці та часовому поясі, що й Панчанга вище':
-     'Same observer and time zone as the Panchanga above'} · {point.date} · {point.timeZone}</p>
+    <p>{uk?'Місцевий календар':
+     'Local calendar'} · {point.date} · {point.timeZone}</p>
    </div>
   </header>
   {status==='loading'&&<p role="status" className={styles.guideFeedback}>
-   {uk?'Звіряємо фази й календарні події з розрахунком сходу Сонця…':
-    'Cross-checking phases and observances against local sunrise…'}</p>}
+   {uk?'Розраховуємо фази та свята…':
+    'Calculating phases and observances…'}</p>}
   {status==='error'&&<div role="alert" className={styles.guideFeedback}>
-   {uk?'Не вдалося узгодити календарні дані з цим днем. Події не показуємо, щоб не ввести в оману.':
-    'Could not verify calendar events against this day. No unverified events are shown.'}
+   {uk?'Дані про свята й фази не збігаються з розрахунком дня.':
+    'Festival and phase data do not match this day’s calculation.'}
    <button type="button" onClick={()=>setRetry(n=>n+1)}>{uk?'Повторити':'Retry'}</button>
   </div>}
   {status==='ready'&&data&&<>
@@ -100,11 +100,11 @@ export default function PanchangaDayGuide({locale,point,day,monthSystem}:{
      <time dateTime={e.atUtc}>{dateFormat(e.atUtc,point.timeZone,locale)}</time>
     </li>)}
    </ol>:<p className={styles.guideFeedback}>{uk?
-    'Для цього дня немає подій обраної категорії. П’ять анг на сході Сонця наведені вище.':
-    'No events of this category on this date. The five sunrise limbs are shown above.'}</p>}
+    'На цю дату подій обраного типу немає.':
+    'No events of this type on this date.'}</p>}
    <p className={styles.guideFootnote}>{uk?
-    'Фази — точні астрономічні моменти за Swiss Ephemeris. Свята позначено як календарні кандидати: їхні остаточні дати, пости та парана залежать від традиції. Показники п’яти анг вище відповідають місцевому сходу Сонця; після опівночі ведичний день може ще тривати.':
-    'Moon phases are exact Swiss Ephemeris instants. Festival dates are calendar candidates; final dates, fasts and Parana vary by tradition. Sunrise limbs above refer to local sunrise; the Vedic day can continue past midnight.'}</p>
+    'Фази — астрономічний час. Дати свят попередні: час посту й парани залежить від традиції. П’ять анг визначено на місцевому сході Сонця.':
+    'Phases show astronomical times. Festival dates are provisional; fasting and Parana rules vary by tradition. Five limbs refer to local sunrise.'}</p>
   </>}
  </section>;
 }
