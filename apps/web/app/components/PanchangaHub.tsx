@@ -11,6 +11,7 @@ import PanchangaLiveDay from './PanchangaLiveDay';
 import PanchangaDayGuide from './PanchangaDayGuide';
 import PanchangaRelatedPanels from './PanchangaRelatedPanels';
 import PanchangaMyDay from './PanchangaMyDay';
+import PanchangaPersonalCalendar from './PanchangaPersonalCalendar';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
 
@@ -68,7 +69,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(null);
  const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  const pendingManualCalculation=useRef(false);
- const [view,setView]=useState<'day'|'week'|'month'>('day');
+ const [view,setView]=useState<'day'|'week'|'month'|'personal'>('day');
  const [showDetails,setShowDetails]=useState(false);
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
  const [locationSource,setLocationSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
@@ -163,9 +164,9 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <Link href={'/'+locale+'/horoscope'}>{uk?'До гороскопів':'Horoscopes'} ↗</Link>
   </header>
   <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
-   {(['day','week','month'] as const).map(period=><button key={period} type="button"
+   {(['day','week','month','personal'] as const).map(period=><button key={period} type="button"
     aria-current={view===period?'page':undefined} onClick={()=>{setShowDetails(false);setView(period)}}>
-     {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):(uk?'Місяць':'Month')}
+     {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):period==='month'?(uk?'Місяць':'Month'):(uk?'Мій календар 7/30':'My 7/30 calendar')}
     </button>)}
   </nav>
   <fieldset className={styles.unifiedSystem} data-testid="panchanga-month-system">
@@ -220,7 +221,9 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   {error&&<div role="alert" className={styles.error}>{t.error}</div>}
   {locationSource==='checking'&&<p role="status" className={styles.locationStatus}>
    {uk?'Перевіряємо вашу локацію перед розрахунком…':'Checking your location before calculating…'}</p>}
-  {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested}
+  {view==='personal'&&requested&&<PanchangaPersonalCalendar locale={locale}
+   point={requested} onPick={selectDay}/>}
+  {(view==='week'||view==='month')&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested}
    monthSystem={monthSystem} onPick={selectDay}/>}
   {view==='day'&&requested&&loading&&<p role="status" className={styles.empty}>{t.busy}</p>}
   {view==='day'&&requested&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
