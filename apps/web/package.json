@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node ../../tools/next-launch.mjs dev",
     "build": "next build",
-    "start": "node ../../tools/next-launch.mjs start"
+    "start": "node ../../tools/next-launch.mjs start",
+    "prebuild": "node ../../tools/galaxiora-circle-apply.mjs"
   },
   "dependencies": {
     "next": "^15.5.0",
