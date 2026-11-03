@@ -63,13 +63,14 @@ jobs:
           npm run start -w @jyotish/api > /tmp/p35-api.log 2>&1 &
           npm run dev -w @jyotish/web > /tmp/p35-web.log 2>&1 &
           node --input-type=module -e 'let ok=false;for(let i=0;i<180;i++){try{const r=await fetch("http://127.0.0.1:3000/uk/panchanga");if(r.ok){ok=true;break;}}catch{}await new Promise(resolve=>setTimeout(resolve,1000));}if(!ok)process.exit(1);'
-      - name: P3.5 / P3.8.7 owner-only calendar and guest acceptance
+      - name: P3.8.7 actual authenticated month coverage and isolated second owner
         run: |
           if [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-p387-unified-personal-calendar-20261103" ]]; then
             # P3.8.6 deliberately removes the old standalone P3.5 tab.
             # New P3.8.7 checks full month coverage, access, and new Week/Month UI;
             # original P3.5 algorithmic invariants still run via test:panchanga.
-            npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+            # Dedicated real-chart regression; shared UI/mobile guest coverage runs in P2.1–P3.3 browser workflow.
+            npx playwright test e2e/panchanga-p387.spec.mjs --grep 'real signed-in month' --config=playwright.config.mjs --project=desktop-chromium
           else
             npx playwright test e2e/panchanga-p35.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
           fi
