@@ -20,7 +20,7 @@ type Phase={kind:'new_moon'|'first_quarter'|'full_moon'|'last_quarter';atUtc:str
 type Day={date:string;sunriseUtc:string;sunsetUtc:string;nextSunriseUtc:string;sunriseAngas:Sunrise;
  moonMonth:{name:string|null;lunarMonthStatus:string};
  observances:Observation[]};
-type Overview=P387Overview&{monthSystem:MonthSystem;days:Day[];phaseEvents:Phase[];
+type Overview=Omit<P387Overview,'days'>&{monthSystem:MonthSystem;days:Day[];phaseEvents:Phase[];
  observanceDayCertifiedByTradition:boolean;
  astronomicalTimeCertifiedByIndependentReference:boolean};
 const NAK_UK=['Ашвіні','Бхарані','Кріттіка','Рохіні','Мрігашіра','Ардра','Пунарвасу','Пушʼя','Ашлеша','Магха','Пурва Пхалгуні','Уттара Пхалгуні','Хаста','Чітра','Сваті','Вішакха','Анурадха','Джʼєштха','Мула','Пурва Ашадха','Уттара Ашадха','Шравана','Дханіштха','Шатабхіша','Пурва Бхадрапада','Уттара Бхадрапада','Реваті'];
