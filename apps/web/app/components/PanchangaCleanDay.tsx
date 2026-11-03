@@ -112,9 +112,16 @@ export default function PanchangaMyDay({locale,day,point}:{
  useEffect(()=>{
   if(!requiresPartner||chartState!=='idle')return;
   let alive=true,ctl=new AbortController();setChartState('loading');
-  fetch('/api/v1/account/charts',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
-   .then(async r=>{if(!r.ok)throw Error('chart list unavailable');return await r.json() as SavedChart[]})
-   .then(c=>{if(alive){setCharts(Array.isArray(c)?c:[]);setChartState('ready')}})
+  Promise.all([
+   fetch('/api/v1/account/charts',{credentials:'same-origin',cache:'no-store',signal:ctl.signal}),
+   fetch('/api/v1/personal/profile',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
+  ]).then(async ([list,profile])=>{
+   if(!list.ok||!profile.ok)throw Error('private chart list unavailable');
+   const c=await list.json() as SavedChart[];
+   const p=await profile.json() as {profile?:{primaryChartId?:string|null}};
+   const primary=p.profile?.primaryChartId;
+   return Array.isArray(c)?c.filter(chart=>chart.id!==primary):[];
+  }).then(c=>{if(alive){setCharts(c);setChartState('ready')}})
    .catch(()=>{if(alive&&!ctl.signal.aborted)setChartState('error')});
   return()=>{alive=false;ctl.abort()};
  },[requiresPartner,chartState]);
