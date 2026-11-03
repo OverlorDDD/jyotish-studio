@@ -60,6 +60,39 @@ then
  exit 3
 fi
 
+echo '=== Docker authorization for online PostgreSQL backup ==='
+# Keep Git, npm, .env and service operations under the ordinary ubuntu user.
+# Only Docker CLI calls may use sudo; no chmod on docker.sock or docker group change.
+DOCKER_CLIENT=$(type -P docker || true)
+if [[ -z "$DOCKER_CLIENT" ]]; then
+  echo 'P388_STOP: Docker client binary missing; production unchanged.' >&2
+  exit 3
+fi
+if "$DOCKER_CLIENT" info --format '{{.ServerVersion}}' >/dev/null 2>&1; then
+  echo 'P388_DOCKER_ACCESS=direct'
+else
+  echo 'P388_DOCKER_ACCESS: user cannot access daemon; requesting sudo authorization for Docker only.'
+  if ! sudo -v; then
+    echo 'P388_STOP: sudo authorization unavailable; production unchanged.' >&2
+    exit 3
+  fi
+  if ! sudo -n "$DOCKER_CLIENT" info --format '{{.ServerVersion}}' >/dev/null 2>&1; then
+    echo 'P388_STOP: Docker unavailable even with sudo. Check daemon/sudo; production unchanged.' >&2
+    exit 3
+  fi
+  export DOCKER_CLIENT
+  docker() { sudo -n "$DOCKER_CLIENT" "$@"; }
+  export -f docker
+  echo 'P388_DOCKER_ACCESS=sudo_docker_only'
+fi
+# This also checks the *actual* expected PostgreSQL container with the same access mode.
+if [[ "$(docker inspect jyotish-db --format '{{.State.Running}}' 2>/dev/null || true)" != true ]]; then
+  echo 'P388_STOP: Expected PostgreSQL container jyotish-db is absent or stopped.' >&2
+  echo 'Use: sudo docker ps --format "table {{.Names}}\\t{{.Status}}"' >&2
+  exit 3
+fi
+echo 'P388_DOCKER_POSTGRES_RUNNING=true'
+
 echo '=== Verified production preflight ==='
 export P388_TARGET_SHA="$TARGET_SHA"
 bash "$SCRIPT" preflight
