@@ -17,7 +17,7 @@ import {AppModule} from './nest.ts';
 import {PrismaService} from './prisma.ts';
 import {cookieUser} from './auth.ts';
 import {forumBudget,forumWriteLimit} from './com-budget.ts';
-import {countVisitorAggregate,toolMetric} from './visitor-analytics.ts';
+import {countVisitorAggregate,toolMetric} from './visitor-aggregate.ts';
 async function bootstrap(){
  const app=await NestFactory.create<NestExpressApplication>(AppModule,{cors:{origin:[`http://localhost:${process.env.WEB_PORT||3000}`]}});
  // Editorial articles can be much longer than Express's default 100 kB JSON body limit.

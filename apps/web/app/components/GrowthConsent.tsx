@@ -10,8 +10,8 @@ type Choice='accepted'|'rejected'|null;
 type Gtag=(command:string,...args:unknown[])=>void;
 declare global {interface Window {dataLayer?:unknown[][];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean;__galaxioraTagStatus?:'loading'|'loaded'|'blocked'|'request_observed';__galaxioraLastPageView?:string}}
 function tagStatus(status:'loading'|'loaded'|'blocked'|'request_observed'){
- if(status==='loaded'&&window.__galaxioraTagStatus==='request_observed')return;
  if(typeof window==='undefined')return;
+ if(status==='loaded'&&window.__galaxioraTagStatus==='request_observed')return;
  window.__galaxioraTagStatus=status;
  window.dispatchEvent(new CustomEvent('galaxiora:tag-status',{detail:status}));
 }

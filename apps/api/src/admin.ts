@@ -6,7 +6,7 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {effectiveSubscription} from './account-policy.ts';
 import {readGa4Realtime} from './admin-ga4-realtime.ts';
-import {VISITOR_METRICS} from './visitor-analytics.ts';
+import {VISITOR_METRICS} from './visitor-aggregate.ts';
 import {ADMIN_ROLE_USE_CASE,ChangeRoleUseCase,RoleChangeError} from './admin-role-application.ts';
 
 export class ChangeUserRoleDto {
