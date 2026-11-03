@@ -28,7 +28,8 @@ const localeDate=(zone:string)=>{
 };
 export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
- const [form,setForm]=useState<Form>({date:localeDate(DEFAULT_CITY.timeZone),...DEFAULT_CITY});
+ const defaultCity={...DEFAULT_CITY,place:uk?'Київ':'Kyiv'};
+ const [form,setForm]=useState<Form>({date:localeDate(DEFAULT_CITY.timeZone),...defaultCity});
  const [requested,setRequested]=useState<Form|null>(null);
  const [view,setView]=useState<'day'|'week'|'month'>('day');
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
@@ -51,12 +52,12 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     if(!live)return;
     const p=profile?.location;
     const base=p?{place:p.place||'—',timeZone:p.timeZone,
-     latitude:String(p.latitude),longitude:String(p.longitude)}:DEFAULT_CITY;
+     latitude:String(p.latitude),longitude:String(p.longitude)}:defaultCity;
     const selected={...base,date:chooseInitialDay(qs.get('date'),base.timeZone)};
     setSource(profile?.source||'guest');setForm(selected);setRequested(selected);
    }).catch(()=>{
     if(!live)return;
-    const selected={...DEFAULT_CITY,date:chooseInitialDay(qs.get('date'),DEFAULT_CITY.timeZone)};
+    const selected={...defaultCity,date:chooseInitialDay(qs.get('date'),DEFAULT_CITY.timeZone)};
     setSource('guest');setForm(selected);setRequested(selected);
    });
   return()=>{live=false;ctl.abort()};
@@ -90,7 +91,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     place:string;timeZone:string;latitude:number;longitude:number}|null};
    const p=profile.location;
    const next=p?{...form,place:p.place,timeZone:p.timeZone,
-    latitude:String(p.latitude),longitude:String(p.longitude)}:{...form,...DEFAULT_CITY};
+    latitude:String(p.latitude),longitude:String(p.longitude)}:{...form,...defaultCity};
    if(version!==saveSequence.current)return;
    setForm(next);setRequested(next);setSource(profile.source);setSaveState('idle');
   }catch{if(version===saveSequence.current)setSaveState('error')}
