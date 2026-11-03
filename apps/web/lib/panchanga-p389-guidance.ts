@@ -67,8 +67,11 @@ export function p389Guidance(moment:P38Moment,locale:P389Locale):P389Guidance{
  const preferredText=preferred.length?localized(
   'Традиційні відповідні класи: '+list(preferred,locale)+'. Поточний клас: '+star+'.',
   'Documented matching classes: '+list(preferred,locale)+'. Current class: '+star+'.',locale):
-  localized('Для цієї справи немає окремого перевіреного правила за класом накшатри.',
-  'No activity-specific verified Nakshatra-class rule is implemented for this undertaking.',locale);
+  evidence.some(e=>e.scope==='activity'&&e.domain==='nakshatra')?
+   localized('Для цієї події застосовано спеціальне правило про конкретну накшатру, а не загальний клас.',
+    'A named Nakshatra rule applies to this event, rather than a generic Nakshatra class.',locale):
+   localized('Для цієї справи поки немає окремого перевіреного правила за накшатрою.',
+    'No separate Nakshatra rule is currently verified for this undertaking.',locale);
  const base={
   scope,sharedActivities:distinct,
   reason:preferredText+' '+(theReason([...exclusions,...cautions,...actualSupport,...personal])||
