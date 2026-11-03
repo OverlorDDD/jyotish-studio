@@ -65,6 +65,7 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
  const [charts,setCharts]=useState<{id:string;date:string;place?:string}[]>([]);
  const [chartState,setChartState]=useState<'idle'|'loading'|'ready'|'error'>('idle');
  const requestKeyRef=useRef('');
+ const finderKeyRef=useRef('');
  useEffect(()=>setAnchor(point.date),[point.date,point.latitude,point.longitude,point.timeZone,view]);
  const window=useMemo(()=>calendarWindow(anchor,view),[anchor,view]);
  const valid=validOverviewWindow(window.start,window.days);
@@ -75,6 +76,7 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
  const viewKey=[window.start,window.days,point.timeZone,point.latitude,
   point.longitude,monthSystem].join('|');
  requestKeyRef.current=viewKey;
+ finderKeyRef.current=[viewKey,activity,partnerId].join('|');
  const verifiedPersonal=personal?.key===viewKey?personal.data:null;
  const verifiedFinder=finder?.key===viewKey&&finder.activity===activity?finder.data:null;
  const selectedActivity=p38Activity(activity);
@@ -128,7 +130,8 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
   const at=Math.max(Date.now()+120000,Date.parse(data.days[0].sunriseUtc)+60000);
   if(at>=Date.parse(data.days.at(-1)!.nextSunriseUtc)||
    at>Date.now()+5*365.25*86400000)return;
-  const startUtc=new Date(at).toISOString(),requestKey=viewKey,chosenActivity=activity;
+  const startUtc=new Date(at).toISOString(),requestKey=viewKey,chosenActivity=activity,
+   chosenFinderKey=finderKeyRef.current;
   setFinder(null);setFinderState('loading');
   try{
    const r=await fetch('/api/v1/personal/panchanga/time-finder',{
@@ -138,12 +141,14 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
      latitude:Number(point.latitude),longitude:Number(point.longitude),
      days:view==='week'?7:30,...(needsPartner?{partnerChartId:partnerId}:{})})
    });
-   if(requestKeyRef.current!==requestKey)return;
+   if(requestKeyRef.current!==requestKey||finderKeyRef.current!==chosenFinderKey)return;
    if(r.status===401){setFinderState('guest');return;}
    if(r.status===429){setFinderState('limit');return;}
+   if(r.status===400){const error=await r.json().catch(()=>({message:''})) as {message?:string};
+    if(/request budget reached/i.test(error.message||'')){setFinderState('limit');return;}}
    if(!r.ok)throw Error('Finder HTTP '+r.status);
    const raw=await r.json() as P387Finder|{status:string};
-   if(requestKeyRef.current!==requestKey)return;
+   if(requestKeyRef.current!==requestKey||finderKeyRef.current!==chosenFinderKey)return;
    if(['requires_primary_chart','requires_verified_chart','requires_partner_chart',
     'requires_verified_partner_chart'].includes(raw.status)){
     setFinderState('no_chart');return;
@@ -152,7 +157,8 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
    if(verified.startUtc!==startUtc)throw Error('Search start mismatch');
    setFinder({key:requestKey,activity:chosenActivity,data:verified});
    setFinderState('ready');
-  }catch{if(requestKeyRef.current===requestKey)setFinderState('error')}
+  }catch{if(requestKeyRef.current===requestKey&&finderKeyRef.current===chosenFinderKey)
+   setFinderState('error')}
  }
  useEffect(()=>{
   if(!valid){setStatus('error');setData(null);return;}
@@ -298,7 +304,10 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
      className={isMonth?styles.smartDay:styles.smartWeek}
      aria-current={d.date===point.date?'date':undefined}
      aria-label={dateLabel(d.date)+' · '+tithi(d)+' · '+nak(d)+
-      (events.length?' · '+events.map(e=>e.label).join(', '):'')}
+      (events.length?' · '+events.map(e=>e.label).join(', '):'')+
+      (overlay?.personalDay?' · '+(uk?'Тара ':'Tara ')+overlay.personalDay.tarabala.taraNumber:'' )+
+      (overlay?.personalEvents.length?' · '+overlay.personalEvents.length+' '+(uk?'особистих переходів':'personal transitions'):'')+
+      (overlay?.windows.length?' · '+overlay.windows.length+' '+(uk?'перевірених вікон':'screened windows'):'')}
      onClick={()=>onPick(d.date)}>
      <strong className={styles.smartDate}>{isMonth?Number(d.date.slice(-2)):dateLabel(d.date)}</strong>
      <span className={styles.smartTithi}>{tithi(d)}</span>
