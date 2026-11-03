@@ -123,7 +123,7 @@ export function evaluateP385Special(input:{
   rules.push(mk(id,yes?'excluded':'context',source,detail));
  const prefer=(id:string,yes:boolean,source:string,detail:string)=>
   rules.push(mk(id,yes?'preferred':'context',source,detail));
- const natalGates=['D1_D9_OWNER_CONTEXT_RECORDED_NOT_WEIGHTED','D10_CAREER_CONTEXT_RECORDED_NOT_WEIGHTED'];
+ const natalGates=['D1_D9_OWNER_CONTEXT_RECORDED_NOT_WEIGHTED'];
  let dinaKuta:P385DoshaReport['dinaKuta']=null;
  if(event.activityId==='wedding'||event.activityId==='engagement'){
   if(!partner)throw Error('P385 wedding/engagement requires second VERIFIED owned natal chart');
@@ -205,14 +205,16 @@ export function evaluateP385Special(input:{
   if(strong)rules.push(mk('FOUNDATION_RAMAN_COMBINATION_1','preferred',FOUNDATION,
     'Raman Chap. 12: Moon 10th, Jupiter 4th, Mars and Saturn 11th'));
   natalGates.push('OWNER_NATAL_FOURTH_HOUSE_AND_D4_NOT_PRESENT',
-   'VAS TU_LOCATION_SITE_AND_LOCAL_TRADITION_REVIEW'.replace(' ',''),
+   'VASTU_LOCATION_SITE_AND_LOCAL_TRADITION_REVIEW',
    'SEASON_SOLAR_MONTH_DOSHAS_AND_SPECIAL_REMEDIES_NOT_COMPLETE');
  }else{
   // The same natal D10 is useful career context, not a fabricated "good"
   // hour. No special wedding/foundation dosha rule may spill into other acts.
+  if(['job_start','shop_opening','salary_discussion','job_interview'].includes(event.activityId))
+   natalGates.push('D10_PROFESSION_DIVISION_REVIEW_NOT_AUTOMATIC_VETO');
   return {version:'p385-source-scoped-special-v1',activityId:event.activityId,
    state:'not_applicable',rules:[],owner,partner:null,dinaKuta:null,
-   remainingGates:event.remainingRuleGates,
+   remainingGates:[...event.remainingRuleGates,...natalGates],
    certification:'NOT_A_COMPLETE_CEREMONIAL_MUHURTA'};
  }
  if(event.panchaka?.forbiddenForScope)
