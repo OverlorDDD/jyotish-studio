@@ -19,6 +19,7 @@ export type Planet='Sun'|'Venus'|'Mercury'|'Moon'|'Saturn'|'Jupiter'|'Mars';
 type Lang={uk:string;en:string};
 type Kala={fromUtc:string;untilUtc:string};
 export type OpportunityDay=P32Day&{
+ astronomicalEvents?:{type:'sunrise'|'sunset'|'new_moon'|'full_moon';atUtc:string}[];
  daytimeKalas:P32Day['daytimeKalas']&{yamaganda:Kala;gulikaKalam:Kala};
 };
 export type TraditionalSlot={kind:Chog|Planet;startUtc:string;endUtc:string;half:'day'|'night';index:number};
