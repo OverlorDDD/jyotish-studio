@@ -15,6 +15,7 @@ on:
       - release/panchanga-p36-production-acceptance-20261102
       - feat/panchanga-p37-classical-interpretation-20261103
       - feat/panchanga-p38-verifiable-muhurta-core-20261103
+      - feat/panchanga-p384-event-lagna-20261103
   pull_request:
     paths:
       - 'apps/api/src/panchanga*'
