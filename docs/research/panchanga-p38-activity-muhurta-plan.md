@@ -44,6 +44,18 @@ Code: `apps/web/lib/panchanga-p38-decision.ts`; 8 categories, 25 distinct activi
 - [Muhurta Chintamani, Adhyaya VI](https://karmasakha.com/texts/muhurta-chintamani): event Lagna fundamental to marriage election.
 - For any source dispute, register both readings and explicit chosen tradition. Do **not** silently combine contradictory Chandrabala conventions. Existing Galaxiora P3.3 chosen convention uses signs 1/3/6/7/10/11; Raman's own simplified electional checks may differ.
 
+## Classical event Panchaka: the first source-verifiable exact electional formula
+
+B. V. Raman, *Muhurtha*, Chapter III: for a **specific future event** take Tithi's monthly number (1–30), Vedic weekday (Sun=1 … Sat=7), active Nakshatra (1–27), and the **electional ascendant sign** (1–12); sum, then compute remainder modulo 9. This **Panchaka** is distinct from the five limbs of **Panchanga**.
+
+`R = (tithi + vara + nakshatra + eventLagnaSign) % 9`.
+
+Remainder meanings: 1 Mrityu, 2 Agni, 4 Raja, 6 Chora, 8 Roga; 0, 3, 5 and 7 are traditionally "clear" in this particular formula. Raman's **activity-scoped** exclusions: occupation → Raja (4); house-building → Raja or Agni (4,2); travel → Chora (6); wedding → Roga or Mrityu (8,1). This is a concrete reason why **the same position of the heavens may yield different recommendations for different undertakings**. Raman also discusses mitigating factors and cautions about assuming absence of an activity-specific dosha automatically proves an entire election safe.
+
+Added pure, testable `apps/web/lib/panchanga-p38-panchaka.ts`. **It cannot run on user birth Lagna.** It requires the actual, independently verified event ascendant calculated from future time and event-city coordinates. Prototype is deliberately unused by production until that solver and ownership gates exist.
+
+Source's own worked example: Tithi 13 + weekday 1 + Nakshatra 9 + event Lagna 6 = 29, remainder 2 = Agni. The source-specific house-building exclusion triggers; this does not in isolation prohibit every journey at the same moment. A clear Panchaka is only one condition, never a full certification of an auspicious muhurta.
+
 ## Genuine mathematical checks introduced first
 
 - Reject invalid/overlapping active UTC segments, mismatched verified Panchanga day, wrong star name/index, weekday/karana/yoga name/index, and impossible Tithi–Karana alignment (`ceil(karanaSlot/2) === globalTithiNumber`).
