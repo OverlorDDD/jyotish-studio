@@ -4,6 +4,7 @@
  */
 import type {P31Topic} from './panchanga-p31-model';
 type Lang={uk:string;en:string};
+export type P35Days=7|28|29|30|31;
 export type P35Point={date:string;timeZone:string;latitude:string;longitude:string};
 export type P35Range={
  version:'panchanga-range-v1';scope:'five-angas-at-local-sunrise-not-all-day-intervals';
@@ -61,11 +62,15 @@ const subjects:Record<P31Topic,{begin:Lang;prepare:Lang}> ={
  travel:{begin:L('відправлення у важливу поїздку','departure on an important trip'),
   prepare:L('Перевірте маршрут і квитки; для відправлення знайдіть інший часовий відрізок.',
    'Check your route and tickets; find another departure interval.')},
+ study:{begin:L('початку нового курсу','starting a study course'),
+  prepare:L('Підготуйте матеріали; перевірте інший час для першого заняття.','Prepare the materials; check another time for the first lesson.')},
+ home:{begin:L('закладання фундаменту','laying the foundation'),
+  prepare:L('Перевірте проєкт і дозвільні умови; точний початок робіт заплануйте окремо.','Verify plans and permits; schedule the exact starting time separately.')},
  personal:{begin:L('початку нової особистої справи','starting a new personal project'),
   prepare:L('Завершіть підготовку, а початок справи відкладіть.',
    'Finish the preparation and postpone beginning the project.')}
 };
-export function validateP35Range(range:P35Range,point:P35Point,days:7|30){
+export function validateP35Range(range:P35Range,point:P35Point,days:P35Days){
  guard(range?.version==='panchanga-range-v1'&&
   range.scope==='five-angas-at-local-sunrise-not-all-day-intervals'&&
   range.startDate===point.date&&range.observer?.timeZone===point.timeZone&&
@@ -92,7 +97,7 @@ export function validateP35Range(range:P35Range,point:P35Point,days:7|30){
  });
  return range;
 }
-export function validateP35Private(privateData:P35Private,point:P35Point,days:7|30){
+export function validateP35Private(privateData:P35Private,point:P35Point,days:P35Days){
  guard(privateData?.status==='available'&&
   privateData.version==='personal-panchanga-calendar-p35'&&
   privateData.observation==='OWNER_VERIFIED_SWISS_AT_EACH_LOCAL_SUNRISE'&&
@@ -155,7 +160,7 @@ export function validateP35Private(privateData:P35Private,point:P35Point,days:7|
  }
  return privateData;
 }
-export function buildP35Cards(range:P35Range,point:P35Point,days:7|30,
+export function buildP35Cards(range:P35Range,point:P35Point,days:P35Days,
  topic:P31Topic,privateData:P35Private|null=null):P35Card[]{
  validateP35Range(range,point,days);
  if(!Object.prototype.hasOwnProperty.call(subjects,topic))throw Error('Invalid P3.5 topic');

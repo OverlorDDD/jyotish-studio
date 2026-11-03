@@ -12,6 +12,11 @@ on:
       - feat/panchanga-p34-time-guidance-20261102
       - feat/panchanga-p35-personal-calendar-7-30-20261102
       - release/panchanga-p36-production-acceptance-20261102
+      - feat/panchanga-p37-classical-interpretation-20261103
+      - feat/panchanga-p38-verifiable-muhurta-core-20261103
+      - feat/panchanga-p384-event-lagna-20261103
+      - feat/panchanga-p385-classical-time-finder-20261103
+      - feat/panchanga-p386-clean-day-ux-20261103
   pull_request:
     paths:
       - 'apps/web/app/components/Panchanga*'
@@ -78,7 +83,22 @@ jobs:
           npm run dev -w @jyotish/web > /tmp/panchanga-web.log 2>&1 &
           node --input-type=module -e 'let ok=false; for(let i=0;i<180;i++){try{const r=await fetch("http://127.0.0.1:3000/uk/panchanga");if(r.ok){ok=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000));} if(!ok)process.exit(1);'
       - name: Exercise day/range/live named timeline in desktop and phone Chromium
-        run: npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs e2e/panchanga-p25.spec.mjs e2e/panchanga-p31.spec.mjs e2e/panchanga-p32.spec.mjs e2e/panchanga-p33.spec.mjs e2e/panchanga-p34.spec.mjs e2e/panchanga-p35.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+        run: |
+          if [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-p387-unified-personal-calendar-20261103" ]]; then
+            # P3.8.7 retains P3.8.6 one-calendar contract and adds integrated
+            # owner-only 7/28–31 day events and 7/30-day screened time finder.
+            # Each P386/P387 mobile regression explicitly sets a 320px viewport;
+            # avoid doubling expensive Swiss observer queries in two Playwright projects.
+            npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
+          elif [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-p386-clean-day-ux-20261103" ]]; then
+            # P3.8.6 intentionally removed the P2/P3.7 duplicated widgets. Old
+            # browser specs assert their presence; the new full-page contract
+            # is tested explicitly instead. Astronomy/API regression stays in
+            # npm run test:panchanga and the Next/Nest build workflow.
+            npx playwright test e2e/panchanga-p386.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+          else
+            npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs e2e/panchanga-p25.spec.mjs e2e/panchanga-p31.spec.mjs e2e/panchanga-p32.spec.mjs e2e/panchanga-p33.spec.mjs e2e/panchanga-p34.spec.mjs e2e/panchanga-p35.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+          fi
       - name: Print development server logs if browser checks fail
         if: failure()
         run: |

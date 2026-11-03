@@ -10,7 +10,7 @@ import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/luna
 const HOUR=3600000, MAX_EVENTS=140;
 type Dasha={lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]};
 export type CalendarNatal={moonLongitude:number;moonSign:number;lagnaSign:number;dasha:Dasha[]};
-export type CalendarInput=RangeInput & {start:string;days:7|30;timeZone:string;latitude:number;longitude:number};
+export type CalendarInput=RangeInput & {start:string;days:7|28|29|30|31;timeZone:string;latitude:number;longitude:number};
 type EventKind='moon-sign'|'nakshatra'|'mahadasha'|'antardasha';
 type CalendarEvent={atUtc:string;kind:EventKind;from?:number;to?:number;lord?:string};
 const stamp=(value:string)=>{const t=Date.parse(value);
@@ -56,7 +56,7 @@ function periodAt(dasha:Dasha[],ms:number){
   antardasha:minor?{lord:minor.lord,start:minor.start,end:minor.end}:null}:null;
 }
 export async function buildP35Calendar(input:CalendarInput,natal:CalendarNatal){
- if(![7,30].includes(input.days)||!Number.isInteger(natal.moonSign)||
+ if(![7,28,29,30,31].includes(input.days)||!Number.isInteger(natal.moonSign)||
   natal.moonSign<1||natal.moonSign>12||
   !Number.isInteger(natal.lagnaSign)||natal.lagnaSign<1||natal.lagnaSign>12||
   !Number.isFinite(natal.moonLongitude)||natal.moonLongitude<0||natal.moonLongitude>=360||

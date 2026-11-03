@@ -19,7 +19,7 @@ for(const locale of ['uk','en']){
   await expect(help).toContainText('12°');
   await help.locator('summary').click();
   await expect(help).not.toHaveAttribute('open');
-  await expect(hub.getByTestId('panchanga-integrated-day')).toBeVisible();
+  await expect(hub.getByTestId('panchanga-integrated-day')).toHaveCount(0);
   await expect(hub).not.toContainText(locale==='uk'?'Дослідити глибше':'Explore in depth');
   await hub.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'})
    .getByRole('button',{name:locale==='uk'?'Місяць':'Month'}).click();

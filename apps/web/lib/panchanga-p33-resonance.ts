@@ -2,7 +2,7 @@
  * take birth data from the browser; server supplies owner-verified facts.
  * One decision: hard P3.2 prohibitions and Ashtama cannot be outvoted.
  */
-import type {P32Result,P32Day} from './panchanga-p32-engine';
+import type {P32Result,P32Day} from './panchanga-p32-engine.ts';
 type L={uk:string;en:string};
 type Q='supportive'|'challenging'|'caution';
 type Topic=P32Result['topic'];
@@ -48,6 +48,12 @@ const activity:Record<Topic,{noun:L;prepare:L;consider:L}>={
  travel:{noun:L('початку поїздки','starting a journey'),
   prepare:L('Перевірте маршрут і квитки, але перенесіть початок нової поїздки.','Check the route and tickets, but postpone the start of a new trip.'),
   consider:L('Перевірте маршрут і можете розглядати виїзд.','Check the route and consider a departure.')},
+ study:{noun:L('початку курсу','starting a course'),
+  prepare:L('Перевірте програму й підготуйте матеріали; новий курс розпочніть пізніше.','Review the curriculum and materials; start the new course later.'),
+  consider:L('Перевірте розклад і можете планувати початок навчання.','Check the schedule and consider beginning the course.')},
+ home:{noun:L('закладання фундаменту','laying a foundation'),
+  prepare:L('Перевірте проєкт і дозвільні документи; початок робіт заплануйте на інший час.','Review the plan and permits; choose another time to start the work.'),
+  consider:L('Перевірте всі інженерні умови та плануйте дату початку будівництва.','Check engineering requirements and plan a start date.')},
  personal:{noun:L('нової особистої справи','a new personal undertaking'),
   prepare:L('Завершіть підготовку й перенесіть початок нової справи.','Finish preparations and postpone starting the new undertaking.'),
   consider:L('Складіть план і можете розглядати початок нової справи.','Write a plan and consider starting the new project.')}
@@ -136,18 +142,18 @@ export function synthesizePersonalResonance(calendar:P32Result,day:P32Day,point:
  const tara=report.tarabala.quality,moon=report.chandrabala.quality;
  add('TARABALA_'+report.tarabala.taraNumber,'lunar',
   tara==='supportive'?'supports':tara==='challenging'?'cautions':'context',
-  tara==='supportive'?L('Накшатра Місяця сприятливо поєднується з натальною.',
-   'The Moon’s nakshatra traditionally aligns well with your birth nakshatra.'):
-  tara==='challenging'?L('Накшатра Місяця напружено поєднується з натальною.',
-   'The Moon’s nakshatra traditionally conflicts with your birth nakshatra.'):
-  L('Місяць у групі Джанма: для початку важливих справ потрібна обережність.',
-   'The Moon is in a Janma cycle: exercise caution with new undertakings.'));
+  tara==='supportive'?L('Тарабала: накшатра дня є '+report.tarabala.taraNumber+'-ю в дев’ятичастинному циклі від вашої натальної накшатри ('+report.tarabala.cycle+'-й цикл). У традиційному зіставленні це підтримувальна Тара.',
+   'Tarabala: today’s nakshatra falls in position '+report.tarabala.taraNumber+' of the ninefold count from your birth nakshatra (cycle '+report.tarabala.cycle+'). This Tara is traditionally supportive.'):
+  tara==='challenging'?L('Тарабала: '+report.tarabala.taraNumber+'-а Тара у '+report.tarabala.cycle+'-му циклі від накшатри народження. За базовим правилом вона потребує обережності; винятки окремих циклів тут не перевірені.',
+   'Tarabala: Tara '+report.tarabala.taraNumber+' in cycle '+report.tarabala.cycle+' from your birth nakshatra. The base rule calls for caution; cycle-specific exceptions are not evaluated.'):
+  L('Тарабала: 1-а Тара (Джанма) від натальної накшатри. Для важливого початку потрібна додаткова перевірка.',
+   'Tarabala: Tara 1 (Janma) from your birth nakshatra. Important beginnings merit an additional check.'));
  add('CHANDRABALA_'+report.chandrabala.houseFromJanmaRashi,'lunar',
   moon==='supportive'?'supports':'cautions',
-  moon==='supportive'?L('Місяць у підтримувальному знаку від вашого натального Місяця.',
-   'The Moon is in a supportive sign counted from your birth Moon.'):
-  L('Місяць у напруженому знаку від вашого натального Місяця.',
-   'The Moon is in a challenging sign counted from your birth Moon.'));
+  moon==='supportive'?L('Чандрабала: поточний Місяць у '+report.chandrabala.houseFromJanmaRashi+'-му знаку від вашого натального Місяця. За прийнятою в Galaxiora таблицею це підтримувальне положення.',
+   'Chandrabala: the current Moon is '+report.chandrabala.houseFromJanmaRashi+' signs from your birth Moon. The configured Galaxiora convention classifies this as supportive.'):
+  L('Чандрабала: поточний Місяць у '+report.chandrabala.houseFromJanmaRashi+'-му знаку від вашого натального Місяця. За прийнятою таблицею це положення потребує обережності.',
+   'Chandrabala: the current Moon is '+report.chandrabala.houseFromJanmaRashi+' signs from your birth Moon. The configured convention flags this placement for caution.'));
  const ashtama=report.chandrabala.ashtamaChandra;
  if(ashtama)add('ASHTAMA_CHANDRA','lunar','blocks',L(
   'Аштама-чандра: Місяць у 8-му знаку від натального; за традиційним правилом уникають важливих починань.',
@@ -179,7 +185,7 @@ export function synthesizePersonalResonance(calendar:P32Result,day:P32Day,point:
    'Mars is '+mars.houseFromLagna+' signs from the ascendant; this is context for initiative, not an outcome guarantee.'));
  const topic=calendar.topic;
  const guidePlanet=topic==='work'||topic==='money'?mercury:topic==='relationships'?venus:
-  topic==='travel'?mars:jupiter;
+  topic==='travel'?mars:topic==='home'?saturn:jupiter;
  add('TOPIC_PLANET_'+guidePlanet.name.toUpperCase(),'gochar','context',L(
   'Планета, пов’язана з темою, у '+guidePlanet.houseFromLagna+'-му знаку від лагни. Положення враховано без вигаданих аспектів.',
   'A planet associated with the topic is '+guidePlanet.houseFromLagna+' signs from the ascendant. No uncomputed aspects are assumed.'));
@@ -196,7 +202,7 @@ export function synthesizePersonalResonance(calendar:P32Result,day:P32Day,point:
   calendar.status==='supported'&&tara==='supportive'&&moon==='supportive'?'supported':'neutral';
  const subj=activity[topic];
  const headline=status==='avoid'?L('Для вас це несприятливий час починати','This is an unfavourable time for you to start'):
-  status==='caution'?L('Для вас є причини відкласти початок','Personal factors favour postponing the start'):
+  status==='caution'?L('Для '+subj.noun.uk+' є персональні застереження','Personal cautions apply to '+subj.noun.en):
   status==='supported'?L('День підтримує ваш задум','The day supports your plan'):
   L('Особисті показники не дають чіткого дозволу','Personal factors give no clear go-ahead');
  const action=status==='avoid'||status==='caution'?subj.prepare:status==='supported'?
