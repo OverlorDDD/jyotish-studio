@@ -106,7 +106,7 @@ test('P3.8 casual first date is not universally forbidden by the start-of-major-
 });
 test('P3.8 yoga caution is not a blanket daily ban; Vishti remains explicit for auspicious starts',()=>{
  const d=fixture({nak:4,yoga:17});
- assert.equal(check(d,'job_start').verdict,'mixed');
+ assert.equal(check(d,'job_start').verdict,'candidate'); // mild yoga caution does not negate strong calendar support
  assert.equal(check(d,'daily_meditation').verdict,'routine');
  const v=fixture({nak:4,tithi:11,slot:22});
  assert.equal(check(v,'job_start').verdict,'avoid');
@@ -117,7 +117,7 @@ test('P3.8 lunar caution does not force every good calendar day into negative st
  const good=evaluateP38(d,at,'job_start',{point:POINT,report:report(d,at)});
  assert.equal(good.verdict,'candidate');
  const taraCaution=evaluateP38(d,at,'job_start',{point:POINT,report:report(d,at,{birthNak:27,birthMoon:2})});
- assert.equal(taraCaution.verdict,'mixed');
+ assert.equal(taraCaution.verdict,'candidate'); // mildly challenging Tara must not hide a positive majority
  assert.ok(taraCaution.observations.some(e=>e.id==='TARA_FIRST_CYCLE'));
  assert.ok(taraCaution.observations.some(e=>e.id==='CHANDRA_OTHER'));
 });
