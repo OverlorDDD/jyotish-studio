@@ -47,9 +47,13 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Install verified sunrise dependencies for real P410 ephemeris checks
+        run: |
+          python -m pip install pyswisseph
+          python -c 'import swisseph as s; assert s.version=="2.10.03",s.version'
       - name: Generate Prisma client for additive profile fields
         run: npm run db:generate
       - name: Validate Panchanga and seven-day Vedic calendar
-        run: npm run test:panchanga && npm run test:vedic-calendar
+        run: npm run test:panchanga && npm run test:vedic-calendar && npm run test:p410
       - name: Compile all app workspaces and Next.js
         run: npm run build
