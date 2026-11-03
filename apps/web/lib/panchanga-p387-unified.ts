@@ -27,9 +27,9 @@ export type P387Row={date:string;personalDay:P35Personal['days'][number]|null;
  personalEvents:P35Personal['events'];windows:P387Window[]};
 const validIso=(s:string)=>typeof s==='string'&&Number.isFinite(Date.parse(s))&&
  new Date(Date.parse(s)).toISOString()===s;
-const check=(condition:unknown,message:string):asserts condition=>{
+function check(condition:unknown,message:string):asserts condition{
  if(!condition)throw Error('P387 verified timeline mismatch: '+message);
-};
+}
 const sameObserver=(a:{timeZone:string;latitude:number;longitude:number},point:P35Point)=>
  a.timeZone===point.timeZone&&a.latitude===Number(point.latitude)&&
  a.longitude===Number(point.longitude);
