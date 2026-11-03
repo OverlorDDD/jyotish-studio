@@ -6,7 +6,7 @@ import type {PortalLocale} from '../../lib/brand';
 import {validateP33Report,type P33Report} from '../../lib/panchanga-p33-resonance';
 import {
  abhijitWindow,brahmaMuhurta,calculateTraditionalSlots,dailyOpportunities,
- featuredOpportunities,type Opportunity,type OpportunityDay
+ featuredOpportunities,type Opportunity,type OpportunityDay,type Planet
 } from '../../lib/panchanga-opportunities';
 import styles from './PanchangaDailyOpportunities.module.css';
 
@@ -38,6 +38,10 @@ function calendarFile(opp:Opportunity,locale:PortalLocale,location:string){
   'LOCATION:'+icsValue(location),'END:VEVENT','END:VCALENDAR'].join('\r\n')+'\r\n';
  return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(content);
 }
+const HORA_NAME:Record<Planet,{uk:string;en:string}>={
+ Sun:{uk:'Сонце',en:'Sun'},Venus:{uk:'Венера',en:'Venus'},Mercury:{uk:'Меркурій',en:'Mercury'},
+ Moon:{uk:'Місяць',en:'Moon'},Saturn:{uk:'Сатурн',en:'Saturn'},Jupiter:{uk:'Юпітер',en:'Jupiter'},Mars:{uk:'Марс',en:'Mars'}
+};
 const DISPLAY_CHOG:Record<string,{uk:string;en:string}>={
  Udveg:{uk:'Удвег',en:'Udveg'},Char:{uk:'Чар',en:'Char'},
  Labh:{uk:'Лабх',en:'Labh'},Amrit:{uk:'Амріт',en:'Amrit'},
@@ -194,6 +198,11 @@ export default function PanchangaDailyOpportunities({locale,day,point,
       {nameOf(computed.abhijit.startUtc,point.timeZone,locale)} – {nameOf(computed.abhijit.endUtc,point.timeZone,locale)}.</>}</p>
     <p>{uk?'Брахма-мухурта перед наступним сходом: ':'Brahma Muhurta before the next sunrise: '}
      {nameOf(brahmaMuhurta(day).startUtc,point.timeZone,locale)} – {nameOf(brahmaMuhurta(day).endUtc,point.timeZone,locale)}.</p>
+    {day.astronomicalEvents?.filter(e=>e.type==='new_moon'||e.type==='full_moon')
+      .map(e=><p key={e.type+e.atUtc} data-testid="p410-lunar-event">
+       <strong>{e.type==='new_moon'?(uk?'Молодик':'New Moon'):(uk?'Повня':'Full Moon')}:</strong>
+       {' '}{nameOf(e.atUtc,point.timeZone,locale)}.
+      </p>)}
     <small>{uk?'Ці два періоди показано як традиційні орієнтири, а не як дозволи на будь-яку церемонію.':
      'These are traditional reference windows, not permission for every type of ceremony.'}</small>
    </aside>
@@ -211,7 +220,7 @@ export default function PanchangaDailyOpportunities({locale,day,point,
     <div><h4>{uk?'Планетарні години · Hora':'Planetary hours · Hora'}</h4>
      <ol>{computed.periods.hora.map((v,i)=><li key={i}>
       <span>{nameOf(v.startUtc,point.timeZone,locale)} – {nameOf(v.endUtc,point.timeZone,locale)}</span>
-      <strong>{v.kind}</strong>
+      <strong>{HORA_NAME[v.kind as Planet][locale]}</strong>
      </li>)}</ol>
     </div>
    </div>}
