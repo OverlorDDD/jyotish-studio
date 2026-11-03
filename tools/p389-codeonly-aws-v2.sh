@@ -123,7 +123,7 @@ if [[ "$CURRENT" == "$TARGET" ]]; then
 fi
 echo "P389_CODEONLY_CODE_SAFE live=$CURRENT target=$TARGET"
 echo 'P389_CODEONLY_DB_UNCHANGED: no Docker, no PostgreSQL backup, no database migrations'
-# Check the actual required systemctl commands; sudo -v can prompt despite
+# Check the actual required systemctl commands; generic sudo checks can prompt despite
 # an explicit NOPASSWD sudoers rule and is not an adequate privilege probe.
 if sudo -n systemctl is-active --quiet galaxiora-api &&
    sudo -n systemctl is-active --quiet galaxiora-web; then
@@ -135,7 +135,7 @@ if [[ "$MODE" == check ]]; then
  echo 'P389_CODEONLY_CHECK_PASS (no site changes made)'
  exit 0
 fi
-# No interactive sudo -v and no sudo password request; stop before checkout if denied.
+# No interactive password prompt for sudo; stop before checkout if denied.
 read -r -p 'Type DEPLOY_CODE_ONLY to apply without DB migration/backup: ' approval
 [[ "$approval" == DEPLOY_CODE_ONLY ]] || fail 'Cancelled: no site changes'
 disk=$(df -Pk . | awk 'END{print $4}')
@@ -213,7 +213,7 @@ npm run test:vedic-calendar
 npm run test:brand:icons
 npm run build
 git restore -- apps/web/next-env.d.ts
-# Deliberately no prisma migrate and no Docker calls.
+# Deliberately no database schema migrations and no Docker calls.
 sudo -n systemctl restart galaxiora-api
 sudo -n systemctl restart galaxiora-web
 for service in galaxiora-api galaxiora-web; do
