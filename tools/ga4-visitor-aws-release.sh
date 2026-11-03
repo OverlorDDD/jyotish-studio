@@ -120,6 +120,19 @@ rollback(){
  trap - ERR
  if [[ "$SWITCHED" == 1 ]]; then
   echo "Deployment failed: restoring old code $OLD_SHA. Saved backups: $RUN_DIR"
+  # Some brand images were tracked on old main, but ignored/generated in
+  # the new branch. Archive those new artifacts before switching back, so
+  # git never overwrites an untracked file during rollback.
+  for file in apps/web/app/icon.png apps/web/public/galaxiora-favicon.png \
+    apps/web/brand-assets/galaxiora-circle-64.png \
+    apps/web/public/galaxiora-galaxy-approved-64.png; do
+    if git cat-file -e "$OLD_SHA:$file" 2>/dev/null &&
+      ! git ls-files --error-unmatch "$file" >/dev/null 2>&1 &&
+      [[ -e "$file" ]]; then
+      mkdir -p "$RUN_DIR/rollback-generated/$(dirname "$file")"
+      mv -- "$file" "$RUN_DIR/rollback-generated/$file"
+    fi
+  done
   git switch --detach "$OLD_SHA" || true
   npm install --no-audit --no-fund || true
   npm run db:generate || true
