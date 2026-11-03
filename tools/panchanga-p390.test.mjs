@@ -74,6 +74,8 @@ test('P390 UI includes functional Today reset, visible compact index and ranked 
  const hub=readFileSync(new URL('../apps/web/app/components/PanchangaHub.tsx',import.meta.url),'utf8');
  const day=readFileSync(new URL('../apps/web/app/components/PanchangaCleanDay.tsx',import.meta.url),'utf8');
  for(const marker of ['resetToToday','localeDate(form.timeZone)','todayResetSerial','onResetToday'])assert.ok(hub.includes(marker));
- for(const marker of ['p390-reset-today','p390-favorability-ring','p390-top-windows','scoreP390'])assert.ok(day.includes(marker));
+ for(const marker of ['p390-reset-today','p390-top-windows'])assert.ok(day.includes(marker));
+ assert.ok(!day.includes('p390-favorability-ring'));
+ assert.ok(!day.includes('w.score}%'));
  assert.ok(!day.includes('p386EvidenceShare'));
 });
