@@ -44,7 +44,9 @@ for(const locale of ['uk','en']){
   // The legacy index is still an internal screening heuristic, never a visible claim.
   await expect(day.getByTestId('p390-favorability-ring')).toHaveCount(0);
   await day.getByTestId('p390-reset-today').click();
-  await expect(day.getByTestId('p389-time-select')).toBeVisible();
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await hub.getByTestId('p410-advanced').locator('summary').click();
+  await expect(hub.getByTestId('p389-time-select')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth))
    .toBeLessThanOrEqual(2);
   await page.setViewportSize({width:320,height:740});
