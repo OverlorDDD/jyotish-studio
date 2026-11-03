@@ -148,10 +148,6 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
    choices.add(new Date(t).toISOString());
   return [...choices].sort();
  },[day,iso]);
- const important=screening?.observations.filter(e=>e.polarity==='excludes')||[];
- const supportive=screening?.observations.filter(e=>e.polarity==='supports')||[];
- const caution=screening?.observations.filter(e=>e.polarity==='cautions')||[];
- const highlight=[...important,...supportive,...caution].slice(0,3);
  const dayHasPassed=capturedNow!==null&&Date.parse(day.nextSunriseUtc)<=capturedNow;
  const searchStart=capturedNow===null?null:new Date(Math.max(
   capturedNow+120000,Date.parse(day.sunriseUtc)+60000,
