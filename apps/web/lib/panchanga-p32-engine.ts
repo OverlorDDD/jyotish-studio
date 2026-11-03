@@ -6,7 +6,7 @@
  * Source policy / limitations: docs/research/panchanga-p32-rules-2026-11-02.md
  * No server calls, LLMs, birth data, astronomy or license changes.
  */
-import type {P31Topic} from './panchanga-p31-model';
+import type {P31Topic} from './panchanga-p31-model.ts';
 
 type Lang={uk:string;en:string};
 type Tone='supports'|'cautions'|'blocks'|'neutral';
