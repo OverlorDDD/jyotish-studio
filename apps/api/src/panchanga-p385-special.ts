@@ -20,6 +20,9 @@ export type P385Natal={
  moonNakshatra:number;moonSign:number;birthLagnaSign:number;
  d9LagnaSign:number;d10LagnaSign:number;
  d9SeventhOccupied:boolean;d10TenthOccupied:boolean;
+ d1SeventhLord:string;d1EighthLord:string;d9SeventhLord:string;d10TenthLord:string;
+ d1SeventhOccupants:string[];d1EighthOccupants:string[];
+ d9SeventhOccupants:string[];d10TenthOccupants:string[];
 };
 export type P385DoshaReport={
  version:'p385-source-scoped-special-v1';
@@ -37,6 +40,10 @@ export type P385DoshaReport={
 const NAK_LEN=360/27;
 const mk=(id:string,state:RuleState,source:string,detail:string):P385Rule=>({id,state,source,detail});
 const inRange=(value:number,min:number,max:number)=>Number.isFinite(value)&&value>=min&&value<max;
+const RASHI_LORDS=['','Mars','Venus','Mercury','Moon','Sun','Mercury','Venus',
+ 'Mars','Jupiter','Saturn','Saturn','Jupiter'] as const;
+const houseSign=(lagna:number,house:number)=>(lagna+house-2)%12+1;
+
 export function p385NatalFromVerified(chart:RecoveredChart):P385Natal{
  if(chart?.verification?.status!=='verified_internal'||!chart.d1?.length||
   !chart.d9?.length||!chart.d10?.length||!chart.ascendant?.sign||
@@ -56,7 +63,15 @@ export function p385NatalFromVerified(chart:RecoveredChart):P385Natal{
   moonNakshatra,moonSign:moon.sign,birthLagnaSign:chart.ascendant.sign,
   d9LagnaSign:chart.lagnaD9.sign,d10LagnaSign:chart.lagnaD10.sign,
   d9SeventhOccupied:chart.d9.some(p=>p.house===7),
-  d10TenthOccupied:chart.d10.some(p=>p.house===10)};
+  d10TenthOccupied:chart.d10.some(p=>p.house===10),
+  d1SeventhLord:RASHI_LORDS[houseSign(chart.ascendant.sign,7)],
+  d1EighthLord:RASHI_LORDS[houseSign(chart.ascendant.sign,8)],
+  d9SeventhLord:RASHI_LORDS[houseSign(chart.lagnaD9.sign,7)],
+  d10TenthLord:RASHI_LORDS[houseSign(chart.lagnaD10.sign,10)],
+  d1SeventhOccupants:chart.d1.filter(p=>p.house===7).map(p=>p.name),
+  d1EighthOccupants:chart.d1.filter(p=>p.house===8).map(p=>p.name),
+  d9SeventhOccupants:chart.d9.filter(p=>p.house===7).map(p=>p.name),
+  d10TenthOccupants:chart.d10.filter(p=>p.house===10).map(p=>p.name)};
 }
 const house=(planet:{houseFromEventLagna:number})=>planet.houseFromEventLagna;
 const has=(name:string,houseNum:number,planets:{name:string;houseFromEventLagna:number}[])=>
@@ -127,6 +142,10 @@ export function evaluateP385Special(input:{
  let dinaKuta:P385DoshaReport['dinaKuta']=null;
  if(event.activityId==='wedding'||event.activityId==='engagement'){
   if(!partner)throw Error('P385 wedding/engagement requires second VERIFIED owned natal chart');
+  // D1 seventh/eighth strength and D9 seventh lord are documented
+  // compatibility CONTEXT. No binary verdict is derived from occupants alone.
+  rules.push(mk('MARRIAGE_NATAL_D1_D9_HOUSE_REVIEW','needs_review',KUTAS,
+   'Raman Ch. 9 requires separate review of both partners D1 7th/8th houses and D9 7th; exact verified lords/occupants retained in natal facts.'));
   const p=starCount(owner.moonNakshatra,partner.moonNakshatra);
   const q=starCount(partner.moonNakshatra,owner.moonNakshatra);
   dinaKuta={ownerToPartner:p,partnerToOwner:q,
