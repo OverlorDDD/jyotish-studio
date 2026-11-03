@@ -107,8 +107,11 @@ export default function GrowthConsent(){
   }
   startAnalytics(safe);
   // StrictMode, hydration and repeated consent clicks must not duplicate a view.
-  if(window.__galaxioraLastPageView===safe)return;
-  window.__galaxioraLastPageView=safe;
+  // Count every new public document route, including two articles sharing a
+  // sanitized section URL; still avoid root vs canonical /en duplicates.
+  const routeKey=pathname==='/'?'/en':pathname;
+  if(window.__galaxioraLastPageView===routeKey)return;
+  window.__galaxioraLastPageView=routeKey;
   const debug=new URLSearchParams(window.location.search).get('ga4_debug')==='1';
   window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,
    page_title:'Galaxiora',page_referrer:'',send_to:measurementId,...(debug?{debug_mode:true}:{})});
