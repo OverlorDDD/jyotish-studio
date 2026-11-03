@@ -38,14 +38,14 @@ diagnose(){
  for uri in http://127.0.0.1:4000/api/health http://127.0.0.1:3000/uk;do
   echo "HTTP_${uri}=$(curl --max-time 6 -s -o /dev/null -w '%{http_code}' "$uri" || true)"
  done
- echo 'Next: merge reviewed P388 integration PR into main by MERGE COMMIT (not squash), then pin exact vetted release branch SHA.'
+ echo 'Next: merge reviewed PR #98 into vetted P3.6 release branch by MERGE COMMIT (not squash), then pin exact merged release SHA.'
 }
 preflight(){
  local current target available
  [[ -f .env && -s .env && -f package.json ]] || fail 'Existing private .env or package.json missing'
  [[ -z "$(git status --porcelain --untracked-files=no)" ]] ||
   fail 'Tracked server edits exist: save/reconcile manually; do not reset/clean'
- is_sha "${P388_TARGET_SHA:-}" || fail 'Set exact 40-character P388_TARGET_SHA from merged main'
+ is_sha "${P388_TARGET_SHA:-}" || fail 'Set exact 40-character P388_TARGET_SHA from merged vetted P3.6 release branch'
  git fetch --no-tags origin "$RELEASE_BRANCH"
  target=$(git rev-parse FETCH_HEAD)
  current=$(git rev-parse HEAD)
@@ -57,7 +57,7 @@ preflight(){
   fail 'Live checkout diverges from vetted release branch: STOP, reconcile approved logo/SEO/news edits in separate PR'
  for source in tools/panchanga-p388-release.sh tools/panchanga-p388-production-smoke.mjs \
   tests/fixtures/p388-independent-asc-30.tsv;do
-  git cat-file -e "$target:$source" || fail "Merged main missing $source"
+  git cat-file -e "$target:$source" || fail "Merged vetted P3.6 release commit missing $source"
  done
  # Never output credentials or contents of .env to terminal or GitHub.
  node --env-file=.env --input-type=module - <<'JS'
@@ -133,7 +133,7 @@ deploy(){
  [[ "${P388_APPROVAL:-}" == 'I_APPROVE_P388_PRODUCTION' ]] ||
   fail 'Explicit P388_APPROVAL=I_APPROVE_P388_PRODUCTION required'
  [[ "${P388_CI_ATTESTED_SHA:-}" == "${P388_TARGET_SHA:-}" ]] ||
-  fail 'Attestation must name SAME SHA tested on integrated GitHub CI'
+  fail 'Operator attestation must name SAME merged release SHA tested on GitHub CI (the variable alone is not proof of green CI)'
  preflight
  backup
  restore_after_error(){
