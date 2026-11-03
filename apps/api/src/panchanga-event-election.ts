@@ -67,6 +67,11 @@ export function assembleP384EventElection(input:BuildInput):P384Evaluation{
  const moon=eventSky.find(p=>p.name==='Moon')!;
  if(moon.sign!==personalReport.transitMoon.sign)
   throw Error('P384 event Moon does not match owner-verified personal Swiss Moon');
+ for(const p of personalReport.gochar){
+  const matching=eventSky.find(x=>x.name===p.name);
+  if(!matching||matching.sign!==p.sign)
+   throw Error('P384 planetary event sky and private transit mismatch: '+p.name);
+ }
  const screening=evaluateP38(day,atUtc,activityId,{point,report:personalReport});
  const scope=P384_SCOPED_PANCHAKA[activityId]||null;
  const find=<K extends keyof P32Day['periods']>(key:K)=>{
