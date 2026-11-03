@@ -157,7 +157,12 @@ bash /tmp/galaxiora-p388-release.sh preflight
 ```
 `P388_PREFLIGHT_PASS` means verified P3.6 release SHA, correct 30-vector
 release ancestry, existing HTTPS/indexing policy, active services,
-approved icon, disk and DB, and safe fast-forward from LIVE SHA. It does
+approved icon, disk and DB, safe fast-forward from LIVE SHA **and a live
+public-GitHub API check of all three successful PUSH workflows on that exact
+merged P3.6 release SHA** (P3.8.8 independent release, Panchanga Quality,
+R4.3 International Search). Missing, rate-limited, failed or pending CI is
+**NO-GO**. The manual `P388_CI_ATTESTED_SHA` value alone cannot bypass
+this check; do not use a PR-only or pre-merge feature SHA. It does
 **not** by itself mean live independent astrology/ceremony approval.
 
 If `P388_STOP: Live checkout diverges` appears, DO NOT force-reset.
