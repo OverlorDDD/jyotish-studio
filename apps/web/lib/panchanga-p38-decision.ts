@@ -12,6 +12,7 @@ import {p37NakshatraClass,explainClassicalPanchanga} from './panchanga-p37-class
 import {interpretPanchanga,type P32Day} from './panchanga-p32-engine.ts';
 import {p34Boundaries,type P34PrivateTiming} from './panchanga-p34-time-guidance.ts';
 import {validateP33Report,type P33Report,type P33Point} from './panchanga-p33-resonance.ts';
+import {scoreP390,p390CanRecommend} from './panchanga-p390-scoring.ts';
 
 type Lang={uk:string;en:string};
 const L=(uk:string,en:string):Lang=>({uk,en});
@@ -246,8 +247,10 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
     'Tara '+tara+' in cycle '+cycle+' is traditionally supportive.'),
    RAMAN_SOURCE,'personal');
   else if(cycle===1)push('TARA_FIRST_CYCLE','cautions','tarabala',
-   L('Тара '+tara+' в першому циклі потребує перевірки традиційних винятків.',
-    'Tara '+tara+' in the first cycle requires checking traditional exceptions.'),
+   L(tara===5?'Пратьярі (Тара 5): можливі перешкоди для нового початку; це не автоматична заборона.':
+    'Тара '+tara+' в першому циклі: персональне застереження, не автоматична заборона.',
+    tara===5?'Pratyari (Tara 5): possible obstacles to a new start, not an automatic prohibition.':
+    'Tara '+tara+' in the first cycle: a personal caution, not an automatic prohibition.'),
    RAMAN_SOURCE,'personal');
   else push('TARA_CYCLE_EXCEPTION','context','tarabala',
    L('Для Тари '+tara+' у '+cycle+'-му циклі діють окремі традиційні винятки; не встановлюємо автоматичну заборону.',
@@ -267,23 +270,21 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
      'Raman also excludes the birth nakshatra for the beginning of borrowing.'),
     RAMAN_SOURCE,'personal');
  }
- const excluded=result.some(e=>e.polarity==='excludes');
- const cautioned=result.some(e=>e.polarity==='cautions');
- const directClass=result.some(e=>e.polarity==='supports'&&e.domain==='nakshatra');
- const taraSupport=result.some(e=>e.id==='TARA_SUPPORT');
- const lunarSupport=result.some(e=>e.id==='CHANDRA_SUPPORT');
- // There is NO generic unfavorable default. Absence of a positive star is not
- // a prohibition. Mixed lunar readings do not automatically ban every action.
- const personalCompatible=privateInput?taraSupport&&lunarSupport:true;
+ // One transparent function powers the visible ring AND the server's
+ // event-time screening. Mild personal cautions no longer veto all positives.
+ const rating=scoreP390({activityId,method:activity.method,
+  observations:result,personalized:!!privateInput});
+ const excluded=rating.blocked;
+ const cautioned=rating.cautionCount>0;
+ const activitySupport=rating.hasActivitySupport;
  let verdict:P38Verdict=activity.method==='routine'?'routine':
   excluded?'avoid':
   important?'needs_full_election':
-  directClass&&!cautioned&&personalCompatible?'candidate':
-  directClass?'mixed':
+  p390CanRecommend(rating,activity.method)?'candidate':
+  activity.method==='analogy'&&activitySupport&&rating.score!==null&&
+   rating.score>=60?'analogy':
+  activitySupport&&cautioned?'mixed':
   cautioned?'caution':'undetermined';
- // A modern analogy with no opposing evidence is NOT a "mixed" reading.
- // A generic caution without activity support is NOT "partly supportive".
- if(activity.method==='analogy'&&verdict==='candidate')verdict='analogy';
  // Missing means not supplied to this verified *calendar* calculation, not
  // every prerequisite in the registry. Observer/event location is already
  // verified in P32; signed-in natal resonance is passed via privateInput.
