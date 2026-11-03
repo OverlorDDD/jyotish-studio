@@ -169,7 +169,7 @@ export async function searchP385Time(input:P385SearchInput){
   'D9_MARRIAGE_CONTEXT_PENDING_COMPLETE_KUTAS':
   activity.category==='work'?'D10_PROFESSION_CONTEXT_PENDING_SOURCE_RULES':
   'D1_NATAL_LUNAR_CONTEXT';
- return {...timeline,divisionFocus,natalDivisions:{
+ return {...timeline,observer:{...observer},divisionFocus,natalDivisions:{
   d1LagnaSign:owner.birthLagnaSign,
   d9LagnaSign:owner.d9LagnaSign,d9SeventhLord:owner.d9SeventhLord,
   d9SeventhOccupants:owner.d9SeventhOccupants,
