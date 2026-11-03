@@ -185,7 +185,7 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
  return <section className={styles.dashboard} data-testid="p31-my-day">
   <header className={styles.top}>
    <div><span className={styles.eyebrow}>GALAXIORA · {uk?'ПАНЧАНГА':'PANCHANGA'}</span>
-    <h2>{uk?'Мій день':'My day'}</h2></div>
+    <h2>{uk?'Перевірка конкретної події':'Specific event timing'}</h2></div>
    {iso&&<span className={styles.moment}><Clock3 size={15}/>
      {focusAtUtc&&(iso===focusAtUtc)?(uk?'Обраний інтервал · ':'Selected interval · '):''}{clock(iso)}</span>}
   </header>
