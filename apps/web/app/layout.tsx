@@ -37,7 +37,7 @@ export default async function RootLayout({children}:{children:React.ReactNode}){
   '@context':'https://schema.org',
   '@graph':[
    {'@type':'WebSite','@id':siteUrl+'/#website',name:BRAND.name,
-    alternateName:['galaxiora.com'],url:siteUrl+'/',
+    alternateName:['galaxiora.com','Галаксіора'],url:siteUrl+'/',
     description:'Galaxiora is a bilingual astrology, Tarot, Panchanga and learning platform.',
     inLanguage:['en','uk'],publisher:{'@id':siteUrl+'/#organization'}},
    {'@type':'Organization','@id':siteUrl+'/#organization',
