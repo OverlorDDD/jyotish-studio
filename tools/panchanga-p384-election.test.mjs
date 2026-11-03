@@ -73,7 +73,8 @@ test('P384: same verified event sky has different classical Panchaka restriction
  assert.notEqual(w.panchaka.conclusion,foundation.panchaka.conclusion);
 });
 test('P384: wedding cannot be evaluated without verified partner, ordinary work does not require partner',async()=>{
- assert.throws(()=>assembleP384EventElection({...(await input('wedding')),partnerVerified:false}),/partner chart/);
+ const wedding=await input('wedding');
+ assert.throws(()=>assembleP384EventElection({...wedding,partnerVerified:false}),/partner chart/);
  assert.equal(assembleP384EventElection(await input('job_start')).partnerChart,'not_required');
 });
 test('P384: exact-event Swiss Moon and all five private planets must match owner-verified P3.3 signs',async()=>{
