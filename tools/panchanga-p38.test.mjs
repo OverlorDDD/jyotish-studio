@@ -1,3 +1,4 @@
+import {calculateRamanPanchaka} from '../apps/web/lib/panchanga-p38-panchaka.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {P38_ACTIVITIES,p38Activity,evaluateP38,screenP38Day} from '../apps/web/lib/panchanga-p38-decision.ts';
@@ -159,4 +160,32 @@ test('P3.8 private calendar must use exact owner-verified report for EACH split 
  assert.equal(t.nextCandidate?.fromUtc,when(d.date,'11:30:00'));
  const bad={...privateTiming,samples:privateTiming.samples.slice(1)};
  assert.throws(()=>screenP38Day(d,POINT,'job_start',d.sunriseUtc,bad),/private timing identity or completeness mismatch/);
+});
+
+test('P3.8 classical Raman worked example 13+1+9+6 = 29, remainder 2 (Agni)',()=>{
+ const row={tithiNumber:13,varaNumber:1,nakshatraNumber:9,electionLagnaSign:6};
+ const p=calculateRamanPanchaka(row,'home_building');
+ assert.equal(p.sum,29);assert.equal(p.remainder,2);assert.equal(p.name,'Agni');
+ assert.equal(p.conclusion,'specific_exclusion');
+ assert.equal(calculateRamanPanchaka(row,'travel').forbiddenForScope,false);
+});
+test('P3.8 SAME exact electional sky yields different activity-specific Panchaka rulings',()=>{
+ const shared={varaNumber:1,nakshatraNumber:9,electionLagnaSign:6};
+ const raja={...shared,tithiNumber:6}; // sum22 => 4
+ assert.equal(calculateRamanPanchaka(raja,'occupation').forbiddenForScope,true);
+ assert.equal(calculateRamanPanchaka(raja,'home_building').forbiddenForScope,true);
+ assert.equal(calculateRamanPanchaka(raja,'travel').forbiddenForScope,false);
+ const chora={...shared,tithiNumber:8}; // sum24 => 6
+ assert.equal(calculateRamanPanchaka(chora,'travel').forbiddenForScope,true);
+ assert.equal(calculateRamanPanchaka(chora,'marriage').forbiddenForScope,false);
+ const roga={...shared,tithiNumber:1}; // sum17 => 8
+ assert.equal(calculateRamanPanchaka(roga,'marriage').forbiddenForScope,true);
+ assert.equal(calculateRamanPanchaka(roga,'occupation').forbiddenForScope,false);
+});
+test('P3.8 Panchaka without one required verified event factor is NOT estimated',()=>{
+ const base={tithiNumber:13,varaNumber:1,nakshatraNumber:9,electionLagnaSign:6};
+ assert.throws(()=>calculateRamanPanchaka({...base,electionLagnaSign:undefined},'marriage'),/event Lagna/);
+ assert.throws(()=>calculateRamanPanchaka({...base,tithiNumber:31},'travel'),/verified/);
+ assert.throws(()=>calculateRamanPanchaka({...base,nakshatraNumber:0},'travel'),/verified/);
+ assert.throws(()=>calculateRamanPanchaka(base,'unknown'),/unsupported/);
 });
