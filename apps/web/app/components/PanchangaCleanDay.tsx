@@ -11,6 +11,7 @@ import {evaluateP38,p38Activity,P38_ACTIVITIES,type P38Category,
  type P38ActivityId,type P38Moment} from '../../lib/panchanga-p38-decision';
 import {validateP33Report,type P33Report} from '../../lib/panchanga-p33-resonance';
 import {p386EvidenceShare} from '../../lib/panchanga-p386-evidence';
+import {p389Guidance} from '../../lib/panchanga-p389-guidance';
 import styles from './PanchangaCleanDay.module.css';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
@@ -42,14 +43,6 @@ const TOPIC:Record<P38Category,'work'|'money'|'relationships'|'travel'|'study'|'
  work:'work',finance:'money',relationships:'relationships',travel:'travel',
  education:'study',home:'home',spiritual:'personal',personal:'personal'
 };
-const TITLES={
- candidate:{uk:'Є традиційні підстави розглядати цей час',en:'This time matches documented traditional criteria'},
- avoid:{uk:'Для початку цієї справи є конкретне обмеження',en:'A specific traditional restriction applies to this start'},
- mixed:{uk:'Частина показників підтримує, інші потребують уваги',en:'Some factors support the start; others require review'},
- needs_full_election:{uk:'Для цієї справи потрібна повна мухурта',en:'This undertaking requires a full Muhurta'},
- undetermined:{uk:'Підтвердженого висновку для цієї справи поки немає',en:'There is not enough verified activity-specific evidence yet'},
- routine:{uk:'Для регулярної практики не потрібен окремий час початку',en:'Routine practice does not require a separate election'}
-} as const;
 const DECISION={
  supports:{uk:'Підтримує',en:'Supports'},
  cautions:{uk:'Застереження',en:'Caution'},
@@ -72,6 +65,7 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
  const uk=locale==='uk',verifiedDay=day as P32Day;
  const category=p38Activity(activity).category;
  const [capturedNow,setCapturedNow]=useState<number|null>(null);
+ const [chosenTimeUtc,setChosenTimeUtc]=useState<string|null>(null);
  const [privateReport,setPrivateReport]=useState<P33Report|null>(null);
  const [userState,setUserState]=useState<UserState>('loading');
  const [finder,setFinder]=useState<FinderResult|null>(null);
@@ -81,9 +75,14 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
  const [charts,setCharts]=useState<SavedChart[]>([]);
  const [chartState,setChartState]=useState<'idle'|'loading'|'ready'|'error'>('idle');
  const pointKey=[point.date,point.timeZone,point.latitude,point.longitude].join('|');
- useEffect(()=>{setCapturedNow(Date.now());setPrivateReport(null);setFinder(null);
+ useEffect(()=>{setCapturedNow(Date.now());setChosenTimeUtc(null);
+  setPrivateReport(null);setFinder(null);
   setFinderState('idle');},[day,pointKey,focusAtUtc]);
- const iso=capturedNow===null?null:targetTime(day,point,capturedNow,focusAtUtc);
+ const defaultIso=capturedNow===null?null:targetTime(day,point,capturedNow,focusAtUtc);
+ const selectedTime=chosenTimeUtc?Date.parse(chosenTimeUtc):NaN;
+ const iso=defaultIso===null?null:Number.isFinite(selectedTime)&&
+  selectedTime>=Date.parse(day.sunriseUtc)&&selectedTime<Date.parse(day.nextSunriseUtc)?
+  chosenTimeUtc:defaultIso;
  const activityInfo=p38Activity(activity);
  const relevant=P38_ACTIVITIES.filter(a=>a.category===category);
  const requiresPartner=activityInfo.required.includes('partner_chart');
@@ -139,13 +138,24 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
   }catch{return null}
  },[day,iso,category,screening]);
  const evidence=useMemo(()=>screening?p386EvidenceShare(screening):null,[screening]);
+ const guidance=useMemo(()=>screening?p389Guidance(screening,locale):null,[screening,locale]);
+ const timeOptions=useMemo(()=>{
+  if(!iso)return [];
+  const from=Date.parse(day.sunriseUtc),until=Date.parse(day.nextSunriseUtc);
+  const choices=new Set<string>([iso]);
+  // UTC instants distinguish even repeated local wall-clock hours at DST transitions.
+  for(let t=from+60000;t<until;t+=30*60000)
+   choices.add(new Date(t).toISOString());
+  return [...choices].sort();
+ },[day,iso]);
  const important=screening?.observations.filter(e=>e.polarity==='excludes')||[];
  const supportive=screening?.observations.filter(e=>e.polarity==='supports')||[];
  const caution=screening?.observations.filter(e=>e.polarity==='cautions')||[];
  const highlight=[...important,...supportive,...caution].slice(0,3);
  const dayHasPassed=capturedNow!==null&&Date.parse(day.nextSunriseUtc)<=capturedNow;
  const searchStart=capturedNow===null?null:new Date(Math.max(
-  capturedNow+120000,Date.parse(day.sunriseUtc)+60000)).toISOString();
+  capturedNow+120000,Date.parse(day.sunriseUtc)+60000,
+  iso?Date.parse(iso):0)).toISOString();
  const canSearch=Boolean(searchStart&&!dayHasPassed&&userState==='ready'&&
   (!requiresPartner||partnerId)&&finderState!=='loading'&&activityInfo.method!=='routine');
  const clock=(v:string)=>CLOCK(v,point.timeZone,locale);
@@ -185,6 +195,20 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
   </header>
   <div className={styles.advice}>
    <h3 className={styles.adviceLabel}>{uk?'Що плануєте?':'What are you planning?'}</h3>
+   <label className={styles.momentSelector}>
+    {uk?'Оберіть конкретний момент для перевірки':'Choose an exact moment to screen'}
+    <select data-testid="p389-time-select" value={iso||''}
+     disabled={!iso} onChange={e=>setChosenTimeUtc(e.target.value)}>
+     {timeOptions.map(t=><option value={t} key={t}>
+      {new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{timeZone:point.timeZone,
+       day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',
+       timeZoneName:'shortOffset'}).format(new Date(t))}
+     </option>)}
+    </select>
+   </label>
+   <p className={styles.momentHint}>{uk?
+    'Оберіть іншу годину: оцінка зміниться лише там, де реально змінюються астрономічні показники.':
+    'Select another hour: the assessment changes only where verified astronomical factors change.'}</p>
    <div className={styles.topicButtons} role="group" aria-label={uk?'Категорія справи':'Activity category'}>
     {CATEGORIES.map(c=>{const Icon=c.icon;return <button type="button" key={c.id}
      aria-pressed={category===c.id} onClick={()=>onActivityChange(P38_ACTIVITIES.find(a=>a.category===c.id)!.id)}>
@@ -201,8 +225,16 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
    {screening&&cards?<div data-testid="p32-interpretation" className={styles.decision}>
     <div className={styles.verdictRow}>
      <div><span className={styles.resultLabel}>{activityInfo.name[locale]}</span>
-      <h4 data-testid="p32-headline">{TITLES[screening.verdict][locale]}</h4>
-      {highlight.length>0&&<p className={styles.resultReason}>{highlight.map(e=>e.description[locale]).join(' ')}</p>}
+      <h4 data-testid="p32-headline">{guidance?.headline}</h4>
+      {guidance&&<p className={styles.resultReason}>{guidance.reason}</p>}
+      {guidance&&<p className={styles.resultAction} data-testid="p389-action">{guidance.nextStep}</p>}
+      {guidance&&guidance.sharedActivities.length>0&&<p className={styles.sharedRules}
+       data-testid="p389-shared-criteria">{uk?
+        'Ті самі базові правила наразі застосовано також до: ':
+        'These same verified basic rules also cover: '}
+       {guidance.sharedActivities.map(id=>p38Activity(id).name[locale]).join(', ')}.
+       {' '}{uk?'Це не різні прогнози.':'These are not distinct predictions.'}
+      </p>}
      </div>
      {evidence?.percent!==null&&evidence?.percent!==undefined&&<div className={styles.ratioContainer}>
       <div className={styles.ratioRing} role="img" aria-label={(uk?'Підтримувальних перевірок: ':'Supportive source checks: ')+evidence.percent+'%'}
@@ -216,7 +248,7 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
      <summary>{uk?'Як формується оцінка?':'How is this figure calculated?'}</summary>
      <p>{uk?`Із ${evidence.denominator} перевірених незалежних груп сигналів підтримують початок ${evidence.numerator}. Застережень: ${evidence.caution}, обмежень: ${evidence.excluded}. Тітхі й карана мають спільну геометрію та не рахуються двічі. Це частка виявлених традиційних сигналів, не ймовірність успіху.`:
       `Of ${evidence.denominator} independent source-based signal groups, ${evidence.numerator} support the start; ${evidence.caution} caution, ${evidence.excluded} restrict. Tithi and Karana are not counted twice. This is a share of triggered traditional signals, not an outcome probability.`}</p>
-     {evidence.percent===null&&<p>{uk?'Відсоток приховано, коли недостатньо незалежних сигналів або потрібна повна мухурта.':'No percentage when evidence is too sparse or a full election is required.'}</p>}
+     {evidence.percent===null&&<p>{uk?'Частку не показуємо: немає достатньої незалежної підтримки для цієї дії або не завершено спеціальні перевірки. Це не нульова сприятливість.':'No percentage: evidence is incomplete for this activity or special checks are pending. This does not mean zero suitability.'}</p>}
     </details>}
     {requiresPartner&&<label className={styles.partnerSelect}>
      {uk?'Натальна карта партнера':'Partner natal chart'}
@@ -229,6 +261,37 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
      {chartState==='ready'&&charts.length===0&&<Link href={'/'+locale+'/personal'}>
       {uk?'Спочатку збережіть карту партнера':'Save a partner chart first'}</Link>}
     </label>}
+    {activityInfo.method==='special_election'&&<div className={styles.specialChecklist}
+     data-testid="p389-muhurta-checklist">
+     <h5>{uk?'Що потрібно для повної мухурти?':'What does a full Muhurta require?'}</h5>
+     <p>{uk?'Це персональний підбір часу за натальними картами, місцем і лагною події та спеціальними традиційними правилами. Galaxiora зараз виконує лише попередній відбір.':
+      'This requires birth charts, the event location and event Lagna, plus specialist classical checks. Galaxiora currently provides preliminary screening only.'}</p>
+     <ul>
+      {activityInfo.required.includes('natal_chart')&&<li>
+       {userState==='ready'?(uk?'Ваша перевірена натальна карта: готова.':'Your verified chart: ready.'):
+        <>{uk?'Потрібна ваша перевірена натальна карта.':'Your verified natal chart is needed.'}
+         {' '}<Link href={'/'+locale+'/personal'}>{uk?'Створити в кабінеті':'Create in Personal'}</Link></>}
+      </li>}
+      {requiresPartner&&<li>{partnerId?
+       (uk?'Карту партнера обрано; її перевірить Time Finder.':'Partner chart selected; Time Finder will validate it.'):
+       (uk?'Оберіть нижче збережену карту партнера або створіть її в кабінеті.':
+        'Select a saved partner chart below or create one in Personal.')}
+      </li>}
+      {activityInfo.required.includes('event_location')&&<li>
+       {uk?'Місце події: ':'Event location: '}{point.place||point.timeZone}.
+       {' '}<a href="#panchanga-place">{uk?'Змінити місто вище':'Change city above'}</a>
+      </li>}
+      {activityInfo.required.includes('election_lagna')&&<li>
+       {uk?'Time Finder розраховує лагну обраного часу, але поки не перевіряє всі спеціальні правила.':
+        'Time Finder computes the selected event Lagna, but does not yet check all specialist rules.'}
+      </li>}
+     </ul>
+     <p className={styles.specialLimit}>{activityInfo.id==='wedding'?
+      (uk?'Повну весільну мухурту тут наразі отримати НЕ можна: усі 21 доша й 8 кут ще не сертифіковані. Для завершеного традиційного підбору потрібен фахівець із джйотишу.':
+       'A complete wedding Muhurta is NOT available here: all 21 doshas and 8 Kutas are not certified. A qualified Jyotish practitioner is required for a full traditional election.'):
+      (uk?'Для цієї події спеціальні правила ще не всі реалізовані. Попередній інтервал не є остаточною сертифікованою мухуртою.':
+       'Specialist rules for this event remain incomplete. A preliminary time window is not a final certified Muhurta.')}</p>
+    </div>}
     <div className={styles.timeFinder} data-testid="p386-time-finder">
      {activityInfo.method!=='routine'&&<div className={styles.timeControls}>
       <label>{uk?'Пошук часу':'Time search'} <select value={duration}
