@@ -67,6 +67,9 @@ test('P410 real Swiss Kyiv: different deeds and intervals; no 53%, incomplete Mu
     const moment=new Date(stamp(r.startUtc)+1000).toISOString();
     const verdict=evaluateP38(day,moment,r.activityId);
     assert.ok(!verdict.observations.some(o=>o.polarity==='excludes'),r.activityId+' '+moment);
+    if(['people','arts','work'].includes(r.kind))
+     assert.ok(verdict.observations.some(o=>o.scope==='activity'&&o.polarity==='supports'),
+      'Broad Amrit/Choghadiya is not an art/friendship/job-specific rule');
    }
    signatures.add(r.kind+'|'+r.choghadiya+'|'+r.hora);
    kinds.add(r.kind);
