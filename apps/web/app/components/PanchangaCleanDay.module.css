@@ -119,3 +119,7 @@
  .momentSelector select{width:100%}
  .specialChecklist{padding:12px}
 }
+
+.ruleSource{display:inline-block;margin-top:10px;font-size:12px;color:#f5d49d;text-decoration:underline}
+.finderReasons{font-size:12px;line-height:1.55;margin:8px 0 0;padding-left:18px;color:#e1e9f6}
+.finderReasons li{margin:5px 0}
