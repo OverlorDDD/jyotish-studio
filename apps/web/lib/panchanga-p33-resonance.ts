@@ -2,7 +2,7 @@
  * take birth data from the browser; server supplies owner-verified facts.
  * One decision: hard P3.2 prohibitions and Ashtama cannot be outvoted.
  */
-import type {P32Result,P32Day} from './panchanga-p32-engine';
+import type {P32Result,P32Day} from './panchanga-p32-engine.ts';
 type L={uk:string;en:string};
 type Q='supportive'|'challenging'|'caution';
 type Topic=P32Result['topic'];
