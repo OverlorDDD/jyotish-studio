@@ -1,5 +1,5 @@
 {
-  "source": "Independent PySwissEph swisseph 2.10.03, swe.houses(jd, geolat, geolon, b'P')[1][0], mean Lahiri from swe.get_ayanamsa_ex_ut(jd, FLG_SWIEPH|FLG_NONUT), minus JHora8 Swiss-v2.02.01 0.13823494055031915 arcseconds convention shift; generated independently in local Python 2026-11-03; values not computed from TypeScript code under test.",
+  "source": "Independent PySwissEph swisseph 2.10.03, swe.houses(jd, geolat, geolon, b'P')[1][0], mean Lahiri from swe.get_ayanamsa_ex_ut(jd, FLG_SWIEPH|FLG_NONUT), minus JHora8 Swiss-v2.02.01 0.13823494055031915 arcseconds convention shift; generated independently in local Python 2026-11-03; values not computed from TypeScript code under test. Event Navamsa Sign was independently derived with 9 equal subsegments per Rashi and Parashari Navamsa sign ordering, not derived from TypeScript.",
   "toleranceArcseconds": 1,
   "cases": [
     {
@@ -13,7 +13,8 @@
       "siderealAscendantDegrees": 247.948242821,
       "lagnaSign": 9,
       "localDate": "2026-11-03",
-      "localTime": "11:00:00"
+      "localTime": "11:00:00",
+      "eventNavamsaSign": 3
     },
     {
       "atUtc": "2026-11-03T09:00:00.000Z",
@@ -26,7 +27,8 @@
       "siderealAscendantDegrees": 314.418134426,
       "lagnaSign": 11,
       "localDate": "2026-11-03",
-      "localTime": "14:30:00"
+      "localTime": "14:30:00",
+      "eventNavamsaSign": 11
     },
     {
       "atUtc": "2027-05-10T15:00:00.000Z",
@@ -39,7 +41,8 @@
       "siderealAscendantDegrees": 157.920376434,
       "lagnaSign": 6,
       "localDate": "2027-05-10",
-      "localTime": "16:00:00"
+      "localTime": "16:00:00",
+      "eventNavamsaSign": 12
     },
     {
       "atUtc": "2027-06-01T12:30:00.000Z",
@@ -52,7 +55,8 @@
       "siderealAscendantDegrees": 300.964482007,
       "lagnaSign": 11,
       "localDate": "2027-06-01",
-      "localTime": "22:30:00"
+      "localTime": "22:30:00",
+      "eventNavamsaSign": 7
     },
     {
       "atUtc": "2026-03-29T00:30:00.000Z",
@@ -65,7 +69,8 @@
       "siderealAscendantDegrees": 258.481767308,
       "lagnaSign": 9,
       "localDate": "2026-03-29",
-      "localTime": "02:30:00"
+      "localTime": "02:30:00",
+      "eventNavamsaSign": 6
     },
     {
       "atUtc": "2026-03-29T01:30:00.000Z",
@@ -78,7 +83,8 @@
       "siderealAscendantDegrees": 277.097612477,
       "lagnaSign": 10,
       "localDate": "2026-03-29",
-      "localTime": "04:30:00"
+      "localTime": "04:30:00",
+      "eventNavamsaSign": 12
     },
     {
       "atUtc": "2026-11-03T09:00:00.000Z",
@@ -91,7 +97,8 @@
       "siderealAscendantDegrees": 170.577025245,
       "lagnaSign": 6,
       "localDate": "2026-11-03",
-      "localTime": "04:00:00"
+      "localTime": "04:00:00",
+      "eventNavamsaSign": 4
     },
     {
       "atUtc": "2027-04-10T18:20:00.000Z",
@@ -104,7 +111,8 @@
       "siderealAscendantDegrees": 310.075332898,
       "lagnaSign": 11,
       "localDate": "2027-04-11",
-      "localTime": "03:20:00"
+      "localTime": "03:20:00",
+      "eventNavamsaSign": 10
     }
   ]
 }
