@@ -82,11 +82,14 @@ export default function PanchangaDailyOpportunities({locale,day,point,
     all.push(...dailyOpportunities(priorDay,prevStart));
    }
    const preDawn=brahmaMuhurta(day);
-   // Brahma Muhurta is a daily spiritual opportunity, not an auspicious
-   // election for weddings or financial commitments.
-   if((!today||now===null||Date.parse(preDawn.endUtc)>now)&&
-    (!today||now===null||Date.parse(preDawn.startUtc)<Date.parse(day.sunriseUtc)))
-    all.push(preDawn);
+   // This day's night culminates in tomorrow's sunrise; the last two
+   // nighttime muhurtas vary seasonally with the verified sunset.
+   // Brahma is for spiritual practice, never a blanket wedding election.
+   if(!today||now===null||Date.parse(preDawn.endUtc)>now)all.push(preDawn);
+   if(today&&now!==null&&now<Date.parse(day.sunriseUtc)&&priorDay){
+    const dawnToday=brahmaMuhurta(priorDay);
+    if(Date.parse(dawnToday.endUtc)>now)all.push(dawnToday);
+   }
    all.sort((a,b)=>Date.parse(a.startUtc)-Date.parse(b.startUtc));
    return {all,featured:featuredOpportunities(all),periods:calculateTraditionalSlots(day),
     abhijit:abhijitWindow(day),error:false};
@@ -189,7 +192,7 @@ export default function PanchangaDailyOpportunities({locale,day,point,
     <p>{uk?'Схід Сонця: ':'Sunrise: '}{nameOf(day.sunriseUtc,point.timeZone,locale)}.
      {computed.abhijit&&<> {uk?'Абхіджит: ':'Abhijit: '}
       {nameOf(computed.abhijit.startUtc,point.timeZone,locale)} – {nameOf(computed.abhijit.endUtc,point.timeZone,locale)}.</>}</p>
-    <p>{uk?'Брахма-мухурта: ':'Brahma Muhurta: '}
+    <p>{uk?'Брахма-мухурта перед наступним сходом: ':'Brahma Muhurta before the next sunrise: '}
      {nameOf(brahmaMuhurta(day).startUtc,point.timeZone,locale)} – {nameOf(brahmaMuhurta(day).endUtc,point.timeZone,locale)}.</p>
     <small>{uk?'Ці два періоди показано як традиційні орієнтири, а не як дозволи на будь-яку церемонію.':
      'These are traditional reference windows, not permission for every type of ceremony.'}</small>
