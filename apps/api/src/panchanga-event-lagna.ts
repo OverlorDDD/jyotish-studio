@@ -100,19 +100,54 @@ export async function calculateVerifiedEventLagna(input:EventLagnaInput):Promise
 /** Mean Rahu and opposing Ketu for EVENT elections (not user's natal nodes).
  * Native SWIEPH returned flags are mandatory; never substitute Moshier.
  */
+/** Construct one native Swiss sampler for each search request, not a dynamic import
+ * and Intl formatter per minute. Uses precisely the JQA3 mean-Lahiri profile.
+ */
+export async function createVerifiedEventLagnaSampler(observer:EventLocation){
+ validateEventLagnaInput({atUtc:'2026-11-03T09:00:00.000Z',...observer});
+ const sw=await import('@swisseph/node');
+ sw.setSiderealMode(sw.SiderealMode.Lahiri);
+ return (ms:number)=>{
+  if(!Number.isSafeInteger(ms))throw Error('P385 Event Lagna sampler requires millisecond UTC');
+  const t=new Date(ms),year=t.getUTCFullYear();
+  if(year<1900||year>2099)throw Error('P385 Event Lagna outside validated years');
+  const h=t.getUTCHours()+t.getUTCMinutes()/60+t.getUTCSeconds()/3600+
+   t.getUTCMilliseconds()/3600000;
+  const jd=sw.julianDay(year,t.getUTCMonth()+1,t.getUTCDate(),h);
+  const a=sw.calculateHouses(jd,observer.latitude,observer.longitude,sw.HouseSystem.Placidus).ascendant;
+  const ayan=sw.getAyanamsaExUt(jd,sw.CalculationFlag.SwissEphemeris|64)-
+   JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS/3600;
+  if(!Number.isFinite(a)||!Number.isFinite(ayan)||a<0||a>=360)
+   throw Error('P385 invalid Swiss event ascendant');
+  const longitude=mod(a-ayan),deg=longitude%30;
+  return {longitude,sign:Math.floor(longitude/30)+1,
+   boundaryArcseconds:Math.min(deg,30-deg)*3600};
+ };
+}
+export async function createVerifiedMeanNodeAt(){
+ const sw=await import('@swisseph/node');
+ sw.setSiderealMode(sw.SiderealMode.Lahiri);
+ return (ms:number)=>{
+  if(!Number.isSafeInteger(ms))throw Error('P385 nodes require integer UTC milliseconds');
+  const year=new Date(ms).getUTCFullYear();
+  if(year<1900||year>2099)throw Error('P385 nodes outside supported range');
+  const jd=ms/86400000+2440587.5;
+  const planetJd=jhora8HistoricalJulianDay(jd);
+  const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
+  const p=sw.calculatePosition(planetJd,sw.LunarPoint.MeanNode,flags);
+  assertSwissReturnFlags(p.flags,'P385.Event.MeanRahu');
+  const longitude=jhora8SiderealLongitude(p.longitude);
+  if(!Number.isFinite(longitude)||longitude<0||longitude>=360||
+    !Number.isFinite(p.longitudeSpeed))throw Error('P385 invalid Swiss mean node');
+  return {longitude,longitudeSpeed:p.longitudeSpeed};
+ };
+}
 export async function calculateVerifiedEventNodesAt(atUtc:string){
  const ms=Date.parse(atUtc);
  if(typeof atUtc!=='string'||!Number.isSafeInteger(ms)||
     new Date(ms).toISOString()!==atUtc)throw Error('P385 verified UTC event required for lunar nodes');
- const sw=await import('@swisseph/node');
- sw.setSiderealMode(sw.SiderealMode.Lahiri);
- const jd=ms/86400000+2440587.5,year=new Date(ms).getUTCFullYear();
- if(year<1900||year>2099)throw Error('P385 lunar nodes outside verified event range');
- const planetJd=jhora8HistoricalJulianDay(jd);
- const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
- const point=sw.calculatePosition(planetJd,sw.LunarPoint.MeanNode,flags);
- assertSwissReturnFlags(point.flags,'P385.Event.MeanRahu');
- const rahu=jhora8SiderealLongitude(point.longitude);
- if(!Number.isFinite(rahu)||rahu<0||rahu>=360)throw Error('P385 non-finite SWIEPH Rahu');
- return {Rahu:rahu,Ketu:mod(rahu+180),source:'JQA3_NATIVE_SWIEPH_MEAN_NODE_AND_OPPOSITE' as const};
+ const at=await createVerifiedMeanNodeAt();
+ const rahu=at(ms).longitude;
+ return {Rahu:rahu,Ketu:mod(rahu+180),
+  source:'JQA3_NATIVE_SWIEPH_MEAN_NODE_AND_OPPOSITE' as const};
 }
