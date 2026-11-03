@@ -39,7 +39,7 @@ const COPY={
   chart:'Calculate a birth chart',
   horoscope:'Explore horoscopes',
   lessons:'Open the Academy',
-  scope:'Official site: galaxiora.com. Interface languages: Ukrainian and English.'
+  scope:'Official brand: Galaxiora (Галаксіора in Ukrainian). The official website is galaxiora.com. Interface languages: English and Ukrainian.'
  }
 } as const;
 
