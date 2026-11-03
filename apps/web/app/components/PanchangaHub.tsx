@@ -1,256 +1,200 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {reportGrowthEvent} from '../../lib/growth-metrics';
-import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
-import styles from './PanchangaHub.module.css';
-import CitySearch from './CitySearch';
-import GlossaryText from './GlossaryText';
-import PanchangaRangeView from './PanchangaRangeView';
-import PanchangaLiveDay from './PanchangaLiveDay';
-import PanchangaMyDay from './PanchangaMyDay';
-import PanchangaPersonalCalendar from './PanchangaPersonalCalendar';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
+import CitySearch from './CitySearch';
+import PanchangaCleanDay from './PanchangaCleanDay';
+import PanchangaRangeView from './PanchangaRangeView';
+import PanchangaLiveDay from './PanchangaLiveDay';
+import GlossaryText from './GlossaryText';
+import styles from './PanchangaHub.module.css';
 
-type AngaName={number:number;name:string};
+type Form={date:string;timeZone:string;latitude:string;longitude:string;place:string};
 type Day=LivePanchangaDay&{
  version:string;date:string;sunriseUtc:string;sunsetUtc:string;nextSunriseUtc:string;
  location:{timeZone:string;latitude:number;longitude:number};
- sunrise:{tithi:{number:number;paksha:string;numberWithinPaksha:number};nakshatra:AngaName&{pada:number};
- vara:AngaName;yoga:AngaName;karana:{slot:number;name:string};phase:string};
- boundaries:Record<'tithi'|'nakshatra'|'yoga'|'karana',{startUtc:string;endUtc:string}>;
- changes:{kind:'tithi'|'nakshatra'|'yoga'|'karana';atUtc:string;nextIndex:number}[];
- astronomicalEvents:{type:'sunrise'|'sunset'|'new_moon'|'full_moon';atUtc:string}[];
- daytimeKalas:{version:string;rahuKalam:{part:number;fromUtc:string;untilUtc:string};yamaganda:{part:number;fromUtc:string;untilUtc:string};gulikaKalam:{part:number;fromUtc:string;untilUtc:string}};
- astronomyProfile:string;sunriseMethod:string;
- methodology:{referenceFrame:string;boundaryResolutionSeconds:number;referenceCertification:string};
+ daytimeKalas:{rahuKalam:{part:number;fromUtc:string;untilUtc:string};
+ yamaganda:{part:number;fromUtc:string;untilUtc:string};
+ gulikaKalam:{part:number;fromUtc:string;untilUtc:string}};
+ sunriseMethod:string;
 };
-type Form={date:string;timeZone:string;latitude:string;longitude:string;place:string};
-const presets:{
- [key:string]:{timeZone:string;latitude:string;longitude:string}
-}={
- kyiv:{timeZone:'Europe/Kyiv',latitude:'50.4501',longitude:'30.5234'},
- delhi:{timeZone:'Asia/Kolkata',latitude:'28.6139',longitude:'77.209'},
- london:{timeZone:'Europe/London',latitude:'51.5074',longitude:'-0.1278'}
-};
-const labels={
- uk:{title:'Панчанга',intro:'Місячний день, положення Місяця й час переходів для вашого міста. Оберіть день, тиждень або місяць.',
- subtitle:'Астрономічний календар',date:'Дата',city:'Місцевість',zone:'Часовий пояс (IANA)',lat:'Широта',lon:'Довгота',calculate:'Розрахувати день',busy:'Розраховуємо день…',
- unknown:'Немає обчислення',error:'Немає даних для цього міста й дати. Перевір координати та часовий пояс.',
- sunrise:'Схід Сонця',sunset:'Захід Сонця',next:'Наступний схід',titleFive:'П’ять показників',transitions:'Переходи протягом дня',kalas:'Традиційні денні періоди',rahuKalam:'Раху-калам',yamaganda:'Ямаганда',gulikaKalam:'Гуліка-калам',kalaNote:'Раху-калам, Ямаганда й Гуліка-калам — відрізки світлового дня. Це не персональний вибір сприятливого часу.',events:'Астрономічні події',new_moon:'Молодик',full_moon:'Повня',
- source:'Джерело розрахунку',started:'Початок',ends:'Закінчення',notProphecy:'Переходи показано за місцевим часом обраного міста.',
- tithi:'Тітхі',nakshatra:'Накшатра',vara:'Вара',yoga:'Нітья-йога',karana:'Карана',
- shukla:'Шукла',krishna:'Крішна',pada:'пада',
- profile:'Swiss Ephemeris; сидеричні координати з аянамшею Лахірі.',
- limits:'Час переходів уточнено чисельно до секунди.',
- cities:{kyiv:'Київ',delhi:'Нью-Делі',london:'Лондон',custom:'Свої координати'}},
- en:{title:'Panchanga',intro:'Lunar day, Moon position and transition times for your city. Choose a day, week or month.',
- subtitle:'Astronomical calendar',date:'Date',city:'Location',zone:'Time zone (IANA)',lat:'Latitude',lon:'Longitude',calculate:'Calculate day',busy:'Calculating day…',
- unknown:'No calculation yet',error:'No data for this city and date. Check coordinates and time zone.',
- sunrise:'Sunrise',sunset:'Sunset',next:'Next sunrise',titleFive:'Five Panchanga limbs',transitions:'Transitions during the day',kalas:'Traditional daytime periods',rahuKalam:'Rahu Kalam',yamaganda:'Yamaganda',gulikaKalam:'Gulika Kalam',kalaNote:'Rahu Kalam, Yamaganda and Gulika Kalam divide daylight into traditional intervals, not a personal muhurta.',events:'Astronomical events',new_moon:'New Moon',full_moon:'Full Moon',
- source:'Calculation source',started:'Started',ends:'Ends',notProphecy:'All transition times use the selected location’s time zone.',
- tithi:'Tithi',nakshatra:'Nakshatra',vara:'Vara',yoga:'Nitya Yoga',karana:'Karana',
- shukla:'Shukla',krishna:'Krishna',pada:'pada',profile:'Swiss Ephemeris; sidereal positions with Lahiri ayanamsha.',
- limits:'Transition times are numerically resolved to one second.',
- cities:{kyiv:'Kyiv',delhi:'New Delhi',london:'London',custom:'Custom coordinates'}}
-} as const;
-function currentDay(zone='Europe/Kyiv'){
- const parts=new Intl.DateTimeFormat('en',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
- const get=(k:string)=>parts.find(x=>x.type===k)?.value||'';
+const DEFAULT_CITY={place:'Київ',latitude:'50.4501',longitude:'30.5234',timeZone:'Europe/Kyiv'};
+const localeDate=(zone:string)=>{
+ const p=new Intl.DateTimeFormat('en',{timeZone:zone,year:'numeric',month:'2-digit',
+  day:'2-digit'}).formatToParts(new Date());
+ const get=(k:string)=>p.find(x=>x.type===k)?.value||'';
  return get('year')+'-'+get('month')+'-'+get('day');
-}
+};
 export default function PanchangaHub({locale}:{locale:PortalLocale}){
- const t=labels[locale],uk=locale==='uk';
- const initialForm:Form={date:currentDay(),...presets.kyiv,place:uk?'Київ':'Kyiv'};
- const [form,setForm]=useState<Form>(initialForm);
- const [city,setCity]=useState('kyiv'),[requested,setRequested]=useState<Form|null>(null);
- const [result,setResult]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
- const pendingManualCalculation=useRef(false);
- const [view,setView]=useState<'day'|'week'|'month'|'personal'>('day');
- useEffect(()=>{if(new URLSearchParams(window.location.search).get('view')==='personal')
-  setView('personal');},[]);
- const [showDetails,setShowDetails]=useState(false);
+ const uk=locale==='uk';
+ const [form,setForm]=useState<Form>({date:localeDate(DEFAULT_CITY.timeZone),...DEFAULT_CITY});
+ const [requested,setRequested]=useState<Form|null>(null);
+ const [view,setView]=useState<'day'|'week'|'month'>('day');
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
- const [locationSource,setLocationSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
+ const [day,setDay]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
+ const [source,setSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
  const [autoSave,setAutoSave]=useState(true);
  const [saveState,setSaveState]=useState<'idle'|'saving'|'saved'|'error'>('idle');
- const saveSequence=useRef(0);
- const saveQueue=useRef<Promise<unknown>>(Promise.resolve());
+ const saveSequence=useRef(0),saveQueue=useRef<Promise<unknown>>(Promise.resolve());
+ const [showTechnical,setShowTechnical]=useState(false);
  useEffect(()=>{
+  const qs=new URLSearchParams(window.location.search);
+  if(qs.get('view')==='personal')setView('week'); // retired duplicate 7/30 view
+  else if(qs.get('view')==='week'||qs.get('view')==='month')setView(qs.get('view') as 'week'|'month');
   let live=true;const ctl=new AbortController();
   fetch('/api/v1/personal/panchanga/location',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
-   .then(async r=>{if(r.status===401)return null;if(!r.ok)throw Error(String(r.status));
-    return await r.json() as {source:'saved'|'natal'|'none';
-     location:{place:string;timeZone:string;latitude:number;longitude:number}|null};})
-   .then(data=>{
+   .then(async r=>r.status===401?null:r.ok?await r.json() as {
+    source:'saved'|'natal'|'none';location:{place:string;timeZone:string;latitude:number;longitude:number}|null
+   }:Promise.reject(Error('location unavailable')))
+   .then(profile=>{
     if(!live)return;
-    const loc=data?.location;
-    const next:Form=loc?{date:initialForm.date,place:loc.place,timeZone:loc.timeZone,
-     latitude:String(loc.latitude),longitude:String(loc.longitude)}:initialForm;
-    next.date=chooseInitialDay(new URLSearchParams(window.location.search).get('date'),next.timeZone);
-    setLocationSource(data?.source||'guest');
-    if(loc)setCity('custom');
-    setForm(next);setRequested(next);
+    const p=profile?.location;
+    const base=p?{place:p.place||'—',timeZone:p.timeZone,
+     latitude:String(p.latitude),longitude:String(p.longitude)}:DEFAULT_CITY;
+    const selected={...base,date:chooseInitialDay(qs.get('date'),base.timeZone)};
+    setSource(profile?.source||'guest');setForm(selected);setRequested(selected);
    }).catch(()=>{
     if(!live)return;
-    const next={...initialForm,date:chooseInitialDay(
-     new URLSearchParams(window.location.search).get('date'),initialForm.timeZone)};
-    setLocationSource('guest');setForm(next);setRequested(next);
+    const selected={...DEFAULT_CITY,date:chooseInitialDay(qs.get('date'),DEFAULT_CITY.timeZone)};
+    setSource('guest');setForm(selected);setRequested(selected);
    });
   return()=>{live=false;ctl.abort()};
  },[]);
  function saveCity(next:Form){
-  if(!autoSave||locationSource==='guest'||locationSource==='checking')return;
-  const version=++saveSequence.current;
-  setSaveState('saving');
+  if(!autoSave||source==='guest'||source==='checking')return;
+  const version=++saveSequence.current;setSaveState('saving');
   const pending=saveQueue.current.catch(()=>{}).then(async()=>{
-   // Skip obsolete queued locations; an already submitted request must finish
-   // before its successor, so the final server preference is the latest city.
    if(version!==saveSequence.current)return;
-   const r=await fetch('/api/v1/personal/panchanga/location',{method:'PUT',credentials:'same-origin',
-    headers:{'Content-Type':'application/json'},body:JSON.stringify({
-     place:next.place,timeZone:next.timeZone,latitude:Number(next.latitude),longitude:Number(next.longitude)})});
-   if(!r.ok)throw Error(String(r.status));
-   if(version===saveSequence.current){setLocationSource('saved');setSaveState('saved');}
+   const response=await fetch('/api/v1/personal/panchanga/location',{
+    method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({place:next.place,timeZone:next.timeZone,
+     latitude:Number(next.latitude),longitude:Number(next.longitude)})});
+   if(!response.ok)throw Error('save city failed');
+   if(version===saveSequence.current){setSource('saved');setSaveState('saved');}
   });
   saveQueue.current=pending.catch(()=>{if(version===saveSequence.current)setSaveState('error')});
  }
+ function selectLocation(next:Form){
+  setForm(next);setRequested(next);setDay(null);setShowTechnical(false);
+  saveCity(next);
+ }
  async function restoreNatalCity(){
-  const version=++saveSequence.current;
-  setSaveState('saving');
+  const version=++saveSequence.current;setSaveState('saving');
   try{
    await saveQueue.current.catch(()=>{});
    if(version!==saveSequence.current)return;
    const r=await fetch('/api/v1/personal/panchanga/location',{method:'DELETE',credentials:'same-origin'});
-   if(!r.ok)throw Error(String(r.status));
-   const data=await r.json() as {source:'saved'|'natal'|'none';
-    location:{place:string;timeZone:string;latitude:number;longitude:number}|null};
-   const next:Form=data.location?{...form,place:data.location.place,timeZone:data.location.timeZone,
-    latitude:String(data.location.latitude),longitude:String(data.location.longitude)}
-    :{...form,...presets.kyiv,place:uk?'Київ':'Kyiv'};
+   if(!r.ok)throw Error('restore failed');
+   const profile=await r.json() as {source:'natal'|'none';location:{
+    place:string;timeZone:string;latitude:number;longitude:number}|null};
+   const p=profile.location;
+   const next=p?{...form,place:p.place,timeZone:p.timeZone,
+    latitude:String(p.latitude),longitude:String(p.longitude)}:{...form,...DEFAULT_CITY};
    if(version!==saveSequence.current)return;
-   setForm(next);setRequested(next);setLocationSource(data.source);setSaveState('idle');
-  }catch{if(version===saveSequence.current)setSaveState('error');}
+   setForm(next);setRequested(next);setSource(profile.source);setSaveState('idle');
+  }catch{if(version===saveSequence.current)setSaveState('error')}
  }
- function selectDay(date:string){const next={...form,date};setShowDetails(false);setForm(next);setRequested(next);setView('day');}
- function selectLocation(next:Form){setForm(next);setRequested(next);void saveCity(next);}
+ function setDate(date:string){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
+  const next={...form,date};setForm(next);setRequested(next);setDay(null);setShowTechnical(false);
+ }
+ function pickDay(date:string){setDate(date);setView('day')}
  useEffect(()=>{
   if(!requested||view!=='day')return;
-  let live=true;const controller=new AbortController();setLoading(true);setError(false);setResult(null);
-  const q=new URLSearchParams({date:requested.date,zone:requested.timeZone,latitude:requested.latitude,longitude:requested.longitude});
-  fetch('/api/v1/panchanga/day?'+q,{cache:'no-store',signal:controller.signal})
-   .then(async r=>{if(!r.ok)throw Error(String(r.status));return await r.json() as Day;})
-   .then(d=>{if(live){setResult(d);setError(false);if(pendingManualCalculation.current){pendingManualCalculation.current=false;reportGrowthEvent('panchanga_calculation_completed')}}})
-   .catch(()=>{if(live){pendingManualCalculation.current=false;setResult(null);setError(true)}})
+  let live=true;const ctl=new AbortController();setLoading(true);setError(false);setDay(null);
+  const q=new URLSearchParams({date:requested.date,zone:requested.timeZone,
+   latitude:requested.latitude,longitude:requested.longitude});
+  fetch('/api/v1/panchanga/day?'+q,{cache:'no-store',signal:ctl.signal})
+   .then(async r=>{if(!r.ok)throw Error('Panchanga calculation failed');return await r.json() as Day})
+   .then(result=>{if(live)setDay(result)})
+   .catch(()=>{if(live&&!ctl.signal.aborted)setError(true)})
    .finally(()=>{if(live)setLoading(false)});
-  return()=>{live=false;controller.abort()};
+  return()=>{live=false;ctl.abort()};
  },[requested,view]);
- // Never briefly display a previous city's/day's data as the new observer's
- // first-screen advice during async location or date changes.
- const dayMatches=Boolean(result&&requested&&result.date===requested.date&&
-  result.location.timeZone===requested.timeZone&&
-  Math.abs(result.location.latitude-Number(requested.latitude))<1e-8&&
-  Math.abs(result.location.longitude-Number(requested.longitude))<1e-8);
- const fmt=(iso:string)=>new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{
-  timeZone:result?.location.timeZone||form.timeZone,dateStyle:'medium',timeStyle:'short'
- }).format(new Date(iso));
- return <section className={styles.page} data-testid="panchanga-hub">
-  <header className={styles.hero}>
-   <div className={styles.eyebrow}>GALAXIORA · ASTRONOMY</div>
-   <h1>{uk?'Мій день · Панчанга':'My day · Panchanga'}</h1><p>{uk?
-    'П’ять складників ведичного календаря, пояснення для ваших справ і точні розрахунки для обраного міста.':
-    'Five Vedic calendar limbs, activity-specific explanations and verified calculations for your city.'}</p>
-   <Link href={'/'+locale+'/horoscope'}>{uk?'До гороскопів':'Horoscopes'} ↗</Link>
+ const matches=Boolean(day&&requested&&day.date===requested.date&&
+  day.location.timeZone===requested.timeZone&&
+  Math.abs(day.location.latitude-Number(requested.latitude))<1e-8&&
+  Math.abs(day.location.longitude-Number(requested.longitude))<1e-8);
+ const fmt=(iso:string)=>new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{timeZone:form.timeZone,
+  dateStyle:'medium',timeStyle:'short'}).format(new Date(iso));
+ return <section data-testid="panchanga-hub" className={styles.page}>
+  <header className={styles.cleanHero}>
+   <span className={styles.eyebrow}>GALAXIORA · {uk?'ВЕДИЧНИЙ КАЛЕНДАР':'VEDIC CALENDAR'}</span>
+   <h1>{uk?'Панчанга':'Panchanga'}</h1>
   </header>
+  <div className={styles.cleanObserver} data-testid="p386-observer">
+   <label className={styles.cleanDate}>{uk?'Дата':'Date'}
+    <input type="date" value={form.date} min="1900-01-01" max="2099-12-31"
+     onChange={e=>setDate(e.target.value)}/></label>
+   <div className={styles.cleanCity}>
+    <CitySearch locale={locale} selectedPlace={form.place} onChoose={c=>
+     selectLocation({...form,timeZone:c.timeZone,latitude:String(c.latitude),
+      longitude:String(c.longitude),
+      place:[c.name,c.region,c.country].filter(Boolean).join(', ').slice(0,120)})}/>
+   </div>
+  </div>
   <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
-   {(['day','week','month','personal'] as const).map(period=><button key={period} type="button"
-    aria-current={view===period?'page':undefined} onClick={()=>{setShowDetails(false);setView(period)}}>
-     {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):period==='month'?(uk?'Місяць':'Month'):(uk?'Мій календар 7/30':'My 7/30 calendar')}
-    </button>)}
-  </nav>
-  <fieldset className={styles.unifiedSystem} data-testid="panchanga-month-system">
-   <legend>{uk?'Система ведичного місяця':'Vedic lunar-month system'}</legend>
-   {(['amanta','purnimanta'] as const).map(system=><button type="button" key={system}
-    aria-pressed={monthSystem===system} onClick={()=>setMonthSystem(system)}>
-    {system==='amanta'?(uk?'Аманта':'Amanta'):(uk?'Пурніманта':'Purnimanta')}
+   {(['day','week','month'] as const).map(period=><button type="button" key={period}
+    aria-current={view===period?'page':undefined} onClick={()=>{setView(period);setShowTechnical(false)}}>
+    {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):(uk?'Місяць':'Month')}
    </button>)}
-  </fieldset>
-  <form className={styles.form} onSubmit={e=>{
-   e.preventDefault();pendingManualCalculation.current=view==='day'; 
-   const changed=!requested||['timeZone','latitude','longitude','place'].some(key=>
-    form[key as keyof Form]!==requested[key as keyof Form]);
-   setRequested({...form});
-   if(changed)saveCity(form);
-  }}>
-   <div className={styles.formGrid}>
-    <label>{t.date}<input required type="date" min="1900-01-01" max="2099-12-31" value={form.date} onChange={e=>{const next={...form,date:e.target.value};setForm(next);
-     if(/^\\d{4}-\\d{2}-\\d{2}$/.test(next.date))setRequested(next);}}/></label>
-    <CitySearch locale={locale} onChoose={c=>{
-     setCity('custom');
-     selectLocation({...form,timeZone:c.timeZone,latitude:String(c.latitude),longitude:String(c.longitude),
-      place:[c.name,c.region,c.country].filter(Boolean).join(', ').slice(0,120)});
-    }}/>
-    <label>{t.city}<select value={city} onChange={e=>{
-     const next=e.target.value;setCity(next);
-     if(next!=='custom')selectLocation({...form,...presets[next],place:t.cities[next as 'kyiv'|'delhi'|'london']});
-    }}>{Object.entries(t.cities).map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
-   </div>
-   <p className={styles.locationStatus}>{uk?'Місто':'Location'}: <strong>{form.place}</strong> · {form.timeZone}
-    {locationSource==='natal'&&(uk?' · із натальної карти':' · from natal chart')}
-    {locationSource==='saved'&&(uk?' · збережено в профілі':' · saved in profile')}</p>
-   <details className={styles.advanced}><summary>{uk?'Точні координати та часовий пояс':'Advanced settings'}</summary>
-    <div className={styles.formGrid}>
-    <label>{t.zone}<input required value={form.timeZone} onChange={e=>{setCity('custom');setForm(f=>({...f,timeZone:e.target.value}))}}/></label>
-    <label>{t.lat}<input required type="number" step="any" min="-89.999" max="89.999" value={form.latitude} onChange={e=>{setCity('custom');setForm(f=>({...f,latitude:e.target.value}))}}/></label>
-    <label>{t.lon}<input required type="number" step="any" min="-180" max="180" value={form.longitude} onChange={e=>{setCity('custom');setForm(f=>({...f,longitude:e.target.value}))}}/></label>
-    </div>
-   </details>
-   <div className={styles.formActions}>
-    <button type="submit" disabled={loading}>{loading?t.busy:view==='day'?t.calculate:(uk?'Оновити календар':'Update calendar')}</button>
-    {!['guest','checking'].includes(locationSource)&&<label className={styles.saveCheck}>
-     <input type="checkbox" checked={autoSave} onChange={e=>setAutoSave(e.target.checked)}/>
-     {uk?'Зберігати місто в профілі':'Save this city to my profile'}</label>}
-    {locationSource==='saved'&&<button type="button" className={styles.secondaryButton}
-     onClick={()=>void restoreNatalCity()}>{uk?'Повернути місто натальної карти':'Restore natal-chart city'}</button>}
-   </div>
-   {saveState==='saving'&&<p role="status">{uk?'Зберігаємо місто…':'Saving city…'}</p>}
-   {saveState==='saved'&&<p role="status">{uk?'Місто збережено.':'City saved.'}</p>}
-   {saveState==='error'&&<p role="alert">{uk?'Помилка збереження міста.':'Could not save city.'}</p>}
-  </form>
-  {error&&<div role="alert" className={styles.error}>{t.error}</div>}
-  {locationSource==='checking'&&<p role="status" className={styles.locationStatus}>
-   {uk?'Перевіряємо вашу локацію перед розрахунком…':'Checking your location before calculating…'}</p>}
-  {view==='personal'&&requested&&<PanchangaPersonalCalendar locale={locale}
-   point={requested} onPick={selectDay}/>}
-  {(view==='week'||view==='month')&&requested&&<PanchangaRangeView locale={locale} view={view} point={requested}
-   monthSystem={monthSystem} onPick={selectDay}/>}
-  {view==='day'&&requested&&loading&&<p role="status" className={styles.empty}>{t.busy}</p>}
-  {view==='day'&&requested&&!result&&!loading&&!error&&<div className={styles.empty}>{t.unknown}</div>}
-  {view==='day'&&dayMatches&&result&&requested&&<>
-   <PanchangaMyDay locale={locale} day={result} point={requested}/>
-   <details className={styles.p31Detail} data-testid="p31-details" open={showDetails}>
-    <summary onClick={e=>{e.preventDefault();setShowDetails(current=>!current)}}>{uk?'Технічні дані: точні переходи й методика':
-     'Technical detail: exact transitions and method'}</summary>
-    {showDetails&&<div className={styles.results}>
-     <PanchangaLiveDay day={result} locale={locale}/>
-     <section className={styles.timeline}><h2>{t.kalas}</h2>
-      {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
-       <time dateTime={result.daytimeKalas[key].fromUtc}>{fmt(result.daytimeKalas[key].fromUtc)} — {fmt(result.daytimeKalas[key].untilUtc)}</time>
-       <strong><GlossaryText text={t[key]} locale={locale}/></strong>
-       <span>{uk?'Частина':'Part'} {result.daytimeKalas[key].part}/8</span>
-      </div>)}
-      <p><GlossaryText text={t.kalaNote} locale={locale}/></p>
-     </section>
-     <aside className={styles.method}><h2>{t.source}</h2>
-      <p><GlossaryText text={t.profile} locale={locale}/></p>
-      <p><GlossaryText text={result.sunriseMethod} locale={locale}/></p>
-      <p><GlossaryText text={t.limits} locale={locale}/></p>
-      <a href="https://www.astro.com/swisseph/swephprg.htm" target="_blank"
-       rel="noopener noreferrer">Swiss Ephemeris · Programming Documentation ↗</a>
-     </aside>
-    </div>}
-   </details>
+  </nav>
+  {view==='month'&&<details className={styles.monthSettings}>
+   <summary>{uk?'Налаштування місячного календаря':'Lunar calendar settings'}</summary>
+   <fieldset className={styles.unifiedSystem} data-testid="panchanga-month-system">
+    <legend>{uk?'Початок місячного місяця':'Lunar month convention'}</legend>
+    {(['amanta','purnimanta'] as const).map(system=><button key={system} type="button"
+     aria-pressed={monthSystem===system} onClick={()=>setMonthSystem(system)}>
+     {system==='amanta'?(uk?'Аманта':'Amanta'):(uk?'Пурніманта':'Purnimanta')}</button>)}
+   </fieldset>
+   <p>{uk?'Перемикач змінює назву місячного місяця, а не положення планет чи п’ять показників.':
+    'Changes lunar month names, not planets or the five Panchanga limbs.'}</p>
+  </details>}
+  {source==='checking'&&<p role="status" className={styles.empty}>
+   {uk?'Завантажуємо збережене місто…':'Loading your saved city…'}</p>}
+  {view==='day'&&requested&&loading&&<p role="status" className={styles.empty}>
+   {uk?'Розраховуємо п’ять показників…':'Calculating the five limbs…'}</p>}
+  {error&&view==='day'&&<div role="alert" className={styles.error}>
+   {uk?'Не вдалося перевірити Панчангу для цього міста і дати.':'Could not verify Panchanga for this city/date.'}
+  </div>}
+  {view==='day'&&matches&&day&&requested&&<>
+   <PanchangaCleanDay key={requested.date+'|'+requested.timeZone+'|'+requested.latitude+'|'+requested.longitude}
+    locale={locale} day={day} point={requested}/>
   </>}
+  {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view}
+   point={requested} monthSystem={monthSystem} onPick={pickDay}/>}
+  {view==='day'&&matches&&day&&<details className={styles.technical} open={showTechnical}
+   data-testid="p31-details" onToggle={e=>setShowTechnical(e.currentTarget.open)}>
+   <summary>{uk?'Технічні дані: точні переходи й методика':'Technical data: exact transitions & methodology'}</summary>
+   <div className={styles.technicalContent}>
+    <PanchangaLiveDay day={day} locale={locale}/>
+    <section className={styles.timeline}>
+     <h2>{uk?'Додаткові денні періоди':'Additional daylight intervals'}</h2>
+     {(['rahuKalam','yamaganda','gulikaKalam'] as const).map(key=><div key={key}>
+      <time>{fmt(day.daytimeKalas[key].fromUtc)} – {fmt(day.daytimeKalas[key].untilUtc)}</time>
+      <strong><GlossaryText locale={locale} text={{rahuKalam:'Раху-калам',yamaganda:'Ямаганда',
+       gulikaKalam:'Гуліка-калам'}[key]}/></strong>
+     </div>)}
+    </section>
+    <section className={styles.method}>
+     <h2>{uk?'Метод розрахунків':'Calculation method'}</h2>
+     <p>{uk?'Swiss Ephemeris, сидеричні довготи за Лахірі; моменти переходів уточнено чисельно.':
+      'Swiss Ephemeris, Lahiri sidereal longitude; boundaries are numerically refined.'}</p>
+     <a href="https://www.astro.com/swisseph/swephprg.htm" rel="noopener noreferrer" target="_blank">
+      Swiss Ephemeris ↗</a>
+    </section>
+   </div>
+  </details>}
+  {source!=='checking'&&source!=='guest'&&<details className={styles.observerSettings}>
+   <summary>{uk?'Налаштування міста':'Location preferences'}</summary>
+   <label><input type="checkbox" checked={autoSave}
+    onChange={e=>setAutoSave(e.target.checked)}/>
+    {uk?'Зберігати вибране місто в профілі':'Save chosen city to profile'}</label>
+   {source==='saved'&&<button type="button" onClick={()=>void restoreNatalCity()}>
+    {uk?'Повернути місто з натальної карти':'Restore natal-chart city'}</button>}
+   {saveState==='saving'&&<span role="status">{uk?'Зберігаємо…':'Saving…'}</span>}
+   {saveState==='error'&&<span role="alert">{uk?'Не вдалося зберегти місто':'Could not save city'}</span>}
+  </details>}
  </section>;
 }
