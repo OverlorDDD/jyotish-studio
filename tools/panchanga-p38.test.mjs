@@ -96,6 +96,13 @@ test('P3.8 ordinary daily meditation is not forbidden by an electional Rahu wind
  assert.equal(check(d,'job_start',moment).verdict,'avoid');
  assert.equal(check(d,'daily_meditation',moment).verdict,'routine');
 });
+test('P3.8 casual first date is not universally forbidden by the start-of-major-undertaking Rahu rule',()=>{
+ const d=fixture({nak:5}),at=when(d.date,'10:10:00');
+ const date=evaluateP38(d,at,'first_date');
+ assert.notEqual(date.verdict,'avoid');
+ assert.ok(date.observations.some(e=>e.id==='RAHU_START'&&e.polarity==='context'));
+ assert.equal(evaluateP38(d,at,'job_start').verdict,'avoid');
+});
 test('P3.8 yoga caution is not a blanket daily ban; Vishti remains explicit for auspicious starts',()=>{
  const d=fixture({nak:4,yoga:17});
  assert.equal(check(d,'job_start').verdict,'mixed');
