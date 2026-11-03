@@ -4,6 +4,7 @@ on:
     branches: ['ops/p388-safe-aws-cli-20261103']
     paths:
       - 'tools/p389-codeonly-aws-v2.sh'
+      - 'tools/p390-codeonly-aws.sh'
       - '.github/workflows/p389-aws-codeonly-guard.yml'
 permissions:
   contents: read
@@ -22,6 +23,7 @@ jobs:
           set -Eeuo pipefail
           script=tools/p389-codeonly-aws-v2.sh
           bash -n "$script"
+          bash -n tools/p390-codeonly-aws.sh
           awk '/^ *PYTHON_BIN="\$RUN_PY" node --env-file=.env --input-type=module - <<\x27P389_PY_PROBE\x27/{found=1;next} /^P389_PY_PROBE$/{if(found){exit}} found{print}' "$script" >/tmp/p389-probe.mjs
           test -s /tmp/p389-probe.mjs
           node --check /tmp/p389-probe.mjs
@@ -66,5 +68,13 @@ jobs:
           assert s.index('if ! python_probe; then') < s.index('git switch --detach "$TARGET"')
           assert s.index('SWITCHED=1') < s.index('P389_NEW_PY="$RUN_PY"')
           assert s.index('cp -p "$BACKUP/env.before" .env || true') < s.index('sudo -n systemctl restart galaxiora-api || true')
-          print('P389_OPERATOR_SAFETY_PASS')
+          next_script=Path('tools/p390-codeonly-aws.sh').read_text()
+          for required in ['TARGET=130af372225bf7543f4117fcb34c7947a49cb0cb',
+            'P390_CODEONLY_CHECK_PASS','P390_CODEONLY_PRODUCTION_VERIFIED',
+            'PYTHON_BIN="$RUN_PY" npm run test:p390:real',
+            'P388_SITE_ORIGIN=https://galaxiora.com P388_PUBLIC=1',
+            'sudo -n systemctl restart galaxiora-web']:
+            assert required in next_script, required
+          assert 'docker exec' not in next_script and 'git reset --hard' not in next_script
+          print('P389_OPERATOR_SAFETY_PASS + P390_OPERATOR_SAFETY_PASS')
           PY
