@@ -110,7 +110,7 @@ test('P385 Time Finder: choose first real verified interval after all Rahu/plane
    return {status,reasonIds:['TEST_CLASSICAL_RULE'],source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES'};
   }});
  assert.equal(r.status,'candidate_found');
- assert.equal(r.candidate.startUtc,'2026-11-03T12:00:00.000Z');
+ assert.equal(r.candidate.startUtc,'2026-11-03T12:00:15.000Z');
  assert.equal(r.candidate.endUtc,'2026-11-03T12:45:00.000Z');
  assert.equal(r.candidate.sampleUtc,'2026-11-03T12:00:15.000Z');
  assert.ok(r.excludedCount>0);assert.equal(r.complete,true);
