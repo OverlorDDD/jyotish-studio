@@ -60,10 +60,11 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
     <div className="as-eyebrow"><MoonStar size={16} /> {t.eyebrow}</div>
     <h1>{t.headline}<br/><em>{t.emphasis}</em></h1>
     <p>{t.intro}</p>
-    <div className="as-actions">
-     <a className="as-button as-button-primary" href="#explore">{t.explore}<ArrowUpRight size={18}/></a>
-     <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{t.jyotish}</Link>
-    </div>
+    <nav className="as-actions" aria-label={locale==='uk'?'Основні інструменти':'Start with a free tool'}>
+     <Link className="as-button as-button-primary" href={portalPath(locale,'astrology/jyotish')}>{t.jyotish}<ArrowUpRight size={18}/></Link>
+     <Link className="as-button as-button-secondary" href={portalPath(locale,'panchanga')}>{t.panchanga}</Link>
+     <Link className="as-button as-button-secondary" href={portalPath(locale,'tarot')}>{t.tarotAction}</Link>
+    </nav>
    </div>
    <div className="as-celestial as-celestial-vfx" aria-hidden="true">
     <span className="as-cosmic-core">☉</span>
