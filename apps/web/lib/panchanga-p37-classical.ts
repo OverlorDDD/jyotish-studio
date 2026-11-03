@@ -4,7 +4,7 @@
  * Nakshatra Prakarana 2–8; Drik Panchang's 27-star classification.
  * Avoid invented points, percentages, life-event predictions or unsupported dosha overrides.
  */
-import type {P32Day,P32Result} from './panchanga-p32-engine';
+import type {P32Day,P32Result} from './panchanga-p32-engine.ts';
 
 type Lang={uk:string;en:string};
 const L=(uk:string,en:string):Lang=>({uk,en});
