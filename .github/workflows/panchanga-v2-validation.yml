@@ -57,5 +57,7 @@ jobs:
         run: npm run test:panchanga && npm run test:vedic-calendar && npm run test:p410
       - name: Verify Docker-free production database adapter and secret-safe backup handling
         run: node --test tools/panchanga-p388-db-direct.test.mjs
+      - name: Verify generated Next.js metadata guarded reconciliation
+        run: node --test tools/panchanga-p388-next-env-guard.test.mjs
       - name: Compile all app workspaces and Next.js
         run: npm run build
