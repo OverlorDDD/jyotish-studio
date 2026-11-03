@@ -131,7 +131,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <label className={styles.cleanDate}>{uk?'Дата':'Date'}
     <input type="date" value={form.date} min="1900-01-01" max="2099-12-31"
      onChange={e=>setDate(e.target.value)}/></label>
-   <div className={styles.cleanCity}>
+   <div id="panchanga-place" className={styles.cleanCity}>
     <CitySearch locale={locale} selectedPlace={form.place} onChoose={c=>
      selectLocation({...form,timeZone:c.timeZone,latitude:String(c.latitude),
       longitude:String(c.longitude),
