@@ -87,3 +87,11 @@ test('P3.8.4 malformed/ambiguous input, polar Placidus, and unverified date rang
   {...obj,timeZone:'Europe/NoCity'}, {...obj,timeZone:'Kyiv'}
  ])assert.throws(()=>validateEventLagnaInput(bad));
 });
+
+test('P3.8.4 Swiss sign ingress within one arcsecond cannot be assigned a stable Lagna',async()=>{
+ // Independent PySwissEph bisection: 2026-11-03T08:24:48.985198Z at
+ // 47.9105 N / 33.3918 E crosses sidereal Sagittarius 0° exactly.
+ const near={atUtc:'2026-11-03T08:24:48.985Z',
+  latitude:47.9105,longitude:33.3918,timeZone:'Europe/Kyiv'};
+ await assert.rejects(()=>calculateVerifiedEventLagna(near),/within 1 arcsecond of sign boundary/);
+});
