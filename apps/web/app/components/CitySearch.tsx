@@ -1,10 +1,11 @@
 'use client';
 import {useEffect,useState} from 'react';
 type City={id:string;name:string;region:string;country:string;latitude:number;longitude:number;timeZone:string};
-export default function CitySearch({locale,onChoose,resetToken}:{locale:'uk'|'en';onChoose:(city:City)=>void;resetToken?:number}){
+export default function CitySearch({locale,onChoose,resetToken,selectedPlace}:{locale:'uk'|'en';onChoose:(city:City)=>void;resetToken?:number;selectedPlace?:string}){
  const [query,setQuery]=useState(''),[cities,setCities]=useState<City[]>([]);
  const [state,setState]=useState<'idle'|'loading'|'error'|'ready'>('idle');
  const [selected,setSelected]=useState(false);
+ useEffect(()=>{if(selectedPlace===undefined)return;setQuery(selectedPlace);setSelected(Boolean(selectedPlace));setCities([]);setState('idle')},[selectedPlace]);
  useEffect(()=>{if(resetToken===undefined)return;setQuery('');setCities([]);setState('idle');setSelected(false)},[resetToken]);
  useEffect(()=>{
   if(selected||query.trim().length<2){setCities([]);setState('idle');return;}
@@ -36,9 +37,6 @@ export default function CitySearch({locale,onChoose,resetToken}:{locale:'uk'|'en
       <strong>{c.name}</strong> <small>{[c.region,c.country].filter(Boolean).join(', ')} · {c.timeZone}</small>
     </button>)}
   </div>}
-  <small style={{display:'block',marginTop:7,opacity:.8}}>
-   {uk?'Після вибору координати й часовий пояс підставляться разом. Дані: Open-Meteo Geocoding (GeoNames).':
-   'Selecting a city fills location and timezone together. Data: Open-Meteo Geocoding (GeoNames).'}
-  </small>
+
  </div>;
 }
