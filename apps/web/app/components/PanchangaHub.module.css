@@ -205,3 +205,58 @@
 .p31Detail>summary:focus-visible{outline:2px solid #f4d39c;outline-offset:3px}
 .p31Detail>.results{margin-top:12px}
 @media(max-width:480px){.p31Detail{padding:12px}}
+
+
+/* P3.8.6 clean observer: saved or natal city appears IN the autocomplete input. */
+.cleanHero{margin:3px 0 14px}
+.cleanHero h1{font:600 clamp(29px,4vw,42px)/1.15 Georgia,serif;color:#f6dfb7;margin:5px 0}
+.cleanObserver{display:grid;grid-template-columns:minmax(145px,230px) minmax(0,1fr);gap:14px;
+ background:#182a42;border:1px solid #54708c;border-radius:15px;
+ align-items:end;padding:clamp(12px,2.2vw,19px);margin:0 0 15px;min-width:0}
+.cleanDate,.cleanCity label{display:flex;flex-direction:column;gap:5px;
+ color:#dce6f2;font-size:13px;font-weight:700}
+.cleanDate input,.cleanCity input[type="search"]{display:block;width:100%;
+ height:45px;border:1px solid #65819a;border-radius:9px;background:#0d1d31;
+ color:#f9e5c6;padding:9px 12px;font:600 14px system-ui,sans-serif;min-width:0}
+.cleanCity{min-width:0}.cleanCity>div{position:relative}
+.cleanCity [role="listbox"]{position:absolute;top:100%;width:100%;z-index:30;
+ border-radius:9px;background:#172c43;box-shadow:0 11px 26px #0008;padding:7px}
+.cleanCity [role="option"]{margin-top:0!important;width:100%}
+.calendarTabs{margin:0 0 13px}
+.calendarTabs button{flex:0 0 auto;padding:9px 17px;min-height:42px}
+.monthSettings,.observerSettings{border:1px solid #445e77;border-radius:11px;
+ background:#12243a;color:#c9d8e8;padding:10px 14px;margin:12px 0;font-size:13px}
+.monthSettings summary,.observerSettings summary{cursor:pointer;color:#f2d39c;font-weight:650}
+.monthSettings p{font-size:12px;color:#bbcbdb;margin:7px 0 3px}
+.observerSettings{margin-top:23px}.observerSettings label{display:flex;gap:9px;align-items:center;margin-top:10px}
+.observerSettings input{width:18px;height:18px;accent-color:#dbbd87}
+.observerSettings button{display:block;margin:12px 0;background:#1c324b;
+ border:1px solid #9f8a65;border-radius:9px;color:#f3dba8;padding:9px 12px;min-height:40px}
+.technical{margin:20px 0 0;border:1px solid #536f86;border-radius:13px;
+ background:#14253c;color:#d3e0f0;min-width:0}
+.technical>summary{padding:16px 19px;cursor:pointer;color:#f5dbad;
+ font-weight:700;min-height:51px;list-style-position:inside}
+.technicalContent{padding:0 15px 17px;display:grid;gap:8px}
+.technicalContent .timeline,.technicalContent .method{margin:12px 0;padding:16px}
+.technicalContent .timeline h2{font-size:20px}
+.technicalContent .timeline>div{grid-template-columns:1fr 1fr}
+.technical :is(button,a,summary):focus-visible{outline:2px solid #f4daa5;outline-offset:3px}
+.smartCalendar .rangeDays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.smartCalendar .smartWeek{padding:11px 9px;min-height:146px;gap:8px}
+.smartCalendar .smartWeek .smartDate{font-size:13px;line-height:1.4}
+.smartCalendar .smartWeek .smartTithi{font-size:12px}
+.smartCalendar .smartWeek .smartNak{font-size:11px}
+.smartCalendar .smartWeek .smartMonth,.smartCalendar .smartWeek .smartDetails{display:none}
+.smartCalendar .smartWeek[aria-current="date"]{border-color:#ebc887;box-shadow:inset 0 0 0 1px #ebc887}
+@media(max-width:850px){.smartCalendar .rangeDays{
+ grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(137px,38%);
+ overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-inline:contain;padding-bottom:8px}
+ .smartCalendar .smartWeek{scroll-snap-align:start}
+}
+@media(max-width:560px){.cleanObserver{grid-template-columns:minmax(0,1fr);gap:9px}
+ .cleanDate{max-width:240px}
+ .calendarTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .calendarTabs button{padding:9px 6px;font-size:13px}
+ .smartCalendar .rangeDays{grid-auto-columns:minmax(140px,57%)}
+ .technicalContent{padding:0 9px 10px}
+}
