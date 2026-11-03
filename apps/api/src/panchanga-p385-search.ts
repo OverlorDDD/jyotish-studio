@@ -118,7 +118,10 @@ export async function searchP385Time(input:P385SearchInput){
    longitude:observer.longitude,sunriseUtc:day.sunriseUtc,nextSunriseUtc:day.nextSunriseUtc,
    evaluatedAtUtc:atUtc,transitMoon:{sign:moonSign,nakshatraNumber:nak},
    natal:{moonSign:owner.moonSign,lagnaSign:owner.birthLagnaSign},
-   tarabala:strengths.tarabala,chandrabala:strengths.chandrabala,
+   tarabala:{...strengths.tarabala,
+    quality:strengths.tarabala.quality as P33Report['tarabala']['quality']},
+   chandrabala:{...strengths.chandrabala,
+    quality:strengths.chandrabala.quality as P33Report['chandrabala']['quality']},
    period:period?{lord:period.lord,start:period.start,end:period.end,
     antardasha:minor?{lord:minor.lord,start:minor.start,end:minor.end}:null}:null,
    gochar
@@ -127,9 +130,7 @@ export async function searchP385Time(input:P385SearchInput){
    latitude:String(observer.latitude),longitude:String(observer.longitude)};
   const result=assembleP384EventElection({activityId:input.activityId,atUtc,day,point,
    eventLagna:asc,personalReport:report,sky,partnerVerified:!!partner});
-  const reasons=[
-   ...result.panchaka?.forbiddenForScope?['RAMAN_PANCHAKA_SCOPE']:[],
-  ];
+  const reasons:string[]=result.panchaka?.forbiddenForScope?['RAMAN_PANCHAKA_SCOPE']:[];
   const flags=result.panchaka?.forbiddenForScope?'excluded':result.calendarVerdict==='avoid'?'excluded':null;
   // Only full wedding and foundation rules use this specialist module.
   // Engagement remains an incomplete special election until an engagement-
