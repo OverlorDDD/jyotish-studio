@@ -8,15 +8,34 @@ const measurementId=process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim()||'';
 const enabled=/^G-[A-Z0-9]{6,16}$/.test(measurementId);
 type Choice='accepted'|'rejected'|null;
 type Gtag=(command:string,...args:unknown[])=>void;
-declare global {interface Window {dataLayer?:unknown[][];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean;__galaxioraTagStatus?:'loading'|'loaded'|'blocked'}}
-function tagStatus(status:'loading'|'loaded'|'blocked'){
+declare global {interface Window {dataLayer?:unknown[][];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean;__galaxioraTagStatus?:'loading'|'loaded'|'blocked'|'request_observed';__galaxioraLastPageView?:string}}
+function tagStatus(status:'loading'|'loaded'|'blocked'|'request_observed'){
+ if(status==='loaded'&&window.__galaxioraTagStatus==='request_observed')return;
  if(typeof window==='undefined')return;
  window.__galaxioraTagStatus=status;
  window.dispatchEvent(new CustomEvent('galaxiora:tag-status',{detail:status}));
 }
+function watchCollectorRequests(){
+ if(typeof PerformanceObserver==='undefined')return;
+ // Resource Timing proves only that a request was attempted; Google receipt is
+ // confirmed separately by DebugView/Realtime, never by the script load event.
+ const observed=(name:string)=>{
+  try{
+   const url=new URL(name);
+   return (url.hostname==='www.google-analytics.com'||url.hostname==='region1.google-analytics.com'||
+    url.hostname.endsWith('.google-analytics.com'))&&/^\/(?:g|j)\/collect$/.test(url.pathname);
+  }catch{return false;}
+ };
+ if(performance.getEntriesByType('resource').some(x=>observed(x.name)))tagStatus('request_observed');
+ const observer=new PerformanceObserver(list=>{
+  if(list.getEntries().some(x=>observed(x.name)))tagStatus('request_observed');
+ });
+ try{observer.observe({type:'resource',buffered:true});}catch{observer.disconnect();}
+}
 function startAnalytics(safePath:string){
  if(typeof window==='undefined'||!enabled||window.__galaxioraAnalyticsReady)return;
  window.__galaxioraAnalyticsReady=true;
+ watchCollectorRequests();
  window.dataLayer=window.dataLayer||[];
  window.gtag=(...args:unknown[])=>{window.dataLayer?.push(args)};
  // Basic Consent Mode: the script is not fetched before affirmative consent.
@@ -39,6 +58,7 @@ function startAnalytics(safePath:string){
   }
  }catch{}
  window.gtag('config',measurementId,{send_page_view:false,page_location:safeLocation,page_referrer:safeReferrer,...(safeGrowthCampaign(window.location.search)||{}),allow_google_signals:false,allow_ad_personalization_signals:false});
+ // Keep automatic GA4 page_view disabled; the route effect below emits exactly one.
  const script=document.createElement('script');
  script.async=true;
  script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(measurementId);
@@ -57,6 +77,7 @@ function stopAnalytics(){
  });
  window.gtag=undefined;
  window.__galaxioraAnalyticsReady=false;
+ window.__galaxioraLastPageView=undefined;
  document.querySelector('script[data-galaxiora-analytics]')?.remove();
 }
 export default function GrowthConsent(){
@@ -64,10 +85,10 @@ export default function GrowthConsent(){
  const [choice,setChoice]=useState<Choice>(null);
  const [loaded,setLoaded]=useState(false);
  const [open,setOpen]=useState(false);
- const [tagState,setTagState]=useState<'off'|'loading'|'loaded'|'blocked'>('off');
+ const [tagState,setTagState]=useState<'off'|'loading'|'loaded'|'blocked'|'request_observed'>('off');
  const uk=pathname?.startsWith('/uk')??false;
  useEffect(()=>{
-  const onStatus=(e:Event)=>setTagState((e as CustomEvent<'loading'|'loaded'|'blocked'>).detail);
+  const onStatus=(e:Event)=>setTagState((e as CustomEvent<'loading'|'loaded'|'blocked'|'request_observed'>).detail);
   window.addEventListener('galaxiora:tag-status',onStatus);
   setTagState(window.__galaxioraTagStatus||'off');
   try{
@@ -85,7 +106,14 @@ export default function GrowthConsent(){
    return;
   }
   startAnalytics(safe);
-  window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,page_title:'Galaxiora',page_referrer:'',send_to:measurementId});
+  // StrictMode, hydration and repeated consent clicks must not duplicate a view.
+  if(window.__galaxioraLastPageView===safe)return;
+  window.__galaxioraLastPageView=safe;
+  const debug=new URLSearchParams(window.location.search).get('ga4_debug')==='1';
+  window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,
+   page_title:'Galaxiora',page_referrer:'',send_to:measurementId,...(debug?{debug_mode:true}:{})});
+  // Explicit, allowlisted control event: only for a manually opted-in debug visit.
+  if(debug)window.gtag?.('event','galaxiora_debug_ping',{send_to:measurementId,debug_mode:true});
  },[loaded,choice,pathname]);
  useEffect(()=>{
   if(!loaded||choice!=='accepted'||!enabled)return;
@@ -139,7 +167,7 @@ export default function GrowthConsent(){
   </div>}
   {open&&choice!==null&&<aside role="dialog" aria-label={uk?'Змінити згоду':'Change analytics consent'} style={{position:'fixed',bottom:52,right:12,zIndex:10001,background:'#161b30',color:'#fff',borderRadius:10,padding:16,maxWidth:320}}>
    <p>{uk?'Аналітика необов’язкова. Зміни рішення:':'Analytics is optional. Change your choice:'}</p>
-   {choice==='accepted'&&<p role="status" data-testid="analytics-tag-status" style={{fontSize:12}}>{uk?'Стан Google-тега: ':'Google tag status: '}{tagState==='loaded'?(uk?'скрипт завантажено (доставка подій не підтверджена)':'script loaded (events not yet confirmed)'):tagState==='blocked'?(uk?'завантаження заблоковане або не вдалося':'blocked or failed to load'):(uk?'очікується завантаження':'waiting for script')}</p>}
+   {choice==='accepted'&&<p role="status" data-testid="analytics-tag-status" style={{fontSize:12}}>{uk?'Стан Google-тега: ':'Google tag status: '}{tagState==='request_observed'?(uk?'запит g/collect виявлено (прийняття GA4 перевіряй у DebugView)':'g/collect request observed (verify receipt in GA4 DebugView)'):tagState==='loaded'?(uk?'скрипт завантажено (запит g/collect ще не підтверджений)':'script loaded (g/collect request not yet observed)'):tagState==='blocked'?(uk?'завантаження заблоковане або не вдалося':'blocked or failed to load'):(uk?'очікується завантаження':'waiting for script')}</p>}
    <button type="button" onClick={()=>decide('rejected')}>{uk?'Відкликати згоду':'Withdraw consent'}</button>{' '}
    <button type="button" onClick={()=>decide('accepted')}>{uk?'Дозволити':'Allow'}</button>
   </aside>}
