@@ -96,7 +96,7 @@ jobs:
             # is tested explicitly instead. Astronomy/API regression stays in
             # npm run test:panchanga and the Next/Nest build workflow.
             npx playwright test e2e/panchanga-p386.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
-          elif [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-daily-opportunities-20261103" ]]; then
+          elif [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-daily-opportunities-20261103" || "${{ github.head_ref || github.ref_name }}" == "release/panchanga-p36-production-acceptance-20261102" ]]; then
             # P4.10 replaces My Day landing; historic P2/P3 tests assert deleted
             # duplicate UI. Run their maintained replacement contracts plus
             # protected specialist, week/month, and bilingual mobile tests.
