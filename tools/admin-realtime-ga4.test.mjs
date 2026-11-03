@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ga4RealtimeConfigStatus,parseRealtimeActiveUsers} from '../apps/api/src/admin-ga4-realtime.ts';
+import {ga4RealtimeConfigStatus,parseRealtimeActiveUsers,parseGa4Sessions} from '../apps/api/src/admin-ga4-realtime.ts';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('GA4 Data API totals are parsed as genuine nonnegative integer active users',()=>{
@@ -42,4 +42,13 @@ test('Admin real-time endpoint cannot expose Google credentials or bypass ADMIN 
  assert.match(ui,/traffic\?\.status==='not_configured'/);
  assert.match(ui,/traffic\?\.status==='unavailable'/);
  assert.match(ui,/activeUsers30m/);
+});
+
+test('GA4 sessions are explicitly separate from realtime active users',()=>{
+ assert.equal(parseGa4Sessions({rows:[{metricValues:[{value:'19'}]}]}),19);
+ assert.equal(parseGa4Sessions({rows:[]}),0);
+ const ui=read('apps/web/app/components/AdminDashboard.tsx');
+ assert.match(ui,/Visitor Analytics/);
+ assert.match(ui,/sessions7d/);
+ assert.match(ui,/public_html_request/);
 });

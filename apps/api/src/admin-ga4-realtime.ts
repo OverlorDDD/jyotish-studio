@@ -9,6 +9,8 @@ import {sign} from 'node:crypto';
 export type Ga4Traffic={
  status:'ok'|'not_configured'|'unavailable';
  activeUsers30m:number|null;
+ sessions7d:number|null;
+ sessionStatus:'ok'|'unavailable'|'not_configured';
  generatedAt:string;
  provider:'ga4_data_api';
  message?:string;
@@ -16,8 +18,9 @@ export type Ga4Traffic={
 type ServiceKey={type?:string;client_email?:string;private_key?:string};
 let tokenCache:{token:string;until:number}|null=null;
 let cached:{data:Ga4Traffic;until:number}|null=null;
-const output=(status:Ga4Traffic['status'],activeUsers30m:number|null,message?:string):Ga4Traffic=>({
- status,activeUsers30m,generatedAt:new Date().toISOString(),provider:'ga4_data_api',...(message?{message}:{})
+const output=(status:Ga4Traffic['status'],activeUsers30m:number|null,message?:string,sessions7d:number|null=null):Ga4Traffic=>({
+ status,activeUsers30m,sessions7d,sessionStatus:status==='not_configured'?'not_configured':sessions7d===null?'unavailable':'ok',
+ generatedAt:new Date().toISOString(),provider:'ga4_data_api',...(message?{message}:{})
 });
 const b64=(x:object)=>Buffer.from(JSON.stringify(x)).toString('base64url');
 function config(){
@@ -64,6 +67,9 @@ export function parseRealtimeActiveUsers(body:unknown):number{
  if(typeof raw!=='string'||!Number.isSafeInteger(n)||n<0)throw Error('Invalid activeUsers metric');
  return n;
 }
+export function parseGa4Sessions(body:unknown):number{
+ return parseRealtimeActiveUsers(body);
+}
 export async function readGa4Realtime():Promise<Ga4Traffic>{
  let cfg:ReturnType<typeof config>;
  try{cfg=config()}catch{return output('unavailable',null,'invalid_server_configuration')}
@@ -78,7 +84,18 @@ export async function readGa4Realtime():Promise<Ga4Traffic>{
   });
   if(!response.ok)throw Error('GA4 Data API returned HTTP '+response.status);
   const count=parseRealtimeActiveUsers(await response.json());
-  const data=output('ok',count);
+  // Core Data API, not Realtime: independently report real GA4 sessions for last 7 days.
+  // Reporting may lag. A failed sessions query must not erase valid Realtime users.
+  let sessions7d:number|null=null;
+  try{
+   const sessionsResponse=await fetch('https://analyticsdata.googleapis.com/v1beta/properties/'+cfg.propertyId+':runReport',{
+    method:'POST',signal:AbortSignal.timeout(9000),
+    headers:{Authorization:'Bearer '+bearer,'Content-Type':'application/json'},
+    body:JSON.stringify({dateRanges:[{startDate:'6daysAgo',endDate:'today'}],metrics:[{name:'sessions'}]})
+   });
+   if(sessionsResponse.ok)sessions7d=parseGa4Sessions(await sessionsResponse.json());
+  }catch{}
+  const data=output('ok',count,undefined,sessions7d);
   cached={data,until:Date.now()+30000};
   return data;
  }catch{

@@ -656,3 +656,13 @@ model ComBookmark {
  @@id([userId,threadId])
  @@index([userId,createdAt])
 }
+
+/** No visitor/device identifiers or URLs. One atomic counter per UTC date, coarse category and metric. */
+model VisitorAggregate {
+ day DateTime @db.Date
+ section String @db.VarChar(32)
+ metric String @db.VarChar(48)
+ count Int @default(0)
+ @@id([day, section, metric])
+ @@index([metric, day])
+}

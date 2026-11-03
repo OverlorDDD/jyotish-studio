@@ -6,6 +6,7 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {effectiveSubscription} from './account-policy.ts';
 import {readGa4Realtime} from './admin-ga4-realtime.ts';
+import {VISITOR_METRICS} from './visitor-aggregate.ts';
 import {ADMIN_ROLE_USE_CASE,ChangeRoleUseCase,RoleChangeError} from './admin-role-application.ts';
 
 export class ChangeUserRoleDto {
@@ -109,6 +110,21 @@ export class AdminController {
   await this.requireAdmin(req);
   return readGa4Realtime();
  }
+ @Get('traffic/visitor-analytics') @Header('Cache-Control','private,no-store')
+ async visitorAnalytics(@Req()req:IncomingMessage){
+  await this.requireAdmin(req);
+  const since=new Date();since.setUTCDate(since.getUTCDate()-6);since.setUTCHours(0,0,0,0);
+  const rows=await this.prisma.visitorAggregate.findMany({
+   where:{day:{gte:since}},select:{day:true,section:true,metric:true,count:true}
+  });
+  const totals=Object.fromEntries(VISITOR_METRICS.map(m=>[m,0])) as Record<string,number>;
+  for(const row of rows)if(row.metric in totals)totals[row.metric]+=row.count;
+  return {status:'ok',source:'server_aggregate',period:'last_7_utc_dates',generatedAt:new Date().toISOString(),
+   totals,bySection:rows.filter(r=>r.metric==='public_html_request').reduce((out,r)=>{
+    out[r.section]=(out[r.section]||0)+r.count;return out;
+   },{} as Record<string,number>),
+   caveat:'HTML request candidates, not unique visitors or GA4 sessions; user-agent bot filtering and middleware counts are approximate. Cached, redirected, or JS-only interactions may differ.'};
+ }
  @Get('overview') @Header('Cache-Control','private,no-store')
  async overview(@Req()req:IncomingMessage){
   await this.requireAdmin(req);
@@ -170,3 +186,5 @@ Reflect.defineMetadata('design:paramtypes',[String,ChangeUserRoleDto,Object],Adm
 
 Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'expertRequests');
 Reflect.defineMetadata('design:paramtypes',[String,Object],AdminController.prototype,'reviewExpertRequest');
+
+Reflect.defineMetadata('design:paramtypes',[Object],AdminController.prototype,'visitorAnalytics');

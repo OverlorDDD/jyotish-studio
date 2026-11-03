@@ -11,12 +11,14 @@ type Dashboard={generatedAt?:string;newUsers7d?:number;newCharts7d?:number;newOr
  requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;
  costUsdReported:number|null;byProvider:{provider:string;model:string;requests:number;requestsWithTokenUsage:number;promptTokensReported:number;completionTokensReported:number;totalTokensReported:number;costUsdReported:number|null}[]
 }};
-type Traffic={status:'ok'|'not_configured'|'unavailable';activeUsers30m:number|null;generatedAt:string;provider:'ga4_data_api';message?:string};
+type Traffic={status:'ok'|'not_configured'|'unavailable';activeUsers30m:number|null;sessions7d:number|null;sessionStatus:'ok'|'unavailable'|'not_configured';generatedAt:string;provider:'ga4_data_api';message?:string};
+type VisitorTraffic={status:'ok';source:'server_aggregate';period:string;generatedAt:string;totals:Record<string,number>;bySection:Record<string,number>;caveat:string};
 export default function AdminDashboard({locale}:{locale:PortalLocale}){
  const uk=locale==='uk';
  const [data,setData]=useState<Dashboard|null>(null);
  const [busy,setBusy]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState('');
  const [traffic,setTraffic]=useState<Traffic|null>(null),[trafficError,setTrafficError]=useState('');
+ const [visitors,setVisitors]=useState<VisitorTraffic|null>(null),[visitorError,setVisitorError]=useState('');
  const refresh=useCallback(async()=>{
   setRefreshing(true);
   try{
@@ -25,6 +27,12 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
   }catch(e){setError(e instanceof Error?e.message:String(e));}
   finally{setBusy(false);setRefreshing(false);}
  },[]);
+ const refreshVisitors=useCallback(async()=>{
+  try{
+   const response=await fetch('/api/v1/admin/traffic/visitor-analytics',{cache:'no-store',credentials:'same-origin'});
+   setVisitors(await readApiJson<VisitorTraffic>(response));setVisitorError('');
+  }catch(e){setVisitorError(e instanceof Error?e.message:String(e));}
+ },[]);
  const refreshTraffic=useCallback(async()=>{
   try{
    const response=await fetch('/api/v1/admin/traffic/realtime',{cache:'no-store',credentials:'same-origin'});
@@ -32,12 +40,12 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
   }catch(e){setTrafficError(e instanceof Error?e.message:String(e));}
  },[]);
  useEffect(()=>{
-  void refresh();void refreshTraffic();
-  const check=()=>{if(document.visibilityState==='visible'){void refresh();void refreshTraffic();}};
+  void refresh();void refreshTraffic();void refreshVisitors();
+  const check=()=>{if(document.visibilityState==='visible'){void refresh();void refreshTraffic();void refreshVisitors();}};
   const timer=setInterval(check,60000);
   window.addEventListener('focus',check);
   return()=>{clearInterval(timer);window.removeEventListener('focus',check)};
- },[refresh,refreshTraffic]);
+ },[refresh,refreshTraffic,refreshVisitors]);
  const shownAt=(iso:string|undefined)=>iso?new Date(iso).toLocaleString(uk?'uk-UA':'en-GB'):'—';
  const count=(x:number)=>x.toLocaleString(uk?'uk-UA':'en-US');
  const fields=data?[
@@ -61,7 +69,7 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
    'ADMIN only. Totals are all time, AI usage covers 30 days. Private requests and natal data are never shown.'}</p>
   <p className="as-muted" aria-live="polite">
    {uk?'Актуальність даних: ':'Data as of: '}<strong>{shownAt(data?.generatedAt)}</strong>{' '}
-   <button type="button" onClick={()=>{void refresh();void refreshTraffic()}} disabled={refreshing}>
+   <button type="button" onClick={()=>{void refresh();void refreshTraffic();void refreshVisitors()}} disabled={refreshing}>
     {refreshing?(uk?'Оновлення…':'Refreshing…'):(uk?'Оновити зараз':'Refresh now')}
    </button>{' · '}{uk?'Автооновлення кожні 60 с':'Auto-refresh every 60s'}
   </p>
@@ -69,8 +77,20 @@ export default function AdminDashboard({locale}:{locale:PortalLocale}){
   {error?<p role="alert">{uk?'Помилка отримання актуальних даних: ':'Fresh data unavailable: '}
    {error}{data?(uk?' · Показано попередній знімок':' · Showing previous snapshot'):''}</p>:null}
   {data&&<>
-   <section aria-label={uk?'Реальні відвідувачі GA4':'GA4 live audience'} data-testid="admin-live-traffic">
-    <h2>{uk?'Відвідування зараз (GA4)':'Visitors now (GA4)'}</h2>
+   <section aria-label="Visitor Analytics" data-testid="admin-live-traffic">
+    <h2>Visitor Analytics</h2>
+    <p className="as-muted">{uk?'Два незалежні джерела: серверні агреговані HTTP-звернення (без cookies та IP) і Google Analytics 4 (лише за згодою). Це не лічильник унікальних людей.':'Two independent sources: anonymous server HTTP request aggregates (no cookies or IP) and consent-based Google Analytics 4. Neither is a unique-person counter.'}</p>
+    <div className="as-admin-grid" data-testid="visitor-analytics-metrics">
+     <div className="as-admin-metric"><span>{uk?'Публічні HTML-звернення / 7 днів':'Public HTML requests / 7 days'}</span><strong>{visitors?.status==='ok'?count(visitors.totals.public_html_request||0):'—'}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'GA4-сесії / 7 днів':'GA4 sessions / 7 days'}</span><strong>{traffic?.sessionStatus==='ok'&&traffic.sessions7d!==null?count(traffic.sessions7d):'—'}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'GA4 активні / 30 хв':'GA4 active / 30 min'}</span><strong>{traffic?.status==='ok'&&traffic.activeUsers30m!==null?count(traffic.activeUsers30m):'—'}</strong></div>
+     {(['jyotish_chart_completed','tarot_spread_completed','panchanga_calculation_completed'] as const).map(metric=><div className="as-admin-metric" key={metric}><span>{metric.replaceAll('_',' ')+' / 7d'}</span><strong>{visitors?.status==='ok'?count(visitors.totals[metric]||0):'—'}</strong></div>)}
+    </div>
+    <p className="as-muted">{uk?'Сервер: кандидати на HTML-звернення, фільтр ботів приблизний; інструменти — успішні API-операції, включно з автоматичними обчисленнями. GA4: лише події зі згодою, затримки Google можливі.':'Server: eligible HTML request candidates, imperfect bot filtering; tools: successful API operations, including automatic calculations. GA4: only consented reporting, subject to Google processing delays.'}</p>
+    <p className="as-muted">{uk?'Підключення: серверна БД ':'Connections: server DB '}{visitors?.status==='ok'?'OK':'—'}{' · GA4 Data API '}{traffic?.status==='ok'?'OK':traffic?.status==='not_configured'?'not configured':'unavailable'}{' · '+(uk?'Оновлено ':'Updated ')}{shownAt(visitors?.generatedAt)}</p>
+    {visitorError&&<p role="alert">{uk?'Серверні агрегати недоступні: ':'Server aggregates unavailable: '}{visitorError}</p>}
+    <h3>{uk?'Активність GA4 зараз':'GA4 active now'}</h3>
+    <p className="as-muted">{uk?'Сесії GA4 — не те саме, що активні користувачі чи HTTP-запити.':'GA4 sessions are neither active users nor HTTP requests.'}</p>
     <p className="as-muted">{uk?'Джерело: Google Analytics 4 Data API, активні користувачі за останні 30 хвилин. Це не кількість зареєстрованих акаунтів. Статистика залежить від згоди користувачів і доступності Google.':'Source: Google Analytics 4 Data API, active users over the past 30 minutes. This is not registered accounts. Results reflect consenting visitors and Google availability.'}</p>
     {traffic?.status==='ok'?<div className="as-admin-grid"><div className="as-admin-metric">
      <span>{uk?'Активні за 30 хвилин':'Active in last 30 min'}</span>

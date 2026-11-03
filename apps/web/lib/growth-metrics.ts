@@ -5,7 +5,7 @@ export const GROWTH_PUBLIC_SECTIONS=new Set([
  '','about','astrology','astrology/jyotish','tarot','tarot/cards',
  'panchanga','eclipses/2027','horoscope','yoga','learn','news','community','methodology'
 ]);
-export type GrowthEvent='article_to_tool_click'|'public_resource_share'|'tarot_spread_started'|'tarot_spread_completed'|'panchanga_calculation_completed';
+export type GrowthEvent='jyotish_chart_completed'|'article_to_tool_click'|'public_resource_share'|'tarot_spread_started'|'tarot_spread_completed'|'panchanga_calculation_completed';
 export function safeGrowthPath(pathname:string):string|null{
  // The non-localized domain root serves English and canonically points to /en.
  // It is also the site's Google-branded entry point, so it must be measured.
@@ -22,7 +22,7 @@ export function safeGrowthPath(pathname:string):string|null{
  return null;
 }
 export function safeGrowthEvent(name:string):name is GrowthEvent{
- return ['article_to_tool_click','public_resource_share','tarot_spread_started','tarot_spread_completed','panchanga_calculation_completed'].includes(name);
+ return ['jyotish_chart_completed','article_to_tool_click','public_resource_share','tarot_spread_started','tarot_spread_completed','panchanga_calculation_completed'].includes(name);
 }
 
 /** Names only: no question, birth information, location, ID or user-input payload. */

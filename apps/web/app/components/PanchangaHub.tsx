@@ -11,6 +11,7 @@ import PanchangaRangeView from './PanchangaRangeView';
 import PanchangaLiveDay from './PanchangaLiveDay';
 import GlossaryText from './GlossaryText';
 import styles from './PanchangaHub.module.css';
+import {reportGrowthEvent} from '../../lib/growth-metrics';
 
 type Form={date:string;timeZone:string;latitude:string;longitude:string;place:string};
 type Day=LivePanchangaDay&{
@@ -116,7 +117,15 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    latitude:requested.latitude,longitude:requested.longitude});
   fetch('/api/v1/panchanga/day?'+q,{cache:'no-store',signal:ctl.signal})
    .then(async r=>{if(!r.ok)throw Error('Panchanga calculation failed');return await r.json() as Day})
-   .then(result=>{if(live)setDay(result)})
+   .then(result=>{
+    if(live&&result?.date===requested.date&&
+     result.location?.timeZone===requested.timeZone&&
+     Math.abs(result.location.latitude-Number(requested.latitude))<1e-8&&
+     Math.abs(result.location.longitude-Number(requested.longitude))<1e-8){
+      setDay(result);
+      reportGrowthEvent('panchanga_calculation_completed');
+    }
+   })
    .catch(()=>{if(live&&!ctl.signal.aborted)setError(true)})
    .finally(()=>{if(live)setLoading(false)});
   return()=>{live=false;ctl.abort()};

@@ -16,6 +16,7 @@ import {JYOTISH_REPORT_USE_CASES,JyotishReportUseCases} from './jyotish-report-a
 import {ADMIN_ROLE_USE_CASE,ChangeRoleUseCase} from './admin-role-application.ts';
 import {PrismaRoleChangeStore} from './admin-role-prisma.ts';
 import {AdminController} from './admin.ts';
+import {InternalVisitorAnalyticsController} from './visitor-analytics.ts';
 import {EditorialController,PublicContentController} from './editorial.ts';
 import {EDITORIAL_USE_CASES,EditorialUseCases} from './editorial-application.ts';
 import {PrismaEditorialStore} from './editorial-prisma.ts';
@@ -191,7 +192,7 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,HoroscopeController,PanchangaController,PanchangaPlacesController,AstronomicalEventsController,VedicCalendarController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController,ComGrowthController],
+@Module({controllers:[InternalVisitorAnalyticsController,JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,HoroscopeController,PanchangaController,PanchangaPlacesController,AstronomicalEventsController,VedicCalendarController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController,ComGrowthController],
  providers:[PrismaService,NewsIngestionService,
   {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
    new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},
