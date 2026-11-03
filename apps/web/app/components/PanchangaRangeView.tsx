@@ -77,8 +77,8 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
  requestKeyRef.current=viewKey;
  const verifiedPersonal=personal?.key===viewKey?personal.data:null;
  const verifiedFinder=finder?.key===viewKey&&finder.activity===activity?finder.data:null;
- const selected=p38Activity(activity);
- const needsPartner=selected.required.includes('partner_chart');
+ const selectedActivity=p38Activity(activity);
+ const needsPartner=selectedActivity.required.includes('partner_chart');
  const rows=useMemo(()=>{
   if(!data||status!=='ready')return null;
   try{return p387Rows(data,viewPoint,count,verifiedPersonal,verifiedFinder,activity);}
@@ -123,7 +123,7 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
   }catch{if(requestKeyRef.current===requestKey)setPrivateState('error')}
  }
  async function findWindows(){
-  if(!canPersonal||!data||status!=='ready'||finderState==='loading'||selected.method==='routine'||
+  if(!canPersonal||!data||status!=='ready'||finderState==='loading'||selectedActivity.method==='routine'||
    (needsPartner&&!partnerId))return;
   const at=Math.max(Date.now()+120000,Date.parse(data.days[0].sunriseUtc)+60000);
   if(at>=Date.parse(data.days.at(-1)!.nextSunriseUtc)||
@@ -232,7 +232,7 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
      {privateState==='loading'?(uk?'Перевіряємо події…':'Checking personal events…'):
       (uk?'Показати особисті події':'Show personal events')}</button>:
      <Link href={'/'+locale+'/personal'}>{uk?'Увійти для особистих подій':'Sign in for personal events'}</Link>}
-    {canPersonal&&selected.method!=='routine'&&<button type="button"
+    {canPersonal&&selectedActivity.method!=='routine'&&<button type="button"
      data-testid="p387-find-windows" onClick={()=>void findWindows()}
      disabled={status!=='ready'||finderState==='loading'||(needsPartner&&!partnerId)||
       !data||Date.parse(data.days.at(-1)!.nextSunriseUtc)<=Date.now()+120000}>
