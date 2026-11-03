@@ -16,6 +16,7 @@ import {calculatePanchangaDay,validatePanchangaLocation,createVerifiedSiderealPl
 import {calculateVerifiedEventLagna,validateEventLagnaInput,calculateVerifiedEventNodesAt} from './panchanga-event-lagna.ts';
 import {evaluateP385Special,p385NatalFromVerified} from './panchanga-p385-special.ts';
 import {searchP385Time} from './panchanga-p385-search.ts';
+import {acquireP388TimeFinder} from './panchanga-p388-capacity.ts';
 import type {RecoveredChart} from './personal-chart-recovery.ts';
 import {assembleP384EventElection} from './panchanga-event-election.ts';
 import {P38_ACTIVITIES,type P38ActivityId,p38Activity} from '../../web/lib/panchanga-p38-decision.ts';
@@ -489,10 +490,14 @@ export class PersonalController{
    partner=(await resolvePersonalChart(this.prisma,second)).chart;
    if(!partner)return {status:'requires_verified_partner_chart',nextAction:'verify_partner_chart'};
   }else if(body.partnerChartId)throw new BadRequestException('This activity does not accept a partner chart');
+  let releaseCapacity:()=>void;
+  try{releaseCapacity=acquireP388TimeFinder();}
+  catch{throw new ServiceUnavailableException('Time Finder busy; retry after the current exact Swiss search finishes');}
   try{return await searchP385Time({activityId:body.activityId,fromUtc:body.atUtc,
     days:body.days||7,observer:{latitude:body.latitude,longitude:body.longitude,
      timeZone:body.timeZone},owner:ownerRecovery.chart,partner});}
   catch{throw new ServiceUnavailableException('Verified multi-day Swiss Time Finder unavailable; no invented time returned');}
+  finally{releaseCapacity();}
  }
 
  @Get('panchanga/resonance') @Header('Cache-Control','private, no-store')
