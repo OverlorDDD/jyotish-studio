@@ -99,11 +99,13 @@ test('P410 precise DST/observer-day: Sunday night belongs to Sunday, UTC spans a
   for(const w of found)assert.ok(stamp(w.startUtc)>=stamp(day.sunriseUtc));
  }
 });
-test('P410 Brahma Muhurta is 96–48 min before exact local sunrise; Abhijit is eighth fifteenth except Wednesday',async()=>{
+test('P410 Brahma Muhurta uses last two exact NIGHT muhurtas; Abhijit eighth daylight fifteenth except Wednesday',async()=>{
  const tuesday=await data('2026-11-03');
  const brahma=brahmaMuhurta(tuesday);
- assert.equal(stamp(tuesday.sunriseUtc)-stamp(brahma.startUtc),96*60000);
- assert.equal(stamp(tuesday.sunriseUtc)-stamp(brahma.endUtc),48*60000);
+ const localNight=stamp(tuesday.nextSunriseUtc)-stamp(tuesday.sunsetUtc);
+ assert.ok(Math.abs((stamp(tuesday.nextSunriseUtc)-stamp(brahma.startUtc))-localNight*2/15)<2);
+ assert.ok(Math.abs((stamp(tuesday.nextSunriseUtc)-stamp(brahma.endUtc))-localNight/15)<2);
+ assert.ok(stamp(brahma.startUtc)>stamp(tuesday.sunsetUtc));
  const abhijit=abhijitWindow(tuesday);
  assert.ok(abhijit);
  const day=stamp(tuesday.sunsetUtc)-stamp(tuesday.sunriseUtc);
