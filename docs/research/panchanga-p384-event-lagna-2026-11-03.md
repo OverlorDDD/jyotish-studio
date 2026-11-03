@@ -51,6 +51,8 @@ The browser/URL never submits a natal birth time/date. For personal election the
 - Kyiv DST jump 2026-03-29: 00:30Z→02:30 local, 01:30Z→04:30 local; **no fabricated 03:30**.
 - New York and Tokyo cases complete longitude-hemisphere and midnight crossing.
 
+A ninth independent PySwissEph bisection targets the sidereal Sagittarius ingress at Kryvyi Rih on **2026-11-03 08:24:48.985198 UTC**; the 1-arcsecond boundary safeguard must refuse a stable sign rather than guess.
+
 Native Swiss output must agree to **within one arcsecond** and match the 1″ JQA-3 natal-angle pipeline for the **same instant and observer**. Pinned values are independent of the TypeScript code under test; no runtime image/network/LLM.
 
 ## Secure private API contract
