@@ -1,0 +1,181 @@
+name: P3.8.8 Independent Astronomy and Production Release Candidate
+on:
+  push:
+    branches:
+      - release/panchanga-p388-independent-qa-20261103
+      - main
+    paths:
+      - '.github/workflows/panchanga-p388-independent-release.yml'
+      - 'apps/api/src/panchanga*'
+      - 'apps/api/src/personal.ts'
+      - 'apps/web/app/components/Panchanga*'
+      - 'apps/web/lib/panchanga-*'
+      - 'packages/jyotish-core/src/**'
+      - 'tests/fixtures/p388-*'
+      - 'tools/panchanga-p388-*'
+      - 'tools/panchanga-p387*'
+      - 'e2e/panchanga-p388*'
+      - 'e2e/panchanga-p387*'
+      - 'package.json'
+  pull_request:
+    paths:
+      - '.github/workflows/panchanga-p388-independent-release.yml'
+      - 'apps/api/src/panchanga*'
+      - 'apps/api/src/personal.ts'
+      - 'apps/web/app/components/Panchanga*'
+      - 'apps/web/lib/panchanga-*'
+      - 'packages/jyotish-core/src/**'
+      - 'tests/fixtures/p388-*'
+      - 'tools/panchanga-p388-*'
+      - 'e2e/panchanga-p388*'
+      - 'e2e/panchanga-p387*'
+      - 'package.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p388-release-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  independent-astronomy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 32
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+      SITE_NOINDEX: '1'
+      NEWS_INGESTION_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install audited native Swiss and independent Python binding
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+          python -c 'import swisseph as s; assert s.version=="2.10.03",s.version'
+      - name: Generate Prisma client (CI only)
+        run: npm run db:generate
+      - name: Verify thirty pinned global ASC calculations and four 7-day real Swiss local-sunrise sources
+        run: |
+          python tools/panchanga-p388-independent-reference.py --verify-asc
+          npm run test:p388:independent
+      - name: All P3.1 through P3.8.8 pure regression, Vedic calendar and guarded production script
+        run: |
+          npm run test:panchanga
+          npm run test:vedic-calendar
+          npm run test:p36:release
+          npm run test:p388:release
+          bash -n tools/panchanga-p388-release.sh
+          node --check tools/panchanga-p388-production-smoke.mjs
+      - name: Protect Galaxiora galaxy #6 branding, bilingual search and core structure
+        run: |
+          npm run test:brand:icons
+          npm run test:r43:seo
+          npm run test:r43:visitors
+          npm run test:r32:seo
+      - name: Compile both production workspaces at the identical commit
+        run: npm run build
+      - name: Independent reference gate accepted (no AWS mutation)
+        run: echo "P388_INDEPENDENT_SOURCE_AND_BUILD_PASS sha=$GITHUB_SHA"
+  protected-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test
+      AUTH_SECRET: p388-disposable-ci-only-not-production-secret-2026
+      SITE_NOINDEX: '1'
+      NEWS_INGESTION_ENABLED: '0'
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      INTERNAL_API_ORIGIN: http://127.0.0.1:4000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install node and Python Swiss dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Migrate disposable Postgres, NEVER production DB
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: Verify independent offline custom dump restoration
+        run: |
+          set -Eeuo pipefail
+          archive="$RUNNER_TEMP/p388-ci-only-restore.dump"
+          docker run --rm --network host -e PGPASSWORD=ci postgres:16 \
+            pg_dump -h 127.0.0.1 -p 5433 -U ci -d galaxiora_a1_test \
+            --format=custom --no-owner --no-acl > "$archive"
+          test -s "$archive"
+          docker run --rm -i --network host postgres:16 pg_restore --list < "$archive" >/dev/null
+          docker run --rm --network host -e PGPASSWORD=ci postgres:16 \
+            psql -h 127.0.0.1 -p 5433 -U ci -d postgres -v ON_ERROR_STOP=1 \
+            -c 'CREATE DATABASE p388_isolated_restore'
+          docker run --rm -i --network host -e PGPASSWORD=ci postgres:16 \
+            pg_restore -h 127.0.0.1 -p 5433 -U ci -d p388_isolated_restore \
+            --no-owner --no-privileges --exit-on-error < "$archive"
+          num=$(docker run --rm --network host -e PGPASSWORD=ci postgres:16 \
+            psql -h 127.0.0.1 -p 5433 -U ci -d p388_isolated_restore -tAc \
+            "SELECT count(*) FROM pg_tables WHERE schemaname='public'")
+          test "${num:-0}" -gt 0
+          rm -f "$archive"
+          echo 'P388_DISPOSABLE_BACKUP_RESTORE_PASS'
+      - name: Install Chromium (headless accessible UI)
+        run: npx playwright install --with-deps chromium
+      - name: Start isolated NestJS and Next.js without any live tokens
+        run: |
+          printf '%s\n' \
+            'DATABASE_URL=postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test' \
+            'AUTH_SECRET=p388-disposable-ci-only-not-production-secret-2026' \
+            'SITE_NOINDEX=1' \
+            'NEWS_INGESTION_ENABLED=0' \
+            'NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000' \
+            'INTERNAL_API_ORIGIN=http://127.0.0.1:4000' > .env
+          npm run start -w @jyotish/api > /tmp/p388-api.log 2>&1 &
+          npm run dev -w @jyotish/web > /tmp/p388-web.log 2>&1 &
+          node --input-type=module -e 'let ok=false;for(let i=0;i<180;i++){try{const r=await fetch("http://127.0.0.1:3000/uk/panchanga");if(r.ok){ok=true;break;}}catch{}await new Promise(resolve=>setTimeout(resolve,1000));}if(!ok)process.exit(1);'
+      - name: Run bilingual Day/Week/Month, guest, 320/390 mobile and two-owner 31/29-day checks
+        run: |
+          npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs e2e/panchanga-p388.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
+      - name: Print isolated development failures without database content
+        if: failure()
+        run: |
+          tail -n 100 /tmp/p388-api.log || true
+          tail -n 100 /tmp/p388-web.log || true
+      - name: Upload failing browser traces (disposable CI accounts only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p388-disposable-ui-traces
+          path: test-results/
+          retention-days: 2
+  release-candidate:
+    needs: [independent-astronomy, protected-browser]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Same-SHA independent, UI and isolated backup acceptance
+        run: |
+          echo "P388_RELEASE_CANDIDATE_TESTED_SHA=$GITHUB_SHA"
+          echo 'NO_AUTOMATIC_AWS_DEPLOYMENT: reviewer merge to main and operator-only pinned preflight are REQUIRED'
+          echo 'NO_FULL_WEDDING_MUHURTA_CERTIFICATION: 21 doshas and Kutas remain pending'
