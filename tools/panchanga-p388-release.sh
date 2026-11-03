@@ -55,6 +55,13 @@ preflight(){
   fail 'Vetted release branch lacks reviewed independent P388 source ancestry: merge PR, do not squash'
  git merge-base --is-ancestor "$current" "$target" ||
   fail 'Live checkout diverges from vetted release branch: STOP, reconcile approved logo/SEO/news edits in separate PR'
+ # Independently query GitHub for fully completed green PUSH checks on EXACT
+ # integrated release SHA; a manually supplied attestation string is insufficient.
+ mkdir -p -m 700 "$STATE"
+ git show "$target:tools/panchanga-p388-ci-gate.mjs" > "$STATE/p388-ci-gate.mjs"
+ chmod 600 "$STATE/p388-ci-gate.mjs"
+ node "$STATE/p388-ci-gate.mjs" "$target" ||
+  fail 'Exact merged SHA lacks green independent astronomy, build and SEO CI checks'
  for source in tools/panchanga-p388-release.sh tools/panchanga-p388-production-smoke.mjs \
   tests/fixtures/p388-independent-asc-30.tsv;do
   git cat-file -e "$target:$source" || fail "Merged vetted P3.6 release commit missing $source"
