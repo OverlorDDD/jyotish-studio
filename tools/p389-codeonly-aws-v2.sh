@@ -69,7 +69,7 @@ if [[ -s "$PY_CHOICE" ]]; then
  RUN_PY=$(cat "$PY_CHOICE")
  [[ "$RUN_PY" == "$VENV_PY" ]] || fail 'Unexpected prepared interpreter path'
 else
- RUN_PY=$(node --env-file=.env --input-type=module -p 'process.env.PYTHON_BIN||"python3"')
+ RUN_PY=$(node --env-file=.env -p 'process.env.PYTHON_BIN||"python3"')
 fi
 python_probe(){
  # Use the SAME .env-visible Python that will be provided to the real-sky test.
