@@ -42,7 +42,7 @@ for(const locale of ['uk','en']){
   await hub.getByTestId('p410-opportunities').getByRole('button',{
    name:locale==='uk'?'Переглянути 7 днів':'Explore 7 days'}).click();
   await expect(hub.getByTestId('panchanga-day-cell')).toHaveCount(7,{timeout:90000});
-  await hub.getByRole('navigation').getByRole('button',{name:locale==='uk'?'День':'Day'}).click();
+  await hub.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'}).getByRole('button',{name:locale==='uk'?'День':'Day'}).click();
   await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
   await hub.getByTestId('p410-opportunities').getByRole('button',{
    name:locale==='uk'?'Складні події: персональний Time Finder і попередня мухурта':
