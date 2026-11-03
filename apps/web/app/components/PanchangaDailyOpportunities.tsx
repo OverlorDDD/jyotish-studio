@@ -48,14 +48,39 @@ export default function PanchangaDailyOpportunities({locale,day,point,
  const uk=locale==='uk';
  const [now,setNow]=useState<number|null>(null);
  const [personal,setPersonal]=useState<P33Report|null>(null);
+ const [priorDay,setPriorDay]=useState<OpportunityDay|null>(null);
  const [personalStatus,setPersonalStatus]=useState<PersonalStatus>('loading');
  useEffect(()=>{setNow(Date.now())},[day.date,point.timeZone]);
  const today=now!==null&&point.date===dateOf(point.timeZone);
+ // Before local sunrise, the still-current Vedic night belongs to
+ // yesterday's sunrise date. Fetch its exact Swiss day; never apply
+ // the new civil day's weekday or choghadiya to post-midnight hours.
+ useEffect(()=>{
+  if(!today||now===null||now>=Date.parse(day.sunriseUtc)){
+   setPriorDay(null);return;
+  }
+  let live=true;const ctl=new AbortController();setPriorDay(null);
+  const prevDate=new Date(Date.parse(point.date+'T12:00:00Z')-86400000).toISOString().slice(0,10);
+  const q=new URLSearchParams({date:prevDate,zone:point.timeZone,
+   latitude:point.latitude,longitude:point.longitude});
+  fetch('/api/v1/panchanga/day?'+q,{cache:'no-store',signal:ctl.signal})
+   .then(r=>r.ok?r.json():Promise.reject(Error('Previous sunrise not verified')))
+   .then((previous:OpportunityDay)=>{
+    if(!live)return;
+    if(previous.nextSunriseUtc!==day.sunriseUtc||previous.location?.timeZone!==point.timeZone)return;
+    setPriorDay(previous);
+   }).catch(()=>{}); // Fail closed: never invent the previous night.
+  return()=>{live=false;ctl.abort()};
+ },[today,now,day.sunriseUtc,point.date,point.timeZone,point.latitude,point.longitude]);
  const starting=now!==null&&today&&now>Date.parse(day.sunriseUtc)&&
   now<Date.parse(day.nextSunriseUtc)?new Date(now).toISOString():day.sunriseUtc;
  const computed=useMemo(()=>{
   try{
    const all=dailyOpportunities(day,starting);
+   if(today&&now!==null&&now<Date.parse(day.sunriseUtc)&&priorDay){
+    const prevStart=new Date(Math.max(now,Date.parse(priorDay.sunriseUtc))).toISOString();
+    all.push(...dailyOpportunities(priorDay,prevStart));
+   }
    const preDawn=brahmaMuhurta(day);
    // Brahma Muhurta is a daily spiritual opportunity, not an auspicious
    // election for weddings or financial commitments.
@@ -69,7 +94,7 @@ export default function PanchangaDailyOpportunities({locale,day,point,
    return {all:[] as Opportunity[],featured:[] as Opportunity[],
     periods:null,abhijit:null,error:true};
   }
- },[day,starting,today,now]);
+ },[day,starting,today,now,priorDay]);
  // Only a single owner-scoped, no-store query; the public result never
  // contains natal data. Validation prevents mixing different cities or dates.
  const privateAt=useMemo(()=>{
