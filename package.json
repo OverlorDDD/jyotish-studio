@@ -173,7 +173,8 @@
     "test:p386": "node --experimental-strip-types --test tools/panchanga-p386.test.mjs",
     "test:p387": "node --experimental-strip-types --test tools/panchanga-p387.test.mjs",
     "test:p388:independent": "node --experimental-strip-types --test tools/panchanga-p388-independent.test.mjs",
-    "test:p388:release": "node --test tools/panchanga-p388-release.test.mjs tools/panchanga-p388-ci-gate.test.mjs tools/panchanga-p388-fetch.test.mjs"
+    "test:p388:release": "node --test tools/panchanga-p388-release.test.mjs tools/panchanga-p388-ci-gate.test.mjs tools/panchanga-p388-fetch.test.mjs",
+    "test:p389:real": "node --experimental-strip-types --test tools/panchanga-p389-live-sky.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
