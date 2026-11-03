@@ -16,6 +16,7 @@ on:
       - feat/panchanga-p38-verifiable-muhurta-core-20261103
       - feat/panchanga-p384-event-lagna-20261103
       - feat/panchanga-p385-classical-time-finder-20261103
+      - feat/panchanga-p386-clean-day-ux-20261103
   pull_request:
     paths:
       - 'apps/web/app/components/Panchanga*'
