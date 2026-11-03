@@ -10,6 +10,7 @@ import {fileURLToPath} from 'node:url';
 import {calculateVerifiedEventLagna} from '../apps/api/src/panchanga-event-lagna.ts';
 import {panchangaRange} from '../apps/api/src/panchanga-range.ts';
 import {createVerifiedSiderealPlanetAt} from '../apps/api/src/panchanga.ts';
+import {historicalJHora8DeltaTShiftSeconds} from '../packages/jyotish-core/src/jhora8-delta-t-grid.ts';
 
 const fixture=readFileSync(new URL('../tests/fixtures/p388-independent-asc-30.tsv',import.meta.url),'utf8')
  .split(/\r?\n/).filter(l=>l&&!l.startsWith('#')).map(l=>{
@@ -62,8 +63,18 @@ test('P388 4 independent Swiss 7-day sunrise + Sun/Moon + five-limb vectors, inc
  const nativePlanet=await createVerifiedSiderealPlanetAt();
  let checked=0,stable=0;
  for(const observer of vectors){
-  const py=JSON.parse(oracle(['--sunrise-samples'],observer));
+  const modern=JSON.parse(oracle(['--sunrise-samples'],observer));
+  const offsets=modern.days.map(d=>{
+   const julian=Date.parse(d.sunriseUtc)/86400000+2440587.5;
+   return historicalJHora8DeltaTShiftSeconds(julian);
+  });
+  assert.ok(offsets.every(x=>x>0&&x<60),'Pinned original-DLL ΔT correction exceeds supported 2026–27 physical epoch');
+  const py=JSON.parse(oracle(['--sunrise-samples'],
+   {...observer,historicalDeltaTSeconds:offsets}));
+  assert.equal(py.astronomyEpoch,'JHORA8_HISTORICAL_DELTA_T');
   assert.match(py.source,/SWIEPH-only/);
+  assert.ok(py.days.every((d,i)=>d.sunriseUtc===modern.days[i].sunriseUtc),
+   'Historical ΔT must not alter independently computed observer sunrise times');
   const ts=await panchangaRange({start:observer.start,days:observer.days,
    timeZone:observer.timeZone,latitude:observer.latitude,longitude:observer.longitude});
   assert.equal(ts.days.length,observer.days);
@@ -80,8 +91,12 @@ test('P388 4 independent Swiss 7-day sunrise + Sun/Moon + five-limb vectors, inc
    // Cross-library timing convention: JHora8 historical vs modern Swiss 2.10.
    // Both are real SWIEPH positions, and angular mismatch must remain <=2".
    const sun=nativePlanet(target,'Sun').longitude,moon=nativePlanet(target,'Moon').longitude;
-   assert.ok(angle(sun,b.sunLongitude)<2,'Independent Sun angular mismatch '+b.date);
-   assert.ok(angle(moon,b.moonLongitude)<2,'Independent Moon angular mismatch '+b.date);
+   assert.ok(angle(sun,b.sunLongitude)<1,'Independent same-epoch Sun angular mismatch '+b.date);
+   assert.ok(angle(moon,b.moonLongitude)<1,'Independent same-epoch Moon angular mismatch '+b.date);
+   // The uncorrected modern-Swiss Moon has a measurably DIFFERENT epoch.
+   // It is NOT an argument to relax the <=1" same-profile acceptance.
+   assert.ok(angle(b.moonLongitude,b.modernMoonLongitude)>1,
+    'Historical JHora8 / modern Swiss Moon difference should remain observable '+b.date);
    if(b.safelyAwayFromAngaBoundary){
     assert.equal(a.sunrise.tithi.number,b.tithi,'Tithi: '+b.date);
     assert.equal(a.sunrise.nakshatra.number,b.nakshatra,'Nakshatra: '+b.date);
