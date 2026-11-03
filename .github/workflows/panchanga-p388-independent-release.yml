@@ -177,5 +177,5 @@ jobs:
       - name: Same-SHA independent, UI and isolated backup acceptance
         run: |
           echo "P388_RELEASE_CANDIDATE_TESTED_SHA=$GITHUB_SHA"
-          echo 'NO_AUTOMATIC_AWS_DEPLOYMENT: reviewer merge to main and operator-only pinned preflight are REQUIRED'
+          echo 'NO_AUTOMATIC_AWS_DEPLOYMENT: reviewer merge PR #98 to vetted P3.6 release branch, rerun CI on merged SHA and operator-only pinned preflight are REQUIRED'
           echo 'NO_FULL_WEDDING_MUHURTA_CERTIFICATION: 21 doshas and Kutas remain pending'
