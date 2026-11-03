@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # P3.8.8 operator-only AWS release. CI NEVER calls deploy.
-# Only a reviewed integration commit merged into main, preserving current
+# Only a reviewed integration commit merged into the vetted P3.6 production release branch, preserving current
 # Galaxiora icons/SEO/news/auth and verified as a fast-forward from live.
 set -Eeuo pipefail
 umask 077
@@ -8,7 +8,7 @@ export SYSTEMD_PAGER=cat PAGER=cat
 ACTION="${1:-diagnose}"
 APP="${P388_APP_ROOT:-/opt/galaxiora/app}"
 STATE="${P388_STATE_ROOT:-$HOME/.galaxiora-p388}"
-MAIN_BRANCH=main
+RELEASE_BRANCH=release/panchanga-p36-production-acceptance-20261102
 # Independently generated 30-vector oracle must be in merged commit ancestry.
 RELEASE_ROOT=fe2cef6b1755f1467b6ad2c7efc619068735a2fc
 cd "$APP"
@@ -38,7 +38,7 @@ diagnose(){
  for uri in http://127.0.0.1:4000/api/health http://127.0.0.1:3000/uk;do
   echo "HTTP_${uri}=$(curl --max-time 6 -s -o /dev/null -w '%{http_code}' "$uri" || true)"
  done
- echo 'Next: merge reviewed P388 integration PR into main by MERGE COMMIT (not squash), then pin exact main SHA.'
+ echo 'Next: merge reviewed P388 integration PR into main by MERGE COMMIT (not squash), then pin exact vetted release branch SHA.'
 }
 preflight(){
  local current target available
@@ -46,15 +46,15 @@ preflight(){
  [[ -z "$(git status --porcelain --untracked-files=no)" ]] ||
   fail 'Tracked server edits exist: save/reconcile manually; do not reset/clean'
  is_sha "${P388_TARGET_SHA:-}" || fail 'Set exact 40-character P388_TARGET_SHA from merged main'
- git fetch --no-tags origin "$MAIN_BRANCH"
+ git fetch --no-tags origin "$RELEASE_BRANCH"
  target=$(git rev-parse FETCH_HEAD)
  current=$(git rev-parse HEAD)
  [[ "$target" == "$P388_TARGET_SHA" ]] ||
-  fail "Remote main does not equal pinned release target ($P388_TARGET_SHA)"
+  fail "Remote vetted P3.6 release branch does not equal pinned target ($P388_TARGET_SHA)"
  git merge-base --is-ancestor "$RELEASE_ROOT" "$target" ||
-  fail 'Main lacks the reviewed independent P388 release source ancestry: merge PR, do not squash'
+  fail 'Vetted release branch lacks reviewed independent P388 source ancestry: merge PR, do not squash'
  git merge-base --is-ancestor "$current" "$target" ||
-  fail 'Live checkout diverges from merged main: STOP, reconcile approved logo/SEO/news edits in separate PR'
+  fail 'Live checkout diverges from vetted release branch: STOP, reconcile approved logo/SEO/news edits in separate PR'
  for source in tools/panchanga-p388-release.sh tools/panchanga-p388-production-smoke.mjs \
   tests/fixtures/p388-independent-asc-30.tsv;do
   git cat-file -e "$target:$source" || fail "Merged main missing $source"
@@ -84,7 +84,7 @@ JS
  test ! -e apps/web/app/icon.svg || fail 'Old SVG/G generator would overwrite approved spiral'
  test -s apps/web/brand-assets/galaxiora-approved-spiral-6.png ||
   fail 'Approved Galaxiora spiral #6 is missing'
- echo "P388_PREFLIGHT_PASS live=$current merged_main=$target"
+ echo "P388_PREFLIGHT_PASS live=$current merged_p36_release=$target"
 }
 backup(){
  mkdir -p -m 700 "$STATE"
