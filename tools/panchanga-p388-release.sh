@@ -38,7 +38,7 @@ diagnose(){
  for uri in http://127.0.0.1:4000/api/health http://127.0.0.1:3000/uk;do
   echo "HTTP_${uri}=$(curl --max-time 6 -s -o /dev/null -w '%{http_code}' "$uri" || true)"
  done
- echo 'Next: merge reviewed PR #98 into vetted P3.6 release branch by MERGE COMMIT (not squash), then pin exact merged release SHA.'
+ echo 'Release requires exact merged SHA, green CI, and an authenticated native PostgreSQL connection; Docker access is not required.'
 }
 preflight(){
  local current target available
@@ -73,7 +73,7 @@ preflight(){
  chmod 600 "$STATE/p388-ci-gate.mjs"
  node "$STATE/p388-ci-gate.mjs" "$target" ||
   fail 'Exact merged SHA lacks green independent astronomy, build and SEO CI checks'
- for source in tools/panchanga-p388-release.sh tools/panchanga-p388-production-smoke.mjs \
+ for source in tools/panchanga-p388-release.sh tools/panchanga-p388-db-direct.mjs tools/panchanga-p388-production-smoke.mjs \
   tests/fixtures/p388-independent-asc-30.tsv;do
   git cat-file -e "$target:$source" || fail "Merged vetted P3.6 release commit missing $source"
  done
@@ -91,11 +91,17 @@ JS
  for service in caddy galaxiora-web galaxiora-api;do
   systemctl is-active --quiet "$service" || fail "$service not running"
  done
- for binary in git node npm python3 docker curl awk df free;do
-  command -v "$binary" >/dev/null || fail "Required command missing: $binary"
+ for binary in git node npm python3 psql pg_dump pg_restore curl awk df free;do
+  command -v "$binary" >/dev/null || fail "Required command missing: $binary (install PostgreSQL client 16 if needed)"
  done
- docker inspect jyotish-db --format '{{.State.Running}}' |grep -qx true ||
-  fail 'Live PostgreSQL container is not running'
+ # Preflight runs from the *previous live commit*, before checkout.
+ # Load the helper from the already-CI-tested target into the private state
+ # directory. Never use Docker CLI or guess a host/port: same DATABASE_URL
+ # that NestJS/Prisma uses. Credentials only pass as libpq child ENV.
+ git show "$target:tools/panchanga-p388-db-direct.mjs" > "$STATE/p388-db-direct.mjs"
+ chmod 600 "$STATE/p388-db-direct.mjs"
+ P388_STATE_ROOT="$STATE" node --env-file=.env "$STATE/p388-db-direct.mjs" check ||
+  fail 'Native PostgreSQL connection / compatible pg_dump preflight failed'
  available=$(df -Pk "$APP" |awk 'END{print $4}')
  [[ "$available" =~ ^[0-9]+$ ]] && ((available>=3145728)) ||
   fail 'At least 3 GiB disk needed for snapshot + Next build'
@@ -112,14 +118,14 @@ backup(){
  git rev-parse HEAD > "$folder/previous.sha"
  cp -p .env "$folder/env.before"
  chmod 600 "$folder/env.before"
- # Consistent custom format online PostgreSQL snapshot. It includes PRIVATE
- # account, natal and chart data; keep outside webroot and never publish.
- docker exec jyotish-db pg_dump --format=custom --no-owner --no-acl -U jyotish -d jyotish \
-  > "$folder/production-before.dump"
+ # Consistent online custom-format backup over native PostgreSQL protocol;
+ # owner/account/natal data stays in private state outside the webroot.
+ # From the same DATABASE_URL used by the verified live API, no Docker calls.
+ [[ -s "$STATE/p388-db-direct.mjs" ]] || fail 'Native database helper missing: rerun preflight'
+ P388_STATE_ROOT="$STATE" node --env-file=.env "$STATE/p388-db-direct.mjs" backup "$folder/production-before.dump" ||
+  fail 'Native PostgreSQL backup failed: preserve live code, inspect DB client/connectivity'
  chmod 600 "$folder/production-before.dump"
- [[ -s "$folder/production-before.dump" ]] || fail 'Database dump empty'
- docker exec -i jyotish-db pg_restore --list < "$folder/production-before.dump" >/dev/null ||
-  fail 'PostgreSQL archive TOC not readable'
+ [[ -s "$folder/production-before.dump" ]] || fail 'Native PostgreSQL dump empty'
  printf '%s\n' "$folder" > "$STATE/last-backup"
  echo "P388_BACKUP_TOC_PASS path=$folder (actual restore tested separately in isolated CI)"
 }

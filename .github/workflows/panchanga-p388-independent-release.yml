@@ -82,6 +82,8 @@ jobs:
           npm run test:p36:release
           npm run test:p388:release
           bash -n tools/panchanga-p388-release.sh
+          node --check tools/panchanga-p388-db-direct.mjs
+          node --test tools/panchanga-p388-db-direct.test.mjs
           node --check tools/panchanga-p388-production-smoke.mjs
       - name: Protect Galaxiora galaxy #6 branding, bilingual search and core structure
         run: |
