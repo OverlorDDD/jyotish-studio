@@ -16,11 +16,42 @@ command -v git >/dev/null && command -v node >/dev/null &&
 cd "$APP"
 [[ -f .env ]] || die "Private .env file missing"
 
-# Do not ignore tracked changes: those require a manual review. Untracked
-# files, including the custom logo/overlay, package-lock and an oddly named
-# console artifact, are not blockers as long as the target has no path collision.
-git diff --quiet || { git status --short; die "Modified tracked production files"; }
-git diff --cached --quiet || { git status --short; die "Staged production changes"; }
+# A Next.js production build may rewrite its tracked auto-generated
+# apps/web/next-env.d.ts, adding the local .next/types/routes.d.ts import.
+# Any OTHER tracked change, or ANY staged change, remains a hard stop.
+git diff --cached --quiet || { git status --short; die "Staged production changes require review"; }
+DIRTY_NEXT_ENV=0
+while IFS= read -r -d '' changed; do
+ if [[ "$changed" == "apps/web/next-env.d.ts" ]]; then
+  DIRTY_NEXT_ENV=1
+ else
+  git status --short
+  die "Unexpected tracked production change: $changed"
+ fi
+done < <(git diff --name-only -z)
+if [[ "$DIRTY_NEXT_ENV" == 1 ]]; then
+ node - <<'NODE'
+const fs=require('node:fs');
+const source=fs.readFileSync('apps/web/next-env.d.ts','utf8').replace(/\r\n/g,'\n');
+const lines=source.split('\n').map(s=>s.trim()).filter(Boolean);
+const allowed=[
+ /^\/\/\/ <reference types="next" \/>$/,
+ /^\/\/\/ <reference types="next\/image-types\/global" \/>$/,
+ /^\/\/\/ <reference types="next\/navigation-types\/compat\/navigation" \/>$/,
+ /^\/\/\/ <reference path="\.\/\.next\/types\/routes\.d\.ts" \/>$/,
+ /^import ["']\.\/\.next\/types\/routes\.d\.ts["'];?$/,
+ /^\/\/(?:[^\r\n]*)$/
+];
+if(source.length>2048||
+ lines[0]!=='/// <reference types="next" />'||
+ !lines.includes('/// <reference types="next/image-types/global" />')||
+ lines.some(line=>!allowed.some(pattern=>pattern.test(line)))){
+ console.error('STOP: next-env.d.ts contains unexpected edits, not just Next.js generated type references');
+ process.exit(2);
+}
+console.log('Validated tracked Next.js-generated next-env.d.ts drift (will archive before checkout).');
+NODE
+fi
 node --env-file=.env -e '
  const id=process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
  if(id!=="G-SZDVCT8TF4")throw Error("STOP: production build needs G-SZDVCT8TF4 in .env");
@@ -61,6 +92,13 @@ git ls-files --others --exclude-standard -z |
  tar -cf "$RUN_DIR/untracked-files.tar" --null --verbatim-files-from -T -
 echo "Untracked production files preserved and archived: $RUN_DIR/untracked-files.tar"
 echo "Untracked files remain in the working tree. Nothing has been deleted."
+if [[ "$DIRTY_NEXT_ENV" == 1 ]]; then
+ # Preserve exact modified bytes before normalizing this generated file.
+ cp -p -- apps/web/next-env.d.ts "$RUN_DIR/next-env.d.ts.generated-before-deploy"
+ git restore --source=HEAD --worktree -- apps/web/next-env.d.ts
+ echo "Next.js generated next-env.d.ts archived and normalized (source preserved)."
+fi
+git diff --quiet || die "Tracked worktree still modified; refusing checkout"
 
 DB_BACKUP="$RUN_DIR/database.dump"
 if command -v pg_dump >/dev/null && command -v pg_restore >/dev/null; then
