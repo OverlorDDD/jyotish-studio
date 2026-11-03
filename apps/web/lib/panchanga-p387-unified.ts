@@ -3,7 +3,7 @@
  * Unknown/unchecked election rules never imply favorable or unfavorable days.
  */
 import {validateP35Private,type P35Days,type P35Personal,type P35Point,
- type P35Private} from './panchanga-p35-calendar';
+ type P35Private} from './panchanga-p35-calendar.ts';
 import type {P38ActivityId} from './panchanga-p38-decision';
 
 export type P387Overview={
