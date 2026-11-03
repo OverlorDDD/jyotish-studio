@@ -1,6 +1,6 @@
 import {BadRequestException,Body,ConflictException,Controller,Delete,Get,Header,Inject,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ServiceUnavailableException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
-import {ArrayMaxSize,IsArray,IsIn,IsInt,IsOptional,IsString,IsUUID,Max,Min} from 'class-validator';
+import {ArrayMaxSize,IsArray,IsIn,IsInt,IsNumber,IsOptional,IsString,IsUUID,Max,MaxLength,Min} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
@@ -13,6 +13,10 @@ import {tropicalNatalChartAtUtc} from './western-natal.ts';
 import {buildAdvancedSynthesis} from './advanced-synthesis.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation,createVerifiedSiderealPlanetAt} from './panchanga.ts';
+import {calculateVerifiedEventLagna,validateEventLagnaInput} from './panchanga-event-lagna.ts';
+import {assembleP384EventElection} from './panchanga-event-election.ts';
+import {P38_ACTIVITIES,type P38ActivityId,p38Activity} from '../../web/lib/panchanga-p38-decision.ts';
+import type {P33Report} from '../../web/lib/panchanga-p33-resonance.ts';
 import {normalizePanchangaLocation} from './panchanga-location.ts';
 import {buildP35Calendar} from './panchanga-personal-calendar.ts';
 import {findVerifiedSignIngresses} from './panchanga-ingress.ts';
@@ -85,6 +89,20 @@ export class CompletedPracticeDto{
  @IsInt() @Min(20) @Max(3600) durationSeconds!:number;
 }
 @ApiTags('Galaxiora Personal')
+/** No birth date, birth location or partner information in request body.
+ * All birth charts are loaded only through owner-scoped saved chart records.
+ * Event data is transient (not persisted or written into an analytics URL).
+ */
+export class P384EventLagnaDto{
+ @IsIn(P38_ACTIVITIES.map(x=>x.id)) activityId!:P38ActivityId;
+ @IsString() @MaxLength(30) atUtc!:string;
+ @IsString() @MaxLength(64) timeZone!:string;
+ @IsNumber() @Min(-66.49) @Max(66.49) latitude!:number;
+ @IsNumber() @Min(-180) @Max(180) longitude!:number;
+ @IsOptional() @IsUUID() partnerChartId?:string;
+}
+const p384EventLimiter=createKeyedHourlyLimiter(8);
+
 @Controller('api/v1/personal')
 export class PersonalController{
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
@@ -345,6 +363,80 @@ export class PersonalController{
   * Moment and location are independently Swiss-verified on the server;
   * public Panchanga must agree before the frontend accepts this response.
   */
+  /** P3.8.4: event Lagna from the actual FUTURE UTC moment and event city.
+  * Only the signed-in user's VERIFIED primary chart and (if applicable) a
+  * separately selected, *owned* verified partner chart may be used. This
+  * route must never imply a complete ceremonial Muhurta from Panchaka alone.
+  */
+ @Post('panchanga/event-lagna') @Header('Cache-Control','private, no-store')
+ @Header('Vary','Cookie')
+ async p384EventLagna(@Req()req:IncomingMessage,@Body()body:P384EventLagnaDto){
+  const uid=mutation(req);
+  if(!p384EventLimiter(uid))throw new BadRequestException('Too many event election requests');
+  try{validateEventLagnaInput(body);}
+  catch(e){throw new BadRequestException(e instanceof Error?e.message:'Invalid future event location/time');}
+  const at=Date.parse(body.atUtc);
+  if(at<Date.now()-60000||at>Date.now()+5*365.25*86400000)
+   throw new BadRequestException('Choose a future event within five years');
+  const activity=p38Activity(body.activityId);
+  const record=await this.prisma.personalProfile.findUnique({where:{userId:uid},
+   select:{primaryChartId:true}});
+  if(!record?.primaryChartId)
+   return {status:'requires_primary_chart',nextAction:'select_verified_natal_chart'};
+  const owned=await this.prisma.chart.findFirst({where:{ownerId:uid,id:record.primaryChartId},
+   select:{id:true,input:true,result:true}});
+  if(!owned)return {status:'requires_verified_chart',nextAction:'review_primary_chart'};
+  const recovered=await resolvePersonalChart(this.prisma,owned);
+  if(!recovered.chart||!recovered.chart.ascendant||
+    !recovered.chart.d1.some(p=>p.name==='Moon'))
+   return {status:'requires_verified_chart',nextAction:'verify_primary_chart'};
+  if(body.partnerChartId&&!activity.required.includes('partner_chart'))
+   throw new BadRequestException('Partner chart is not needed for this activity');
+  let partnerVerified=false;
+  if(activity.required.includes('partner_chart')){
+   if(!body.partnerChartId)
+    return {status:'requires_partner_chart',nextAction:'select_partner_chart_with_consent'};
+   if(body.partnerChartId===owned.id)
+    throw new BadRequestException('Partner and primary chart must be different');
+   const partner=await this.prisma.chart.findFirst({
+    where:{ownerId:uid,id:body.partnerChartId},select:{id:true,input:true,result:true}});
+   if(!partner)return {status:'requires_partner_chart',nextAction:'select_owned_partner_chart'};
+   const partnerRecovery=await resolvePersonalChart(this.prisma,partner);
+   if(!partnerRecovery.chart||!partnerRecovery.chart.ascendant||
+     !partnerRecovery.chart.d1.some(p=>p.name==='Moon'))
+    return {status:'requires_verified_partner_chart',nextAction:'verify_partner_chart'};
+   partnerVerified=true;
+  }
+  try{
+   const event=await calculateVerifiedEventLagna({
+    atUtc:body.atUtc,latitude:body.latitude,longitude:body.longitude,timeZone:body.timeZone});
+   const observer={timeZone:body.timeZone,latitude:body.latitude,longitude:body.longitude};
+   // Local date may still be BEFORE the local sunrise: select the actual
+   // sunrise-to-sunrise Vedic day containing this exact UTC event.
+   let day=await calculatePanchangaDay({date:event.localDate,...observer});
+   if(at<Date.parse(day.sunriseUtc)){
+    const previous=new Date(Date.parse(event.localDate+'T00:00:00Z')-86400000)
+     .toISOString().slice(0,10);
+    day=await calculatePanchangaDay({date:previous,...observer});
+   }
+   if(at<Date.parse(day.sunriseUtc)||at>=Date.parse(day.nextSunriseUtc))
+    throw Error('Event not contained within verified observer sunrise day');
+   const personal=await this.panchangaResonance(req,day.date,body.timeZone,
+    String(body.latitude),String(body.longitude),body.atUtc);
+   if(personal.status!=='available')return personal;
+   const atPlanet=await createVerifiedSiderealPlanetAt();
+   const names=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'] as const;
+   const sky=names.map(name=>({name,longitude:atPlanet(at,name).longitude}));
+   const point={date:day.date,timeZone:body.timeZone,
+    latitude:String(body.latitude),longitude:String(body.longitude)};
+   return assembleP384EventElection({activityId:body.activityId,atUtc:body.atUtc,
+    day,point,eventLagna:event,personalReport:personal as P33Report,
+    sky,partnerVerified});
+  }catch{
+   throw new ServiceUnavailableException('Verified Swiss event Lagna or calendar cannot be established');
+  }
+ }
+
  @Get('panchanga/resonance') @Header('Cache-Control','private, no-store')
  @Header('Vary','Cookie')
  async panchangaResonance(@Req()req:IncomingMessage,
