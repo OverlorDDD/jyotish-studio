@@ -88,7 +88,7 @@ const GUARD=(ok:unknown,msg:string):asserts ok=>{if(!ok)throw Error('P38 source 
 const STAR_RESTRICTIONS_FOR_TRAVEL=new Set([2,3]); // Bharani, Krittika: Raman Ch XIV.
 const BORROW_RESTRICTED_STARS=new Set([3,7,19,23]); // Raman Ch XVII + natal star separately.
 const STANDARD_BAD_YOGAS=new Set([6,9,10,17,27]); // Raman Ch V: Panchanga Suddhi.
-const IMPORTANT_TITHI_CAUTION=new Set([4,6,8,12,14]); // Raman Ch V, only important auspicious elections.
+const GENERAL_TITHI_CAUTION=new Set([4,6,8,14,15]); // Raman Ch II/V: 15 = full/new Moon\nconst IMPORTANT_TITHI_CAUTION=new Set([12]); // Raman Ch II explicitly notes an exception if other limbs are strong
 const GENERAL_ELECTION=new Set<P38Method>(['direct','analogy','special_election']);
 function active<K extends keyof P32Day['periods']>(day:P32Day,key:K,t:number){
  const p=day.periods[key].filter(i=>Date.parse(i.startUtc)<=t&&t<Date.parse(i.endUtc));
@@ -153,6 +153,11 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
   if(STANDARD_BAD_YOGAS.has(yoga.number))
    push('RAMAN_YOGA_'+yoga.number,'cautions','yoga',
     L('Для важливих починань Раман називає цю нітья-йогу несприятливою.','Raman flags this Nitya Yoga for important new beginnings.'),
+    RAMAN_SOURCE,'general_election');
+  if(GENERAL_TITHI_CAUTION.has(tithi.numberWithinPaksha))
+   push('RAMAN_TITHI_CAUTION','cautions','tithi',
+    L('Для початку важливої нової справи ця тітхі потребує перевірки умов і винятків.',
+      'This tithi calls for additional review before a major new beginning.'),
     RAMAN_SOURCE,'general_election');
   if(important&&IMPORTANT_TITHI_CAUTION.has(tithi.numberWithinPaksha))
    push('RAMAN_IMPORTANT_TITHI','cautions','tithi',
