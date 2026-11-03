@@ -72,9 +72,9 @@ test('GA4 and business-tool names only, never natal or private payload',()=>{
  assert.match(code,/pathname==='\/'\?'\/en':pathname/);
  assert.match(code,/send_page_view:false/);
  assert.match(code,/galaxiora_debug_ping/);
- assert.match(code,/window\\.gtag=function gtag\\(/);
- assert.match(code,/dataLayer\\?\\.push\\(arguments\\)/);
- assert.doesNotMatch(code,/dataLayer\\?\\.push\\(args\\)/);
+ assert.ok(code.includes('window.gtag=function gtag('));
+ assert.ok(code.includes('dataLayer?.push(arguments)'));
+ assert.ok(!code.includes('dataLayer?.push(args)'));
  assert.match(code,/g\/collect request observed/);
  assert.match(chart,/reportGrowthEvent\('jyotish_chart_completed'\)/);
  assert.match(panchanga,/reportGrowthEvent\('panchanga_calculation_completed'\)/);
