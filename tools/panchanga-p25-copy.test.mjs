@@ -20,7 +20,7 @@ test('plain-language card summaries and precise technical hover/tap definitions 
  for(const phrase of ['12°','13°20′','6°','27 секторів'])
   assert.ok(live.includes(phrase),'Missing tooltip detail: '+phrase);
  assert.match(live,/PanchangaInfoTip/);
- assert.match(hub,/Оновити календар/);
+ assert.match(hub,/setRequested\(next\)/); // P3.8.6: auto calculation from city/date, no duplicate action button\n assert.ok(!hub.includes('Розрахувати день'));
  assert.match(range,/Панчанга · місяць/);
 });
 test('P2.5 copy does not reintroduce vague slogans or internal error details',()=>{
