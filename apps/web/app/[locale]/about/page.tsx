@@ -22,7 +22,7 @@ const COPY={
   chart:'Побудувати натальну карту',
   horoscope:'Дослідити гороскопи',
   lessons:'Відкрити Академію',
-  scope:'Офіційний сайт: galaxiora.com. Мови інтерфейсу: українська та англійська.'
+  scope:'Офіційна назва: Galaxiora (українською — Галаксіора; також можна зустріти написання Галаксиора). Єдиний офіційний сайт: galaxiora.com. Мови інтерфейсу: українська та англійська.'
  },
  en:{
   title:'About Galaxiora — Jyotish Astrology, Tarot and Cosmic Practice',
