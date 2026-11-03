@@ -10,13 +10,15 @@ import type {P38ActivityId} from '../../web/lib/panchanga-p38-decision.ts';
 export type P385Instant={status:'candidate'|'requires_review'|'excluded'|'undetermined';
  reasonIds:string[];source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES'};
 export type P385Window={startUtc:string;endUtc:string;sampleUtc:string;
- status:P385Instant['status'];reasonIds:string[]};
+ status:P385Instant['status'];reasonIds:string[];sunriseDate:string};
 export type P385TimeFinderResult={
  version:'p385-time-finder-v1';activityId:P38ActivityId;
  startUtc:string;daysRequested:number;
  status:'candidate_found'|'review_only'|'none_in_checked_range';
  scope:'OWNER_NATAL_AND_EVENT_CITY_SAME_VERIFIED_UTC';
  candidate:P385Window|null;review:P385Window|null;
+ windows:P385Window[];
+ selectionPolicy:'FIRST_CANDIDATE_AND_REVIEW_PER_LOCAL_SUNRISE_DAY';
  examined:number;excludedCount:number;unknownCount:number;
  searchThroughUtc:string;complete:true;
 };
@@ -130,9 +132,11 @@ export async function findP385Windows(args:{
  const bound=args.maxExamined??6000;
  if(!Number.isSafeInteger(bound)||bound<1||bound>10000)throw Error('P385 evaluation budget invalid');
  let candidate:P385Window|null=null,review:P385Window|null=null;
+ const windows:P385Window[]=[];
  let examined=0,excludedCount=0,unknownCount=0;
  for(let i=0;i<days.length;i++){
   const day=days[i],start=epoch(day.sunriseUtc),end=epoch(day.nextSunriseUtc);
+  let dayCandidate=false,dayReview=false;
   if(i&&day.sunriseUtc!==days[i-1].nextSunriseUtc)
    throw Error('P385 day series must be consecutive same-observer sunrises');
   if(i&&day.location.timeZone!==days[0].location.timeZone)
@@ -158,16 +162,24 @@ export async function findP385Windows(args:{
    // boundary instant 15 seconds earlier (which could be a different Lagna).
    const w:P385Window={startUtc:at,
     endUtc:new Date(b).toISOString(),sampleUtc:at,
-    status:item.status,reasonIds:[...new Set(item.reasonIds)]};
-   if(item.status==='candidate'&&!candidate)candidate=w;
-   else if(item.status==='requires_review'&&!review)review=w;
-   else if(item.status==='excluded')excludedCount++;
+    status:item.status,reasonIds:[...new Set(item.reasonIds)],sunriseDate:day.date};
+   if(item.status==='candidate'){
+    if(!candidate)candidate=w;
+    if(!dayCandidate){windows.push(w);dayCandidate=true;}
+   }else if(item.status==='requires_review'){
+    if(!review)review=w;
+    if(!dayReview){windows.push(w);dayReview=true;}
+   }else if(item.status==='excluded')excludedCount++;
    else if(item.status==='undetermined')unknownCount++;
   }
  }
+ windows.sort((a,b)=>a.startUtc.localeCompare(b.startUtc));
+ if(windows.length>2*days.length)throw Error('P387 per-sunrise-day window budget exceeded');
  return {version:'p385-time-finder-v1',activityId,startUtc:fromUtc,
   daysRequested:days.length,status:candidate?'candidate_found':review?'review_only':'none_in_checked_range',
   scope:'OWNER_NATAL_AND_EVENT_CITY_SAME_VERIFIED_UTC',
-  candidate,review,examined,excludedCount,unknownCount,
+  candidate,review,windows,
+  selectionPolicy:'FIRST_CANDIDATE_AND_REVIEW_PER_LOCAL_SUNRISE_DAY',
+  examined,excludedCount,unknownCount,
   searchThroughUtc:days[days.length-1].nextSunriseUtc,complete:true};
 }
