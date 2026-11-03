@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {evaluateP385Special,p385NatalFromVerified,p385Aspects}
  from '../apps/api/src/panchanga-p385-special.ts';
-import {findP385LagnaCrossings,findP385Windows}
+import {findP385LagnaCrossings,findP385MoonPadaCrossings,findP385Windows}
  from '../apps/api/src/panchanga-p385-windows.ts';
 
 const UTC='2026-11-03T09:00:00.000Z',SUN='2026-11-03T06:00:00.000Z',
@@ -152,4 +152,34 @@ test('P385 all twelve real Swiss event-Lagna ingresses match independent Python 
   assert.equal(at(t-2000).sign,desired.from);
   assert.equal(at(t+2000).sign,desired.to);
  }
+});
+
+test('P385 Moon crosses four 3°20′ Nakshatra padas in one day: all four exact Swiss-style moments found',()=>{
+ const a=Date.parse(SUN),b=Date.parse(NEXT),WIDTH=360/108;
+ const at=ms=>({longitude:2+12*(ms-a)/(b-a),longitudeSpeed:12});
+ const crossing=findP385MoonPadaCrossings(a,b,at);
+ assert.equal(crossing.length,4);
+ for(let i=0;i<4;i++){
+  const wanted=a+(WIDTH*(i+1)-2)/12*(b-a);
+  assert.ok(Math.abs(Date.parse(crossing[i])-wanted)<=1000,
+   'Exact lunar pada transition '+(i+1)+' should be within one second');
+ }
+ assert.throws(()=>findP385MoonPadaCrossings(a,b,()=>({longitude:2,longitudeSpeed:-1})),
+  /prograde Swiss Moon/);
+});
+test('P385 wedding: first versus second Magha pada produces distinct documented exclusion at same event Lagna',()=>{
+ const local=structuredClone(day),now=structuredClone(makeEvent('wedding'));
+ local.sunrise.nakshatra={number:10,name:'Magha',pada:1};
+ local.periods.nakshatra[0].value=local.sunrise.nakshatra;
+ const setMoon=longitude=>{
+  const sign=Math.floor(longitude/30)+1;
+  now.eventSky=now.eventSky.map(p=>p.name==='Moon'?
+   {...p,longitude,sign,houseFromEventLagna:(sign-now.eventLagna.lagnaSign+12)%12+1}:p);
+ };
+ setMoon(121);
+ const first=evaluateP385Special({event:now,day:local,owner:natal,partner,nodes});
+ assert.equal(first.rules.find(r=>r.id==='MARRIAGE_NAKSHATRA_PADA')?.state,'excluded');
+ setMoon(125);
+ const second=evaluateP385Special({event:now,day:local,owner:natal,partner,nodes});
+ assert.equal(second.rules.find(r=>r.id==='MARRIAGE_NAKSHATRA_PADA')?.state,'context');
 });
