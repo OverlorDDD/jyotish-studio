@@ -29,6 +29,17 @@ jobs:
           test -s /tmp/p389-env.mjs
           node --check /tmp/p389-env.mjs
           echo P389_OPERATOR_SCRIPT_SYNTAX_PASS
+      - name: Run real Swiss rise/set with isolated Python before any code-only deployment
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 -m venv "$RUNNER_TEMP/p389-python"
+          "$RUNNER_TEMP/p389-python/bin/python3" -m pip install --disable-pip-version-check --no-input 'pyswisseph==2.10.3.2'
+          npm install --no-audit --no-fund --ignore-scripts --no-package-lock
+          test -s node_modules/@swisseph/node/ephemeris/sepl_18.se1
+          test -s node_modules/@swisseph/node/ephemeris/semo_18.se1
+          PYTHON_BIN="$RUNNER_TEMP/p389-python/bin/python3" node /tmp/p389-probe.mjs
+          echo P389_REAL_SWISS_PYTHON_PROBE_PASS
       - name: Pinned SHA, preflight ordering, nonprivileged Python and rollback contract
         run: |
           python3 - <<'PY'
