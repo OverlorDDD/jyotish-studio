@@ -15,6 +15,7 @@ import type {RecoveredChart} from './personal-chart-recovery.ts';
 import type {P32Day} from '../../web/lib/panchanga-p32-engine.ts';
 import type {P33Report,P33Point} from '../../web/lib/panchanga-p33-resonance.ts';
 import {p38Activity,type P38ActivityId} from '../../web/lib/panchanga-p38-decision.ts';
+import {scoreP390} from '../../web/lib/panchanga-p390-scoring.ts';
 
 const DAY=86400000,MAX_DAYS=30,MAX_EVENTS=400;
 const NAK_LEN=360/27;
@@ -131,6 +132,8 @@ export async function searchP385Time(input:P385SearchInput){
    latitude:String(observer.latitude),longitude:String(observer.longitude)};
   const result=assembleP384EventElection({activityId:input.activityId,atUtc,day,point,
    eventLagna:asc,personalReport:report,sky,partnerVerified:!!partner});
+  const rating=scoreP390({activityId:input.activityId,method:activity.method,
+   observations:result.calendarEvidence,personalized:true});
   const reasons:string[]=[
    ...result.calendarEvidence.filter(e=>e.polarity!=='context').map(e=>e.id),
    ...(result.panchaka?.forbiddenForScope?['RAMAN_PANCHAKA_SCOPE']:[])
@@ -149,19 +152,19 @@ export async function searchP385Time(input:P385SearchInput){
     reasons.push(...special.rules.filter(r=>r.state==='excluded'||r.state==='preferred')
      .map(r=>r.id));
    return {status:flags==='excluded'||special.state==='excluded'?'excluded' as const:
-     'requires_review' as const,reasonIds:reasons,
+     'requires_review' as const,reasonIds:reasons,score:rating.score,
     source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
   }
-  if(flags==='excluded')return {status:'excluded' as const,reasonIds:reasons,
+  if(flags==='excluded')return {status:'excluded' as const,reasonIds:reasons,score:null,
    source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
   if(activity.method==='direct'&&result.calendarVerdict==='candidate'&&
     !activity.required.includes('election_lagna'))
-   return {status:'candidate' as const,reasonIds:reasons,
+   return {status:'candidate' as const,reasonIds:reasons,score:rating.score,
     source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
   if(activity.method==='special_election')return {status:'requires_review' as const,
-   reasonIds:['SPECIAL_ELECTION_RULE_COVERAGE_INCOMPLETE',...reasons],
+   reasonIds:['SPECIAL_ELECTION_RULE_COVERAGE_INCOMPLETE',...reasons],score:rating.score,
    source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
-  return {status:'undetermined' as const,reasonIds:['NO_DOCUMENTED_POSITIVE_ELECTION'],
+  return {status:'undetermined' as const,reasonIds:['NO_DOCUMENTED_POSITIVE_ELECTION'],score:rating.score,
    source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
  };
  const timeline=await findP385Windows({activityId:input.activityId,days,fromUtc:input.fromUtc,
