@@ -11,7 +11,7 @@ import {evaluateP38,p38Activity,P38_ACTIVITIES,type P38Category,
  type P38ActivityId,type P38Moment} from '../../lib/panchanga-p38-decision';
 import {validateP33Report,type P33Report} from '../../lib/panchanga-p33-resonance';
 import {p386EvidenceShare} from '../../lib/panchanga-p386-evidence';
-import styles from './PanchangaMyDay.module.css';
+import styles from './PanchangaCleanDay.module.css';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
 type UserState='loading'|'ready'|'guest'|'no_chart'|'error';
