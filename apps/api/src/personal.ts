@@ -13,7 +13,10 @@ import {tropicalNatalChartAtUtc} from './western-natal.ts';
 import {buildAdvancedSynthesis} from './advanced-synthesis.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import {calculatePanchangaDay,validatePanchangaLocation,createVerifiedSiderealPlanetAt} from './panchanga.ts';
-import {calculateVerifiedEventLagna,validateEventLagnaInput} from './panchanga-event-lagna.ts';
+import {calculateVerifiedEventLagna,validateEventLagnaInput,calculateVerifiedEventNodesAt} from './panchanga-event-lagna.ts';
+import {evaluateP385Special,p385NatalFromVerified} from './panchanga-p385-special.ts';
+import {searchP385Time} from './panchanga-p385-search.ts';
+import type {RecoveredChart} from './personal-chart-recovery.ts';
 import {assembleP384EventElection} from './panchanga-event-election.ts';
 import {P38_ACTIVITIES,type P38ActivityId,p38Activity} from '../../web/lib/panchanga-p38-decision.ts';
 import type {P33Report} from '../../web/lib/panchanga-p33-resonance.ts';
@@ -103,6 +106,10 @@ export class P384EventLagnaDto{
  @IsOptional() @IsUUID() partnerChartId?:string;
 }
 const p384EventLimiter=createKeyedHourlyLimiter(8);
+const p385SearchLimiter=createKeyedHourlyLimiter(2);
+export class P385TimeFinderDto extends P384EventLagnaDto{
+ @IsOptional() @IsIn([7,30]) days?:7|30;
+}
 
 @Controller('api/v1/personal')
 export class PersonalController{
@@ -394,6 +401,7 @@ export class PersonalController{
   if(body.partnerChartId&&!activity.required.includes('partner_chart'))
    throw new BadRequestException('Partner chart is not needed for this activity');
   let partnerVerified=false;
+  let partnerChart:RecoveredChart|null=null;
   if(activity.required.includes('partner_chart')){
    if(!body.partnerChartId)
     return {status:'requires_partner_chart',nextAction:'select_partner_chart_with_consent'};
@@ -407,6 +415,7 @@ export class PersonalController{
      !partnerRecovery.chart.d1.some(p=>p.name==='Moon'))
     return {status:'requires_verified_partner_chart',nextAction:'verify_partner_chart'};
    partnerVerified=true;
+   partnerChart=partnerRecovery.chart;
   }
   try{
    const event=await calculateVerifiedEventLagna({
@@ -430,12 +439,60 @@ export class PersonalController{
    const sky=names.map(name=>({name,longitude:atPlanet(at,name).longitude}));
    const point={date:day.date,timeZone:body.timeZone,
     latitude:String(body.latitude),longitude:String(body.longitude)};
-   return assembleP384EventElection({activityId:body.activityId,atUtc:body.atUtc,
+   const evaluated=assembleP384EventElection({activityId:body.activityId,atUtc:body.atUtc,
     day:day as unknown as P32Day,point,eventLagna:event,personalReport:personal as P33Report,
     sky,partnerVerified});
+   if(body.activityId!=='wedding'&&body.activityId!=='foundation')
+    return {...evaluated,specialRules:null};
+   const nodes=await calculateVerifiedEventNodesAt(body.atUtc);
+   const specialRules=evaluateP385Special({event:evaluated,day:day as unknown as P32Day,
+    owner:p385NatalFromVerified(recovered.chart),
+    partner:partnerChart?p385NatalFromVerified(partnerChart):null,nodes});
+   return {...evaluated,specialRules};
   }catch{
    throw new ServiceUnavailableException('Verified Swiss event Lagna or calendar cannot be established');
   }
+ }
+
+ /** P3.8.5 exact multi-day Time Finder, isolated backend preview.
+  * Never calls the browser's generic "avoid" template nor persists natal input.
+  * 7 or 30 consecutive sunrise days; candidate != complete ceremonial Muhurta.
+  */
+ @Post('panchanga/time-finder') @Header('Cache-Control','private, no-store')
+ @Header('Vary','Cookie')
+ async p385TimeFinder(@Req()req:IncomingMessage,@Body()body:P385TimeFinderDto){
+  const uid=mutation(req);
+  if(!p385SearchLimiter(uid))throw new BadRequestException('Time Finder request budget reached');
+  try{validateEventLagnaInput({...body,atUtc:body.atUtc});}
+  catch(e){throw new BadRequestException(e instanceof Error?e.message:'Invalid observer/start UTC');}
+  const from=Date.parse(body.atUtc);
+  if(from<Date.now()-60000||from>Date.now()+5*365.25*86400000)
+   throw new BadRequestException('Choose a future search start within five years');
+  const activity=p38Activity(body.activityId);
+  const profile=await this.prisma.personalProfile.findUnique({where:{userId:uid},
+   select:{primaryChartId:true}});
+  if(!profile?.primaryChartId)return {status:'requires_primary_chart',nextAction:'create_or_select_natal_chart'};
+  const row=await this.prisma.chart.findFirst({where:{id:profile.primaryChartId,ownerId:uid},
+   select:{id:true,input:true,result:true}});
+  if(!row)return {status:'requires_verified_chart',nextAction:'verify_natal_chart'};
+  const ownerRecovery=await resolvePersonalChart(this.prisma,row);
+  if(!ownerRecovery.chart)return {status:'requires_verified_chart',nextAction:'verify_natal_chart'};
+  let partner:RecoveredChart|null=null;
+  if(activity.required.includes('partner_chart')){
+   if(!body.partnerChartId)
+    return {status:'requires_partner_chart',nextAction:'save_partner_chart_with_permission'};
+   if(body.partnerChartId===row.id)
+    throw new BadRequestException('Partner must be a different owned chart');
+   const second=await this.prisma.chart.findFirst({where:{ownerId:uid,id:body.partnerChartId},
+    select:{id:true,input:true,result:true}});
+   if(!second)return {status:'requires_partner_chart',nextAction:'select_owned_partner_chart'};
+   partner=(await resolvePersonalChart(this.prisma,second)).chart;
+   if(!partner)return {status:'requires_verified_partner_chart',nextAction:'verify_partner_chart'};
+  }else if(body.partnerChartId)throw new BadRequestException('This activity does not accept a partner chart');
+  try{return await searchP385Time({activityId:body.activityId,fromUtc:body.atUtc,
+    days:body.days||7,observer:{latitude:body.latitude,longitude:body.longitude,
+     timeZone:body.timeZone},owner:ownerRecovery.chart,partner});}
+  catch{throw new ServiceUnavailableException('Verified multi-day Swiss Time Finder unavailable; no invented time returned');}
  }
 
  @Get('panchanga/resonance') @Header('Cache-Control','private, no-store')
