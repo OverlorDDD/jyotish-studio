@@ -17,6 +17,7 @@ import {calculateVerifiedEventLagna,validateEventLagnaInput} from './panchanga-e
 import {assembleP384EventElection} from './panchanga-event-election.ts';
 import {P38_ACTIVITIES,type P38ActivityId,p38Activity} from '../../web/lib/panchanga-p38-decision.ts';
 import type {P33Report} from '../../web/lib/panchanga-p33-resonance.ts';
+import type {P32Day} from '../../web/lib/panchanga-p32-engine.ts';
 import {normalizePanchangaLocation} from './panchanga-location.ts';
 import {buildP35Calendar} from './panchanga-personal-calendar.ts';
 import {findVerifiedSignIngresses} from './panchanga-ingress.ts';
@@ -430,7 +431,7 @@ export class PersonalController{
    const point={date:day.date,timeZone:body.timeZone,
     latitude:String(body.latitude),longitude:String(body.longitude)};
    return assembleP384EventElection({activityId:body.activityId,atUtc:body.atUtc,
-    day,point,eventLagna:event,personalReport:personal as P33Report,
+    day:day as unknown as P32Day,point,eventLagna:event,personalReport:personal as P33Report,
     sky,partnerVerified});
   }catch{
    throw new ServiceUnavailableException('Verified Swiss event Lagna or calendar cannot be established');
