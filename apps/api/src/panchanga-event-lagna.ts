@@ -10,7 +10,9 @@
  * an ascendant across a sidereal sign, or replace Swiss with approximations.
  * No event "muhurta" is certified by this astronomical computation alone.
  */
-import {divisionalLongitude,JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS,mod} from '../../../packages/jyotish-core/src/index.ts';
+import {divisionalLongitude,JHORA8_MEAN_LAHIRI_VERSION_DIFF_ARCSECONDS,jhora8SiderealLongitude,mod} from '../../../packages/jyotish-core/src/index.ts';
+import {jhora8HistoricalJulianDay} from '../../../packages/jyotish-core/src/jhora8-delta-t-grid.ts';
+import {assertSwissReturnFlags} from './swiss-backend-policy.ts';
 
 export const EVENT_LAGNA_PROFILE='jqa3-swiss210-historical-jhora8-mean-lahiri-v1' as const;
 export const EVENT_LAGNA_SOURCE='https://www.astro.com/ftp/swisseph/doc/swephprg.2.10.htm';
@@ -25,6 +27,7 @@ export type VerifiedEventLagna={
  tropicalAscendantDegrees:number;siderealAscendantDegrees:number;
  lagnaSign:number;degreesInSign:number;
  eventNavamsaLongitude:number;eventNavamsaSign:number;
+ eventDasamsaLongitude:number;eventDasamsaSign:number;
  panchakaLagnaNumber:number;
  distanceToSignBoundaryArcseconds:number;
  profile:typeof EVENT_LAGNA_PROFILE;source:typeof EVENT_LAGNA_SOURCE;
@@ -72,7 +75,7 @@ export async function calculateVerifiedEventLagna(input:EventLagnaInput):Promise
  // A sign exactly on its boundary is exquisitely sensitive to seconds of
  // location/time and floating-point conventions; never mislabel it as stable.
  if(distanceArcSeconds<=1)throw Error('Event Lagna within 1 arcsecond of sign boundary; refine event time');
- const nav=divisionalLongitude(sid,9);
+ const nav=divisionalLongitude(sid,9),dash=divisionalLongitude(sid,10);
  const dt=new Intl.DateTimeFormat('en-GB',{timeZone:input.timeZone,
   year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',
   second:'2-digit',hourCycle:'h23'}).formatToParts(t);
@@ -88,7 +91,28 @@ export async function calculateVerifiedEventLagna(input:EventLagnaInput):Promise
   tropicalAscendantDegrees:asc,siderealAscendantDegrees:sid,
   lagnaSign:Math.floor(sid/30)+1,degreesInSign:deg,
   eventNavamsaLongitude:nav,eventNavamsaSign:Math.floor(nav/30)+1,
+  eventDasamsaLongitude:dash,eventDasamsaSign:Math.floor(dash/30)+1,
   panchakaLagnaNumber:Math.floor(sid/30)+1,
   distanceToSignBoundaryArcseconds:distanceArcSeconds,
   profile:EVENT_LAGNA_PROFILE,source:EVENT_LAGNA_SOURCE};
+}
+
+/** Mean Rahu and opposing Ketu for EVENT elections (not user's natal nodes).
+ * Native SWIEPH returned flags are mandatory; never substitute Moshier.
+ */
+export async function calculateVerifiedEventNodesAt(atUtc:string){
+ const ms=Date.parse(atUtc);
+ if(typeof atUtc!=='string'||!Number.isSafeInteger(ms)||
+    new Date(ms).toISOString()!==atUtc)throw Error('P385 verified UTC event required for lunar nodes');
+ const sw=await import('@swisseph/node');
+ sw.setSiderealMode(sw.SiderealMode.Lahiri);
+ const jd=ms/86400000+2440587.5,year=new Date(ms).getUTCFullYear();
+ if(year<1900||year>2099)throw Error('P385 lunar nodes outside verified event range');
+ const planetJd=jhora8HistoricalJulianDay(jd);
+ const flags=sw.CalculationFlag.SwissEphemeris|sw.CalculationFlag.Speed|65536;
+ const point=sw.calculatePosition(planetJd,sw.LunarPoint.MeanNode,flags);
+ assertSwissReturnFlags(point.flags,'P385.Event.MeanRahu');
+ const rahu=jhora8SiderealLongitude(point.longitude);
+ if(!Number.isFinite(rahu)||rahu<0||rahu>=360)throw Error('P385 non-finite SWIEPH Rahu');
+ return {Rahu:rahu,Ketu:mod(rahu+180),source:'JQA3_NATIVE_SWIEPH_MEAN_NODE_AND_OPPOSITE' as const};
 }
