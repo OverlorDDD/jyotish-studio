@@ -47,9 +47,11 @@ export function scoreP390(input:P390Input):P390Rating{
  const groups=new Map<Group,P38Observation['polarity']>();
  let activitySupport=false;
  const hardReasonIds:string[]=[];
- for(const e of input.observations){
+ for(const observation of input.observations as readonly P38Observation[]){
+  const e:P38Observation=observation;
   if(!e.id||!e.source?.startsWith('https://')||
-    !['activity','personal','general_election'].includes(e.scope))
+    !['activity','personal','general_election'].includes(e.scope)||
+    !Object.hasOwn(rank,e.polarity))
    throw Error('P390 invalid or unsourced factor');
   if(e.polarity==='supports'&&e.scope==='activity')activitySupport=true;
   if(e.polarity==='excludes')hardReasonIds.push(e.id);
