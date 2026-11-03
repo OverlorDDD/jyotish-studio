@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {calculateVerifiedEventLagna} from '../apps/api/src/panchanga-event-lagna.ts';
 import {panchangaRange} from '../apps/api/src/panchanga-range.ts';
 import {createVerifiedSiderealPlanetAt} from '../apps/api/src/panchanga.ts';
@@ -17,7 +18,7 @@ const fixture=readFileSync(new URL('../tests/fixtures/p388-independent-asc-30.ts
    expectedAsc:Number(expectedAsc),expectedLagna:Number(expectedLagna),expectedLocal};
  });
 const angle=(a,b)=>Math.abs(((a-b+540)%360)-180)*3600;
-const script=new URL('./panchanga-p388-independent-reference.py',import.meta.url).pathname;
+const script=fileURLToPath(new URL('./panchanga-p388-independent-reference.py',import.meta.url));
 const python=process.env.PYTHON_BIN||(process.platform==='win32'?'py':'python3');
 function oracle(args,input){
  const result=spawnSync(python,[...(python==='py'?['-3']:[]),script,...args],{
