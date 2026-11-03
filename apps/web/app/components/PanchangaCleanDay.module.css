@@ -30,7 +30,7 @@
 .ratioContainer{display:flex;flex:0 0 auto;flex-direction:column;align-items:center;gap:5px}
 .ratioContainer small{text-align:center;color:#cbdbea;font-size:11px;line-height:1.25}
 .ratioRing{width:82px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
- background:conic-gradient(#d7c08b var(--supportPct),#50647c 0)}
+ background:conic-gradient(var(--ringColor,#d7c08b) var(--supportPct),#50647c 0)}
 .ratioRing span{width:69px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
  background:#172b42;color:#fff1d6;font:700 20px system-ui}
 .ratioHelp{font-size:12px;color:#bdcede;margin-top:13px}
@@ -123,3 +123,28 @@
 .ruleSource{display:inline-block;margin-top:10px;font-size:12px;color:#f5d49d;text-decoration:underline}
 .finderReasons{font-size:12px;line-height:1.55;margin:8px 0 0;padding-left:18px;color:#e1e9f6}
 .finderReasons li{margin:5px 0}
+
+/* P3.9: one-line controls and a compact real-factor index; keep mobile tidy. */
+.momentRow{display:flex;align-items:end;justify-content:space-between;gap:12px;
+ flex-wrap:wrap;margin:0 0 14px}
+.momentRow .momentSelector{display:flex;flex:1 1 245px;flex-direction:column;
+ align-items:start;gap:6px;margin:0}
+.momentRow .momentSelector select{width:min(100%,390px)}
+.todayButton{flex:0 0 auto;min-height:44px;padding:9px 16px;cursor:pointer;
+ border-radius:9px;border:1px solid #91a7b9;background:#152b40;
+ color:#f3dfbc;font:650 13px system-ui}
+.todayButton:hover,.todayButton:focus-visible{background:#2b4963}
+.sharedRules summary{cursor:pointer;color:#cbd8e7}
+.sharedRules p{margin:6px 0 0}
+.topWindows{display:grid;gap:7px;margin:10px 0}
+.topWindow{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ border-radius:8px;border:1px solid #49677b;padding:9px 12px;background:#12283d}
+.topWindow time{font-size:13px;color:#deebf6}
+.topWindow strong{flex:none;color:#84dbb7;font-size:14px}
+@media(max-width:480px){
+ .momentRow{align-items:stretch;gap:9px}
+ .momentRow .momentSelector{flex:1 1 100%;align-items:stretch}
+ .momentRow .momentSelector select{width:100%;max-width:none}
+ .todayButton{align-self:flex-end}
+ .ratioRing{width:64px}
+}
