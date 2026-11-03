@@ -4,7 +4,7 @@
  */
 import {validateP35Private,type P35Days,type P35Personal,type P35Point,
  type P35Private} from './panchanga-p35-calendar.ts';
-import type {P38ActivityId} from './panchanga-p38-decision';
+import {p38Activity,type P38ActivityId} from './panchanga-p38-decision.ts';
 
 export type P387Overview={
  version:string;scope:string;startDate:string;astronomyProfile:string;sourceMethod:string;
@@ -95,6 +95,13 @@ export function validateP387Finder(finder:P387Finder,point:P35Point,
   'bounded first-per-day coverage');
  const status=finder.candidate?'candidate_found':finder.review?'review_only':'none_in_checked_range';
  check(status===finder.status,'nearest window status');
+ // A partial classical election must NEVER be upgraded by a malformed
+ // response to a green candidate. Engagement is also special_election.
+ const method=p38Activity(activityId).method;
+ if(method==='special_election')
+  check(finder.candidate===null&&finder.status!=='candidate_found'&&
+   finder.windows.every(w=>w.status!=='candidate'),
+   'uncertified special election cannot produce a favorable candidate');
  let last=Date.parse(finder.startUtc)-1;const unique=new Set<string>();
  for(const w of finder.windows){
   const a=Date.parse(w.startUtc),b=Date.parse(w.endUtc);
