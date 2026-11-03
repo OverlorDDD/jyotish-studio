@@ -31,15 +31,16 @@ test('Consented page_view triggers one collector request with correct Measuremen
   outgoing.push(route.request().url());
   await route.fulfill({status:204,body:''});
  });
- // A controlled Google tag transport shim: validates queued gtag -> g/collect
- // wiring, not receipt by the real Google servers.
+ // A strict Google tag transport shim: model the native gtag Arguments
+ // contract. Old array-based code must not pass this test. This still does
+ // NOT prove Google accepted a real request.
  const js=`(()=>{const q=window.dataLayer||[];const emit=(a)=>{
-  if(a?.[0]!=='event')return;const u=new URL('https://www.google-analytics.com/g/collect');
+  if(Object.prototype.toString.call(a)!=='[object Arguments]'||a[0]!=='event')return;const u=new URL('https://www.google-analytics.com/g/collect');
   u.searchParams.set('v','2');u.searchParams.set('tid','G-TEST123456');
   u.searchParams.set('en',a[1]);
   u.searchParams.set('dl',a[2]?.page_location||'https://galaxiora.com/en');
   fetch(u.toString(),{mode:'no-cors',keepalive:true}).catch(()=>{});
- };q.filter(Array.isArray).forEach(emit);const push=q.push.bind(q);
+ };q.filter(a=>Object.prototype.toString.call(a)==='[object Arguments]').forEach(emit);const push=q.push.bind(q);
  q.push=(...args)=>{for(const a of args)emit(a);return push(...args);};})();`;
  await page.route(/googletagmanager\.com\/gtag\/js/,route=>route.fulfill({status:200,contentType:'application/javascript',body:js}));
  await page.goto('/en?ga4_debug=1&birthDate=private');
@@ -48,6 +49,8 @@ test('Consented page_view triggers one collector request with correct Measuremen
  await expect.poll(()=>outgoing.some(x=>new URL(x).searchParams.get('en')==='galaxiora_debug_ping')).toBe(true);
  expect(outgoing.every(x=>new URL(x).searchParams.get('tid')==='G-TEST123456')).toBe(true);
  expect(JSON.stringify(outgoing)).not.toContain('private');
+ const queueTypes=await page.evaluate(()=>window.dataLayer.map(item=>Object.prototype.toString.call(item)));
+ expect(queueTypes.every(type=>type==='[object Arguments]')).toBe(true);
  await page.getByRole('button',{name:'Analytics settings'}).click();
  await expect(page.getByTestId('analytics-tag-status')).toContainText('g/collect request observed');
  await page.getByRole('button',{name:'Allow'}).click();
