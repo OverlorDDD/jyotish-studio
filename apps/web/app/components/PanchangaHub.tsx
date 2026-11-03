@@ -3,9 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
-import type {P38ActivityId} from '../../lib/panchanga-p38-decision';
 import CitySearch from './CitySearch';
-import PanchangaCleanDay from './PanchangaCleanDay';
 import PanchangaDailyOpportunities from './PanchangaDailyOpportunities';
 import type {OpportunityDay} from '../../lib/panchanga-opportunities';
 import PanchangaRangeView from './PanchangaRangeView';
@@ -35,7 +33,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [form,setForm]=useState<Form>({date:localeDate(DEFAULT_CITY.timeZone),...defaultCity});
  const [requested,setRequested]=useState<Form|null>(null);
  const [view,setView]=useState<'day'|'week'|'month'>('day');
- const [activity,setActivity]=useState<P38ActivityId>('job_start');
  const [focusAtUtc,setFocusAtUtc]=useState<string|null>(null);
  const [todayResetSerial,setTodayResetSerial]=useState(0);
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
@@ -44,8 +41,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [autoSave,setAutoSave]=useState(true);
  const [saveState,setSaveState]=useState<'idle'|'saving'|'saved'|'error'>('idle');
  const saveSequence=useRef(0),saveQueue=useRef<Promise<unknown>>(Promise.resolve());
- const [showTechnical,setShowTechnical]=useState(false);
- const [showElectionTool,setShowElectionTool]=useState(false);
  useEffect(()=>{
   const qs=new URLSearchParams(window.location.search);
   if(qs.get('view')==='personal')setView('week'); // retired duplicate 7/30 view
@@ -84,7 +79,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   saveQueue.current=pending.catch(()=>{if(version===saveSequence.current)setSaveState('error')});
  }
  function selectLocation(next:Form){
-  setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setShowElectionTool(false);setFocusAtUtc(null);
+  setForm(next);setRequested(next);setDay(null);setFocusAtUtc(null);
   saveCity(next);
  }
  async function restoreNatalCity(){
@@ -105,7 +100,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  }
  function setDate(date:string){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
-  const next={...form,date};setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setShowElectionTool(false);setFocusAtUtc(null);
+  const next={...form,date};setForm(next);setRequested(next);setDay(null);setFocusAtUtc(null);
  }
  function pickDay(date:string,atUtc?:string){setDate(date);setFocusAtUtc(atUtc||null);setView('day')}
  function resetToToday(){
@@ -149,7 +144,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   </div>
   <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
    {(['day','week','month'] as const).map(period=><button type="button" key={period}
-    aria-current={view===period?'page':undefined} onClick={()=>{setView(period);setShowTechnical(false)}}>
+    aria-current={view===period?'page':undefined} onClick={()=>{setView(period);}}>
     {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):(uk?'Місяць':'Month')}
    </button>)}
   </nav>
@@ -175,22 +170,18 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <PanchangaDailyOpportunities key={'opportunities|'+requested.date+'|'+requested.timeZone+'|'+todayResetSerial}
     locale={locale} day={day as unknown as OpportunityDay} point={requested}
     onToday={resetToToday} onTomorrow={()=>setDate(new Date(Date.parse(requested.date+'T12:00:00Z')+86400000).toISOString().slice(0,10))}
-    onWeek={()=>setView('week')} onAdvanced={()=>setShowElectionTool(true)}/>
-   <details className={styles.technical} open={showElectionTool}
-    onToggle={e=>setShowElectionTool(e.currentTarget.open)} data-testid="p410-advanced">
-    <summary>{uk?'Персональний підбір часу для складних подій (попередня мухурта)':
-     'Advanced personal time selection (preliminary Muhurta)'}</summary>
-    {showElectionTool&&<PanchangaCleanDay key={requested.date+'|'+requested.timeZone+'|'+requested.latitude+'|'+requested.longitude+'|'+todayResetSerial}
-     locale={locale} day={day} point={requested} activity={activity} onActivityChange={setActivity}
-     focusAtUtc={focusAtUtc} onResetToday={resetToToday}/>}
-   </details>
+    onWeek={()=>setView('week')}/>
   </>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view}
    point={requested} monthSystem={monthSystem} onPick={pickDay}
-   activity={activity} onActivityChange={setActivity} canPersonal={source!=='checking'&&source!=='guest'}/>}
-  {view==='day'&&matches&&day&&<details className={styles.technical} open={showTechnical}
-   data-testid="p31-details" onToggle={e=>setShowTechnical(e.currentTarget.open)}>
-   <summary>{uk?'Технічні дані: точні переходи й методика':'Technical data: exact transitions & methodology'}</summary>
+   activity={'job_start'} onActivityChange={()=>{}} canPersonal={source!=='checking'&&source!=='guest'}/>}
+  {view==='day'&&matches&&day&&<section className={styles.classicPanchanga}
+   data-testid="p31-details" aria-label={uk?'Класична Панчанга':'Classical Panchanga'}>
+   <header className={styles.classicHeading}>
+    <h2>{uk?'Класична Панчанга':'Classical Panchanga'}</h2>
+    <p>{uk?'П’ять показників, точні переходи та денні періоди для вибраного міста.':
+     'Five limbs, exact transitions and daylight intervals for the selected city.'}</p>
+   </header>
    <div className={styles.technicalContent}>
     <PanchangaLiveDay day={day} locale={locale}/>
     <section className={styles.timeline}>
@@ -209,7 +200,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
       Swiss Ephemeris ↗</a>
     </section>
    </div>
-  </details>}
+  </section>}
   {source!=='checking'&&source!=='guest'&&<details className={styles.observerSettings}>
    <summary>{uk?'Налаштування міста':'Location preferences'}</summary>
    <label><input type="checkbox" checked={autoSave}
