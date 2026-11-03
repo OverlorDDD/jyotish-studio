@@ -30,6 +30,14 @@ const CATEGORIES:{id:P38Category;uk:string;en:string;icon:typeof BriefcaseBusine
  {id:'personal',uk:'Творчість',en:'Creative',icon:Palette}
 ];
 const ICONS={tithi:Moon,nakshatra:Sparkles,vara:CalendarDays,yoga:Orbit,karana:CircleDot};
+const VARA_UK:Record<string,string>={Ravivara:'Неділя',Somavara:'Понеділок',
+ Mangalavara:'Вівторок',Budhavara:'Середа',Guruvara:'Четвер',
+ Shukravara:'П’ятниця',Shanivara:'Субота'};
+const YOGA_UK=['Вішкумбха','Пріті','Аюшман','Саубхаг’я','Шобхана','Атіганда',
+ 'Сукарма','Дхріті','Шула','Ганда','Вріддхі','Дхрува','В’ягхата','Харшана',
+ 'Ваджра','Сіддхі','В’ятіпата','Варіяна','Парігха','Шіва','Сіддха',
+ 'Садх’я','Шубха','Шукла','Брахма','Індра','Вайдхріті'];
+
 const TOPIC:Record<P38Category,'work'|'money'|'relationships'|'travel'|'study'|'home'|'personal'>={
  work:'work',finance:'money',relationships:'relationships',travel:'travel',
  education:'study',home:'home',spiritual:'personal',personal:'personal'
@@ -251,10 +259,14 @@ export default function PanchangaMyDay({locale,day,point}:{
    <div className={styles.factorGrid}>
     {cards.map(card=>{
      const Icon=ICONS[card.factor];
-     return <details key={card.factor} data-factor={card.factor} className={styles.factorCard}>
+     const localized=uk&&card.factor==='vara'?VARA_UK[card.value.en]||card.value[locale]:
+    uk&&card.factor==='yoga'?YOGA_UK[(verifiedDay.periods.yoga.find(p=>
+      Date.parse(p.startUtc)<=Date.parse(iso!)&&Date.parse(iso!)<Date.parse(p.endUtc))?.value.number||1)-1]||card.value[locale]:
+    card.value[locale];
+   return <details key={card.factor} data-factor={card.factor} className={styles.factorCard}>
       <summary><span className={styles.factorIcon}><Icon size={19} aria-hidden="true"/></span>
        <span className={styles.factorText}><small>{card.name[locale]}</small>
-        <strong>{card.value[locale]}</strong>
+        <strong>{localized}</strong>
         <em>{card.classification[locale]}</em></span>
        <ChevronDown className={styles.chevron} size={16} aria-hidden="true"/></summary>
       <div className={styles.factorExtra}>
