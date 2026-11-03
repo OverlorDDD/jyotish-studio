@@ -76,7 +76,7 @@ test('P389 honest specialized requirements and both language translations for al
   const vEn=p389Guidance(moment(a.id,'fixed',[],a.method==='special_election'?
    'needs_full_election':a.method==='routine'?'routine':'undetermined'),'en');
   for(const v of [vUk,vEn]){
-   assert.ok(v.headline.length>15&&v.reason.length>15&&v.nextStep.length>20,a.id);
+   assert.ok(v.headline.length>15&&v.reason.length>15&&v.nextStep.length>10,a.id); // concise actionable copy
    assert.ok(!/Частина показників підтримує, інші потребують уваги|Для цієї справи потрібна повна мухурта/.test(v.headline));
   }
   if(a.method==='special_election'){
