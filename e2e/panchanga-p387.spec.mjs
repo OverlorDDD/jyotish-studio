@@ -5,7 +5,8 @@ for(const locale of ['uk','en']){
  test('P3.8.7 '+locale+' preserves activity across exact Day / Week / Month without creating unverified personal badges',async({page})=>{
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
-  await expect(page.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
+  await expect(page.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await page.getByTestId('p410-advanced').locator('summary').click();
   await page.getByRole('button',{name:locale==='uk'?'Подорожі':'Travel',exact:true}).click();
   await page.getByTestId('p386-activity-select').selectOption('short_journey');
   const nav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
@@ -20,6 +21,8 @@ for(const locale of ['uk','en']){
   await expect(monthly.getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});
   await expect(monthly.getByTestId('p387-activity-select')).toHaveValue('foundation');
   await monthly.getByTestId('panchanga-day-cell').nth(3).click();
+  await expect(page.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await page.getByTestId('p410-advanced').locator('summary').click();
   await expect(page.getByTestId('p386-activity-select')).toHaveValue('foundation',{timeout:90000});
  });
 }
