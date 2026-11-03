@@ -189,3 +189,29 @@ test('P3.8 Panchaka without one required verified event factor is NOT estimated'
  assert.throws(()=>calculateRamanPanchaka({...base,nakshatraNumber:0},'travel'),/verified/);
  assert.throws(()=>calculateRamanPanchaka(base,'unknown'),/unsupported/);
 });
+
+test('P3.8 exhaustive 68,040 electional Tithi/Vara/Nakshatra/Lagna combinations across four activity scopes',()=>{
+ const scopes=['occupation','home_building','travel','marriage'];
+ const blocked={occupation:[4],home_building:[2,4],travel:[6],marriage:[1,8]};
+ let combinations=0,scopeEvaluations=0;
+ const seen=new Set();
+ for(let tithiNumber=1;tithiNumber<=30;tithiNumber++)
+  for(let varaNumber=1;varaNumber<=7;varaNumber++)
+   for(let nakshatraNumber=1;nakshatraNumber<=27;nakshatraNumber++)
+    for(let electionLagnaSign=1;electionLagnaSign<=12;electionLagnaSign++){
+     combinations++;
+     const sample={tithiNumber,varaNumber,nakshatraNumber,electionLagnaSign};
+     const expected=(tithiNumber+varaNumber+nakshatraNumber+electionLagnaSign)%9;
+     seen.add(expected);
+     for(const scope of scopes){
+      const got=calculateRamanPanchaka(sample,scope);
+      assert.equal(got.remainder,expected);
+      assert.equal(got.forbiddenForScope,blocked[scope].includes(expected));
+      assert.equal(got.conclusion,blocked[scope].includes(expected)?'specific_exclusion':'no_specific_exclusion');
+      scopeEvaluations++;
+     }
+    }
+ assert.equal(combinations,68040);
+ assert.equal(scopeEvaluations,272160);
+ assert.deepEqual([...seen].sort((a,b)=>a-b),[0,1,2,3,4,5,6,7,8]);
+});
