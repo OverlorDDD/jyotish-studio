@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
+import type {P38ActivityId} from '../../lib/panchanga-p38-decision';
 import CitySearch from './CitySearch';
 import PanchangaDailyOpportunities from './PanchangaDailyOpportunities';
 import type {OpportunityDay} from '../../lib/panchanga-opportunities';
@@ -33,7 +34,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [form,setForm]=useState<Form>({date:localeDate(DEFAULT_CITY.timeZone),...defaultCity});
  const [requested,setRequested]=useState<Form|null>(null);
  const [view,setView]=useState<'day'|'week'|'month'>('day');
- const [focusAtUtc,setFocusAtUtc]=useState<string|null>(null);
+ const [activity,setActivity]=useState<P38ActivityId>('job_start');
  const [todayResetSerial,setTodayResetSerial]=useState(0);
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
  const [day,setDay]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
@@ -79,7 +80,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   saveQueue.current=pending.catch(()=>{if(version===saveSequence.current)setSaveState('error')});
  }
  function selectLocation(next:Form){
-  setForm(next);setRequested(next);setDay(null);setFocusAtUtc(null);
+  setForm(next);setRequested(next);setDay(null);
   saveCity(next);
  }
  async function restoreNatalCity(){
@@ -95,17 +96,17 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    const next=p?{...form,place:p.place,timeZone:p.timeZone,
     latitude:String(p.latitude),longitude:String(p.longitude)}:{...form,...defaultCity};
    if(version!==saveSequence.current)return;
-   setForm(next);setRequested(next);setSource(profile.source);setSaveState('idle');setFocusAtUtc(null);
+   setForm(next);setRequested(next);setSource(profile.source);setSaveState('idle');
   }catch{if(version===saveSequence.current)setSaveState('error')}
  }
  function setDate(date:string){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
-  const next={...form,date};setForm(next);setRequested(next);setDay(null);setFocusAtUtc(null);
+  const next={...form,date};setForm(next);setRequested(next);setDay(null);
  }
- function pickDay(date:string,atUtc?:string){setDate(date);setFocusAtUtc(atUtc||null);setView('day')}
+ function pickDay(date:string){setDate(date);setView('day')}
  function resetToToday(){
   // Use the selected event-city IANA time zone, never browser-local midnight.
-  setDate(localeDate(form.timeZone));setView('day');setFocusAtUtc(null);
+  setDate(localeDate(form.timeZone));setView('day');
   setTodayResetSerial(x=>x+1);
  }
  useEffect(()=>{
@@ -174,7 +175,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   </>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view}
    point={requested} monthSystem={monthSystem} onPick={pickDay}
-   activity={'job_start'} onActivityChange={()=>{}} canPersonal={source!=='checking'&&source!=='guest'}/>}
+   activity={activity} onActivityChange={setActivity} canPersonal={source!=='checking'&&source!=='guest'}/>}
   {view==='day'&&matches&&day&&<section className={styles.classicPanchanga}
    data-testid="p31-details" aria-label={uk?'Класична Панчанга':'Classical Panchanga'}>
    <header className={styles.classicHeading}>
