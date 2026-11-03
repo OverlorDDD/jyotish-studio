@@ -723,7 +723,7 @@ export class PersonalController{
    }
   }
 
-  /** P3.5 7/30 days — one authenticated request, shared sunrise batch and
+  /** P3.8.7 7/28–31 days — one authenticated request, shared sunrise batch and
    * one Swiss cursor; not 30 calls to P3.4's exhaustive hourly endpoint.
    * Every day is clearly a sunrise snapshot, with exact lunar/dasha events.
    */
@@ -735,9 +735,9 @@ export class PersonalController{
    @Query('longitude')longitude?:string){
    const uid=owner(req);
    if(!personalP35Limiter(uid))throw new BadRequestException('Too many Personal calendar requests');
-   if(!start||!['7','30'].includes(days||'')||!zone||
+   if(!start||!['7','28','29','30','31'].includes(days||'')||!zone||
     latitude===undefined||longitude===undefined)
-    throw new BadRequestException('Require start, days=7 or 30 and exact observer');
+    throw new BadRequestException('Require start, days=7 or calendar month (28–31) and exact observer');
    const raw={date:start,timeZone:zone,latitude:Number(latitude),longitude:Number(longitude)};
    let observer:ReturnType<typeof validatePanchangaLocation>;
    try{observer=validatePanchangaLocation(raw);
@@ -764,7 +764,7 @@ export class PersonalController{
      !Number.isInteger(lagnaSign)||lagnaSign!<1||lagnaSign!>12)
      return {status:'requires_verified_chart',method:'INCONSISTENT_VERIFIED_NATAL_ANCHORS'};
    try{return await buildP35Calendar({
-     start,days:Number(days) as 7|30,timeZone:observer.timeZone,
+     start,days:Number(days) as 7|28|29|30|31,timeZone:observer.timeZone,
      latitude:observer.latitude,longitude:observer.longitude
     },{moonLongitude,moonSign:moonSign!,lagnaSign:lagnaSign!,dasha:chart.dasha||[]});}
    catch{
