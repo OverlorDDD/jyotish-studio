@@ -59,17 +59,18 @@ const DECISION={
 const CLOCK=(iso:string,zone:string,locale:PortalLocale)=>new Intl.DateTimeFormat(
  locale==='uk'?'uk-UA':'en-GB',{timeZone:zone,day:'numeric',month:'short',
  hour:'2-digit',minute:'2-digit'}).format(new Date(iso));
-function targetTime(day:P31Day,point:Point,now:number){
+function targetTime(day:P31Day,point:Point,now:number,focusAtUtc:string|null){
  const a=Date.parse(day.sunriseUtc),b=Date.parse(day.nextSunriseUtc);
- const at=now>=a&&now<b?now:a+1000;
+ const focus=focusAtUtc?Date.parse(focusAtUtc):NaN;
+  const at=Number.isFinite(focus)&&focus>=a&&focus<b?focus:now>=a&&now<b?now:a+1000;
  return new Date(at).toISOString();
 }
-export default function PanchangaMyDay({locale,day,point}:{
- locale:PortalLocale;day:P31Day;point:Point;
+export default function PanchangaMyDay({locale,day,point,activity,onActivityChange,focusAtUtc=null}:{
+ locale:PortalLocale;day:P31Day;point:Point;activity:P38ActivityId;
+ onActivityChange:(id:P38ActivityId)=>void;focusAtUtc?:string|null;
 }){
  const uk=locale==='uk',verifiedDay=day as P32Day;
- const [category,setCategory]=useState<P38Category>('work');
- const [activity,setActivity]=useState<P38ActivityId>('job_start');
+ const category=p38Activity(activity).category;
  const [capturedNow,setCapturedNow]=useState<number|null>(null);
  const [privateReport,setPrivateReport]=useState<P33Report|null>(null);
  const [userState,setUserState]=useState<UserState>('loading');
@@ -81,8 +82,8 @@ export default function PanchangaMyDay({locale,day,point}:{
  const [chartState,setChartState]=useState<'idle'|'loading'|'ready'|'error'>('idle');
  const pointKey=[point.date,point.timeZone,point.latitude,point.longitude].join('|');
  useEffect(()=>{setCapturedNow(Date.now());setPrivateReport(null);setFinder(null);
-  setFinderState('idle');},[day,pointKey]);
- const iso=capturedNow===null?null:targetTime(day,point,capturedNow);
+  setFinderState('idle');},[day,pointKey,focusAtUtc]);
+ const iso=capturedNow===null?null:targetTime(day,point,capturedNow,focusAtUtc);
  const activityInfo=p38Activity(activity);
  const relevant=P38_ACTIVITIES.filter(a=>a.category===category);
  const requiresPartner=activityInfo.required.includes('partner_chart');
@@ -179,20 +180,20 @@ export default function PanchangaMyDay({locale,day,point}:{
   <header className={styles.top}>
    <div><span className={styles.eyebrow}>GALAXIORA · {uk?'ПАНЧАНГА':'PANCHANGA'}</span>
     <h2>{uk?'Мій день':'My day'}</h2></div>
-   {iso&&<span className={styles.moment}><Clock3 size={15}/>{clock(iso)}</span>}
+   {iso&&<span className={styles.moment}><Clock3 size={15}/>
+     {focusAtUtc&&(iso===focusAtUtc)?(uk?'Обраний інтервал · ':'Selected interval · '):''}{clock(iso)}</span>}
   </header>
   <div className={styles.advice}>
    <h3 className={styles.adviceLabel}>{uk?'Що плануєте?':'What are you planning?'}</h3>
    <div className={styles.topicButtons} role="group" aria-label={uk?'Категорія справи':'Activity category'}>
     {CATEGORIES.map(c=>{const Icon=c.icon;return <button type="button" key={c.id}
-     aria-pressed={category===c.id} onClick={()=>{setCategory(c.id);
-      setActivity(P38_ACTIVITIES.find(a=>a.category===c.id)!.id)}}>
+     aria-pressed={category===c.id} onClick={()=>onActivityChange(P38_ACTIVITIES.find(a=>a.category===c.id)!.id)}>
       <Icon size={17} aria-hidden="true"/>{c[locale]}</button>})}
    </div>
    <label className={styles.activitySelector}>
     {uk?'Конкретна справа':'Specific activity'}
     <span className={styles.selectWrap}>
-     <select value={activity} onChange={e=>setActivity(e.target.value as P38ActivityId)}
+     <select value={activity} onChange={e=>onActivityChange(e.target.value as P38ActivityId)}
       data-testid="p386-activity-select">
       {relevant.map(a=><option key={a.id} value={a.id}>{a.name[locale]}</option>)}
      </select><ChevronDown size={17} aria-hidden="true"/></span>
