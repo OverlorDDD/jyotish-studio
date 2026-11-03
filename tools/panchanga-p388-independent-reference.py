@@ -101,14 +101,27 @@ def month_reference(input: dict) -> dict:
     if not isinstance(count, int) or not 1 <= count <= 31 or not -66.49 <= lat <= 66.49:
         raise ValueError("Unsupported independently verified month/observer")
     _ = ZoneInfo(zone)
+    corrections = input.get("historicalDeltaTSeconds")
+    if corrections is not None:
+        if not isinstance(corrections, list) or len(corrections) != count or not all(
+                isinstance(x, (int, float)) and math.isfinite(x) and abs(x) < 60
+                for x in corrections):
+            raise ValueError("Historical JHora8 independent Swiss epoch correction must be a bounded day-scoped list")
     samples = []
     for i in range(count):
         d = start + i * DAY
         rise = local_sunrise(d, zone, lat, lon)
         next_rise = local_sunrise(d + DAY, zone, lat, lon)
         jd = julian(rise)
-        sun = calc_position(jd, swe.SUN)
-        moon = calc_position(jd, swe.MOON)
+        # The pinned JHora8 2.02.01 Delta-T grid (independently attested
+        # against old DLL) intentionally changes the physical Swiss epoch.
+        # Python computes actual planetary ephemeris independently at that
+        # explicitly supplied epoch; standard modern-UT Moon remains visible
+        # separately, not mislabeled as same-profile precision.
+        modern_moon = calc_position(jd, swe.MOON)
+        adjusted_jd = jd + (corrections[i] / 86400 if corrections is not None else 0)
+        sun = calc_position(adjusted_jd, swe.SUN)
+        moon = calc_position(adjusted_jd, swe.MOON)
         elong = (moon - sun) % 360
         tithi = math.floor(elong / 12) + 1
         nakshatra = math.floor(moon / (360 / 27)) + 1
@@ -124,10 +137,12 @@ def month_reference(input: dict) -> dict:
             nextSunriseUtc=next_rise.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             tithi=tithi, nakshatra=nakshatra, vara=vara, yoga=yoga, karana=karana,
             moonSign=math.floor(moon / 30) + 1,
-            sunLongitude=sun, moonLongitude=moon,
+            sunLongitude=sun, moonLongitude=moon, modernMoonLongitude=modern_moon,
+            historicalDeltaTSeconds=corrections[i] if corrections is not None else None,
             # False if any 5-limb is <1" from its boundary (cannot certify sign from rounding).
             safelyAwayFromAngaBoundary=all(x > 1 / 3600 for x in distances)))
     return dict(source="independent-pyswisseph-2.10.03-SWIEPH-only",
+        astronomyEpoch="JHORA8_HISTORICAL_DELTA_T" if corrections is not None else "MODERN_SWISS_UT",
         timeZone=zone, latitude=lat, longitude=lon, days=samples)
 
 if __name__ == "__main__":
