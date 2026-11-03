@@ -61,22 +61,19 @@ if [[ "$CURRENT" == "$TARGET" ]]; then
 fi
 echo "P388_CODEONLY_CODE_SAFE live=$CURRENT target=$TARGET"
 echo 'P388_CODEONLY_DB_UNCHANGED: no Docker, no PostgreSQL backup, no database migrations'
+# Check the actual required systemctl commands; sudo -v can prompt despite
+# an explicit NOPASSWD sudoers rule and is not an adequate privilege probe.
+if sudo -n systemctl is-active --quiet galaxiora-api &&
+   sudo -n systemctl is-active --quiet galaxiora-web; then
+ echo 'P388_SYSTEMD_PRIVILEGE=NOPASSWD_SYSTEMCTL_OK'
+else
+ fail 'Cannot run sudo -n systemctl for existing API/Web services. No code changed.'
+fi
 if [[ "$MODE" == check ]]; then
- if sudo -n -v 2>/dev/null; then
-  echo 'P388_SYSTEMD_PRIVILEGE=available'
- else
-  echo 'P388_SYSTEMD_PRIVILEGE=needs_operator_sudo_for_systemd_only'
- fi
  echo 'P388_CODEONLY_CHECK_PASS (no site changes made)'
  exit 0
 fi
-# Systemd restarts are privileged even when no Docker is involved. Ask once BEFORE modifying code.
-if ! sudo -n -v 2>/dev/null; then
- echo 'Systemd authorization required, Docker will NOT be used.'
- sudo -v || fail 'Cannot authorize service restart; site is unchanged'
-fi
-sudo -n systemctl is-active --quiet galaxiora-api || fail 'Systemd privileges unavailable; site unchanged'
-sudo -n systemctl is-active --quiet galaxiora-web || fail 'Systemd privileges unavailable; site unchanged'
+# No interactive sudo -v and no sudo password request; stop before checkout if denied.
 read -r -p 'Type DEPLOY_CODE_ONLY to apply without DB migration/backup: ' approval
 [[ "$approval" == DEPLOY_CODE_ONLY ]] || fail 'Cancelled: no site changes'
 disk=$(df -Pk . | awk 'END{print $4}')
@@ -108,8 +105,8 @@ recover(){
     if [[ -d apps/api/dist ]]; then mv apps/api/dist "$BACKUP/failed-api-dist" || true; fi
     cp -a "$BACKUP/previous-api-dist" apps/api/dist || true
    fi
-   sudo systemctl restart galaxiora-api || true
-   sudo systemctl restart galaxiora-web || true
+   sudo -n systemctl restart galaxiora-api || true
+   sudo -n systemctl restart galaxiora-web || true
    echo 'P388_ROLLBACK_ATTEMPTED: inspect service status and previous SHA' >&2
   else
    echo "P388_MANUAL_RECOVERY_REQUIRED previous=$CURRENT backup=$BACKUP" >&2
@@ -128,8 +125,8 @@ npm run test:brand:icons
 npm run build
 git restore -- apps/web/next-env.d.ts
 # Deliberately no prisma migrate and no Docker calls.
-sudo systemctl restart galaxiora-api
-sudo systemctl restart galaxiora-web
+sudo -n systemctl restart galaxiora-api
+sudo -n systemctl restart galaxiora-web
 for service in galaxiora-api galaxiora-web; do
  systemctl is-active --quiet "$service" || { echo "Service failed: $service" >&2; false; }
 done
