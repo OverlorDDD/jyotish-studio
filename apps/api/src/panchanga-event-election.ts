@@ -41,7 +41,11 @@ const SIDEREAL_PARTS=30;
 export function assembleP384EventElection(input:BuildInput):P384Evaluation{
  const {eventLagna,atUtc,day,activityId,point,personalReport,partnerVerified}=input;
  const activity=p38Activity(activityId),at=Date.parse(atUtc);
- if(eventLagna.status!=='available'||eventLagna.eventAtUtc!==atUtc||
+ if(eventLagna.status!=='available'||
+    eventLagna.provenance!=='NATIVE_SWISS_TROPICAL_ASC_MINUS_VERIFIED_MEAN_LAHIRI'||
+    eventLagna.lagnaSign!==Math.floor(eventLagna.siderealAscendantDegrees/30)+1||
+    eventLagna.panchakaLagnaNumber!==eventLagna.lagnaSign||
+    eventLagna.eventAtUtc!==atUtc||
     at<Date.parse(day.sunriseUtc)||at>=Date.parse(day.nextSunriseUtc)||
     day.date!==point.date||day.location.timeZone!==point.timeZone||
     eventLagna.observer.latitude!==Number(point.latitude)||
@@ -60,6 +64,9 @@ export function assembleP384EventElection(input:BuildInput):P384Evaluation{
   return {name:p.name,longitude:p.longitude,sign,
    houseFromEventLagna:(sign-eventLagna.lagnaSign+12)%12+1};
  });
+ const moon=eventSky.find(p=>p.name==='Moon')!;
+ if(moon.sign!==personalReport.transitMoon.sign)
+  throw Error('P384 event Moon does not match owner-verified personal Swiss Moon');
  const screening=evaluateP38(day,atUtc,activityId,{point,report:personalReport});
  const scope=P384_SCOPED_PANCHAKA[activityId]||null;
  const find=<K extends keyof P32Day['periods']>(key:K)=>{
