@@ -57,7 +57,9 @@ export function findP385LagnaCrossings(begin:number,end:number,
    if(after.sign!==(before.sign%12)+1)
     throw Error('P385 skipped one or more event Lagna signs');
    let lo=left,hi=right;
-   while(hi-lo>1000){
+   // Refine to a millisecond BEFORE rounding up to the first safe full UTC second.
+   // Stopping at 1 second and then rounding could shift the true crossing by 2 seconds.
+   while(hi-lo>1){
     const mid=Math.floor((lo+hi)/2),v=goodSample(sample(mid));
     if(v.sign===before.sign)lo=mid;
     else if(v.sign===after.sign)hi=mid;
