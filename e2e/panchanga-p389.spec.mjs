@@ -33,7 +33,10 @@ for(const locale of ['uk','en']){
   expect(wedding).not.toEqual(firstDate);
   await expect(day.getByTestId('p389-muhurta-checklist')).toContainText(
    locale==='uk'?'21 доша':'21 doshas');
-  await expect(day.getByTestId('p389-muhurta-checklist').getByRole('link')).toBeVisible();
+  const muhurtaLinks=day.getByTestId('p389-muhurta-checklist').getByRole('link');
+  await expect(muhurtaLinks).toHaveCount(2);
+  await expect(muhurtaLinks.first()).toBeVisible();
+  await expect(muhurtaLinks.last()).toBeVisible();
   await expect(day).not.toContainText('Частина показників підтримує, інші потребують уваги');
   await expect(day).not.toContainText('Для цієї справи потрібна повна мухурта');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth))
