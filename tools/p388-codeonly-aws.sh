@@ -107,8 +107,8 @@ recover(){
     if [[ -d apps/api/dist ]]; then mv apps/api/dist "$BACKUP/failed-api-dist" || true; fi
     cp -a "$BACKUP/previous-api-dist" apps/api/dist || true
    fi
-   sudo -n systemctl restart galaxiora-api || true
-   sudo -n systemctl restart galaxiora-web || true
+   sudo systemctl restart galaxiora-api || true
+   sudo systemctl restart galaxiora-web || true
    echo 'P388_ROLLBACK_ATTEMPTED: inspect service status and previous SHA' >&2
   else
    echo "P388_MANUAL_RECOVERY_REQUIRED previous=$CURRENT backup=$BACKUP" >&2
@@ -127,8 +127,8 @@ npm run test:brand:icons
 npm run build
 git restore -- apps/web/next-env.d.ts
 # Deliberately no prisma migrate and no Docker calls.
-sudo -n systemctl restart galaxiora-api
-sudo -n systemctl restart galaxiora-web
+sudo systemctl restart galaxiora-api
+sudo systemctl restart galaxiora-web
 for service in galaxiora-api galaxiora-web; do
  systemctl is-active --quiet "$service" || { echo "Service failed: $service" >&2; false; }
 done
@@ -144,4 +144,4 @@ done
 P388_SITE_ORIGIN=https://galaxiora.com P388_PUBLIC=1 node tools/panchanga-p388-production-smoke.mjs
 trap - ERR
 printf 'P388_CODEONLY_PRODUCTION_VERIFIED sha=%s\n' "$(git rev-parse HEAD)"
-echo 'DATABASE_NOT_TOUCHED. Wedding Muhurta remains uncertified.'
+echo 'NO_DB_MIGRATION_OR_DOCKER_IN_RELEASE. PostgreSQL was not backed up; wedding Muhurta remains uncertified.'
