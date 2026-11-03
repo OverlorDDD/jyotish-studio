@@ -260,3 +260,57 @@
  .smartCalendar .rangeDays{grid-auto-columns:minmax(140px,57%)}
  .technicalContent{padding:0 9px 10px}
 }
+
+
+/* P3.8.7 shared personal Week/Month: deliberate queries, never hidden automatic Time Finder work. */
+.personalToolbar{background:linear-gradient(155deg,#1e354e,#15263c);border:1px solid #668099;
+ border-radius:13px;margin:15px 0 16px;padding:clamp(12px,2vw,18px);
+ color:#dbe8f4;overflow-wrap:anywhere;min-width:0}
+.personalToolbar h3{margin:0 0 5px;color:#f3d8ab;font:600 clamp(17px,2vw,21px)/1.3 Georgia,serif}
+.personalToolbar header p,.personalToolbar>p{font-size:12px;line-height:1.5;margin:5px 0 9px;color:#cbdbe9}
+.personalActions{display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap;margin-top:12px}
+.personalActions label,.personalPartner{display:flex;flex:1 1 190px;min-width:0;max-width:100%;
+ flex-direction:column;gap:5px;color:#e1e9f4;font-size:12px;font-weight:700}
+.personalActions select,.personalPartner select{width:100%;min-width:0;max-width:100%;
+ background:#101f32;border:1px solid #718ba5;color:#f9e9cd;
+ border-radius:9px;padding:9px 12px;height:43px;font:600 13px system-ui,sans-serif}
+.personalActions button,.p387Details button{background:#253c54;border:1px solid #b7a074;
+ border-radius:9px;color:#ffe0aa;min-height:43px;padding:9px 12px;
+ cursor:pointer;font-size:12px;font-weight:700}
+.personalActions button:disabled{opacity:.5;cursor:not-allowed}
+.personalActions a,.personalToolbar a{color:#ffdc9d;text-decoration:underline;align-self:center}
+.personalPartner{margin-top:12px;max-width:460px}
+.personalToolbar :is(button,select,a):focus-visible,.p387Details :is(button,summary):focus-visible{
+ outline:2px solid #ffdfa4;outline-offset:3px}
+.windowScope{margin-top:14px;padding:12px;border:1px solid #6c91a2;
+ border-radius:9px;background:#163342;min-width:0}
+.windowScope strong{color:#d1f0fa;font-size:13px}
+.windowScope p{font-size:12px;line-height:1.5;margin:5px 0 0;color:#d9e9f5}
+.smartCalendar .personalBadge,.smartCalendar .windowBadge{
+ display:block;max-width:100%;font-size:10px;line-height:1.4;
+ border:1px solid #6e8b97;border-radius:7px;background:#254053;
+ color:#d6eef5;padding:3px 5px;overflow-wrap:anywhere}
+.smartCalendar .personalBadge[data-status="restriction"]{border-color:#ba9381;color:#f5d4c7}
+.smartCalendar .personalBadge[data-status="support"]{border-color:#94ac93;color:#dcf3dc}
+.smartCalendar .windowBadge{background:#253e39;border-color:#9eaa77;color:#e4eec9}
+.smartCalendar .windowBadge[data-status="requires_review"]{background:#40372c;
+ border-color:#c4a36e;color:#f4d4a2}
+.p387Details{margin-top:14px;background:#172b43;border:1px solid #5e7a94;
+ border-radius:10px;padding:10px 13px;color:#d8e7f3;min-width:0}
+.p387Details summary{font-size:13px;font-weight:700;color:#f5d6a7;cursor:pointer;
+ line-height:1.5;padding:4px}
+.p387Details ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:7px}
+.p387Details li{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+ min-width:0;border-bottom:1px solid #3a536e;padding:8px 0;font-size:12px;overflow-wrap:anywhere}
+.p387Details time{font-variant-numeric:tabular-nums}
+.p387Details .windowBadge{display:inline-block;flex:0 1 auto;max-width:100%}
+.p387Details p{font-size:12px;color:#c8d9e9}
+@media(max-width:850px){.smartCalendar .smartWeek .personalBadge,
+ .smartCalendar .smartWeek .windowBadge{font-size:10px}}
+@media(max-width:560px){
+ .personalToolbar{padding:11px}.personalActions{align-items:stretch}
+ .personalActions label,.personalActions button{flex-basis:100%;width:100%}
+ .smartCalendar .smartDay .personalBadge,.smartCalendar .smartDay .windowBadge{
+  font-size:9px;max-height:27px;overflow:hidden;padding:2px 3px}
+ .p387Details li{align-items:flex-start;flex-direction:column;gap:5px}
+}
