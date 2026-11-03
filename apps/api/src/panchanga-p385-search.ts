@@ -159,6 +159,20 @@ export async function searchP385Time(input:P385SearchInput){
   return {status:'undetermined' as const,reasonIds:['NO_DOCUMENTED_POSITIVE_ELECTION'],
    source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
  };
- return await findP385Windows({activityId:input.activityId,days,fromUtc:input.fromUtc,
+ const timeline=await findP385Windows({activityId:input.activityId,days,fromUtc:input.fromUtc,
   extraBoundaries:events,evaluate,maxExamined:6000});
+ // D1/D9/D10 are verified context, not a synthetic additive "luck score".
+ // D9 is relevant for ceremony review; D10 for profession, and both remain
+ // informational until corresponding chapter-specific election rules are audited.
+ const divisionFocus=input.activityId==='wedding'||input.activityId==='engagement'?
+  'D9_MARRIAGE_CONTEXT_PENDING_COMPLETE_KUTAS':
+  activity.category==='work'?'D10_PROFESSION_CONTEXT_PENDING_SOURCE_RULES':
+  'D1_NATAL_LUNAR_CONTEXT';
+ return {...timeline,divisionFocus,natalDivisions:{
+  d1LagnaSign:owner.birthLagnaSign,
+  d9LagnaSign:owner.d9LagnaSign,d9SeventhLord:owner.d9SeventhLord,
+  d9SeventhOccupants:owner.d9SeventhOccupants,
+  d10LagnaSign:owner.d10LagnaSign,d10TenthLord:owner.d10TenthLord,
+  d10TenthOccupants:owner.d10TenthOccupants
+ }};
 }
