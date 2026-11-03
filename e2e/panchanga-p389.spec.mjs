@@ -41,9 +41,8 @@ for(const locale of ['uk','en']){
   await expect(muhurtaLinks.last()).toBeVisible();
   await expect(day).not.toContainText('Частина показників підтримує, інші потребують уваги');
   await expect(day).not.toContainText('Для цієї справи потрібна повна мухурта');
-  await expect(day.getByTestId('p390-favorability-ring')).toBeVisible();
-  const ring=day.getByTestId('p390-favorability-ring');
-  await expect(ring).toHaveAttribute('aria-label',/Індекс|Suitability|обмеження|Restricted|застосовується/);
+  // The legacy index is still an internal screening heuristic, never a visible claim.
+  await expect(day.getByTestId('p390-favorability-ring')).toHaveCount(0);
   await day.getByTestId('p390-reset-today').click();
   await expect(day.getByTestId('p389-time-select')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth))
