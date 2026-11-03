@@ -75,6 +75,7 @@ test('P3.8.4 native Swiss event Lagna matches owner-natal JQA3 backend on identi
 test('P3.8.4 malformed/ambiguous input, polar Placidus, and unverified date range fail closed',()=>{
  const obj={atUtc:first.atUtc,latitude:50,longitude:30,timeZone:'Europe/Kyiv'};
  assert.ok(Number.isFinite(validateEventLagnaInput(obj)));
+ assert.ok(Number.isFinite(validateEventLagnaInput({...obj,timeZone:'UTC'})));
  for(const bad of [
   {...obj,atUtc:'2026-11-03T11:00:00+02:00'},
   {...obj,atUtc:'2026-11-03T11:00:00'},
