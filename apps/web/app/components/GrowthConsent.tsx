@@ -8,7 +8,7 @@ const measurementId=process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim()||'';
 const enabled=/^G-[A-Z0-9]{6,16}$/.test(measurementId);
 type Choice='accepted'|'rejected'|null;
 type Gtag=(command:string,...args:unknown[])=>void;
-declare global {interface Window {dataLayer?:unknown[][];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean;__galaxioraTagStatus?:'loading'|'loaded'|'blocked'|'request_observed';__galaxioraLastPageView?:string}}
+declare global {interface Window {dataLayer?:IArguments[];gtag?:Gtag;__galaxioraAnalyticsReady?:boolean;__galaxioraTagStatus?:'loading'|'loaded'|'blocked'|'request_observed';__galaxioraLastPageView?:string}}
 function tagStatus(status:'loading'|'loaded'|'blocked'|'request_observed'){
  if(typeof window==='undefined')return;
  if(status==='loaded'&&window.__galaxioraTagStatus==='request_observed')return;
@@ -37,7 +37,11 @@ function startAnalytics(safePath:string){
  window.__galaxioraAnalyticsReady=true;
  watchCollectorRequests();
  window.dataLayer=window.dataLayer||[];
- window.gtag=(...args:unknown[])=>{window.dataLayer?.push(args)};
+ // Google gtag.js consumes the native Arguments object; a rest-array stays in
+ // dataLayer but is not processed as a gtag command by the real tag runtime.
+ // The previous rest-array shim made browser tests appear green while GA4
+ // received no g/collect requests in production.
+ window.gtag=function gtag(..._args:unknown[]){window.dataLayer?.push(arguments)};
  // Basic Consent Mode: the script is not fetched before affirmative consent.
  // Even after consent, queue the default DENIED state before js/config/event,
  // then apply the visitor's affirmative update (Google's required order).
