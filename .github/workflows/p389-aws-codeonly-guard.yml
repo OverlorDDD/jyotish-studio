@@ -1,0 +1,59 @@
+name: P3.8.9 AWS Python Preflight and Code-only Operator Guard
+on:
+  push:
+    branches: ['ops/p388-safe-aws-cli-20261103']
+    paths:
+      - 'tools/p389-codeonly-aws-v2.sh'
+      - '.github/workflows/p389-aws-codeonly-guard.yml'
+permissions:
+  contents: read
+jobs:
+  operator-script:
+    name: python-preflight-and-rollback-contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Bash shell and embedded Node JS syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          script=tools/p389-codeonly-aws-v2.sh
+          bash -n "$script"
+          awk '/^ *PYTHON_BIN="\$RUN_PY" node --env-file=.env --input-type=module - <<\x27P389_PY_PROBE\x27/{found=1;next} /^P389_PY_PROBE$/{if(found){exit}} found{print}' "$script" >/tmp/p389-probe.mjs
+          test -s /tmp/p389-probe.mjs
+          node --check /tmp/p389-probe.mjs
+          awk '/^ P389_NEW_PY="\$RUN_PY" node --input-type=module - <<\x27P389_CONFIG_PY\x27/{found=1;next} /^P389_CONFIG_PY$/{if(found){exit}} found{print}' "$script" >/tmp/p389-env.mjs
+          test -s /tmp/p389-env.mjs
+          node --check /tmp/p389-env.mjs
+          echo P389_OPERATOR_SCRIPT_SYNTAX_PASS
+      - name: Pinned SHA, preflight ordering, nonprivileged Python and rollback contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('tools/p389-codeonly-aws-v2.sh').read_text()
+          must=[
+            'TARGET=8c880397cdd49ca9306d0ef0df8b4007715c7fc6',
+            'case "$MODE" in check|prepare|deploy)',
+            'P389_REAL_SWISS_SUNRISE_PRECHECK_PASS',
+            'pyswisseph==2.10.3.2',
+            'P389_PYTHON_PREPARED',
+            'P389_PYTHON_NOT_READY',
+            'PYTHON_BIN="$RUN_PY" npm run test:p389:real',
+            'P389_CODEONLY_CHECK_PASS',
+            'P389_CODEONLY_PRODUCTION_VERIFIED',
+            'cp -p "$BACKUP/env.before" .env || true',
+            'sudo -n systemctl restart galaxiora-api',
+            'sudo -n systemctl restart galaxiora-web',
+          ]
+          for item in must: assert item in s, f'missing: {item}'
+          for banned in ['docker exec','docker compose','prisma migrate','git reset --hard',
+            'git clean -fd','sudo -v','sudo pip','sudo apt']:
+            assert banned not in s, f'unsafe: {banned}'
+          assert s.index('if ! python_probe; then') < s.index('git switch --detach "$TARGET"')
+          assert s.index('SWITCHED=1') < s.index('P389_NEW_PY="$RUN_PY"')
+          assert s.index('cp -p "$BACKUP/env.before" .env || true') < s.index('sudo -n systemctl restart galaxiora-api || true')
+          print('P389_OPERATOR_SAFETY_PASS')
+          PY
