@@ -124,6 +124,7 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
    result.push({id,polarity,domain,description,source,scope});
  };
  const important=activity.method==='special_election';
+ const definedNewStart=activity.method==='direct'||activity.method==='special_election';
  if(activity.matchingNakshatra.includes(cls))push('CLASS_'+cls.toUpperCase(),'supports','nakshatra',
   L('Клас накшатри відповідає виду починання.','This Nakshatra class matches the chosen undertaking.'),
   activity.source,'activity');
@@ -145,10 +146,10 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
  if(activity.method!=='routine'){
   const rahu=day.daytimeKalas.rahuKalam;
   if(time>=Date.parse(rahu.fromUtc)&&time<Date.parse(rahu.untilUtc))
-   push('RAHU_START','excludes','rahu',
+   push('RAHU_START',definedNewStart?'excludes':'context','rahu',
     L('Момент початку припадає на місцевий Раху-калам.','The start falls within local Rahu Kalam.'),
     RAMAN_SOURCE,'general_election');
-  if(karana.name==='Vishti')push('VISHTI_AUSPICIOUS_START','excludes','karana',
+  if(karana.name==='Vishti')push('VISHTI_AUSPICIOUS_START',definedNewStart?'excludes':'context','karana',
    L('Вішті (Бхадра) не обирають для сприятливих нових починань.','Vishti (Bhadra) is avoided for auspicious beginnings.'),
    RAMAN_SOURCE,'general_election');
   if(STANDARD_BAD_YOGAS.has(yoga.number))
