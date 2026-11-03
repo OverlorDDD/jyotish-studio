@@ -31,7 +31,7 @@ test('P386 mathematically dependent Tithi and Karana are one group, hard restric
  assert.equal(value.numerator,1);
  assert.equal(value.denominator,2);
  assert.equal(value.excluded,1);
- assert.equal(value.percent,50);
+ assert.equal(value.percent,null); // hard Karana exclusion must not coexist with a cheerful ring
 });
 test('P386 percent suppressed for incomplete wedding/foundation, routines and one-factor observations',()=>{
  assert.equal(p386EvidenceShare(make([
@@ -42,6 +42,23 @@ test('P386 percent suppressed for incomplete wedding/foundation, routines and on
  ],'routine','routine')).percent,null);
  assert.equal(p386EvidenceShare(make([observation('nakshatra','supports')])).percent,null);
  assert.equal(p386EvidenceShare(make([observation('nakshatra','context')])).percent,null);
+});
+test('P386 100% is hidden when natal signals alone look good but specific activity lacks a favorable classical rule',()=>{
+ const own={...observation('tarabala','supports'),scope:'personal'};
+ const lunar={...observation('chandrabala','supports'),scope:'personal'};
+ const moment=make([own,lunar],'direct','undetermined');
+ const result=p386EvidenceShare(moment);
+ assert.equal(result.numerator,2);assert.equal(result.denominator,2);
+ assert.equal(result.percent,null);
+});
+test('P386 hard exclusion hides ring even if three other classical indicators support',()=>{
+ const v=p386EvidenceShare(make([
+  observation('nakshatra','supports'),
+  {...observation('tarabala','supports'),scope:'personal'},
+  {...observation('chandrabala','supports'),scope:'personal'},
+  observation('rahu','excludes')
+ ],'direct','avoid'));
+ assert.equal(v.percent,null);assert.equal(v.excluded,1);
 });
 test('P386 no missing/unknown signal counted as a positive; unsourced votes rejected',()=>{
  const clean=p386EvidenceShare(make([
