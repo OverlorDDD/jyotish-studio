@@ -10,16 +10,16 @@ import {explainClassicalPanchanga} from '../../lib/panchanga-p37-classical';
 import {evaluateP38,p38Activity,P38_ACTIVITIES,type P38Category,
  type P38ActivityId,type P38Moment} from '../../lib/panchanga-p38-decision';
 import {validateP33Report,type P33Report} from '../../lib/panchanga-p33-resonance';
-import {p386EvidenceShare} from '../../lib/panchanga-p386-evidence';
+import {scoreP390} from '../../lib/panchanga-p390-scoring';
 import {p389Guidance,p389WindowReason} from '../../lib/panchanga-p389-guidance';
 import styles from './PanchangaCleanDay.module.css';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
 type UserState='loading'|'ready'|'guest'|'no_chart'|'error';
 type SavedChart={id:string;place:string;date:string;ascendant:string};
-type FinderWindow={startUtc:string;endUtc:string;status:string;reasonIds:string[]};
+type FinderWindow={startUtc:string;endUtc:string;status:string;reasonIds:string[];score?:number|null};
 type FinderResult={status:string;candidate:FinderWindow|null;review:FinderWindow|null;
- daysRequested?:number;searchThroughUtc?:string;divisionFocus?:string};
+ topCandidates?:FinderWindow[];daysRequested?:number;searchThroughUtc?:string;divisionFocus?:string};
 const CATEGORIES:{id:P38Category;uk:string;en:string;icon:typeof BriefcaseBusiness}[]=[
  {id:'work',uk:'Робота',en:'Work',icon:BriefcaseBusiness},
  {id:'finance',uk:'Гроші',en:'Finance',icon:Wallet},
@@ -58,9 +58,9 @@ function targetTime(day:P31Day,point:Point,now:number,focusAtUtc:string|null){
   const at=Number.isFinite(focus)&&focus>=a&&focus<b?focus:now>=a&&now<b?now:a+1000;
  return new Date(at).toISOString();
 }
-export default function PanchangaMyDay({locale,day,point,activity,onActivityChange,focusAtUtc=null}:{
+export default function PanchangaMyDay({locale,day,point,activity,onActivityChange,focusAtUtc=null,onResetToday}:{
  locale:PortalLocale;day:P31Day;point:Point;activity:P38ActivityId;
- onActivityChange:(id:P38ActivityId)=>void;focusAtUtc?:string|null;
+ onActivityChange:(id:P38ActivityId)=>void;focusAtUtc?:string|null;onResetToday:()=>void;
 }){
  const uk=locale==='uk',verifiedDay=day as P32Day;
  const category=p38Activity(activity).category;
@@ -137,7 +137,9 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
    return explainClassicalPanchanga(verifiedDay,classic);
   }catch{return null}
  },[day,iso,category,screening]);
- const evidence=useMemo(()=>screening?p386EvidenceShare(screening):null,[screening]);
+ const rating=useMemo(()=>screening?scoreP390({activityId:activity,
+  method:activityInfo.method,observations:screening.observations,
+  personalized:screening.personalized}):null,[screening,activity,activityInfo]);
  const guidance=useMemo(()=>screening?p389Guidance(screening,locale):null,[screening,locale]);
  const timeOptions=useMemo(()=>{
   if(!iso)return [];
@@ -193,20 +195,21 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
   </header>
   <div className={styles.advice}>
    <h3 className={styles.adviceLabel}>{uk?'Що плануєте?':'What are you planning?'}</h3>
-   <label className={styles.momentSelector}>
-    {uk?'Оберіть конкретний момент для перевірки':'Choose an exact moment to screen'}
-    <select data-testid="p389-time-select" value={iso||''}
-     disabled={!iso} onChange={e=>setChosenTimeUtc(e.target.value)}>
-     {timeOptions.map(t=><option value={t} key={t}>
-      {new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{timeZone:point.timeZone,
-       day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',
-       timeZoneName:'shortOffset'}).format(new Date(t))}
-     </option>)}
-    </select>
-   </label>
-   <p className={styles.momentHint}>{uk?
-    'Оберіть іншу годину: оцінка зміниться лише там, де реально змінюються астрономічні показники.':
-    'Select another hour: the assessment changes only where verified astronomical factors change.'}</p>
+   <div className={styles.momentRow}>
+    <label className={styles.momentSelector}>
+     {uk?'Оберіть конкретний момент для перевірки':'Choose an exact moment to screen'}
+     <select data-testid="p389-time-select" value={iso||''}
+      disabled={!iso} onChange={e=>setChosenTimeUtc(e.target.value)}>
+      {timeOptions.map(t=><option value={t} key={t}>
+       {new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{timeZone:point.timeZone,
+        day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',
+        timeZoneName:'shortOffset'}).format(new Date(t))}
+      </option>)}
+     </select>
+    </label>
+    <button className={styles.todayButton} type="button" onClick={onResetToday}
+     data-testid="p390-reset-today">{uk?'Сьогодні':'Today'}</button>
+   </div>
    <div className={styles.topicButtons} role="group" aria-label={uk?'Категорія справи':'Activity category'}>
     {CATEGORIES.map(c=>{const Icon=c.icon;return <button type="button" key={c.id}
      aria-pressed={category===c.id} onClick={()=>onActivityChange(P38_ACTIVITIES.find(a=>a.category===c.id)!.id)}>
@@ -228,28 +231,26 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
       {guidance&&<p className={styles.resultAction} data-testid="p389-action">{guidance.nextStep}</p>}
       <a href={activityInfo.source} target="_blank" rel="noopener noreferrer"
        className={styles.ruleSource}>{uk?'Джерело традиційних критеріїв':'Source of traditional criteria'} ↗</a>
-      {guidance&&guidance.sharedActivities.length>0&&<p className={styles.sharedRules}
-       data-testid="p389-shared-criteria">{uk?
-        'Ті самі базові правила наразі застосовано також до: ':
-        'These same verified basic rules also cover: '}
-       {guidance.sharedActivities.map(id=>p38Activity(id).name[locale]).join(', ')}.
-       {' '}{uk?'Це не різні прогнози.':'These are not distinct predictions.'}
-      </p>}
+      {guidance&&guidance.sharedActivities.length>0&&<details className={styles.sharedRules}
+       data-testid="p389-shared-criteria">
+       <summary>{uk?'Справи з тими самими правилами':'Activities sharing these rules'}</summary>
+       <p>{guidance.sharedActivities.map(id=>p38Activity(id).name[locale]).join(', ')}</p>
+      </details>}
      </div>
-     {evidence?.percent!==null&&evidence?.percent!==undefined&&<div className={styles.ratioContainer}>
-      <div className={styles.ratioRing} role="img" aria-label={(uk?'Підтримувальних перевірок: ':'Supportive source checks: ')+evidence.percent+'%'}
-       style={{'--supportPct':evidence.percent+'%'} as CSSProperties}>
-       <span>{evidence.percent}%</span>
+     {rating&&<div className={styles.ratioContainer}>
+      <div className={styles.ratioRing} data-testid="p390-favorability-ring"
+       role="img" aria-label={rating.score===null?
+         (uk?'Суворе обмеження або оцінка не застосовується':'Restricted or not applicable'):
+         (uk?'Індекс сприятливості: ':'Suitability index: ')+rating.score+'%'}
+       style={{'--supportPct':(rating.score??0)+'%',
+        '--ringColor':rating.blocked?'#dc8181':(rating.score??0)>=68?'#66c9a2':
+         (rating.score??0)>=60?'#9cbf82':'#d9b277'} as CSSProperties}>
+       <span>{rating.score===null?'—':rating.score+'%'}</span>
       </div>
-      <small>{uk?'Підтримувальних':'Supportive'}<br/>{uk?'показників':'factors'}</small>
+      <small>{activityInfo.method==='special_election'?(uk?'Попередній':'Preliminary'):
+       (uk?'Індекс':'Index')}</small>
      </div>}
     </div>
-    {evidence&&<details className={styles.ratioHelp}>
-     <summary>{uk?'Як формується оцінка?':'How is this figure calculated?'}</summary>
-     <p>{uk?`Із ${evidence.denominator} перевірених незалежних груп сигналів підтримують початок ${evidence.numerator}. Застережень: ${evidence.caution}, обмежень: ${evidence.excluded}. Тітхі й карана мають спільну геометрію та не рахуються двічі. Це частка виявлених традиційних сигналів, не ймовірність успіху.`:
-      `Of ${evidence.denominator} independent source-based signal groups, ${evidence.numerator} support the start; ${evidence.caution} caution, ${evidence.excluded} restrict. Tithi and Karana are not counted twice. This is a share of triggered traditional signals, not an outcome probability.`}</p>
-     {evidence.percent===null&&<p>{uk?'Частку не показуємо: немає достатньої незалежної підтримки для цієї дії або не завершено спеціальні перевірки. Це не нульова сприятливість.':'No percentage: evidence is incomplete for this activity or special checks are pending. This does not mean zero suitability.'}</p>}
-    </details>}
     {requiresPartner&&<label className={styles.partnerSelect}>
      {uk?'Натальна карта партнера':'Partner natal chart'}
      <select value={partnerId} onChange={e=>setPartnerId(e.target.value)}>
@@ -312,11 +313,15 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
      {dayHasPassed&&<p className={styles.guidanceNote}>{uk?'Для минулого дня майбутні моменти не шукаємо.':'Past dates are not used for future time search.'}</p>}
      {finderState==='error'&&<p role="alert">{uk?'Пошук не завершився перевіреними даними. Спробуйте згодом.':'No verified search result was returned. Try later.'}</p>}
      {finder&&<div className={styles.timeResult} role="status">
-      {finder.candidate?<><strong>{uk?'Найближчий кандидатний час':'Next candidate interval'}</strong>
-       <time>{clock(finder.candidate.startUtc)} – {clock(finder.candidate.endUtc)}</time>
-       <small>{uk?'Перевірено застосовні календарні правила. Це не гарантія результату.':'Applicable calendar rules screened; this is not an outcome guarantee.'}</small>
-        {windowReasons(finder.candidate.reasonIds).length>0&&<ul className={styles.finderReasons}
-         data-testid="p389-window-reasons">{windowReasons(finder.candidate.reasonIds).map(r=><li key={r}>{r}</li>)}</ul>}
+      {finder.candidate?<><strong>{uk?'Найкращі перевірені години':'Best verified start times'}</strong>
+       <div className={styles.topWindows} data-testid="p390-top-windows">
+        {(finder.topCandidates?.length?finder.topCandidates:[finder.candidate]).slice(0,3)
+         .map(w=><div className={styles.topWindow} key={w.startUtc}>
+          <time>{clock(w.startUtc)} – {clock(w.endUtc)}</time>
+          {w.score!==null&&w.score!==undefined&&<strong>{w.score}%</strong>}
+         </div>)}
+       </div>
+       <small>{uk?'Індекс традиційних факторів, не гарантія успіху.':'Traditional-factor index, not a guarantee.'}</small>
       </>:finder.review?<><strong>{uk?'Найближчий інтервал для додаткової перевірки':'Next interval requiring special review'}</strong>
        <time>{clock(finder.review.startUtc)} – {clock(finder.review.endUtc)}</time>
        <small>{uk?'Для цього моменту перевірено лише частину правил. Наведені факти стосуються саме знайденого інтервалу.':'Only part of the rules have been verified for this specific event interval.'}</small>
