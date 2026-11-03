@@ -109,6 +109,23 @@ JS
  chmod 600 "$STATE/p388-db-direct.mjs"
  P388_STATE_ROOT="$STATE" node --env-file=.env "$STATE/p388-db-direct.mjs" check ||
   fail 'Native PostgreSQL connection / compatible pg_dump preflight failed'
+ # Verify the exact astronomical dependency that failed the previous AWS
+ # deployment BEFORE code checkout, npm install, migration or DB backup.
+ # Operator may set PYTHON_BIN to the isolated pinned venv Python. Never
+ # download data or silently switch to a non-Swiss astronomical provider.
+ local python_exe="${PYTHON_BIN:-python3}"
+ [[ -x "$python_exe" ]] || command -v "$python_exe" >/dev/null ||
+  fail 'Selected Python executable unavailable: use PYTHON_BIN=/home/ubuntu/.galaxiora-python/bin/python'
+ "$python_exe" -c 'import swisseph as s; assert s.version=="2.10.03",s.version' ||
+  fail 'Pyswisseph 2.10.03 missing in selected Python interpreter'
+ for ephe in sepl_18.se1 semo_18.se1;do
+  test -s "node_modules/@swisseph/node/ephemeris/$ephe" ||
+   fail "Official Swiss astronomical file missing: $ephe"
+ done
+ printf '%s' '{"noonUtc":"2026-11-03T10:00:00.000Z","latitude":50.4501,"longitude":30.5234}' |
+  "$python_exe" tools/panchanga-sunrise.py >/dev/null ||
+  fail 'Real Swiss sunrise check failed: do not start build/deployment'
+ echo 'P388_SWISS_SUNRISE_READY verified_utc=2026-11-03 Kyiv'
  available=$(df -Pk "$APP" |awk 'END{print $4}')
  [[ "$available" =~ ^[0-9]+$ ]] && ((available>=3145728)) ||
   fail 'At least 3 GiB disk needed for snapshot + Next build'
