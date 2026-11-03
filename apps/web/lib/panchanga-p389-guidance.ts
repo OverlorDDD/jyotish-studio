@@ -27,14 +27,6 @@ const CLASS:Record<string,{uk:string;en:string}>={
 };
 const localized=(uk:string,en:string,locale:P389Locale)=>locale==='uk'?uk:en;
 const list=(xs:string[],locale:P389Locale)=>xs.join(locale==='uk'?', ':', ');
-const SPECIAL_GAPS:Partial<Record<P38ActivityId,{uk:string;en:string}>>={
- wedding:{
-  uk:'Для остаточного весільного висновку ще не сертифіковано повну перевірку 21 доші, усіх 8 кут, винятків і взаємодії двох натальних карт. Galaxiora зараз не може видати фінальну весільну мухурту.',
-  en:'The full set of 21 doshas, all 8 Kutas, exceptions and two-chart compatibility is not certified. Galaxiora cannot issue a final wedding Muhurta yet.'},
- foundation:{
-  uk:'Перевірено лише частину спеціальних правил фундаменту; повну перевірку Васту, D4 і винятків ще не сертифіковано.',
-  en:'Only a subset of foundation rules has been verified; Vastu, D4 and exceptions are not yet certified.'}
-};
 export function p389SharedRuleActivities(activityId:P38ActivityId):P38ActivityId[]{
  const a=p38Activity(activityId);
  if(a.method!=='direct'&&a.method!=='analogy')return [];
@@ -103,7 +95,7 @@ export function p389Guidance(moment:P38Moment,locale:P389Locale):P389Guidance{
     localized('Поки немає достатніх ознак для впевненого висновку.',
       'Not enough verified activity-specific evidence yet.',locale),
    reason,nextStep:caution?label(caution):
-    localized('Порівняйте сусідні години. Аналогія не є окремим класичним правилом.',
+    localized('Використано аналогію з традиційними правилами; порівняйте сусідні години.',
      'Compare nearby hours; analogy is not a separate classical rule.',locale),
    scope,sharedActivities};
  const headline=rating.score!==null&&rating.hasActivitySupport&&rating.score>=68?
