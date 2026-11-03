@@ -94,3 +94,28 @@
  .timeControls button{flex:1 1 auto}}
 @media(max-width:350px){.factorGrid{grid-template-columns:1fr}.verdictRow{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.factorCard .chevron{transition:none}}
+
+/* P3.8.9: actual moment selection and transparent special-election prerequisites */
+.momentSelector{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;
+ font-size:13px;font-weight:700;color:#f4dfb8;margin-bottom:8px}
+.momentSelector select{min-width:0;max-width:100%;width:min(100%,360px);height:44px;
+ border:1px solid #66839d;border-radius:9px;background:#101f33;color:#f8e7c8;
+ padding:9px 12px;font:600 14px system-ui}
+.momentHint{font-size:12px;line-height:1.5;color:#bdd0e2;margin:0 0 14px}
+.resultAction{line-height:1.6;font-size:14px;color:#ffe1aa;margin:11px 0 0;max-width:75ch}
+.sharedRules{line-height:1.5;font-size:12px;color:#b9c9dd;
+ border-left:2px solid #75839b;padding:7px 0 7px 12px;margin:13px 0 0}
+.specialChecklist{margin-top:17px;padding:15px;border-radius:12px;
+ border:1px solid #6d7d95;background:#192e47;color:#d7e6f2}
+.specialChecklist h5{font:650 17px/1.35 Georgia,serif;color:#f2d6a2;margin:0 0 10px}
+.specialChecklist p,.specialChecklist li{font-size:13px;line-height:1.65}
+.specialChecklist p{margin:9px 0}
+.specialChecklist ul{margin:10px 0;padding-left:22px}
+.specialChecklist li{margin:7px 0}
+.specialChecklist a{color:#ffdc9e;text-decoration:underline}
+.specialLimit{border-top:1px solid #566f83;padding-top:12px;font-weight:650}
+@media(max-width:480px){
+ .momentSelector{align-items:stretch;flex-direction:column;gap:7px}
+ .momentSelector select{width:100%}
+ .specialChecklist{padding:12px}
+}
