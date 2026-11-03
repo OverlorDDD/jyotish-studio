@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {P38_ACTIVITIES,p38Activity} from '../apps/web/lib/panchanga-p38-decision.ts';
-import {p389Guidance,p389SharedRuleActivities} from '../apps/web/lib/panchanga-p389-guidance.ts';
+import {p389Guidance,p389SharedRuleActivities,p389WindowReason} from '../apps/web/lib/panchanga-p389-guidance.ts';
 
 const obs=(polarity,scope='activity',domain='nakshatra',id='SOURCE')=>({
  id,polarity,scope,domain,source:'https://www.drikpanchang.com/panchang/nakshatra/classification/nakshatra-seven-category.html',
@@ -95,4 +95,21 @@ test('P389 day UI makes actual time, event location, partner and limits accessib
  assert.ok(!file.includes('Для цієї справи потрібна повна мухурта'));
  assert.ok(file.includes('21 доша'));
  assert.ok(file.includes('не є остаточною сертифікованою мухуртою'));
+});
+
+test('P389 exact Time Finder reasons are source-specific in UA/EN and unknown IDs are not fabricated',()=>{
+ assert.match(p389WindowReason('MARRIAGE_LAGNA_GEMINI_VIRGO_LIBRA','uk'),/Близнюках/);
+ assert.match(p389WindowReason('FOUNDATION_FIXED_LAGNA','uk'),/фундаменту/);
+ assert.match(p389WindowReason('MARRIAGE_TUESDAY','en'),/Tuesday/);
+ assert.match(p389WindowReason('RAMAN_YOGA_17','en'),/Yoga #17/);
+ assert.equal(p389WindowReason('UNKNOWN_CUSTOM_DOSHA','uk'),null);
+ assert.equal(p389WindowReason('X'.repeat(129),'uk'),null);
+});
+test('P389 Time Finder no longer discards preferred specialist findings at exact checked event UTC',()=>{
+ const source=readFileSync(new URL('../apps/api/src/panchanga-p385-search.ts',import.meta.url),'utf8');
+ assert.match(source,/r\.state==='excluded'\|\|r\.state==='preferred'/);
+ const ui=readFileSync(new URL('../apps/web/app/components/PanchangaCleanDay.tsx',import.meta.url),'utf8');
+ assert.match(ui,/p389-window-reasons/);
+ assert.match(ui,/windowReasons\(finder\.review\.reasonIds\)/);
+ assert.match(ui,/activityInfo\.source/);
 });
