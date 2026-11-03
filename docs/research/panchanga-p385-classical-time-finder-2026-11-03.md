@@ -47,6 +47,7 @@ Primary reference: [B. V. Raman, *Muhurtha*, complete web text](https://ved.bz/_
 
 `apps/api/src/panchanga-p385-windows.ts`: for each observer sunrise day, enumerate:
 - source-verified Tithi, Nakshatra, Nitya Yoga, Karana transitions from P3.1;
+- **108 exact lunar Nakshatra pada boundaries** (3°20′ each), critical for Raman's Magha/Mula first-pada and Revati last-pada marriage exclusions. Swiss Moon scanned every 10 minutes and bisected to 1 millisecond before rounding up to the first safe UTC second; never extrapolated from Nakshatra sunrise pada;
 - Rahu Kalam begin/end and actual sunset from P3.4;
 - 12 event Lagna sign ingress edges, adaptive 2-minute Swiss sampling + bisection to 1 second, reject missing/nonmonotone/angular jumps, no boundary extrapolation;
 - Sun/Moon/Mercury/Venus/Mars/Jupiter/Saturn sign ingress from P3.6 speed-aware bisection;
