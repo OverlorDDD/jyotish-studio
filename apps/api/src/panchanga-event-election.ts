@@ -28,6 +28,7 @@ export type P384Evaluation={
  eventAtUtc:string;activityId:P38ActivityId;
  eventLagna:VerifiedEventLagna;eventSky:P384Planet[];
  calendarVerdict:ReturnType<typeof evaluateP38>['verdict'];
+ calendarEvidence:ReturnType<typeof evaluateP38>['observations'];
  panchaka:ReturnType<typeof calculateRamanPanchaka>|null;
  panchakaScope:P38PanchakaScope|null;
  ownerChart:'verified_owner_only';partnerChart:'verified_owner_saved_chart'|'not_required';
@@ -94,7 +95,8 @@ export function assembleP384EventElection(input:BuildInput):P384Evaluation{
   remainingRuleGates.push('BOTH_PARTNERS_CLASSICAL_COMPATIBILITY');
  return {status:'evaluated',version:'p384-event-election-v1',
   eventAtUtc:atUtc,activityId,eventLagna,eventSky,
-  calendarVerdict:screening.verdict,panchaka,panchakaScope:scope,
+  calendarVerdict:screening.verdict,calendarEvidence:screening.observations,
+  panchaka,panchakaScope:scope,
   ownerChart:'verified_owner_only',
   partnerChart:partnerVerified?'verified_owner_saved_chart':'not_required',
   guidanceScope:'PARTIAL_EVENT_ELECTION_REQUIRES_SPECIAL_DOSHAS',
