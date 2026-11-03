@@ -43,8 +43,11 @@ diagnose(){
 preflight(){
  local current target available
  [[ -f .env && -s .env && -f package.json ]] || fail 'Existing private .env or package.json missing'
- [[ -z "$(git status --porcelain --untracked-files=no)" ]] ||
-  fail 'Tracked server edits exist: save/reconcile manually; do not reset/clean'
+ if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
+  echo 'P388_LOCAL_MODIFICATIONS: release STOPPED. Changed tracked file names (no contents):' >&2
+  git status --short --untracked-files=no >&2
+  fail 'Back up and reconcile tracked server edits first; never reset/clean blindly'
+ fi
  is_sha "${P388_TARGET_SHA:-}" || fail 'Set exact 40-character P388_TARGET_SHA from merged vetted P3.6 release branch'
  git fetch --no-tags origin "$RELEASE_BRANCH"
  target=$(git rev-parse FETCH_HEAD)
@@ -55,6 +58,14 @@ preflight(){
   fail 'Vetted release branch lacks reviewed independent P388 source ancestry: merge PR, do not squash'
  git merge-base --is-ancestor "$current" "$target" ||
   fail 'Live checkout diverges from vetted release branch: STOP, reconcile approved logo/SEO/news edits in separate PR'
+ # Prevent Git checkout from overwriting an untracked production asset or
+ # operator file that becomes tracked in the target. Preserve all such files.
+ local candidate_path
+ while IFS= read -r -d '' candidate_path; do
+  if git cat-file -e "$target:$candidate_path" 2>/dev/null; then
+   fail "Untracked local file conflicts with target: $candidate_path; back it up and reconcile, never auto-delete"
+  fi
+ done < <(git ls-files --others --exclude-standard -z)
  # Independently query GitHub for fully completed green PUSH checks on EXACT
  # integrated release SHA; a manually supplied attestation string is insufficient.
  mkdir -p -m 700 "$STATE"
