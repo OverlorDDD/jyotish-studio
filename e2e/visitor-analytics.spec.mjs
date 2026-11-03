@@ -16,9 +16,14 @@ test('HTTP HTML requests aggregate without consent, bots and private paths exclu
  const bot=await request.get('/en/panchanga',{headers:{...headers,'User-Agent':'Googlebot/2.1'}});
  expect(bot.ok()).toBeTruthy();
  await request.get('/en/account',{headers});
- await request.get('/',{headers});
- await request.get('/en/panchanga',{headers:{...headers,Purpose:'prefetch'}});
  await expect.poll(async()=>await total()).toBe(counted);
+ // Domain root is served as a real English landing document and must be counted.
+ const home=await request.get('/',{headers});
+ expect(home.ok()).toBeTruthy();
+ await expect.poll(async()=>await total()).toBeGreaterThanOrEqual(counted+1);
+ const withHome=await total();
+ await request.get('/en/panchanga',{headers:{...headers,Purpose:'prefetch'}});
+ await expect.poll(async()=>await total()).toBe(withHome);
 });
 test('Consented page_view triggers one collector request with correct Measurement ID, no private params',async({page})=>{
  const outgoing=[];

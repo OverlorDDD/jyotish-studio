@@ -10,7 +10,8 @@ export function eligiblePublicHtmlSection(pathname:string,headers:{
  if(!headers.agent||ROBOT.test(headers.agent))return null;
  if(headers.purpose?.toLowerCase().includes('prefetch')||headers.routerPrefetch||
   headers.rsc||headers.fetchDest&&headers.fetchDest!=='document')return null;
- if(pathname==='/'||pathname.endsWith('/')||pathname.includes('//'))return null; // root is canonicalized /en
+ if(pathname==='/' )return 'home'; // Root serves a real public HTML page, not a redirect.
+ if(pathname.endsWith('/')||pathname.includes('//'))return null;
  const safe=safeGrowthPath(pathname);
  if(!safe)return null;
  const section=safe.split('/').slice(2).join('/');

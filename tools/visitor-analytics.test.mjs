@@ -10,11 +10,11 @@ const normal={
 };
 test('Human-looking document requests classify only allowlisted coarse public sections',()=>{
  for(const [url,section] of [
-  ['/uk','home'],['/en/astrology/jyotish','jyotish'],
+  ['/','home'],['/uk','home'],['/en/astrology/jyotish','jyotish'],
   ['/uk/news','news'],['/en/learn/vedic-moon','learn'],
   ['/en/panchanga','panchanga'],['/en/tarot/cards/moon','tarot_cards']
  ])assert.equal(eligiblePublicHtmlSection(url,normal),section,url);
- for(const path of ['/','/en/','/en/admin','/uk/account','/uk/personal','/api/v1/health',
+ for(const path of ['/en/','/en/admin','/uk/account','/uk/personal','/api/v1/health',
   '/en/news/secret-article','/en/community/topic/private','/uk/astrology/jyotish?birth=private'])
   assert.equal(eligiblePublicHtmlSection(path,normal),null,path);
 });
