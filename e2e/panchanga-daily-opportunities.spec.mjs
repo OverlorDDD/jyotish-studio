@@ -18,9 +18,11 @@ for(const locale of ['uk','en']){
    await expect(hub.getByTestId('p390-favorability-ring')).toHaveCount(0);
    await expect(guide).not.toContainText('53%');
    const first=opportunities.first();
-   const calendar=first.getByRole('link',{name:locale==='uk'?'Додати в календар':'Add to calendar'});
+   const calendar=first.getByRole('link',{name:locale==='uk'?'Завантажити подію (.ics)':'Download event (.ics)'});
    await expect(calendar).toHaveAttribute('href',/^data:text\/calendar;charset=utf-8,/);
    await expect(calendar).toHaveAttribute('download',/\.ics$/);
+   await expect(first).toContainText(locale==='uk'?'Сам не додає подію':'does not add events automatically');
+   await expect(first.getByRole('link',{name:locale==='uk'?'Правило':'Method'})).toHaveCount(0);
    await guide.getByText(locale==='uk'?'Чому саме ці години? Переглянути розрахунок':
     'Why these times? View the calculation').click();
    await expect(guide.getByRole('heading',{name:locale==='uk'?'Чогхадія · день і ніч':'Choghadiya · day and night'})).toBeVisible();
@@ -30,7 +32,7 @@ for(const locale of ['uk','en']){
    expect(sizes.scroll).toBeLessThanOrEqual(sizes.viewport+2);
   });
  }
- test('P410 '+locale+' browse tomorrow, week and preserve specialist owner tool on demand',async({page})=>{
+ test('P410 '+locale+' browse tomorrow and week, then display classical five limbs',async({page})=>{
   test.setTimeout(180000);
   await page.goto('/'+locale+'/panchanga?date='+DAY);
   const hub=page.getByTestId('panchanga-hub');
@@ -44,12 +46,11 @@ for(const locale of ['uk','en']){
   await expect(hub.getByTestId('panchanga-day-cell')).toHaveCount(7,{timeout:90000});
   await hub.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'}).getByRole('button',{name:locale==='uk'?'День':'Day',exact:true}).click();
   await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
-  await hub.getByTestId('p410-opportunities').getByRole('button',{
-   name:locale==='uk'?'Складні події: персональний Time Finder і попередня мухурта':
-    'Special events: personal Time Finder and preliminary Muhurta'}).click();
-  await expect(hub.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
-  await expect(hub.getByTestId('p386-activity-select')).toBeVisible();
-  await expect(hub.getByTestId('p389-muhurta-checklist')).toHaveCount(0);
+  await expect(hub.getByTestId('p410-advanced')).toHaveCount(0);
+  await expect(hub.getByTestId('p31-my-day')).toHaveCount(0);
+  await expect(hub.getByTestId('panchanga-five-angas')).toBeVisible({timeout:90000});
+  await expect(hub.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5);
+  await expect(hub.getByRole('heading',{name:locale==='uk'?'Класична Панчанга':'Classical Panchanga'})).toBeVisible();
  });
 }
 test('P410 public results disclose no natal details and guest private API remains protected',async({page,request})=>{
