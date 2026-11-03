@@ -6,13 +6,12 @@ for(const locale of ['uk','en']){
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
   await expect(page.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
-  await page.getByTestId('p410-advanced').locator('summary').click();
-  await page.getByRole('button',{name:locale==='uk'?'Подорожі':'Travel',exact:true}).click();
-  await page.getByTestId('p386-activity-select').selectOption('short_journey');
+  await expect(page.getByTestId('p410-advanced')).toHaveCount(0);
   const nav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
   await nav.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();
   const weekly=page.getByTestId('panchanga-calendar-range');
   await expect(weekly.getByTestId('panchanga-day-cell')).toHaveCount(7,{timeout:90000});
+  await weekly.getByTestId('p387-activity-select').selectOption('short_journey');
   await expect(weekly.getByTestId('p387-activity-select')).toHaveValue('short_journey');
   await expect(weekly.getByTestId('p387-sunrise')).toHaveCount(0);
   await weekly.getByTestId('p387-activity-select').selectOption('foundation');
@@ -22,8 +21,10 @@ for(const locale of ['uk','en']){
   await expect(monthly.getByTestId('p387-activity-select')).toHaveValue('foundation');
   await monthly.getByTestId('panchanga-day-cell').nth(3).click();
   await expect(page.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
-  await page.getByTestId('p410-advanced').locator('summary').click();
-  await expect(page.getByTestId('p386-activity-select')).toHaveValue('foundation',{timeout:90000});
+  await expect(page.getByTestId('p410-advanced')).toHaveCount(0);
+  await expect(page.getByTestId('panchanga-five-angas')).toBeVisible({timeout:90000});
+  await nav.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();
+  await expect(page.getByTestId('p387-activity-select')).toHaveValue('foundation',{timeout:90000});
  });
 }
 test('P3.8.7 guest: protected personal endpoints are not called automatically and are never rendered as verified',async({page})=>{

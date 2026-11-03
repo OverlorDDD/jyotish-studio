@@ -1,44 +1,20 @@
 import {test,expect} from '@playwright/test';
 const DAY='2026-11-03';
 for(const locale of ['uk','en']){
- test('P3.8.6 '+locale+' clean Day: real specific activities, five compact icons, source details, no old duplicate advice',async({page})=>{
+ test('P410 '+locale+' clean Day displays classical Panchanga without preliminary Muhurta',async({page})=>{
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date='+DAY);
   const hub=page.getByTestId('panchanga-hub');
   await expect(hub.getByTestId('p386-observer')).toBeVisible();
   await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
-  await hub.getByTestId('p410-advanced').locator('summary').click();
-  await expect(hub.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
-  await expect(hub.getByTestId('p386-activity-select')).toBeVisible();
-  await expect(hub.getByTestId('p32-headline')).toBeVisible();
-  const source=await hub.innerText();
-  expect(source).not.toContain('Підготуйте три результати');
-  expect(source).not.toContain('Запишіть два головні питання');
-  expect(source).not.toContain('Обрана справа:');
-  expect(source).not.toContain('Selected activity:');
-  expect(source).not.toContain('Мій календар 7/30');
-  expect(source).not.toContain('My 7/30 calendar');
-  await expect(hub.getByRole('button',{name:locale==='uk'?'Розрахувати день':'Calculate day'})).toHaveCount(0);
-  const cards=hub.getByTestId('p32-evidence');
-  await expect(cards.locator('details')).toHaveCount(5);
-  await expect(cards.locator('summary svg').first()).toBeVisible();
-  await expect(cards.locator('details').first()).not.toHaveAttribute('open');
-  await cards.locator('details').first().locator('summary').click();
-  await expect(cards.locator('details').first()).toHaveAttribute('open');
-  await expect(cards.locator('details').first().getByRole('link')).toBeVisible();
-  await cards.locator('details').first().locator('summary').click();
-  const relationship=hub.getByRole('button',{name:locale==='uk'?'Стосунки':'Relationships',exact:true});
-  await relationship.click();
-  const select=hub.getByTestId('p386-activity-select');
-  await expect(select.locator('option')).toHaveCount(5);
-  await select.selectOption('first_date');
-  await expect(hub.getByTestId('p32-headline')).toBeVisible();
-  await select.selectOption('wedding');
-  await expect(hub.getByTestId('p389-muhurta-checklist')).toBeVisible();
-  await expect(hub.getByTestId('p389-muhurta-checklist')).toContainText(
-   locale==='uk'?'21 доша':'21 doshas');
-  await expect(hub.getByTestId('p31-my-day').locator('[role="img"][aria-label*="%"]')).toHaveCount(0);
-  await expect(hub.getByTestId('p31-details')).not.toHaveAttribute('open');
+  await expect(hub.getByTestId('p410-advanced')).toHaveCount(0);
+  await expect(hub.getByTestId('p31-my-day')).toHaveCount(0);
+  await expect(hub.getByTestId('panchanga-five-angas')).toBeVisible({timeout:90000});
+  await expect(hub.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5);
+  await expect(hub.getByTestId('panchanga-daily-timeline')).toBeVisible();
+  await expect(hub.getByRole('heading',{name:locale==='uk'?'Класична Панчанга':'Classical Panchanga'})).toBeVisible();
+  await expect(hub.getByTestId('p31-details')).toHaveCount(1);
+  await expect(hub.getByTestId('p31-details').locator(':scope > summary')).toHaveCount(0);
  });
  test('P3.8.6 '+locale+' day/week/month one calendar and date drilldown',async({page})=>{
   test.setTimeout(120000);

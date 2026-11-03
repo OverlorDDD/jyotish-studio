@@ -314,3 +314,13 @@
   font-size:9px;max-height:27px;overflow:hidden;padding:2px 3px}
  .p387Details li{align-items:flex-start;flex-direction:column;gap:5px}
 }
+
+/* P4.10: the five traditional limbs are essential, not an advanced spoiler. */
+.classicPanchanga{margin:26px 0 0;padding:clamp(14px,2.4vw,22px);border:1px solid #536f86;background:#15253a;border-radius:17px;min-width:0}
+.classicHeading{padding:4px 4px 12px}
+.classicHeading h2{margin:0 0 5px;font:600 clamp(22px,2.7vw,29px)/1.25 Georgia,serif;color:#f0dcbc}
+.classicHeading p{margin:0;color:#cad6e4;font-size:14px}
+.classicPanchanga .technicalContent{padding:0;display:grid;gap:8px}
+.classicPanchanga .timeline,.classicPanchanga .method{margin:12px 0;padding:16px}
+.classicPanchanga .timeline h2{font-size:20px}
+@media(max-width:560px){.classicPanchanga{padding:12px}.classicPanchanga .timeline>div{grid-template-columns:1fr;gap:5px}}
