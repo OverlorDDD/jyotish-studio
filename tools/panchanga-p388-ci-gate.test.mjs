@@ -37,3 +37,23 @@ test('P388 CI: HTTP errors, API missing, API success and no credentials',async()
  await assert.rejects(()=>verifyP388ReleaseCI(sha,async()=>({status:403})),/status unavailable/);
  await assert.rejects(()=>verifyP388ReleaseCI(sha,async()=>({status:200,json:async()=>({})})),/run list unavailable/);
 });
+
+test('P388 release push on P3.6 actually triggers all three required GitHub workflows',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const files=[
+  '.github/workflows/panchanga-p388-independent-release.yml',
+  '.github/workflows/panchanga-v2-validation.yml',
+  '.github/workflows/r43-search-indexnow-validation.yml'
+ ];
+ const expected=new Set(REQUIRED_WORKFLOWS);
+ for(const file of files){
+  const yml=readFileSync(new URL('../'+file,import.meta.url),'utf8');
+  const title=yml.split(/\r?\n/)[0].replace(/^name:\s*/,'');
+  assert.ok(expected.has(title),'Unexpected CI gate workflow '+title);
+  const push=yml.split(/^  push:\s*$/m)[1]?.split(/^  (?:pull_request|workflow_dispatch):/m)[0]||'';
+  assert.match(push,/release\/panchanga-p36-production-acceptance-20261102/,
+   'Gate workflow missing release-branch push trigger: '+file);
+  expected.delete(title);
+ }
+ assert.equal(expected.size,0,'Every CI gate workflow must be covered');
+});
