@@ -216,6 +216,68 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
      aria-label={uk?'Наступний період':'Next period'}>›</button>
    </div>
   </div>
+  <section className={styles.personalToolbar} data-testid="p387-calendar-personal">
+   <header><h3>{uk?'Мої події та час для справ':'My events and times for activities'}</h3>
+    <p>{uk?'Особисті показники — лише на місцевому сході Сонця. Події й знайдені часові вікна мають точний UTC-момент і показуються в часовому поясі міста.':
+     'Natal indicators apply to local sunrise only. Events and found time windows use exact UTC instants, shown in the city time zone.'}</p></header>
+   <div className={styles.personalActions}>
+    <label>{uk?'Конкретна справа':'Specific activity'}
+     <select value={activity} onChange={e=>onActivityChange(e.target.value as P38ActivityId)}
+      data-testid="p387-activity-select">
+      {P38_ACTIVITIES.map(a=><option key={a.id} value={a.id}>{a.name[locale]}</option>)}
+     </select>
+    </label>
+    {canPersonal?<button type="button" onClick={()=>void loadPersonal()}
+     disabled={status!=='ready'||privateState==='loading'}>
+     {privateState==='loading'?(uk?'Перевіряємо події…':'Checking personal events…'):
+      (uk?'Показати особисті події':'Show personal events')}</button>:
+     <Link href={'/'+locale+'/personal'}>{uk?'Увійти для особистих подій':'Sign in for personal events'}</Link>}
+    {canPersonal&&selected.method!=='routine'&&<button type="button"
+     data-testid="p387-find-windows" onClick={()=>void findWindows()}
+     disabled={status!=='ready'||finderState==='loading'||(needsPartner&&!partnerId)||
+      !data||Date.parse(data.days.at(-1)!.nextSunriseUtc)<=Date.now()+120000}>
+     {finderState==='loading'?(uk?'Перевіряємо години…':'Checking intervals…'):
+      (uk?'Знайти перевірені години':'Find verified time windows')}</button>}
+   </div>
+   {needsPartner&&canPersonal&&<label className={styles.personalPartner}>
+    {uk?'Друга збережена натальна карта (з дозволом партнера)':'Second saved birth chart (with partner consent)'}
+    <select value={partnerId} onChange={e=>setPartnerId(e.target.value)}>
+     <option value="">{uk?'Оберіть іншу карту':'Select a different owned chart'}</option>
+     {charts.map(ch=><option value={ch.id} key={ch.id}>{[ch.date,ch.place].filter(Boolean).join(' · ')}</option>)}
+    </select>
+    {chartState==='error'&&<small>{uk?'Не вдалося завантажити карти':'Saved charts unavailable'}</small>}
+   </label>}
+   {privateState==='loading'&&<p role="status">{uk?'Зіставляємо 5 показників із перевіреною натальною картою…':
+    'Matching all five sunrise factors against the verified natal chart…'}</p>}
+   {verifiedPersonal&&<p data-testid="p387-personal-scope">
+    {uk?'Особисті дані: перевірено всі '+count+' сходів Сонця та відповідність п’яти анг.':
+     'Natal overlay: all '+count+' sunrise instants and five limbs reconciled.'}</p>}
+   {privateState==='no_chart'&&<p role="status">{uk?'Оберіть перевірену основну натальну карту в кабінеті.':
+    'Select your verified primary birth chart in Personal.'}
+    {' '}<Link href={'/'+locale+'/personal'}>{uk?'Перейти в кабінет':'Open Personal'}</Link></p>}
+   {privateState==='guest'&&<p role="status">{uk?'Потрібен вхід до акаунта.':'Sign-in required.'}</p>}
+   {privateState==='error'&&<p role="alert">{uk?'Особисті дані не підтверджено; показуємо лише загальний календар.':
+    'Personal source mismatch or unavailable; displaying general calendar only.'}</p>}
+   {finderState==='loading'&&<p role="status">{uk?'Шукаємо точні інтервали за перевіреними правилами…':
+    'Screening exact times against documented rules…'}</p>}
+   {finderState==='no_chart'&&<p role="status">{uk?'Для цього пошуку потрібні перевірені натальні карти.':
+    'Verified saved natal charts are required for this search.'}</p>}
+   {finderState==='guest'&&<p role="status">{uk?'Увійдіть до акаунта для пошуку часу.':'Sign in to search time windows.'}</p>}
+   {finderState==='limit'&&<p role="alert">{uk?'Ліміт пошуку часу вичерпаний. Дані не підмінюємо припущеннями.':
+    'Time Finder request limit reached; no times are invented.'}</p>}
+   {finderState==='error'&&<p role="alert">{uk?'Часові вікна не вдалося перевірити; результат приховано.':
+    'Time windows could not be verified; no results shown.'}</p>}
+   {verifiedFinder&&<div data-testid="p387-window-scope" className={styles.windowScope}>
+    <strong>{uk?'Результат реального пошуку':'Verified search result'}</strong>
+    <p>{eventTime(verifiedFinder.startUtc)} – {eventTime(verifiedFinder.searchThroughUtc)}
+     {' · '}{uk?'до двох перших інтервалів на кожну добу від сходу Сонця':
+      'first candidate/review interval per sunrise day, up to two per day'}</p>
+    {verifiedFinder.status==='none_in_checked_range'&&<p>{uk?'За перевірений проміжок придатних вікон не виявлено. Це не означає, що решта дат несприятливі.':
+     'No qualifying windows in the checked horizon. Other dates are not thereby declared unfavorable.'}</p>}
+    {verifiedFinder.status==='review_only'&&<p>{uk?'Є лише інтервали для спеціальної перевірки; повна мухурта не сертифікована.':
+     'Only reviewable intervals were found; a full Muhurta has not been certified.'}</p>}
+   </div>}
+  </section>
   <div className={styles.smartControls}>
    <fieldset><legend>{uk?'Показати події':'Events'}</legend>
     {(['all','festivals','phases'] as const).map(f=><button type="button" key={f} aria-pressed={filter===f}
@@ -230,8 +292,8 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
    {view==='month'&&(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as const).map((w,i)=><span className={styles.weekLabel} key={w}>
     {uk?['Пн','Вт','Ср','Чт','Пт','Сб','Нд'][i]:w}</span>)}
    {view==='month'&&Array.from({length:offset},(_,i)=><span aria-hidden="true" key={'blank-'+i}/>)}
-   {data.days.map(d=>{
-    const events=eventsFor(d),isMonth=view==='month';
+   {data.days.map((d,i)=>{
+    const events=eventsFor(d),isMonth=view==='month',overlay=rows?.[i];
     return <button key={d.date} type="button" data-testid="panchanga-day-cell"
      className={isMonth?styles.smartDay:styles.smartWeek}
      aria-current={d.date===point.date?'date':undefined}
@@ -249,9 +311,54 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
       {e.label}{!isMonth?' · '+eventTime(e.atUtc):''}
      </span>)}
      {events.length>(isMonth?2:1)&&<small className={styles.smartMore}>+{events.length-(isMonth?2:1)}</small>}
+     {overlay?.personalDay&&<span className={styles.personalBadge} data-testid="p387-sunrise"
+      data-status={overlay.personalDay.chandrabala.ashtamaChandra?'restriction':
+       overlay.personalDay.tarabala.quality==='supportive'&&
+       overlay.personalDay.chandrabala.quality==='supportive'?'support':'mixed'}>
+      {uk?'На сході: Тара ':'At sunrise: Tara '}{overlay.personalDay.tarabala.taraNumber}
+      {' · '}{uk?'Чандра ':'Chandra '}{overlay.personalDay.chandrabala.houseFromJanmaRashi}
+     </span>}
+     {overlay&&overlay.personalEvents.length>0&&<span className={styles.personalBadge}>
+      {uk?'Особисті переходи':'Personal transitions'}: {overlay.personalEvents.length}
+     </span>}
+     {overlay&&overlay.windows.length>0&&<span className={styles.windowBadge}
+      data-status={overlay.windows[0].status}>
+      {uk?'Перевірений інтервал':'Screened interval'} · {eventTime(overlay.windows[0].startUtc)}
+     </span>}
     </button>;
    })}
   </div>}
+  {verifiedPersonal&&rows&&<details className={styles.p387Details} data-testid="p387-exact-events">
+   <summary>{uk?'Точні особисті переходи':'Exact personal transitions'}
+    {' · '}{rows.reduce((sum,r)=>sum+r.personalEvents.length,0)}</summary>
+   <ul>{rows.flatMap(r=>r.personalEvents.map((e,i)=><li key={r.date+e.kind+e.atUtc+i}>
+    <time dateTime={e.atUtc}>{eventTime(e.atUtc)}</time>
+    {' · '}{e.kind==='moon-sign'?(uk?'Місяць: знак ':'Moon: sign ')+e.from+' → '+e.to:
+     e.kind==='nakshatra'?(uk?'Накшатра ':'Nakshatra ')+e.from+' → '+e.to:
+     e.kind==='mahadasha'?(uk?'Махадаша':'Mahadasha'):(uk?'Антардаша':'Antardasha')}
+    {e.lord?' · '+e.lord:''}
+    {' · '}{uk?'доба від сходу ':'sunrise day '}{r.date}
+   </li>))}</ul>
+  </details>}
+  {verifiedFinder&&rows&&<details className={styles.p387Details} open data-testid="p387-exact-windows">
+   <summary>{uk?'Часові вікна, що потрапили до календаря':'Time windows within this calendar'}
+    {' · '}{rows.reduce((sum,r)=>sum+r.windows.length,0)}</summary>
+   <ul>{rows.flatMap(r=>r.windows.map(w=><li key={w.sunriseDate+w.startUtc+w.status}>
+    <span data-status={w.status} className={styles.windowBadge}>
+     {w.status==='candidate'?(uk?'Кандидат':'Candidate'):
+      (uk?'Потрібна додаткова перевірка':'Further review required')}</span>
+    <time dateTime={w.startUtc}>{eventTime(w.startUtc)}</time>
+    {' – '}<time dateTime={w.endUtc}>{eventTime(w.endUtc)}</time>
+    <button type="button" onClick={()=>onPick(r.date,w.sampleUtc)}>
+     {uk?'Відкрити цей момент':'Open this exact moment'}</button>
+   </li>))}</ul>
+   {verifiedFinder.windows.length>rows.reduce((sum,r)=>sum+r.windows.length,0)&&
+    <p>{uk?'Частина вікон лежить поза поточною сторінкою календаря; дати не вигадуємо.':
+     'Some results fall outside the displayed calendar; no dates are inferred.'}</p>}
+  </details>}
+  {verifiedPersonal&&!rows&&<p role="alert" className={styles.smartState}>
+   {uk?'Особистий календар не вдалося узгодити з календарем подій.':
+    'Personal dates could not be reconciled with public calendar events.'}</p>}
   <p className={styles.smartFootnote}>{uk?
    'П’ять анг — на сході Сонця; фази — на точний момент. Дати свят попередні. Натисни дату для часу переходів.':
    'Five limbs use local sunrise; Moon phases use exact event times. Festival dates are provisional. Select a date for transitions.'}</p>
