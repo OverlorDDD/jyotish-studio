@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - release/panchanga-p388-independent-qa-20261103
-      - main
+      - release/panchanga-p36-production-acceptance-20261102
     paths:
       - '.github/workflows/panchanga-p388-independent-release.yml'
       - 'apps/api/src/panchanga*'
