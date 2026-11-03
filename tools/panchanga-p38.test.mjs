@@ -80,7 +80,7 @@ test('P3.8 same sky gives DIFFERENT legitimate decisions: Chara supports travel,
 test('P3.8 gentle Nakshatra directly supports making friends, but dating is clearly a modern analogy',()=>{
  const d=fixture({nak:5});
  assert.equal(check(d,'making_friends').verdict,'candidate');
- assert.equal(check(d,'first_date').verdict,'mixed');
+ assert.equal(check(d,'first_date').verdict,'analogy');
  assert.equal(check(d,'job_start').verdict,'candidate'); // gentle inherits fixed works, per Drik Panchang
 });
 test('P3.8 travel has specific named exclusions; same Bharani day is not universally bad for all actions',()=>{
@@ -221,4 +221,20 @@ test('P3.8 exhaustive 68,040 electional Tithi/Vara/Nakshatra/Lagna combinations 
  assert.equal(combinations,68040);
  assert.equal(scopeEvaluations,272160);
  assert.deepEqual([...seen].sort((a,b)=>a-b),[0,1,2,3,4,5,6,7,8]);
+});
+
+test('P3.8 generic caution without activity support is NOT labelled mixed support',()=>{
+ const d=fixture({nak:15,yoga:17});
+ const result=check(d,'job_start');
+ assert.equal(result.verdict,'caution');
+ assert.equal(result.observations.some(e=>e.polarity==='supports'&&e.scope==='activity'),false);
+});
+test('P3.8 missing requirements reflect provided verified natal and observer location, not all registry requirements',()=>{
+ const d=fixture(),at=when();
+ const unknown=check(d,'foundation');
+ assert.ok(unknown.missingRequirements.includes('natal_chart'));
+ assert.ok(!unknown.missingRequirements.includes('event_location'));
+ const withNatal=evaluateP38(d,at,'foundation',{point:POINT,report:report(d,at)});
+ assert.ok(!withNatal.missingRequirements.includes('natal_chart'));
+ assert.ok(withNatal.missingRequirements.includes('election_lagna'));
 });
