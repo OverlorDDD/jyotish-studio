@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
-import {ArrowRight,CalendarDays,Clock3,Compass,Info,Sun,BookOpen,Star} from 'lucide-react';
+import {ArrowRight,CalendarDays,Clock3,Compass,Info,Sun,Star} from 'lucide-react';
 import type {PortalLocale} from '../../lib/brand';
 import {validateP33Report,type P33Report} from '../../lib/panchanga-p33-resonance';
 import {
@@ -13,7 +13,7 @@ import styles from './PanchangaDailyOpportunities.module.css';
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
 type PersonalStatus='loading'|'guest'|'no-chart'|'ready'|'unavailable';
 type Props={locale:PortalLocale;day:OpportunityDay;point:Point;
- onTomorrow:()=>void;onToday:()=>void;onWeek:()=>void;onAdvanced:()=>void};
+ onTomorrow:()=>void;onToday:()=>void;onWeek:()=>void};
 const nameOf=(iso:string,zone:string,locale:PortalLocale)=>{
  return new Intl.DateTimeFormat(locale==='uk'?'uk-UA':'en-GB',{
   timeZone:zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZoneName:'shortOffset'
@@ -48,7 +48,7 @@ const DISPLAY_CHOG:Record<string,{uk:string;en:string}>={
  Kaal:{uk:'Каал',en:'Kaal'},Shubh:{uk:'Шубх',en:'Shubh'},Rog:{uk:'Рог',en:'Rog'}
 };
 export default function PanchangaDailyOpportunities({locale,day,point,
- onTomorrow,onToday,onWeek,onAdvanced}:Props){
+ onTomorrow,onToday,onWeek}:Props){
  const uk=locale==='uk';
  const [now,setNow]=useState<number|null>(null);
  const [personal,setPersonal]=useState<P33Report|null>(null);
@@ -163,10 +163,10 @@ export default function PanchangaDailyOpportunities({locale,day,point,
      <div className={styles.cardActions}>
       <a href={calendarFile(opp,locale,point.place)} download={'galaxiora-'+opp.id+'.ics'}
        className={styles.calendarLink}><CalendarDays size={16} aria-hidden="true"/>
-       {uk?'Додати в календар':'Add to calendar'}</a>
-      <a href={opp.source} target="_blank" rel="noreferrer" className={styles.source}>
-       {uk?'Правило':'Method'} <ArrowRight size={14} aria-hidden="true"/></a>
+       {uk?'Завантажити подію (.ics)':'Download event (.ics)'}</a>
      </div>
+     <small className={styles.calendarHint}>{uk?'Файл для імпорту в Google, Apple або Outlook Calendar. Сам не додає подію.':
+      'Import this file into Google, Apple or Outlook Calendar. It does not add events automatically.'}</small>
     </article>)}
    </div>:<div className={styles.empty} data-testid="p410-empty">
     {uk?'На решту цього дня перевірених можливостей для нового початку не знайдено. Перегляньте наступний день — без вигаданих «зелених годин».':
@@ -224,14 +224,6 @@ export default function PanchangaDailyOpportunities({locale,day,point,
      </li>)}</ol>
     </div>
    </div>}
-   <p><a href="https://www.drikpanchang.com/tutorials/muhurat/daily/choghadiya-muhurat.html"
-    target="_blank" rel="noreferrer">{uk?'Таблиці Чогхадії · Drik Panchang':'Choghadiya tables · Drik Panchang'}</a></p>
   </details>
-  <button type="button" className={styles.special} onClick={onAdvanced}>
-   <BookOpen size={18} aria-hidden="true"/>
-   {uk?'Складні події: персональний Time Finder і попередня мухурта':
-    'Special events: personal Time Finder and preliminary Muhurta'}
-   <ArrowRight size={16} aria-hidden="true"/>
-  </button>
  </section>;
 }
