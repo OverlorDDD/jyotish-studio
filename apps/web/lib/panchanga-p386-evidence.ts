@@ -35,9 +35,13 @@ export function p386EvidenceShare(moment:P38Moment):P386EvidenceShare{
  const caution=values.filter(p=>p==='cautions').length;
  const excluded=values.filter(p=>p==='excludes').length;
  const denominator=positive+caution+excluded;
- const completeForDisplay=moment.activityMethod!=='special_election'&&
-  moment.verdict!=='needs_full_election'&&moment.activityMethod!=='routine'&&
-  denominator>=2;
+ // Do not render "100%" for a case with only general positive natal
+ // factors but NO traditional support for the SPECIFIC selected activity.
+ // And never put a cheery percentage alongside a documented hard exclusion.
+ const activitySupport=moment.observations.some(e=>e.polarity==='supports'&&e.scope==='activity');
+ const completeForDisplay=moment.activityMethod==='direct'&&
+  (moment.verdict==='candidate'||moment.verdict==='mixed')&&
+  activitySupport&&excluded===0&&denominator>=2;
  const percent=completeForDisplay?Math.round(positive/denominator*100):null;
  return {numerator:positive,denominator,percent,positive,caution,excluded,
   completeForDisplay,basis:'TRIGGERED_SOURCE_EVIDENCE_NOT_OUTCOME_PROBABILITY'};
