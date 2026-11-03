@@ -32,7 +32,9 @@ for(const locale of ['uk','en']){
   await select.selectOption('first_date');
   await expect(hub.getByTestId('p32-headline')).toBeVisible();
   await select.selectOption('wedding');
-  await expect(hub.getByTestId('p32-headline')).toContainText(locale==='uk'?'повна мухурта':'full Muhurta');
+  await expect(hub.getByTestId('p389-muhurta-checklist')).toBeVisible();
+  await expect(hub.getByTestId('p389-muhurta-checklist')).toContainText(
+   locale==='uk'?'21 доша':'21 doshas');
   await expect(hub.getByTestId('p31-my-day').locator('[role="img"][aria-label*="%"]')).toHaveCount(0);
   await expect(hub.getByTestId('p31-details')).not.toHaveAttribute('open');
  });
