@@ -88,7 +88,8 @@ const GUARD=(ok:unknown,msg:string):asserts ok=>{if(!ok)throw Error('P38 source 
 const STAR_RESTRICTIONS_FOR_TRAVEL=new Set([2,3]); // Bharani, Krittika: Raman Ch XIV.
 const BORROW_RESTRICTED_STARS=new Set([3,7,19,23]); // Raman Ch XVII + natal star separately.
 const STANDARD_BAD_YOGAS=new Set([6,9,10,17,27]); // Raman Ch V: Panchanga Suddhi.
-const GENERAL_TITHI_CAUTION=new Set([4,6,8,14,15]); // Raman Ch II/V: 15 = full/new Moon\nconst IMPORTANT_TITHI_CAUTION=new Set([12]); // Raman Ch II explicitly notes an exception if other limbs are strong
+const GENERAL_TITHI_CAUTION=new Set([4,6,8,14,15]); // Raman Ch II/V: 15 = full/new Moon
+const IMPORTANT_TITHI_CAUTION=new Set([12]); // Raman Ch II explicitly notes an exception if other limbs are strong
 const GENERAL_ELECTION=new Set<P38Method>(['direct','analogy','special_election']);
 function active<K extends keyof P32Day['periods']>(day:P32Day,key:K,t:number){
  const p=day.periods[key].filter(i=>Date.parse(i.startUtc)<=t&&t<Date.parse(i.endUtc));
