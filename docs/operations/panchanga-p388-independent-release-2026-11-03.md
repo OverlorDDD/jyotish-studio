@@ -2,15 +2,17 @@
 
 **Prepared 2026-11-03.** Source branch:
 `release/panchanga-p388-independent-qa-20261103`.
-**Target: merged integration commit on `main`, not a detached/old draft PR.**
+**Target: merged integration commit on the vetted `release/panchanga-p36-production-acceptance-20261102` branch, not obsolete `main`.**
 **No AWS deployment is performed by GitHub Actions or this document.**
 
 ## 1. Reality check and verified scope
 
 P3.8.1–P3.8.7 are stacked unmerged draft PRs #92–96. Their feature
-branch is **not a substitute for a reviewed production merge**: `main`
-also contains approved round Galaxy #6, GA4/SEO and multilingual News
-changes. The final P3.8.8 release must include **all** relevant ancestors
+branch is **not a substitute for a reviewed production merge**: GitHub `main`
+is a 264-file legacy tree, while the certified P3.6 release branch has 901 files,
+including approved round Galaxy #6, GA4/SEO and multilingual News changes.
+Direct merging into main expands to 777 file changes; the safe P3.6 base
+reduces the candidate diff to 63, with no approved icon/News asset changes. The final P3.8.8 release must include **all** relevant ancestors
 in one non-squashed merge commit so the running server can fast-forward
 without resetting any approved production changes.
 
@@ -76,7 +78,7 @@ review window per day, not a catalogue of all passing minutes.
   explicit busy rather than unbounded queue. This is **not** a
   distributed multi-instance lock.
 - **No operator-controlled same-SHA deploy:** New P388 release script
-  only admits a pinned reviewed `main` SHA, checking `RELEASE_ROOT`
+  only admits a pinned reviewed P3.6 release branch SHA, checking `RELEASE_ROOT`
   ancestry and that live checkout is ancestor of the candidate. It
   never uses `git reset --hard` or changes Cloudflare, Caddy, indexing,
   Azure News configuration, saved charts or round Galaxy #6 logo.
@@ -117,21 +119,21 @@ review window per day, not a catalogue of all passing minutes.
    Snapshot version/provenance; rerun reference tests after OS tzdata
    or PHP/Node upgrades if expected local offsets change.
 
-## 4. GitHub, from review to main
+## 4. GitHub, from review to vetted production release branch
 
 1. Review the historical stacked PRs **#92 → #93 → #94 → #95 → #96**.
    The P388 child PR is based on P387. Also review the P388 integration
-   PR targeting `main`: this carries the entire chain together.
+   PR #98 targeting `release/panchanga-p36-production-acceptance-20261102`: this carries the entire chain together.
 2. Wait for P388 `independent-astronomy`, `protected-browser` and
    `release-candidate` on the same head commit to pass, including
    30 independent Swiss ASC and 28 local sunrise days.
-3. Merge the reviewed P388 **integration** PR to `main` using
+3. Merge the reviewed P388 **integration** PR #98 to the P3.6 release branch using
    **“Create a merge commit”**, **NOT “Squash and merge”** or force push.
    This is required by the release script's explicit ancestry proof.
    Merge ancestors/branches through this one integration PR; do not
    separately duplicate the older PRs if already included.
-4. Run/inspect P388 Release Gate for the **new main SHA**. Only the new
-   `main` merged SHA, not the earlier feature SHA, goes to EC2.
+4. Run/inspect P388 Release Gate for the **new P3.6 merged SHA**. Only the newly
+   merged P3.6 release SHA, not the earlier feature SHA, goes to EC2.
 
 ## 5. Windows PowerShell — connect to existing AWS
 
@@ -145,15 +147,15 @@ The first part is non-mutating:
 ```bash
 cd /opt/galaxiora/app
 git status --short
-git fetch --no-tags origin main
-git log -1 --format='%H %s' origin/main
-git show origin/main:tools/panchanga-p388-release.sh > /tmp/galaxiora-p388-release.sh
+git fetch --no-tags origin release/panchanga-p36-production-acceptance-20261102
+git log -1 --format='%H %s' origin/release/panchanga-p36-production-acceptance-20261102
+git show origin/release/panchanga-p36-production-acceptance-20261102:tools/panchanga-p388-release.sh > /tmp/galaxiora-p388-release.sh
 bash -n /tmp/galaxiora-p388-release.sh
 bash /tmp/galaxiora-p388-release.sh diagnose
-export P388_TARGET_SHA="$(git rev-parse origin/main)"
+export P388_TARGET_SHA="$(git rev-parse origin/release/panchanga-p36-production-acceptance-20261102)"
 bash /tmp/galaxiora-p388-release.sh preflight
 ```
-`P388_PREFLIGHT_PASS` means verified main SHA, correct 30-vector
+`P388_PREFLIGHT_PASS` means verified P3.6 release SHA, correct 30-vector
 release ancestry, existing HTTPS/indexing policy, active services,
 approved icon, disk and DB, and safe fast-forward from LIVE SHA. It does
 **not** by itself mean live independent astrology/ceremony approval.
@@ -161,7 +163,7 @@ approved icon, disk and DB, and safe fast-forward from LIVE SHA. It does
 If `P388_STOP: Live checkout diverges` appears, DO NOT force-reset.
 Do not overwrite locally deployed logo/news fixes. Compare actual
 server SHA and integrate them safely via a reviewed GitHub PR; rerun CI
-and pin a **new** exact `main` SHA. If `SITE_NOINDEX` differs,
+and pin a **new** exact release SHA. If `SITE_NOINDEX` differs,
 review existing SEO production policy rather than flipping it silently.
 
 ## 6. Deploy only after all same-SHA checks are GREEN
@@ -174,7 +176,7 @@ export P388_APPROVAL='I_APPROVE_P388_PRODUCTION'
 bash /tmp/galaxiora-p388-release.sh deploy
 ```
 This runs fresh private PostgreSQL backup, verifies its TOC, retains
-`.env`, updates **only reviewed main source**, runs all Node/Swiss
+`.env`, updates **only the reviewed P3.6-based release source**, runs all Node/Swiss
 regressions and production build, applies only existing Prisma
 migrations, restarts existing API + web services (does not stop Caddy),
 checks `site:check`, `launch:verify`, R3 SEO audit, new
