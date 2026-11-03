@@ -14,10 +14,12 @@ on:
       - 'tests/fixtures/p388-*'
       - 'tools/panchanga-p388-*'
       - 'tools/panchanga-p389*'
+      - 'tools/panchanga-daily-opportunities*'
       - 'tools/panchanga-p387*'
       - 'e2e/panchanga-p388*'
       - 'e2e/panchanga-p387*'
       - 'e2e/panchanga-p389*'
+      - 'e2e/panchanga-daily-opportunities*'
       - 'package.json'
   pull_request:
     paths:
@@ -30,9 +32,11 @@ on:
       - 'tests/fixtures/p388-*'
       - 'tools/panchanga-p388-*'
       - 'tools/panchanga-p389*'
+      - 'tools/panchanga-daily-opportunities*'
       - 'e2e/panchanga-p388*'
       - 'e2e/panchanga-p387*'
       - 'e2e/panchanga-p389*'
+      - 'e2e/panchanga-daily-opportunities*'
       - 'package.json'
   workflow_dispatch:
 permissions:
@@ -163,7 +167,7 @@ jobs:
           node --input-type=module -e 'let ok=false;for(let i=0;i<180;i++){try{const r=await fetch("http://127.0.0.1:3000/uk/panchanga");if(r.ok){ok=true;break;}}catch{}await new Promise(resolve=>setTimeout(resolve,1000));}if(!ok)process.exit(1);'
       - name: Run bilingual Day/Week/Month, guest, 320/390 mobile and two-owner 31/29-day checks
         run: |
-          npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs e2e/panchanga-p388.spec.mjs e2e/panchanga-p389.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
+          npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs e2e/panchanga-p388.spec.mjs e2e/panchanga-p389.spec.mjs e2e/panchanga-daily-opportunities.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
       - name: Print isolated development failures without database content
         if: failure()
         run: |
