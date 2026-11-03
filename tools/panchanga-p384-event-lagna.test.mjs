@@ -31,6 +31,7 @@ test('P3.8.4 8 pinned independent PySwissEph ascendants agree within 1 arcsecond
   assert.equal(got.localDate,c.localDate);
   assert.equal(got.localTime,c.localTime);
   assert.ok(got.eventNavamsaSign>=1&&got.eventNavamsaSign<=12);
+  assert.equal(got.eventNavamsaSign,c.eventNavamsaSign,c.atUtc+' independent D9 sign');
   assert.ok(got.distanceToSignBoundaryArcseconds>1);
  }
 });
