@@ -7,7 +7,7 @@ const COPY={
  en:{
   eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Astrology, Tarot & Panchanga.',emphasis:'Explore your universe.',
   intro:'Jyotish reveals the rhythms of destiny, Tarot speaks through symbols, and yoga brings you back to the power of breath. Explore your natal chart, draw the cards and find your practice today.',
-  explore:'Explore the space',jyotish:'Open Vedic birth chart',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
+  explore:'Explore the space',jyotish:'Free Vedic Birth Chart',panchanga:'Panchang Today',tarotAction:'Free Tarot Reading',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
   status:'Explore',ready:'Explore',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Astrology',description:'Calculate your Vedic birth chart, explore the D1/D9/D10 charts, nakshatras and personal planetary periods.',live:true},
