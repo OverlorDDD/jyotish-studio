@@ -112,7 +112,9 @@ export async function findP385Windows(args:{
      !['candidate','requires_review','excluded','undetermined'].includes(item.status)||
      !Array.isArray(item.reasonIds)||item.reasonIds.some(x=>typeof x!=='string'))
     throw Error('P385 time window must have signed source-scoped evidence');
-   const w:P385Window={startUtc:new Date(Math.max(a,from)).toISOString(),
+   // Show the FIRST actually evaluated safe moment, never an untested
+   // boundary instant 15 seconds earlier (which could be a different Lagna).
+   const w:P385Window={startUtc:at,
     endUtc:new Date(b).toISOString(),sampleUtc:at,
     status:item.status,reasonIds:[...new Set(item.reasonIds)]};
    if(item.status==='candidate'&&!candidate)candidate=w;
