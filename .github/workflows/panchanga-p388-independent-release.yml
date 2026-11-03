@@ -74,6 +74,7 @@ jobs:
           npm run test:p388:independent
           npm run test:p389:real
           npm run test:p390:real
+          npm run test:p410
       - name: All P3.1 through P3.8.8 pure regression, Vedic calendar and guarded production script
         run: |
           npm run test:panchanga
