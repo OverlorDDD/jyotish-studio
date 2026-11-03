@@ -166,6 +166,7 @@ deploy(){
  npm install --no-audit --no-fund
  npm run db:generate
  npm run test:panchanga
+ npm run test:p410
  npm run test:vedic-calendar
  npm run test:p388:independent
  npm run test:brand:icons
