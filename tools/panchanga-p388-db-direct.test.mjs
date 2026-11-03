@@ -68,7 +68,7 @@ test('P388 direct check and private archive use libpq without Docker or credenti
   result=cmd('backup',dump);
   assert.notEqual(result.status,0,'never overwrite an existing backup');
   const output=readFileSync(log,'utf8');
-  assert.match(output,/pg_dump --schema-only/);
+  assert.match(output,/pg_dump -w --schema-only/);
   assert.match(output,/pg_dump -w --format=custom/);
   assert.match(output,/pg_restore --list/);
   assert.ok(!output.includes('s3cret'), 'no password in argv');
