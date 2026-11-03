@@ -143,7 +143,11 @@ export async function searchP385Time(input:P385SearchInput){
    const p=atNode(ms),nodes={Rahu:p.longitude,Ketu:(p.longitude+180)%360,
     source:'JQA3_NATIVE_SWIEPH_MEAN_NODE_AND_OPPOSITE' as const};
    const special=evaluateP385Special({event:result,day,owner,partner,nodes});
-   reasons.push(...special.rules.filter(r=>r.state==='excluded').map(r=>r.id));
+   // Preserve BOTH positive and exclusionary source-backed specialist facts
+    // in the signed Time Finder result: the UI must not show an identical
+    // 'requires review' summary for distinct verified event charts.
+    reasons.push(...special.rules.filter(r=>r.state==='excluded'||r.state==='preferred')
+     .map(r=>r.id));
    return {status:flags==='excluded'||special.state==='excluded'?'excluded' as const:
      'requires_review' as const,reasonIds:reasons,
     source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};

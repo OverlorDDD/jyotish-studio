@@ -7,7 +7,13 @@
  * Chapter 3 Marriage Kuta/Dina. Source: ved.bz/_jyotish/books/muhurtha.html
  */
 import type {P32Day} from '../../web/lib/panchanga-p32-engine.ts';
-import type {P38ActivityId} from '../../web/lib/panchanga-p38-decision.ts';
+import {P38_MARRIAGE_GOOD_NAK as MARRIAGE_GOOD_NAK,
+ P38_FOUNDATION_BEST_NAK as FOUNDATION_BEST_NAK,
+ P38_FOUNDATION_MIDDLE_NAK as FOUNDATION_MIDDLE_NAK,
+ P38_MARRIAGE_BAD_YOGAS as MARRIAGE_BAD_YOGAS,
+ P38_MARRIAGE_RESTRICTED_TITHIS as RESTRICTED_MARRIAGE_TITHIS,
+ P38_FOUNDATION_GOOD_TITHIS as GOOD_FOUNDATION_TITHIS,
+ type P38ActivityId} from '../../web/lib/panchanga-p38-decision.ts';
 import type {P384Evaluation} from './panchanga-event-election.ts';
 import type {RecoveredChart} from './personal-chart-recovery.ts';
 
@@ -78,13 +84,8 @@ const has=(name:string,houseNum:number,planets:{name:string;houseFromEventLagna:
  planets.some(p=>p.name===name&&house(p)===houseNum);
 const any=(houses:readonly number[],names:readonly string[],sky:{name:string;houseFromEventLagna:number}[])=>
  sky.some(p=>houses.includes(house(p))&&names.includes(p.name));
-const MARRIAGE_GOOD_NAK=new Set([4,5,10,12,13,15,17,19,21,26,27]);
-const FOUNDATION_BEST_NAK=new Set([4,5,14,13,18,12,21,22]);
-const FOUNDATION_MIDDLE_NAK=new Set([15,8,17,1,24,26,27]);
-const MARRIAGE_BAD_YOGAS=new Set(['Vyatipata','Dhruva','Ganda','Vajra','Shoola',
- 'Vishkumbha','Atiganda','Vyaghata','Parigha']);
-const RESTRICTED_MARRIAGE_TITHIS=new Set([4,6,8,9,12,14]);
-const GOOD_FOUNDATION_TITHIS=new Set([1,2,3,5,6,7,10,11,13,15]);
+// Wedding/foundation public calendar rules and specialist event rules now share
+// the same canonical sets. Event-Lagna/natal/partner gates remain server-only.
 const FIXED_SIGNS=new Set([2,5,8,11]),MOVABLE_SIGNS=new Set([1,4,7,10]);
 function starCount(from:number,to:number){return (to-from+27)%27+1;}
 function dinaAllowed(n:number){return [2,4,6,8,0].includes(n%9);}

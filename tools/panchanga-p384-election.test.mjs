@@ -65,7 +65,7 @@ test('P384: same verified event sky has different classical Panchaka restriction
  assert.equal(w.panchaka.remainder,8); // 10 + 3 + 4 + 9 = 26 mod 9
  assert.equal(w.panchaka.name,'Roga');
  assert.equal(w.panchaka.forbiddenForScope,true);
- assert.equal(w.calendarVerdict,'needs_full_election');
+ assert.equal(w.calendarVerdict,'avoid'); // Raman: Tuesday is excluded for marriage
  assert.equal(foundation.panchaka.forbiddenForScope,false);
  assert.equal(foundation.panchakaScope,'home_building');
  assert.equal(foundation.calendarVerdict,'needs_full_election');
