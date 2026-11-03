@@ -87,7 +87,9 @@ jobs:
           if [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-p387-unified-personal-calendar-20261103" ]]; then
             # P3.8.7 retains P3.8.6 one-calendar contract and adds integrated
             # owner-only 7/28–31 day events and 7/30-day screened time finder.
-            npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+            # Each P386/P387 mobile regression explicitly sets a 320px viewport;
+            # avoid doubling expensive Swiss observer queries in two Playwright projects.
+            npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
           elif [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-p386-clean-day-ux-20261103" ]]; then
             # P3.8.6 intentionally removed the P2/P3.7 duplicated widgets. Old
             # browser specs assert their presence; the new full-page contract
