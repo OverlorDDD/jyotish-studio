@@ -11,7 +11,7 @@ import {evaluateP38,p38Activity,P38_ACTIVITIES,type P38Category,
  type P38ActivityId,type P38Moment} from '../../lib/panchanga-p38-decision';
 import {validateP33Report,type P33Report} from '../../lib/panchanga-p33-resonance';
 import {p386EvidenceShare} from '../../lib/panchanga-p386-evidence';
-import {p389Guidance} from '../../lib/panchanga-p389-guidance';
+import {p389Guidance,p389WindowReason} from '../../lib/panchanga-p389-guidance';
 import styles from './PanchangaCleanDay.module.css';
 
 type Point={date:string;timeZone:string;latitude:string;longitude:string;place:string};
@@ -155,6 +155,8 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
  const canSearch=Boolean(searchStart&&!dayHasPassed&&userState==='ready'&&
   (!requiresPartner||partnerId)&&finderState!=='loading'&&activityInfo.method!=='routine');
  const clock=(v:string)=>CLOCK(v,point.timeZone,locale);
+ const windowReasons=(ids:string[])=>
+  [...new Set(ids.map(id=>p389WindowReason(id,locale)).filter((x):x is string=>Boolean(x)))].slice(0,7);
  async function runSearch(){
   if(!canSearch||!searchStart)return;
   setFinder(null);setFinderState('loading');
@@ -224,6 +226,8 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
       <h4 data-testid="p32-headline">{guidance?.headline}</h4>
       {guidance&&<p className={styles.resultReason}>{guidance.reason}</p>}
       {guidance&&<p className={styles.resultAction} data-testid="p389-action">{guidance.nextStep}</p>}
+      <a href={activityInfo.source} target="_blank" rel="noopener noreferrer"
+       className={styles.ruleSource}>{uk?'Джерело традиційних критеріїв':'Source of traditional criteria'} ↗</a>
       {guidance&&guidance.sharedActivities.length>0&&<p className={styles.sharedRules}
        data-testid="p389-shared-criteria">{uk?
         'Ті самі базові правила наразі застосовано також до: ':
@@ -311,9 +315,13 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
       {finder.candidate?<><strong>{uk?'Найближчий кандидатний час':'Next candidate interval'}</strong>
        <time>{clock(finder.candidate.startUtc)} – {clock(finder.candidate.endUtc)}</time>
        <small>{uk?'Перевірено застосовні календарні правила. Це не гарантія результату.':'Applicable calendar rules screened; this is not an outcome guarantee.'}</small>
+        {windowReasons(finder.candidate.reasonIds).length>0&&<ul className={styles.finderReasons}
+         data-testid="p389-window-reasons">{windowReasons(finder.candidate.reasonIds).map(r=><li key={r}>{r}</li>)}</ul>}
       </>:finder.review?<><strong>{uk?'Найближчий інтервал для додаткової перевірки':'Next interval requiring special review'}</strong>
        <time>{clock(finder.review.startUtc)} – {clock(finder.review.endUtc)}</time>
-       <small>{uk?'Для церемонії ще потрібні неперевірені спеціальні правила.':'Additional ceremonial conditions still require verification.'}</small>
+       <small>{uk?'Для цього моменту перевірено лише частину правил. Наведені факти стосуються саме знайденого інтервалу.':'Only part of the rules have been verified for this specific event interval.'}</small>
+        {windowReasons(finder.review.reasonIds).length>0&&<ul className={styles.finderReasons}
+         data-testid="p389-window-reasons">{windowReasons(finder.review.reasonIds).map(r=><li key={r}>{r}</li>)}</ul>}
       </>:<span>{finder.status==='none_in_checked_range'?
        (uk?'У перевіреному проміжку придатного часу не знайдено.':'No qualifying interval within the checked range.'):
        (uk?'Потрібна додаткова перевірка натальних карт.':'Additional natal verification is required.')}</span>}
