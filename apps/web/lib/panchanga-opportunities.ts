@@ -216,14 +216,19 @@ export function featuredOpportunities(all:readonly Opportunity[],count=3):Opport
  return selected;
 }
 export function brahmaMuhurta(day:OpportunityDay):Opportunity{
- const sunrise=ms(day.sunriseUtc);
+ // The last two 1/15-night Muhurtas belong to the vedic day which
+ // ends at next sunrise. Variable length follows the actual local night.
+ const sunset=ms(day.sunsetUtc),sunrise=ms(day.nextSunriseUtc);
+ const nightMuhurta=(sunrise-sunset)/15;
+ if(!(nightMuhurta>=20*60000&&nightMuhurta<=90*60000))
+  throw Error('Unverified astronomical night for Brahma Muhurta');
  return {id:'brahma-'+day.date,kind:'practice',activityId:null,
   title:LANG('Медитація до сходу Сонця','Pre-sunrise meditation'),
   action:LANG('Приділіть час медитації чи молитві перед сходом Сонця.','Meditate or pray in the quiet before sunrise.'),
-  reason:LANG('Брахма-мухурта — традиційний період від 96 до 48 хвилин перед місцевим сходом Сонця.',
-   'Brahma Muhurta traditionally spans 96 to 48 minutes before local sunrise.'),
-  startUtc:iso(sunrise-96*60000),endUtc:iso(sunrise-48*60000),
-  choghadiya:null,hora:null,source:'https://www.drikpanchang.com/muhurat/brahma-muhurat.html',
+  reason:LANG('Брахма-мухурта: дві нічні мухурти перед наступним сходом Сонця; тривалість обчислено з цієї місцевої ночі.',
+   'Brahma Muhurta: the final two 1/15-night units before the next sunrise, using the local night length.'),
+  startUtc:iso(sunrise-2*nightMuhurta),endUtc:iso(sunrise-nightMuhurta),
+  choghadiya:null,hora:null,source:'https://www.drikpanchang.com/panchang/day-panchang.html',
   basis:'daily-practice',personalized:false};
 }
 export function abhijitWindow(day:OpportunityDay):{startUtc:string;endUtc:string}|null{
