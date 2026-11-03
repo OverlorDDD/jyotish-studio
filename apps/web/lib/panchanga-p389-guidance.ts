@@ -5,6 +5,7 @@
  */
 import {P38_ACTIVITIES,p38Activity,type P38Moment,type P38ActivityId}
  from './panchanga-p38-decision.ts';
+import {scoreP390} from './panchanga-p390-scoring.ts';
 
 export type P389Locale='uk'|'en';
 export type P389Guidance={
@@ -21,6 +22,7 @@ const CLASS:Record<string,{uk:string;en:string}>={
  movable:{uk:'рухлива',en:'movable'},
  sharp:{uk:'гостра',en:'sharp'},
  cruel:{uk:'сувора',en:'fierce'},
+ fierce:{uk:'сувора',en:'fierce'},
  ordinary:{uk:'змішана',en:'mixed'},
 };
 const localized=(uk:string,en:string,locale:P389Locale)=>locale==='uk'?uk:en;
@@ -48,86 +50,75 @@ export function p389SharedRuleActivities(activityId:P38ActivityId):P38ActivityId
 export function p389Guidance(moment:P38Moment,locale:P389Locale):P389Guidance{
  if(moment.version!=='p38-election-screening-v1'||
     moment.certification!=='calendar-screening-only')
-  throw Error('P389 only describes verified P38 calendar screening');
- const activity=p38Activity(moment.activityId);
- const star=CLASS[moment.matchedNakshatraClass]?.[locale]||
-  moment.matchedNakshatraClass;
- const preferred=activity.matchingNakshatra.map(c=>CLASS[c]?.[locale]||c);
- const evidence=moment.observations;
- const actualSupport=evidence.filter(e=>e.scope==='activity'&&e.polarity==='supports');
- const exclusions=evidence.filter(e=>e.polarity==='excludes');
- const cautions=evidence.filter(e=>e.polarity==='cautions');
- const personal=evidence.filter(e=>e.scope==='personal'&&e.polarity!=='context');
- const distinct=p389SharedRuleActivities(activity.id);
- const name=activity.name[locale];
- const scope=localized(
-  'Це перевірка календарних показників для конкретної справи, а не передбачення результату.',
-  'This is a source-backed calendar screening for an undertaking, not an outcome prediction.',locale);
- const theReason=(x:typeof evidence)=>x.slice(0,2).map(e=>e.description[locale]).join(' ');
- const preferredText=preferred.length?localized(
-  'Традиційні відповідні класи: '+list(preferred,locale)+'. Поточний клас: '+star+'.',
-  'Documented matching classes: '+list(preferred,locale)+'. Current class: '+star+'.',locale):
-  evidence.some(e=>e.scope==='activity'&&e.domain==='nakshatra')?
-   localized('Для цієї події застосовано спеціальне правило про конкретну накшатру, а не загальний клас.',
-    'A named Nakshatra rule applies to this event, rather than a generic Nakshatra class.',locale):
-   localized('Для цієї справи поки немає окремого перевіреного правила за накшатрою.',
-    'No separate Nakshatra rule is currently verified for this undertaking.',locale);
- const base={
-  scope,sharedActivities:distinct,
-  reason:preferredText+' '+(theReason([...exclusions,...cautions,...actualSupport,...personal])||
-   localized('Не виявлено окремих застосовних сигналів для цього моменту.',
-    'No additional applicable signals were detected at this moment.',locale))
- };
+  throw Error('P389 requires verified calendar screening');
+ const activity=p38Activity(moment.activityId),rating=scoreP390({
+  activityId:activity.id,method:activity.method,
+  observations:moment.observations,personalized:moment.personalized
+ });
+ const uk=locale==='uk',name=activity.name[locale];
+ const support=moment.observations.find(e=>e.scope==='activity'&&e.polarity==='supports');
+ const restriction=moment.observations.find(e=>e.polarity==='excludes');
+ const caution=moment.observations.find(e=>e.polarity==='cautions');
+ const label=(e:typeof support)=>e?.description[locale]||'';
+ const match=activity.matchingNakshatra.map(c=>CLASS[c]?.[locale]||c);
+ const current=CLASS[moment.matchedNakshatraClass]?.[locale]||moment.matchedNakshatraClass;
+ // One detail in the summary, one optional actionable caution; never
+ // interpolate the same observation into reason, guidance and footer.
+ const reason=restriction?label(restriction):
+  support?localized('Накшатра '+current+' відповідає обраній справі.',
+    'The '+current+' Nakshatra matches this undertaking.',locale):
+  match.length?localized('Накшатра '+current+'; відповідні класи: '+list(match,locale)+'.',
+    'Current Nakshatra: '+current+'; matching classes: '+list(match,locale)+'.',locale):
+  localized('Окремого збігу з накшатрою для цієї справи не виявлено.',
+   'No distinct Nakshatra match is verified for this undertaking.',locale);
+ const sharedActivities=p389SharedRuleActivities(activity.id);
+ const scope=localized('Індекс традиційних показників, не ймовірність успіху.',
+   'Traditional-factor index, not an outcome probability.',locale);
  if(activity.method==='routine')
-  return {...base,headline:localized('Продовжуйте звичайну практику — окремий час початку не потрібний.',
-    'Continue your regular practice — no special start-time election is needed.',locale),
-   nextStep:localized('Оберіть час, зручний для щоденної практики.',
-    'Choose a practical time for your usual routine.',locale)};
- if(exclusions.length)
-  return {...base,headline:localized('Не обирайте цей момент: виявлено конкретне обмеження для початку.',
-   'Avoid this start moment: a documented restriction applies.',locale),
-   nextStep:localized('Причина: '+theReason(exclusions)+' Перевірте інший момент або дату.',
-    'Reason: '+theReason(exclusions)+' Check a different moment or date.',locale)};
+  return {headline:localized('Практику можна продовжувати сьогодні.',
+   'You can continue your regular practice today.',locale),
+   reason:localized('Щоденна практика не потребує окремого нового старту.',
+    'Ongoing daily practice does not need a new electional start.',locale),
+   nextStep:localized('Оберіть зручний час.','Choose a practical time.',locale),scope,sharedActivities};
+ if(restriction)
+  return {headline:localized('Цей момент не підходить для початку.',
+   'This start moment has a specific restriction.',locale),
+   reason,nextStep:localized('Перевірте іншу годину або дату.',
+    'Try another hour or date.',locale),scope,sharedActivities};
  if(activity.method==='special_election'){
-  const notable=actualSupport.length?
-   localized('Є попередня підтримка окремого фактора, але вона не завершує спеціальну перевірку.',
-    'A preliminary activity factor is supportive, but the special election is incomplete.',locale):
-   cautions.length?localized('Виявлені календарні застереження; спеціальні правила ще не завершено.',
-    'Calendar cautions were found; specialist checks remain incomplete.',locale):
-   localized('Спеціальна перевірка ще не завершена — позитивного висновку немає.',
-    'Specialized verification is incomplete; no positive verdict is available.',locale);
-  return {...base,headline:notable,
-   nextStep:(SPECIAL_GAPS[activity.id]?.[locale]||localized(
-    'Для цієї справи бракує перевіреного повного набору спеціальних правил. Можна перевіряти календарні фактори та шукати попередні інтервали, але не видавати їх за повну мухурту.',
-    'A complete verified specialist rule set is unavailable. You may inspect calendar factors and preliminary windows, not treat them as a full Muhurta.',locale))};
+  const heading=rating.score!==null&&rating.score>=60&&rating.hasActivitySupport?
+   localized('Попередньо сприятливо для: '+name+'.',
+    'Preliminarily favorable for: '+name+'.',locale):
+   localized('Для цієї події потрібна додаткова спеціальна перевірка.',
+    'This event needs additional specialist verification.',locale);
+  return {headline:heading,reason,
+   nextStep:localized('Календарний індекс є попереднім. Повну мухурту тут ще не сертифіковано — вимоги нижче.',
+    'Calendar index is preliminary. Full Muhurta is not certified here; see the requirements below.',locale),
+   scope,sharedActivities};
  }
  if(activity.method==='analogy')
-  return {...base,headline:actualSupport.length?
-   localized('Є відповідність за аналогією, а не окрема класична мухурта.',
-    'There is an analogical match, not a separately established classical Muhurta.',locale):
-   localized('Для цієї дії немає підтвердженого окремого сприятливого правила.',
-    'No separate documented favorable rule was established for this activity.',locale),
-   nextStep:localized('Показано лише аналогію з класично описаними діями. Не робіть із неї висновку, що подія точно буде вдалою.',
-    'This is an analogy to documented classical activities, not proof this event will succeed.',locale)};
- if(actualSupport.length&&cautions.length)
-  return {...base,headline:localized('Для цієї справи накшатра підходить, але є конкретні застереження.',
-    'The Nakshatra matches this undertaking, but specific cautions apply.',locale),
-   nextStep:localized('Застереження: '+theReason(cautions)+' Перевірте інший момент із меншим числом обмежень.',
-    'Caution: '+theReason(cautions)+' Compare another moment with fewer restrictions.',locale)};
- if(actualSupport.length)
-  return {...base,headline:localized('Є підтверджена традиційна відповідність для цієї справи.',
-    'There is documented traditional support for this undertaking.',locale),
-   nextStep:localized('Порівняйте конкретні години перед початком. Це календарний відбір, а не гарантія результату.',
-    'Compare exact start times. This is a calendar screening, not an outcome guarantee.',locale)};
- if(cautions.length)
-  return {...base,headline:localized('Є конкретне застереження, але підтвердженої підтримки для цієї справи немає.',
-    'A specific caution applies, without documented activity-specific support.',locale),
-   nextStep:localized('Застереження: '+theReason(cautions)+' Це не загальна заборона на весь день.',
-    'Caution: '+theReason(cautions)+' It is not a blanket restriction on the entire day.',locale)};
- return {...base,headline:localized('Для цієї дії немає окремої підтвердженої сприятливої ознаки.',
-   'No separate verified favorable criterion for this undertaking.',locale),
-  nextStep:localized('Це означає невизначеність, а не несприятливий день. Порівняйте іншу дату або справу з перевіреними правилами.',
-   'This is insufficient evidence, not an unfavorable day. Compare another date or an activity with documented rules.',locale)};
+  return {headline:rating.score!==null&&rating.score>=60&&support?
+    localized('Попередньо сприятливо за аналогією.',
+      'Preliminarily favorable by analogy.',locale):
+    localized('Поки немає достатніх ознак для впевненого висновку.',
+      'Not enough verified activity-specific evidence yet.',locale),
+   reason,nextStep:caution?label(caution):
+    localized('Порівняйте сусідні години. Аналогія не є окремим класичним правилом.',
+     'Compare nearby hours; analogy is not a separate classical rule.',locale),
+   scope,sharedActivities};
+ const headline=rating.score!==null&&rating.hasActivitySupport&&rating.score>=68?
+  localized('Сприятливо для: '+name+'.','Favorable for: '+name+'.',locale):
+  rating.score!==null&&rating.hasActivitySupport&&rating.score>=60?
+  localized('Переважно сприятливо для: '+name+'.','Mostly favorable for: '+name+'.',locale):
+  rating.score!==null&&rating.hasActivitySupport?
+  localized('Змішані показники для: '+name+'.','Mixed factors for: '+name+'.',locale):
+  localized('Недостатньо позитивних ознак саме для цієї справи.',
+   'Not enough verified positive factors for this undertaking.',locale);
+ return {headline,reason,
+  nextStep:caution?label(caution):
+   localized('Порівняйте інші доступні години.',
+    'Compare other available hours.',locale),
+  scope,sharedActivities};
 }
 
 /** Human-readable audited reason IDs from the PRIVATE Time Finder at its own
