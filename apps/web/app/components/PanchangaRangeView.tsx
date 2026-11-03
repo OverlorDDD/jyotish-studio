@@ -1,5 +1,10 @@
 'use client';
-import {useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
+import Link from 'next/link';
+import {P38_ACTIVITIES,p38Activity,type P38ActivityId} from '../../lib/panchanga-p38-decision';
+import {validateP387Public,validateP387Natal,validateP387Finder,p387Rows,
+ type P387Finder,type P387Overview} from '../../lib/panchanga-p387-unified';
+import type {P35Days,P35Private} from '../../lib/panchanga-p35-calendar';
 import type {PortalLocale} from '../../lib/brand';
 import {calendarWindow,moveCalendar,validOverviewWindow,
  type CalendarFilter} from '../../lib/panchanga-calendar';
@@ -12,11 +17,11 @@ type Sunrise={tithi:{number:number;paksha:string;numberWithinPaksha:number};
  nakshatra:Anga;vara:Anga;yoga:Anga;karana:{slot:number;name:string}};
 type Observation={id:string;atUtc:string;category:'candidate'|'astronomical_event';rule:string};
 type Phase={kind:'new_moon'|'first_quarter'|'full_moon'|'last_quarter';atUtc:string;localDate:string};
-type Day={date:string;sunriseUtc:string;sunsetUtc:string;sunriseAngas:Sunrise;
+type Day={date:string;sunriseUtc:string;sunsetUtc:string;nextSunriseUtc:string;sunriseAngas:Sunrise;
  moonMonth:{name:string|null;lunarMonthStatus:string};
  observances:Observation[]};
-type Overview={version:string;scope:string;monthSystem:MonthSystem;days:Day[];phaseEvents:Phase[];
- observer:{timeZone:string};observanceDayCertifiedByTradition:boolean;
+type Overview=P387Overview&{monthSystem:MonthSystem;days:Day[];phaseEvents:Phase[];
+ observanceDayCertifiedByTradition:boolean;
  astronomicalTimeCertifiedByIndependentReference:boolean};
 const NAK_UK=['Ашвіні','Бхарані','Кріттіка','Рохіні','Мрігашіра','Ардра','Пунарвасу','Пушʼя','Ашлеша','Магха','Пурва Пхалгуні','Уттара Пхалгуні','Хаста','Чітра','Сваті','Вішакха','Анурадха','Джʼєштха','Мула','Пурва Ашадха','Уттара Ашадха','Шравана','Дханіштха','Шатабхіша','Пурва Бхадрапада','Уттара Бхадрапада','Реваті'];
 const YOGA_UK=['Вішкумбха','Пріті','Аюшман','Саубхагʼя','Шобхана','Атіганда','Сукарма','Дхріті','Шула','Ганда','Вріддхі','Дхрува','Вʼягхата','Харшана','Ваджра','Сіддхі','Вʼятіпата','Варіяна','Парігха','Шіва','Сіддха','Садхʼя','Шубха','Шукла','Брахма','Індра','Вайдхріті'];
@@ -40,9 +45,11 @@ const PHASES:Record<Phase['kind'],[string,string]>={
  new_moon:['Молодик','New Moon'],first_quarter:['Перша чверть','First Quarter'],
  full_moon:['Повня','Full Moon'],last_quarter:['Остання чверть','Last Quarter']};
 const selected=<T,>(pair:[T,T],uk:boolean)=>pair[uk?0:1];
-export default function PanchangaRangeView({locale,view,point,monthSystem,onPick}:{
+export default function PanchangaRangeView({locale,view,point,monthSystem,onPick,
+ activity,onActivityChange,canPersonal}:{
  locale:PortalLocale;view:'week'|'month';point:Observer;
- monthSystem:MonthSystem;onPick:(date:string)=>void;
+ monthSystem:MonthSystem;onPick:(date:string,atUtc?:string)=>void;
+ activity:P38ActivityId;onActivityChange:(id:P38ActivityId)=>void;canPersonal:boolean;
 }){
  const uk=locale==='uk';
  const [anchor,setAnchor]=useState(point.date);
@@ -50,9 +57,103 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
  const [data,setData]=useState<Overview|null>(null);
  const [status,setStatus]=useState<'loading'|'ready'|'error'>('loading');
  const [retry,setRetry]=useState(0);
+ const [personal,setPersonal]=useState<{key:string;data:P35Private}|null>(null);
+ const [privateState,setPrivateState]=useState<'idle'|'loading'|'ready'|'guest'|'no_chart'|'error'>('idle');
+ const [finder,setFinder]=useState<{key:string;activity:P38ActivityId;data:P387Finder}|null>(null);
+ const [finderState,setFinderState]=useState<'idle'|'loading'|'ready'|'no_chart'|'guest'|'limit'|'error'>('idle');
+ const [partnerId,setPartnerId]=useState('');
+ const [charts,setCharts]=useState<{id:string;date:string;place?:string}[]>([]);
+ const [chartState,setChartState]=useState<'idle'|'loading'|'ready'|'error'>('idle');
+ const requestKeyRef=useRef('');
  useEffect(()=>setAnchor(point.date),[point.date,point.latitude,point.longitude,point.timeZone,view]);
  const window=useMemo(()=>calendarWindow(anchor,view),[anchor,view]);
  const valid=validOverviewWindow(window.start,window.days);
+ const count=window.days as P35Days;
+ const viewPoint=useMemo(()=>({date:window.start,timeZone:point.timeZone,
+  latitude:point.latitude,longitude:point.longitude}),
+  [window.start,point.timeZone,point.latitude,point.longitude]);
+ const viewKey=[window.start,window.days,point.timeZone,point.latitude,
+  point.longitude,monthSystem].join('|');
+ requestKeyRef.current=viewKey;
+ const verifiedPersonal=personal?.key===viewKey?personal.data:null;
+ const verifiedFinder=finder?.key===viewKey&&finder.activity===activity?finder.data:null;
+ const selected=p38Activity(activity);
+ const needsPartner=selected.required.includes('partner_chart');
+ const rows=useMemo(()=>{
+  if(!data||status!=='ready')return null;
+  try{return p387Rows(data,viewPoint,count,verifiedPersonal,verifiedFinder,activity);}
+  catch{return null;}
+ },[data,status,viewKey,verifiedPersonal,verifiedFinder,activity,count,viewPoint]);
+ useEffect(()=>{setPrivateState('idle');setFinderState('idle');},[viewKey]);
+ useEffect(()=>{setFinderState('idle');setFinder(null)},[activity,partnerId]);
+ useEffect(()=>{
+  if(!canPersonal||!needsPartner||chartState!=='idle')return;
+  const ctl=new AbortController();let active=true;setChartState('loading');
+  Promise.all([
+   fetch('/api/v1/account/charts',{credentials:'same-origin',cache:'no-store',signal:ctl.signal}),
+   fetch('/api/v1/personal/profile',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
+  ]).then(async([r,p])=>{
+   if(!r.ok||!p.ok)throw Error('Chart list unavailable');
+   const list=await r.json() as {id:string;date:string;place?:string}[];
+   const profile=await p.json() as {profile?:{primaryChartId?:string|null}};
+   if(!Array.isArray(list))throw Error('Malformed chart list');
+   return list.filter(x=>x.id!==profile.profile?.primaryChartId);
+  }).then(list=>{if(active){setCharts(list);setChartState('ready')}})
+   .catch(()=>{if(active&&!ctl.signal.aborted)setChartState('error')});
+  return()=>{active=false;ctl.abort()};
+ },[canPersonal,needsPartner,chartState]);
+ async function loadPersonal(){
+  if(!canPersonal||!data||status!=='ready'||privateState==='loading')return;
+  const requestKey=viewKey;setPersonal(null);setPrivateState('loading');
+  const q=new URLSearchParams({start:window.start,days:String(count),zone:point.timeZone,
+   latitude:point.latitude,longitude:point.longitude});
+  try{
+   const r=await fetch('/api/v1/personal/panchanga/calendar?'+q,
+    {credentials:'same-origin',cache:'no-store'});
+   if(requestKeyRef.current!==requestKey)return;
+   if(r.status===401){setPrivateState('guest');return;}
+   if(!r.ok)throw Error('Private calendar HTTP '+r.status);
+   const raw=await r.json() as P35Private|{status:string};
+   if(requestKeyRef.current!==requestKey)return;
+   if(raw.status==='requires_primary_chart'||raw.status==='requires_verified_chart'){
+    setPrivateState('no_chart');return;
+   }
+   const verified=validateP387Natal(data,viewPoint,count,raw as P35Private);
+   setPersonal({key:requestKey,data:verified});setPrivateState('ready');
+  }catch{if(requestKeyRef.current===requestKey)setPrivateState('error')}
+ }
+ async function findWindows(){
+  if(!canPersonal||!data||status!=='ready'||finderState==='loading'||selected.method==='routine'||
+   (needsPartner&&!partnerId))return;
+  const at=Math.max(Date.now()+120000,Date.parse(data.days[0].sunriseUtc)+60000);
+  if(at>=Date.parse(data.days.at(-1)!.nextSunriseUtc)||
+   at>Date.now()+5*365.25*86400000)return;
+  const startUtc=new Date(at).toISOString(),requestKey=viewKey,chosenActivity=activity;
+  setFinder(null);setFinderState('loading');
+  try{
+   const r=await fetch('/api/v1/personal/panchanga/time-finder',{
+    method:'POST',credentials:'same-origin',cache:'no-store',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({activityId:activity,atUtc:startUtc,timeZone:point.timeZone,
+     latitude:Number(point.latitude),longitude:Number(point.longitude),
+     days:view==='week'?7:30,...(needsPartner?{partnerChartId:partnerId}:{})})
+   });
+   if(requestKeyRef.current!==requestKey)return;
+   if(r.status===401){setFinderState('guest');return;}
+   if(r.status===429){setFinderState('limit');return;}
+   if(!r.ok)throw Error('Finder HTTP '+r.status);
+   const raw=await r.json() as P387Finder|{status:string};
+   if(requestKeyRef.current!==requestKey)return;
+   if(['requires_primary_chart','requires_verified_chart','requires_partner_chart',
+    'requires_verified_partner_chart'].includes(raw.status)){
+    setFinderState('no_chart');return;
+   }
+   const verified=validateP387Finder(raw as P387Finder,viewPoint,chosenActivity);
+   if(verified.startUtc!==startUtc)throw Error('Search start mismatch');
+   setFinder({key:requestKey,activity:chosenActivity,data:verified});
+   setFinderState('ready');
+  }catch{if(requestKeyRef.current===requestKey)setFinderState('error')}
+ }
  useEffect(()=>{
   if(!valid){setStatus('error');setData(null);return;}
   const ctl=new AbortController();let live=true;setStatus('loading');setData(null);
@@ -62,6 +163,7 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
    .then(async r=>{if(!r.ok)throw Error('Calendar HTTP '+r.status);return await r.json() as Overview;})
    .then(payload=>{
     if(!live)return;
+    validateP387Public(payload,viewPoint,count);
     if(!Array.isArray(payload.days)||payload.days.length!==window.days||
      !Array.isArray(payload.phaseEvents)||payload.monthSystem!==monthSystem||
      payload.days[0]?.date!==window.start||
