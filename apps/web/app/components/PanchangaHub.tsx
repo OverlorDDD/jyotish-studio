@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
+import type {P38ActivityId} from '../../lib/panchanga-p38-decision';
 import CitySearch from './CitySearch';
 import PanchangaCleanDay from './PanchangaCleanDay';
 import PanchangaRangeView from './PanchangaRangeView';
@@ -32,6 +33,8 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [form,setForm]=useState<Form>({date:localeDate(DEFAULT_CITY.timeZone),...defaultCity});
  const [requested,setRequested]=useState<Form|null>(null);
  const [view,setView]=useState<'day'|'week'|'month'>('day');
+ const [activity,setActivity]=useState<P38ActivityId>('job_start');
+ const [focusAtUtc,setFocusAtUtc]=useState<string|null>(null);
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
  const [day,setDay]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  const [source,setSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
@@ -77,7 +80,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   saveQueue.current=pending.catch(()=>{if(version===saveSequence.current)setSaveState('error')});
  }
  function selectLocation(next:Form){
-  setForm(next);setRequested(next);setDay(null);setShowTechnical(false);
+  setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setFocusAtUtc(null);
   saveCity(next);
  }
  async function restoreNatalCity(){
@@ -93,14 +96,14 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    const next=p?{...form,place:p.place,timeZone:p.timeZone,
     latitude:String(p.latitude),longitude:String(p.longitude)}:{...form,...defaultCity};
    if(version!==saveSequence.current)return;
-   setForm(next);setRequested(next);setSource(profile.source);setSaveState('idle');
+   setForm(next);setRequested(next);setSource(profile.source);setSaveState('idle');setFocusAtUtc(null);
   }catch{if(version===saveSequence.current)setSaveState('error')}
  }
  function setDate(date:string){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
-  const next={...form,date};setForm(next);setRequested(next);setDay(null);setShowTechnical(false);
+  const next={...form,date};setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setFocusAtUtc(null);
  }
- function pickDay(date:string){setDate(date);setView('day')}
+ function pickDay(date:string,atUtc?:string){setDate(date);setFocusAtUtc(atUtc||null);setView('day')}
  useEffect(()=>{
   if(!requested||view!=='day')return;
   let live=true;const ctl=new AbortController();setLoading(true);setError(false);setDay(null);
@@ -161,10 +164,12 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   </div>}
   {view==='day'&&matches&&day&&requested&&<>
    <PanchangaCleanDay key={requested.date+'|'+requested.timeZone+'|'+requested.latitude+'|'+requested.longitude}
-    locale={locale} day={day} point={requested}/>
+    locale={locale} day={day} point={requested} activity={activity} onActivityChange={setActivity}
+    focusAtUtc={focusAtUtc}/>
   </>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view}
-   point={requested} monthSystem={monthSystem} onPick={pickDay}/>}
+   point={requested} monthSystem={monthSystem} onPick={pickDay}
+   activity={activity} onActivityChange={setActivity} canPersonal={source!=='checking'&&source!=='guest'}/>}
   {view==='day'&&matches&&day&&<details className={styles.technical} open={showTechnical}
    data-testid="p31-details" onToggle={e=>setShowTechnical(e.currentTarget.open)}>
    <summary>{uk?'Технічні дані: точні переходи й методика':'Technical data: exact transitions & methodology'}</summary>
