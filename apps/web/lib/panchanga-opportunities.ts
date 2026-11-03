@@ -52,7 +52,7 @@ const CATALOG:readonly {
   action:LANG('Розпочніть урок, курс або складну тему.','Begin a lesson, course or challenging topic.'),
   chog:['Labh','Amrit'],hora:['Mercury','Jupiter']},
  {kind:'business',activityId:'shop_opening',title:LANG('Початок торгової справи','Starting commerce'),
-  action:LANG('Запустіть продаж, оголосіть відкриття або почніть робочий проєкт.','Launch a sale, announce an opening or begin a commercial project.'),
+  action:LANG('Відкрийте магазин або розпочніть заплановану торгову справу.','Open your shop or begin a planned trading venture.'),
   chog:['Labh','Amrit'],hora:['Mercury','Venus']},
  {kind:'journey',activityId:'short_journey',title:LANG('Поїздка та дорога','Travel and movement'),
   action:LANG('Заплануйте виїзд або почніть коротку поїздку.','Set off on a short journey or start a trip.'),
@@ -64,7 +64,7 @@ const CATALOG:readonly {
   action:LANG('Почніть заняття музикою, малюванням або іншим мистецтвом.','Begin music, drawing or another artistic practice.'),
   chog:['Shubh','Amrit'],hora:['Venus','Moon']},
  {kind:'work',activityId:'job_start',title:LANG('Початок роботи','Beginning work'),
-  action:LANG('Розпочніть нове робоче завдання або перший робочий день.','Begin a new work assignment or your first working day.'),
+  action:LANG('Розпочніть нову роботу або офіційно приступіть до обов’язків.','Start a new job or formally begin your duties.'),
   chog:['Labh','Amrit'],hora:['Sun','Mercury']},
  {kind:'practice',activityId:null,title:LANG('Медитація і тиха практика','Meditation and quiet practice'),
   action:LANG('Присвятіть цей час медитації, молитві або спокійній практиці.','Use this time for meditation, prayer or quiet reflection.'),
@@ -189,6 +189,12 @@ export function dailyOpportunities(day:OpportunityDay,fromUtc:string=day.sunrise
    if(rule.activityId){
     const screened=evaluateP38(day,iso(test),rule.activityId);
     if(screened.observations.some(x=>x.polarity==='excludes'))continue;
+    // Drik names education/business/travel directly. For friendship, arts
+    // and starting service, a broad Amrit/Shubh/Labh alone is NOT an
+    // activity-specific classical rule: require a matching P38 Nakshatra.
+    if(['people','arts','work'].includes(rule.kind)&&
+       !screened.observations.some(x=>x.scope==='activity'&&x.polarity==='supports'))
+     continue;
    }
    found.push({id:rule.kind+'-'+start,kind:rule.kind,activityId:rule.activityId,
     title:rule.title,action:rule.action,reason:reasonFor(ck,compatible?planet:null),
