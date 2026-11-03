@@ -17,6 +17,7 @@ import {AppModule} from './nest.ts';
 import {PrismaService} from './prisma.ts';
 import {cookieUser} from './auth.ts';
 import {forumBudget,forumWriteLimit} from './com-budget.ts';
+import {countVisitorAggregate,toolMetric} from './visitor-analytics.ts';
 async function bootstrap(){
  const app=await NestFactory.create<NestExpressApplication>(AppModule,{cors:{origin:[`http://localhost:${process.env.WEB_PORT||3000}`]}});
  // Editorial articles can be much longer than Express's default 100 kB JSON body limit.
@@ -43,6 +44,12 @@ async function bootstrap(){
   }catch(error){next(error)}
  });
  app.use((req:IncomingMessage,res:ServerResponse,next:()=>void)=>{
+  // Count only successful tool HTTP operations, never user inputs or a request identity.
+  const metric=toolMetric(req.method||'',(req.url||'').split('?')[0]);
+  if(metric)res.on('finish',()=>{
+   if(res.statusCode>=200&&res.statusCode<300)
+    void countVisitorAggregate(forumDb,metric,metric==='jyotish_chart_completed'?'jyotish':metric==='tarot_spread_completed'?'tarot':'panchanga').catch(()=>{});
+  });
   const id=randomUUID(),start=Date.now();
   res.setHeader('X-Request-Id',id);
   res.setHeader('X-Content-Type-Options','nosniff');
