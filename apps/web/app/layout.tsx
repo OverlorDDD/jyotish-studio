@@ -18,12 +18,11 @@ export const metadata:Metadata={
   }}:{}),
   icons:{
    icon:[
-    {url:'/favicon.ico',type:'image/x-icon',sizes:'any'},
-    {url:'/galaxiora-favicon.png?v=approved-galaxy-6-20261102',type:'image/png',sizes:'64x64'},
-    {url:'/icon.png?v=approved-galaxy-6-20261102',type:'image/png',sizes:'64x64'}
+    {url:'/icon.png?v=galaxy-round-v4',type:'image/png',sizes:'64x64'},
+    {url:'/favicon.ico?v=galaxy-round-v4',type:'image/x-icon',sizes:'any'}
    ],
-   shortcut:'/favicon.ico',
-   apple:[{url:'/apple-touch-icon.png',sizes:'180x180',type:'image/png'}]
+   shortcut:'/icon.png?v=galaxy-round-v4',
+   apple:[{url:'/apple-touch-icon.png?v=galaxy-round-v4',type:'image/png',sizes:'180x180'}]
   },
   manifest:'/site.webmanifest',
  openGraph:{siteName:BRAND.name,type:'website',title:BRAND.name+' — Jyotish, Tarot & Panchanga',description:'Vedic astrology, lunar calendar, Tarot and mindful living.'},

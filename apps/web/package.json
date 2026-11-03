@@ -6,7 +6,7 @@
     "dev": "node ../../tools/next-launch.mjs dev",
     "build": "node --env-file-if-exists=../../.env ../../node_modules/next/dist/bin/next build",
     "start": "node ../../tools/next-launch.mjs start",
-    "prebuild": "node ../../tools/brand-icons-build.mjs"
+    "prebuild": "node ../../tools/galaxiora-circle-apply.mjs && node ../../tools/brand-icons-build.mjs"
   },
   "dependencies": {
     "next": "^15.5.0",
