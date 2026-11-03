@@ -181,6 +181,10 @@ recover(){
  exit "$rc"
 }
 trap recover ERR INT TERM
+# First pin code and activate the rollback guard. Only then modify .env:
+# any failed configuration write MUST also restore the original private .env.
+git switch --detach "$TARGET"
+SWITCHED=1
 # The newly prepared isolated Python must also be available to the restarted
 # NestJS runtime, not only to the one-off SSH test. Keep all secrets untouched.
 if [[ "$RUN_PY" == "$VENV_PY" ]]; then
@@ -199,8 +203,6 @@ chmodSync('.env',0o600);
 console.log('P389_RUNTIME_PYTHON_CONFIGURED (path and other secrets hidden)');
 P389_CONFIG_PY
 fi
-git switch --detach "$TARGET"
-SWITCHED=1
 export PYTHON_BIN="$RUN_PY"
 npm install --no-audit --no-fund --no-package-lock
 npm run db:generate
