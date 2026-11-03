@@ -30,7 +30,6 @@ export type Opportunity={
  basis:'classical-start'|'daily-practice';personalized:false;
 };
 const CHOG_SOURCE='https://www.drikpanchang.com/tutorials/muhurat/daily/choghadiya-muhurat.html';
-const HORA_SOURCE='https://www.drikpanchang.com/muhurat/hora.html';
 const DAY_ORDER:Chog[]=['Udveg','Char','Labh','Amrit','Kaal','Shubh','Rog'];
 const NIGHT_ORDER:Chog[]=['Shubh','Amrit','Char','Rog','Kaal','Labh','Udveg'];
 const DAY_START:Chog[]=['Udveg','Amrit','Rog','Labh','Shubh','Char','Kaal'];
@@ -121,6 +120,8 @@ function excludedVela(chog:TraditionalSlot,weekday:number){
  if(chog.half==='night')return KAAL_RATRI[weekday].includes(chog.index);
  return chog.index===VAAR_VELA[weekday]||KAAL_VELA[weekday].includes(chog.index);
 }
+const HORA_UK:Record<Planet,string>={Sun:'Сонця',Venus:'Венери',Mercury:'Меркурія',
+ Moon:'Місяця',Saturn:'Сатурна',Jupiter:'Юпітера',Mars:'Марса'};
 function reasonFor(chog:Chog,planet:Planet|null):Lang{
  const chogReason:Record<Chog,Lang>={
   Amrit:LANG('Чогхадія Амріт придатна для різних добрих починань.','Amrit Choghadiya supports a broad range of auspicious starts.'),
@@ -132,7 +133,7 @@ function reasonFor(chog:Chog,planet:Planet|null):Lang{
   Kaal:LANG('Чогхадія Каал.','Kaal Choghadiya.')
  };
  const r=chogReason[chog];
- return planet?LANG(r.uk+' Планетарна година '+planet+' доповнює цей вибір.',
+ return planet?LANG(r.uk+' Планетарна година '+HORA_UK[planet]+' доповнює цей вибір.',
    r.en+' The '+planet+' planetary hour adds a related traditional emphasis.'):r;
 }
 function intersect(cuts:Set<number>,value:number,a:number,b:number){if(value>a&&value<b)cuts.add(value);}
