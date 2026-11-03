@@ -171,7 +171,8 @@
     "test:p384": "node --experimental-strip-types --test tools/panchanga-p384-event-lagna.test.mjs tools/panchanga-p384-election.test.mjs",
     "test:p385": "node --experimental-strip-types --test tools/panchanga-p385.test.mjs",
     "test:p386": "node --experimental-strip-types --test tools/panchanga-p386.test.mjs",
-    "test:p387": "node --experimental-strip-types --test tools/panchanga-p387.test.mjs"
+    "test:p387": "node --experimental-strip-types --test tools/panchanga-p387.test.mjs",
+    "test:p388": "node --experimental-strip-types --test tools/panchanga-p388.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
