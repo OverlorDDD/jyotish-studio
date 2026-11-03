@@ -143,18 +143,68 @@ historical IP is unchanged); keep existing SSH key private:
 ssh -i "$env:USERPROFILE\.ssh\galaxiora-aws-key.pem" ubuntu@<YOUR_CURRENT_EC2_IP>
 ```
 Below all commands are **inside the Ubuntu SSH session**, NOT PowerShell.
-The first part is non-mutating:
+**Before PR #98 is merged**, the P3.6 branch intentionally has no P388 script.
+For read-only inspection before the merge, fetch the P388 *feature* source
+directly and verify non-empty content. This works with `--single-branch`
+clones: `git fetch origin <branch>` updates `FETCH_HEAD` but may NOT
+create `origin/<branch>`. The GitHub API and CLI are not a substitute for
+checking the actual EC2 checkout.
+
 ```bash
 cd /opt/galaxiora/app
-git status --short
-git fetch --no-tags origin release/panchanga-p36-production-acceptance-20261102
-git log -1 --format='%H %s' origin/release/panchanga-p36-production-acceptance-20261102
-git show origin/release/panchanga-p36-production-acceptance-20261102:tools/panchanga-p388-release.sh > /tmp/galaxiora-p388-release.sh
-bash -n /tmp/galaxiora-p388-release.sh
-bash /tmp/galaxiora-p388-release.sh diagnose
-export P388_TARGET_SHA="$(git rev-parse origin/release/panchanga-p36-production-acceptance-20261102)"
+(
+  set -Eeuo pipefail
+  git status --short
+  git fetch --no-tags origin refs/heads/release/panchanga-p388-independent-qa-20261103
+  SOURCE_SHA=$(git rev-parse --verify 'FETCH_HEAD^{commit}')
+  git cat-file -e "$SOURCE_SHA:tools/panchanga-p388-release.sh"
+  git show "$SOURCE_SHA:tools/panchanga-p388-release.sh" > /tmp/galaxiora-p388-release.sh
+  test -s /tmp/galaxiora-p388-release.sh
+  grep -Fq P388_READ_ONLY_DIAGNOSIS /tmp/galaxiora-p388-release.sh
+  grep -Fq P388_PRODUCTION_RELEASE_VERIFIED /tmp/galaxiora-p388-release.sh
+  bash -n /tmp/galaxiora-p388-release.sh
+  echo "P388_SCRIPT_SOURCE_VALIDATED $SOURCE_SHA"
+  bash /tmp/galaxiora-p388-release.sh diagnose
+)
+```
+This does not update any tracked source, database, running services or
+GitHub PR. It **does not authorize deploy**. Previous failed instructions
+may have created an empty `/tmp/galaxiora-p388-release.sh`; the checks
+above reject it. A bare `bash -n` or `bash empty.sh diagnose`
+succeeds silently on an empty file, which must never be mistaken for PASS.
+
+**After PR #98 is merged by a non-squashed merge commit and all release
+branch CI is green**, obtain the script from the actual P3.6 merge SHA,
+not the earlier feature branch:
+
+```bash
+cd /opt/galaxiora/app
+(
+  set -Eeuo pipefail
+  git fetch --no-tags origin refs/heads/release/panchanga-p36-production-acceptance-20261102
+  TARGET_SHA=$(git rev-parse --verify 'FETCH_HEAD^{commit}')
+  git cat-file -e "$TARGET_SHA:tools/panchanga-p388-release.sh"
+  git show "$TARGET_SHA:tools/panchanga-p388-release.sh" > /tmp/galaxiora-p388-release.sh
+  test -s /tmp/galaxiora-p388-release.sh
+  grep -Fq P388_READ_ONLY_DIAGNOSIS /tmp/galaxiora-p388-release.sh
+  grep -Fq P388_PRODUCTION_RELEASE_VERIFIED /tmp/galaxiora-p388-release.sh
+  bash -n /tmp/galaxiora-p388-release.sh
+  echo "P388_INTEGRATED_SCRIPT_VERIFIED $TARGET_SHA"
+)
+export P388_TARGET_SHA="$(git rev-parse --verify 'FETCH_HEAD^{commit}')"
 bash /tmp/galaxiora-p388-release.sh preflight
 ```
+
+If `git cat-file -e` fails, **STOP: integration PR has not merged or
+the fetched branch is wrong**. Do not attempt `deploy`. If your
+`git status --short` reports `M apps/web/next-env.d.ts` or any other
+tracked modification, the fail-closed `preflight` intentionally stops:
+inspect and preserve a patch before resolving it. The untracked
+`galaxiora-circle-64.png`, `galaxiora-round-overlay.mjs`, any
+`package-lock.json`, and unusual filenames must not be mass-deleted or
+stashed without identifying their provenance and the approved live icon.
+`git reset --hard`, `git clean -fd` and force checkout are forbidden.
+
 `P388_PREFLIGHT_PASS` means verified P3.6 release SHA, correct 30-vector
 release ancestry, existing HTTPS/indexing policy, active services,
 approved icon, disk and DB, safe fast-forward from LIVE SHA **and a live
