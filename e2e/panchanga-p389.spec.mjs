@@ -5,6 +5,8 @@ for(const locale of ['uk','en']){
   await page.setViewportSize({width:390,height:844});
   await page.goto('/'+locale+'/panchanga?date=2026-11-03');
   const hub=page.getByTestId('panchanga-hub');
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await hub.getByTestId('p410-advanced').locator('summary').click();
   const day=hub.getByTestId('p31-my-day');
   await expect(day).toBeVisible({timeout:90000});
   const hour=day.getByTestId('p389-time-select');
@@ -39,11 +41,12 @@ for(const locale of ['uk','en']){
   await expect(muhurtaLinks.last()).toBeVisible();
   await expect(day).not.toContainText('Частина показників підтримує, інші потребують уваги');
   await expect(day).not.toContainText('Для цієї справи потрібна повна мухурта');
-  await expect(day.getByTestId('p390-favorability-ring')).toBeVisible();
-  const ring=day.getByTestId('p390-favorability-ring');
-  await expect(ring).toHaveAttribute('aria-label',/Індекс|Suitability|обмеження|Restricted|застосовується/);
+  // The legacy index is still an internal screening heuristic, never a visible claim.
+  await expect(day.getByTestId('p390-favorability-ring')).toHaveCount(0);
   await day.getByTestId('p390-reset-today').click();
-  await expect(day.getByTestId('p389-time-select')).toBeVisible();
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await hub.getByTestId('p410-advanced').locator('summary').click();
+  await expect(hub.getByTestId('p389-time-select')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth))
    .toBeLessThanOrEqual(2);
   await page.setViewportSize({width:320,height:740});

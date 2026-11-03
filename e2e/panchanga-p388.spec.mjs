@@ -6,7 +6,8 @@ for(const locale of ['uk','en']){
   await page.setViewportSize({width:320,height:740});
   await page.goto('/'+locale+'/panchanga?date=2026-11-03');
   const hub=page.getByTestId('panchanga-hub');
-  await expect(hub.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await hub.getByTestId('p410-advanced').locator('summary').click();
   await expect(hub.getByTestId('p386-activity-select')).toBeVisible();
   const nav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
   await expect(nav.getByRole('button')).toHaveCount(3);

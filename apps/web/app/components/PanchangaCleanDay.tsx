@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useMemo,useState,type CSSProperties} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
 import {Moon,CalendarDays,Sparkles,Orbit,CircleDot,Clock3,BriefcaseBusiness,
  Wallet,Heart,Plane,GraduationCap,House,Flower2,Palette,ChevronDown} from 'lucide-react';
@@ -10,7 +10,6 @@ import {explainClassicalPanchanga} from '../../lib/panchanga-p37-classical';
 import {evaluateP38,p38Activity,P38_ACTIVITIES,type P38Category,
  type P38ActivityId,type P38Moment} from '../../lib/panchanga-p38-decision';
 import {validateP33Report,type P33Report} from '../../lib/panchanga-p33-resonance';
-import {scoreP390} from '../../lib/panchanga-p390-scoring';
 import {p389Guidance,p389WindowReason} from '../../lib/panchanga-p389-guidance';
 import styles from './PanchangaCleanDay.module.css';
 
@@ -137,9 +136,6 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
    return explainClassicalPanchanga(verifiedDay,classic);
   }catch{return null}
  },[day,iso,category,screening]);
- const rating=useMemo(()=>screening?scoreP390({activityId:activity,
-  method:activityInfo.method,observations:screening.observations,
-  personalized:screening.personalized}):null,[screening,activity,activityInfo]);
  const guidance=useMemo(()=>screening?p389Guidance(screening,locale):null,[screening,locale]);
  const timeOptions=useMemo(()=>{
   if(!iso)return [];
@@ -189,7 +185,7 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
  return <section className={styles.dashboard} data-testid="p31-my-day">
   <header className={styles.top}>
    <div><span className={styles.eyebrow}>GALAXIORA · {uk?'ПАНЧАНГА':'PANCHANGA'}</span>
-    <h2>{uk?'Мій день':'My day'}</h2></div>
+    <h2>{uk?'Перевірка конкретної події':'Specific event timing'}</h2></div>
    {iso&&<span className={styles.moment}><Clock3 size={15}/>
      {focusAtUtc&&(iso===focusAtUtc)?(uk?'Обраний інтервал · ':'Selected interval · '):''}{clock(iso)}</span>}
   </header>
@@ -237,19 +233,6 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
        <p>{guidance.sharedActivities.map(id=>p38Activity(id).name[locale]).join(', ')}</p>
       </details>}
      </div>
-     {rating&&<div className={styles.ratioContainer}>
-      <div className={styles.ratioRing} data-testid="p390-favorability-ring"
-       role="img" aria-label={rating.score===null?
-         (uk?'Суворе обмеження або оцінка не застосовується':'Restricted or not applicable'):
-         (uk?'Індекс сприятливості: ':'Suitability index: ')+rating.score+'%'}
-       style={{'--supportPct':(rating.score??0)+'%',
-        '--ringColor':rating.blocked?'#dc8181':(rating.score??0)>=68?'#66c9a2':
-         (rating.score??0)>=60?'#9cbf82':'#d9b277'} as CSSProperties}>
-       <span>{rating.score===null?'—':rating.score+'%'}</span>
-      </div>
-      <small>{activityInfo.method==='special_election'?(uk?'Попередній':'Preliminary'):
-       (uk?'Індекс':'Index')}</small>
-     </div>}
     </div>
     {requiresPartner&&<label className={styles.partnerSelect}>
      {uk?'Натальна карта партнера':'Partner natal chart'}
@@ -318,10 +301,9 @@ export default function PanchangaMyDay({locale,day,point,activity,onActivityChan
         {(finder.topCandidates?.length?finder.topCandidates:[finder.candidate]).slice(0,3)
          .map(w=><div className={styles.topWindow} key={w.startUtc}>
           <time>{clock(w.startUtc)} – {clock(w.endUtc)}</time>
-          {w.score!==null&&w.score!==undefined&&<strong>{w.score}%</strong>}
          </div>)}
        </div>
-       <small>{uk?'Індекс традиційних факторів, не гарантія успіху.':'Traditional-factor index, not a guarantee.'}</small>
+       <small>{uk?'Конкретні інтервали пройшли календарний відбір; для складних подій потрібна спеціальна перевірка.':'These intervals passed calendar screening; complex events require additional specialist checks.'}</small>
       </>:finder.review?<><strong>{uk?'Найближчий інтервал для додаткової перевірки':'Next interval requiring special review'}</strong>
        <time>{clock(finder.review.startUtc)} – {clock(finder.review.endUtc)}</time>
        <small>{uk?'Для цього моменту перевірено лише частину правил. Наведені факти стосуються саме знайденого інтервалу.':'Only part of the rules have been verified for this specific event interval.'}</small>

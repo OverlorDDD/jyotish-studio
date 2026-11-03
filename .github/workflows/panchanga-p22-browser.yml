@@ -96,6 +96,11 @@ jobs:
             # is tested explicitly instead. Astronomy/API regression stays in
             # npm run test:panchanga and the Next/Nest build workflow.
             npx playwright test e2e/panchanga-p386.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+          elif [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-daily-opportunities-20261103" || "${{ github.head_ref || github.ref_name }}" == "release/panchanga-p36-production-acceptance-20261102" ]]; then
+            # P4.10 replaces My Day landing; historic P2/P3 tests assert deleted
+            # duplicate UI. Run their maintained replacement contracts plus
+            # protected specialist, week/month, and bilingual mobile tests.
+            npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs e2e/panchanga-p388.spec.mjs e2e/panchanga-p389.spec.mjs e2e/panchanga-daily-opportunities.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
           else
             npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs e2e/panchanga-p25.spec.mjs e2e/panchanga-p31.spec.mjs e2e/panchanga-p32.spec.mjs e2e/panchanga-p33.spec.mjs e2e/panchanga-p34.spec.mjs e2e/panchanga-p35.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
           fi
