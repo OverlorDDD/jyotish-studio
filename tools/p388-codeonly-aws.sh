@@ -94,6 +94,7 @@ echo "P388_PREVIOUS_CODE_SAVED $BACKUP (database NOT modified or backed up)"
 SWITCHED=0
 recover(){
  rc=$?
+ if [[ "$rc" == 0 ]]; then rc=130; fi
  trap - ERR INT TERM
  echo "P388_RELEASE_FAILED rc=$rc; attempting restore of previous code/build" >&2
  if [[ "$SWITCHED" == 1 ]]; then
@@ -116,7 +117,7 @@ recover(){
  fi
  exit "$rc"
 }
-trap recover ERR
+trap recover ERR INT TERM
 git switch --detach "$TARGET"
 SWITCHED=1
 npm install --no-audit --no-fund --no-package-lock
@@ -142,6 +143,6 @@ for endpoint in http://127.0.0.1:4000/api/health http://127.0.0.1:3000/uk; do
  [[ "$ready" == 1 ]] || { echo "Unhealthy release: $endpoint" >&2; false; }
 done
 P388_SITE_ORIGIN=https://galaxiora.com P388_PUBLIC=1 node tools/panchanga-p388-production-smoke.mjs
-trap - ERR
+trap - ERR INT TERM
 printf 'P388_CODEONLY_PRODUCTION_VERIFIED sha=%s\n' "$(git rev-parse HEAD)"
 echo 'NO_DB_MIGRATION_OR_DOCKER_IN_RELEASE. PostgreSQL was not backed up; wedding Muhurta remains uncertified.'
