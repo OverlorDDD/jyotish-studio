@@ -1,0 +1,66 @@
+name: Panchanga P3.8.8 Independent QA and Release Guard
+on:
+  push:
+    branches:
+      - feat/panchanga-p388-independent-qa-release-20261103
+  pull_request:
+    paths:
+      - 'apps/api/src/panchanga*'
+      - 'apps/api/src/personal.ts'
+      - 'apps/web/app/components/Panchanga*'
+      - 'apps/web/lib/panchanga-*'
+      - 'apps/web/app/layout.tsx'
+      - 'apps/web/app/components/PortalShell.tsx'
+      - 'tools/panchanga*'
+      - 'tests/fixtures/p388-*'
+      - 'docs/operations/panchanga-p388-*'
+      - '.github/workflows/panchanga-p388-independent-release.yml'
+  workflow_dispatch:
+concurrency:
+  group: p388-oracle-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  independent-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      SITE_NOINDEX: '1'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.com
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/p388_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install locked Node and independent Python Swiss backends
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install 'pyswisseph==2.10.3.2'
+          python -c 'import swisseph as s; assert s.version == "2.10.03"'
+      - name: Generate API client types (no production migration)
+        run: npm run db:generate
+      - name: Independent 30 event charts, 10 local solar days, seven planets and wedding fail-closed checks
+        run: npm run test:p388
+      - name: Existing deterministic P2-P387 regressions and real NASA 2027 eclipse catalog parity
+        run: |
+          npm run test:panchanga
+          npm run test:vedic-calendar
+          npm run test:astronomy:nasa
+      - name: Preserve owner-approved byte-identical circular galaxy #6 and clean icon metadata
+        run: |
+          npm run test:brand:icons
+          node --test tools/galaxiora-approved-icon.test.mjs tools/galaxiora-round-icon.test.mjs
+      - name: Validate guarded release scripts
+        run: |
+          bash -n tools/panchanga-p388-release.sh
+          node --check tools/panchanga-p388-release-smoke.mjs
+      - name: Build full NestJS API, core and production Next.js app
+        run: npm run build
+      - name: Explicit acceptance: no SSH, deploy keys or environment secrets in CI
+        run: echo 'P388_INDEPENDENT_CI_PASS_READ_ONLY — actual production release must pass operator preflight'
