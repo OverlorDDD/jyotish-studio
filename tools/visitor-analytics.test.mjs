@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {spawnSync} from 'node:child_process';
 import {eligiblePublicHtmlSection} from '../apps/web/lib/visitor-analytics-policy.ts';
 import {countVisitorAggregate,toolMetric,validSection} from '../apps/api/src/visitor-aggregate.ts';
 const source=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
@@ -80,4 +83,28 @@ test('GA4 and business-tool names only, never natal or private payload',()=>{
  assert.match(panchanga,/reportGrowthEvent\('panchanga_calculation_completed'\)/);
  assert.match(tarot,/reportGrowthEvent\('tarot_spread_completed'\)/);
  assert.doesNotMatch(code,/window\.gtag\?\.\('event',detail\.name,detail\)/);
+});
+
+test('production release guard: Next.js-generated next-env.d.ts is safely recognized, other edits blocked',()=>{
+ const script=source('tools/ga4-visitor-aws-release.sh');
+ assert.match(script,/git diff --cached --quiet/);
+ assert.match(script,/changed" == "apps\/web\/next-env\.d\.ts"/);
+ assert.match(script,/git restore --source=HEAD --worktree -- apps\/web\/next-env\.d\.ts/);
+ assert.match(script,/next-env\.d\.ts\.generated-before-deploy/);
+ const section=script.match(/if \[\[ "\$DIRTY_NEXT_ENV" == 1 \]\]; then\n node - <<'NODE'\n([\s\S]*?)\nNODE\nfi/);
+ assert.ok(section,'Native guard source must be executable from AWS deploy');
+ const dir=mkdtempSync(join(tmpdir(),'galaxiora-aws-next-env-'));
+ const target=join(dir,'apps/web/next-env.d.ts');
+ mkdirSync(join(dir,'apps/web'),{recursive:true});
+ const prefix='/// <reference types="next" />\n/// <reference types="next/image-types/global" />\n';
+ const check=content=>{
+  writeFileSync(target,content);
+  return spawnSync(process.execPath,['-'],{cwd:dir,input:section[1],encoding:'utf8'});
+ };
+ try{
+  assert.equal(check(prefix+'// This file is maintained by Next.js.\n').status,0,'tracked baseline');
+  assert.equal(check(prefix+'import "./.next/types/routes.d.ts";\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n').status,0,'Next.js build output');
+  assert.notEqual(check(prefix+'import "some-external-package";\n').status,0,'unexpected arbitrary import');
+  assert.notEqual(check(prefix+'const unexpected = true;\n').status,0,'unexpected code change');
+ }finally{rmSync(dir,{recursive:true,force:true});}
 });
