@@ -21,3 +21,12 @@
 - Build and migrate only after CI passes; do not merge or deploy if source is behind the current EC2 worktree.
 - A GitHub commit is not an AWS deployment. No external production credential is stored in this repository.
 - Roll back web/API to the previously verified commit if tests fail. The additive counter table can remain safely unused.
+
+## Guarded AWS release command (after CI green)
+Run from SSH on the Galaxiora EC2 host:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/OverlorDDD/jyotish-studio/fix/ga4-reliable-anonymous-visitor-analytics-20261103/tools/ga4-visitor-aws-release.sh | bash
+```
+
+This **refuses** to overwrite a dirty worktree, move from a production SHA not ancestral to the branch, proceed without a PostgreSQL dump or a validated public GA4 ID, or continue when a live smoke test fails. Rollback restores the prior application commit and restarts both systemd services; the additive database table is retained. The user should review the script and ensure AWS privileges, database backup capacity and available disk/memory before running it. The script **does not** fabricate real DebugView acceptance.

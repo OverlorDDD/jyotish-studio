@@ -43,6 +43,8 @@ jobs:
         run: |
           npm run db:generate
           npm run db:migrate
+      - name: Guarded AWS release script syntax
+        run: bash -n tools/ga4-visitor-aws-release.sh
       - name: Anonymous aggregation, GA4 consent and backward compatibility
         run: |
           npm run test:visitor-analytics
