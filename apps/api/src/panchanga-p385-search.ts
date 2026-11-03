@@ -130,7 +130,10 @@ export async function searchP385Time(input:P385SearchInput){
    latitude:String(observer.latitude),longitude:String(observer.longitude)};
   const result=assembleP384EventElection({activityId:input.activityId,atUtc,day,point,
    eventLagna:asc,personalReport:report,sky,partnerVerified:!!partner});
-  const reasons:string[]=result.panchaka?.forbiddenForScope?['RAMAN_PANCHAKA_SCOPE']:[];
+  const reasons:string[]=[
+   ...result.calendarEvidence.filter(e=>e.polarity!=='context').map(e=>e.id),
+   ...(result.panchaka?.forbiddenForScope?['RAMAN_PANCHAKA_SCOPE']:[])
+  ];
   const flags=result.panchaka?.forbiddenForScope?'excluded':result.calendarVerdict==='avoid'?'excluded':null;
   // Only full wedding and foundation rules use this specialist module.
   // Engagement remains an incomplete special election until an engagement-
@@ -148,9 +151,7 @@ export async function searchP385Time(input:P385SearchInput){
    source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
   if(activity.method==='direct'&&result.calendarVerdict==='candidate'&&
     !activity.required.includes('election_lagna'))
-   return {status:'candidate' as const,reasonIds:result.eventSky.length?
-    result.panchaka?[...reasons,'CALENDAR_AND_EVENT_PANCHAKA_SCREENED']:
-     [...reasons,'CLASSICAL_ACTIVITY_AND_OWNER_LUNAR_SCREENED']:reasons,
+   return {status:'candidate' as const,reasonIds:reasons,
     source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES' as const};
   if(activity.method==='special_election')return {status:'requires_review' as const,
    reasonIds:['SPECIAL_ELECTION_RULE_COVERAGE_INCOMPLETE',...reasons],
