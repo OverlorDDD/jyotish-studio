@@ -183,3 +183,27 @@ test('P385 wedding: first versus second Magha pada produces distinct documented 
  const second=evaluateP385Special({event:now,day:local,owner:natal,partner,nodes});
  assert.equal(second.rules.find(r=>r.id==='MARRIAGE_NAKSHATRA_PADA')?.state,'context');
 });
+
+test('P390 Time Finder ranks best safe candidates from three consecutive sunrise days',async()=>{
+ const DAY=86400000,toIso=t=>new Date(t).toISOString();
+ const base=Date.parse(SUN);
+ const days=[0,1,2].map(i=>{
+  const from=base+i*DAY,to=from+DAY;
+  return {...day,date:new Date(Date.parse(day.date+'T00:00:00.000Z')+i*DAY).toISOString().slice(0,10),
+   sunriseUtc:toIso(from),nextSunriseUtc:toIso(to),sunsetUtc:toIso(from+10*3600000),
+   daytimeKalas:{rahuKalam:{fromUtc:toIso(from+4*3600000),untilUtc:toIso(from+5.5*3600000)}},
+   periods:Object.fromEntries(['tithi','nakshatra','yoga','karana'].map(k=>
+    [k,[{startUtc:toIso(from-3600000),endUtc:toIso(to+3600000),value:day.sunrise[k]}]]))}
+ });
+ const scores=[66,83,74];
+ const result=await findP385Windows({activityId:'job_start',days,fromUtc:UTC,
+  extraBoundaries:()=>[],evaluate:async(d)=>({
+   status:'candidate',score:scores[days.findIndex(x=>x.date===d.date)],
+   reasonIds:['VERIFIED_CLASS_RULE'],source:'NATIVE_SWISS_SAME_UTC_WITH_CLASSICAL_RULES'
+  })});
+ assert.equal(result.topCandidates.length,3);
+ assert.deepEqual(result.topCandidates.map(w=>w.score),[83,74,66]);
+ assert.equal(result.candidate?.sunriseDate,days[0].date); // earliest remains available
+ assert.equal(result.topCandidates[0].sunriseDate,days[1].date);
+ assert.ok(result.topCandidates.every(w=>w.startUtc<w.endUtc));
+});
