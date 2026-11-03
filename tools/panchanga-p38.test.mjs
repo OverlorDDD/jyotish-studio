@@ -241,7 +241,7 @@ test('P3.8 missing requirements reflect provided verified natal and observer loc
 });
 
 test('P3.8.9 wedding/foundation public screening exposes real DIFFERENT specialist rule evidence, without final ceremony certificate',()=>{
- const d=fixture({nak:4,tithi:10,slot:19,weekday:5,yoga:16});
+ const d=fixture({date:'2026-11-05',nak:4,tithi:10,slot:19,weekday:5,yoga:16});
  const w=check(d,'wedding'),f=check(d,'foundation'),job=check(d,'job_start');
  assert.equal(w.verdict,'needs_full_election');
  assert.equal(f.verdict,'needs_full_election');
