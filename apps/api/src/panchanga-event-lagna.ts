@@ -45,7 +45,7 @@ export function validateEventLagnaInput(value:EventLagnaInput){
  if(typeof latitude!=='number'||!Number.isFinite(latitude)||Math.abs(latitude)>=66.5||
   typeof longitude!=='number'||!Number.isFinite(longitude)||longitude< -180||longitude>180)
   throw Error('Event Lagna requires finite event coordinates below polar Placidus fallback latitude');
- if(typeof timeZone!=='string'||timeZone.length>64||!timeZone.includes('/'))
+ if(typeof timeZone!=='string'||timeZone.length>64||!timeZone.trim())
   throw Error('Event Lagna requires an explicit IANA time zone');
  try{new Intl.DateTimeFormat('en-GB',{timeZone}).format(new Date(ms));}
  catch{throw Error('Invalid event IANA time zone');}
