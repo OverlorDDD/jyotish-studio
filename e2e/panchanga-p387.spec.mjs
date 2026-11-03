@@ -6,6 +6,7 @@ for(const locale of ['uk','en']){
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
   await expect(page.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
+  await page.getByRole('button',{name:locale==='uk'?'Подорожі':'Travel',exact:true}).click();
   await page.getByTestId('p386-activity-select').selectOption('short_journey');
   const nav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
   await nav.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();
