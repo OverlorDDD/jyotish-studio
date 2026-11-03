@@ -126,3 +126,66 @@ export function p389Guidance(moment:P38Moment,locale:P389Locale):P389Guidance{
   nextStep:localized('Це означає невизначеність, а не несприятливий день. Порівняйте іншу дату або справу з перевіреними правилами.',
    'This is insufficient evidence, not an unfavorable day. Compare another date or an activity with documented rules.',locale)};
 }
+
+/** Human-readable audited reason IDs from the PRIVATE Time Finder at its own
+ * verified event UTC (never reuse evidence from a different day/hour).
+ * Unknown IDs are hidden, not silently assigned a made-up interpretation.
+ */
+const WINDOW_RULES:Record<string,{uk:string;en:string}>={
+ CLASS_FIXED:{uk:'Накшатра стійкого класу відповідає виду справи.',en:'Fixed Nakshatra matches this activity.'},
+ CLASS_GENTLE:{uk:'Лагідний клас накшатри відповідає справі.',en:'Gentle Nakshatra matches this activity.'},
+ CLASS_SWIFT:{uk:'Швидкий клас накшатри відповідає справі.',en:'Swift Nakshatra matches this activity.'},
+ CLASS_MOVABLE:{uk:'Рухливий клас накшатри відповідає справі.',en:'Movable Nakshatra matches this activity.'},
+ CLASS_SHARP:{uk:'Гострий клас накшатри відповідає цій практиці.',en:'Sharp Nakshatra matches the chosen practice.'},
+ RAHU_START:{uk:'Момент потрапляє в Раху-калам.',en:'Start is inside Rahu Kalam.'},
+ VISHTI_AUSPICIOUS_START:{uk:'Вішті/Бхадра: обмеження для нового початку.',en:'Vishti/Bhadra restricts new auspicious starts.'},
+ TARA_SUPPORT:{uk:'Персональна Тарабала підтримує момент.',en:'Personal Tarabala is supportive.'},
+ TARA_FIRST_CYCLE:{uk:'Тара у першому циклі потребує перевірки винятків.',en:'First-cycle Tara requires exception review.'},
+ CHANDRA_SUPPORT:{uk:'Персональна Чандрабала підтримує момент.',en:'Personal Chandrabala is supportive.'},
+ CHANDRA_ASHTAMA:{uk:'Аштама-Чандра: персональне застереження.',en:'Ashtama Chandra is a personal caution.'},
+ CHANDRA_OTHER:{uk:'Чандрабала не входить до підтримувальних положень.',en:'Chandrabala is not in a supportive position.'},
+ RAMAN_TRAVEL_STAR:{uk:'Накшатра виключена для початку подорожі.',en:'The Nakshatra is excluded for starting a journey.'},
+ RAMAN_TRAVEL_TITHI:{uk:'Тітхі виключена для початку подорожі.',en:'The Tithi is excluded for starting a journey.'},
+ RAMAN_BORROW_STAR:{uk:'Накшатра виключена для позики.',en:'The Nakshatra is excluded for borrowing.'},
+ RAMAN_BORROW_JANMA:{uk:'Початок позики в натальну накшатру виключено.',en:'Borrowing at the natal Nakshatra is excluded.'},
+ RAMAN_TITHI_CAUTION:{uk:'Ця тітхі потребує додаткової перевірки.',en:'This Tithi requires additional review.'},
+ RAMAN_IMPORTANT_TITHI:{uk:'Тітхі великої церемонії потребує перевірки.',en:'Ceremonial Tithi requires review.'},
+ SPECIAL_ELECTION_RULE_COVERAGE_INCOMPLETE:{uk:'Частина спеціальних правил не сертифікована.',en:'Some specialist rules are not yet certified.'},
+ MARRIAGE_PREFERRED_STAR:{uk:'Накшатра входить до весільного переліку Рамана.',en:'The Nakshatra is on Raman’s permitted wedding list.'},
+ MARRIAGE_NAKSHATRA_UNLISTED:{uk:'Накшатра не входить до дозволеного весільного переліку.',en:'The Nakshatra is outside the permitted wedding list.'},
+ MARRIAGE_TUESDAY:{uk:'Для весілля Раман виключає вівторок.',en:'Raman excludes Tuesday for marriage.'},
+ MARRIAGE_TITHI_EXCLUSION:{uk:'Весільна тітхі виключена правилами Рамана.',en:'Raman excludes this wedding Tithi.'},
+ MARRIAGE_NITYA_YOGA:{uk:'Нітья-йога виключена для весілля.',en:'This Nitya Yoga is excluded for marriage.'},
+ MARRIAGE_HOUSE_7_OCCUPIED:{uk:'Сьомий дім лагни події зайнятий.',en:'Event Lagna seventh house is occupied.'},
+ MARRIAGE_MARS_HOUSE_8:{uk:'Марс у восьмому домі лагни події.',en:'Mars is in event Lagna eighth house.'},
+ MARRIAGE_VENUS_HOUSE_6:{uk:'Венера у шостому домі лагни події.',en:'Venus is in event Lagna sixth house.'},
+ MARRIAGE_MALEFICS_LAGNA:{uk:'Шкідливі планети займають лагну події.',en:'Malefics occupy the event Lagna.'},
+ MARRIAGE_LAGNA_HEMMED:{uk:'Лагна події затиснута між шкідливими планетами.',en:'Event Lagna is hemmed by malefics.'},
+ MARRIAGE_MOON_ASSOCIATION:{uk:'Місяць має заборонене для цієї традиції з’єднання чи аспект.',en:'Moon has a restricted conjunction or aspect.'},
+ MARRIAGE_NAKSHATRA_PADA:{uk:'Пада накшатри виключена для весілля.',en:'This Nakshatra Pada is excluded for marriage.'},
+ MARRIAGE_VISHTI:{uk:'Вішті виключена для весілля.',en:'Vishti is excluded for marriage.'},
+ MARRIAGE_BRIGHT_TITHI:{uk:'Світла тітхі входить до рекомендованого весільного переліку.',en:'Bright-half Tithi is on the wedding preference list.'},
+ MARRIAGE_LAGNA_GEMINI_VIRGO_LIBRA:{uk:'Лагна події у Близнюках, Діві або Терезах — традиційно бажана.',en:'Event Lagna in Gemini, Virgo or Libra is traditionally preferred.'},
+ MARRIAGE_ARDHAMA_YOGA:{uk:'Зафіксовано спеціальну йогу Ардхама.',en:'The special Ardhama yoga is present.'},
+ FOUNDATION_BEST_NAKSHATRA:{uk:'Накшатра входить до бажаного переліку для фундаменту.',en:'Nakshatra is on the preferred foundation list.'},
+ FOUNDATION_MIDDLE_NAKSHATRA:{uk:'Накшатра має проміжну придатність для фундаменту.',en:'Nakshatra is in the middling foundation group.'},
+ FOUNDATION_NAKSHATRA_UNLISTED:{uk:'Накшатра виключена для початку фундаменту.',en:'Nakshatra is excluded for foundation starts.'},
+ FOUNDATION_TITHI:{uk:'Тітхі не рекомендована для фундаменту.',en:'Tithi is not recommended for a foundation.'},
+ FOUNDATION_SATURDAY:{uk:'Субота виключена для фундаменту.',en:'Saturday is excluded for foundations.'},
+ FOUNDATION_MONDAY_WANING:{uk:'Понеділок зі спадним Місяцем виключено.',en:'Waning-Moon Monday is excluded.'},
+ FOUNDATION_MOVABLE_LAGNA:{uk:'Рухлива лагна виключена для фундаменту.',en:'Movable event Lagna is excluded for foundation.'},
+ FOUNDATION_FIXED_LAGNA:{uk:'Стійка лагна події підтримує закладання фундаменту.',en:'Fixed event Lagna supports laying a foundation.'},
+ FOUNDATION_EIGHTH_OCCUPIED:{uk:'Восьмий дім лагни події зайнятий.',en:'Event Lagna eighth house is occupied.'},
+ FOUNDATION_EIGHTH_MALEFIC_ASPECT:{uk:'На восьмий дім є шкідливий аспект.',en:'The event eighth house receives a malefic aspect.'},
+ FOUNDATION_RAMAN_COMBINATION_1:{uk:'Зафіксовано спеціальну рекомендовану комбінацію для фундаменту.',en:'A special recommended foundation combination is present.'},
+ RAMAN_PANCHAKA_SCOPE:{uk:'Панчака виключає цей тип справи для цього моменту.',en:'Panchaka restricts this undertaking at the event moment.'}
+};
+export function p389WindowReason(id:string,locale:P389Locale):string|null{
+ if(!id||id.length>128)return null;
+ const known=WINDOW_RULES[id];
+ if(known)return known[locale];
+ const match=/^RAMAN_YOGA_(6|9|10|17|27)$/.exec(id);
+ if(match)return localized('Йога №'+match[1]+' потребує перевірки для важливого початку.',
+  'Nitya Yoga #'+match[1]+' requires caution for a major start.',locale);
+ return null;
+}
