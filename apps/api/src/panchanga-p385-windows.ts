@@ -74,6 +74,48 @@ export function findP385LagnaCrossings(begin:number,end:number,
   throw Error('P385 invalid verified event Lagna crossing order');
  return found.map(x=>new Date(x).toISOString());
 }
+/** Moon crosses a 3°20' NAKSHATRA PADA several times in one day.
+ * Raman's wedding rules exclude particular padas of Magha, Mula, Revati.
+ * Splitting only the 27 Nakshatra changes would produce false recommendations.
+ * Source is the SAME verified Swiss sidereal Moon position as Panchanga.
+ */
+export function findP385MoonPadaCrossings(begin:number,end:number,
+ at:(ms:number)=>{longitude:number;longitudeSpeed:number}):string[]{
+ if(!Number.isSafeInteger(begin)||!Number.isSafeInteger(end)||
+  end-begin<60000||end-begin>29*3600000)throw Error('P385 lunar pada search needs one sunrise day');
+ const STEP=10*60000,WIDTH=360/108,found:number[]=[];
+ const v=(ms:number)=>{
+  const p=at(ms);
+  if(!p||!Number.isFinite(p.longitude)||p.longitude<0||p.longitude>=360||
+    !Number.isFinite(p.longitudeSpeed)||p.longitudeSpeed<=0||p.longitudeSpeed>25)
+   throw Error('P385 requires verified prograde Swiss Moon for pada search');
+  return {longitude:p.longitude,index:Math.floor(p.longitude/WIDTH)};
+ };
+ let left=begin,before=v(left);
+ while(left<end-1){
+  const right=Math.min(left+STEP,end-1),after=v(right);
+  const motion=mod(after.longitude-before.longitude);
+  if(motion>1.0)throw Error('P385 Moon moved beyond verified 10-minute pada sweep envelope');
+  if(before.index!==after.index){
+   if(after.index!==(before.index+1)%108)
+    throw Error('P385 missed multiple lunar padas in one verified sweep');
+   let lo=left,hi=right;
+   while(hi-lo>1){
+    const mid=Math.floor((lo+hi)/2),p=v(mid);
+    if(p.index===before.index)lo=mid;
+    else if(p.index===after.index)hi=mid;
+    else throw Error('P385 unexpected pada during Swiss bisection');
+   }
+   const crossed=Math.ceil(hi/1000)*1000;
+   if(crossed>begin&&crossed<end)found.push(crossed);
+  }
+  left=right;before=after;
+ }
+ if(found.length>12||found.some((x,i)=>i>0&&x<=found[i-1]))
+  throw Error('P385 impossible lunar pada crossing count');
+ return found.map(t=>new Date(t).toISOString());
+}
+
 /** Evaluate only windows long enough to start an activity. Every sample is
  * 15 sec inside the interval, never at an ambiguous planetary/lagna edge.
  */
