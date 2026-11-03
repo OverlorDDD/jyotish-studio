@@ -12,8 +12,14 @@ test('P388 main integration requires exact SHA, correct release ancestry and liv
   'P388_TARGET_SHA','P388_CI_ATTESTED_SHA','I_APPROVE_P388_PRODUCTION',
   'P388_PREFLIGHT_PASS','P388_BACKUP_TOC_PASS','P388_PRODUCTION_RELEASE_VERIFIED',
   'SESSION_COOKIE_SECURE','SITE_NOINDEX','approved-spiral-6.png',
-  'pg_dump --format=custom','pg_restore --list','last-backup','ROLLBACK_APPROVAL'])
+  'panchanga-p388-db-direct.mjs','P388_STATE_ROOT="$STATE"','last-backup','ROLLBACK_APPROVAL'])
   assert.ok(s.includes(required),required);
+ const adapter=text('tools/panchanga-p388-db-direct.mjs');
+ for(const evidence of ['DATABASE_URL','PGPASSWORD','pg_dump','--format=custom',
+  'pg_restore','--list','PGHOST','PGDATABASE','production-before.dump'])
+  assert.ok(adapter.includes(evidence),'Native backup implementation missing: '+evidence);
+ assert.ok(!/docker (?:inspect|exec|compose)/.test(s),'Production release must not invoke Docker');
+ assert.ok(!/docker (?:inspect|exec|compose)/.test(adapter),'Native DB helper must not invoke Docker');
  const banned=['git reset --hard','git clean -fd','git push --force',
   'prisma migrate reset','docker compose down -v','rm -rf',
   'SITE_NOINDEX=1','NEWS_TRANSLATION_ENABLED=0','systemctl stop caddy',
