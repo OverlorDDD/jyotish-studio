@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feat/r43-international-search-indexnow-20261102
+      - release/panchanga-p36-production-acceptance-20261102
   pull_request:
     paths:
       - tools/r3-indexnow.mjs
