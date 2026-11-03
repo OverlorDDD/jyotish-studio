@@ -1,3 +1,5 @@
+import {createVerifiedEventLagnaSampler} from '../apps/api/src/panchanga-event-lagna.ts';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {evaluateP385Special,p385NatalFromVerified,p385Aspects}
@@ -136,4 +138,18 @@ test('P385 fail-closed: wrong observer day order, missing signed source, and inv
  await assert.rejects(()=>findP385Windows(base),/source-scoped evidence/);
  await assert.rejects(()=>findP385Windows({...base,fromUtc:'2026-11-03T05:00:00.000Z'}),
   /first sunrise day/);
+});
+
+test('P385 all twelve real Swiss event-Lagna ingresses match independent Python within one second',async()=>{
+ const vector=JSON.parse(readFileSync(new URL('../tests/fixtures/p385-independent-swiss-lagna-crossings.json',import.meta.url),'utf8'));
+ const at=await createVerifiedEventLagnaSampler(vector.observer);
+ const list=findP385LagnaCrossings(Date.parse(vector.startUtc),Date.parse(vector.endUtc),at);
+ assert.equal(list.length,vector.crossings.length);
+ for(let i=0;i<list.length;i++){
+  const desired=vector.crossings[i],t=Date.parse(list[i]),want=Date.parse(desired.atUtc);
+  assert.ok(Math.abs(t-want)<=vector.toleranceMs,
+   'Swiss ascendant sign ingress '+i+': '+list[i]+' vs '+desired.atUtc);
+  assert.equal(at(t-2000).sign,desired.from);
+  assert.equal(at(t+2000).sign,desired.to);
+ }
 });
