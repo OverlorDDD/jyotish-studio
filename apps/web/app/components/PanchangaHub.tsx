@@ -6,6 +6,8 @@ import type {LivePanchangaDay} from '../../lib/panchanga-live';
 import type {P38ActivityId} from '../../lib/panchanga-p38-decision';
 import CitySearch from './CitySearch';
 import PanchangaCleanDay from './PanchangaCleanDay';
+import PanchangaDailyOpportunities from './PanchangaDailyOpportunities';
+import type {OpportunityDay} from '../../lib/panchanga-opportunities';
 import PanchangaRangeView from './PanchangaRangeView';
 import PanchangaLiveDay from './PanchangaLiveDay';
 import GlossaryText from './GlossaryText';
@@ -43,6 +45,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [saveState,setSaveState]=useState<'idle'|'saving'|'saved'|'error'>('idle');
  const saveSequence=useRef(0),saveQueue=useRef<Promise<unknown>>(Promise.resolve());
  const [showTechnical,setShowTechnical]=useState(false);
+ const [showElectionTool,setShowElectionTool]=useState(false);
  useEffect(()=>{
   const qs=new URLSearchParams(window.location.search);
   if(qs.get('view')==='personal')setView('week'); // retired duplicate 7/30 view
@@ -81,7 +84,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   saveQueue.current=pending.catch(()=>{if(version===saveSequence.current)setSaveState('error')});
  }
  function selectLocation(next:Form){
-  setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setFocusAtUtc(null);
+  setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setShowElectionTool(false);setFocusAtUtc(null);
   saveCity(next);
  }
  async function restoreNatalCity(){
@@ -102,7 +105,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  }
  function setDate(date:string){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
-  const next={...form,date};setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setFocusAtUtc(null);
+  const next={...form,date};setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setShowElectionTool(false);setFocusAtUtc(null);
  }
  function pickDay(date:string,atUtc?:string){setDate(date);setFocusAtUtc(atUtc||null);setView('day')}
  function resetToToday(){
@@ -169,9 +172,18 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    {uk?'Не вдалося перевірити Панчангу для цього міста і дати.':'Could not verify Panchanga for this city/date.'}
   </div>}
   {view==='day'&&matches&&day&&requested&&<>
-   <PanchangaCleanDay key={requested.date+'|'+requested.timeZone+'|'+requested.latitude+'|'+requested.longitude+'|'+todayResetSerial}
-    locale={locale} day={day} point={requested} activity={activity} onActivityChange={setActivity}
-    focusAtUtc={focusAtUtc} onResetToday={resetToToday}/>
+   <PanchangaDailyOpportunities key={'opportunities|'+requested.date+'|'+requested.timeZone+'|'+todayResetSerial}
+    locale={locale} day={day as unknown as OpportunityDay} point={requested}
+    onToday={resetToToday} onTomorrow={()=>setDate(new Date(Date.parse(requested.date+'T12:00:00Z')+86400000).toISOString().slice(0,10))}
+    onWeek={()=>setView('week')} onAdvanced={()=>setShowElectionTool(true)}/>
+   <details className={styles.technical} open={showElectionTool}
+    onToggle={e=>setShowElectionTool(e.currentTarget.open)} data-testid="p410-advanced">
+    <summary>{uk?'Персональний підбір часу для складних подій (попередня мухурта)':
+     'Advanced personal time selection (preliminary Muhurta)'}</summary>
+    {showElectionTool&&<PanchangaCleanDay key={requested.date+'|'+requested.timeZone+'|'+requested.latitude+'|'+requested.longitude+'|'+todayResetSerial}
+     locale={locale} day={day} point={requested} activity={activity} onActivityChange={setActivity}
+     focusAtUtc={focusAtUtc} onResetToday={resetToToday}/>}
+   </details>
   </>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view}
    point={requested} monthSystem={monthSystem} onPick={pickDay}
