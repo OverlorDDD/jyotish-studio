@@ -74,7 +74,7 @@ export type P38Observation={
  domain:'nakshatra'|'tithi'|'yoga'|'karana'|'vara'|'rahu'|'tarabala'|'chandrabala';
  description:Lang;source:string;scope:'activity'|'general_election'|'personal';
 };
-export type P38Verdict='candidate'|'avoid'|'needs_full_election'|'mixed'|'undetermined'|'routine';
+export type P38Verdict='candidate'|'avoid'|'needs_full_election'|'mixed'|'caution'|'analogy'|'undetermined'|'routine';
 export type P38Moment={
  version:'p38-election-screening-v1';activityId:P38ActivityId;
  date:string;atUtc:string;sunriseUtc:string;nextSunriseUtc:string;
@@ -213,10 +213,17 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
   excluded?'avoid':
   important?'needs_full_election':
   directClass&&!cautioned&&personalCompatible?'candidate':
-  directClass||cautioned?'mixed':'undetermined';
- // Analogy remains explanatory: it cannot certify a traditional muhurta.
- if(activity.method==='analogy'&&verdict==='candidate')verdict='mixed';
- const required=[...activity.required];
+  directClass?'mixed':
+  cautioned?'caution':'undetermined';
+ // A modern analogy with no opposing evidence is NOT a "mixed" reading.
+ // A generic caution without activity support is NOT "partly supportive".
+ if(activity.method==='analogy'&&verdict==='candidate')verdict='analogy';
+ // Missing means not supplied to this verified *calendar* calculation, not
+ // every prerequisite in the registry. Observer/event location is already
+ // verified in P32; signed-in natal resonance is passed via privateInput.
+ // Event-Lagna and partner integrity still require Time Finder server checks.
+ const required=activity.required.filter(req=>req==='natal_chart'?!privateInput:
+  req==='event_location'?false:true);
  if(activity.method==='special_election'&&!required.includes('election_lagna'))throw Error('P38 missing event lagna gate');
  return {version:'p38-election-screening-v1',activityId,date:day.date,atUtc:timeUtc,
   sunriseUtc:day.sunriseUtc,nextSunriseUtc:day.nextSunriseUtc,verdict,
