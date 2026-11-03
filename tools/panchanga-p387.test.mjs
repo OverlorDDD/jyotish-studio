@@ -132,6 +132,10 @@ test('P387: missing full-Muhurta approval does not become a positive candidate; 
  assert.throws(()=>validateP387Finder(duplicate,f.point,'wedding'),/mismatch/);
  const moved=structuredClone(review);moved.observer.latitude=48.1;
  assert.throws(()=>validateP387Finder(moved,f.point,'wedding'),/mismatch/);
+ const mislabeled=structuredClone(review);
+ mislabeled.windows[0].sunriseDate=f.rangeDays[1].date;
+ assert.throws(()=>p387Rows(f.overview,f.point,30,null,mislabeled,'wedding'),
+  /sunrise day contradiction|source day contradiction/);
 });
 test('P387: bounded 7-day existing P385 evaluator yields first candidate and review for each sunrise day',async()=>{
  const f=fixtures('2026-11-01',7,false);
