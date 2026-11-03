@@ -108,8 +108,10 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
   activity.category==='home'?'home':activity.category==='travel'?'travel':
   activity.category==='work'?'work':'personal','at-instant');
  explainClassicalPanchanga(day,validatedCalendar); // verify names, indexes, five matching active UTC limbs
- const nk=active(day,'nakshatra',time),tithi=active(day,'tithi',time),
-  yoga=active(day,'yoga',time),karana=active(day,'karana',time);
+ const nk=active(day,'nakshatra',time) as P32Day['sunrise']['nakshatra'];
+ const tithi=active(day,'tithi',time) as P32Day['sunrise']['tithi'];
+ const yoga=active(day,'yoga',time) as P32Day['sunrise']['yoga'];
+ const karana=active(day,'karana',time) as P32Day['sunrise']['karana'];
  // A Karana is a half-Tithi: slot and Tithi must refer to the SAME solar–lunar
  // elongation. P3.2 checks names but did not cross-check this invariant.
  if(Math.ceil(karana.slot/2)!==tithi.number)
