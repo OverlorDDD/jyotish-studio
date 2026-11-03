@@ -39,3 +39,5 @@
 .root :is(a,button,summary):focus-visible{outline:2px solid #ffe3a8;outline-offset:3px}
 @media(max-width:640px){.cards,.below,.periodGrid{grid-template-columns:1fr}.lead{grid-column:auto}.heading{padding:18px}.heading h2{font-size:26px}.cardHeader{align-items:flex-start}.period{width:100%}.lead,.card{padding:17px}.periodGrid li{font-size:11px}}
 @media(max-width:360px){.root{margin-top:12px}.navigator button{width:100%;justify-content:center}.cardActions{gap:10px}.period{font-size:12px}.method summary{font-size:12px}}
+
+.calendarHint{display:block;margin-top:8px;font-size:11px;line-height:1.45;color:#c0cedd}
