@@ -68,7 +68,8 @@ test('GA4 and business-tool names only, never natal or private payload',()=>{
  const chart=source('apps/web/app/astrology/jyotish/page.tsx');
  const panchanga=source('apps/web/app/components/PanchangaHub.tsx');
  const tarot=source('apps/web/app/components/TarotStudio.tsx');
- assert.match(code,/__galaxioraLastPageView===safe/);
+ assert.match(code,/__galaxioraLastPageView===routeKey/);
+ assert.match(code,/pathname==='\/'\?'\/en':pathname/);
  assert.match(code,/send_page_view:false/);
  assert.match(code,/galaxiora_debug_ping/);
  assert.match(code,/g\/collect request observed/);
