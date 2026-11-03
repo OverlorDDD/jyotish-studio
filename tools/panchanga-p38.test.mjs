@@ -75,7 +75,8 @@ test('P3.8 same sky gives DIFFERENT legitimate decisions: Chara supports travel,
  const d=fixture({nak:15});
  assert.equal(check(d,'short_journey').verdict,'candidate');
  assert.equal(check(d,'job_start').verdict,'undetermined');
- assert.equal(check(d,'wedding').verdict,'needs_full_election');
+ assert.equal(check(d,'wedding').verdict,'avoid'); // Tuesday-specific classical wedding exclusion
+ assert.ok(check(d,'wedding').observations.some(e=>e.id==='MARRIAGE_TUESDAY'));
 });
 test('P3.8 gentle Nakshatra directly supports making friends, but dating is clearly a modern analogy',()=>{
  const d=fixture({nak:5});
@@ -237,4 +238,28 @@ test('P3.8 missing requirements reflect provided verified natal and observer loc
  const withNatal=evaluateP38(d,at,'foundation',{point:POINT,report:report(d,at)});
  assert.ok(!withNatal.missingRequirements.includes('natal_chart'));
  assert.ok(withNatal.missingRequirements.includes('election_lagna'));
+});
+
+test('P3.8.9 wedding/foundation public screening exposes real DIFFERENT specialist rule evidence, without final ceremony certificate',()=>{
+ const d=fixture({nak:4,tithi:10,slot:19,weekday:5,yoga:16});
+ const w=check(d,'wedding'),f=check(d,'foundation'),job=check(d,'job_start');
+ assert.equal(w.verdict,'needs_full_election');
+ assert.equal(f.verdict,'needs_full_election');
+ assert.equal(job.verdict,'candidate');
+ assert.ok(w.observations.some(x=>x.id==='MARRIAGE_PREFERRED_STAR'&&x.polarity==='supports'));
+ assert.ok(f.observations.some(x=>x.id==='FOUNDATION_BEST_NAKSHATRA'&&x.polarity==='supports'));
+ assert.ok(!w.observations.some(x=>x.id==='FOUNDATION_BEST_NAKSHATRA'));
+ assert.ok(!f.observations.some(x=>x.id==='MARRIAGE_PREFERRED_STAR'));
+ assert.equal(w.certification,'calendar-screening-only');
+ assert.ok(w.missingRequirements.includes('partner_chart'));
+});
+test('P3.8.9 special exclusions are action-specific and supported by Raman, not generic negative defaults',()=>{
+ const d=fixture({nak:2,tithi:8,slot:16,weekday:3,yoga:17});
+ const w=check(d,'wedding'),f=check(d,'foundation');
+ assert.equal(w.verdict,'avoid');
+ assert.ok(w.observations.some(x=>x.id==='MARRIAGE_NAKSHATRA_UNLISTED'));
+ assert.ok(w.observations.some(x=>x.id==='MARRIAGE_TITHI_EXCLUSION'));
+ assert.equal(f.verdict,'avoid');
+ assert.ok(f.observations.some(x=>x.id==='FOUNDATION_TITHI'));
+ assert.ok(!f.observations.some(x=>x.id==='MARRIAGE_TUESDAY'));
 });
