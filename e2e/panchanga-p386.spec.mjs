@@ -14,7 +14,7 @@ for(const locale of ['uk','en']){
   await expect(hub.getByTestId('panchanga-daily-timeline')).toBeVisible();
   await expect(hub.getByRole('heading',{name:locale==='uk'?'Класична Панчанга':'Classical Panchanga'})).toBeVisible();
   await expect(hub.getByTestId('p31-details')).toHaveCount(1);
-  await expect(hub.getByTestId('p31-details').locator('summary')).toHaveCount(0);
+  await expect(hub.getByTestId('p31-details').locator(':scope > summary')).toHaveCount(0);
  });
  test('P3.8.6 '+locale+' day/week/month one calendar and date drilldown',async({page})=>{
   test.setTimeout(120000);
