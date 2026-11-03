@@ -87,6 +87,15 @@ export type P38Moment={
 const GUARD=(ok:unknown,msg:string):asserts ok=>{if(!ok)throw Error('P38 source identity: '+msg);};
 const STAR_RESTRICTIONS_FOR_TRAVEL=new Set([2,3]); // Bharani, Krittika: Raman Ch XIV.
 const BORROW_RESTRICTED_STARS=new Set([3,7,19,23]); // Raman Ch XVII + natal star separately.
+// Source-scoped ceremony filters are shared by public day screening and the
+// server's exact-lagna election. One canonical table prevents divergent advice.
+export const P38_MARRIAGE_GOOD_NAK=new Set([4,5,10,12,13,15,17,19,21,26,27]);
+export const P38_FOUNDATION_BEST_NAK=new Set([4,5,14,13,18,12,21,22]);
+export const P38_FOUNDATION_MIDDLE_NAK=new Set([15,8,17,1,24,26,27]);
+export const P38_MARRIAGE_BAD_YOGAS=new Set(['Vyatipata','Dhruva','Ganda','Vajra','Shoola',
+ 'Vishkumbha','Atiganda','Vyaghata','Parigha']);
+export const P38_MARRIAGE_RESTRICTED_TITHIS=new Set([4,6,8,9,12,14]);
+export const P38_FOUNDATION_GOOD_TITHIS=new Set([1,2,3,5,6,7,10,11,13,15]);
 const STANDARD_BAD_YOGAS=new Set([6,9,10,17,27]); // Raman Ch V: Panchanga Suddhi.
 const GENERAL_TITHI_CAUTION=new Set([4,6,8,14,15]); // Raman Ch II/V: 15 = full/new Moon
 const IMPORTANT_TITHI_CAUTION=new Set([12]); // Raman Ch II explicitly notes an exception if other limbs are strong
@@ -143,6 +152,63 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
   push('RAMAN_BORROW_STAR','excludes','nakshatra',
    L('Для позики Раман називає цю накшатру невідповідною.','Raman lists this nakshatra as unsuitable for borrowing.'),
    RAMAN_SOURCE,'activity');
+ // Source-backed *public* parts of special elections are still real
+ // activity-specific signals. They must be exposed even when the entire
+ // ceremony remains uncertified (natal Kutas, event Lagna and doshas).
+ if(activityId==='wedding'){
+  if(P38_MARRIAGE_GOOD_NAK.has(nk.number))push('MARRIAGE_PREFERRED_STAR',
+   'supports','nakshatra',
+   L('Для весілля Раман називає цю накшатру серед дозволених.',
+     'Raman lists this Nakshatra among permitted marriage stars.'),
+   RAMAN_SOURCE,'activity');
+  else push('MARRIAGE_NAKSHATRA_UNLISTED','excludes','nakshatra',
+   L('Ця накшатра не входить до переліку дозволених для весілля.',
+     'This Nakshatra is outside the documented wedding list.'),
+   RAMAN_SOURCE,'activity');
+  if(day.sunrise.vara.number===3)push('MARRIAGE_TUESDAY','excludes','vara',
+   L('Для весілля Раман виключає вівторок.','Raman excludes Tuesday for marriage.'),
+   RAMAN_SOURCE,'activity');
+  if(P38_MARRIAGE_RESTRICTED_TITHIS.has(tithi.numberWithinPaksha)||
+   (tithi.paksha==='Krishna'&&tithi.numberWithinPaksha>=11))
+   push('MARRIAGE_TITHI_EXCLUSION','excludes','tithi',
+    L('Ця тітхі виключена за правилами весільної мухурти Рамана.',
+      'This Tithi is excluded by Raman wedding-election rules.'),
+    RAMAN_SOURCE,'activity');
+  if(P38_MARRIAGE_BAD_YOGAS.has(yoga.name))push('MARRIAGE_NITYA_YOGA','excludes','yoga',
+   L('Ця нітья-йога виключена для весілля за Раманом.',
+     'Raman excludes this Nitya Yoga for marriage.'),
+   RAMAN_SOURCE,'activity');
+ }
+ if(activityId==='foundation'){
+  if(P38_FOUNDATION_BEST_NAK.has(nk.number))
+   push('FOUNDATION_BEST_NAKSHATRA','supports','nakshatra',
+    L('Для закладання фундаменту Раман називає цю накшатру бажаною.',
+      'Raman identifies this Nakshatra as preferred for laying a foundation.'),
+    RAMAN_SOURCE,'activity');
+  else if(P38_FOUNDATION_MIDDLE_NAK.has(nk.number))
+   push('FOUNDATION_MIDDLE_NAKSHATRA','context','nakshatra',
+    L('Накшатра має проміжний статус для фундаменту; це не найкраща категорія.',
+      'This foundation Nakshatra is middling, not among the preferred group.'),
+    RAMAN_SOURCE,'activity');
+  else push('FOUNDATION_NAKSHATRA_UNLISTED','excludes','nakshatra',
+   L('Для закладання фундаменту Раман виключає цю накшатру.',
+     'Raman excludes this Nakshatra for laying foundations.'),
+   RAMAN_SOURCE,'activity');
+  if(!P38_FOUNDATION_GOOD_TITHIS.has(tithi.numberWithinPaksha))
+   push('FOUNDATION_TITHI','excludes','tithi',
+    L('Ця тітхі не входить до рекомендованих Раманом для фундаменту.',
+      'This Tithi is outside Raman’s recommended foundation days.'),
+    RAMAN_SOURCE,'activity');
+  if(day.sunrise.vara.number===7)push('FOUNDATION_SATURDAY','excludes','vara',
+   L('Для закладання фундаменту Раман виключає суботу.',
+     'Raman excludes Saturday for laying a foundation.'),
+   RAMAN_SOURCE,'activity');
+  if(day.sunrise.vara.number===2&&tithi.paksha==='Krishna')
+   push('FOUNDATION_MONDAY_WANING','excludes','vara',
+    L('За правилами фундаменту Рамана понеділок зі спадним Місяцем виключено.',
+      'Raman excludes a waning-Moon Monday for laying a foundation.'),
+    RAMAN_SOURCE,'activity');
+ }
  if(activity.method!=='routine'){
   const rahu=day.daytimeKalas.rahuKalam;
   if(time>=Date.parse(rahu.fromUtc)&&time<Date.parse(rahu.untilUtc))
