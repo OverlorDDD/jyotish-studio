@@ -8,7 +8,7 @@ import {createVerifiedEventLagnaSampler,createVerifiedMeanNodeAt,
  calculateVerifiedEventLagna,type EventLocation} from './panchanga-event-lagna.ts';
 import {assembleP384EventElection} from './panchanga-event-election.ts';
 import {evaluateP385Special,p385NatalFromVerified} from './panchanga-p385-special.ts';
-import {findP385LagnaCrossings,findP385Windows} from './panchanga-p385-windows.ts';
+import {findP385LagnaCrossings,findP385MoonPadaCrossings,findP385Windows} from './panchanga-p385-windows.ts';
 import {findVerifiedSignIngresses} from './panchanga-ingress.ts';
 import {verifiedDailyMoonStrength} from '../../../packages/jyotish-core/src/lunar-strength.ts';
 import type {RecoveredChart} from './personal-chart-recovery.ts';
@@ -74,6 +74,7 @@ export async function searchP385Time(input:P385SearchInput){
  const events=async(day:P32Day)=>{
   const a=Date.parse(day.sunriseUtc),b=Date.parse(day.nextSunriseUtc);
   const crossings=findP385LagnaCrossings(a,b,atLagna);
+  crossings.push(...findP385MoonPadaCrossings(a,b,ms=>atPlanet(ms,'Moon')));
   for(const name of planetNames){
    const ingress=findVerifiedSignIngresses(a,b,ms=>atPlanet(ms,name));
    crossings.push(...ingress.map(e=>e.atUtc));
