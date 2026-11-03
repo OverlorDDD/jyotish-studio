@@ -40,3 +40,11 @@ The first AWS run safely refused untracked files: `apps/web/brand-assets/galaxio
 ## 2026-11-03 production lineage correction
 
 AWS production was directly verified as `d2c77781781e65ee0b8af04e05bce62e9d61baea` (P410 merge). The full **file tree** of this production SHA is byte-for-byte identical to the source P410 base `d56ecf7cdb559f1ae91464cd068bcf6cfa9a4551`; although histories diverged, there were **zero** file differences. All 23 analytics feature-file changes were therefore ported without conflicts onto a **new commit descending directly from d2c7778**, on branch `fix/ga4-production-d2c777-20261103`. The release script now requires `git merge-base --is-ancestor CURRENT_HEAD TARGET` and never consults `main`. It will not force a checkout over unrelated newer commits. Production's original P410 merge commit and all current unrelated features are preserved by ancestry.
+
+## 2026-11-03 confirmed production issue: Google gtag commands ignored
+
+Real browser diagnosis (user DevTools): consent `accepted`, tag `loaded`, `page_view` and `galaxiora_debug_ping` queued, **but no `/g/collect` network requests**. Connected Windsor.ai GA4 property `561822944` returned no reporting rows for 2026-11-01 through 2026-11-03. This is a stronger and independent confirmation than the admin Realtime widget, although cached GA4 reporting can lag.
+
+Root implementation defect: `window.gtag=(...args)=>dataLayer.push(args)` pushed normal arrays, but Google's documented gtag integration queues the native `arguments` object. Their library processes the latter as commands. The mocked E2E transport erroneously accepted only arrays, thereby certifying a behavior incompatible with the documented real integration. Fixed by using `function gtag(..._args) { dataLayer.push(arguments); }` and making the shim reject arrays. The strict E2E must produce two simulated collector attempts with safe URLs and must fail against the old implementation.
+
+**This does not independently verify real Google delivery.** After rollout repeat consenting debug visit; verify actual `g/collect` network requests and connected GA4 reporting / DebugView. If still missing, inspect client-side request blocking, actual Measurement ID, stream status and network environment. Do not send a fake GA4 Measurement Protocol event or report one as a human visit.
