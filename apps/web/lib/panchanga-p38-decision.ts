@@ -8,7 +8,7 @@
  * Lunar geometry, Tithi, Karana and phase must not be independently scored.
  * Incomplete event-Lagna/partner requirements NEVER become 'good muhurta'.
  */
-import {p37NakshatraClass} from './panchanga-p37-classical.ts';
+import {p37NakshatraClass,explainClassicalPanchanga} from './panchanga-p37-classical.ts';
 import {interpretPanchanga,type P32Day} from './panchanga-p32-engine.ts';
 import {p34Boundaries,type P34PrivateTiming} from './panchanga-p34-time-guidance.ts';
 import {validateP33Report,type P33Report,type P33Point} from './panchanga-p33-resonance.ts';
@@ -103,12 +103,17 @@ export function evaluateP38(day:P32Day,timeUtc:string,activityId:P38ActivityId,
   throw Error('P38 sample outside verified UTC sunrise day');
  // Reuse canonical sunrise, Swiss period, weekday, tithi, Yoga and Karana
  // validation; DO NOT reuse its simplistic supported/caution status or action.
- interpretPanchanga(day,time,activity.category==='finance'?'money':
+ const validatedCalendar=interpretPanchanga(day,time,activity.category==='finance'?'money':
   activity.category==='education'?'study':activity.category==='relationships'?'relationships':
   activity.category==='home'?'home':activity.category==='travel'?'travel':
   activity.category==='work'?'work':'personal','at-instant');
+ explainClassicalPanchanga(day,validatedCalendar); // verify names, indexes, five matching active UTC limbs
  const nk=active(day,'nakshatra',time),tithi=active(day,'tithi',time),
   yoga=active(day,'yoga',time),karana=active(day,'karana',time);
+ // A Karana is a half-Tithi: slot and Tithi must refer to the SAME solar–lunar
+ // elongation. P3.2 checks names but did not cross-check this invariant.
+ if(Math.ceil(karana.slot/2)!==tithi.number)
+  throw Error('P38 impossible Tithi/Karana angular combination');
  const cls=p37NakshatraClass(nk.number);
  const result:P38Observation[]=[];
  const push=(id:string,polarity:P38Observation['polarity'],
