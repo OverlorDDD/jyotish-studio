@@ -6,6 +6,8 @@ for(const locale of ['uk','en']){
   await page.goto('/'+locale+'/panchanga?date='+DAY);
   const hub=page.getByTestId('panchanga-hub');
   await expect(hub.getByTestId('p386-observer')).toBeVisible();
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await hub.getByTestId('p410-advanced').locator('summary').click();
   await expect(hub.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
   await expect(hub.getByTestId('p386-activity-select')).toBeVisible();
   await expect(hub.getByTestId('p32-headline')).toBeVisible();
@@ -42,14 +44,14 @@ for(const locale of ['uk','en']){
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
   const hub=page.getByTestId('panchanga-hub');
-  await expect(hub.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
   const nav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
   await expect(nav.getByRole('button')).toHaveCount(3);
   await nav.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();
   const week=hub.getByTestId('panchanga-calendar-range');
   await expect(week.getByTestId('panchanga-day-cell')).toHaveCount(7,{timeout:90000});
   await week.getByTestId('panchanga-day-cell').nth(1).click();
-  await expect(hub.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
   await nav.getByRole('button',{name:locale==='uk'?'Місяць':'Month'}).click();
   const month=hub.getByTestId('panchanga-calendar-range');
   await expect(month.getByTestId('panchanga-day-cell').first()).toBeVisible({timeout:90000});
@@ -80,8 +82,8 @@ test('P3.8.6 mobile 320px: no horizontal whole-page overflow; icons + date + loc
  test.setTimeout(120000);
  await page.setViewportSize({width:320,height:740});
  await page.goto('/uk/panchanga?date='+DAY);
- await expect(page.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
- await expect(page.getByTestId('p32-evidence').locator('details')).toHaveCount(5);
+ await expect(page.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+ await expect(page.getByTestId('p410-opportunities').getByTestId('p410-opportunity').first()).toBeVisible();
  const size=await page.evaluate(()=>({
   doc:document.documentElement.scrollWidth,width:window.innerWidth}));
  expect(size.doc).toBeLessThanOrEqual(size.width+2);
