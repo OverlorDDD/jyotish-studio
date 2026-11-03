@@ -122,6 +122,17 @@ export function p387Rows(overview:P387Overview,point:P35Point,count:P35Days,
  validateP387Public(overview,point,count);
  const verified=personal?validateP387Natal(overview,point,count,personal):null;
  const chosen=finder?validateP387Finder(finder,point,activityId):null;
+ // A window whose timestamp falls in a displayed sunrise day but claims
+ // another sunriseDate is an invalid source join, never an event to silently hide.
+ for(const window of chosen?.windows||[]){
+  const start=Date.parse(window.startUtc),end=Date.parse(window.endUtc);
+  const localDay=overview.days.find(d=>start>=Date.parse(d.sunriseUtc)&&
+   start<Date.parse(d.nextSunriseUtc));
+  if(localDay)check(localDay.date===window.sunriseDate&&
+   end<=Date.parse(localDay.nextSunriseUtc),'search window/source day contradiction');
+  else check(!overview.days.some(d=>d.date===window.sunriseDate),
+   'claimed source date missing from currently verified sunrise coverage');
+ }
  return overview.days.map((day,i)=>{
   const start=Date.parse(day.sunriseUtc),end=Date.parse(day.nextSunriseUtc);
   const events=verified?.personal.events.filter(e=>{
