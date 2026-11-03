@@ -5,7 +5,7 @@ import {spawnSync} from 'node:child_process';
 const text=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('P388 main integration requires exact SHA, correct release ancestry and live fast-forward before deployment',()=>{
  const s=text('tools/panchanga-p388-release.sh');
- for(const required of ['ACTION="${1:-diagnose}"','MAIN_BRANCH=main',
+ for(const required of ['ACTION="${1:-diagnose}"','RELEASE_BRANCH=release/panchanga-p36-production-acceptance-20261102',
   'RELEASE_ROOT=fe2cef6b1755f1467b6ad2c7efc619068735a2fc',
   'git merge-base --is-ancestor "$RELEASE_ROOT" "$target"',
   'git merge-base --is-ancestor "$current" "$target"',
