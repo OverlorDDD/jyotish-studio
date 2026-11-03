@@ -132,22 +132,21 @@ export default function PanchangaRangeView({locale,view,point,monthSystem,onPick
     const events=eventsFor(d),isMonth=view==='month';
     return <button key={d.date} type="button" data-testid="panchanga-day-cell"
      className={isMonth?styles.smartDay:styles.smartWeek}
+     aria-current={d.date===point.date?'date':undefined}
      aria-label={dateLabel(d.date)+' · '+tithi(d)+' · '+nak(d)+
       (events.length?' · '+events.map(e=>e.label).join(', '):'')}
      onClick={()=>onPick(d.date)}>
      <strong className={styles.smartDate}>{isMonth?Number(d.date.slice(-2)):dateLabel(d.date)}</strong>
      <span className={styles.smartTithi}>{tithi(d)}</span>
      <span className={styles.smartNak}>{nak(d)}</span>
-     {!isMonth&&<span className={styles.smartDetails}>
-      {uk?'Вара':'Vara'}: {vara(d)} · {uk?'Йога':'Yoga'}: {yoga(d)} · {uk?'Карана':'Karana'}: {karana(d)}
-     </span>}
+
      <span className={styles.smartMonth}>{month(d)}{d.moonMonth.lunarMonthStatus==='adhika'?' · '+(uk?'Адхіка':'Adhika'):
       d.moonMonth.lunarMonthStatus==='kshaya_review_required'?' · '+(uk?'Особливий місяць':'Exceptional month'):''}</span>
-     {events.slice(0,isMonth?2:8).map(e=><span className={styles.smartMarker} key={e.key}
+     {events.slice(0,isMonth?2:1).map(e=><span className={styles.smartMarker} key={e.key}
       data-type={e.astronomical?'astronomical':'candidate'}>
       {e.label}{!isMonth?' · '+eventTime(e.atUtc):''}
      </span>)}
-     {events.length>(isMonth?2:8)&&<small className={styles.smartMore}>+{events.length-(isMonth?2:8)}</small>}
+     {events.length>(isMonth?2:1)&&<small className={styles.smartMore}>+{events.length-(isMonth?2:1)}</small>}
     </button>;
    })}
   </div>}
