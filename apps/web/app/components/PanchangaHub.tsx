@@ -35,6 +35,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [view,setView]=useState<'day'|'week'|'month'>('day');
  const [activity,setActivity]=useState<P38ActivityId>('job_start');
  const [focusAtUtc,setFocusAtUtc]=useState<string|null>(null);
+ const [todayResetSerial,setTodayResetSerial]=useState(0);
  const [monthSystem,setMonthSystem]=useState<CalendarSystem>('amanta');
  const [day,setDay]=useState<Day|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(false);
  const [source,setSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
@@ -104,6 +105,11 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   const next={...form,date};setForm(next);setRequested(next);setDay(null);setShowTechnical(false);setFocusAtUtc(null);
  }
  function pickDay(date:string,atUtc?:string){setDate(date);setFocusAtUtc(atUtc||null);setView('day')}
+ function resetToToday(){
+  // Use the selected event-city IANA time zone, never browser-local midnight.
+  setDate(localeDate(form.timeZone));setView('day');setFocusAtUtc(null);
+  setTodayResetSerial(x=>x+1);
+ }
  useEffect(()=>{
   if(!requested||view!=='day')return;
   let live=true;const ctl=new AbortController();setLoading(true);setError(false);setDay(null);
@@ -163,9 +169,9 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    {uk?'Не вдалося перевірити Панчангу для цього міста і дати.':'Could not verify Panchanga for this city/date.'}
   </div>}
   {view==='day'&&matches&&day&&requested&&<>
-   <PanchangaCleanDay key={requested.date+'|'+requested.timeZone+'|'+requested.latitude+'|'+requested.longitude}
+   <PanchangaCleanDay key={requested.date+'|'+requested.timeZone+'|'+requested.latitude+'|'+requested.longitude+'|'+todayResetSerial}
     locale={locale} day={day} point={requested} activity={activity} onActivityChange={setActivity}
-    focusAtUtc={focusAtUtc}/>
+    focusAtUtc={focusAtUtc} onResetToday={resetToToday}/>
   </>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view}
    point={requested} monthSystem={monthSystem} onPick={pickDay}
