@@ -1,5 +1,5 @@
 /** Coarse server-only HTML request categorization; never derive a visitor identity. */
-import {safeGrowthPath} from './growth-metrics';
+import {safeGrowthPath} from './growth-metrics.ts';
 const ROBOT=/(bot|crawler|spider|google-inspection|headless|lighthouse|curl|wget|python|go-http-client|httpclient|playwright|selenium|axios|node-fetch|postman|insomnia|facebookexternalhit|whatsapp|telegrambot|discordbot|slackbot|bytespider|semrush|ahrefs|mj12|uptime|monitor)/i;
 export function eligiblePublicHtmlSection(pathname:string,headers:{
  accept:string|null;agent:string|null;purpose:string|null;routerPrefetch:string|null;

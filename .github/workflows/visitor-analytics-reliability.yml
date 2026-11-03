@@ -1,0 +1,72 @@
+name: GA4 Reliability and Anonymous Visitor Analytics
+on:
+  push:
+    branches: [fix/ga4-reliable-anonymous-visitor-analytics-20261103]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  privacy-and-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_USER: ci, POSTGRES_PASSWORD: ci, POSTGRES_DB: galaxiora_analytics_ci}
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_analytics_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_analytics_ci?schema=public
+      AUTH_SECRET: analytics-ci-only-ephemeral-secret-with-adequate-length
+      GALAXIORA_E2E_TEST_AUTH: '1'
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
+      SITE_NOINDEX: '0'
+      WEB_PORT: '3000'
+      PORT: '4000'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Generate and migrate disposable PostgreSQL
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: Anonymous aggregation, GA4 consent and backward compatibility
+        run: |
+          npm run test:visitor-analytics
+          npm run test:r42:growth
+          npm run test:admin:realtime
+          npm run test:brand-favicon
+          npm run test:panchanga
+          npm run test:r32:seo
+      - name: Production build
+        run: npm run build
+      - name: Check compiled measurement ID
+        run: npm run r42:ga:doctor
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Launch isolated website and API
+        run: |
+          printf 'DATABASE_URL=%s\nAUTH_SECRET=%s\nAI_MODE=local\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' "$DATABASE_URL" "$AUTH_SECRET" > .env
+          npm run start:full > /tmp/visitor-analytics.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/uk >/dev/null &&
+               curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -120 /tmp/visitor-analytics.log
+          exit 1
+      - name: Browser collector simulation and anonymous server counter
+        run: npx playwright test --config=playwright.config.mjs e2e/visitor-analytics.spec.mjs e2e/r42-consent.spec.mjs e2e/r42-ga4-diagnostics.spec.mjs
