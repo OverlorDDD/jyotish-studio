@@ -68,7 +68,7 @@ test('P390 one Tara 5 description appears at most once in visible summary and ad
  const x=p389Guidance(moment,'uk');
  const visible=x.headline+' '+x.reason+' '+x.nextStep;
  assert.equal(visible.split('Пратьярі (Тара 5)').length-1,1);
- assert.match(x.headline,/сприятливо/);
+ assert.match(x.headline,/[Сс]приятливо/);
 });
 test('P390 UI includes functional Today reset, visible compact index and ranked windows',()=>{
  const hub=readFileSync(new URL('../apps/web/app/components/PanchangaHub.tsx',import.meta.url),'utf8');
