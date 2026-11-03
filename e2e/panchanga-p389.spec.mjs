@@ -5,6 +5,8 @@ for(const locale of ['uk','en']){
   await page.setViewportSize({width:390,height:844});
   await page.goto('/'+locale+'/panchanga?date=2026-11-03');
   const hub=page.getByTestId('panchanga-hub');
+  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
+  await hub.getByTestId('p410-advanced').locator('summary').click();
   const day=hub.getByTestId('p31-my-day');
   await expect(day).toBeVisible({timeout:90000});
   const hour=day.getByTestId('p389-time-select');
