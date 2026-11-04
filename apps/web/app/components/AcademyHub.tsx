@@ -35,10 +35,10 @@ export default async function AcademyHub({locale}:{locale:ContentLocale}){
   <div className="as-wellness as-pedia">
    <header className="as-pedia-intro">
     <span className="as-overline">GALAXIPEDIA · {uk?'ЕНЦИКЛОПЕДІЯ ТА АКАДЕМІЯ':'ENCYCLOPEDIA & ACADEMY'}</span>
-    <h1>{uk?'Від питання — до розуміння.':'Explore the cosmos, one question at a time.'}</h1>
+    <h1>{uk?'GalaxiPedia — астрологія, Джйотіш і Панчанга':'GalaxiPedia — Astrology, Jyotish & Panchanga'}</h1>
     <p>{uk?
-     'Шукай зрозумілі відповіді про Джйотіш, Панчангу, астрологію, Таро й астрономію. Читай довідники, навчайся та застосовуй знання в інструментах Galaxiora.':
-     'Find practical answers about Jyotish, Panchanga, astrology, Tarot and astronomy. Explore original guides, learn the concepts and try the related Galaxiora tools.'}</p>
+     'Від питання — до розуміння. Шукай відповіді про Джйотіш, Панчангу, Таро й астрономію. Читай довідники, навчайся та застосовуй знання в інструментах Galaxiora.':
+     'Explore the cosmos, one question at a time. Find practical answers about Jyotish, Panchanga, Tarot and astronomy. Explore original guides, learn the concepts and try the related Galaxiora tools.'}</p>
     <div className="as-pedia-intro-meta">
      <span>{PEDIA_ARTICLES.length} {uk?'довідників':'guides'}</span>
      <span>{ACADEMY_LESSONS.length} {uk?'уроків':'lessons'}</span>
