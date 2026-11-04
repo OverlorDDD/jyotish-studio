@@ -54,6 +54,7 @@ jobs:
       - run: npm run db:generate
       - name: GalaxiPedia and original Academy contracts
         run: |
+          node tools/gsc-url-inspection.mjs --help
           node --test tools/seo2-canonical.test.mjs
           npm run test:pedia
           npm run test:content:a5
