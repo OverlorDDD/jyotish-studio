@@ -120,8 +120,7 @@ export function n4OfflineEligible(env:Record<string,string|undefined>=process.en
 export function buildN4OfflineReading(chart:CalculatedChart,lang:Lang):N4OfflineReading{
  const lords=classicalLordshipTable(chart.ascendant.sign);
  const chapters=[chapter(chart,9,'Venus',9,lang),chapter(chart,10,lords[10],10,lang),
-  ...selectN4NarrativeThemes(chart).filter(x=>x.division!==9&&x.division!==10)
-   .map(t=>chapter(chart,t.division,t.anchor,t.division,lang))];
+  ...selectN4NarrativeThemes(chart).map(t=>chapter(chart,t.division,t.anchor,t.division,lang))];
  if(chapters.length!==5||new Set(chapters.map(c=>c.division)).size!==5)
   throw new Error('N4 offline requires distinct D9, D10 and 3 grounded supplementary themes');
  return Object.freeze({
