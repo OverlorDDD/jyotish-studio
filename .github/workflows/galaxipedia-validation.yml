@@ -3,10 +3,12 @@ on:
   push:
     branches:
       - feat/galaxipedia-unified-20261104
+      - feat/galaxipedia-search-first-ux-20261104
   pull_request:
     branches:
       - release/growth1-preserve-live-ga4-20261104
       - feat/galaxipedia-unified-20261104
+      - feat/galaxipedia-seo-topical-clusters-20261104
     paths:
       - 'apps/web/app/**'
       - 'apps/web/lib/**'
@@ -17,6 +19,7 @@ on:
       - 'e2e/a4-portal.spec.mjs'
       - 'tools/galaxipedia.test.mjs'
       - 'tools/galaxipedia-seo.test.mjs'
+      - 'tools/galaxipedia-layout.test.mjs'
       - 'package.json'
       - '.github/workflows/galaxipedia-validation.yml'
   workflow_dispatch:
