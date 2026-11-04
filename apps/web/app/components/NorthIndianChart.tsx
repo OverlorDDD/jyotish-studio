@@ -26,7 +26,7 @@ export default function NorthIndianChart({planets,lagna,division,lang,chartLabel
    const [column,row]=cellCoordinates[i],house=chartHouseForSign(sign,lagna.sign);
    const occupants=planets.filter(p=>p.sign===sign&&p.name!=='Ascendant');
    const title=names[sign-1]+' · '+(lang==='uk'?'дім ':'house ')+house+
-    (occupants.length?' · '+occupants.map(p=>(lang==='uk'?PLANETS_UK[p.name]||p.name:p.name)+' '+degrees(p.degreesInSign)).join(', '):'');
+    (occupants.length?' · '+occupants.map(p=>(lang==='uk'?PLANETS_UK[p.name]||p.name:p.name)+(showDegrees?' '+degrees(p.degreesInSign):'')).join(', '):'');
    return <section key={sign} className={'jy-south-sign '+(sign===lagna.sign?'jy-south-lagna':'')} style={{gridColumn:column,gridRow:row}} aria-label={title}>
     <div className="jy-south-heading"><span className="jy-south-name">{names[sign-1]}</span><span className="jy-south-symbol" aria-hidden="true">{SIGN_GLYPHS[sign-1]}</span></div>
     <span className="jy-south-house" title={lang==='uk'?'Номер дому':'House number'}>{house}</span>
