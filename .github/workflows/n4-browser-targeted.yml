@@ -1,0 +1,51 @@
+name: N4 targeted birth-chart Chromium acceptance
+on:
+  push:
+    branches: [feat/n4-shodashavarga-foundation]
+    paths:
+      - '.github/workflows/n4-browser-targeted.yml'
+      - 'apps/web/app/components/VargaExplorer.tsx'
+      - 'apps/web/app/globals.css'
+      - 'e2e/n4-varga-explorer.spec.mjs'
+      - 'apps/web/app/astrology/jyotish/page.tsx'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  actual-desktop-mobile-n4:
+    name: N4 16 charts, D60 caveat and 360px real Chromium
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      WEB_PORT: '3000'
+      SITE_NOINDEX: '0'
+      NEXT_PUBLIC_SITE_URL: 'https://galaxiora.example'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install repo and browser dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Start temporary Next.js without AWS or any account access
+        shell: bash
+        run: |
+          printf 'AUTH_SECRET=n4-disposable-localhost-qa-only\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' > .env
+          npm run dev -w @jyotish/web > /tmp/n4-browser.log 2>&1 &
+          for attempt in $(seq 1 80); do
+            if curl -fsS http://127.0.0.1:3000/en/astrology/jyotish >/dev/null; then
+              echo N4_CHROMIUM_READY
+              exit 0
+            fi
+            sleep 2
+          done
+          tail -100 /tmp/n4-browser.log
+          exit 1
+      - name: Exercise both real Chromium viewport configurations
+        run: npx playwright test e2e/n4-varga-explorer.spec.mjs --project=desktop-chromium --project=mobile-chromium
