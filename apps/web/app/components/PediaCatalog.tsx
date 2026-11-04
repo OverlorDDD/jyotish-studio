@@ -60,7 +60,7 @@ export default function PediaCatalog({locale,items,categories}:Props){
   </div>
   <p role="status" aria-live="polite" style={{marginBottom:12}}>{uk?'Знайдено матеріалів: ':'Results: '}{filtered.length}</p>
   <div className="as-wellness-grid">
-   {filtered.map(item=><Link key={item.slug} className="as-wellness-card as-lesson-card" data-lesson={item.kind==='lesson'?item.slug:undefined}
+   {filtered.map(item=><Link key={item.slug} className="as-wellness-card as-lesson-card" data-lesson={item.kind==='lesson'?item.slug:undefined} data-published={item.kind==='editorial'?item.slug:undefined}
     href={'/'+locale+'/pedia/'+item.slug}>
     <span className="as-wellness-card-icon"><BookOpen size={25} aria-hidden="true"/></span>
     <span className="as-wellness-meta">{item.category==='editorial'?(uk?'Редакційна стаття':'Editorial article'):categories.find(c=>c.id===item.category)?.title[locale]} · {item.minutes} {uk?'хв':'min'} · {item.kind==='lesson'?(uk?'Урок':'Lesson'):item.kind==='editorial'?(uk?'Публікація':'Publication'):(uk?'Стаття':'Guide')}</span>
