@@ -58,5 +58,5 @@ test('full read-only runner only GETs allowlisted paths; does not confuse SEO wi
  assert.equal(result.errors.length,0,JSON.stringify(result.errors));
  assert.equal(result.indexingStatus,'unknown_requires_GSC_URL_Inspection');
  assert.ok(seen.every(x=>x.options.redirect==='manual'&&!x.options.body&&x.url.startsWith(origin+'/')));
- assert.equal(seen.length,12);
+ assert.equal(seen.length,14);
 });
