@@ -3,6 +3,7 @@ import type {Metadata} from 'next';
 import PortalShell from '../../components/PortalShell';
 import PanchangaHub from '../../components/PanchangaHub';
 import {PanchangaSearchGuide} from '../../components/SearchGuides';
+import OrganicIntentBridge from '../../components/OrganicIntentBridge';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
 import {indexRobots} from '../../../lib/site-indexing';
 const SEO_COPY={"uk":{"title":"Панчанга сьогодні — Тітхі та Накшатра","description":"Панчанга сьогодні для вашого міста: місцевий час тітхі, накшатри, сходу Сонця, йоги та карани. Обирайте дату й місто для ведичного календаря."},"en":{"title":"Panchang Today by City — Tithi & Nakshatra","description":"Check today's Panchanga for your city: exact local tithi, nakshatra, sunrise, yoga, karana and traditional Vedic timing. Select your location and date."}} as const;
@@ -22,6 +23,7 @@ export default async function PanchangaPage({params}:{params:Promise<{locale:str
  const {locale}=await params;if(!isPortalLocale(locale))notFound();
  return <PortalShell locale={locale as PortalLocale} active="panchanga" languagePath="panchanga">
   <PanchangaHub locale={locale as PortalLocale}/>
+  <OrganicIntentBridge kind="panchanga" locale={locale as PortalLocale}/>
   <details className="as-wellness" style={{margin:'24px 0',padding:'16px',borderRadius:'14px'}}>
    <summary style={{cursor:'pointer',fontWeight:700}}>{locale==='uk'?'Як читати Панчангу: короткий довідник':'How to read Panchanga: guide'}</summary>
    <PanchangaSearchGuide locale={locale as PortalLocale}/>
