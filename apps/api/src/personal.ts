@@ -28,6 +28,7 @@ import {findVerifiedSignIngresses} from './panchanga-ingress.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {resolvePersonalChart,type RecoveryState} from './personal-chart-recovery.ts';
 import {buildDailyGuidance,buildMoonSignHoroscope,buildPeriodGuidance,buildWeekHighlights,type VerifiedNatalContext} from './personal-guidance.ts';
+import {n4PersonalEligible,n4PersonalPlacements} from './n4-personal-themes.ts';
 
 type ChartResult={verification?:{status?:string};ascendant?:{sign?:number;signName?:string};
  d1?:{name:string;sign:number}[];dasha?:{lord:string;start:string;end:string;antardashas?:{lord:string;start:string;end:string}[]}[]};
@@ -66,7 +67,8 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
   natalUtc:result?.utc||null,
   westernSunSign,westernSunLongitude,westernMethod:westernSunSign?'Swiss Ephemeris / tropical-of-date':null,
   moonLongitude:result&&Number.isFinite(moon?.longitude)?moon!.longitude:null,
-  dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
+  dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[],
+  n4Placements:result&&n4PersonalEligible()?n4PersonalPlacements(result):undefined};
 }
 /** Shared verified natal context for both Personal's main card and the calendar. */
 function verifiedContextAt(chart:Awaited<ReturnType<typeof chartFacts>>,utc:string):VerifiedNatalContext|null{
@@ -77,7 +79,8 @@ function verifiedContextAt(chart:Awaited<ReturnType<typeof chartFacts>>,utc:stri
  const d=chart.dasha.find(x=>Date.parse(x.start)<=now&&now<Date.parse(x.end));
  const a=d?.antardashas?.find(x=>Date.parse(x.start)<=now&&now<Date.parse(x.end));
  return {lagnaSign:chart.lagnaSign,moonSign:chart.moonSign,natalPositions:chart.natalPositions,
-  period:d?{lord:d.lord,start:d.start,end:d.end,antardasha:a||null}:null};
+  period:d?{lord:d.lord,start:d.start,end:d.end,antardasha:a||null}:null,
+  ...(chart.n4Placements?{n4Placements:chart.n4Placements}:{})};
 }
 export class PersonalProfileDto{
  @IsOptional() @IsString() currentTimeZone?:string;
