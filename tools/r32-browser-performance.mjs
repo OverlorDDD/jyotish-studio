@@ -14,7 +14,7 @@ try{
  for(const device of [{name:'desktop',viewport:{width:1365,height:900}},
   {name:'mobile-small',viewport:{width:360,height:800}},
   {name:'mobile',viewport:{width:390,height:844}}]){
-  const context=await browser.newContext({viewport:device.viewport,isMobile:device.name==='mobile'});
+  const context=await browser.newContext({viewport:device.viewport,isMobile:device.name.startsWith('mobile')});
   for(const route of routes){
    const page=await context.newPage();
    await page.addInitScript(()=>{
