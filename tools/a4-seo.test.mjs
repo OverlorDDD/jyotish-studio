@@ -37,9 +37,9 @@ test('A4 sitemap enumerates published tools but no future content or private vie
  assert.ok(!SEO_PATHS.includes('astrology'),'redirecting alias must not be indexed');
  assert.ok(!SEO_PATHS.includes('learn'),'legacy /learn is a permanent redirect, not a canonical');
  const redirects=read('apps/web/next.config.mjs');
- assert.match(redirects,/locale+'\\/learn'/);
- assert.match(redirects,/locale+'\\/pedia'/);
- assert.match(redirects,/permanent:true/);
+ assert.ok(redirects.includes("source:'/'+locale+'/learn'"));
+ assert.ok(redirects.includes("destination:'/'+locale+'/pedia'"));
+ assert.ok(redirects.includes('permanent:true'));
  assert.ok(SEO_PATHS.includes('about'),'official about page should be discoverable');
  const source=read('apps/web/app/[locale]/[section]/page.tsx');
  assert.ok(source.includes('indexRobots(INDEXED_SECTIONS.some('));
