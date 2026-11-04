@@ -28,6 +28,7 @@ modules:
   jyotish:
     status: "JQA-3 600/600 signs certified on 20 JHora 8 captures; precision 19/20 Lagna, Moon 18/20, exact dasha dates pending"
     domain: "packages/jyotish-core/src/index.ts; packages/jyotish-core/src/rules.ts"
+    n4_varga_foundation: "packages/jyotish-core/src/vargas.ts; packages/jyotish-core/src/vargas.test.ts; tools/n4-external-varga-gate.mjs; independently attested JHora D1-D60 corpus PENDING, not in production"
     adapter: "apps/api/src/ephemeris.ts"
     application: "apps/api/src/logic.ts; apps/api/src/report.ts; apps/api/src/direct-jyotish.ts; apps/api/src/free-ai.ts; apps/api/src/jyotish-report-application.ts"
     shared_saved_charts: "apps/api/src/chart-application.ts; apps/api/src/chart-prisma.ts"
