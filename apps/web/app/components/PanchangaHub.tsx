@@ -5,6 +5,7 @@ import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integrat
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
 import type {P38ActivityId} from '../../lib/panchanga-p38-decision';
 import CitySearch from './CitySearch';
+import EclipsePanel from './EclipsePanel';
 import PanchangaDailyOpportunities from './PanchangaDailyOpportunities';
 import type {OpportunityDay} from '../../lib/panchanga-opportunities';
 import PanchangaRangeView from './PanchangaRangeView';
@@ -192,6 +193,14 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
     onToday={resetToToday} onTomorrow={()=>setDate(new Date(Date.parse(requested.date+'T12:00:00Z')+86400000).toISOString().slice(0,10))}
     onWeek={()=>setView('week')}/>
   </>}
+  {view==='day'&&requested&&<section className={styles.eclipseDiscovery}
+   aria-label={uk?'Затемнення й астрономічний календар':'Eclipses and astronomy calendar'}>
+   <EclipsePanel locale={locale} point={requested}/>
+   <p className={styles.eclipseCalendarLink}>
+    <a href={'/'+locale+'/eclipses/2027'}>{uk?
+     'Календар затемнень NASA на 2027 рік — п’ять подій':'NASA eclipse calendar 2027 — five events'}</a>
+   </p>
+  </section>}
   {view!=='day'&&requested&&<PanchangaRangeView locale={locale} view={view}
    point={requested} monthSystem={monthSystem} onPick={pickDay}
    activity={activity} onActivityChange={setActivity} canPersonal={source!=='checking'&&source!=='guest'}/>}

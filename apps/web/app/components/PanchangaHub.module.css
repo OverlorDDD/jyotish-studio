@@ -324,3 +324,10 @@
 .classicPanchanga .timeline,.classicPanchanga .method{margin:12px 0;padding:16px}
 .classicPanchanga .timeline h2{font-size:20px}
 @media(max-width:560px){.classicPanchanga{padding:12px}.classicPanchanga .timeline>div{grid-template-columns:1fr;gap:5px}}
+
+/* R4 eclipse visibility restored beside the official calendar CTA in clean P3 day UX. */
+.eclipseDiscovery{margin:24px 0 26px;min-width:0}
+.eclipseCalendarLink{margin:0;padding:12px 16px;border:1px solid #506987;border-radius:0 0 13px 13px;background:#17283e}
+.eclipseCalendarLink a{color:#efd3a0;text-decoration:underline;text-underline-offset:4px;font-weight:700;overflow-wrap:anywhere}
+.eclipseCalendarLink a:hover{color:#fff1d3}
+@media(max-width:560px){.eclipseDiscovery{margin-top:18px}.eclipseCalendarLink{padding:12px}}
