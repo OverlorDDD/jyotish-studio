@@ -8,7 +8,7 @@ import GlossaryText from './GlossaryText';
 import ExpertQuestionForm from './ExpertQuestionForm';
 import PrivateTarotQuestions from './PrivateTarotQuestions';
 import type {PortalLocale} from '../../lib/brand';
-import {reportGrowthEvent} from '../../lib/growth-metrics';
+import {reportGrowthEvent,reportPublicToolEvent} from '../../lib/growth-metrics';
 
 type Localized={en:string;uk:string};
 type Draw={id:string;position:number;reversed:boolean;name:Localized;meaning:Localized;detail:Localized;positionInsight:Localized;positionName:Localized};
@@ -30,7 +30,9 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
  async function load(){
   setError('');setLoading(true);
   try{
-   const r=await readApiJson<HistoryReply>(await fetch('/api/v1/tarot/readings',{credentials:'same-origin',cache:'no-store'}));
+   const response=await fetch('/api/v1/tarot/readings',{credentials:'same-origin',cache:'no-store'});
+   if(response.status===401)reportPublicToolEvent('public_tool_auth_required','tarot');
+   const r=await readApiJson<HistoryReply>(response);
    setHistory(r.readings);setRemaining(r.remaining);setLimit(r.limit);setAiAvailable(r.aiAvailable);
   }catch(e){setError(uk?'Увійди або зареєструйся через кнопку у верхньому меню, щоб отримати безкоштовний розклад.':'Sign in using the header to save and draw your free readings.');}
   finally{setLoading(false)}
@@ -44,6 +46,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
  async function draw(event:React.FormEvent){
   event.preventDefault();setBusy(true);setError('');
   reportGrowthEvent('tarot_spread_started');
+  reportPublicToolEvent('public_tool_started','tarot');
   try{
    const r=await readApiJson<DrawReply>(await fetch('/api/v1/tarot/readings',{
     method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
@@ -51,7 +54,8 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
    }));
    setReading(r);setRemaining(r.remaining);setLimit(r.limit);setHistory(prev=>[r,...prev].slice(0,20));setRevealed([]);
    reportGrowthEvent('tarot_spread_completed');
-  }catch(e){setError(e instanceof Error?e.message:String(e))}
+   reportPublicToolEvent('public_tool_completed','tarot');
+  }catch(e){reportPublicToolEvent('public_tool_failed','tarot');setError(e instanceof Error?e.message:String(e))}
   finally{setBusy(false)}
  }
  function showSaved(value:Reading){setReading(value);setRevealed(value.cards.map(x=>x.position));}
