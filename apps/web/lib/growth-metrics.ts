@@ -6,9 +6,9 @@ export const GROWTH_PUBLIC_SECTIONS=new Set([
  'panchanga','eclipses/2027','horoscope','yoga','learn','news','community','methodology'
 ]);
 export type PublicTool='jyotish'|'panchanga'|'tarot';
-export type PublicToolEvent='public_tool_started'|'public_tool_completed'|'public_tool_failed';
+export type PublicToolEvent='public_tool_started'|'public_tool_completed'|'public_tool_failed'|'public_tool_auth_required';
 export type GrowthEvent='jyotish_chart_completed'|'article_to_tool_click'|'public_resource_share'|'tarot_spread_started'|'tarot_spread_completed'|'panchanga_calculation_completed'|PublicToolEvent;
-const PUBLIC_TOOL_EVENTS=new Set<PublicToolEvent>(['public_tool_started','public_tool_completed','public_tool_failed']);
+const PUBLIC_TOOL_EVENTS=new Set<PublicToolEvent>(['public_tool_started','public_tool_completed','public_tool_failed','public_tool_auth_required']);
 export function safePublicTool(tool:string):tool is PublicTool{
  return tool==='jyotish'||tool==='panchanga'||tool==='tarot';
 }
