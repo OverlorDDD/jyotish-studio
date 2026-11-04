@@ -289,7 +289,7 @@ export const PEDIA_SEO_COSMOS:PediaArticle[]=[
       "moon-phases-and-lunar-calendar",
       "panchanga-time-by-city"
     ],
-    "tool": "panchanga",
+    "tool": "eclipses/2027",
     "references": [
       {
         "label": "NASA Science — eclipses and the Moon",
