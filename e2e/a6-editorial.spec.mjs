@@ -47,7 +47,7 @@ test('A6 real editor journey: bilingual draft, admin review, live article and ar
   await page.locator('[data-published="'+slug+'"]').click();
   await expect(page.getByRole('heading',{level:1,name:'Практика уважного читання'})).toBeVisible();
   await page.locator('.as-language a[lang="en"]').click();
-  await expect(page).toHaveURL(new RegExp('/en/pedia/'+slug+';
+  await expect(page).toHaveURL(new RegExp('/en/pedia/'+slug+'$'));
   await expect(page.getByRole('heading',{level:1,name:'A mindful reading practice'})).toBeVisible();
   await page.goto('/uk/editorial');
   await page.locator('.as-editorial-item',{hasText:slug}).click();
