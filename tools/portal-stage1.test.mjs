@@ -20,10 +20,13 @@ test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-
  const old=code('apps/web/app/astrology/jyotish/page.tsx');
  const wrapper=code('apps/web/app/[locale]/astrology/jyotish/page.tsx');
  const renderer=code('apps/web/app/components/NorthIndianChart.tsx');
+ const varga=code('apps/web/app/components/VargaExplorer.tsx');
  const layout=code('apps/web/lib/north-indian-layout.ts');
- for(const token of ['<NorthIndianChart','<AccountPortal','<DetailedReport','calculate','interpret']){
+ for(const token of ['<VargaExplorer','<AccountPortal','<DetailedReport','calculate','interpret']){
   assert.ok(old.includes(token),token);
  }
+ assert.match(varga,/<NorthIndianChart/);
+ assert.match(varga,/SHODASHAVARGA|VARGA_INFO/);
  assert.match(renderer,/SOUTH_SIGN_GRID\.map/);
  assert.match(renderer,/chartHouseForSign/);
  assert.match(renderer,/occupants\.map/);
