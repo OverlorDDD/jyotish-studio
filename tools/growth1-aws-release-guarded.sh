@@ -31,7 +31,8 @@ node --env-file=.env -e '
 git fetch --no-tags origin "$BRANCH"
 [[ "$(git rev-parse FETCH_HEAD)" == "$TARGET" ]] || die "Release branch changed"
 git merge-base --is-ancestor "$OLD" "$TARGET" || die "Target is not descendant of live production"
-[[ "$(git diff --name-only "$BASE" "$TARGET")" == "tools/growth1-aws-release-guarded.sh" ]] ||
+EXPECTED_FILES="$(printf '%s\n' .github/workflows/growth1-global-seo-validation.yml tools/growth1-aws-release-guarded.sh)"
+[[ "$(git diff --name-only "$BASE" "$TARGET")" == "$EXPECTED_FILES" ]] ||
  die "Unexpected changes since reviewed integration commit"
 [[ "$(git rev-parse "$TARGET:tools/ga4-visitor-aws-release.sh")" == "$RELEASE_BLOB" ]] ||
  die "Audited underlying release script changed"
