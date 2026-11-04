@@ -21,6 +21,8 @@ else try{
   if(c.referenceTool!=='Jagannatha Hora 8.0'||typeof c.referenceSettings!=='string'||c.referenceSettings.length<15)
    throw Error(c.id+': independently documented JHora 8 provenance/settings required');
   if(c.isRealPerson!==false)throw Error(c.id+': synthetic or consent-safe public fixture required');
+  if(!/^N4-SYNTH-\\d{3,4}$/.test(c.id)||!/^\\b[a-f0-9]{64}\\b$/i.test(String(c.referenceSourceSha256||'')))
+   throw Error(c.id+': original synthetic JHoraKit capture SHA256 provenance is required');
   const l=c.natalLongitudes;
   if(!l||bodies.some(b=>!Number.isFinite(l[b])))throw Error(c.id+': missing D1 sidereal longitude');
   const calculated=calculateAllVargas(l.Ascendant,bodies.slice(1).map(name=>({name,longitude:l[name]})));
