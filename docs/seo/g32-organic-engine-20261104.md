@@ -13,7 +13,7 @@ No paid ads, video obligations, paid AI generation or link farms. Preserve appro
 ## G3.2.1 — daily read-only SEO Health
 `npm run test:g32:organic`, `npm run g32:organic:health`.
 
-- Exactly 12 public GETs: robots, sitemap, both locale homepages, three bilingual tool landings, two Pedia hubs and two original article landings. Remote host is hard-pinned to https://galaxiora.com; only localhost/127.0.0.1 HTTP may be used in CI. No redirects followed or cookies submitted.
+- Exactly 14 read-only GETs: robots, sitemap and 12 public pages (both locale homepages, three bilingual tool landings, two Pedia hubs and two original article landings). Remote host is hard-pinned to https://galaxiora.com; only localhost/127.0.0.1 HTTP may be used in CI. No redirects followed or cookies submitted.
 - Fails on missing canonical, reciprocal hreflang, wrong HTML language, noindex, missing H1/title, missing approved guide links, forbidden private sitemap entries and reachability failures.
 - Exposes precise failure codes. Does **not** claim real Google indexing, CrUX field performance or independent visitor counts. Those remain unknown unless directly checked via GSC/CrUX.
 - Existing `tools/r32-seo-audit.mjs` already crawls the whole sitemap; this smaller targeted daily monitor complements it. Avoid daily high-load full crawling.
