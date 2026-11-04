@@ -61,9 +61,11 @@ test('Mindfulness and evening reflection have no timer or fake exercise completi
 });
 test('Academy hub: eight original lessons, topic anchors, deep link EN/UK',async({page})=>{
  await page.goto('/uk/learn');
+ await expect(page).toHaveURL(/\/uk\/pedia$/);
  await expect(page.locator('[data-lesson]')).toHaveCount(8);
- await page.getByRole('link',{name:'Символіка Таро',exact:true}).click();
- await expect(page).toHaveURL(/#topic-tarot$/);
+ await page.getByRole('button',{name:'Таро та символізм',exact:true}).click();
+ await expect(page.locator('[data-lesson]').first()).toBeVisible();
+ await page.getByRole('button',{name:'Усі теми'}).click();
  await page.locator('[data-lesson="sidereal-and-tropical"]').click();
  await expect(page).toHaveURL(/\/uk\/learn\/sidereal-and-tropical$/);
  await expect(page.locator('.as-lesson-section')).toHaveCount(3);
@@ -72,7 +74,7 @@ test('Academy hub: eight original lessons, topic anchors, deep link EN/UK',async
  await expect(page.getByRole('heading',{level:1})).toContainText('Sidereal');
 });
 test('Academy knowledge check: wrong answer, retry and correct explanation',async({page})=>{
- await page.goto('/uk/learn/sidereal-and-tropical');
+ await page.goto('/uk/pedia/sidereal-and-tropical');
  const quiz=page.locator('.as-academy-quiz');
  await quiz.getByLabel('Швидкість руху Місяця').check();
  await quiz.getByRole('button',{name:'Перевірити відповідь'}).click();
@@ -86,11 +88,11 @@ test('Academy knowledge check: wrong answer, retry and correct explanation',asyn
 test('A5 SEO and 360px layout: hubs and all lesson/practice details indexed without overflow',async({page,request})=>{
  const xml=await (await request.get('/sitemap.xml')).text();
  for(const path of ['/uk/yoga/gentle-breath','/en/yoga/evening-unwind',
-  '/uk/learn/sidereal-and-tropical','/en/learn/yoga-roots-and-safety']){
+  '/uk/pedia/sidereal-and-tropical','/en/pedia/yoga-roots-and-safety']){
   expect(xml).toContain('https://galaxiora.example'+path);
  }
  await page.setViewportSize({width:360,height:780});
- for(const path of ['/uk/yoga','/uk/learn','/uk/yoga/desk-mobility','/en/learn/tarot-questions']){
+ for(const path of ['/uk/yoga','/uk/learn','/uk/yoga/desk-mobility','/en/pedia/tarot-questions']){
   await page.goto(path);
   await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute('content',/noindex/);
   const excess=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
