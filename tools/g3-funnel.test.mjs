@@ -69,8 +69,8 @@ test('G3 consented collection validates actual tool route, never sends whole det
  assert.match(code,/safeGrowthToolForPath\(window\.location\.pathname\)/);
  assert.match(code,/detail\.tool!==currentTool/);
  assert.match(code,/public_tool_viewed/);
- assert.match(code,/window\.gtag\?\.\('event',detail\.name,\{tool:currentTool,/);
- assert.doesNotMatch(code,/window\.gtag\?\.\('event',detail\.name,detail/);
+ assert.match(code,/window\.gtag\?\.\('event',name,\{tool:currentTool,/);
+ assert.doesNotMatch(code,/window\.gtag\?\.\('event',name,detail/);
  assert.match(code,/send_page_view:false/);
  assert.match(code,/page_location:'https:\/\/galaxiora\.com'\+safe/);
 });
