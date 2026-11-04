@@ -1,4 +1,14 @@
 import {test,expect} from '@playwright/test';
+// These scenarios exercise navigation/layout, not analytics consent. Reject tracking
+// through the real UI; dedicated R4.2 tests assert the consent gate itself.
+async function rejectAnalyticsIfPrompted(page){
+ const dialog=page.getByRole('dialog',{name:/Аналітика відвідувань|Visitor analytics/});
+ if(await dialog.isVisible()){
+  await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
+  await expect(dialog).toHaveCount(0);
+ }
+}
+
 const DAY='2026-11-05'; // future relative to the Nov 3 design baseline
 for(const locale of ['uk','en']){
  for(const width of [320,390]){
@@ -6,6 +16,7 @@ for(const locale of ['uk','en']){
    test.setTimeout(180000);
    await page.setViewportSize({width,height:780});
    await page.goto('/'+locale+'/panchanga?date='+DAY);
+  await rejectAnalyticsIfPrompted(page);
    const hub=page.getByTestId('panchanga-hub');
    const guide=hub.getByTestId('p410-opportunities');
    await expect(guide).toBeVisible({timeout:90000});
@@ -35,6 +46,7 @@ for(const locale of ['uk','en']){
  test('P410 '+locale+' browse tomorrow and week, then display classical five limbs',async({page})=>{
   test.setTimeout(180000);
   await page.goto('/'+locale+'/panchanga?date='+DAY);
+  await rejectAnalyticsIfPrompted(page);
   const hub=page.getByTestId('panchanga-hub');
   await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
   await hub.getByTestId('p410-opportunities').getByRole('button',{
@@ -55,6 +67,7 @@ for(const locale of ['uk','en']){
 }
 test('P410 public results disclose no natal details and guest private API remains protected',async({page,request})=>{
  await page.goto('/en/panchanga?date='+DAY);
+  await rejectAnalyticsIfPrompted(page);
  await expect(page.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
  await expect(page.getByTestId('p410-personal')).toContainText('birth chart');
  const q=new URLSearchParams({date:DAY,zone:'Europe/Kyiv',latitude:'50.4501',
