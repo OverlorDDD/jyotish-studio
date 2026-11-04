@@ -23,7 +23,7 @@ export default function EditorialArticle({entry,locale}:{entry:PublishedContent;
      <p><GlossaryText text={text} locale={locale}/></p></section>)}</div>:
      <div className="as-cms-steps">{body.map((text,i)=><section key={i} className="as-cms-step"><span className="as-overline">{uk?'КРОК':'STEP'} {i+1}</span><p><GlossaryText text={text} locale={locale}/></p></section>)}</div>}
     {!academy&&entry.document.safety?<aside className="as-wellness-note"><ShieldCheck size={22}/><div><strong>{uk?'Безпека':'Safety'}</strong><p><GlossaryText text={entry.document.safety[locale]} locale={locale}/></p></div></aside>:null}
-    {academy&&entry.document.quiz?<PublishedAcademyQuiz quiz={entry.document.quiz} locale={locale}/>:null}
+    {academy&&entry.document.quiz?<PublishedAcademyQuiz quiz={entry.document.quiz} locale={locale} slug={entry.slug}/>:null}
     <GalaxiComBridge kind={entry.kind} slug={entry.slug} title={entry.document.title[locale]} locale={locale}/>
    </article>
   </div>
