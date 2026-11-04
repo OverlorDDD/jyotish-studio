@@ -22,6 +22,24 @@ test('G3 public tool route attribution is exact and privacy-safe',()=>{
  ])assert.equal(safeGrowthToolForPath(path),null,path);
 });
 
+test('SEO-1 + G3.0 measures public GalaxiPedia paths only by anonymous section',()=>{
+ for(const [path,expected] of [
+  ['/en/pedia','/en/pedia'],['/uk/pedia','/uk/pedia'],
+  ['/en/pedia/glossary','/en/pedia/glossary'],
+  ['/en/pedia/what-is-tithi-lunar-day','/en/pedia'],
+  ['/uk/pedia/topic/panchanga','/uk/pedia']
+ ])assert.equal(safeGrowthPath(path),expected,path);
+ for(const path of [
+  '/en/pedia?birth=1988-01-01','/uk/pedia/secret%3Fquestion',
+  '/en/pedia/author/name','/en/pedia/topic/../admin','/en/personal'
+ ])assert.equal(safeGrowthPath(path),null,path);
+ assert.equal(safeGrowthToolForPath('/en/pedia'),null);
+ const consent=source('apps/web/app/components/GrowthConsent.tsx');
+ assert.match(consent,/tarot\\/cards\\|learn\\|pedia\\|eclipses/);
+ assert.match(consent,/whether tools were started or completed/);
+ assert.match(consent,/тільки його назву та мову/);
+});
+
 test('G3 funnel taxonomy accepts only specific coarse tool names and event names',()=>{
  for(const tool of ['jyotish','tarot','panchanga'])assert.equal(safePublicTool(tool),true);
  for(const tool of ['account','natal-report','tarotQuestion',''])assert.equal(safePublicTool(tool),false);
