@@ -1,6 +1,6 @@
-import {PEDIA_SEO_PANCHANGA} from './pedia-seo-panchanga';
-import {PEDIA_SEO_JYOTISH} from './pedia-seo-jyotish';
-import {PEDIA_SEO_COSMOS} from './pedia-seo-cosmos';
+import {PEDIA_SEO_PANCHANGA} from './pedia-seo-panchanga.ts';
+import {PEDIA_SEO_JYOTISH} from './pedia-seo-jyotish.ts';
+import {PEDIA_SEO_COSMOS} from './pedia-seo-cosmos.ts';
 /** Hand-edited, bilingual reference guides. No scraped, synthetic or bulk SEO pages. */
 export type PediaLocale='en'|'uk';
 export type PediaText={en:string;uk:string};
