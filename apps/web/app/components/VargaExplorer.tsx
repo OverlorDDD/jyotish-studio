@@ -65,6 +65,17 @@ export default function VargaExplorer({chart,lang}:{chart:Natal|null;lang:'en'|'
    <div><h3>D{selected} · {info.label}</h3><p>{uk?info.ukNote:info.enNote}</p></div>
    {selected===60&&<span className="n4-caution">{uk?'Потрібен точний час народження':'Precise birth time required'}</span>}
   </div>
+  {active&&selected>=16&&<p className="n4-angular-boundary-note" data-testid="n4-angular-boundary-note">
+   {uk?'Найближча межа сектора Лагни: ':'Nearest varga Lagna sector boundary: '}
+   <strong>{(active.lagna.boundaryDistanceArcseconds/60).toFixed(2)}′</strong>.
+   {' '}{uk?
+    'Це кутова відстань, а не запас точності часу народження. Для оцінки похибки в хвилинах потрібні нові розрахунки ефемерид для кількох можливих моментів.' :
+    'This is an angular distance, not a birth-time tolerance. Estimating uncertainty in minutes requires fresh ephemeris calculations for multiple candidate times.'}
+   {active.lagna.boundaryDistanceArcseconds<60&&<span className="n4-angular-edge-alert">
+    {' '}{uk?'Лагна поблизу межі, тому знак може залежати від точності зазначеного часу.':
+     'Lagna is close to a boundary, so the sign may depend on how precisely birth time was recorded.'}
+   </span>}
+  </p>}
   <div className="n4-comparison">
    <article><h4>D1 · {uk?'Основна карта':'Birth chart'}</h4>
     {chart?<NorthIndianChart planets={[...chart.d1]} lagna={chart.ascendant} division="d1" lang={lang}/>:<div className="jy-empty-chart small">{uk?'Спочатку розрахуй карту':'Calculate your chart first'}</div>}
