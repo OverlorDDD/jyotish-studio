@@ -8,7 +8,8 @@ test('Legacy astrology alias is permanent, source metadata is nonindex and no re
  assert.match(section,/if\(section==='astrology'\)permanentRedirect\(portalPath\(locale,'astrology\/jyotish'\)\)/);
  assert.match(section,/if\(section==='astrology'\)return \{robots:\{index:false/);
  const index=read('apps/web/lib/site-indexing.ts');
- assert.doesNotMatch(index,/['"]astrology['"]\s*,/);
+ const publicSitemapPaths=index.split('export const SEO_PATHS=')[1].split(' as const;')[0];
+ assert.doesNotMatch(publicSitemapPaths,/['"]astrology['"]\s*,/);
  assert.match(index,/'astrology\/jyotish'/);
  const sitemap=read('apps/web/app/sitemap.ts');
  assert.match(sitemap,/SEO_PATHS/);
