@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - release/growth1-preserve-live-ga4-20261104
+      - feat/galaxipedia-unified-20261104
     paths:
       - 'apps/web/app/**'
       - 'apps/web/lib/**'
@@ -15,6 +16,7 @@ on:
       - 'e2e/a6-editorial.spec.mjs'
       - 'e2e/a4-portal.spec.mjs'
       - 'tools/galaxipedia.test.mjs'
+      - 'tools/galaxipedia-seo.test.mjs'
       - 'package.json'
       - '.github/workflows/galaxipedia-validation.yml'
   workflow_dispatch:

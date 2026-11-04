@@ -90,3 +90,36 @@ test('GalaxiPedia: no horizontal overflow at 360 px on representative pages',asy
   expect(excess,path).toBeLessThanOrEqual(2);
  }
 });
+
+
+test('SEO topical cluster: all six hubs and original guide pages are real crawlable links',async({page,request})=>{
+ await page.goto('/en/pedia');
+ for(const topic of ['jyotish','western','panchanga','tarot','astronomy','practice']){
+  await expect(page.locator('a[href="/en/pedia/topic/'+topic+'"]')).toBeVisible();
+ }
+ await expect(page.locator('a[href="/en/pedia/rahu-kalam-calculation"]')).toBeVisible();
+ const topic=await request.get('/en/pedia/topic/panchanga');
+ expect(topic.status()).toBe(200);
+ const html=await topic.text();
+ expect(html).toContain('rel="canonical"');
+ expect(html).toContain('hrefLang="uk"');
+ for(const slug of ['what-is-tithi-lunar-day','rahu-kalam-calculation','panchanga-time-by-city']){
+  expect(html).toContain('href="/en/pedia/'+slug+'"');
+ }
+ await page.goto('/uk/pedia/rahu-kalam-calculation');
+ await expect(page.getByRole('heading',{level:1})).toContainText('Раху-калам');
+ await expect(page.locator('.as-lesson-section')).toHaveCount(4);
+ await expect(page.getByRole('link',{name:'Чому час Панчанги різниться між містами та часовими поясами'})).toBeVisible();
+});
+
+test('SEO sitemap includes new localized topical hubs and 14 guides without old Academy URLs',async({request})=>{
+ const r=await request.get('/sitemap.xml');
+ expect(r.status()).toBe(200);
+ const sitemap=await r.text();
+ for(const path of ['/en/pedia/topic/panchanga','/uk/pedia/topic/jyotish','/en/pedia/topic/astronomy',
+  '/en/pedia/rahu-kalam-calculation','/uk/pedia/vedic-ascendant-birth-time','/en/pedia/eclIPse-visibility-your-city'.toLowerCase()]){
+  expect(sitemap).toContain('https://galaxiora.example'+path);
+ }
+ expect(sitemap).not.toContain('https://galaxiora.example/uk/learn/');
+ await expect((await request.get('/en/learn',{maxRedirects:0})).status()).toBe(308);
+});

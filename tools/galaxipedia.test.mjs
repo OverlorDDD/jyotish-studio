@@ -24,11 +24,11 @@ test('GalaxiPedia retains all eight bilingual Academy lessons and their quizzes'
  assert.match(file('apps/web/app/components/EditorialArticle.tsx'),/PublishedAcademyQuiz/);
 });
 
-test('Only three original substantial guides, in both languages, with source attribution',()=>{
- assert.equal(PEDIA_ARTICLES.length,3);
+test('Seventeen bilingual reference guides, sources, crosslinks and distinct search intent',()=>{
+ assert.equal(PEDIA_ARTICLES.length,17);
  assert.equal(PEDIA_CATEGORIES.length,6);
  const distinct=new Set([...ACADEMY_LESSONS.map(x=>x.slug),...PEDIA_ARTICLES.map(x=>x.slug)]);
- assert.equal(distinct.size,11);
+ assert.equal(distinct.size,25);
  for(const a of PEDIA_ARTICLES){
   assert.equal(pediaArticleBySlug(a.slug),a);
   assert.equal(a.sections.length,3);
