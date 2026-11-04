@@ -6,7 +6,7 @@ on:
     branches: [main]
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/feat/n4-shodashavarga-foundation' }}
 jobs:
   windows-fixture-integrity:
     name: Windows JHora pinned fixture and CRLF regression
