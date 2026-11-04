@@ -50,3 +50,11 @@ P3 (trust/performance): Run PSI mobile/desktop on home, `/en/pedia`, `/en/pancha
 - https://developers.google.com/search/docs/crawling-indexing/troubleshoot-crawling-errors
 - https://developers.google.com/search/docs/essentials/spam-policies
 - https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+
+## Read-only URL Inspection monitor built for this release
+- New source: `tools/gsc-url-inspection.mjs`. Uses a Google service account on the server; never prints keys, never submits/indexes URLs, never stores the credentials in git.
+- Requires one-time Google Search Console property access for its `client_email` (the same service-account file can serve GA4 if permitted); **do not send the private JSON to chat or GitHub**. From an SSH session, inspect only its email: `node -e "const x=require('/home/ubuntu/.ga4-upload/ga4-reader.json'); console.log(x.client_email)"`. In Search Console `sc-domain:galaxiora.com` open **Settings → Users and permissions → Add user** and grant access to that email. Enable **Google Search Console API** in the service account's Google Cloud project if it is not already enabled.
+- After a reviewed and CI-passed deployment, run `node tools/gsc-url-inspection.mjs --dry-run` to list the targeted canonical URLs without Google API access.
+- Run `node tools/gsc-url-inspection.mjs --limit=50 --json` for Pedia (read-only), or `node tools/gsc-url-inspection.mjs --all --json` for up to 200 canonical sitemap URLs. These use the URL Inspection **read** API, not Indexing API. The site-wide 2000/day inspection quota and request limits still apply; don't run unnecessarily every hour.
+- Interpret `coverageState`, `indexingState`, `googleCanonical`, `lastCrawlTime` and `pageFetchState`; do not conflate a recently submitted page with one indexed.
+- If the GSC account lacks permission, the tool stops after the first 401/403 and prints a permission hint; there is no automation workaround for Google's authorization requirement.
