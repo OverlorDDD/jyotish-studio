@@ -30,3 +30,11 @@
 3. Never enable `N4_VARGA_AI_ENABLED`, `N4_VARGA_PERSONAL_ENABLED` or `N4_VARGA_INDEPENDENT_REFERENCE_APPROVED` on production until independently certified; unknown method or missing evidence is *not* false unfavorable advice.
 4. Preserve existing Vedic natal D1/D9/D10, Reader v6 and Panchanga calculation interfaces.
 5. Keep original JHora and PyJHora evaluations separate from full CI so a known external download block cannot erase proof of unrelated passing tests.
+
+## Evidence update — independently confirmed on GitHub
+
+**G2 independent PyJHora 4.8.7 is PASSED** on commit `c0f0ced597fcabb7389621dbb39126f821482419`: [GitHub Actions run 41845004488](https://github.com/OverlorDDD/jyotish-studio/actions/runs/41845004488), job `126626101250`. CI log contains exactly `N4_PYJHORA_PARITY_PASS: 8000/8000 independent PyJHora sign comparisons (50 synthetic profiles)`. The same run successfully validated the independently captured JHoraKit public single sample and recorded the 44 known convention differences. These are not original-JHora 50-case certification.
+
+**G4 original full CI diagnosis** on `c0f0ced`: JHora Windows/CRLF job PASS, PostgreSQL concurrency PASS, canonical SEO/Panchanga/production Next/Nest build PASS. The long `Jyotish Core CI` test job FAILED on `tools/r4-growth.test.mjs` because the new P3 Panchanga day UX had removed `<EclipsePanel>` and the adjacent NASA 2027 calendar CTA. This is a real user-facing regression (not a test to weaken). Restored both in `PanchangaHub.tsx` with bilingual text and responsive styles at commit `f8f2c3e`. Final current-head rerun still required.
+
+**CI availability:** hundreds of historic PR workflow runs created a large queue. Added concurrency cancellation for future N4 runs and temporarily enabled **read-only push-to-branch gates** for full Jyotish CI, N4-specific parity/integration and canonical production build to certify the actual HEAD. No workflows on this branch run AWS deployments or index submissions.

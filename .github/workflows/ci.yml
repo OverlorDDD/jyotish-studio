@@ -1,7 +1,7 @@
 name: Jyotish Core CI
 on:
   push:
-    branches: [main]
+    branches: [main, feat/n4-shodashavarga-foundation]
   pull_request:
     branches: [main]
 concurrency:

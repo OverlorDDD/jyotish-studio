@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [integration/galaxiora-main-source-of-truth-20261104, main]
+    branches: [integration/galaxiora-main-source-of-truth-20261104, main, feat/n4-shodashavarga-foundation]
   workflow_dispatch:
 permissions:
   contents: read

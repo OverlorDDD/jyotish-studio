@@ -1,5 +1,7 @@
 name: N4 Independent PyJHora 16-Varga Parity
 on:
+  push:
+    branches: [feat/n4-shodashavarga-foundation]
   pull_request:
     branches: [main]
     paths:
