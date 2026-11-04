@@ -13,7 +13,7 @@ const COPY={
    {slug:'astrology',icon:'orbit',title:'Astrology',description:'Calculate your Vedic birth chart, explore the D1/D9/D10 charts, nakshatras and personal planetary periods.',live:true},
    {slug:'tarot',icon:'sparkles',title:'Tarot readings',description:'Explore 78 classic cards, meaningful interpretations, three popular spreads and a private reading journal.',live:true},
    {slug:'yoga',icon:'flower',title:'Yoga & mindfulness',description:'Visual box breathing with three rhythms, gentle movement and untimed mindful reflections.',live:true},
-   {slug:'learn',icon:'book',title:'Learning library',description:'Eight original lessons on Jyotish, Tarot, yoga and mindful practice with knowledge checks.',live:true},
+   {slug:'learn',icon:'book',title:'GalaxiPedia',description:'Explore bilingual reference guides, a searchable glossary and eight original Jyotish, Tarot and yoga lessons with quizzes.',live:true},
    {slug:'news',icon:'news',title:'Daily cosmic news',description:'Source-linked news, searchable topics and personal interests.',live:true},
    {slug:'community',icon:'community',title:'GalaxiCom forum',description:'Join real discussions and ask questions in the community.',live:true}
   ],
@@ -29,7 +29,7 @@ const COPY={
    {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Створи натальну карту Джйотіш, досліджуй D1/D9/D10, накшатри та власні планетні періоди.',live:true},
    {slug:'tarot',icon:'sparkles',title:'Розклади Таро',description:'78 класичних карт, продумані трактування, популярні розклади й особистий журнал Таро.',live:true},
    {slug:'yoga',icon:'flower',title:'Йога та медитація',description:'Дихання по квадрату з анімацією, три ритми на вибір і вправи без зайвих таймерів.',live:true},
-   {slug:'learn',icon:'book',title:'Бібліотека знань',description:'Вісім авторських уроків про Джйотіш, Таро та йогу із запитаннями для самоперевірки.',live:true},
+   {slug:'learn',icon:'book',title:'GalaxiPedia',description:'Двомовна енциклопедія зі статтями, словником термінів і вісьмома уроками Джйотіш, Таро та йоги з тестами.',live:true},
    {slug:'news',icon:'news',title:'Космічні новини',description:'Актуальні новини з джерелами, пошуком та персональною добіркою.',live:true},
    {slug:'community',icon:'community',title:'GalaxiCom · Форум',description:'Живі обговорення, запитання, відповіді та допомога спільноти.',live:true}
   ],
