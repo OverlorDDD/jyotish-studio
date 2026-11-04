@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import Link from 'next/link';
 import type {PortalLocale} from '../../lib/brand';
 import {chooseInitialDay,type CalendarSystem} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
@@ -150,6 +151,9 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   <header className={styles.cleanHero}>
    <span className={styles.eyebrow}>GALAXIORA · {uk?'ВЕДИЧНИЙ КАЛЕНДАР':'VEDIC CALENDAR'}</span>
    <h1>{uk?'Панчанга':'Panchanga'}</h1>
+   <Link className={styles.eclipseShortcut} href={'/'+locale+'/eclipses/2027'}>
+    {uk?'Календар затемнень 2027':'2027 eclipse calendar'} <span aria-hidden="true">↗</span>
+   </Link>
   </header>
   <div className={styles.cleanObserver} data-testid="p386-observer">
    <label className={styles.cleanDate}>{uk?'Дата':'Date'}
