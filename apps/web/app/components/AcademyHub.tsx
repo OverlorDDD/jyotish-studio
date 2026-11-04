@@ -1,41 +1,43 @@
 import Link from 'next/link';
-import {ArrowUpRight,BookOpen,Compass,Layers,Sparkles} from 'lucide-react';
+import {ArrowUpRight,BookOpen,LibraryBig} from 'lucide-react';
 import PortalShell from './PortalShell';
-import {ACADEMY_TOPICS,ACADEMY_LESSONS} from '../../lib/academy-content';
+import PediaCatalog,{type PediaCatalogItem} from './PediaCatalog';
+import {ACADEMY_LESSONS} from '../../lib/academy-content';
+import {PEDIA_ARTICLES,PEDIA_CATEGORIES} from '../../lib/pedia-content';
 import type {ContentLocale} from '../../lib/yoga-content';
 import EditorialPublishedCards from './EditorialPublishedCards';
-const ICONS={jyotish:Compass,tarot:Sparkles,practice:Layers};
+
+const CATALOG:PediaCatalogItem[]=[
+ ...ACADEMY_LESSONS.map(lesson=>({
+  slug:lesson.slug,category:lesson.topic,minutes:lesson.minutes,
+  title:lesson.title,summary:lesson.description,kind:'lesson' as const
+ })),
+ ...PEDIA_ARTICLES.map(article=>({
+  slug:article.slug,category:article.category,minutes:article.minutes,
+  title:article.title,summary:article.summary,kind:'article' as const
+ }))
+];
 export default function AcademyHub({locale}:{locale:ContentLocale}){
  const uk=locale==='uk';
- return <PortalShell locale={locale} active="learn"><div className="as-wellness">
+ return <PortalShell locale={locale} active="learn" languagePath="pedia"><div className="as-wellness">
   <section className="as-wellness-hero academy-hero">
-   <span className="as-overline">{uk?'GalaxiLearn · БІБЛІОТЕКА':'GalaxiLearn · LEARNING LIBRARY'}</span>
-   <h1>{uk?'Знання, які стають твоєю опорою.':'Learn beyond the surface.'}</h1>
-   <p>{uk?'Вісім повноцінних уроків про Джйотіш, символіку Таро та йогу. Пояснення, приклади й самоперевірка після кожної теми — вільно, без акаунта.':'Eight complete lessons exploring Jyotish, Tarot symbolism and yoga. Explanations, examples and a knowledge check at the end of each topic — free without an account.'}</p>
-   <div className="as-wellness-tags"><span>{ACADEMY_LESSONS.length} {uk?'уроків':'lessons'}</span><span>{uk?'3 теми':'3 topics'}</span><span>UA / EN</span></div>
-   <a className="as-button as-button-primary" href="#academy-library">{uk?'Перейти до уроків':'Explore lessons'} <ArrowUpRight size={17}/></a>
+   <span className="as-overline">GALAXIPEDIA · {uk?'ЕНЦИКЛОПЕДІЯ ТА АКАДЕМІЯ':'ENCYCLOPEDIA & ACADEMY'}</span>
+   <h1>{uk?'Від питання — до розуміння.':'Explore the cosmos, one question at a time.'}</h1>
+   <p>{uk?'Єдина енциклопедія астрології, Джйотіш, Панчанги, Таро, астрономії та духовних практик. Почни з довідкової статті, пройди урок із тестом і застосуй знання в інструментах Galaxiora.':'An open encyclopedia of astrology, Jyotish, Panchanga, Tarot, astronomy and mindful practice. Explore a focused guide, follow a lesson with a knowledge check and try the related Galaxiora tools.'}</p>
+   <div className="as-wellness-tags"><span>{ACADEMY_LESSONS.length} {uk?'уроків':'lessons'}</span>
+    <span>{PEDIA_ARTICLES.length} {uk?'нові довідкові статті':'original reference guides'}</span>
+    <span>{PEDIA_CATEGORIES.length} {uk?'напрямів':'topics'}</span><span>EN / UA</span></div>
+   <div className="as-actions">
+    <a className="as-button as-button-primary" href="#pedia-explore">{uk?'Дослідити матеріали':'Explore the library'} <ArrowUpRight size={17}/></a>
+    <Link className="as-button as-button-secondary" href={'/'+locale+'/pedia/glossary'}>{uk?'Словник термінів':'Glossary of terms'} <BookOpen size={17}/></Link>
+   </div>
   </section>
-  <nav className="as-academy-jump" aria-label={uk?'Теми бібліотеки':'Library topics'}>
-   {ACADEMY_TOPICS.map(topic=><a key={topic.id} href={'#topic-'+topic.id}>{topic.title[locale]}</a>)}
-  </nav>
-  <div id="academy-library">{ACADEMY_TOPICS.map(topic=>{
-   const Icon=ICONS[topic.id];
-   return <section className="as-wellness-section as-academy-group" key={topic.id} id={'topic-'+topic.id}>
-    <div className="as-wellness-section-header"><span className="as-overline"><Icon size={19} aria-hidden="true"/> {uk?'ТЕМАТИЧНИЙ БЛОК':'TOPIC COLLECTION'}</span>
-     <h2>{topic.title[locale]}</h2><p>{topic.subtitle[locale]}</p></div>
-    <div className="as-wellness-grid">{ACADEMY_LESSONS.filter(l=>l.topic===topic.id).map((lesson,i)=>
-     <Link href={'/'+locale+'/learn/'+lesson.slug} className="as-wellness-card as-lesson-card" data-lesson={lesson.slug} key={lesson.slug}>
-      <span className="as-wellness-card-icon"><BookOpen size={27} aria-hidden="true"/></span>
-      <span className="as-wellness-meta">{uk?'УРОК':'LESSON'} {String(i+1).padStart(2,'0')} · {lesson.minutes} {uk?'хв читання':'min read'}</span>
-      <h3>{lesson.title[locale]}</h3><p>{lesson.description[locale]}</p>
-      <span className="as-wellness-card-link">{uk?'Читати та перевірити себе':'Read and check knowledge'} <ArrowUpRight size={17}/></span>
-     </Link>)}</div>
-   </section>;
-  })}</div>
+  <PediaCatalog locale={locale} items={CATALOG} categories={PEDIA_CATEGORIES}/>
   <EditorialPublishedCards kind="ACADEMY" locale={locale}/>
-  <aside className="as-wellness-note"><BookOpen size={23} aria-hidden="true"/><div>
-   <strong>{uk?'Як влаштована бібліотека':'About this learning library'}</strong>
-   <p>{uk?'Це авторські вступні матеріали з розмежуванням історичних традицій, математичних розрахунків і символічних тверджень. Запитання після уроків перевіряють розуміння тексту, а не «духовні здібності».':'These are original introductory materials that distinguish traditions, mathematical calculations and symbolic claims. Lesson questions check understanding, not spiritual ability.'}</p>
+  <aside className="as-wellness-note"><LibraryBig size={23} aria-hidden="true"/><div>
+   <strong>{uk?'Знання, практика й точність':'Learning, practice and accuracy'}</strong>
+   <p>{uk?'Уроки й редакційні статті залишаються доступними. Розрахунки астрономічних положень, історичні правила та традиційні тлумачення позначено окремо. Тест допомагає перевірити знання, а не передбачає події.':'The existing lessons and editorial articles remain available. Astronomical calculations, historical rules and traditional interpretations are kept distinct. Quizzes check understanding rather than predict personal outcomes.'}</p>
+   <Link href={'/'+locale+'/methodology'}>{uk?'Як ми перевіряємо розрахунки':'How we verify calculations'} <ArrowUpRight size={15}/></Link>
   </div></aside>
  </div></PortalShell>;
 }
