@@ -47,7 +47,91 @@ test('A6 real editor journey: bilingual draft, admin review, live article and ar
   await page.locator('[data-published="'+slug+'"]').click();
   await expect(page.getByRole('heading',{level:1,name:'Практика уважного читання'})).toBeVisible();
   await page.locator('.as-language a[lang="en"]').click();
-  await expect(page).toHaveURL(new RegExp('/en/pedia/'+slug+'));
+  await expect(page).toHaveURL(new RegExp('/en/pedia/'+slug+';
+  await expect(page.getByRole('heading',{level:1,name:'A mindful reading practice'})).toBeVisible();
+  await page.goto('/uk/editorial');
+  await page.locator('.as-editorial-item',{hasText:slug}).click();
+  await page.getByRole('button',{name:'Зняти з публікації'}).click();
+  await expect(page.locator('.as-editorial-pill')).toHaveText('ARCHIVED');
+  expect((await page.request.get('/api/v1/content/ACADEMY/'+slug)).status()).toBe(404);
+ }finally{await prisma.$disconnect();}
+});
+
+test('A6 Yoga: new guide saves without Safety notice; no required notice field',async({page})=>{
+ test.setTimeout(70000);
+ const prisma=new PrismaClient();
+ const slug='a6-yoga-no-safety-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+ const email=slug+'@example.invalid';
+ try{
+  const signed=await fixtureAccount(page,{data:{email,password:'A6-browser-only-password-2026'}});
+  expect(signed.status()).toBe(201);
+  await prisma.user.update({where:{email},data:{role:'ADMIN'}});
+  await page.goto('/uk/editorial');
+  await page.getByLabel('Тип матеріалу').selectOption('YOGA');
+  await expect(page.getByLabel('Safety notice')).toHaveCount(0);
+  await expect(page.getByLabel('Застереження щодо безпеки')).toHaveCount(0);
+  await page.getByLabel('URL-адреса (латиницею)').fill(slug);
+  await page.getByLabel('Назва',{exact:true}).fill('Практика зосередженості');
+  await page.getByLabel('Title',{exact:true}).fill('A focus exercise');
+  await page.getByLabel('Короткий опис').fill('Увага до навколишніх відчуттів та власного темпу.');
+  await page.getByLabel('Short description').fill('Gentle awareness of sensations and your own pace.');
+  await page.getByLabel('Кроки (через порожній рядок)').fill('Сядь зручно.\n\nЗверни увагу на навколишні звуки.');
+  await page.getByLabel('Steps (separate by a blank line)').fill('Sit comfortably.\n\nListen to sounds around you.');
+  await page.getByRole('button',{name:'Створити чернетку'}).click();
+  await expect(page.getByRole('status')).toContainText('Чернетку збережено');
+  const data=await page.request.get('/api/v1/editorial/entries');
+  const match=(await data.json()).find(x=>x.slug===slug);
+  expect(match.document.safety).toBeUndefined();
+  await page.getByRole('button',{name:'Надіслати на перевірку'}).click();
+  await page.getByRole('button',{name:'Схвалити',exact:true}).click();
+  await page.getByRole('button',{name:'Опублікувати'}).click();
+  await page.goto('/uk/yoga');
+  await expect(page.locator('[data-published="'+slug+'"]')).toBeVisible();
+ }finally{await prisma.$disconnect();}
+});
+));
+  await expect(page.getByRole('heading',{level:1,name:'A mindful reading practice'})).toBeVisible();
+  await page.goto('/uk/editorial');
+  await page.locator('.as-editorial-item',{hasText:slug}).click();
+  await page.getByRole('button',{name:'Зняти з публікації'}).click();
+  await expect(page.locator('.as-editorial-pill')).toHaveText('ARCHIVED');
+  expect((await page.request.get('/api/v1/content/ACADEMY/'+slug)).status()).toBe(404);
+ }finally{await prisma.$disconnect();}
+});
+
+test('A6 Yoga: new guide saves without Safety notice; no required notice field',async({page})=>{
+ test.setTimeout(70000);
+ const prisma=new PrismaClient();
+ const slug='a6-yoga-no-safety-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+ const email=slug+'@example.invalid';
+ try{
+  const signed=await fixtureAccount(page,{data:{email,password:'A6-browser-only-password-2026'}});
+  expect(signed.status()).toBe(201);
+  await prisma.user.update({where:{email},data:{role:'ADMIN'}});
+  await page.goto('/uk/editorial');
+  await page.getByLabel('Тип матеріалу').selectOption('YOGA');
+  await expect(page.getByLabel('Safety notice')).toHaveCount(0);
+  await expect(page.getByLabel('Застереження щодо безпеки')).toHaveCount(0);
+  await page.getByLabel('URL-адреса (латиницею)').fill(slug);
+  await page.getByLabel('Назва',{exact:true}).fill('Практика зосередженості');
+  await page.getByLabel('Title',{exact:true}).fill('A focus exercise');
+  await page.getByLabel('Короткий опис').fill('Увага до навколишніх відчуттів та власного темпу.');
+  await page.getByLabel('Short description').fill('Gentle awareness of sensations and your own pace.');
+  await page.getByLabel('Кроки (через порожній рядок)').fill('Сядь зручно.\n\nЗверни увагу на навколишні звуки.');
+  await page.getByLabel('Steps (separate by a blank line)').fill('Sit comfortably.\n\nListen to sounds around you.');
+  await page.getByRole('button',{name:'Створити чернетку'}).click();
+  await expect(page.getByRole('status')).toContainText('Чернетку збережено');
+  const data=await page.request.get('/api/v1/editorial/entries');
+  const match=(await data.json()).find(x=>x.slug===slug);
+  expect(match.document.safety).toBeUndefined();
+  await page.getByRole('button',{name:'Надіслати на перевірку'}).click();
+  await page.getByRole('button',{name:'Схвалити',exact:true}).click();
+  await page.getByRole('button',{name:'Опублікувати'}).click();
+  await page.goto('/uk/yoga');
+  await expect(page.locator('[data-published="'+slug+'"]')).toBeVisible();
+ }finally{await prisma.$disconnect();}
+});
+));
   await expect(page.getByRole('heading',{level:1,name:'A mindful reading practice'})).toBeVisible();
   await page.goto('/uk/editorial');
   await page.locator('.as-editorial-item',{hasText:slug}).click();
