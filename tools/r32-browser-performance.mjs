@@ -5,11 +5,14 @@
 import {chromium} from '@playwright/test';
 const origin=(process.env.PLAYWRIGHT_BASE_URL||'http://127.0.0.1:3000').replace(/\/$/,'');
 const routes=['/uk','/en','/uk/about','/uk/astrology/jyotish',
- '/uk/horoscope','/uk/panchanga','/uk/news','/uk/community','/uk/tarot'];
+ '/en/astrology/jyotish','/uk/horoscope','/uk/panchanga','/en/panchanga',
+ '/uk/news','/uk/community','/uk/tarot','/en/tarot',
+ ...(process.env.SEO1_G30_REQUIRE_PEDIA==='1'?['/en/pedia','/uk/pedia']:[])];
 const outputs=[];
 const browser=await chromium.launch({headless:true});
 try{
  for(const device of [{name:'desktop',viewport:{width:1365,height:900}},
+  {name:'mobile-small',viewport:{width:360,height:800}},
   {name:'mobile',viewport:{width:390,height:844}}]){
   const context=await browser.newContext({viewport:device.viewport,isMobile:device.name==='mobile'});
   for(const route of routes){
