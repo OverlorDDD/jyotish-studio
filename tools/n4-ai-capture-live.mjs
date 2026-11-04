@@ -4,8 +4,8 @@
  * Writes original model prose to an access-restricted LOCAL output file for
  * human review, not to GitHub logs, a database or a production service.
  */
-import {existsSync,appendFileSync,readFileSync,realpathSync} from 'node:fs';
-import {resolve,sep} from 'node:path';
+import {existsSync,appendFileSync,readFileSync} from 'node:fs';
+import {n4SafeLocalOutput} from './n4-ai-capture-path.mjs';
 import {generateDirectJyotish} from '../apps/api/src/direct-jyotish.ts';
 import {n4SyntheticAuditChart,n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
 import {n4SyntheticVariantFetcher,N4_EDITORIAL_VARIANT_VERSION} from './n4-ai-editorial-variants.mjs';
@@ -20,10 +20,7 @@ const confirmed={gemini:process.env.GEMINI_FREE_TIER_CONFIRMED==='1',groq:proces
  openrouter:(process.env.OPENROUTER_FREE_MODEL||'openrouter/free').includes('free')};
 if(!keys[provider]?.trim()||!confirmed[provider])
  throw Error('Refusing call without configured key AND independently confirmed free-tier model');
-const file=process.env.N4_LIVE_EDITORIAL_OUTPUT;
-if(!file?.startsWith('/'))throw Error('Require explicit absolute non-repository LOCAL output path');
-const dest=resolve(file),cwd=resolve(process.cwd());
-if(dest.startsWith(cwd+sep)||dest===cwd)throw Error('Refusing to store model responses under Git repository');
+const dest=n4SafeLocalOutput(process.env.N4_LIVE_EDITORIAL_OUTPUT);
 const from=Number(process.env.N4_LIVE_EDITORIAL_START||0),size=Number(process.env.N4_LIVE_EDITORIAL_BATCH_SIZE||2);
 if(!Number.isInteger(from)||from<0||from>=48||!Number.isInteger(size)||size<1||size>2||from+size>48)
  throw Error('Batch index/count must stay inside 0..47 and <=2 calls');
