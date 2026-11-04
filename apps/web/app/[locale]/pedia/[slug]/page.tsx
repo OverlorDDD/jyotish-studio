@@ -50,7 +50,13 @@ export default async function AcademyLessonPage({params}:Params){
  return <PortalShell locale={locale} active="learn" languagePath={'pedia/'+slug}>
   {jsonLd&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd}}/>}
   <div className="as-wellness as-academy-detail">
-   <Link href={'/'+locale+'/pedia'} className="as-wellness-back"><ArrowLeft size={16}/>{uk?'Всі уроки':'All lessons'}</Link>
+   <nav className="as-pedia-breadcrumb" aria-label={uk?'Навігація':'Breadcrumbs'}>
+    <Link href={'/'+locale+'/pedia'}><ArrowLeft size={16} aria-hidden="true"/>GalaxiPedia</Link>
+    <span aria-hidden="true">/</span>
+    <Link href={'/'+locale+'/pedia/topic/'+topic.id}>{topic.title[locale]}</Link>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">{lesson.title[locale]}</span>
+   </nav>
    <article className="as-academy-article">
     <header className="as-wellness-detail-head">
      <span className="as-overline">{topic.title[locale]} · {lesson.minutes} {uk?'хв читання':'min read'}</span>
