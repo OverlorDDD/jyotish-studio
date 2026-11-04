@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import Link from 'next/link';
 import {ArrowUpRight,BookOpen,Search,X} from 'lucide-react';
 import type {PediaCategory,PediaLocale,PediaText} from '../../lib/pedia-content';
@@ -48,7 +48,7 @@ export default function PediaCatalog({locale,items,categories}:Props){
   setCategory('all');
   inputRef.current?.focus();
  };
- const search=(event:React.FormEvent<HTMLFormElement>)=>{
+ const search=(event:FormEvent<HTMLFormElement>)=>{
   event.preventDefault();
   resultsRef.current?.scrollIntoView({behavior:'smooth',block:'start'});
  };
