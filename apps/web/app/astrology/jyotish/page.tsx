@@ -2,7 +2,7 @@
 import {useState,useEffect} from 'react';
 import dynamic from 'next/dynamic';
 import {readApiJson} from '../../../lib/api-response';
-import {reportGrowthEvent} from '../../../lib/growth-metrics';
+import {reportGrowthEvent,reportPublicToolEvent} from '../../../lib/growth-metrics';
 import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
@@ -116,7 +116,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    timeZone:city.timeZone,place:[city.name,city.region,city.country].filter(Boolean).join(', ')}));
   setStatus('');
  };
- async function calculate(e:React.FormEvent){e.preventDefault();setBusy(true);setError(false);setChart(null);setReport(null);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'API повернуло карту без чинного підтвердження цілісності (потрібен jyotish-integrity-v3). Перезапустіть Next.js і NestJS з однієї оновленої гілки, потім повторіть розрахунок.':'API returned a chart without the current jyotish-integrity-v3 proof. Restart Next.js and NestJS from the same updated branch, then retry.');setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);reportGrowthEvent('jyotish_chart_completed');}catch(e){setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
+ async function calculate(e:React.FormEvent){e.preventDefault();reportPublicToolEvent('public_tool_started','jyotish');setBusy(true);setError(false);setChart(null);setReport(null);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'API повернуло карту без чинного підтвердження цілісності (потрібен jyotish-integrity-v3). Перезапустіть Next.js і NestJS з однієї оновленої гілки, потім повторіть розрахунок.':'API returned a chart without the current jyotish-integrity-v3 proof. Restart Next.js and NestJS from the same updated branch, then retry.');setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);reportGrowthEvent('jyotish_chart_completed');reportPublicToolEvent('public_tool_completed','jyotish');}catch(e){reportPublicToolEvent('public_tool_failed','jyotish');setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
  async function interpret(mode:'auto'|'local'='auto'){
   if(!chart)return;
   setAiBusy(true);setInterpretation(lang==='uk'?'Створюємо детальний звіт…':'Preparing a detailed report…');
