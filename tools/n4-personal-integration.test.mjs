@@ -15,7 +15,7 @@ const t={
  moon:{sign:10,nakshatra:'Shravana',houseFromLagna:10,houseFromMoon:1},
  planets:[]
 };
-const context={lagnaSign:1,moonSign:10,
+const context={lagnaSign:1,moonSign:chart.d1.find(p=>p.name==='Moon').sign,
  natalPositions:chart.d1.map(p=>({name:p.name,sign:p.sign})),
  period:null
 };
