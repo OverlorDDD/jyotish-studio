@@ -5,5 +5,9 @@ export default {
   // Local IPv4 URL used by the browser smoke test and Windows developers.
   // Explicit dev origins are required by upcoming versions of Next.js.
   allowedDevOrigins:['127.0.0.1','localhost'],
+  async redirects(){return ['en','uk'].flatMap(locale=>[
+    {source:'/'+locale+'/learn',destination:'/'+locale+'/pedia',permanent:true},
+    {source:'/'+locale+'/learn/:slug',destination:'/'+locale+'/pedia/:slug',permanent:true}
+  ]);},
   async rewrites(){return [{source:'/api/:path*',destination:`${process.env.INTERNAL_API_ORIGIN || 'http://127.0.0.1:4000'}/api/:path*`}];}
 };
