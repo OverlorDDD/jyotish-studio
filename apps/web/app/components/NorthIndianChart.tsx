@@ -13,13 +13,13 @@ function degrees(value:number){
  const d=Math.floor(value),minutes=Math.floor((value-d)*60);
  return d+'°'+String(minutes).padStart(2,'0')+'′';
 }
-type Props={planets:PlanetPosition[];lagna:{sign:number};division:'d1'|'d9'|'d10';lang:'uk'|'en'};
+type Props={planets:PlanetPosition[];lagna:{sign:number};division:string;lang:'uk'|'en';chartLabel?:string;showDegrees?:boolean};
 /** All original planetary data retained; display is now a large clean fixed-sign
  * Rashi-style perimeter instead of cramped/crossing SVG triangle labels. */
-export default function NorthIndianChart({planets,lagna,division,lang}:Props){
+export default function NorthIndianChart({planets,lagna,division,lang,chartLabel,showDegrees=true}:Props){
  const names=lang==='uk'?UK:EN;
- const label=division==='d1'?(lang==='uk'?'Натальна карта':'Birth chart'):
-  division==='d9'?(lang==='uk'?'Навамша':'Navamsha'):(lang==='uk'?'Дашамша':'Dashamsha');
+ const label=chartLabel??(division==='d1'?(lang==='uk'?'Натальна карта':'Birth chart'):
+  division==='d9'?(lang==='uk'?'Навамша':'Navamsha'):(lang==='uk'?'Дашамша':'Dashamsha'));
  return <div className="jy-south-chart" role="img" aria-label={division.toUpperCase()+' · '+(lang==='uk'?'натальна карта дванадцяти знаків':'twelve-sign natal chart')}>
   <div className="jy-south-center" aria-hidden="true"><span className="jy-south-center-index">{division.toUpperCase()}</span><strong>{label}</strong></div>
   {SOUTH_SIGN_GRID.map((sign,i)=>{
@@ -31,9 +31,9 @@ export default function NorthIndianChart({planets,lagna,division,lang}:Props){
     <div className="jy-south-heading"><span className="jy-south-name">{names[sign-1]}</span><span className="jy-south-symbol" aria-hidden="true">{SIGN_GLYPHS[sign-1]}</span></div>
     <span className="jy-south-house" title={lang==='uk'?'Номер дому':'House number'}>{house}</span>
     {sign===lagna.sign&&<span className="jy-south-ascendant" title={lang==='uk'?'Лагна, висхідний знак':'Lagna, ascendant'}>Lg</span>}
-    <div className="jy-south-positions">{occupants.map(p=><div className="jy-south-planet" key={p.name} title={(lang==='uk'?PLANETS_UK[p.name]||p.name:p.name)+' · '+degrees(p.degreesInSign)}>
+    <div className="jy-south-positions">{occupants.map(p=><div className="jy-south-planet" key={p.name} title={(lang==='uk'?PLANETS_UK[p.name]||p.name:p.name)+(showDegrees?' · '+degrees(p.degreesInSign):'')}>
       <strong>{PLANET_GLYPHS[p.name]||p.name}</strong>
-      <span>{degrees(p.degreesInSign)}{p.retrograde?' ℞':''}</span>
+      {showDegrees?<span>{degrees(p.degreesInSign)}{p.retrograde?' ℞':''}</span>:p.retrograde?<span>℞</span>:null}
     </div>)}</div>
    </section>;
   })}
