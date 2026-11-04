@@ -65,7 +65,7 @@ test('N4 Reader feature remains default OFF and private metadata never enters th
  assert.ok(facts.includes('D24'));
  for(const detail of ['2000-01-01','12:00','49.2','33.4','Europe/Kyiv'])
   assert.ok(!facts.includes(detail)&&!plan.includes(detail));
- assert.doesNotMatch(facts,/^D60\s+/m);
+ assert.ok(!facts.split('\n').some(line=>/^D60\s+.*\blagna=/.test(line)),'D60 may be mentioned as excluded, but its placements must not be sent');
 });
 test('N4 cloud adapter sees only verified facts and rejects missing two D lenses with one bounded retry',async()=>{
  const chart=synthetic(),themes=selectN4NarrativeThemes(chart);
