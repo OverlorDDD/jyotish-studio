@@ -28,7 +28,11 @@ test('Public homepage and sections display module-branded names',()=>{
  assert.ok(home.includes('moduleTitle(card.slug'));
  assert.ok(section.includes('moduleTitle(section)'));
  assert.ok(shell.includes('{BRAND.name}'));
- for(const suffix of ['Astro','Tarot','Experts','Yoga','Academy','Jyotish']){
+ // The Academy module is now GalaxiPedia. Check both its configured suffix and UI.
+ assert.ok(read('apps/web/lib/brand.ts').includes("learn: 'Pedia'"));
+ assert.match(home,/GalaxiPedia/);
+ assert.match(shell,/GalaxiPedia/);
+ for(const suffix of ['Astro','Tarot','Experts','Yoga','Pedia','Jyotish']){
   assert.ok(read('apps/web/lib/brand.ts').includes("'"+suffix+"'"),suffix);
  }
 });
