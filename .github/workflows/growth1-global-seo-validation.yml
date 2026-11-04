@@ -14,6 +14,7 @@ on:
       - tools/growth1-global-seo.test.mjs
       - tools/r32-seo.test.mjs
       - package.json
+      - tools/growth1-aws-release-guarded.sh
       - .github/workflows/growth1-global-seo-validation.yml
   workflow_dispatch:
 permissions:
@@ -43,6 +44,10 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           python -m pip install pyswisseph
+      - name: Validate deployment Bash syntax without touching production
+        run: |
+          bash -n tools/growth1-aws-release-guarded.sh
+          bash -n tools/ga4-visitor-aws-release.sh
       - name: Generate Prisma client
         run: npm run db:generate
       - name: Brand, international search, sitemap and IndexNow tests
