@@ -34,7 +34,7 @@ test('N4 SEO content is bilingual, indexable and preserves canonical UK/EN route
 });
 test('Responsive varga explorer uses one-column chart pairing on mobile',()=>{
  const css=file('apps/web/app/globals.css');
- assert.ok(css.includes('.n4-comparison{grid-template-columns:repeat(2,minmax(0,1fr))}'));
+ assert.match(css,/\\.n4-comparison\\{[^}]*grid-template-columns:repeat\\(2,minmax\\(0,1fr\\)\\)/);
  assert.ok(css.includes('.n4-comparison{grid-template-columns:minmax(0,1fr)}'));
  assert.ok(css.includes('.n4-tabs button:focus-visible'));
 });
