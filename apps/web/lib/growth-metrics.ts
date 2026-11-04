@@ -5,7 +5,23 @@ export const GROWTH_PUBLIC_SECTIONS=new Set([
  '','about','astrology','astrology/jyotish','tarot','tarot/cards',
  'panchanga','eclipses/2027','horoscope','yoga','learn','news','community','methodology'
 ]);
-export type GrowthEvent='jyotish_chart_completed'|'article_to_tool_click'|'public_resource_share'|'tarot_spread_started'|'tarot_spread_completed'|'panchanga_calculation_completed';
+export type PublicTool='jyotish'|'panchanga'|'tarot';
+export type PublicToolEvent='public_tool_started'|'public_tool_completed'|'public_tool_failed';
+export type GrowthEvent='jyotish_chart_completed'|'article_to_tool_click'|'public_resource_share'|'tarot_spread_started'|'tarot_spread_completed'|'panchanga_calculation_completed'|PublicToolEvent;
+const PUBLIC_TOOL_EVENTS=new Set<PublicToolEvent>(['public_tool_started','public_tool_completed','public_tool_failed']);
+export function safePublicTool(tool:string):tool is PublicTool{
+ return tool==='jyotish'||tool==='panchanga'||tool==='tarot';
+}
+export function safePublicToolEvent(name:string):name is PublicToolEvent{
+ return PUBLIC_TOOL_EVENTS.has(name as PublicToolEvent);
+}
+export function safeGrowthToolForPath(pathname:string):PublicTool|null{
+ if(!safeGrowthPath(pathname))return null;
+ if(/^\/(uk|en)\/astrology\/jyotish$/.test(pathname))return 'jyotish';
+ if(/^\/(uk|en)\/panchanga$/.test(pathname))return 'panchanga';
+ if(/^\/(uk|en)\/tarot$/.test(pathname))return 'tarot';
+ return null;
+}
 export function safeGrowthPath(pathname:string):string|null{
  // The non-localized domain root serves English and canonically points to /en.
  // It is also the site's Google-branded entry point, so it must be measured.
@@ -22,13 +38,21 @@ export function safeGrowthPath(pathname:string):string|null{
  return null;
 }
 export function safeGrowthEvent(name:string):name is GrowthEvent{
- return ['jyotish_chart_completed','article_to_tool_click','public_resource_share','tarot_spread_started','tarot_spread_completed','panchanga_calculation_completed'].includes(name);
+ return ['jyotish_chart_completed','article_to_tool_click','public_resource_share','tarot_spread_started','tarot_spread_completed','panchanga_calculation_completed'].includes(name)||safePublicToolEvent(name);
 }
 
 /** Names only: no question, birth information, location, ID or user-input payload. */
 export function reportGrowthEvent(name:GrowthEvent):void{
  if(typeof window==='undefined'||!safeGrowthEvent(name))return;
  window.dispatchEvent(new CustomEvent('galaxiora:growth',{detail:{name}}));
+}
+
+/** Coarse funnel events only: never accept user-generated properties or free-text errors.
+ * GrowthConsent cross-checks the tool against the current allowlisted route.
+ */
+export function reportPublicToolEvent(name:PublicToolEvent,tool:PublicTool):void{
+ if(typeof window==='undefined'||!safePublicToolEvent(name)||!safePublicTool(tool))return;
+ window.dispatchEvent(new CustomEvent('galaxiora:growth',{detail:{name,tool}}));
 }
 
 /** Map only preapproved public campaigns to GA4 fields, never copy raw UTM values.
