@@ -14,9 +14,9 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  if(!isPortalLocale(locale))return {};
  return {
   title:(locale==='uk'?'Натальна карта Джйотіш — D1, D9, D10':'Vedic Birth Chart Calculator — D1, D9, D10')+' — '+moduleTitle('jyotish'),
-  description:locale==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш із Swiss Ephemeris, накшатрами та періодами Даша.':'Free Jyotish Vedic birth chart using Swiss Ephemeris, Nakshatras, Navamsa and Vimshottari Dasha.',
+  description:locale==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш із Swiss Ephemeris, накшатрами та періодами Даша.':'Calculate a free Vedic birth chart (Kundli) using Swiss Ephemeris. Explore D1, D9, D10, your Moon sign, Nakshatra and Vimshottari Dasha.',
   robots:indexRobots(),
-  alternates:{canonical:'/'+locale+'/astrology/jyotish',languages:{en:'/en/astrology/jyotish',uk:'/uk/astrology/jyotish'}}
+  alternates:{canonical:'/'+locale+'/astrology/jyotish',languages:{en:'/en/astrology/jyotish',uk:'/uk/astrology/jyotish','x-default':'/en/astrology/jyotish'}}
  };
 }
 export default async function JyotishPage({params}:{params:Promise<{locale:string}>}){

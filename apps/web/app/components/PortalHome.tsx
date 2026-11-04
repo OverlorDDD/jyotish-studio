@@ -7,7 +7,7 @@ const COPY={
  en:{
   eyebrow:'GALAXIORA · A COSMIC SPACE FOR DISCOVERY',headline:'Astrology, Tarot & Panchanga.',emphasis:'Explore your universe.',
   intro:'Jyotish reveals the rhythms of destiny, Tarot speaks through symbols, and yoga brings you back to the power of breath. Explore your natal chart, draw the cards and find your practice today.',
-  explore:'Explore the space',jyotish:'Open Vedic birth chart',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
+  explore:'Explore the space',jyotish:'Free Vedic Birth Chart',panchanga:'Panchang Today',tarotAction:'Free Tarot Reading',choose:'Where will your journey begin?',sectionSub:'One platform, many ways to reflect and learn.',
   status:'Explore',ready:'Explore',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Astrology',description:'Calculate your Vedic birth chart, explore the D1/D9/D10 charts, nakshatras and personal planetary periods.',live:true},
@@ -23,7 +23,7 @@ const COPY={
  uk:{
   eyebrow:'GALAXIORA · ПРОСТІР КОСМІЧНОГО ПІЗНАННЯ',headline:'Астрологія, Таро та Панчанга.',emphasis:'Пізнавай свій Всесвіт.',
   intro:'Джйотіш відкриває ритми долі, Таро говорить мовою символів, а йога повертає до сили дихання. Відкрий свою натальну карту, обери розклад і знайди практику, що відгукнеться саме сьогодні.',
-  explore:'Дослідити платформу',jyotish:'Відкрити натальну карту Джйотіш',choose:'З чого почнеться твій шлях?',sectionSub:'Одна платформа, багато шляхів для навчання та рефлексії.',
+  explore:'Дослідити платформу',jyotish:'Натальна карта Джйотіш',panchanga:'Панчанга сьогодні',tarotAction:'Безкоштовний розклад Таро',choose:'З чого почнеться твій шлях?',sectionSub:'Одна платформа, багато шляхів для навчання та рефлексії.',
   status:'Дослідити',ready:'Дослідити',
   cards:[
    {slug:'astrology',icon:'orbit',title:'Астрологія',description:'Створи натальну карту Джйотіш, досліджуй D1/D9/D10, накшатри та власні планетні періоди.',live:true},
@@ -60,10 +60,11 @@ export default function PortalHome({locale}: {locale:PortalLocale}){
     <div className="as-eyebrow"><MoonStar size={16} /> {t.eyebrow}</div>
     <h1>{t.headline}<br/><em>{t.emphasis}</em></h1>
     <p>{t.intro}</p>
-    <div className="as-actions">
-     <a className="as-button as-button-primary" href="#explore">{t.explore}<ArrowUpRight size={18}/></a>
-     <Link className="as-button as-button-secondary" href={portalPath(locale,'astrology/jyotish')}>{t.jyotish}</Link>
-    </div>
+    <nav className="as-actions" aria-label={locale==='uk'?'Основні інструменти':'Start with a free tool'}>
+     <Link className="as-button as-button-primary" href={portalPath(locale,'astrology/jyotish')}>{t.jyotish}<ArrowUpRight size={18}/></Link>
+     <Link className="as-button as-button-secondary" href={portalPath(locale,'panchanga')}>{t.panchanga}</Link>
+     <Link className="as-button as-button-secondary" href={portalPath(locale,'tarot')}>{t.tarotAction}</Link>
+    </nav>
    </div>
    <div className="as-celestial as-celestial-vfx" aria-hidden="true">
     <span className="as-cosmic-core">☉</span>

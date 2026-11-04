@@ -5,7 +5,7 @@ import PanchangaHub from '../../components/PanchangaHub';
 import {PanchangaSearchGuide} from '../../components/SearchGuides';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
 import {indexRobots} from '../../../lib/site-indexing';
-const SEO_COPY={"uk":{"title":"Панчанга — ведичний календар і фази Місяця","description":"Панчанга для будь-якого міста світу: тітхі, накшатра, йога, карана, схід Сонця, місячні фази та ведичні свята."},"en":{"title":"Panchanga — Vedic Calendar and Moon Phases","description":"Worldwide Panchanga: tithi, nakshatra, yoga, karana, sunrise, lunar phases and traditional Vedic observances."}} as const;
+const SEO_COPY={"uk":{"title":"Панчанга сьогодні — Тітхі та Накшатра","description":"Панчанга сьогодні для вашого міста: місцевий час тітхі, накшатри, сходу Сонця, йоги та карани. Обирайте дату й місто для ведичного календаря."},"en":{"title":"Panchang Today by City — Tithi & Nakshatra","description":"Check today's Panchanga for your city: exact local tithi, nakshatra, sunrise, yoga, karana and traditional Vedic timing. Select your location and date."}} as const;
 export async function generateMetadata({params}:{params:Promise<{locale:string}>}):Promise<Metadata>{
  const {locale}=await params;
  if(!isPortalLocale(locale))return {};

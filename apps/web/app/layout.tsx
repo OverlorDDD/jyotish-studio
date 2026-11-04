@@ -37,11 +37,11 @@ export default async function RootLayout({children}:{children:React.ReactNode}){
   '@context':'https://schema.org',
   '@graph':[
    {'@type':'WebSite','@id':siteUrl+'/#website',name:BRAND.name,
-    alternateName:['galaxiora.com'],url:siteUrl+'/',
+    alternateName:['galaxiora.com','Галаксіора'],url:siteUrl+'/',
     description:'Galaxiora is a bilingual astrology, Tarot, Panchanga and learning platform.',
     inLanguage:['en','uk'],publisher:{'@id':siteUrl+'/#organization'}},
    {'@type':'Organization','@id':siteUrl+'/#organization',
-    name:BRAND.name,url:siteUrl+'/',
+    name:BRAND.name,alternateName:['galaxiora.com','Галаксіора'],url:siteUrl+'/',
     description:'Galaxiora is an online platform offering Vedic and Western astrology tools, Tarot, lunar calendars and original learning materials.',
     logo:{'@type':'ImageObject',url:siteUrl+'/galaxiora-logo-128.png',width:128,height:128}}
   ]
