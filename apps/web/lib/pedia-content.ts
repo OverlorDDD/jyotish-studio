@@ -8,7 +8,7 @@ export type PediaCategory='jyotish'|'western'|'panchanga'|'tarot'|'astronomy'|'p
 export type PediaArticle={
  slug:string;category:PediaCategory;minutes:number;title:PediaText;summary:PediaText;
  sections:{title:PediaText;paragraphs:PediaText[]}[];
- related:string[];tool:'panchanga'|'astrology/jyotish'|'horoscope'|'tarot'|'yoga';
+ related:string[];tool:'panchanga'|'astrology/jyotish'|'horoscope'|'tarot'|'yoga'|'eclipses/2027';
  references:{label:string;url:string}[];
 };
 export const PEDIA_CATEGORIES:{id:PediaCategory;title:PediaText;description:PediaText}[]=[
