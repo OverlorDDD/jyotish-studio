@@ -38,6 +38,8 @@ for(let i=0;i<limit;i++){
  const time=String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0');
  const lat=Number((-48+i*1.91).toFixed(4)),lon=Number((-150+i*6.07).toFixed(4));
  const tz=(i%19)-9;
+ // JHora rewrites jhora.ini after each session; restore pinned profile for every case.
+ writeFileSync(settings,ini);
  const args=['run','--package-path',kit,'jhora-extract',
   '--name',id,'--date',date,'--time',time,
   '--lat',String(lat),'--lon',String(lon),'--tz',String(tz),
