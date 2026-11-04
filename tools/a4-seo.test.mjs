@@ -28,7 +28,7 @@ test('A4 sitemap enumerates published tools but no future content or private vie
  // The sitemap grows as new PUBLIC, real guides are published. Do not pin
  // this 2026-10 list and reject approved pages in later releases.
  for(const path of ['','about','tarot','tarot/cards','astrology/jyotish',
-  'astrology/moon-sign-vs-sun-sign','yoga','learn','horoscope','panchanga',
+  'astrology/moon-sign-vs-sun-sign','yoga','pedia','horoscope','panchanga',
   'eclipses/2027','news','community','methodology'])
   assert.ok(SEO_PATHS.includes(path), 'published canonical route missing: '+path);
  assert.equal(new Set(SEO_PATHS).size, SEO_PATHS.length, 'no duplicate canonical pages');

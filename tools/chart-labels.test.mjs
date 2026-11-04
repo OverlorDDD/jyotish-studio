@@ -8,6 +8,7 @@ const demoCss=readFileSync(new URL('../apps/web/public/demo.css',import.meta.url
 const appCss=readFileSync(new URL('../apps/web/app/globals.css',import.meta.url),'utf8');
 const appPage=readFileSync(new URL('../apps/web/app/astrology/jyotish/page.tsx',import.meta.url),'utf8');
 const geometricChart=readFileSync(new URL('../apps/web/app/components/NorthIndianChart.tsx',import.meta.url),'utf8');
+const vargaExplorer=readFileSync(new URL('../apps/web/app/components/VargaExplorer.tsx',import.meta.url),'utf8');
 const report=readFileSync(new URL('../apps/web/app/components/DetailedReport.tsx',import.meta.url),'utf8');
 const start=source.indexOf('const xml =');
 const end=source.indexOf('\nfunction render()',start);
@@ -76,8 +77,9 @@ test('both web interfaces wrap the Ukrainian brand tag and constrain chart text'
   assert.ok(css.includes('.logo small{white-space:normal;'),'Brand tag may overflow');
   assert.ok(css.includes('.chart-svg{overflow:hidden}'),'SVG overflow must be clipped as a safety net');
  }
- assert.match(appPage,/NorthIndianChart planets=\{chart\.d1\}/);
- assert.match(appPage,/NorthIndianChart planets=\{placements\}/);
+ assert.match(appPage,/<VargaExplorer chart=\{chart\}/);
+ assert.match(vargaExplorer,/NorthIndianChart planets=\{\[\.\.\.chart\.d1\]\}/);
+ assert.match(vargaExplorer,/NorthIndianChart planets=\{positions\}/);
  assert.doesNotMatch(appPage,/function Wheel\(/);
  assert.match(geometricChart,/className="jy-south-chart"/);
  assert.match(geometricChart,/SOUTH_SIGN_GRID\.map/);

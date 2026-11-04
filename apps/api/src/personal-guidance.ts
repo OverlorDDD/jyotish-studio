@@ -5,14 +5,15 @@
 import type {dailyTransit} from './personal-transits.ts';
 import {readPublicSign} from './horoscope-editorial.ts';
 import {lifeSituation} from './personal-life-guidance.ts';
+import {n4DailyTheme,type N4PersonalPlacement} from './n4-personal-themes.ts';
 type L={uk:string;en:string};
 type Transit=Awaited<ReturnType<typeof dailyTransit>>;
 type Period={lord:string;start:string;end:string;antardasha?:{lord:string;start:string;end:string}|null};
 type Natal={name:string;sign:number};
 type Event={type:string;lord:string;date:string;atUtc:string};
-type Evidence={kind:string;method:string;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string;natalLagnaSign?:number;natalMoonSign?:number;natalMoonHouse?:number|null;majorNatalHouse?:number|null;minorNatalHouse?:number|null;natalPlanetHouse?:number|null;selection?:string};
+type Evidence={kind:string;method:string;n4Varga?:N4PersonalPlacement;day?:string;sampledAtUtc?:string;planet?:string;sign?:number;house?:number|null;nakshatra?:string;major?:string;minor?:string;natalLagnaSign?:number;natalMoonSign?:number;natalMoonHouse?:number|null;majorNatalHouse?:number|null;minorNatalHouse?:number|null;natalPlanetHouse?:number|null;selection?:string};
 type Brief={headline:L;description:L;action:L;goodFor:L;caution:L;evidence:Evidence};
-export type VerifiedNatalContext={lagnaSign:number;moonSign:number;natalPositions:Natal[];period:Period|null};
+export type VerifiedNatalContext={lagnaSign:number;moonSign:number;natalPositions:Natal[];period:Period|null;n4Placements?:readonly N4PersonalPlacement[]};
 const l=(uk:string,en:string):L=>({uk,en});
 const names:Record<string,L>={
  Sun:l('Сонця','Sun'),Moon:l('Місяця','Moon'),Mars:l('Марса','Mars'),Mercury:l('Меркурія','Mercury'),
@@ -139,6 +140,7 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
  const house=featured?.houseFromLagna??moonHouse;
  if(house==null)return null;
  const scene=lifeSituation(house),planet=featured?.name||'Moon';
+ const n4=n4DailyTheme(house,planet,context.n4Placements);
  const natal=context.natalPositions.find(p=>p.name===planet);
  const majorLabel=major&&names[major]?names[major]:null,minorLabel=minor&&names[minor]?names[minor]:null;
  return {
@@ -146,13 +148,15 @@ export function buildDailyGuidance(t:Transit|null,context:VerifiedNatalContext|n
   description:l(
    [scene.story.uk,
     majorLabel?'На ширшому тлі період '+majorLabel.uk+' в традиції пов’язують із темою '+qualities[major!].uk+'.':null,
-    minorLabel?'Підперіод '+minorLabel.uk+' звертає увагу на питання '+qualities[minor!].uk+'.':null].filter(Boolean).join(' '),
+    minorLabel?'Підперіод '+minorLabel.uk+' звертає увагу на питання '+qualities[minor!].uk+'.':null,
+    n4?.text.uk||null].filter(Boolean).join(' '),
    [scene.story.en,
     majorLabel?'The longer '+majorLabel.en+' period is associated with '+qualities[major!].en+'.':null,
-    minorLabel?'The '+minorLabel.en+' subperiod also concerns '+qualities[minor!].en+'.':null].filter(Boolean).join(' ')
+    minorLabel?'The '+minorLabel.en+' subperiod also concerns '+qualities[minor!].en+'.':null,
+    n4?.text.en||null].filter(Boolean).join(' ')
   ),
   goodFor:scene.goodFor,caution:scene.caution,action:scene.action,
-  evidence:{kind:'VERIFIED_NATAL_TRANSIT_DASHA',method:t.method,day:t.date,sampledAtUtc:t.sampledAtUtc,
+  evidence:{kind:'VERIFIED_NATAL_TRANSIT_DASHA',method:t.method,...(n4?{n4Varga:n4.evidence}:{}),day:t.date,sampledAtUtc:t.sampledAtUtc,
    planet,sign:featured?.sign??t.moon.sign,house,nakshatra:t.moon.nakshatra,
    natalLagnaSign:context.lagnaSign,natalMoonSign:context.moonSign,natalMoonHouse,
    major,minor,majorNatalHouse,minorNatalHouse,

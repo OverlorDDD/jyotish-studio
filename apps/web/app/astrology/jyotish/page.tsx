@@ -7,7 +7,7 @@ import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 const AccountPortal=dynamic(()=>import('../../components/AccountPortal'),{loading:()=>null});
-import NorthIndianChart from '../../components/NorthIndianChart';
+import VargaExplorer from '../../components/VargaExplorer';
 import CitySearch from '../../components/CitySearch';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
@@ -56,7 +56,7 @@ const nakshatraName=(name:string,lang:'en'|'uk')=>lang==='uk'?(NAKSHATRA_UK[name
 const grahaFull=(name:string,lang:'en'|'uk')=>lang==='uk'?(GRAHA_UK[name]||name):name;
 const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-1];
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
- const lang=initialLang; const [form,setForm]=useState<Form>(CITY.delhi),[cityReset,setCityReset]=useState(0),[chart,setChart]=useState<Chart|null>(null),[tab,setTab]=useState<'d1'|'d9'|'d10'>('d1'),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
+ const lang=initialLang; const [form,setForm]=useState<Form>(CITY.delhi),[cityReset,setCityReset]=useState(0),[chart,setChart]=useState<Chart|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
  const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false}|null>(null);
@@ -135,23 +135,22 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    setInterpretation(error instanceof Error?error.message:String(error));
   }finally{setAiBusy(false);}
  }
- const placements=chart?.[tab]||[];
  const moon=chart?.d1.find(x=>x.name==='Moon');
  const now=Date.now();
  const activeDasha=chart?.dasha.find(d=>Date.parse(d.start)<=now&&Date.parse(d.end)>now);
  const activeAntar=activeDasha?.antardashas.find(a=>Date.parse(a.start)<=now&&Date.parse(a.end)>now);
- const tabLagna=tab==='d1'?chart?.ascendant:tab==='d9'?chart?.lagnaD9:chart?.lagnaD10;
  return <div className="jy-workbench jy-portal-workbench">
   <aside className="sidebar jy-section-nav" aria-label={lang==='uk'?'Навігація Джйотіш':'Jyotish navigation'}>
 
    <div className="side-section">{lang==='uk'?'ДЖЙОТІШ':'JYOTISH'}</div>
    <nav className="side-nav">
-    <a href="#calculator" className="active"><Compass size={17}/> {lang==='uk'?'Карта D1':'D1 chart'}</a>
+    <a href="#calculator" className="active"><Compass size={17}/> {lang==='uk'?'Розрахунок':'Calculator'}</a>
+    <a href="#varga-explorer"><Orbit size={17}/> {lang==='uk'?'16 дробових карт':'16 divisional charts'}</a>
     <a href="#chart-data"><Orbit size={17}/> {lang==='uk'?'Дані карти':'Chart data'}</a>
     <a href="#timeline"><Clock3 size={17}/> {lang==='uk'?'Даші':'Dashas'}</a>
     <a href="#interpretation"><Sparkles size={17}/> {lang==='uk'?'AI-трактування':'AI reading'}</a>
    </nav>
-   <div className="side-bottom"><span className="live-dot"/>{lang==='uk'?'Обчислювальне ядро Джйотіш':'Deterministic Jyotish Core'}<p>LAHIRI · D1 / D9 / D10</p></div>
+   <div className="side-bottom"><span className="live-dot"/>{lang==='uk'?'Обчислювальне ядро Джйотіш':'Deterministic Jyotish Core'}<p>LAHIRI · D1–D60</p></div>
   </aside>
   <div className="main">
    <div className="content" id="calculator">
@@ -178,13 +177,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <p className={`status ${error?'error':''}`} role="status">{status}</p>
     </details>
 
-    <section className="jy-primary-grid">
-     <div className="panel jy-rashi-card">
-      <div className="jy-card-head"><div><span>{lang==='uk'?'РАШІ · ОСНОВНА КАРТА':'RASHI · MAIN CHART'}</span><h2>D1</h2></div>{chart&&<div className="jy-lagna-chip"><span>Lg</span><strong>{SIGN_SYMBOL[chart.ascendant.sign-1]} {signFull(chart.ascendant.sign,lang)}</strong><small>{degreeLabel(chart.ascendant.degreesInSign)}</small></div>}</div>
-      <div className="jy-primary-chart">{chart?<NorthIndianChart planets={chart.d1} division="d1" lang={lang} lagna={chart.ascendant}/>:<div className="jy-empty-chart"><span>☉</span><strong>{i.waiting}</strong><small>{lang==='uk'?'Після розрахунку тут зʼявиться D1':'Your D1 chart will appear here'}</small></div>}</div>
-     </div>
-
-    </section>
+    <VargaExplorer chart={chart} lang={lang}/>
 
     <section className="jy-ai-launch">
      <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'Одна хмарна консультація за точно обчисленою картою. Якщо модель недоступна, Reader v6 залишається доступним.':'One cloud consultation grounded in the calculated chart. Reader v6 remains available if the provider is offline.'}</small></span><ArrowUpRight size={20}/></button>
@@ -231,20 +224,6 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <div className="jy-section-rule"/>
      <div className="jy-subhead"><div><span>{lang==='uk'?'ПЛАНЕТИ':'PLANETS'}</span><h3>{lang==='uk'?'Зведена таблиця':'Summary table'}</h3></div><small>{lang==='uk'?'D1 · знаки · доми · накшатри':'D1 · signs · houses · nakshatras'}</small></div>
      <div className="table-scroll jy-planet-table"><table><thead><tr><th>{lang==='uk'?'Планета':'Planet'}</th><th>{lang==='uk'?'Знак':'Sign'}</th><th>{lang==='uk'?'Градус':'Degree'}</th><th>{lang==='uk'?'Дім':'House'}</th><th>{lang==='uk'?'Накшатра':'Nakshatra'}</th><th>{lang==='uk'?'Рух':'Motion'}</th></tr></thead><tbody>{chart?chart.d1.map(p=><tr key={p.name}><td><span className="jy-table-symbol">{GRAHA_SYMBOL[p.name]||'•'}</span><strong>{grahaFull(p.name,lang)}</strong></td><td><span className="jy-sign-cell">{SIGN_SYMBOL[p.sign-1]}</span>{signFull(p.sign,lang)}</td><td>{degreeLabel(p.degreesInSign)}</td><td><span className="jy-house-badge">{p.house}</span></td><td>{nakshatraName(p.nakshatra,lang)} <small>· {lang==='uk'?'пада':'pada'} {p.pada}</small></td><td>{p.retrograde?<span className="jy-retro">℞ {lang==='uk'?'ретро':'retro'}</span>:<span className="jy-direct">{lang==='uk'?'прямий':'direct'}</span>}</td></tr>):<tr><td colSpan={6} className="empty-table">{i.waiting}</td></tr>}</tbody></table></div>
-
-     <div className="jy-section-rule"/>
-     <div className="jy-subhead"><div><span>{lang==='uk'?'ДРОБОВІ КАРТИ':'DIVISIONAL CHARTS'}</span><h3>{lang==='uk'?'Варги':'Vargas'}</h3></div><div className="tab-group jy-varga-tabs">{(['d1','d9','d10'] as const).map(type=><button key={type} className={'chart-tab '+(tab===type?'selected':'')} onClick={()=>setTab(type)}>{type.toUpperCase()}</button>)}</div></div>
-     <div className="jy-varga-grid">
-      <div className="jy-varga-chart">{chart&&tabLagna?<NorthIndianChart planets={placements} division={tab} lang={lang} lagna={tabLagna}/>:<div className="jy-empty-chart small">{i.waiting}</div>}</div>
-      <div className="jy-varga-data">
-       <h4>{tab==='d1'?(lang==='uk'?'D1 · Раші':'D1 · Rashi'):tab==='d9'?(lang==='uk'?'D9 · Навамша':'D9 · Navamsa'):(lang==='uk'?'D10 · Дашамша':'D10 · Dashamsa')}</h4>
-       <p>{tab==='d1'?(lang==='uk'?'Основна натальна карта та система дванадцяти домів.':'Primary natal chart and twelve-house structure.'):tab==='d9'?(lang==='uk'?'Додатковий зріз для зрілості цінностей, партнерства та внутрішньої сили планет.':'A divisional perspective used for values, partnership and maturation of planetary themes.'):(lang==='uk'?'Додатковий зріз професійної реалізації, відповідальності та ролі у світі.':'A divisional perspective used for vocation, responsibility and public contribution.')}</p>
-       <div className="jy-varga-list">{chart&&tabLagna&&<>
-        <div><span>{lang==='uk'?'Лагна варги':'Varga lagna'}</span><strong>{SIGN_SYMBOL[tabLagna.sign-1]} {signFull(tabLagna.sign,lang)}</strong></div>
-        {placements.slice(0,9).map(p=><div key={p.name}><span>{GRAHA_SYMBOL[p.name]} {grahaFull(p.name,lang)}</span><strong>{SIGN_SYMBOL[p.sign-1]} {signFull(p.sign,lang)} · {lang==='uk'?'дім':'house'} {p.house}</strong></div>)}
-       </>}</div>
-      </div>
-     </div>
 
      <div className="jy-section-rule" id="timeline"/>
      <div className="jy-subhead"><div><span>{lang==='uk'?'ЧАСОВІ ЦИКЛИ':'TIMING CYCLES'}</span><h3>{lang==='uk'?'Вімшоттарі-даша':'Vimshottari dasha'}</h3></div>{activeDasha&&<small>{lang==='uk'?'Активно зараз':'Active now'}: {grahaFull(activeDasha.lord,lang)}{activeAntar?' / '+grahaFull(activeAntar.lord,lang):''}</small>}</div>

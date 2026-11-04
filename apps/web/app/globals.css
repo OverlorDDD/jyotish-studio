@@ -1281,3 +1281,70 @@
  .as-account-popover.as-account-dialog{padding:24px 14px 18px}
  .as-brand small{font-size:7px;letter-spacing:.5px}
 }
+
+/* N4 Shodashavarga Explorer — above the report, mobile-first, dark galaxy #6 safe */
+.n4-explorer{display:grid;gap:21px;margin:22px 0 28px;padding:clamp(16px,3vw,30px)!important;min-width:0}
+.n4-intro{display:flex;align-items:start;justify-content:space-between;gap:18px}
+.n4-intro h2{margin:7px 0;font-family:'Playfair Display',Georgia,serif;font-size:clamp(23px,3vw,33px);line-height:1.2;color:#f5e6c6}
+.n4-intro p,.n4-chart-head p,.n4-data>p,.n4-method-note{line-height:1.62;color:#adbaca}
+.n4-intro p{max-width:670px;margin:5px 0 0}
+.n4-count{display:flex;align-items:end;flex-direction:column;flex-shrink:0;font-size:35px;line-height:1;font-weight:700;color:#dec18d}
+.n4-count small{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.12em;margin-top:7px}
+.n4-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;width:100%;min-width:0}
+.n4-tabs button{display:flex;align-items:center;gap:9px;justify-content:flex-start;min-height:54px;width:100%;min-width:0;padding:10px 12px;background:#111c2c;border:1px solid #344252;border-radius:10px;color:#e9dcbe;font-size:15px;font-weight:700;text-align:left;transition:background .15s,border-color .15s}
+.n4-tabs button span{font-size:11px;line-height:1.25;font-weight:400;color:#b5c0cc}
+.n4-tabs button:hover{background:#203044;border-color:#9c855f}
+.n4-tabs button.selected{background:#353125;border:1px solid #dec08b;box-shadow:inset 0 0 0 1px #dec08b22}
+.n4-tabs button:focus-visible,.n4-matrix-toggle:focus-visible{outline:3px solid #ecc48d;outline-offset:3px}
+.n4-chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #334051;padding-top:18px}
+.n4-chart-head h3{margin:0 0 6px;color:#f3deba;font-size:20px}
+.n4-chart-head p{margin:0;max-width:670px}
+.n4-caution{display:inline-flex;border:1px solid #a9834a;border-radius:8px;color:#f1d4a6;font-size:12px;padding:8px 10px}
+.n4-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;min-width:0}
+.n4-comparison article{display:grid;align-content:start;gap:12px;min-width:0;padding:14px;background:#101a2a;border:1px solid #354255;border-radius:14px}
+.n4-comparison article h4{margin:0;color:#eac88a;font-size:14px;letter-spacing:.04em}
+.n4-comparison .jy-south-chart{max-width:570px;width:100%;margin:0 auto}
+.n4-data{border-top:1px solid #344254;padding-top:12px}
+.n4-data h4{color:#f3d9a3;font-size:16px;margin:5px 0}
+.n4-placements{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.n4-placements>div{display:flex;align-items:start;flex-direction:column;gap:4px;min-width:0;border:1px solid #344153;background:#121f30;border-radius:9px;padding:11px}
+.n4-placements span{font-size:12px;color:#aebbcc}
+.n4-placements strong{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.n4-matrix-toggle{justify-self:start;background:transparent;color:#eac68c;border:1px solid #8e784f;border-radius:9px;min-height:44px;padding:9px 14px;font-weight:600}
+.n4-matrix{max-width:100%;overflow-x:auto}
+.n4-matrix table{border-collapse:collapse;font-size:12px;white-space:nowrap;width:max-content;min-width:100%}
+.n4-matrix th,.n4-matrix td{border-bottom:1px solid #384357;text-align:left;padding:10px 12px}
+.n4-matrix thead{color:#ead09f}
+.n4-method-note{margin:0;font-size:12px;border-left:3px solid #8c774f;padding-left:12px}
+@media(max-width:1020px){
+ .n4-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .n4-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .n4-comparison{grid-template-columns:minmax(0,1fr)}
+ .n4-comparison article{padding:11px}
+ .n4-placements{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .n4-chart-head{align-items:start;flex-direction:column}
+ .n4-intro h2{font-size:24px}
+}
+@media(max-width:390px){
+ .n4-tabs{gap:6px}
+ .n4-tabs button{min-height:50px;padding:9px 7px;gap:5px;font-size:13px}
+ .n4-tabs button span{font-size:10px}
+ .n4-placements{grid-template-columns:1fr}
+ .n4-count{font-size:26px}
+}
+
+/* N4 SEO guide: visible, original and crawlable bilingual explanatory content */
+.n4-seo-guide{padding-top:26px;padding-bottom:26px}
+.n4-seo-guide h2{max-width:850px;line-height:1.18}
+.n4-seo-guide>div>p{max-width:890px;line-height:1.7}
+.n4-seo-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:22px 0 24px}
+.n4-seo-list article{min-width:0;background:#111c2b;border:1px solid #354255;border-radius:11px;padding:14px}
+.n4-seo-list article h3{color:#e8c78c;font-size:14px;line-height:1.4;margin:0 0 7px}
+.n4-seo-list article p{color:#afbbcb;font-size:12px;line-height:1.55;margin:0}
+.n4-seo-guide .as-faq-item{border-bottom:1px solid #354255;padding:11px 0}
+.n4-seo-guide .as-faq-item summary{cursor:pointer;color:#f0dbb9;font-weight:600}
+.n4-seo-guide .as-faq-item p{line-height:1.7;max-width:800px;color:#bac4d0}
+@media(max-width:930px){.n4-seo-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.n4-seo-list{grid-template-columns:1fr}.n4-seo-list article{padding:12px}}
