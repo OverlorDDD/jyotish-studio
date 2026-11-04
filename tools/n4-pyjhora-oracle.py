@@ -4,7 +4,10 @@ Used only in isolated CI; PyJHora (AGPL) is NOT copied into Galaxiora or product
 No person/birthdate/location data: synthetic sidereal longitudes only.
 """
 import json, sys
-from jhora.horoscope.chart import charts
+from contextlib import redirect_stdout
+# PyJHora writes an import-time diagnostic to stdout. It is NOT reference JSON.
+with redirect_stdout(sys.stderr):
+    from jhora.horoscope.chart import charts
 
 METHODS = {1:None,2:2,3:1,4:1,7:1,9:1,10:1,12:1,16:1,20:1,24:1,27:1,30:1,40:1,45:1,60:1}
 NAMES = ("Ascendant","Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu")
