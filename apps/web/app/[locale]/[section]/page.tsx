@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import {notFound,redirect} from 'next/navigation';
+import {notFound,redirect,permanentRedirect} from 'next/navigation';
 import PortalSection,{isPortalSection,SECTIONS,SECTION_COPY} from '../../components/PortalSection';
 import {BRAND,moduleTitle,isPortalLocale,portalPath,type PortalLocale} from '../../../lib/brand';
 import {indexRobots,INDEXED_SECTIONS} from '../../../lib/site-indexing';
@@ -27,5 +27,6 @@ export default async function SectionPage({params}:{params:Promise<{locale:strin
  const {locale,section}=await params;
  if(!isPortalLocale(locale)||!isPortalSection(section))notFound();
  if(section==='experts')redirect(portalPath(locale,'tarot')+'#human-readings');
+ if(section==='learn')permanentRedirect('/'+locale+'/pedia');
  return <PortalSection locale={locale as PortalLocale} section={section}/>;
 }

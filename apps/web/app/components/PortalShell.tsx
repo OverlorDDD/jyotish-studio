@@ -6,8 +6,8 @@ import GlobalAccount from './GlobalAccount';
 
 type Props={locale:PortalLocale;children:React.ReactNode;active?:string;languagePath?:string};
 const LABELS={
- en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'Learn',news:'News',community:'Community',horoscope:'Horoscopes',panchanga:'Panchanga',personal:'Personal',language:'Language',caption:'A place for celestial wisdom and mindful practice',disclaimer:'Discover Jyotish, Tarot, lunar calendars and mindful living.'},
- uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'Знання',news:'Новини',community:'Форум',horoscope:'Гороскопи',panchanga:'Панчанга',personal:'Мій Всесвіт',language:'Мова',caption:'Простір астрології, Таро та живих практик',disclaimer:'Джйотіш, Таро, місячний календар та щоденні практики.'}
+ en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'GalaxiPedia',news:'News',community:'Community',horoscope:'Horoscopes',panchanga:'Panchanga',personal:'Personal',language:'Language',caption:'A place for celestial wisdom and mindful practice',disclaimer:'Discover Jyotish, Tarot, lunar calendars and mindful living.'},
+ uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'GalaxiPedia',news:'Новини',community:'Форум',horoscope:'Гороскопи',panchanga:'Панчанга',personal:'Мій Всесвіт',language:'Мова',caption:'Простір астрології, Таро та живих практик',disclaimer:'Джйотіш, Таро, місячний календар та щоденні практики.'}
 } as const;
 const SECTIONS=['astrology','tarot','yoga','learn','news','community'] as const;
 export default function PortalShell({locale,children,active='',languagePath}:Props){

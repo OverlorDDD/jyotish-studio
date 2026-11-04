@@ -33,7 +33,7 @@ test('SEO includes finished News and Community while account/admin stay private;
  expect(xml).toContain('https://galaxiora.example/uk/astrology/jyotish');
  expect(xml).toContain('https://galaxiora.example/en/tarot');
  expect(xml).toContain('https://galaxiora.example/uk/yoga');
- expect(xml).toContain('https://galaxiora.example/en/learn');
+ expect(xml).toContain('https://galaxiora.example/en/pedia');
  expect(xml).toContain('https://galaxiora.example/uk/news');
  expect(xml).toContain('https://galaxiora.example/en/community');
  expect(xml).toContain('https://galaxiora.example/uk/panchanga');
