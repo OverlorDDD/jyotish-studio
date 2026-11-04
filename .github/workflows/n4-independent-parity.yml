@@ -6,6 +6,7 @@ on:
       - 'packages/jyotish-core/src/vargas.ts'
       - 'tools/n4-pyjhora-oracle.py'
       - 'tools/n4-pyjhora-compare.mjs'
+      - 'tools/n4-jhora-public-sample.test.mjs'
       - '.github/workflows/n4-independent-parity.yml'
   workflow_dispatch:
 jobs:
@@ -21,6 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify actual public JHora8 sample and document 44 convention differences
+        run: |
+          curl --fail --location --retry 3 --connect-timeout 20 \
+            'https://raw.githubusercontent.com/normalmystic/JHoraKit/f63826b501eabe69c6b08c5365875e1e2f74c24a/sample-data/Mahatma_Gandhi/chart.json' \
+            -o /tmp/n4-real-jhora-public-sample.json
+          node --experimental-strip-types tools/n4-jhora-public-sample.test.mjs /tmp/n4-real-jhora-public-sample.json
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
