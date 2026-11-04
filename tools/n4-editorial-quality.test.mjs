@@ -80,8 +80,9 @@ test('N4 cloud adapter sees only verified facts and rejects missing two D lenses
    'An opportunity is to build a clear agreement; the friction is that good intentions alone do not organize a shared budget.',
    'In D9 a partnership can be understood through repeated decisions rather than promises. '+
    'In D10 career responsibility can show itself when deadlines compete with careful training.',
-   include?('D'+themes[0].division+' and D'+themes[1].division+
-    ' illustrate a distinct way to make a choice. For example, write down the commitments before agreeing to take on a new role. '):'',
+   include?('D'+themes[0].division+' '+themes[0].anchor+' house='+themes[0].vargaAnchorHouse+
+    ' and D'+themes[1].division+' '+themes[1].anchor+' house='+themes[1].vargaAnchorHouse+
+    ' illustrate different ways to make a choice. For example, write down the commitments before agreeing to take on a new role. '):'',
    'A constructive next step is to keep a short weekly review of responsibilities, and to ask for specific feedback before making a new commitment. '+
    'A second practice is to compare two feasible options by their time cost, not by an unsupported prediction.'];
   return Array(3).fill(sentences.join('\n\n')).join('\n\n')+'.';

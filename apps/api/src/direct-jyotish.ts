@@ -1,6 +1,7 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {compactN4VargaFacts,n4AiEligible,N4_AI_INSTRUCTION} from './n4-varga-evidence.ts';
 import {selectN4NarrativeThemes,compactN4NarrativeBrief,reviewN4Narrative} from './n4-interpretation-brief.ts';
+import {auditN4ExplicitClaims} from './n4-ai-claims.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
@@ -181,9 +182,13 @@ export async function generateDirectJyotish(
     // Historical Reader v6 and ordinary Direct v2 responses are untouched.
     if(n4Themes){
      const n4Review=reviewN4Narrative(content,n4Themes);
-     if(n4Review.codes.length){
+     const checked=auditN4ExplicitClaims(content,chart);
+     const problems=[...n4Review.codes,
+      ...(checked.errors.length?['n4_explicit_planet_sign_or_house_mismatch']:[]),
+      ...(checked.correct<2?['n4_insufficient_two_verified_placement_claims']:[])];
+     if(problems.length){
       reason='invalid_response';
-      const issue=n4Review.codes.join(',');
+      const issue=problems.join(',');
       diagnostic(provider,'validation',issue);
       console.warn('Direct Jyotish N4 editorial review rejected='+issue);
       if(attempt===0)continue; // Existing bounded retry; not a separate uncontrolled AI call.
