@@ -18,7 +18,7 @@ OPTIONAL N4 VERIFIED VARGA EXTENSION:
 - Do not present a promise of marriage, children, illness or financial results. Do not add unsupported technical placements.
 - If the supplementary evidence is absent, work entirely from the original D1/D9/D10 facts.`;
 const EXTENDED:[number,string][]=[
- [2,'resources'],[3,'initiative'],[4,'home'],[7,'children-and-creativity'],[12,'parents-and-family'],
+ [2,'resources'],[3,'siblings-and-courage'],[4,'home'],[7,'children-and-lineage'],[12,'parents-and-family'],
  [16,'comfort'],[20,'spiritual-practice'],[24,'education'],[27,'resilience'],
  [30,'obstacles'],[40,'maternal-line'],[45,'paternal-line']
 ];
