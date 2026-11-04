@@ -1,0 +1,6 @@
+"period","data_source","source_medium","landing_page","country","search_impressions","search_clicks","ga4_sessions","ga4_engaged_sessions","event_counts","qualified_external_tool_completions","external_identity_confidence","evidence","notes"
+"2026-11-01","Google Search Console","organic search","all reported pages","","12","0","","","","","unknown","A first-party; delayed","Observed impressions; no public tool completion can be inferred"
+"2026-11-03","GA4","direct / none","/en","Ukraine","","","1","1","","","unknown","A first-party; consent limited","One session from Ukraine; could be owner QA"
+"2026-11-03","GA4","direct / none","/en/astrology/jyotish","Ukraine","","","1","1","","","unknown","A first-party; consent limited","One session from Ukraine; could be owner QA"
+"2026-11-01..2026-11-04","GA4 event breakdown","all observed","all","","","","","","page_view=5;galaxiora_debug_ping=4;user_engagement=4;first_visit=2;session_start=2","","unknown","A first-party; mixed date range","The public tool funnel events did not exist in production yet"
+"future weekly review","GSC + GA4 + Server aggregate","organic/referral/social/paid","/en/astrology/jyotish|/en/panchanga|/en/tarot","","","","","","","","unknown","awaiting deployment and external traffic","Fill only verified evidence; separately distinguish server request counters from human visits"
