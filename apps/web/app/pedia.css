@@ -134,3 +134,13 @@
  .as-pedia-topic-card{transition:none}
  .as-pedia-topic-card:hover{transform:none}
 }
+
+/* Detail-page links: each guide and Academy lesson returns to its canonical topic. */
+.as-pedia-breadcrumb{
+ display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;
+ color:#bdccda;font-size:12px;line-height:1.6;margin:0 0 24px;
+}
+.as-pedia-breadcrumb a{display:inline-flex;align-items:center;gap:7px;color:#f1d39f!important;text-decoration:underline!important;text-underline-offset:3px}
+.as-pedia-breadcrumb a:hover{color:#fff1ca!important}
+.as-pedia-breadcrumb [aria-current="page"]{color:#d1dbe6;overflow-wrap:anywhere}
+@media(max-width:650px){.as-pedia-breadcrumb{gap:5px 8px;margin-bottom:17px;font-size:11px}}
