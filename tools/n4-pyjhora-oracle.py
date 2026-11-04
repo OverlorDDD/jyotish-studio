@@ -25,15 +25,18 @@ def main():
             longitude = float(item["longitudes"][name]) % 360.0
             d1.append([name, [int(longitude//30), longitude%30]])
         expected = {}
-        for division, method in METHODS.items():
-            if division == 1:
-                mapped = d1
-            else:
-                mapped = charts.divisional_positions_from_rasi_positions(
-                    d1,divisional_chart_factor=division,chart_method=method)
-            expected["D"+str(division)] = {
-                str(name): int(sign)+1 for name,(sign, _deg) in mapped
-            }
+        # PyJHora library routines can print diagnostics. They belong in stderr,
+        # never in the JSON transport that carries independently computed signs.
+        with redirect_stdout(sys.stderr):
+            for division, method in METHODS.items():
+                if division == 1:
+                    mapped = d1
+                else:
+                    mapped = charts.divisional_positions_from_rasi_positions(
+                        d1,divisional_chart_factor=division,chart_method=method)
+                expected["D"+str(division)] = {
+                    str(name): int(sign)+1 for name,(sign, _deg) in mapped
+                }
         results.append({"id":item["id"],"signs":expected})
     json.dump({"provider":"PyJHora","version":actual_version,"methods":METHODS,"cases":results},sys.stdout)
 
