@@ -54,6 +54,11 @@ test('N4: 360px chart pairing has no document horizontal overflow',async({page})
 
 test('N4 no-AI reader: five evidence-linked sections render clearly on 360px mobile',async({page})=>{
  await page.setViewportSize({width:360,height:780});
+ await page.route('**/api/v1/jyotish/runtime',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({
+   readerVersion:'6.0.0',pipeline:'direct-v2',verificationContract:'jyotish-integrity-v3'
+  })
+ }));
  await page.route('**/api/v1/charts/calculate',route=>route.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify(sample)
  }));
