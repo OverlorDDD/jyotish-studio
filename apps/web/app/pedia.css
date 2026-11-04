@@ -1,0 +1,136 @@
+/* GP-UX-1: GalaxiPedia search-first IA. Scoped to the Pedia landing only.
+   Preserve all shared yoga, Academy article, navigation, and personal styles. */
+.as-pedia{max-width:1250px}
+.as-pedia-intro{
+ position:relative;isolation:isolate;overflow:hidden;
+ border:1px solid #50536e;border-radius:23px;
+ background:radial-gradient(ellipse at 86% 6%,#524f7e70,transparent 48%),
+  linear-gradient(115deg,#21283e,#122339 88%);
+ padding:clamp(20px,3.2vw,38px);
+ margin-bottom:16px
+}
+.as-pedia-intro::after{
+ content:"✧";position:absolute;z-index:-1;right:5%;top:-22px;
+ font:200 clamp(100px,15vw,200px)/1 Georgia,serif;color:#f1d6a112;pointer-events:none
+}
+.as-pedia-intro h1{
+ font:500 clamp(30px,4.1vw,49px)/1.13 'Playfair Display',Georgia,serif;
+ letter-spacing:-.03em;max-width:850px;margin:11px 0 13px;color:#f8ead3
+}
+.as-pedia-intro>p{max-width:76ch;color:#d2d9e5;font-size:15px;line-height:1.7;margin:0}
+.as-pedia-intro-meta{display:flex;align-items:center;gap:9px 18px;flex-wrap:wrap;margin-top:15px;font-size:12px;color:#d7c6ac}
+.as-pedia-intro-meta>span{white-space:nowrap}
+.as-pedia-intro-meta>a{display:inline-flex;align-items:center;gap:6px;color:#f3d59f!important;text-decoration:underline;text-underline-offset:4px}
+.as-pedia-intro-meta>a:hover{color:#fff0cc!important}
+
+.as-pedia-search-panel{
+ border:1px solid #b39365;border-radius:22px;
+ background:linear-gradient(120deg,#28334a,#1a2940 75%);
+ box-shadow:0 14px 44px #080e2038;padding:clamp(18px,2.9vw,30px);
+ margin-bottom:29px
+}
+.as-pedia-search-panel label{display:block;font-weight:700;font-size:16px;margin-bottom:12px;color:#f4dfba}
+.as-pedia-search-controls{display:flex;align-items:stretch;gap:12px}
+.as-pedia-search-field{
+ display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;
+ border:1px solid #8595ad;background:#0b1729d9;color:#d7b881;
+ border-radius:13px;padding:0 13px;min-height:58px
+}
+.as-pedia-search-field:focus-within{border-color:#f6d29c;outline:3px solid #f7d79980;outline-offset:2px}
+.as-pedia-search-field input{
+ min-width:0;width:100%;flex:1 1 auto;padding:14px 0;border:0;
+ background:transparent;color:#f5f0e8;font-size:16px;
+ outline:none!important;box-shadow:none
+}
+.as-pedia-search-field input::placeholder{color:#adbdce;opacity:1}
+.as-pedia-search-field input::-webkit-search-cancel-button{display:none}
+.as-pedia-clear{
+ display:grid;place-items:center;flex:0 0 44px;height:44px;
+ padding:0;border:0;border-radius:9px;background:transparent;color:#e5d5bb
+}
+.as-pedia-clear:hover{background:#ffffff1b}
+.as-pedia-search-submit{
+ display:inline-flex;gap:9px;align-items:center;justify-content:center;
+ border:1px solid #e5c48e;border-radius:12px;background:#dfba81;
+ color:#172234;padding:0 20px;font-size:14px;font-weight:700;
+ min-width:143px;min-height:58px
+}
+.as-pedia-search-submit:hover{background:#f0d09f}
+.as-pedia-search-hint{font-size:12px;color:#bdcadb;line-height:1.55;margin:12px 0 0!important}
+
+.as-pedia-catalog{margin-bottom:45px;scroll-margin-top:95px}
+.as-pedia-library-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px 18px;margin-bottom:19px}
+.as-pedia-library-head h2,.as-pedia-topic-heading h2{
+ font:500 clamp(27px,3vw,37px)/1.2 'Playfair Display',Georgia,serif;
+ margin:10px 0 8px;color:#f1e4ce
+}
+.as-pedia-library-head p:not(.as-pedia-progress),.as-pedia-topic-heading p{
+ color:#b7c6d6;font-size:14px;line-height:1.65;margin:0
+}
+.as-pedia-progress{font-size:12px!important;color:#d3c6b4!important;margin:0!important}
+.as-pedia-progress strong{color:#f4d29c;font-size:15px}
+.as-pedia-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.as-pedia-filter{
+ border:1px solid #55657c;border-radius:999px;min-height:42px;
+ padding:9px 15px;background:#1b293d;color:#d7e0ea;
+ font-size:12px;line-height:1.25;font-weight:600
+}
+.as-pedia-filter:hover{border-color:#b7a078;color:#f2ddb6}
+.as-pedia-filter[aria-pressed="true"]{background:#d9b77f;border-color:#d9b77f;color:#172332;font-weight:700}
+.as-pedia-results-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;scroll-margin-top:105px}
+.as-pedia-results-head p{font-size:13px;color:#bfcddd;margin:0!important}
+.as-pedia-results-head strong{color:#f3d49d;font-variant-numeric:tabular-nums}
+.as-pedia-reset{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 11px;background:#27344a;border:1px solid #8c7a66;border-radius:8px;color:#f1d6a9;font-size:12px}
+.as-pedia-reset:hover{background:#34445e}
+.as-pedia-result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.as-pedia-result-card{
+ display:flex;flex-direction:column;gap:12px;min-width:0;
+ padding:21px 19px;border-radius:16px;background:linear-gradient(145deg,#1d2b3d,#132236);
+ min-height:0
+}
+.as-pedia-result-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-size:11px;line-height:1.5;color:#d5bd91}
+.as-pedia-result-card h3{font:500 clamp(19px,2vw,24px)/1.3 'Playfair Display',Georgia,serif;color:#f2e3cf;margin:0}
+.as-pedia-result-card p{
+ font-size:13px;line-height:1.65;color:#bdcada;
+ display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+ margin:0;flex:1
+}
+.as-pedia-result-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:auto}
+.as-pedia-result-footer>span:first-child{display:inline-flex;align-items:center;gap:5px;color:#f0cf9c;font-size:12px;font-weight:700}
+.as-pedia-completed{font-size:11px;color:#b9e8c8}
+.as-pedia-empty{border:1px solid #576780;border-radius:14px;padding:22px;margin-top:16px;color:#d3dce8}
+
+.as-pedia-topic-section{border-top:1px solid #48566e;padding-top:29px;margin-bottom:38px;scroll-margin-top:95px}
+.as-pedia-topic-heading{margin-bottom:20px}
+.as-pedia-topic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.as-pedia-topic-card{
+ display:flex;flex-direction:column;gap:9px;min-width:0;
+ border:1px solid #43536a;border-radius:14px;background:#16253a;
+ padding:19px;transition:border-color .2s,transform .2s
+}
+.as-pedia-topic-card:hover{border-color:#dbbd8b;transform:translateY(-2px)}
+.as-pedia-topic-card h3{font:500 21px/1.3 'Playfair Display',Georgia,serif;color:#edd8b6;margin:0}
+.as-pedia-topic-card p{color:#b8c7d7;font-size:13px;line-height:1.6;margin:0;flex:1}
+.as-pedia-topic-card span{display:inline-flex;align-items:center;gap:7px;color:#e6c38b;font-size:12px;font-weight:700;margin-top:2px}
+.as-pedia-methodology{margin-top:0}
+
+@media(max-width:940px){
+ .as-pedia-result-grid,.as-pedia-topic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ .as-pedia-intro{padding:21px 18px;border-radius:18px}
+ .as-pedia-intro h1{font-size:clamp(30px,8.3vw,39px)}
+ .as-pedia-intro>p{font-size:14px;line-height:1.57}
+ .as-pedia-intro-meta{gap:8px 12px;font-size:11px}
+ .as-pedia-search-panel{padding:17px 15px;border-radius:17px;margin-bottom:26px}
+ .as-pedia-search-controls{flex-direction:column;gap:9px}
+ .as-pedia-search-field{min-height:55px;width:100%}
+ .as-pedia-search-submit{min-height:46px;width:100%}
+ .as-pedia-result-grid,.as-pedia-topic-grid{grid-template-columns:minmax(0,1fr)}
+ .as-pedia-result-card{padding:18px 16px}
+ .as-pedia-library-head h2,.as-pedia-topic-heading h2{font-size:29px}
+}
+@media(prefers-reduced-motion:reduce){
+ .as-pedia-topic-card{transition:none}
+ .as-pedia-topic-card:hover{transform:none}
+}
