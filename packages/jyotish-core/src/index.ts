@@ -104,3 +104,6 @@ export function calculateChart(input:BirthInput,eph:EphemerisData):CalculatedCha
   };
   return {input,utc,ayanamsa:eph.ayanamsa,ascendant:asc,lagnaD9:graha('Ascendant',divisionalLongitude(eph.ascendant,9),divisionalLongitude(eph.ascendant,9)),lagnaD10:graha('Ascendant',divisionalLongitude(eph.ascendant,10),divisionalLongitude(eph.ascendant,10)),d1:convert(1),d9:convert(9),d10:convert(10),dasha:vimshottari(byName.get('Moon')!.longitude,utc),ephemeris:eph.backend,config:{ayanamsa:'Lahiri',houses:'Whole sign',nodes:'Mean Rahu / opposite Ketu',dashaYearDays:DASHA_YEAR_DAYS,ascendantConvention:JHORA8_ASCENDANT_CONVENTION}};
 }
+
+// N4 isolated, opt-in Shodashavarga API; legacy CalculatedChart and digest unchanged.
+export * from './vargas.ts';
