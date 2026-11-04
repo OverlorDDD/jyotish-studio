@@ -75,7 +75,7 @@ export function compactN4NarrativeBrief(chart:CalculatedChart):string{
    'Concrete hypothetical scene: '+t.scene,
    'Interpretive boundary: '+t.limit
   ].join('; ')),
-  'Never predict a wedding, pregnancy, diagnosis, profits or life events from a D-chart. Never present D60 or uncomputed strengths. Avoid boilerplate. Explain any contrast with D1 rather than listing tables.'
+  'Never predict a wedding, pregnancy, diagnosis, profits or life events from a D-chart. Never present excluded high-resolution placements or uncomputed strengths. Avoid boilerplate. Explain any contrast with D1 rather than listing tables.'
  ].join('\n');
 }
 export type N4EditorialReview=Readonly<{codes:readonly string[];mentioned:readonly number[]}>;
