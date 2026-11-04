@@ -180,6 +180,8 @@
     "test:p410": "node --experimental-strip-types --test tools/panchanga-daily-opportunities.test.mjs",
     "test:growth1:seo": "node --experimental-strip-types --test tools/growth1-global-seo.test.mjs",
     "test:g3:funnel": "node --experimental-strip-types --test tools/g3-funnel.test.mjs",
+    "test:seo1:g3": "node --experimental-strip-types --test tools/seo1-g30-live-audit.test.mjs",
+    "seo1:g3:live": "node tools/seo1-g30-live-audit.mjs --json",
     "test:seo:direct-intent": "node --test tools/seo-direct-intent.test.mjs"
   },
   "devDependencies": {

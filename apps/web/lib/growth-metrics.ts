@@ -2,7 +2,7 @@
  * horoscope inputs, profile IDs or paths of user-generated content to analytics.
  */
 export const GROWTH_PUBLIC_SECTIONS=new Set([
- '','about','astrology','astrology/jyotish','tarot','tarot/cards',
+ '','about','astrology','astrology/jyotish','tarot','tarot/cards','pedia','pedia/glossary',
  'panchanga','eclipses/2027','horoscope','yoga','learn','news','community','methodology'
 ]);
 export type PublicTool='jyotish'|'panchanga'|'tarot';
@@ -33,6 +33,8 @@ export function safeGrowthPath(pathname:string):string|null{
  if(GROWTH_PUBLIC_SECTIONS.has(section))return '/'+parts[0]+(section?'/'+section:'');
  if(/^tarot\/cards\/[a-z-]+$/.test(section))return '/'+parts[0]+'/tarot/cards';
  if(/^learn\/[a-z-]+$/.test(section))return '/'+parts[0]+'/learn';
+ // GalaxiPedia slugs and topic paths are public, but only their section is measured.
+ if(/^pedia\/(?:topic\/[a-z-]+|[a-z0-9-]+)$/.test(section))return '/'+parts[0]+'/pedia';
  if(/^yoga\/[a-z-]+$/.test(section))return '/'+parts[0]+'/yoga';
  if(/^horoscope\/(western\/)?[a-z-]+$/.test(section))return '/'+parts[0]+'/horoscope';
  return null;

@@ -85,3 +85,5 @@ jobs:
           exit 1
       - name: G3 browser tests - consent, safe events and automatic Panchanga exclusions
         run: npx playwright test --config=playwright.config.mjs e2e/g3-public-tool-funnel.spec.mjs
+      - name: Capture synthetic mobile and desktop page timings (not field Core Web Vitals)
+        run: node tools/r32-browser-performance.mjs

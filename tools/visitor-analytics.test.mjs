@@ -15,10 +15,13 @@ test('Human-looking document requests classify only allowlisted coarse public se
  for(const [url,section] of [
   ['/','home'],['/uk','home'],['/en/astrology/jyotish','jyotish'],
   ['/uk/news','news'],['/en/learn/vedic-moon','learn'],
-  ['/en/panchanga','panchanga'],['/en/tarot/cards/moon','tarot_cards']
+  ['/en/panchanga','panchanga'],['/en/tarot/cards/moon','tarot_cards'],
+  ['/en/pedia','pedia'],['/uk/pedia/glossary','pedia'],
+  ['/en/pedia/what-is-tithi-lunar-day','pedia']
  ])assert.equal(eligiblePublicHtmlSection(url,normal),section,url);
  for(const path of ['/en/','/en/admin','/uk/account','/uk/personal','/api/v1/health',
-  '/en/news/secret-article','/en/community/topic/private','/uk/astrology/jyotish?birth=private'])
+  '/en/news/secret-article','/en/community/topic/private','/uk/astrology/jyotish?birth=private',
+  '/en/pedia?birth=private','/en/pedia/secret%3Fquestion','/en/pedia/author/member'])
   assert.equal(eligiblePublicHtmlSection(path,normal),null,path);
 });
 test('Bots, prefetch, RSC, non-HTML requests and redirects never enter estimated HTML counters',()=>{
@@ -41,6 +44,7 @@ test('Atomic bucket upsert receives ONLY day + section + metric + increment, no 
  assert.deepEqual(mutations[0].update,{count:{increment:1}});
  assert.equal(mutations[0].create.day.toISOString().slice(11),'00:00:00.000Z');
  assert.equal(JSON.stringify(mutations).match(/ip|cookie|fingerprint|client_id|url|referrer/gi),null);
+ assert.equal(validSection('pedia'),true);
  assert.equal(validSection('private'),false);
  await assert.rejects(countVisitorAggregate(prisma,'public_html_request','private'));
 });

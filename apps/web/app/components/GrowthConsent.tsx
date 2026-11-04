@@ -137,7 +137,7 @@ export default function GrowthConsent(){
    const to=safeGrowthPath(a.pathname);
    if(!from||!to||from===to)return;
    const toTool=/^\/(uk|en)\/(tarot|astrology\/jyotish|panchanga)$/.test(to);
-   const fromArticle=/^\/(uk|en)\/(tarot\/cards|learn|eclipses\/2027)/.test(from);
+   const fromArticle=/^\/(uk|en)\/(tarot\/cards|learn|pedia|eclipses\/2027)/.test(from);
    if(fromArticle&&toTool&&safeGrowthEvent('article_to_tool_click'))
     window.gtag?.('event','article_to_tool_click',{from_section:from.split('/')[2],tool:to.split('/').slice(2).join('_')});
   };
@@ -176,7 +176,7 @@ export default function GrowthConsent(){
  return <>
   {choice===null&&<aside role="dialog" aria-label={uk?'Аналітика відвідувань':'Visitor analytics'} style={{position:'fixed',bottom:16,left:16,right:16,maxWidth:540,margin:'auto',zIndex:9999,background:'#161b30',color:'#fff',border:'1px solid #a08b67',borderRadius:14,padding:20,boxShadow:'0 12px 35px #0007'}}>
    <strong>{uk?'Допоможи покращити Galaxiora':'Help improve Galaxiora'}</strong>
-   <p>{uk?'Лише за твоєю згодою ми вимірюємо відвідування публічних сторінок і переходи до інструментів через Google Analytics. Дані народження, тексти запитань і особисті записи не надсилаємо. Відмовитися можна без обмежень.':'Only with your consent, Google Analytics measures public page views and navigation to tools. Birth details, questions and private notes are never sent. You may decline without losing features.'}</p>
+   <p>{uk?'Лише за твоєю згодою Google Analytics вимірює перегляди публічних сторінок і факти початку чи завершення використання інструмента — тільки його назву та мову. Дані народження, тексти запитань і особисті записи не надсилаємо. Відмовитися можна без обмежень.':'Only with your consent, Google Analytics measures public page views and whether tools were started or completed, using only the tool name and language. Birth details, questions and private notes are never sent. You may decline without losing features.'}</p>
    <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
     <button type="button" onClick={()=>decide('rejected')}>{uk?'Відхилити':'Reject'}</button>
     <button type="button" onClick={()=>decide('accepted')}>{uk?'Дозволити аналітику':'Allow analytics'}</button>
