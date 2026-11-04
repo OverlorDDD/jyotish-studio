@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install repository dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
       - name: Execute complete focused N4 test suite (must not self-attest JHora)
         run: npm run test:n4
   synthetic-sign-parity:
