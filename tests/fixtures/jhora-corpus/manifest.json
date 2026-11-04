@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "jqa3-jhora8-real-export-only",
+  "minIndependentForCertification": 12,
+  "provenancePolicy": "Never manufacture JHora data from Swiss / PyJHora; keep raw original output and exact capture settings.",
+  "records": [
+    {
+      "id": "jhora8-gandhi-1869-public",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "THIRD_PARTY_RECOPIED_WITHOUT_ORIGINAL_INI",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "sample-data/Mahatma_Gandhi/chart_data.txt",
+        "sample-data/Mahatma_Gandhi/divisionals.txt",
+        "sample-data/Mahatma_Gandhi/input.jhd"
+      ],
+      "referenceFile": "tests/fixtures/jhora-8-gandhi-public.json",
+      "referenceGitBlobSha1": "37bd5b215ed17ef68f0f42789a64c7034b8ddaf7",
+      "hasOriginalJHoraIni": false,
+      "configAssertion": "INFERRED_NOT_CERTIFIED",
+      "notes": "Only the saved signs/longitudes are independently evidenced. Settings and dasha year are not fully attested."
+    },
+    {
+      "id": "jqa3-01",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-01",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-01.json",
+      "referenceGitBlobSha1": "e5731ba7d1a85e7eee4e5cffa0f2e73166477941",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-02",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-02",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-02.json",
+      "referenceGitBlobSha1": "d4a370c238d4ef0015ede4e94a555f69b80b80e8",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-03",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-03",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-03.json",
+      "referenceGitBlobSha1": "e47025daaa196ac10bc2df7287c889889204725d",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-04",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-04",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-04.json",
+      "referenceGitBlobSha1": "8bc9f1d2366bc8689eafabf9fc49dbbcb4dacf6a",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-05",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-05",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-05.json",
+      "referenceGitBlobSha1": "f3598e32475b0e9a38e30de37e31606991e3e2cf",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-06",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-06",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-06.json",
+      "referenceGitBlobSha1": "2e03aef3eea44419e525eda0d3f95f09106ab5cb",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-07",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-07",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-07.json",
+      "referenceGitBlobSha1": "2898fadd40a60a4e983b541e21b0ce8c3127cd5f",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-08",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-08",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-08.json",
+      "referenceGitBlobSha1": "96eae54a653bdfd88cc90c50cf9b8edffbba4e57",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-09",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-09",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-09.json",
+      "referenceGitBlobSha1": "c7e1c71a435982e1060ddec468d0e95e67a2449b",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-10",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-10",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-10.json",
+      "referenceGitBlobSha1": "b2a183775f8839276a80322cabec0b8832932e84",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-11",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-11",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-11.json",
+      "referenceGitBlobSha1": "f8b6fb03db4a7cc8bc6ff72292eac0b647484cca",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-12",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-12",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-12.json",
+      "referenceGitBlobSha1": "5c875365e2c5159bcbda5dc7349159bde5c84d8b",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-13",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-13",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-13.json",
+      "referenceGitBlobSha1": "0c5778394f88a8b3395abd1a19b774524b02ad91",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-14",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-14",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-14.json",
+      "referenceGitBlobSha1": "4a438483121cebb1da3d70a4fbdcabe1ee46183b",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-15",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-15",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-15.json",
+      "referenceGitBlobSha1": "6c715cf1db28a58afad279d9338c32984a6caaf9",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-16",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-16",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-16.json",
+      "referenceGitBlobSha1": "260e95c67c0140765dde2640a2c64e642455e3fc",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-17",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-17",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-17.json",
+      "referenceGitBlobSha1": "da0c7bc22ee6dfd363767cf9ad2a00ebd7979e9f",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-18",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-18",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-18.json",
+      "referenceGitBlobSha1": "51a29d3fac82bf78c1f218945c9934599c86c492",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-19",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-19",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-19.json",
+      "referenceGitBlobSha1": "fc8f924f48bbd71360b4b65adb25c2ba89f9d13a",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    },
+    {
+      "id": "jqa3-20",
+      "evidenceKind": "RECORDED_JHORA_EXPORT",
+      "captureType": "JHORAKIT_DIRECT_CAPTURE",
+      "sourceRepo": "https://github.com/normalmystic/JHoraKit",
+      "sourceCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+      "originalRawPaths": [
+        "chart_data.txt",
+        "divisionals.txt",
+        "input.jhd",
+        "jhora.ini"
+      ],
+      "captureDir": "tests/fixtures/jhora-corpus/captures/jqa3-20",
+      "referenceFile": "tests/fixtures/jhora-corpus/jqa3-20.json",
+      "referenceGitBlobSha1": "f49c41e2ad83a6df4a98e64ed9f9648b036f30e8",
+      "hasOriginalJHoraIni": true,
+      "configAssertion": "EXPLICIT_CAPTURED_INI",
+      "notes": "Raw clipboard dumps, original JHora INI and reproducible file hashes preserved."
+    }
+  ]
+}

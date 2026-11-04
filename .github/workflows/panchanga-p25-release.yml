@@ -1,0 +1,48 @@
+name: Panchanga 2.0 P2.5 Release Gate (read-only)
+on:
+  push:
+    branches:
+      - release/panchanga-v2-p25-integrated-20261102
+  pull_request:
+    paths:
+      - '.github/workflows/panchanga-p25-release.yml'
+      - 'tools/panchanga-p25-*'
+      - 'tools/r43-*'
+      - 'tools/r3-indexnow.mjs'
+      - 'apps/web/app/components/*Panchanga*'
+      - 'apps/web/app/components/SearchGuides.tsx'
+      - 'apps/web/lib/site-indexing.ts'
+      - 'package.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+      CI: 'true'
+      SITE_NOINDEX: '1'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies (repository has no lockfile)
+        run: npm install --no-audit --no-fund
+      - name: 'No mutation: release shell and Node syntax'
+        run: |
+          bash -n tools/panchanga-p25-release.sh
+          node --check tools/panchanga-p25-smoke.mjs
+          node --check tools/r3-indexnow.mjs
+          node --check tools/r43-indexnow-core.mjs
+      - name: Panchanga editorial and integration checks
+        run: |
+          npm run test:panchanga
+          npm run test:r43:seo
+          npm run test:r43:visitors
+          npm run test:r32:seo
+      - name: Owner-approved Galaxy spiral #6 brand regression
+        run: npm run test:brand:icons

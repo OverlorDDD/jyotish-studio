@@ -1,0 +1,73 @@
+{
+  "source": "Independent Python pyswisseph 2.10.03 swe.houses(JD_UT, 47.9105,33.3918,'P') + mean Lahiri Swiss v2.02.01 reference offset 0.13823494055031915 arcsec; independent 60-second scan and sub-second bisection over a fixed UTC 24-hour test interval (NOT a claim about observed local sunrise).",
+  "startUtc": "2026-11-03T06:00:00.000Z",
+  "endUtc": "2026-11-04T06:00:00.000Z",
+  "observer": {
+    "latitude": 47.9105,
+    "longitude": 33.3918,
+    "timeZone": "Europe/Kyiv"
+  },
+  "toleranceMs": 1000,
+  "crossings": [
+    {
+      "atUtc": "2026-11-03T08:24:48.985Z",
+      "from": 8,
+      "to": 9
+    },
+    {
+      "atUtc": "2026-11-03T10:22:16.209Z",
+      "from": 9,
+      "to": 10
+    },
+    {
+      "atUtc": "2026-11-03T11:42:57.561Z",
+      "from": 10,
+      "to": 11
+    },
+    {
+      "atUtc": "2026-11-03T12:44:13.857Z",
+      "from": 11,
+      "to": 12
+    },
+    {
+      "atUtc": "2026-11-03T13:42:37.508Z",
+      "from": 12,
+      "to": 1
+    },
+    {
+      "atUtc": "2026-11-03T14:53:38.034Z",
+      "from": 1,
+      "to": 2
+    },
+    {
+      "atUtc": "2026-11-03T16:35:30.666Z",
+      "from": 2,
+      "to": 3
+    },
+    {
+      "atUtc": "2026-11-03T18:56:39.533Z",
+      "from": 3,
+      "to": 4
+    },
+    {
+      "atUtc": "2026-11-03T21:38:33.620Z",
+      "from": 4,
+      "to": 5
+    },
+    {
+      "atUtc": "2026-11-04T00:22:00.704Z",
+      "from": 5,
+      "to": 6
+    },
+    {
+      "atUtc": "2026-11-04T03:04:52.666Z",
+      "from": 6,
+      "to": 7
+    },
+    {
+      "atUtc": "2026-11-04T05:48:37.205Z",
+      "from": 7,
+      "to": 8
+    }
+  ]
+}

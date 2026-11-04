@@ -1,0 +1,360 @@
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import Link from 'next/link';
+import {Moon,Sun,ArrowRight,BookOpen,Compass,CalendarDays,RefreshCw} from 'lucide-react';
+import type {PortalLocale} from '../../lib/brand';
+import styles from './HoroscopeHub.module.css';
+import GlossaryText from './GlossaryText';
+import AstrologicalSynthesisPanel from './AstrologicalSynthesisPanel';
+type L={uk:string;en:string};
+type Reading={headline:L;description:L;goodFor:L;caution:L;reflection?:L;action?:L;evidence:Record<string,string|number|null|undefined>};
+type SignReading=Reading&{referenceSign:number;house:number};
+type Sky={events:{kind:string;atUtc:string;localDate:string;practice:L;meaning:L;tradition:L}[];
+ observances:{id:string;atUtc:string;rule:string;category:string}[];
+ referenceLocation:{name:string}|null;observanceDayCertifiedByTradition:false};
+type PublicData={date:string;zone:string;sampledAtUtc:string;sun?:{sign:number;longitude:number};moon:{sign:number;nakshatra?:string;pada?:number};signs:SignReading[];reference:'SIDEREAL_MOON_SIGN'|'TROPICAL_SUN_SIGN';sky?:Sky};
+type PublicWeek={startDate:string;zone:string;reference:'SIDEREAL_MOON_SIGN'|'TROPICAL_SUN_SIGN';days:{date:string;sampledAtUtc:string;sun?:{sign:number;longitude:number};moon:{sign:number;nakshatra?:string;pada?:number};signs:SignReading[]}[]};
+type Overview={profile?:{currentTimeZone?:string};selected?:{id:string;verified:boolean;recoveryStatus?:string;moonSign?:number|null;lagnaSign?:number|null;westernSunSign?:number|null}|null;journey?:{daily:Reading|null;horoscope:Reading|null}};
+type PersonalCalendar={horoscopeStatus:string;horoscopes:{date:string;guidance:Reading|null}[]};
+type WesternPersonal={status:'available'|'requires_verified_tropical_sun';reference:'TROPICAL_NATAL_SUN_SIGN';timeZone?:string;natalSunSign?:number;scope?:string;today?:SignReading|null;days?:{date:string;guidance:SignReading}[]};
+const SIGN_SLUGS=['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'] as const;
+const SIGNS={
+ uk:['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'],
+ en:['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+};
+async function get<T>(path:string):Promise<T>{
+ const response=await fetch(path,{credentials:'same-origin',cache:'no-store'});
+ if(!response.ok)throw Error(String(response.status));return response.json() as Promise<T>;
+}
+export default function HoroscopeHub({locale}:{locale:PortalLocale}){
+ const uk=locale==='uk',t=(x:L)=>x[locale];
+ const signManuallyChosen=useRef(false);
+ const [data,setData]=useState<PublicData|null>(null),[error,setError]=useState(false);
+ const [selected,setSelected]=useState(1),[tradition,setTradition]=useState<'western'|'vedic'>('western'),[personal,setPersonal]=useState<Overview|null>(null),
+ [week,setWeek]=useState<PersonalCalendar|null>(null),[mode,setMode]=useState<'signs'|'mine'>('signs');
+ const [loading,setLoading]=useState(true),[reload,setReload]=useState(0);
+ const [westernPersonal,setWesternPersonal]=useState<WesternPersonal|null>(null),[westernBusy,setWesternBusy]=useState(false),[westernError,setWesternError]=useState(false);
+ const [period,setPeriod]=useState<'day'|'week'>('day');
+ const [synthesisOpen,setSynthesisOpen]=useState(false);
+ const [publicWeek,setPublicWeek]=useState<PublicWeek|null>(null),[weekBusy,setWeekBusy]=useState(false),[weekError,setWeekError]=useState(false);
+ useEffect(()=>{
+  // Shareable canonical public sign deep links, with validation against
+  // exactly twelve signs. Private natal selection remains independent.
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('system')==='vedic')setTradition('vedic');
+  const slug=params.get('sign')||'';
+  const index=SIGN_SLUGS.indexOf(slug.toLowerCase() as typeof SIGN_SLUGS[number]);
+  if(index>=0){signManuallyChosen.current=true;setSelected(index+1);}
+ },[]);
+ const expectedReference=tradition==='western'?'TROPICAL_SUN_SIGN':'SIDEREAL_MOON_SIGN';
+ const visibleData=data?.reference===expectedReference?data:null;
+ const visibleWeek=publicWeek?.reference===expectedReference?publicWeek:null;
+ useEffect(()=>{
+  let live=true;
+  setLoading(true);setError(false);
+  Promise.allSettled([
+   get<PublicData>(tradition==='western'?'/api/v1/horoscope/western/today':'/api/v1/horoscope/today'),
+   get<Overview>('/api/v1/personal/overview')
+  ]).then(async results=>{
+   if(!live)return;
+   if(results[0].status==='fulfilled'&&results[0].value.reference===expectedReference){
+    setData(results[0].value);setError(false);
+   }else{setData(null);setError(true);}
+   if(results[1].status==='fulfilled'&&results[1].value.selected?.verified){
+    setPersonal(results[1].value);
+    if(!signManuallyChosen.current){
+     const candidate=tradition==='western'?
+      results[1].value.selected.westernSunSign:results[1].value.selected.moonSign;
+     if(typeof candidate==='number'&&candidate>=1&&candidate<=12)setSelected(candidate);
+    }
+    if(tradition==='vedic'){
+     try{const calendar=await get<PersonalCalendar>('/api/v1/personal/calendar?days=7');
+      if(live)setWeek(calendar);}catch{if(live)setWeek(null);}
+    }
+   }else{setPersonal(null);setWeek(null);}
+  }).finally(()=>{if(live)setLoading(false)});
+  return()=>{live=false};
+ },[reload,tradition,expectedReference]);
+ useEffect(()=>{
+  if(mode!=='mine'||tradition!=='western'||!personal?.selected?.verified)return;
+  let live=true;
+  setWesternBusy(true);setWesternError(false);
+  get<WesternPersonal>('/api/v1/personal/horoscope/western')
+   .then(result=>{if(live&&result.reference==='TROPICAL_NATAL_SUN_SIGN')setWesternPersonal(result);})
+   .catch(()=>{if(live){setWesternPersonal(null);setWesternError(true);}})
+   .finally(()=>{if(live)setWesternBusy(false)});
+  return()=>{live=false};
+ },[mode,tradition,personal?.selected?.id,reload]);
+ useEffect(()=>{
+  if(mode!=='signs'||period!=='week'||visibleWeek)return;
+  let live=true;setWeekBusy(true);setWeekError(false);
+  get<PublicWeek>(tradition==='western'?'/api/v1/horoscope/western/week':'/api/v1/horoscope/week')
+   .then(result=>{if(live&&result.reference===expectedReference)setPublicWeek(result);})
+   .catch(()=>{if(live)setWeekError(true)})
+   .finally(()=>{if(live)setWeekBusy(false)});
+  return()=>{live=false};
+ },[mode,period,publicWeek,reload,tradition,visibleWeek,expectedReference]);
+ const natalMoon=personal?.selected?.moonSign;
+ const natalSun=personal?.selected?.westernSunSign;
+ const westernName=typeof natalSun==='number'&&natalSun>=1&&natalSun<=12?SIGNS[locale][natalSun-1]:null;
+ const selectedNatal=tradition==='western'?natalSun:natalMoon;
+ const selectedNatalName=tradition==='western'?westernName:(typeof natalMoon==='number'&&natalMoon>=1&&natalMoon<=12?SIGNS[locale][natalMoon-1]:null);
+ const changeTradition=(next:'western'|'vedic')=>{
+  setSynthesisOpen(false);
+  signManuallyChosen.current=false;
+  setTradition(next);setPublicWeek(null);setWesternPersonal(null);setError(false);
+  const n=next==='western'?natalSun:natalMoon;
+  if(typeof n==='number'&&n>=1&&n<=12)setSelected(n);
+ };
+ const natalLagna=personal?.selected?.lagnaSign;
+ const natalName=typeof natalMoon==='number'&&natalMoon>=1&&natalMoon<=12?SIGNS[locale][natalMoon-1]:null;
+ const differs=Boolean(selectedNatalName&&selectedNatal!==selected);
+ const reading=visibleData?.signs[selected-1];
+ // All seven astronomical observations stay visible, even when the same
+ // lunar house persists. Never merge away date-specific explanatory material.
+ const weekDays=visibleWeek?.days||[];
+ const dayLabel=(day:string)=>new Intl.DateTimeFormat(uk?'uk-UA':'en-GB',{day:'numeric',month:'short',timeZone:'UTC'})
+  .format(new Date(day+'T12:00:00Z'));
+ function evidence(g:Reading){
+  const facts=g.evidence,publicReading=facts.kind==='PUBLIC_JANMA_RASHI_REFERENCE';
+  const westernReading=facts.kind==='PUBLIC_TROPICAL_SOLAR_REFERENCE'||facts.kind==='PERSONAL_TROPICAL_NATAL_SUN_REFERENCE';
+  const zone=typeof facts.timeZone==='string'?facts.timeZone:(publicReading||westernReading)?(visibleData?.zone||'Europe/Kyiv'):(personal?.profile?.currentTimeZone||'UTC');
+  const date=typeof facts.sampledAtUtc==='string'?
+   new Date(facts.sampledAtUtc).toLocaleString(uk?'uk-UA':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:zone}):
+   String(facts.day??facts.date??'—');
+  const moonSign=(publicReading||westernReading)?(typeof facts.moonSign==='number'?facts.moonSign:visibleData?.moon.sign):facts.sign;
+  const lunarName=typeof moonSign==='number'?SIGNS[locale][moonSign-1]:undefined;
+  const nakshatra=facts.nakshatra??(publicReading?visibleData?.moon.nakshatra:undefined);
+  const pada=facts.pada??(publicReading?visibleData?.moon.pada:undefined);
+  return <details className={styles.evidence}>
+   <summary>{uk?'Астрологічна основа прогнозу':'Astrological basis of the reading'}</summary>
+   <p>{String(facts.method||'Swiss Ephemeris / Lahiri')} · {date} ({zone})</p>
+   {westernReading&&typeof facts.sunSign==='number'&&<p>{uk?'Транзитне тропічне Сонце: ':'Transiting tropical Sun: '}{SIGNS[locale][facts.sunSign-1]} · {uk?'Сонячний дім: ':'Solar house: '}{String(facts.sunHouse)}</p>}
+   {facts.kind==='PERSONAL_TROPICAL_NATAL_SUN_REFERENCE'&&typeof facts.natalSunSign==='number'&&<p>
+    {uk?'Натальне тропічне Сонце: ':'Natal tropical Sun: '}{SIGNS[locale][facts.natalSunSign-1]}</p>}
+   {lunarName&&<p>{uk?(westernReading?'Тропічний Місяць: ':'Транзитний Місяць: '):(westernReading?'Tropical Moon: ':'Transiting Moon: ')}{lunarName}
+    {nakshatra?' · '+nakshatra:''}{pada?' · '+(uk?'пада ':'pada ')+pada:''}</p>}
+   {facts.house!=null&&<p>{uk?'Дім транзиту: ':'Transit house: '}{String(facts.house)}
+    {westernReading?(uk?' від обраного тропічного знака Сонця':' from the selected tropical Sun sign'):
+     publicReading||facts.kind==='PERSONAL_JANMA_RASHI'?(uk?' від натального знака Місяця':' from the natal Moon sign'):
+     (uk?' від натальної лагни':' from natal Lagna')}</p>}
+   {!publicReading&&typeof facts.natalMoonSign==='number'&&<p>
+    {uk?'Натальний Місяць: ':'Natal Moon: '}{SIGNS[locale][facts.natalMoonSign-1]}</p>}
+   {publicReading&&facts.editorialPolicy==='DATE_BASED_STYLE_NOT_PLANETARY_EFFECT'&&<p>
+    {uk?'Денні формулювання частково змінюються редакційним циклом; це не означає, що планета змінила знак чи що сталася передбачена подія.':
+      'Daily wording can vary through an editorial cycle; this does not imply a planetary sign change or a predicted event.'}</p>}
+   {westernReading&&<p>
+    {uk?'Тут доми відраховано від знака твого Сонця за цілознаковою системою. Для повної натальної карти з куспідами та аспектами відкрий «Синтез карти».':
+     'These whole-sign houses are counted from your Sun sign. For full natal cusps and planetary contacts, open Chart synthesis.'}</p>}
+   {(facts.major||facts.minor)&&<p>{uk?'Махадаша / антардаша':'Mahadasha / Antardasha'}:
+    {' '+String(facts.major||'—')} / {String(facts.minor||'—')}</p>}
+
+  </details>;
+ }
+ function detail(g:Reading){
+  return <article className={styles.reading} data-testid="horoscope-reading">
+   <h2><GlossaryText text={t(g.headline)} locale={locale}/></h2>
+   <p className={styles.story}><GlossaryText text={t(g.description)} locale={locale}/></p>
+   <div className={styles.highlights}>
+    <section><strong>{uk?'Спробуй сьогодні':'Try this today'}</strong><p><GlossaryText text={t(g.goodFor)} locale={locale}/></p></section>
+    <section><strong>{uk?'На що звернути увагу':'What deserves attention'}</strong><p><GlossaryText text={t(g.caution)} locale={locale}/></p></section>
+   </div>
+   <div className={styles.reflection}><strong>{g.reflection?(uk?'Запитання для себе':'A question for yourself'):
+     (uk?'Практичний крок':'One practical step')}</strong>
+    <p><GlossaryText text={t(g.reflection||g.action||g.goodFor)} locale={locale}/></p>
+   </div>
+   {g.evidence.kind==='PUBLIC_JANMA_RASHI_REFERENCE'&&visibleData?.sky&&<section data-testid="horoscope-sky-context" style={{padding:'14px 0',borderTop:'1px solid #536a82'}}>
+    <h3>{uk?'Астрономічні та ведичні події':'Astronomical and Vedic calendar context'}</h3>
+    {visibleData.sky.events.slice(0,2).map((e,i)=><p key={e.kind+e.atUtc+i}>
+     <strong>{e.localDate}: </strong><GlossaryText text={t(e.meaning)} locale={locale}/> <span><GlossaryText text={t(e.practice)} locale={locale}/></span>
+    </p>)}
+    {visibleData.sky.observances.map((e,i)=><p key={e.id+e.atUtc+i}>
+     <strong>{uk?'Календарна позначка':'Calendar observance'}: </strong>{e.id.replaceAll('_',' ')}.
+     <small> {uk?'Час святкування може відрізнятися залежно від місцевої традиції.':'Observance times vary with local tradition.'}</small>
+    </p>)}
+    {visibleData.sky.referenceLocation&&<small>{uk?'Святкові позначки розраховані для Києва; для іншого міста відкрий Панчангу.':'Observance reference city: Kyiv; open Panchanga for other locations.'}</small>}
+   </section>}
+   {evidence(g)}
+  </article>;
+ }
+ return <section className={styles.page} data-testid="horoscope-hub">
+  <header className={styles.hero}><span className={styles.kicker}>GALAXIORA · {tradition==='western'?'WESTERN':'JYOTISH'}</span>
+   <h1>{uk?'Гороскопи':'Horoscopes'}</h1>
+   <p>{uk?'Два різні підходи: звичний західний знак Сонця та ведичний знак Місяця. Обери традицію або відкрий глибоке персональне читання за натальною картою.':
+    'Two distinct traditions: your familiar Western Sun sign and Vedic Moon sign. Choose a method or explore a deeper reading grounded in your verified birth chart.'}</p>
+   <div className={styles.traditions} role="group" aria-label={uk?'Астрологічна традиція':'Astrology tradition'}>
+    <button type="button" aria-pressed={tradition==='western'&&!synthesisOpen} onClick={()=>changeTradition('western')}>{uk?'Західний · Сонце':'Western · Sun'}</button>
+    <button type="button" aria-pressed={tradition==='vedic'&&!synthesisOpen} onClick={()=>changeTradition('vedic')}>{uk?'Ведичний · Місяць':'Vedic · Moon'}</button>
+    {mode==='mine'&&<button type="button" data-testid="synthesis-switch" aria-pressed={synthesisOpen}
+     onClick={()=>setSynthesisOpen(true)}>{uk?'Синтез карти':'Chart synthesis'}</button>}
+   </div>
+   <p className={styles.traditionInfo}>{tradition==='western'?
+    (uk?'Західний тропічний зодіак. Для прогнозу обирай свій звичний знак за Сонцем. Транзити Сонця й Місяця обчислені незалежно від Джйотіш.':
+    'Western tropical zodiac. Choose your familiar Sun sign. Sun and Moon transits are computed independently of Jyotish.'):
+    (uk?'Джйотіш / Лахірі. Для прогнозу обирай свій натальний сидеричний знак Місяця (Джанма-раші), а не західний знак Сонця.':
+    'Jyotish / Lahiri. Choose your natal sidereal Moon sign (Janma Rashi), not your Western Sun sign.')}</p>
+   <div className={styles.mode} role="group" aria-label={uk?'Тип гороскопу':'Horoscope view'}>
+    <button type="button" aria-pressed={mode==='signs'} onClick={()=>{setMode('signs');setSynthesisOpen(false)}}>{tradition==='western'?<Sun size={17}/>:<Moon size={17}/>} {uk?'Усі 12 знаків':'All 12 signs'}</button>
+    <button type="button" aria-pressed={mode==='mine'} onClick={()=>setMode('mine')}><Compass size={17}/>{uk?'Мій персональний':'My personal reading'}</button>
+   </div>
+   <div className={styles.period} role="group" aria-label={uk?'Період прогнозу':'Reading period'}>
+    <button type="button" aria-pressed={period==='day'} onClick={()=>setPeriod('day')}>
+     {uk?'Сьогодні':'Today'}</button>
+    <button type="button" aria-pressed={period==='week'} onClick={()=>setPeriod('week')}>
+     {uk?'Цей тиждень':'This week'}</button>
+   </div>
+  </header>
+  {loading&&!visibleData&&mode==='signs'&&<p role="status">{uk?'Розраховуємо астрономічні положення…':'Calculating planetary positions…'}</p>}
+  {error&&<div role="alert" className={styles.error}>
+    {uk?'Сьогоднішні ефемериди тимчасово недоступні. Онови сторінку трохи пізніше.':
+     'Today’s ephemeris data is temporarily unavailable. Please retry shortly.'}
+    <button type="button" onClick={()=>setReload(x=>x+1)}><RefreshCw size={15}/>{uk?'Спробувати ще':'Retry'}</button></div>}
+  {visibleData&&mode==='signs'&&<>
+   <div className={styles.info}><CalendarDays size={18}/>
+    {uk?'Прогноз на ':'Reading for '}{visibleData.date} · {tradition==='western'?
+     (uk?'Тропічне Сонце та Місяць, опівдні за Києвом.':'Tropical Sun and Moon at Kyiv noon.'):
+     (uk?'Сидеричний Місяць, спостереження опівдні за Києвом.':'Sidereal Moon at Kyiv noon.')}
+   </div>
+   <div className={styles.signs} role="group" aria-label={tradition==='western'?(uk?'Тропічний знак Сонця':'Tropical Sun sign'):(uk?'Сидеричний місячний знак':'Sidereal Moon sign')}>
+    {SIGNS[locale].map((name,i)=><button type="button" key={name}
+     aria-pressed={selected===i+1} onClick={()=>{signManuallyChosen.current=true;setSelected(i+1)}}>{name}</button>)}
+   </div>
+   <div className={styles.signExplanation} data-testid="lunar-sign-explanation">
+    <div><strong>{uk?'Обраний знак: ':'Selected sign: '}{SIGNS[locale][selected-1]}</strong>
+     <p>{tradition==='western'?
+      (uk?'Це загальний західний гороскоп за тропічним знаком Сонця. Він не підміняє особистий аналіз натальної карти й не використовує ведичну лагну або дашу.':
+       'This is a general Western tropical Sun-sign reading, not a personal natal interpretation. It does not use Vedic Lagna or Dasha.'):
+      (uk?'Це ведичний гороскоп за натальним Місяцем, а не за звичним сонячним знаком. Для двох систем можуть бути різні знаки.':
+       'This Vedic reading uses your natal Moon sign, not the familiar Sun sign. The two methods can give different signs.')}</p>
+     {selectedNatalName&&<p><strong>{tradition==='western'?
+      (uk?'Твій західний знак Сонця: ':'Your tropical natal Sun: '):
+      (uk?'Твій ведичний знак Місяця: ':'Your sidereal natal Moon: ')}{selectedNatalName}.</strong>
+      {differs?' '+(uk?'Обраний вручну знак не змінює твою натальну карту.':'Manual selection never changes your natal chart.') :null}</p>}
+    </div>
+    {selectedNatalName&&<button type="button" className={styles.useNatal} onClick={()=>{signManuallyChosen.current=true;setSelected(selectedNatal!)}}>
+      {tradition==='western'?(uk?'Показати мій знак Сонця':'Use my Sun sign'):(uk?'Показати мій знак Місяця':'Use my Moon sign')}: {selectedNatalName}
+    </button>}
+    {!selectedNatalName&&<Link href={'/'+locale+'/astrology/jyotish'}>
+     {tradition==='western'?(uk?'Розрахувати точний знак Сонця':'Calculate my exact Sun sign'):(uk?'Визначити натальний знак Місяця':'Calculate my natal Moon sign')} →</Link>}
+   </div>
+   <p className={styles.signGuideLink}>
+    <Link href={'/'+locale+'/horoscope/'+(tradition==='western'?'western/':'')+SIGN_SLUGS[selected-1]}>
+     {tradition==='western'?(uk?'Про західне Сонце в знаку ':'About the Western Sun in '):(uk?'Про ведичний Місяць у знаку ':'About the Vedic Moon in ')}{SIGNS[locale][selected-1]} ↗
+    </Link>
+   </p>
+   {period==='day'&&reading&&detail({...reading,evidence:{...reading.evidence,house:reading.house,timeZone:visibleData?.zone}})}
+   {period==='week'&&<section className={styles.week} data-testid="public-horoscope-week">
+    <h2>{uk?'Тижневий ритм для знака ':'Weekly outlook for '}{SIGNS[locale][selected-1]}</h2>
+    <p className={styles.note}>{tradition==='western'?
+     (uk?'Сім полуденних спостережень за Києвом. Тема змінюється, коли змінюються розраховані положення Сонця, Місяця або Меркурія.':
+      'Seven Kyiv-noon observations; topics change with actual Sun, Moon or Mercury positions.'):
+     (uk?'Сім окремих полуденних спостережень. Добові редакційні акценти відокремлені від астрономічних змін.':
+      'Seven separate noon samples. Date-based editorial emphasis is not a planetary event.')}</p>
+    {weekBusy&&<p role="status">{uk?'Звіряємо сім днів ефемерид…':'Checking seven days of ephemerides…'}</p>}
+    {weekError&&<div role="alert" className={styles.error}>
+     {uk?'Не вдалося отримати астрономічні дані на тиждень.':'Weekly astronomical data is unavailable.'}
+     <button type="button" onClick={()=>{setPublicWeek(null);setReload(x=>x+1)}}>{uk?'Повторити':'Retry'}</button>
+    </div>}
+    {weekDays.map(day=><article key={day.date} className={styles.weekPhase}>
+     <time dateTime={day.date}>{dayLabel(day.date)}</time>
+     <h3><GlossaryText text={t(day.signs[selected-1].headline)} locale={locale}/></h3><p><GlossaryText text={t(day.signs[selected-1].description)} locale={locale}/></p>
+     <p><strong>{uk?'Спробуй: ':'Try this: '}</strong><GlossaryText text={t(day.signs[selected-1].goodFor)} locale={locale}/></p>
+     {evidence({...day.signs[selected-1],evidence:{...day.signs[selected-1].evidence,house:day.signs[selected-1].house,timeZone:visibleWeek?.zone}})}
+    </article>)}
+   </section>}
+   <p className={styles.note}>{uk?'Для глибшого читання за натальною картою відкрий «Мій персональний».':
+    'For a deeper reading grounded in your natal chart, open My personal reading.'}</p>
+  </>}
+  {mode==='mine'&&synthesisOpen&&<AstrologicalSynthesisPanel locale={locale} period={period}/>}
+  {mode==='mine'&&!synthesisOpen&&<div className={styles.personal} data-testid="personal-horoscope-panel" data-system={tradition}>
+   {!personal?<div className={styles.empty}><h2>{uk?'Твій особистий гороскоп':'Your personal horoscope'}</h2>
+    <p>{uk?'Збережи перевірену натальну карту і зроби її основною в «Моєму Всесвіті». Для західного режиму потрібен точний натальний знак Сонця, для ведичного — Місяць і Лагна.':
+     'Save and select a verified natal chart in Your Universe. Western mode needs your exact natal Sun; Vedic mode uses your natal Moon and Ascendant.'}</p>
+    <Link href={'/'+locale+'/personal'}>{uk?'Перейти до «Мого Всесвіту»':'Open Your Universe'} <ArrowRight size={16}/></Link></div>:
+    <>
+     <div className={styles.personalHeading}>
+      <h2>{tradition==='western'?(uk?'Мій західний гороскоп':'My Western horoscope'):
+       (uk?'Мій ведичний гороскоп':'My Vedic horoscope')}</h2>
+      <span>{tradition==='western'?(uk?'За перевіреним тропічним Сонцем':'Based on verified tropical Sun'):
+       (uk?'За підтвердженою натальною картою Джйотіш':'Based on verified Jyotish birth chart')}</span>
+     </div>
+     {tradition==='western'?<>
+      <div className={styles.signExplanation} data-testid="personal-western-basis">
+       <div>
+        <strong>{uk?'Західний знак Сонця':'Western natal Sun sign'}: {westernName||'—'}</strong>
+        <p>{uk?'Твій точний натальний знак Сонця визначає початкову точку. Прогноз поєднує транзити Сонця, Місяця й Меркурія. Повна натальна карта з аспектами та домами доступна у «Синтезі карти».':
+         'Your verified natal Sun sign sets the reference point. This reading combines transits of Sun, Moon and Mercury. Open Chart synthesis for your full natal chart, aspects and houses.'}</p>
+       </div>
+      </div>
+      {westernBusy&&<p role="status">{uk?'Розраховуємо західні транзити…':'Calculating Western transits…'}</p>}
+      {westernError&&<div role="alert" className={styles.error}>{uk?'Не вдалося отримати західний персональний гороскоп.':'Western personal reading is temporarily unavailable.'}
+       <button type="button" onClick={()=>setReload(i=>i+1)}>{uk?'Повторити':'Retry'}</button></div>}
+      {!westernBusy&&!westernError&&westernPersonal?.status!=='available'&&<p role="status">{uk?'Для точного західного знака потрібна перевірена натальна карта й доступні Swiss Ephemeris.':'A verified birth chart and Swiss Ephemeris are required to calculate your precise Western Sun sign.'}</p>}
+      {!westernBusy&&westernPersonal?.status==='available'&&westernPersonal.natalSunSign===natalSun&&<>
+       {period==='day'&&westernPersonal.today&&<section data-testid="personal-western-reading">
+        <h3>{uk?'Західний прогноз за моїм Сонцем':'Western reading for my natal Sun'}</h3>
+        {detail(westernPersonal.today)}
+       </section>}
+       {period==='week'&&<section className={styles.week} data-testid="personal-western-week">
+        <h3>{uk?'Сім днів за моїм західним Сонцем':'Seven days for my Western Sun sign'}</h3>
+        <p className={styles.note}>{uk?'Сім незалежних спостережень за часовим поясом твого профілю. Тема може залишатися тією самою, поки планети не змінили цілознакові доми.':
+         'Seven independent observations in your profile time zone. A theme may remain unchanged until the planets move to another whole-sign house.'}</p>
+        {westernPersonal.days?.map(day=><article key={day.date}>
+         <time dateTime={day.date}>{dayLabel(day.date)}</time>
+         <h3><GlossaryText text={t(day.guidance.headline)} locale={locale}/></h3>
+         <p><GlossaryText text={t(day.guidance.description)} locale={locale}/></p>
+         <p><strong>{uk?'Практична порада: ':'Practical guidance: '}</strong><GlossaryText text={t(day.guidance.goodFor)} locale={locale}/></p>
+         {evidence(day.guidance)}
+        </article>)}
+       </section>}
+      </>}
+     </>:<>
+      <div className={styles.signExplanation} data-testid="personal-vedic-basis">
+       <div>
+        <strong>{uk?'Ведичний натальний Місяць':'Vedic natal Moon'}: {natalName||'—'}</strong>
+        <p>{uk?'Лагна':'Ascendant'}: <b>{typeof natalLagna==='number'&&natalLagna>=1&&natalLagna<=12?SIGNS[locale][natalLagna-1]:'—'}</b></p>
+        <p>{uk?'Поради Джйотіш спираються на натальний сидеричний Місяць, його транзити та, у поглибленому читанні, Лагну й даші. Західний знак Сонця тут не визначає прогноз.':
+         'Jyotish guidance uses your natal sidereal Moon and transits, with Lagna and Dasha in the deeper reading. The Western Sun sign does not set this forecast.'}</p>
+       </div>
+      </div>
+      {period==='day'&&<section data-testid="personal-moon-reading">
+       <h3>{uk?'Гороскоп за моїм ведичним Місяцем':'Reading for my Vedic natal Moon'}</h3>
+       {personal.journey?.horoscope?detail(personal.journey.horoscope):
+        <p>{uk?'Сьогоднішній ведичний прогноз недоступний.':'The Vedic Moon reading is temporarily unavailable.'}</p>}
+      </section>}
+      {period==='day'&&personal.journey?.daily&&<details data-testid="personal-daily-core" className={styles.signExplanation}>
+       <summary style={{cursor:'pointer',fontWeight:700}}>{uk?'Поглиблена персональна порада · Лагна, даша, транзити':'Deeper guidance · Lagna, Dasha, transits'}</summary>
+       {detail(personal.journey.daily)}
+      </details>}
+      {period==='week'&&week?.horoscopeStatus!=='personalized'&&<p role="status">{uk?'Персональний ведичний тиждень недоступний.':'Vedic personal week is unavailable.'}</p>}
+      {period==='week'&&week?.horoscopeStatus==='personalized'&&<section className={styles.week} data-testid="personal-vedic-week">
+       <h3>{uk?'Наступні сім днів Джйотіш':'Next seven days · Jyotish'}</h3>
+       {week.horoscopes.map(day=><article key={day.date}>
+        <time dateTime={day.date}>{dayLabel(day.date)}</time>
+        {day.guidance?<><h3><GlossaryText text={t(day.guidance.headline)} locale={locale}/></h3>
+         <p><GlossaryText text={t(day.guidance.description)} locale={locale}/></p>
+         <p><strong>{uk?'Практична порада: ':'Practical guidance: '}</strong><GlossaryText text={t(day.guidance.goodFor)} locale={locale}/></p>
+         {evidence(day.guidance)}
+        </>:<p>{uk?'На цю дату немає перевіреного прогнозу.':'No verified reading for this date.'}</p>}
+       </article>)}
+      </section>}
+     </>}
+     <Link href={'/'+locale+'/personal'} className={styles.toPersonal}>
+      {uk?'Мій Всесвіт: натальна карта та всі три знаки':'Your Universe: natal chart and all three signs'} <ArrowRight size={16}/>
+     </Link>
+    </>}
+  </div>}
+  <footer className={styles.sources}><BookOpen size={18}/><div>
+   <strong>{uk?'Метод і джерела':'Method and sources'}</strong>
+   {tradition==='western'&&(mode==='signs'||(mode==='mine'&&!synthesisOpen))?<p>{uk?'Західний режим: тропічні довготи Сонця, Місяця й Меркурія за Swiss Ephemeris. Доми відраховано від сонячного знака; повні натальні аспекти й куспіди показує «Синтез карти».':
+    'Western mode: Swiss Ephemeris tropical Sun, Moon and Mercury; whole-sign houses counted from the Sun sign. Chart synthesis shows the full natal contacts and cusps.'}</p>:
+    <><p>{uk?'Астрономічна основа: Swiss Ephemeris, сидеричний зодіак Лагірі. Тлумачення транзитів спираються на традицію Джйотіш, зокрема «Пхаладіпіку», розділ 26.':
+    'Astronomical basis: Swiss Ephemeris, Lahiri sidereal zodiac. Transit interpretations draw on classical Jyotish, including Phaladipika, chapter 26.'}</p>
+   <a href="https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621598.html" target="_blank" rel="noopener noreferrer">{uk?'Читати першоджерело':'Classical source'}</a></>}
+    <a href="https://www.astro.com/swisseph/" target="_blank" rel="noopener noreferrer">
+     {uk?'Документація Swiss Ephemeris':'Swiss Ephemeris documentation'}
+    </a>
+   </div>
+  </footer>
+ </section>;
+}

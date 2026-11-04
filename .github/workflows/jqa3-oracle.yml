@@ -1,0 +1,84 @@
+name: JQA-3 Real JHora Oracle (isolated, no fake fixtures)
+on:
+  push:
+    branches: [feat/jqa3-reference-corpus, feat/jqa3-certification-hardening]
+  workflow_dispatch:
+concurrency:
+  group: jqa3-oracle-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  real-jhora:
+    if: github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/feat/jqa3-reference-corpus' || github.ref == 'refs/heads/feat/jqa3-certification-hardening') || github.event.pull_request.head.ref == 'feat/jqa3-reference-corpus'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      WINEPREFIX: /tmp/jqa3-jhora-wine
+      WINE_PREFIX: /tmp/jqa3-jhora-wine
+      WINEARCH: win32
+      JHORA_VERSION: 8.0.0.0
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.2'
+      - name: Install Wine and headless GUI libraries
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends wine wine32:i386 xvfb xauth unzip curl cabextract winbind
+          wine --version
+          swift --version
+      - name: Install authentic JHora from developer and AutoHotkey v1
+        run: |
+          mkdir -p "$WINEPREFIX"
+          mkdir -p "$RUNNER_TEMP/oracle-install"
+          cd "$RUNNER_TEMP/oracle-install"
+          curl --fail --location --retry 3 --max-time 150 -o jhora.zip https://vedicastrologer.org/jh/jh_short_install.zip
+          unzip -o -q jhora.zip
+          find . -maxdepth 2 -type f -printf '%p %s bytes\n' | head -20
+          JHORA_INSTALLER="$(find . -maxdepth 2 -type f -iname '*.exe' -print -quit)"
+          test -n "$JHORA_INSTALLER"
+          curl --fail --location --retry 3 --max-time 150 -o ahk_v1.zip https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip
+          echo "6f3663f7cdd25063c8c8728f5d9b07813ced8780522fd1f124ba539e2854215f  ahk_v1.zip" | sha256sum -c
+          mkdir -p ahk-unpacked
+          unzip -oq ahk_v1.zip -d ahk-unpacked
+          xvfb-run -a wineboot --init
+          timeout 180s xvfb-run -a wine "$JHORA_INSTALLER" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART || true
+          find "$WINEPREFIX/drive_c" -name jhora.exe -print
+          test -f "$(find "$WINEPREFIX/drive_c" -name jhora.exe -print -quit)"
+          AHK_PORTABLE="$(find ahk-unpacked -iname AutoHotkeyU32.exe -print -quit)"
+          test -n "$AHK_PORTABLE"
+          mkdir -p "$WINEPREFIX/drive_c/Program Files/AutoHotkey"
+          cp "$AHK_PORTABLE" "$WINEPREFIX/drive_c/Program Files/AutoHotkey/AutoHotkey.exe"
+          test -s "$WINEPREFIX/drive_c/Program Files/AutoHotkey/AutoHotkey.exe"
+      - name: Check out pinned independent JHoraKit automation
+        run: |
+          git clone --quiet https://github.com/normalmystic/JHoraKit.git /tmp/JHoraKit
+          git -C /tmp/JHoraKit checkout --quiet f63826b501eabe69c6b08c5365875e1e2f74c24a
+          git -C /tmp/JHoraKit status --short
+      - name: Obtain twenty real JHora outputs (never replace with Swiss)
+        env:
+          JHORAKIT_DIR: /tmp/JHoraKit
+        run: |
+          timeout 7200s xvfb-run -a bash tools/jqa3-capture.sh
+          echo "Completed original JHoraKit evidence capture"
+          find tests/fixtures/jhora-corpus/captures -name chart_data.txt | wc -l
+      - name: Validate captured original inputs and numerical results
+        run: |
+          python3 -m pip install --break-system-packages pyswisseph
+          npm run jqa3:audit
+          npm run jqa3:certify
+      - name: Publish original captures as workflow artifact on any outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jqa3-real-jhora-8-raw-evidence
+          path: |
+            tests/fixtures/jhora-corpus/captures/
+            tests/fixtures/jhora-corpus/jqa3-*.json
+            tests/fixtures/jhora-corpus/manifest.json
+          if-no-files-found: warn
+          retention-days: 7

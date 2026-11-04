@@ -1,0 +1,71 @@
+.dashboard{border:1px solid #6a7691;background:linear-gradient(140deg,#172b45,#111e32);border-radius:20px;padding:clamp(16px,3vw,30px);margin:22px 0;color:#e5edf7;min-width:0;overflow-wrap:break-word}
+.top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.eyebrow{font-size:11px;letter-spacing:.14em;color:#dcc08e;font-weight:700}
+.top h2{font:600 clamp(27px,4vw,42px)/1.2 Georgia,serif;color:#f4ddaf;margin:9px 0}
+.top p{margin:0;color:#bfcddd;font-size:13px}
+.scope{border:1px solid #8e9db1;color:#e8ddc6;padding:6px 12px;border-radius:50px;font-size:12px}
+.status{font-size:12px;color:#eed0a4;margin:18px 0 9px}
+.summary h3{font:600 clamp(21px,3vw,30px)/1.3 Georgia,serif;margin:0;color:#fff0ce}
+.moonNote{font-size:13px;color:#bfccd9;margin:6px 0 16px}
+.sunTimes{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.sunTimes span{display:inline-flex;gap:8px;border:1px solid #53677e;background:#192e48;border-radius:10px;padding:8px 12px;font-size:13px}
+.sunTimes strong{color:#f5d497}
+.advice{padding:clamp(15px,2vw,24px);background:#243956;border:1px solid #7c8ea3;border-radius:15px}
+.adviceLabel{font-size:14px;font-weight:700;margin:0 0 12px}
+.topicButtons{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:17px}
+.topicButtons button,.sky button{border:1px solid #d1b47e;border-radius:9px;background:#1a2c45;color:#f4dfb4;padding:9px 14px;cursor:pointer;font:600 13px/1.35 system-ui,sans-serif;min-height:42px}
+.topicButtons button[aria-pressed=true]{background:#e2c48b;color:#152238}
+.topicButtons button:focus-visible,.sky button:focus-visible,.profileLink:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.advice h4{font:600 clamp(19px,2.5vw,24px)/1.3 Georgia,serif;color:#f3ddb5;margin:0 0 7px}
+.action{margin:0 0 10px;font-size:16px;line-height:1.65}
+.scopeNote{font-size:12px;color:#bbc9d8;line-height:1.6;margin:10px 0}
+.profileLink{display:inline-block;color:#f3d090;font-size:14px;margin-top:5px}
+.sky{margin-top:20px;background:#182b42;border:1px solid #526a86;padding:clamp(14px,2vw,20px);border-radius:14px}
+.sky h3{font:600 clamp(19px,2.4vw,24px)/1.35 Georgia,serif;color:#f5deb2;margin:0}
+.sky p{font-size:14px;margin:6px 0 12px}
+.skyResults{padding:12px 0 0;font-size:14px}
+.skyResults ul{padding-left:22px}.skyResults li{margin:8px 0}
+.sky button:disabled{opacity:.6;cursor:wait}
+@media(max-width:480px){.top h2{font-size:28px}.sunTimes{display:grid;grid-template-columns:1fr}.sunTimes span{justify-content:space-between}.topicButtons button{flex:1 1 42%}.dashboard{padding:14px}}
+
+.reasonDetails{margin:16px 0 8px;background:#17283e;border:1px solid #536b82;border-radius:12px;padding:12px 14px}
+.reasonDetails summary{cursor:pointer;color:#f2d29b;font-weight:700;line-height:1.5}
+.reasonDetails summary:focus-visible{outline:2px solid #f6d397;outline-offset:3px}
+.reasonDetails ol{margin:14px 0 0;padding-left:22px;font-size:13px;line-height:1.7;color:#dfe8f3}
+.reasonDetails li{padding:5px 0;border-bottom:1px solid #344862}
+.reasonDetails li:last-child{border:0}
+
+/* P3.3 — private owner-scoped explanation, not another competing verdict. */
+.personalSummary{margin:12px 0;padding:12px 14px;border:1px solid #698a9c;background:#152d41;border-radius:12px}
+.resonanceRefresh{min-height:40px;background:#203c55;border:1px solid #d4b87f;color:#f5dda9;border-radius:9px;padding:8px 14px;cursor:pointer;margin:10px 0}
+.resonanceRefresh:focus-visible{outline:2px solid #f5dda9;outline-offset:3px}
+
+/* P3.7: five source-backed cards; no competing legacy verdict panel. */
+.factorHeader{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin:24px 0 13px}
+.factorHeader h3,.personalSummary h3{margin:0 0 6px;color:#f4dfb4;font:600 clamp(19px,2.5vw,24px)/1.3 Georgia,serif}
+.factorHeader p{color:#c6d6e5;font-size:13px;margin:0;line-height:1.6}
+.moment{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:#d4e2f3;background:#142941;border:1px solid #536a86;padding:7px 10px;border-radius:100px}
+.factorGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.factorCard{display:flex;min-width:0;flex-direction:column;padding:17px 16px;background:linear-gradient(135deg,#162e4a,#13253d);border:1px solid #607a98;border-radius:14px;color:#d6e3f3}
+.factorTitle{display:flex;align-items:center;gap:11px;min-width:0}
+.factorIcon{display:inline-flex;flex:0 0 44px;width:44px;height:44px;align-items:center;justify-content:center;border:1px solid #a9905d;border-radius:13px;background:radial-gradient(circle at 30% 20%,#51658c,#1e3755 75%);color:#ffde9b}
+.factorTitle div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.factorTitle strong{font-size:17px;color:#f9e4bb;overflow-wrap:anywhere}
+.factorLabel{font-size:11px;letter-spacing:.065em;text-transform:uppercase;color:#aebed3}
+.factorCard p{margin:9px 0 0;font-size:13px;line-height:1.6}
+.factorCard .classification{font-weight:750;color:#f5d596;font-size:14px;margin-top:14px}
+.factorCard .application{border-left:2px solid #bb9a63;margin-top:13px;padding-left:11px;color:#e4ecf7}
+.factorFoot{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:auto;padding-top:14px;color:#a9bfd5;font-size:11px}
+.factorFoot a{color:#f2d8a5;text-decoration:underline;text-underline-offset:3px}
+.moonContext{display:flex;align-items:flex-start;gap:9px;margin-top:14px;color:#c5d4e2;font-size:13px;line-height:1.6}
+.moonContext svg{flex-shrink:0;color:#efd19b}
+.personalSummary{margin:20px 0 10px;padding:20px;border:1px solid #68849d;background:#142b43;border-radius:14px}
+.natalGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+.natalCard{padding:15px;background:#193451;border:1px solid #506f8b;border-radius:12px;min-width:0}
+.natalCard .factorIcon{width:36px;height:36px;vertical-align:middle;margin-right:9px}
+.natalCard strong{color:#f5dca9;font-size:15px}
+.natalCard p{line-height:1.7;font-size:13px;margin:11px 0 0;color:#d5e2ed}
+.methodFooter{display:flex;align-items:flex-start;gap:8px;color:#adc1d4;font-size:12px;line-height:1.65;margin-top:18px}
+.methodFooter svg{flex-shrink:0}
+@media(max-width:640px){.factorGrid,.natalGrid{grid-template-columns:minmax(0,1fr)}.personalSummary{padding:14px}}
+@media(max-width:360px){.factorCard{padding:13px}.factorIcon{width:38px;height:38px;flex-basis:38px}.factorTitle strong{font-size:15px}.topicButtons button{min-width:0;padding:8px 6px}}

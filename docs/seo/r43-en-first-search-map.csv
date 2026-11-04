@@ -1,0 +1,20 @@
+locale,priority,intent_cluster,query_hypothesis,canonical_landing,action,validation
+en,P0,vedic_calculator,free vedic birth chart,/en/astrology/jyotish,improve calculator explainer and primary CTA,validate SERP and Bing demand
+en,P0,vedic_calculator,jyotish birth chart calculator,/en/astrology/jyotish,add methodology and D1 D9 D10 example,validate SERP and Bing demand
+en,P0,vedic_calculator,vedic moon sign calculator,/en/astrology/jyotish,explain Moon vs Sun sign without confusing tropical systems,validate SERP and Bing demand
+en,P0,panchanga,panchang today by city,/en/panchanga,focus clear city selection after Panchanga 2.0,coordinate with parallel Panchanga PR
+en,P0,panchanga,nakshatra today by location,/en/panchanga,explain location timezone and exact transitions,coordinate with parallel Panchanga PR
+en,P0,panchanga,tithi today by location,/en/panchanga,add useful tithi context not location doorway pages,coordinate with parallel Panchanga PR
+en,P0,tarot,free three card tarot reading,/en/tarot,highlight free interactive tool and honest limits,validate SERP and Bing demand
+en,P1,jyotish_learning,sidereal vs tropical zodiac,/en/learn/sidereal-and-tropical,offer original explanatory comparison and calculator CTA,verify existing slug
+en,P1,jyotish_learning,what is vimshottari dasha,/en/learn/vimshottari-life-cycle,explain dates from verified chart calculations,verify existing slug
+en,P1,jyotish_learning,nakshatra meaning in vedic astrology,/en/learn/nakshatras,link glossary concepts to real calculation,verify existing slug
+en,P1,tarot_cards,moon tarot card reversed meaning,/en/tarot/cards/moon,original symbolism with upright reversed context,verify existing slug
+en,P1,tarot_cards,magician tarot card meaning,/en/tarot/cards/magician,add practical example and internal linking,verify existing slug
+en,P1,tarot_cards,the fool tarot card upright meaning,/en/tarot/cards/fool,review for differentiated helpful coverage,verify existing slug
+en,P1,astronomy,solar eclipses 2027 visibility,/en/eclipses/2027,include source referenced NASA dates and location caveats,verify live content
+en,P2,yoga,box breathing timer,/en/yoga,make breathing timer easy to find,validate SERP and Bing demand
+uk,P1,vedic_calculator,натальна карта джйотіш онлайн,/uk/astrology/jyotish,retain full Ukrainian localization,validate GSC by locale
+uk,P1,panchanga,панчанга сьогодні,/uk/panchanga,preserve parallel UX improvements,validate GSC by locale
+uk,P2,tarot,розклад таро три карти онлайн,/uk/tarot,retain original Ukrainian descriptions,validate GSC by locale
+research,P2,localization,astrology terms Spanish Portuguese Hindi,unassigned,research only; do not create thin translated doorway pages,review country demand before localization

@@ -59,6 +59,8 @@ export default function YogaBreathSession({locale}:{locale:ContentLocale}){
  const [state,setState]=useState<'ready'|'running'|'paused'|'complete'|'stopped'>('ready');
  const [elapsed,setElapsed]=useState(0);
  const elapsedRef=useRef(0);
+ const completionToken=useRef<string|null>(null);
+ const [completionBusy,setCompletionBusy]=useState(false),[completionSaved,setCompletionSaved]=useState(false),[completionMessage,setCompletionMessage]=useState('');
  const frame=breathFrame(pattern,elapsed);
  const lastTick=useRef<number|null>(null);
  useEffect(()=>{
@@ -78,7 +80,22 @@ export default function YogaBreathSession({locale}:{locale:ContentLocale}){
   document.addEventListener('visibilitychange',hidden);
   return ()=>{cancelAnimationFrame(id);document.removeEventListener('visibilitychange',hidden);lastTick.current=null;};
  },[state,pattern]);
- const reset=(nextState:'ready'|'running'='ready')=>{elapsedRef.current=0;setElapsed(0);setState(nextState);lastTick.current=null;};
+ const reset=(nextState:'ready'|'running'='ready')=>{
+  elapsedRef.current=0;setElapsed(0);setState(nextState);lastTick.current=null;
+  completionToken.current=null;setCompletionSaved(false);setCompletionMessage('');
+ };
+ async function recordCompleted(){
+  if(state!=='complete'||completionSaved||completionBusy)return;
+  setCompletionBusy(true);setCompletionMessage('');
+  completionToken.current??=crypto.randomUUID();
+  try{
+   const response=await fetch('/api/v1/personal/practices',{method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({eventId:completionToken.current,practiceId:mode,durationSeconds:Math.round(sessionMs(pattern)/1000)})});
+   if(!response.ok)throw new Error(response.status===401?(uk?'Увійди, щоб зберегти практику.':'Sign in to save your practice.'):(uk?'Не вдалося зберегти практику.':'Could not save your practice.'));
+   setCompletionSaved(true);setCompletionMessage(uk?'Практику збережено в Galaxiora Personal.':'Practice saved to Galaxiora Personal.');
+  }catch(e){setCompletionMessage(e instanceof Error?e.message:String(e))}
+  finally{setCompletionBusy(false)}
+ }
  const ready=state==='ready',running=state==='running',ended=state==='complete'||state==='stopped';
  const displayed=PHASE_COPY[frame.phase];
  return <section className="as-breath-player" aria-label={uk?'Візуальний тренажер дихання':'Visual breathing pacer'}>
@@ -89,8 +106,8 @@ export default function YogaBreathSession({locale}:{locale:ContentLocale}){
   </div>
   <div className="as-breath-selector" role="group" aria-label={uk?'Техніка дихання':'Breathing technique'}>
    {BREATHING_PATTERNS.map(p=><button key={p.id} type="button" data-testid={'pattern-'+p.id}
-    disabled={!ready} aria-pressed={mode===p.id} className={'as-breath-mode '+(mode===p.id?'is-selected':'')}
-    onClick={()=>setMode(p.id)}>
+    aria-pressed={mode===p.id} className={'as-breath-mode '+(mode===p.id?'is-selected':'')}
+    onClick={()=>{if(p.id!==mode){reset();setMode(p.id);}}}>
     <strong>{p.title[locale]}</strong><span>{p.summary[locale]}</span>
    </button>)}
   </div>
@@ -119,14 +136,17 @@ export default function YogaBreathSession({locale}:{locale:ContentLocale}){
     <progress aria-label={uk?'Прогрес циклів':'Cycle progress'} max={sessionMs(pattern)} value={elapsed}/>
     <div className="as-breath-actions">
      {ready?<button className="as-button as-button-primary" type="button" onClick={()=>reset('running')} data-testid="breath-start"><Play size={18}/>{uk?'Поїхали!':"Let's go!"}</button>:
-     ended?<button className="as-button as-button-primary" type="button" onClick={()=>reset()}><RotateCcw size={17}/>{uk?'Ще раз':'Start again'}</button>:
+     ended?<><button className="as-button as-button-primary" type="button" onClick={()=>reset()}><RotateCcw size={17}/>{uk?'Ще раз':'Start again'}</button>
+       {state==='complete'&&<button className="as-button as-button-secondary" type="button" disabled={completionBusy||completionSaved} onClick={()=>void recordCompleted()} data-testid="practice-save">
+        {completionSaved?(uk?'Збережено в Personal':'Saved to Personal'):(uk?'Зберегти завершену практику':'Save completed practice')}</button>}</>:
      <><button className="as-button as-button-primary" type="button" onClick={()=>setState(running?'paused':'running')}>
       {running?<Pause size={17}/>:<Play size={17}/>}
       {running?(uk?'Пауза':'Pause'):(uk?'Продовжити':'Resume')}
      </button>
      <button className="as-button as-button-secondary" type="button" onClick={()=>setState('stopped')}><Square size={15}/>{uk?'Зупинити':'Stop'}</button></>}
     </div>
-    <p className="as-breath-safety"><ShieldAlert size={16} aria-hidden="true"/>{pattern.safety[locale]} {uk?'Якщо паморочиться голова, є біль або бракує повітря — зупинись. Не практикуй за кермом.':'Stop if dizzy, in pain or short of breath. Never use while driving.'}</p>
+    {completionMessage&&<p role="status" className="as-muted">{completionMessage}</p>}
+     <p className="as-breath-safety"><ShieldAlert size={16} aria-hidden="true"/>{pattern.safety[locale]} {uk?'Якщо паморочиться голова, є біль або бракує повітря — зупинись. Не практикуй за кермом.':'Stop if dizzy, in pain or short of breath. Never use while driving.'}</p>
    </div>
   </div>
  </section>;

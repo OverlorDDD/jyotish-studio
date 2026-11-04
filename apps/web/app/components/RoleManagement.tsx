@@ -42,6 +42,9 @@ export default function RoleManagement({locale}:{locale:PortalLocale}){
  }
  return <section className="as-role-panel">
   <h2>{uk?'Користувачі та ролі':'Users and permissions'}</h2>
+  <p><button type="button" disabled={saving!==''} onClick={()=>void refresh().then(()=>{setError('');setMessage(uk?'Список і журнал оновлено.':'User list and audit log refreshed.')}).catch(e=>setError(e instanceof Error?e.message:String(e)))}>
+   {uk?'Оновити користувачів і журнал ролей':'Refresh users and role audit'}
+  </button></p>
   <p className="as-muted">{uk?'Доступне тільки адміністратору. Підписка FREE/PREMIUM не надає прав EXPERT або ADMIN. Власну роль тут змінити не можна.':'Admin-only. FREE/PREMIUM subscriptions do not grant EXPERT or ADMIN privileges. You cannot change your own role here.'}</p>
   {error&&<p className="as-account-error" role="alert">{error}</p>}
   {message&&<p role="status">{message}</p>}

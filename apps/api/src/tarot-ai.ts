@@ -1,3 +1,4 @@
+import {validateTarotEvidence} from './tarot-evidence.ts';
 import {readerReading,type ReaderNarrative} from './tarot-reader.ts';
 import {describeDraws,type Spread} from './tarot-deck.ts';
 export type TarotProvider='openai'|'openrouter'|'ollama';
@@ -75,6 +76,11 @@ export async function createHumanAiTarot(
   try{parsed=JSON.parse(data.choices?.[0]?.message?.content||'');}catch{throw new Error('Provider did not return structured content');}
   const reading=validateNarrative(parsed,cards.length);
   if(!reading)throw new Error('Incomplete provider reading');
+  const validated=validateTarotEvidence(reading,cardFacts,language);
+  if(!validated.ok){
+   console.warn('Tarot AI rejected by evidence gate: '+validated.codes.join(','));
+   throw new Error('Tarot AI reading contradicts recorded cards; safe reader fallback available');
+  }
   return {reading,model:data.model||cfg.model};
  }catch(e){if(!emitted)await usage('request_error');throw e;}
 }

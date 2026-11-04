@@ -1,5 +1,8 @@
 # Galaxiora — agent operating guide
 
+> **2026-11-04 repository consolidation note — READ FIRST:** Also read [PROJECT_STATUS.md](PROJECT_STATUS.md) before writing code or giving deploy instructions. After the consolidation PR merges, `main` is the ONLY canonical integration base; all old `release/*`, numbered Panchanga, GROWTH and `fix/jqa3*` lines are historical references, not deployment targets. EC2 HEAD must be verified separately. Open short-lived PRs against `main`. Draft GalaxiPedia PR #111 and GP-SEO #112 remain NOT deployed; G3.0 funnel needs production acceptance. Approved production galaxy spiral #6 and privacy-safe GA4 must not regress. User search intent: Tarot directly to `/en/tarot` or `/uk/tarot`, natal chart/Kundli to `/en/astrology/jyotish` or `/uk/astrology/jyotish`, with canonical/sitemap/hreflang rather than forced Google referrer redirects. Track launch state in `PROJECT_STATUS.md`. Never call a CI-green commit already deployed without AWS verification.
+
+
 Read `PROJECT_MAP.yaml` first, then only the files and docs relevant to the requested module. This is the public **Galaxiora** product in repository `jyotish-studio`; do not rename packages/routes solely to match the brand.
 
 ## Mission and boundaries

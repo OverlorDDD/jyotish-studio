@@ -6,6 +6,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
 import {PrismaClient} from '@prisma/client';
+import {passwordHash} from '../apps/api/src/auth.ts';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const db=process.env.DATABASE_URL;
@@ -30,11 +31,14 @@ const request=async(path,{method='GET',cookie,origin,fetchSite,body}={})=>{
  return {status:response.status,data,cookie:response.headers.get('set-cookie')?.split(';')[0]||'',requestId:response.headers.get('x-request-id')};
 };
 const post=(path,body,cookie,origin=base)=>request(path,{method:'POST',body,cookie,origin});
+/** Fixtures are inserted only in the disposable CI database, NOT via a bypass in public signup. */
 async function register(label){
- const result=await post('/api/v1/account/register',{email:'a1-'+label+'-'+nonce+'@example.invalid',password:'A1-testing-only-password-2026'});
+ const email='a1-'+label+'-'+nonce+'@example.invalid',password='A1-testing-only-password-2026';
+ const user=await prisma.user.create({data:{email,passwordHash:await passwordHash(password)},select:{id:true,email:true}});
+ const result=await post('/api/v1/account/login',{email,password});
  assert.equal(result.status,201,JSON.stringify(result.data));
  assert.ok(result.cookie.startsWith('jyotish_session='));
- return {id:result.data.user.id,email:result.data.user.email,cookie:result.cookie};
+ return {id:user.id,email:user.email,cookie:result.cookie};
 }
 async function start(){
  child=spawn(process.execPath,['node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','apps/api/src/main.ts'],{cwd:root,
@@ -53,8 +57,40 @@ async function start(){
 test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:90000},async t=>{
  try{
   await prisma.$connect();await start();
+  // Unverified public registration is unavailable in CI, even for valid-looking requests.
+  const unverified=await post('/api/v1/account/register',{
+   email:'no-verification-'+nonce+'@example.invalid',
+   password:'A1-testing-only-password-2026',turnstileToken:'fake-bot-proof'
+  });
+  assert.equal(unverified.status,503,'Public signup must fail closed without real Cloudflare/Resend configuration');
+  assert.equal(await prisma.user.count({where:{email:'no-verification-'+nonce+'@example.invalid'}}),0);
   const [a,b,admin]=await Promise.all([register('a'),register('b'),register('admin')]);
   await prisma.user.update({where:{id:admin.id},data:{role:'ADMIN'}});
+  await t.test('Private Tarot questions persist, remain owner-only and are never orders',async()=>{
+   const path='/api/v1/reading-orders/questions';
+   const body={topic:'relationships',question:'What can the cards reveal about this new chapter?',
+    context:'I want to reflect on a new direction and consider what matters most.',privacyConsent:true};
+   assert.equal((await request(path)).status,401);
+   assert.equal((await post(path,body)).status,401);
+   assert.equal((await post(path,body,a.cookie,'https://evil.example')).status,403);
+   const created=await post(path,body,a.cookie);
+   assert.equal(created.status,201,JSON.stringify(created.data));
+   assert.match(created.data.id,/^[a-f0-9-]{36}$/i);
+   assert.equal(created.data.status,'SAVED_PRIVATE');
+   assert.equal(created.data.checkoutAvailable,false);
+   const mine=await request(path,{cookie:a.cookie});
+   assert.equal(mine.status,200);
+   assert.ok(mine.data.some(q=>q.id===created.data.id&&q.question===body.question));
+   assert.ok(!('expiresAt' in mine.data.find(q=>q.id===created.data.id)),'no seven-day expiry');
+   const other=await request(path,{cookie:b.cookie});
+   assert.equal(other.status,200);assert.equal(other.data.some(q=>q.id===created.data.id),false);
+   const denied=await request(path+'/'+created.data.id,{method:'DELETE',cookie:b.cookie,origin:base});
+   assert.equal(denied.data.deleted,false);
+   assert.equal((await prisma.tarotQuestion.findUnique({where:{id:created.data.id}})).userId,a.id);
+   const removed=await request(path+'/'+created.data.id,{method:'DELETE',cookie:a.cookie,origin:base});
+   assert.equal(removed.data.deleted,true);
+   assert.equal((await request(path,{cookie:a.cookie})).data.some(q=>q.id===created.data.id),false);
+  });
   await t.test('API request correlation is non-sensitive UUID',async()=>{
    const health=await request('/api/health');
    assert.match(health.requestId||'',/^[0-9a-f]{8}-[0-9a-f-]{27,}$/);

@@ -1,0 +1,158 @@
+'use client';
+import {useCallback,useEffect,useState} from 'react';
+import {readApiJson} from '../../lib/api-response';
+import type {PortalLocale} from '../../lib/brand';
+type Scan={sourceKey:string;createdAt:string;status:string;candidates:number;accepted:number;duplicates:number;
+ rejected:number;errors:number;failure:string|null;durationMs:number;rejectionReasons:Record<string,number>|null};
+type Publisher={domain:string;lastSeenAt:string;articleCount:number;status:string;lastTitle:string|null};
+type Quality={sampledArticles:number;visibleAfterGrouping:number;duplicatePresentationsAvoided:number;
+ sampledPublishers:number;sampledTopics:number;within48Hours:number;
+ missingUkrainianTitles:number;missingGroundedPreviews:number;noApprovedImage:number;
+ observedNotPublisherDated:number;scope:string};
+type Health={generatedAt?:string;freshness?:{state:string;lastScanAt:string|null;lastNewArticleAt:string|null;reason:string};
+ runtime?:{schedulerStartedAt:string|null;nextScanAt:string|null;scanInProgress:boolean;lastAttemptError:string|null;lastSkipReason:string|null;editorial:string|null};
+ editorial?:{translationEnabled:boolean;scope:string;qualityApproved:boolean;configError?:string|null;pending:number;quarantined?:number;
+  headlineBacklog?:{sampled:number;ready:number;missingUk:number;missingEn:number;eligible:number;cooldown:number;manualReview:number};
+  teaserDebt?:{sampled:number;sourceBacked:number;missingUk:number;missingEn:number;titleOnly:number}};
+ enabled:boolean;registeredSources:number;articleCount:number;publishers:number;
+ quality?:Quality;
+ untranslated:number;unsummarized:number;unillustrated:number;discoveredSources:Publisher[];editorialAiConfigured:boolean;
+ last:{createdAt:string;sources:number;accepted:number;errors:number}|null;
+ byTopic:{topic:string;count:number}[];sources:Scan[];history:Scan[]};
+export default function NewsDiagnostics({locale}:{locale:PortalLocale}){
+ const uk=locale==='uk';
+ const [data,setData]=useState<Health|null>(null),[loading,setLoading]=useState(true);
+ const [error,setError]=useState(''),[sending,setSending]=useState(false),[notice,setNotice]=useState('');
+ const refresh=useCallback(async(silent=false)=>{
+  setError('');if(!silent)setLoading(true);
+  try{setData(await readApiJson<Health>(await fetch('/api/v1/news/admin/health',{credentials:'same-origin',cache:'no-store'})));}
+  catch(e){setError(e instanceof Error?e.message:String(e));}
+  finally{setLoading(false);}
+ },[]);
+ useEffect(()=>{
+  void refresh();
+  const timer=setInterval(()=>{if(document.visibilityState==='visible')void refresh(true);},45000);
+  const focus=()=>{if(document.visibilityState==='visible')void refresh(true);};
+  window.addEventListener('focus',focus);
+  return()=>{clearInterval(timer);window.removeEventListener('focus',focus)};
+ },[refresh]);
+ const date=(x:string)=>new Date(x).toLocaleString(uk?'uk-UA':'en-GB');
+ async function policy(domain:string,status:'DISCOVERED'|'BLOCKED'|'TRUSTED'){
+  setNotice('');setError('');
+  try{
+   await readApiJson(await fetch('/api/v1/news/admin/sources/'+encodeURIComponent(domain),{
+    method:'PATCH',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status})}));
+   await refresh();
+  }catch(e){setError(e instanceof Error?e.message:String(e));}
+ }
+ async function requestBackfill(){
+  if(sending)return;
+  setSending(true);setNotice('');setError('');
+  try{
+   const result=await readApiJson<{requested:boolean;completed:boolean;reason?:string}>(await fetch('/api/v1/news/admin/refresh?backfill=true',{
+    method:'POST',credentials:'same-origin',headers:{Accept:'application/json'}
+   }));
+   setNotice(result.requested?(uk?'Сканування розпочато; статус оновиться автоматично.':
+    'Scan started; the status will update automatically.'):
+    (uk?'Цикл уже виконується: ':'A scan is already running: ')+(result.reason||''));
+   await refresh(true);
+  }catch(e){setError(e instanceof Error?e.message:String(e));}
+  finally{setSending(false);}
+ }
+ return <section className="as-detail" aria-label={uk?'Діагностика GalaxiNews':'GalaxiNews diagnostics'} data-testid="news-admin-diagnostics">
+  <h2>{uk?'GalaxiNews · джерела та наповнення':'GalaxiNews · sources and coverage'}</h2>
+  <p className="as-muted">{uk?'Джерела зі статусом кандидата перевіряються автоматично. Показники нижче — результати справжніх сканувань, не обіцянка кількості новин.':
+   'Candidate feeds are checked automatically. Figures below reflect real scan results, not a content guarantee.'}</p>
+  <p><button type="button" onClick={()=>void refresh()} disabled={loading}>{uk?'Оновити діагностику':'Refresh diagnostics'}</button>{' '}
+   <button type="button" onClick={()=>void requestBackfill()} disabled={sending}>{uk?'Повторити початкове наповнення':'Run backfill again'}</button></p>
+  {notice&&<p role="status">{notice}</p>}
+  {error&&<p role="alert">{error}</p>}
+  {loading?<p>{uk?'Завантаження…':'Loading…'}</p>:data&&<>
+   <div role="status" data-testid="news-operational-health" style={{border:'1px solid #65819d',borderRadius:12,padding:16,margin:'14px 0',background:'#182b40'}}>
+    <strong>{uk?'Стан оновлення новин: ':'News refresh health: '}{data.freshness?.state||'unknown'}</strong>
+    <p>{data.freshness?.state==='disabled'?(uk?'Автоматичний збір вимкнено. Перевір змінну NEWS_INGESTION_ENABLED на AWS.':'Automatic ingestion disabled. Check NEWS_INGESTION_ENABLED on AWS.'):
+     data.freshness?.state==='never_scanned'?(uk?'Немає завершених сканувань. Перевір запуск API.':'No completed scans. Inspect API startup.'):
+     data.freshness?.state==='scan_stale'?(uk?'Сканування прострочене: перевір таймер, базу даних і lease.':'Scan overdue: inspect timer, database and lease.'):
+     data.freshness?.state==='feed_stale'?(uk?'Сканування є, але немає нових матеріалів: перевір джерела, фільтри та відхилення.':'Scans are running, but no new articles: inspect sources, filters and rejections.'):
+     data.freshness?.state==='degraded'?(uk?'Деякі джерела повертають помилки.':'Some sources report errors.'):
+     (uk?'Оновлення в очікуваному режимі.':'Updates are within the expected window.')}</p>
+    <p className="as-muted">{uk?'Останнє сканування: ':'Last completed scan: '}{data.freshness?.lastScanAt?date(data.freshness.lastScanAt):'—'}
+     {' · '}{uk?'Остання нова стаття: ':'Last new article: '}{data.freshness?.lastNewArticleAt?date(data.freshness.lastNewArticleAt):'—'}</p>
+    <p className="as-muted">{uk?'Планувальник з: ':'Scheduler since: '}{data.runtime?.schedulerStartedAt?date(data.runtime.schedulerStartedAt):'—'}
+     {' · '}{uk?'Наступне сканування: ':'Next scan: '}{data.runtime?.nextScanAt?date(data.runtime.nextScanAt):'—'}
+     {' · '}{uk?'Виконується: ':'Running: '}{data.runtime?.scanInProgress?'YES':'NO'}</p>
+    {data.runtime?.lastAttemptError&&<p role="alert">{uk?'Помилка циклу: ':'Cycle error: '}{data.runtime.lastAttemptError}</p>}
+    {data.runtime?.lastSkipReason&&<p>{uk?'Пропуск: ':'Skip: '}{data.runtime.lastSkipReason}</p>}
+    {data.runtime?.editorial&&<p>{uk?'Переклад: ':'Translation: '}{data.runtime.editorial}</p>}
+    {data.editorial?.headlineBacklog&&<p data-testid="news-nmt-backlog">
+     <strong>{uk?'Стан заголовків (останні ':'Headline state (latest '}{data.editorial.headlineBacklog.sampled}):</strong>
+     {' '}{uk?'потрібен UK: ':'needs UK: '}{data.editorial.headlineBacklog.missingUk}
+     {' · '}{uk?'потрібен EN: ':'needs EN: '}{data.editorial.headlineBacklog.missingEn}
+     {' · '}{uk?'готові до обробки: ':'eligible: '}{data.editorial.headlineBacklog.eligible}
+     {' · '}{uk?'очікують повтору: ':'on cooldown: '}{data.editorial.headlineBacklog.cooldown}
+     {' · '}{uk?'ручна перевірка: ':'manual review: '}{data.editorial.headlineBacklog.manualReview}
+    </p>}
+    {data.editorial?.teaserDebt&&<p data-testid="news-teaser-coverage">
+      <strong>{uk?'Описи з підтверджених джерел: ':'Source-backed excerpts: '}{data.editorial.teaserDebt.sourceBacked}</strong>
+      {' · '}{uk?'Немає UK: ':'Missing UK: '}{data.editorial.teaserDebt.missingUk}
+      {' · '}{uk?'Немає EN: ':'Missing EN: '}{data.editorial.teaserDebt.missingEn}
+      {' · '}{uk?'Без опису джерела: ':'No publisher excerpt: '}{data.editorial.teaserDebt.titleOnly}
+     </p>}
+    {data.editorial?.configError&&<p role="alert">{uk?'Помилка конфігурації NMT: ':'NMT config error: '}{data.editorial.configError}</p>}
+    {data.editorial&&<p>{uk?'Режим локалізації: ':'Localization scope: '}{data.editorial.scope}
+     {' · '}{uk?'Необроблених заголовків: ':'Unlocalized titles: '}{data.editorial.pending}
+     {' · '}{uk?'Потрібна ручна перевірка: ':'Manual review needed: '}{data.editorial.quarantined??0}</p>}
+   </div>
+   <div className="as-admin-grid">
+    <div className="as-admin-metric"><span>{uk?'Опублікованих':'Published'}</span><strong>{data.articleCount}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Переклад NMT':'NMT translation'}</span>
+    <strong>{data.editorial?.translationEnabled?(data.editorial.qualityApproved?'READY':'APPROVAL REQUIRED'):'OFF'}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Видавців':'Publishers'}</span><strong>{data.publishers}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Налаштованих каналів':'Candidate channels'}</span><strong>{data.registeredSources}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Без української назви':'Missing Ukrainian titles'}</span><strong>{data.untranslated}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Без опису':'Missing teasers'}</span><strong>{data.unsummarized}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Без обкладинки':'Missing cover'}</span><strong>{data.unillustrated}</strong></div>
+    <div className="as-admin-metric"><span>{uk?'Збір увімкнено':'Ingestion enabled'}</span><strong>{data.enabled?'ON':'OFF'}</strong></div>
+   </div>
+   {data.quality&&<>
+    <h3>{uk?'Якість стрічки (останні 600 публікацій)':'Feed quality (latest 600 articles)'}</h3>
+    <div className="as-admin-grid" data-testid="news-quality-summary">
+     <div className="as-admin-metric"><span>{uk?'Унікальних сюжетів':'Distinct stories'}</span><strong>{data.quality.visibleAfterGrouping}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'Повтори згруповано':'Related cards grouped'}</span><strong>{data.quality.duplicatePresentationsAvoided}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'За останні 48 годин':'Within 48 hours'}</span><strong>{data.quality.within48Hours}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'Лише дата спостереження':'Observed date only'}</span><strong>{data.quality.observedNotPublisherDated}</strong></div>
+     <div className="as-admin-metric"><span>{uk?'Без джерельного опису':'Missing sourced preview'}</span><strong>{data.quality.missingGroundedPreviews}</strong></div>
+    </div>
+    <p className="as-muted">{uk?'Лише останні 600 записів; ці числа не підтверджують видавничих ліцензій.':
+     'Latest 600 records only; these counts do not establish publisher licensing.'}</p>
+   </>}
+   <p className="as-muted">{data.last?(uk?'Останнє повне сканування: ':'Last completed scan: ')+date(data.last.createdAt)+
+    ' · '+data.last.sources+' '+(uk?'каналів':'channels')+', '+data.last.accepted+' '+(uk?'нових':'new')+', '+data.last.errors+' '+(uk?'помилок':'errors'):
+    (uk?'Завершених сканувань ще не було.':'No completed scans yet.')}</p>
+   <p>{data.byTopic.map(x=><span key={x.topic} style={{display:'inline-block',margin:'0 10px 8px 0'}}>{x.topic}: <b>{x.count}</b></span>)}</p>
+   <h3>{uk?'Динамічний реєстр видавців':'Discovered publishers'}</h3>
+   <p className="as-muted">{uk?'Видавці виявляються через незалежний світовий індекс і нові релевантні публікації. Виявлення не означає автоматичного дозволу на зображення чи повні тексти.':
+   'Publishers are discovered automatically from global indexes. Discovery does not grant rights to images or article bodies.'}</p>
+   <div className="as-table-wrap"><table><thead><tr><th>{uk?'Домен':'Domain'}</th><th>{uk?'Статей':'Articles'}</th><th>{uk?'Статус':'Status'}</th><th>{uk?'Дія':'Action'}</th></tr></thead>
+   <tbody>{data.discoveredSources.map(pub=><tr key={pub.domain}>
+    <td><strong>{pub.domain}</strong><small style={{display:'block'}}>{date(pub.lastSeenAt)}</small></td>
+    <td>{pub.articleCount}</td><td>{pub.status}</td><td>
+    <button type="button" onClick={()=>void policy(pub.domain,pub.status==='BLOCKED'?'DISCOVERED':'BLOCKED')}>
+     {pub.status==='BLOCKED'?(uk?'Розблокувати':'Unblock'):(uk?'Заблокувати':'Block')}</button>{' '}
+    {pub.status!=='BLOCKED'&&<button type="button" onClick={()=>void policy(pub.domain,pub.status==='TRUSTED'?'DISCOVERED':'TRUSTED')}>
+     {pub.status==='TRUSTED'?(uk?'Скасувати довіру':'Untrust'):(uk?'Перевірені метадані':'Trust metadata')}</button>}
+    </td></tr>)}</tbody></table></div>
+   <h3>{uk?'Діагностика каналів':'Feed diagnostics'}</h3>
+   <div className="as-table-wrap"><table><thead><tr>
+    <th>{uk?'Джерело':'Source'}</th><th>{uk?'Стан':'Status'}</th><th>{uk?'Отримано':'Received'}</th>
+    <th>{uk?'Нових':'New'}</th><th>{uk?'Дублі':'Duplicates'}</th><th>{uk?'Відхилено':'Rejected'}</th>
+    <th>{uk?'Причини / помилки':'Reasons / errors'}</th>
+   </tr></thead><tbody>{data.sources.length?data.sources.map(x=><tr key={x.sourceKey}>
+    <td><strong>{x.sourceKey}</strong><small style={{display:'block'}}>{date(x.createdAt)}</small></td>
+    <td>{x.status}</td><td>{x.candidates}</td><td>{x.accepted}</td><td>{x.duplicates}</td><td>{x.rejected}</td>
+    <td><small>{x.failure||Object.entries(x.rejectionReasons||{}).map(([key,n])=>key+': '+n).join(', ')||'—'}</small></td>
+   </tr>):<tr><td colSpan={7}>{uk?'Немає записів. Запусти сканування.':'No source attempts yet.'}</td></tr>}</tbody></table></div>
+  </>}
+ </section>;
+}

@@ -1,0 +1,17 @@
+/* The expert form belongs to the Galaxiora dark UI; no unstyled browser textarea. */
+.section{padding:clamp(18px,3vw,30px);margin-top:24px;background:linear-gradient(145deg,#151f34,#131b2b);border:1px solid #45516b;border-radius:18px;color:#e9e9e8;box-shadow:0 16px 45px #0002}
+.section h2{color:#f6e7c7}
+.section p{line-height:1.65;max-width:900px}
+.form{display:grid;gap:10px;max-width:860px;width:100%}
+.form label{font:600 13px/1.45 'DM Sans',system-ui,sans-serif;letter-spacing:.02em;color:#d0d9e8;margin:12px 0 1px}
+.form textarea,.form select,.form input:not([type=checkbox]){display:block;width:100%;max-width:100%;min-width:0;color:#f3f5fa;background:#1b283b;border:1px solid #435470;border-radius:10px;padding:12px 14px;font:400 15px/1.55 'DM Sans',system-ui,sans-serif;letter-spacing:0;box-shadow:none;outline:none;color-scheme:dark}
+.form textarea{min-height:104px;resize:vertical}
+.form textarea::placeholder,.form input::placeholder{color:#a5b1c4;opacity:1}
+.form textarea:focus,.form select:focus,.form input:focus-visible{border-color:#d9b97a;box-shadow:0 0 0 2px #d9b97a33}
+.form select{height:48px}
+.form input:not([type=checkbox]){height:48px}
+.form input[type=checkbox]{appearance:auto;accent-color:#d5ba85;min-width:18px;min-height:18px;width:18px;height:18px;flex:none;margin:2px 0 0}
+.form button{justify-self:start;margin-top:10px}
+.success{background:#1d383b;border:1px solid #4f8277;padding:20px;border-radius:12px;color:#eef8f2}
+.success a{font-weight:700;color:#efd5a8;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:640px){.section{padding:18px}.form button{width:100%;justify-content:center}}

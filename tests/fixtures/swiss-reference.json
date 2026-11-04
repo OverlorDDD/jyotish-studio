@@ -1,6 +1,6 @@
 {
-  "source": "Swiss Ephemeris / PySwissEph, Lahiri, mean node; FIXTURES generated locally, NOT independently signed by Jagannatha Hora",
-  "method": "direct FLG_SIDEREAL + PySwissEph houses_ex, compared with tropical-minus-ayansha and application Node API",
+  "source": "Swiss Ephemeris / PySwissEph; pinned LOCAL Swiss test vectors, not JHora. True ayanamsa (includes nutation) aligned with native JS; mean Rahu/Ketu.",
+  "method": "Sidereal FLG_SIDEREAL, Swiss true ayanamsa via get_ayanamsa_ex_ut, Placidus tropical ascendant minus same true ayanamsa.",
   "toleranceDegrees": 0.0001,
   "cases": [
     {
@@ -10,7 +10,7 @@
       "latitude": 28.6139,
       "longitude": 77.209,
       "utc": "2000-01-01T06:30:00Z",
-      "ayanamsa": 23.857083589,
+      "ayanamsa": 23.8532135057568,
       "ascendant": 343.189124024,
       "positions": {
         "Sun": 256.282088628,
@@ -31,7 +31,7 @@
       "latitude": 51.5074,
       "longitude": -0.1278,
       "utc": "2012-06-15T08:30:00Z",
-      "ayanamsa": 24.031066715,
+      "ayanamsa": 24.035305859673947,
       "ascendant": 114.858921693,
       "positions": {
         "Sun": 60.606941924,
@@ -52,7 +52,7 @@
       "latitude": 50.4501,
       "longitude": 30.5234,
       "utc": "2024-02-29T14:45:00Z",
-      "ayanamsa": 24.19462421,
+      "ayanamsa": 24.193382960430164,
       "ascendant": 127.80407021,
       "positions": {
         "Sun": 316.309261666,

@@ -1,0 +1,125 @@
+name: JQA3 official JHora 8 DLL historical parity
+on:
+  push:
+    branches: [fix/jqa3-windows-and-llm-recovery]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jqa3-historical-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  historical-dll:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original developer JHora 8 short installer and verify provenance
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive=Join-Path $env:RUNNER_TEMP 'jh_short_install.zip'
+          $expand=Join-Path $env:RUNNER_TEMP 'jhora-install'
+          Invoke-WebRequest 'https://www.vedicastrologer.org/jh/jh_short_install.zip' -OutFile $archive -TimeoutSec 120
+          if ((Get-Item $archive).Length -lt 2000000) { throw 'Unexpected JHora installer size' }
+          $zipHash=(Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          Expand-Archive $archive $expand -Force
+          $exe=Get-ChildItem $expand -Recurse -File -Filter '*.exe' | Select-Object -First 1
+          if (!$exe) { throw 'Official JHora installation executable not found in archive' }
+          "InstallerZipSHA256=$zipHash"
+          "InstallerEXESHA256=$((Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
+          $process=Start-Process $exe.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (!$process.WaitForExit(150000)) {
+             Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+          }
+          $install=@(
+            "${env:ProgramFiles(x86)}\Jagannatha Hora\bin\jhora.exe",
+            "$env:ProgramFiles\Jagannatha Hora\bin\jhora.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (!$install) { throw 'JHora 8 was not installed' }
+          $dir=Split-Path -Parent $install
+          $dll=Join-Path $dir 'swedll32.dll'
+          if (!(Test-Path $dll)) { throw 'Original JHora 8 swedll32.dll unavailable' }
+          $p=[ordered]@{
+            originalSource='https://www.vedicastrologer.org/jh/jh_short_install.zip'
+            downloadSha256=$zipHash
+            exeSha256=(Get-FileHash $install -Algorithm SHA256).Hash.ToLowerInvariant()
+            dllSha256=(Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant()
+            dllVersion=(Get-Item $dll).VersionInfo.FileVersion
+            dllSize=(Get-Item $dll).Length
+            sameExeAsTwentyCaptures=$false
+          }
+          $p.sameExeAsTwentyCaptures=($p.exeSha256 -eq '3ddbe5fb0458ad1f0ad91b002c7efb8bba9f08891d3f46190aba97d570b17908')
+          $p | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 jqa3-installed-jhora-provenance.json
+          Get-Content jqa3-installed-jhora-provenance.json
+          "JQA3_OFFICIAL_DLL=$dll" >> $env:GITHUB_ENV
+          $ephe=Join-Path (Split-Path -Parent $dir) 'jhcore\ephe'
+          foreach($name in @('sepl_18.se1','semo_18.se1')) {
+            if (!(Test-Path (Join-Path $ephe $name))) { throw "Missing original JHora Swiss file: $name at $ephe" }
+          }
+          "JQA3_ORIGINAL_EPHE=$ephe" >> $env:GITHUB_ENV
+          if (!$p.sameExeAsTwentyCaptures) {
+             throw 'Official installation differs from SHA-pinned JHora 8 reference executable; cannot claim same-version method.'
+          }
+      - name: Run 20-chart DLL numeric comparison in isolated Windows x86 PowerShell
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe=Join-Path $env:WINDIR 'SysWOW64\WindowsPowerShell\v1.0\powershell.exe'
+          if (!(Test-Path $exe)) { throw '32-bit PowerShell unavailable' }
+          & $exe -NoProfile -ExecutionPolicy Bypass -File tools/jqa3-legacy-dll-probe.ps1 -DllPath $env:JQA3_OFFICIAL_DLL -EphemerisPath $env:JQA3_ORIGINAL_EPHE -OutputPath jqa3-historical-dll-results.json
+          if ($LASTEXITCODE -ne 0) { throw 'DLL probe failed; no parity claim' }
+          $diagnostic=Get-Content jqa3-historical-dll-results.json -Raw | ConvertFrom-Json
+          if (@($diagnostic.rows | Where-Object { $_.actualSwissBackend -ne 'SWIEPH' }).Count) {
+            throw 'Historical Swiss returned MOSEPH rather than SWIEPH; precision comparison invalid'
+          }
+          if ($diagnostic.dllSha256 -ne 'd56ba3a6158fcec3921774b5c9fcc533374413d7b77cdbc6b83ffa082d260a69') {
+            throw 'Historical JHora8 SWIEPH DLL hash changed; independent same-version control is invalid'
+          }
+          if ($diagnostic.results.total -ne 20 -or $diagnostic.results.lagnaPass -ne 20 -or $diagnostic.results.moonPass -ne 20) {
+            throw 'Authentic JHora 8 historical independent precision 20/20 REGRESSION'
+          }
+          Get-Content jqa3-historical-dll-results.json
+      - name: Derive chart-independent old-vs-modern monthly Delta-T differential
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          python -m pip install pyswisseph
+          $env:JQA3_EPHE=$env:JQA3_ORIGINAL_EPHE
+          python tools/jqa3-delta-t-grid-modern.py > jqa3-delta-t-sampled-differences.json
+          if ($LASTEXITCODE -ne 0) { throw 'Delta-T calibration failed' }
+          $data=Get-Content jqa3-delta-t-sampled-differences.json -Raw | ConvertFrom-Json
+          if ($data.samples.Count -ne 3612) { throw 'Expected exactly 301 years x 12 months' }
+          "JQA3_GRID_BEGIN|1900|$($data.samples.Count)"
+          for ($i=0;$i -lt $data.samples.Count;$i+=120) {
+           $end=[Math]::Min($i+119,$data.samples.Count-1)
+           $chunk=($data.samples[$i..$end]|ConvertTo-Json -Compress -Depth 4)
+           "JQA3_GRID_CHUNK|$i|$chunk"
+          }
+          "JQA3_GRID_END"
+
+      - name: Modern Swiss vs historical JHora 2.02.01 on identical original DE431 files
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m pip install pyswisseph
+          $env:JQA3_EPHE=$env:JQA3_ORIGINAL_EPHE
+          python tools/jqa3-modern-de431-probe.py | Out-File -Encoding utf8 jqa3-modern-on-historical-files.json
+          if ($LASTEXITCODE -ne 0) { throw 'Modern Swiss same-ephemeris comparison failed' }
+          $result=Get-Content jqa3-modern-on-historical-files.json -Raw | ConvertFrom-Json
+          "modernSwissVersion=$($result.swissVersion)"
+          "modernLagna=$($result.totals.Lagna.passing)/20 modernMoon=$($result.totals.Moon.passing)/20"
+          Get-Content jqa3-modern-on-historical-files.json
+      - name: Preserve metadata and 20-chart residuals (never redistribute executable or DLL)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jqa3-historical-official-dll-metadata-and-residuals
+          path: |
+            jqa3-installed-jhora-provenance.json
+            jqa3-historical-dll-results.json
+            jqa3-modern-on-historical-files.json
+            jqa3-legacy-delta-t-grid.json
+            jqa3-delta-t-sampled-differences.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -42,7 +42,7 @@ test('A8.7 Cancer reference chart gets eight substantial, actually different, 3-
 });
 test('A8.7 Reader v5 report uses all eight substantive chapters and correct source provenance',()=>{
  const r=buildDetailedReport(chart,'uk','2026-10-21');
- assert.equal(r.editorial.version,'5.0.0');
+ assert.equal(r.editorial.version,'6.0.0');
  assert.equal(r.editorial.chapters.length,8);
  assert.ok(r.editorial.chapters.every(c=>c.paragraphs.length===3&&c.evidence.length>0));
  const specs=buildAiChapterSpecs(r.editorial);

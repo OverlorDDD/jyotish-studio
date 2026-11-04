@@ -1,0 +1,59 @@
+name: Canonical main integration — SEO, Privacy, Panchanga, Build
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [integration/galaxiora-main-source-of-truth-20261104, main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  main-source-of-truth:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_integration_ci
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_integration_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      CI: 'true'
+      SITE_NOINDEX: '0'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_integration_ci
+      AUTH_SECRET: main-integration-ci-disposable-nonproduction-secret
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Prisma generation
+        run: npm run db:generate
+      - name: Canonical SEO target and growth analytics protections
+        run: |
+          npm run test:seo:direct-intent
+          npm run test:g3:funnel
+          npm run test:visitor-analytics
+          npm run test:r42:growth
+          npm run test:growth1:seo
+          npm run test:r32:seo
+          npm run test:brand-favicon
+      - name: Independent Panchanga and calendar regression
+        run: npm run test:panchanga
+      - name: Production build (never deploy or submit indexing from CI)
+        run: npm run build

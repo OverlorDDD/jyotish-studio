@@ -63,6 +63,20 @@ test('A3 chart application: deterministic report, private list/detail/legacy/das
  assert.deepEqual(await app.remove('alice',saved.id),{deleted:true});
  assert.equal((await app.list('alice')).length,0);
 });
+test('Saved Gemini and Groq consultations retain full prose, provenance and Reader v6 on reopening',async()=>{
+ for(const provider of ['gemini','groq']){
+  const {app}=fakeCharts();
+  const prose=('Personalized Jyotish insight tied to the verified D1/D9/D10 chart and its active dasha. ').repeat(180);
+  const saved=await app.save('alice',{...birth,language:'uk',aiProvider:provider,aiModel:'synthetic-free',aiText:prose});
+  const reopened=await app.detail('alice',saved.id);
+  assert.equal(reopened.report.readerVersion,'6.0.0');
+  assert.equal(reopened.report.ai.provider,provider);
+  assert.equal(reopened.report.ai.source,'llm');
+  assert.equal(reopened.report.ai.model,'synthetic-free');
+  assert.equal(reopened.report.ai.text,prose);
+  assert.equal(reopened.report.language,'uk');
+ }
+});
 test('A3 chart application: limit fails before calculation; invalid birth is domain error',async()=>{
  const {app,counters}=fakeCharts();
  const input={...birth};

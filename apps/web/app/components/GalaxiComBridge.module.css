@@ -1,0 +1,20 @@
+.bridge,.module{border:1px solid #52647a;border-radius:18px;padding:clamp(18px,3vw,30px);margin:26px 0;background:linear-gradient(130deg,#1b2a41,#142035);color:#e7dfd1}
+.heading,.module{display:flex;align-items:flex-start;gap:15px}.heading>svg,.module>svg{flex-shrink:0;color:#dfbb79}
+.heading h2,.module h2{font-family:Georgia,serif;font-size:clamp(19px,2vw,24px);margin:0 0 10px;color:#f6dbab}
+.heading p,.module p{color:#c0cbdb;line-height:1.65;margin:0 0 13px}
+.links{display:grid;gap:9px;margin:20px 0}.item{padding:14px;background:#101e30;border:1px solid #42566d;border-radius:11px;display:grid;gap:9px}
+.item a{display:inline-flex;align-items:center;gap:6px;color:#f7dbac;text-decoration:none;overflow-wrap:anywhere}
+.item small,.empty{color:#b9c7da}.item button{background:transparent;border:1px solid #766677;color:#f2d5dc;border-radius:7px;cursor:pointer;padding:6px 10px;justify-self:start;display:flex;align-items:center;gap:8px}
+.start,.module a{display:inline-flex;align-items:center;gap:7px;color:#f1c886;font-weight:650;text-decoration:none;margin-top:12px}
+.start:hover,.module a:hover,.item a:hover{text-decoration:underline}
+.admin{margin-top:22px;border-top:1px solid #40516a;padding-top:18px;display:grid;gap:10px}
+.admin strong{display:flex;align-items:center;gap:7px;color:#e4c48f}.admin label{display:grid;gap:8px;color:#c5d0df}
+.admin input{width:100%;max-width:470px;min-width:0;padding:11px;background:#0d1727;border:1px solid #53657c;border-radius:9px;color:#f0ebdf}
+.admin button{justify-self:start;border:0;border-radius:9px;background:#bba071;padding:11px 17px;font-weight:700;color:#192236;cursor:pointer}
+.admin button:disabled{opacity:.5;cursor:not-allowed}.admin small{color:#b4c1d4}.admin p[role=alert]{color:#ffb9c1}
+@media(max-width:600px){.heading,.module{gap:11px}.bridge,.module{padding:17px}}
+
+.adminDisclosure{margin-top:18px;border-top:1px solid #475972;padding-top:10px}.adminDisclosure summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:#f2cc8b;font-weight:650}
+.adminDisclosure p{color:#c8d1de;line-height:1.55}.candidates{display:grid;gap:5px;max-height:260px;overflow-y:auto}
+.candidates button{text-align:left;border:1px solid #516982;background:#1c3048;color:#eadabf;border-radius:8px;padding:10px 12px;cursor:pointer}
+.candidates button:hover,.candidates button:focus{border-color:#d7b67b;background:#293e56}
