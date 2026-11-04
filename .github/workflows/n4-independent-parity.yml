@@ -1,0 +1,34 @@
+name: N4 Independent PyJHora 16-Varga Parity
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/jyotish-core/src/vargas.ts'
+      - 'tools/n4-pyjhora-oracle.py'
+      - 'tools/n4-pyjhora-compare.mjs'
+      - '.github/workflows/n4-independent-parity.yml'
+  workflow_dispatch:
+jobs:
+  synthetic-sign-parity:
+    name: 50 synthetic profiles, 8000 independent PyJHora sign assignments
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONWARNINGS: ignore
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned independent external calculator
+        run: |
+          python -m pip install --no-cache-dir PyJHora==4.8.7 pyswisseph PyQt6 numpy geocoder geopy pytz timezonefinder
+      - name: Assert importable independent PyJHora implementation
+        run: |
+          python -c "from jhora.horoscope.chart import charts; print('N4_PYJHORA_ORACLE_AVAILABLE')"
+      - name: Compare 8000 placements — no guest data and no LLM
+        run: node --experimental-strip-types tools/n4-pyjhora-compare.mjs
