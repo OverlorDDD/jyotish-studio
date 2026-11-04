@@ -245,7 +245,7 @@ export const PEDIA_SEO_JYOTISH:PediaArticle[]=[
     },
     "summary": {
       "en": "The natal nakshatra ruler, the 120-year scheme and a transparent example of remaining mahadasha fraction.",
-      "uk": "Управитель накшатри народження, схема 120 років і прозорий приклад залишку махадаші."
+      "uk": "Як за управителем накшатри народження визначають початкову Вімшоттарі-дашу: схема 120 років, формула залишку махадаші та наочний приклад обчислення."
     },
     "sections": [
       {
