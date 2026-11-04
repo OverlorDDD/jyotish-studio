@@ -27,7 +27,7 @@ export default function AcademyQuiz({quiz,locale,slug}:{quiz:AcademyLesson['quiz
  return <section className="as-academy-quiz" aria-label={uk?'Перевірка знань':'Knowledge check'}>
   <span className="as-overline">{uk?'ПЕРЕВІР СЕБЕ':'KNOWLEDGE CHECK'}</span>
   <h2>{uk?'Що запам’яталося?':'What did you learn?'}</h2>
-  {completed&&<p role="status">{uk?'Урок пройдено — результат збережено в цьому браузері.':'Lesson complete — saved in this browser.'}</p>}
+  {completed&&<p>{uk?'Урок пройдено — результат збережено в цьому браузері.':'Lesson complete — saved in this browser.'}</p>}
   <form onSubmit={e=>{e.preventDefault();submit()}}>
    <fieldset disabled={submitted}><legend>{quiz.prompt[locale]}</legend>
     <div className="as-academy-choices">{quiz.choices.map((choice,i)=><label key={i} className={'as-academy-choice '+(selected===i?'is-selected':'')}>
