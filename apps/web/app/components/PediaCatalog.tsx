@@ -11,6 +11,13 @@ export default function PediaCatalog({locale,items,categories}:Props){
  const uk=locale==='uk';
  const [query,setQuery]=useState(''),[category,setCategory]=useState<PediaCategory|'editorial'|'all'>('all');
  const [published,setPublished]=useState<PediaCatalogItem[]>([]);
+ const [completed,setCompleted]=useState<Set<string>>(new Set());
+ useEffect(()=>{
+  try{
+   const stored=JSON.parse(localStorage.getItem('galaxiora.pedia.progress.v1')||'{}') as Record<string,boolean>;
+   setCompleted(new Set(Object.keys(stored).filter(slug=>stored[slug]===true)));
+  }catch{setCompleted(new Set());}
+ },[]);
  useEffect(()=>{
   let active=true;
   fetch('/api/v1/content?kind=ACADEMY',{credentials:'omit'})
@@ -58,13 +65,17 @@ export default function PediaCatalog({locale,items,categories}:Props){
    {categories.map(c=><button type="button" key={c.id} className="as-button as-button-secondary" aria-pressed={category===c.id}
     onClick={()=>setCategory(c.id)} style={{padding:'9px 14px',fontWeight:category===c.id?700:400}}>{c.title[locale]}</button>)}
   </div>
+  <p style={{marginBottom:8}}>{uk?'Пройдено уроків у цьому браузері: ':'Lessons passed in this browser: '}
+   {items.filter(item=>item.kind==='lesson'&&completed.has(item.slug)).length}/{items.filter(item=>item.kind==='lesson').length}</p>
   <p role="status" aria-live="polite" style={{marginBottom:12}}>{uk?'Знайдено матеріалів: ':'Results: '}{filtered.length}</p>
   <div className="as-wellness-grid">
    {filtered.map(item=><Link key={item.slug} className="as-wellness-card as-lesson-card" data-lesson={item.kind==='lesson'?item.slug:undefined} data-published={item.kind==='editorial'?item.slug:undefined}
     href={'/'+locale+'/pedia/'+item.slug}>
     <span className="as-wellness-card-icon"><BookOpen size={25} aria-hidden="true"/></span>
     <span className="as-wellness-meta">{item.category==='editorial'?(uk?'Редакційна стаття':'Editorial article'):categories.find(c=>c.id===item.category)?.title[locale]} · {item.minutes} {uk?'хв':'min'} · {item.kind==='lesson'?(uk?'Урок':'Lesson'):item.kind==='editorial'?(uk?'Публікація':'Publication'):(uk?'Стаття':'Guide')}</span>
-    <h3>{item.title[locale]}</h3><p>{item.summary[locale]}</p>
+    <h3>{item.title[locale]}</h3>
+    {item.kind==='lesson'&&completed.has(item.slug)&&<p style={{fontWeight:700}}>{uk?'✓ Пройдено':'✓ Completed'}</p>}
+    <p>{item.summary[locale]}</p>
     <span className="as-wellness-card-link">{uk?'Читати матеріал':'Open article'} <ArrowUpRight size={16}/></span>
    </Link>)}
   </div>
