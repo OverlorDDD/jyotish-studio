@@ -1,5 +1,8 @@
 # GALAXIORA — REPOSITORY SOURCE OF TRUTH
 
+> **CURRENT VERIFIED GITHUB STATUS — 2026-11-04:** Default integration branch is NOW **`main`**, commit `83b2e38c9660b7e1821dbffe683f1ae26b865a15` after merged [REPO-UNIFY PR #113](https://github.com/OverlorDDD/jyotish-studio/pull/113). This reconciles live GROWTH-1 ancestry, CI-tested G3.0/G3.1, GROWTH-2 docs and direct UK/EN Tarot/Jyotish SEO metadata with prior `main` history. **No new AWS deployment has been made** by this integration; G3.0 delivery still needs owner-controlled release and real GA4 DebugView acceptance. Open PR queue reduced from **64 to 14** by closing only proven-ancestor redundant PRs (all branches/commits retained). **Remaining active drafts:** #111 GalaxiPedia → `main`; #112 its SEO work → #111; #114 canonical /astrology SEO fix → #112. The other remaining open PRs have divergent/unique commits and are **not** safe to mass-close. Do not confuse code merged to GitHub with production running it.
+
+
 **Updated:** 2026-11-04. **Read this file before starting ANY new coding chat, GitHub PR, or AWS deployment.**
 
 ## Canonical branch policy
