@@ -18,6 +18,8 @@ export function eligiblePublicHtmlSection(pathname:string,headers:{
  if(!section)return 'home';
  if(section==='astrology/jyotish')return 'jyotish';
  if(section==='tarot/cards')return 'tarot_cards';
+ // Anonymous public Pedia document request only, never the article slug.
+ if(section==='pedia'||section==='pedia/glossary')return 'pedia';
  if(section==='eclipses/2027')return 'eclipses';
  return section==='astrology'||section==='tarot'||section==='panchanga'||
   section==='horoscope'||section==='yoga'||section==='learn'||section==='news'||
