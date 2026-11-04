@@ -38,6 +38,7 @@ test('N4: verified chart places D1 beside the selected D chart BEFORE Reader, sw
  await expect(page.locator('.n4-matrix tbody tr')).toHaveCount(16);
  await page.locator('.n4-tabs button').filter({hasText:'D60'}).click();
  await expect(page.locator('.n4-caution')).toBeVisible();
+ await expect(page.getByTestId('n4-angular-boundary-note')).toBeVisible();
 });
 test('N4: 360px chart pairing has no document horizontal overflow',async({page})=>{
  await page.setViewportSize({width:360,height:780});
