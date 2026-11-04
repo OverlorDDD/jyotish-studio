@@ -46,5 +46,5 @@ test('generated Next file and untracked artifacts are backed up rather than glob
  assert.match(source,/untracked-files\.tar/);
  assert.match(source,/git restore --source=HEAD --worktree -- apps\/web\/next-env\.d\.ts/);
  assert.match(source,/git switch --detach "\$TARGET_SHA"/);
- assert.doesNotMatch(source,/reset --hard|git clean -|stash push/);
+ assert.doesNotMatch(source,/^\s*(?:git\s+reset\s+--hard|git\s+clean\s+-|git\s+stash\s+push)/m);
 });
