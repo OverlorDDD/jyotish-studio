@@ -51,3 +51,43 @@ test('N4: 360px chart pairing has no document horizontal overflow',async({page})
  const diff=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
  expect(diff).toBeLessThanOrEqual(2);
 });
+
+test('N4 no-AI reader: five evidence-linked sections render clearly on 360px mobile',async({page})=>{
+ await page.setViewportSize({width:360,height:780});
+ await page.route('**/api/v1/charts/calculate',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify(sample)
+ }));
+ const offlineChapters=[9,10,2,4,24].map((division,i)=>({
+  id:'n4-'+division,division,heading:'D'+division+' thematic reading',
+  lead:'In D1 the verified placement grounds this interpretive comparison.',
+  analysis:'The specialized D'+division+' chart puts the same planet in a domain with distinct practical considerations.',
+  example:'Imagine deciding how to allocate time to a demanding responsibility.',
+  action:'Make one practical note about your available time.',
+  evidence:['D1 Venus sign=2 house=3','D'+division+' Venus sign=5 house=4','D'+division+' lagna sign=3']
+ }));
+ const report={
+  language:'en',readerVersion:'6.0.0',verification:sample.verification,
+  generatedAt:'2026-11-04T00:00:00.000Z',asOf:'2026-11-04',chartSummary:'Synthetic preview',
+  sections:[{id:'portrait',heading:'Main portrait',eyebrow:'D1',lead:'Verified birth-chart themes',paragraphs:['A source-based interpretation.']}],
+  ai:{provider:'local',source:'deterministic',fallbackReason:'reader_only',text:''},
+  editorial:{version:'6.0.0',findings:[],chapters:[{
+   id:'portrait',title:'Your synthetic portrait',paragraphs:['First grounded theme.','Second grounded theme.'],
+   insights:[],evidence:[]}],elements:[],highlights:[],method:'Deterministic synthetic preview'},
+  n4Offline:{version:'n4-offline-editorial-v1',language:'en',
+   certification:'independent_jhora8_original_reference_pending',
+   method:'Standalone deterministic test content, not a user reading.',chapters:offlineChapters}
+ };
+ await page.route('**/api/v1/reports',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify(report)
+ }));
+ await page.goto('/en/astrology/jyotish');
+ await page.locator('button.jy-calc-btn').click();
+ await page.locator('.jy-reader-launch-btn').click();
+ await expect(page.getByTestId('n4-offline-reading')).toBeVisible();
+ await expect(page.locator('.n4-offline-chapter')).toHaveCount(5);
+ await expect(page.locator('.n4-offline-chapter').first()).toContainText('D9');
+ await page.locator('.n4-offline-chapter summary').first().click();
+ await expect(page.locator('.n4-offline-chapter details code').first()).toBeVisible();
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+ expect(overflow).toBeLessThanOrEqual(2);
+});
