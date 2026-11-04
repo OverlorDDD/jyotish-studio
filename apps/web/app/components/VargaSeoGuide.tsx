@@ -23,8 +23,8 @@ function Faq({question,children}:{question:string;children:ReactNode}){
 /** Crawlable editorial text only; never embeds a visitor's private natal data. */
 export default function VargaSeoGuide({locale}:{locale:'uk'|'en'}){
  const uk=locale==='uk';
- return <section className="as-search-guide n4-seo-guide" aria-labelledby="n4-seo-title">
-  <div className="as-search-guide-inner">
+ return <section className="as-wellness as-academy-detail n4-seo-guide" aria-labelledby="n4-seo-title">
+  <div className="n4-seo-inner">
    <div className="eyebrow">{uk?'ПОСІБНИК ДЖЙОТІШ':'JYOTISH FIELD GUIDE'}</div>
    <h2 id="n4-seo-title">{uk?'16 дробових карт Джйотіш: яку карту обрати?':'The 16 Vedic divisional charts: which one should you use?'}</h2>
    <p>{uk?
