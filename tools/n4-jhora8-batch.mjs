@@ -9,10 +9,12 @@ import {readFileSync,writeFileSync,existsSync,statSync,readdirSync} from 'node:f
 import {join,resolve,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {VARGA_PROFILE} from '../packages/jyotish-core/src/vargas.ts';
-const home=resolve(process.env.N4_JHORA_EXPORT_ROOT||'');
-const kit=resolve(process.env.JHORA_KIT_ROOT||'');
-const settings=resolve(process.env.N4_JHORA_INI||'');
-if(!home||!kit||!settings||!existsSync(settings))
+if(!process.env.N4_JHORA_EXPORT_ROOT?.trim()||!process.env.JHORA_KIT_ROOT?.trim()||!process.env.N4_JHORA_INI?.trim())
+ throw Error('Explicit ephemeral JHora directories and original pinned INI are required');
+const home=resolve(process.env.N4_JHORA_EXPORT_ROOT);
+const kit=resolve(process.env.JHORA_KIT_ROOT);
+const settings=resolve(process.env.N4_JHORA_INI);
+if(!existsSync(kit)||!existsSync(settings)||home===process.cwd()||kit===process.cwd())
  throw Error('JHora8 exports root, pinned kit and JHora INI are mandatory');
 const ini=readFileSync(settings,'utf8');
 const wanted={
