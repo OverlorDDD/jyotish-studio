@@ -27,11 +27,11 @@ export async function generateMetadata({params}:Params):Promise<Metadata>{
  if(!lesson){
   const cms=await publishedDetail('ACADEMY',slug);
   if(!cms)return {robots:{index:false,follow:false}};
-  return {title:cms.document.title[locale]+' | GalaxiPedia',description:cms.document.summary[locale],robots:indexRobots(),alternates:{canonical:'/'+locale+'/pedia/'+slug,languages:{uk:'/uk/pedia/'+slug,en:'/en/pedia/'+slug}}};
+  return {title:cms.document.title[locale]+' | GalaxiPedia',description:cms.document.summary[locale],robots:indexRobots(),alternates:{canonical:'/'+locale+'/pedia/'+slug,languages:{uk:'/uk/pedia/'+slug,en:'/en/pedia/'+slug,'x-default':'/en/pedia/'+slug}}};
  }
  return {title:lesson.title[locale]+' | GalaxiPedia',description:lesson.description[locale],
   robots:indexRobots(),alternates:{canonical:'/'+locale+'/pedia/'+slug,
-   languages:{uk:'/uk/pedia/'+slug,en:'/en/pedia/'+slug}}};
+   languages:{uk:'/uk/pedia/'+slug,en:'/en/pedia/'+slug,'x-default':'/en/pedia/'+slug}}};
 }
 export default async function AcademyLessonPage({params}:Params){
  const {locale,slug}=await params,lesson=academyBySlug(slug);
