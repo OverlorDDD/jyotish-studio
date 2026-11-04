@@ -9,6 +9,7 @@ export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';readerVersion?:string;verification?:{version:string;status:string;digest:string;checks:readonly string[];externalReferenceChecked:false};
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
+ n4Offline?:{version:string;certification:string;language:'uk'|'en';method:string;chapters:{id:string;division:number;heading:string;lead:string;analysis:string;example:string;action:string;evidence:readonly string[]}[]};
  editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[];sourceIds?:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string;source?:'llm'|'deterministic';cached?:boolean;documentMode?:'unified';chapters?:{id:string;paragraphs:string[];source:'llm'}[]};
@@ -230,6 +231,26 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
       <ChapterEvidence report={report} chapter={chapter} lang={lang}/>
      </article>)}
    </div>
+   {report.n4Offline?.chapters?.length?<section className="n4-offline-reading" data-testid="n4-offline-reading"
+     aria-label={uk?'Додаткові варги без AI':'Additional charts without AI'}>
+    <div className="reading-kicker">{uk?'✦ ТРАКТУВАННЯ БЕЗ AI · N4':'✦ NO-AI CHART INTERPRETATION · N4'}</div>
+    <h3>{uk?'П’ять тематичних зрізів вашої карти':'Five focused lenses on your chart'}</h3>
+    <p>{uk?'D1 залишається основою. D9 і D10 доповнюють теми партнерства й праці; три інші варги обрано за реальними особливостями вашої карти.':
+     'D1 remains the foundation. D9 and D10 refine relationships and work; three further charts are chosen from your calculated D1 patterns.'}</p>
+    <div className="n4-offline-grid">
+     {report.n4Offline.chapters.map(ch=><article key={ch.id} className="n4-offline-chapter">
+      <h4>{ch.heading}</h4>
+      <p><GlossaryText text={ch.lead} locale={lang}/></p>
+      <p><GlossaryText text={ch.analysis} locale={lang}/></p>
+      <p><GlossaryText text={ch.example} locale={lang}/></p>
+      <p className="n4-offline-action"><GlossaryText text={ch.action} locale={lang}/></p>
+      <details><summary>{uk?'Показати факти D1 і D-карти':'Show the D1 and D-chart facts'}</summary>
+       <ul>{ch.evidence.map((fact,i)=><li key={i}><code>{fact}</code></li>)}</ul>
+      </details>
+     </article>)}
+    </div>
+    <small className="n4-offline-method">{report.n4Offline.method}</small>
+   </section>:null}
    <details className="reading-glossary"><summary>{uk?'Технічний додаток: баланс стихій':'Technical appendix: element distribution'}</summary>
     <div className="reading-elements">{report.editorial.elements.map(e=><div className="reading-element" key={e.name}><div><strong>{e.name}</strong><span>{e.count} / 7 · {e.percentage}%</span></div><div className="reading-element-track"><div style={{width:e.percentage+'%'}}/></div></div>)}</div>
     <p>{report.editorial.method}</p>

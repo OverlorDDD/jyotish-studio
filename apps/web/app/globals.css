@@ -1353,3 +1353,17 @@
 .n4-angular-boundary-note{padding:12px 15px;background:#192839;border:1px solid #677087;border-radius:11px;font-size:13px;line-height:1.65;color:#c6d0de;margin:0}
 .n4-angular-boundary-note strong{color:#f0d39b;font-variant-numeric:tabular-nums}
 .n4-angular-edge-alert{font-weight:600;color:#f1c8a0}
+
+/* N4 deterministic bilingual supplement: no mutation of Reader v6 chapters. */
+.n4-offline-reading{margin:30px 0;padding:24px;border:1px solid rgba(186,166,128,.34);border-radius:18px;background:linear-gradient(140deg,rgba(20,31,50,.96),rgba(13,22,37,.97))}
+.n4-offline-reading>h3{margin:10px 0;font-size:clamp(20px,2.3vw,27px);color:#f4ead5}
+.n4-offline-reading>p,.n4-offline-method{color:#c9d3df;font-size:14px;line-height:1.7}
+.n4-offline-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:20px 0}
+.n4-offline-chapter{min-width:0;padding:19px;background:rgba(24,38,58,.9);border:1px solid rgba(155,174,195,.26);border-radius:14px}
+.n4-offline-chapter h4{font-size:17px;color:#edd6aa;margin:0 0 10px}
+.n4-offline-chapter p{font-size:14px;line-height:1.75;color:#e1e7ef;margin:10px 0}
+.n4-offline-chapter .n4-offline-action{color:#e9ce9a;font-weight:650}
+.n4-offline-chapter summary{cursor:pointer;color:#b6cee6;font-size:13px}
+.n4-offline-chapter details code{white-space:normal;overflow-wrap:anywhere;font-size:12px}
+.n4-offline-chapter details ul{padding-left:22px}
+@media(max-width:700px){.n4-offline-reading{padding:16px}.n4-offline-grid{grid-template-columns:minmax(0,1fr)}}
