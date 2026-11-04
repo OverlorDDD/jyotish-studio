@@ -13,6 +13,19 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
+  n4-integrated-regression:
+    name: N4 internal + personal + SEO + AI safeguards
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install repository dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Execute complete focused N4 test suite (must not self-attest JHora)
+        run: npm run test:n4
   synthetic-sign-parity:
     name: 50 synthetic profiles, 8000 independent PyJHora sign assignments
     runs-on: ubuntu-latest
