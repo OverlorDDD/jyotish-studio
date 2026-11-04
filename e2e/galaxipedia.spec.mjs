@@ -72,7 +72,7 @@ test('Pedia canonical, hreflang and sitemap: only new public URLs',async({reques
  const html=await (await request.get('/en/pedia/panchanga-five-limbs-explained')).text();
  expect(html).toContain('rel="canonical"');
  expect(html).toContain('https://galaxiora.example/en/pedia/panchanga-five-limbs-explained');
- expect(html).toContain('hreflang="uk"');
+ expect(html).toContain('hrefLang="uk"');
  expect(html).toContain('application/ld+json');
  const sitemap=await (await request.get('/sitemap.xml')).text();
  for(const path of ['/en/pedia','/uk/pedia','/en/pedia/glossary','/en/pedia/panchanga-five-limbs-explained','/uk/pedia/moon-phases-and-lunar-calendar','/en/pedia/sidereal-and-tropical']){
