@@ -25,8 +25,8 @@ export function validateOrganicHtml(html,path,origin=G32_LIVE_ORIGIN){
  const lang=path.split('/')[1];
  if(!['en','uk'].includes(lang))throw Error('Health route must be localized');
  const expected=origin+path;
- if(!/<h1(?:\\s|>)/i.test(html))failures.push('MISSING_H1');
- if(!/<title(?:\\s|>)[\\s\\S]*?<\\/title>/i.test(html))failures.push('MISSING_TITLE');
+ if(!/<h1(?:\s|>)/i.test(html))failures.push('MISSING_H1');
+ if(!/<title(?:\s|>)[\s\S]*?<\/title>/i.test(html))failures.push('MISSING_TITLE');
  if(!new RegExp('<html\\b[^>]*\\blang=["\\x27]'+lang+'["\\x27]','i').test(html))
   failures.push('LANG_MISMATCH');
  const canonical=links(html,'canonical').map(t=>tagAttr(t,'href'));
@@ -72,7 +72,7 @@ export async function runOrganicHealth({origin=G32_LIVE_ORIGIN,fetcher=fetch}={}
    const errs=[],warns=[];
    if(res.status!==200)errs.push('HTTP_'+res.status);
    if(path==='/robots.txt'){
-    if(/User-agent:\\s*\\*\\s*Disallow:\\s*\\/\\s*(?:\\r?\\n|$)/i.test(res.body))errs.push('ROOT_BLOCKED');
+    if(/User-agent:\s*\*\s*Disallow:\s*\/\s*(?:\r?\n|$)/i.test(res.body))errs.push('ROOT_BLOCKED');
     if(!res.body.includes('Sitemap: '+origin+'/sitemap.xml'))errs.push('ROBOTS_SITEMAP_MISSING');
    }else if(path==='/sitemap.xml'){
     if(!res.body.includes('<urlset'))errs.push('SITEMAP_INVALID');
