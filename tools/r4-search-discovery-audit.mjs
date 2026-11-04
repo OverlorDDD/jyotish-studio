@@ -48,7 +48,7 @@ function structuredTypes(html){
 }
 const paths=['/','/uk','/en','/uk/astrology/jyotish','/en/astrology/jyotish','/uk/tarot',
  '/uk/tarot/cards','/uk/tarot/cards/moon','/uk/panchanga','/uk/eclipses/2027',
- '/uk/learn/nakshatras','/en/about','/uk/methodology','/uk/news','/uk/horoscope'];
+ '/uk/pedia/nakshatras','/en/about','/uk/methodology','/uk/news','/uk/horoscope'];
 const pages=await Promise.all(paths.map(get));
 for(let i=0;i<paths.length;i++){
  const path=paths[i],p=pages[i];
@@ -69,7 +69,7 @@ if(root?.status===200){
   'Organization/WebSite markup visible on domain root');
 }
 if(uk?.status===200&&en?.status===200){
- record('/uk','NAVIGABLE_IA',/href="\/uk\/(tarot|astrology|learn)/.test(uk.text),
+ record('/uk','NAVIGABLE_IA',/href="\/uk\/(tarot|astrology|pedia)/.test(uk.text),
   'Server HTML contains crawlable anchored links to public tools');
  record('/en','NAVIGABLE_IA',/href="\/en\/(tarot|astrology|learn)/.test(en.text),
   'Server HTML contains crawlable anchored links to public tools');
