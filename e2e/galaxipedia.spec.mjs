@@ -123,3 +123,17 @@ test('SEO sitemap includes new localized topical hubs and 14 guides without old 
  expect(sitemap).not.toContain('https://galaxiora.example/uk/learn/');
  await expect((await request.get('/en/learn',{maxRedirects:0})).status()).toBe(308);
 });
+
+
+test('SEO canonical migration: astrology alias is permanent 308 in both locales',async({request})=>{
+ for(const locale of ['en','uk']){
+  const old=await request.get('/'+locale+'/astrology',{maxRedirects:0});
+  expect(old.status()).toBe(308);
+  expect(old.headers().location).toBe('/'+locale+'/astrology/jyotish');
+  const destination=await request.get('/'+locale+'/astrology/jyotish');
+  expect(destination.status()).toBe(200);
+  const html=await destination.text();
+  expect(html).toContain('rel="canonical"');
+  expect(html).toContain('https://galaxiora.example/'+locale+'/astrology/jyotish');
+ }
+});

@@ -3,10 +3,13 @@ on:
   push:
     branches:
       - feat/galaxipedia-unified-20261104
+      - feat/galaxipedia-seo-topical-clusters-20261104
+      - fix/seo2-permanent-astrology-redirect-and-audit-20261104
   pull_request:
     branches:
       - release/growth1-preserve-live-ga4-20261104
       - feat/galaxipedia-unified-20261104
+      - feat/galaxipedia-seo-topical-clusters-20261104
     paths:
       - 'apps/web/app/**'
       - 'apps/web/lib/**'
@@ -17,6 +20,8 @@ on:
       - 'e2e/a4-portal.spec.mjs'
       - 'tools/galaxipedia.test.mjs'
       - 'tools/galaxipedia-seo.test.mjs'
+      - 'tools/seo2-canonical.test.mjs'
+      - 'tools/r4-search-discovery-audit.mjs'
       - 'package.json'
       - '.github/workflows/galaxipedia-validation.yml'
   workflow_dispatch:
@@ -49,6 +54,8 @@ jobs:
       - run: npm run db:generate
       - name: GalaxiPedia and original Academy contracts
         run: |
+          node tools/gsc-url-inspection.mjs --help
+          node --test tools/seo2-canonical.test.mjs
           npm run test:pedia
           npm run test:content:a5
           npm run test:growth1:seo
@@ -116,3 +123,17 @@ jobs:
       - name: Debug web or API errors on failure
         if: failure()
         run: tail -200 /tmp/galaxipedia-browser.log || true
+
+  public-site-seo-audit:
+    if: github.event_name == 'push' || github.head_ref == 'fix/seo2-permanent-astrology-redirect-and-audit-20261104'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Independent read-only full live sitemap crawl (current production)
+        run: node tools/r32-seo-audit.mjs
+      - name: Independent read-only site discovery and branding check
+        run: node tools/r4-search-discovery-audit.mjs
