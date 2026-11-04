@@ -87,3 +87,17 @@ Above is intentionally INCOMPLETE sample schema, **not a genuine JHora case**; e
 - Current PR is a code staging area, NOT permission to deploy.
 - CI + direct local user check are required **after** engineering changes are consolidated. Owner requested no premature testing.
 - Only independent reference evidence can close N4.2, and only owner approval allows merge/deployment.
+
+## Extended requested scope: N4.3–N4.5 before owner local acceptance
+
+**Added in this draft PR on 2026-11-04; not production-verified:**
+
+- `apps/web/app/components/VargaExplorer.tsx` provides one D1 and one user-selected chart side-by-side with 16 themed navigation entries and an optional comparison matrix, immediately after the birth form and BEFORE AI/Reader. It reuses server-verified D1 input longitudes and existing D1/D9/D10 for legacy display. N4 mappings are kept separate from original integrity digest.
+- `NorthIndianChart.tsx` supports explicitly labeled D1–D60. For supplemental vargas it suppresses pseudo-longitude text when such values were not supplied independently; the sign/house facts remain exact for the selected method.
+- Original bilingual, crawlable `VargaSeoGuide.tsx` explains all 16 charts and FAQs; `/[locale]/astrology/jyotish` metadata preserves existing high-intent birth chart/Kundli terms, indexRobots(), canonical and UK/EN alternates. No thin search-doorway pages and no private natal fields in metadata.
+- `apps/api/src/n4-varga-evidence.ts` adds VERSIONED, server-derived, bounded source facts for a later neural reading. `direct-jyotish.ts` can consume them ONLY with BOTH `N4_VARGA_AI_ENABLED=1` and `N4_VARGA_INDEPENDENT_REFERENCE_APPROVED=1`. The default is OFF, so ordinary Reader v6 and Direct v2 output remain backward-compatible and the LLM cannot use new unverified vargas. No raw birth input is sent to the LLM.
+- `npm run test:n4` includes math, LLM evidence privacy/feature gating, and UX/SEO source contracts. Update title/readability checks if design changes legitimately.
+
+**Remaining gates:** no independent JHora 16-varga parity corpus as of this PR; do NOT set the two AI flags, advertise 16-varga certification, or deploy this draft as-is. Verify all CI jobs including Next build, existing SEO and Galaxy #6 tests, genuine mobile rendering (Chrome/OnePlus 11R viewport), no chart-state regression, identical Reader v6 fingerprint/report output, and performance against production baseline. The original JQA3 dasha year-mode discrepancy is still open.
+
+**User delivery order:** finish math + UI + SEO + AI evidence together; one final owner-local verification; only then owner-authorized GitHub merge and pinned, safe AWS release.
