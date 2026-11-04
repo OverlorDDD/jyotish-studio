@@ -1,6 +1,7 @@
 /** N4.4 additive, opt-in machine facts for an LLM. Never modifies Reader v6 or digest. */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {calculateAllVargas,VARGA_RULESET_VERSION,VARGA_PROFILE} from '../../../packages/jyotish-core/src/vargas.ts';
+import {VARGA_RULESET_VERSION,VARGA_PROFILE} from '../../../packages/jyotish-core/src/vargas.ts';
+import {n4InternalServerSnapshot} from './n4-varga-contract.ts';
 export const N4_EVIDENCE_VERSION='n4-varga-facts-v1' as const;
 export const N4_AI_INSTRUCTION=`
 OPTIONAL N4 VERIFIED VARGA EXTENSION:
@@ -23,8 +24,7 @@ const EXTENDED:[number,string][]=[
 ];
 /** Does not accept user prompts, birth date/time/location or any raw identifying metadata. */
 export function compactN4VargaFacts(chart:CalculatedChart):string{
- const p=chart.d1.map(g=>({name:g.name,longitude:g.longitude,speed:g.retrograde?-1:1}));
- const charts=calculateAllVargas(chart.ascendant.longitude,p);
+ const charts=n4InternalServerSnapshot(chart).charts;
  const lines=[
   'N4 facts version='+N4_EVIDENCE_VERSION+'; rules='+VARGA_RULESET_VERSION,
   'Traditional profile='+VARGA_PROFILE,
@@ -37,8 +37,8 @@ export function compactN4VargaFacts(chart:CalculatedChart):string{
   const chosen=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn']
    .map(name=>c.planets.find(p=>p.name===name))
    .filter((v):v is NonNullable<typeof v>=>Boolean(v));
-  lines.push('D'+d+' '+theme+' lagna='+c.lagna.vargaSign+
-   '; '+chosen.map(p=>p.name+' sign='+p.vargaSign+' house='+p.house).join('; '));
+  lines.push('D'+d+' '+theme+' lagna='+c.lagnaSign+
+   '; '+chosen.map(p=>p.name+' sign='+p.sign+' house='+p.house).join('; '));
  }
  return lines.join('\n');
 }

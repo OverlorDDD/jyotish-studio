@@ -5,7 +5,8 @@
  * Requires external reference approval and the personal release flag.
  */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {calculateAllVargas,VARGA_RULESET_VERSION,VARGA_PROFILE} from '../../../packages/jyotish-core/src/vargas.ts';
+import {VARGA_RULESET_VERSION,VARGA_PROFILE} from '../../../packages/jyotish-core/src/vargas.ts';
+import {n4InternalServerSnapshot} from './n4-varga-contract.ts';
 
 export type N4PersonalPlacement=Readonly<{
  division:2|3|4|7|9|10|12|20|24;
@@ -27,12 +28,10 @@ export function n4PersonalEligible(env:Record<string,string|undefined>=process.e
 }
 /** No input date/time, owner ID, chart ID, city, coordinates or raw birth longitudes in output. */
 export function n4PersonalPlacements(chart:CalculatedChart):readonly N4PersonalPlacement[]{
- const charts=calculateAllVargas(chart.ascendant.longitude,chart.d1.map(p=>({
-  name:p.name,longitude:p.longitude,speed:p.retrograde?-1:1
- })));
+ const charts=n4InternalServerSnapshot(chart).charts;
  return Object.freeze(charts.filter(c=>[2,3,4,7,9,10,12,20,24].includes(c.division))
   .flatMap(c=>c.planets.map(p=>Object.freeze({
-   division:c.division as N4PersonalPlacement['division'],body:p.name,sign:p.vargaSign,house:p.house,
+   division:c.division as N4PersonalPlacement['division'],body:p.name,sign:p.sign,house:p.house,
    rulesVersion:VARGA_RULESET_VERSION,profile:VARGA_PROFILE
   }))));
 }
