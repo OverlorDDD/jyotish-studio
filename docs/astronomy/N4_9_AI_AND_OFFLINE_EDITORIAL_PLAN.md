@@ -18,7 +18,7 @@ Sources are **astrological traditions**, not empirical proof that a person's fut
 3. Existing 50×16×10 independent PyJHora 4.8.7 oracle, JQA3, permission/owner isolation, Next/Nest build, 360px/desktop Chromium and EN/UK FAQ all remain required on same SHA.
 
 ## Real provider editorial acceptance — separate, NOT yet certified
-Create a 48-response *synthetic-only* corpus: 12 deliberately different chart signatures × 2 languages × 2 editorial emphasis variants. Run against the actual approved free-tier provider with **only synthetic** input, explicit opt-in, quotas and secret handling. Preserve provider/model and timestamp, source seed, language, prompt version and output for a reviewer; never store user natals or API keys. No project source can invent this corpus.
+Create a 48-response *synthetic-only* corpus: 12 deliberately different chart signatures × 2 languages × 2 **genuinely distinct synthetic-only editorial emphasis** variants (A: verifiable placements first; B: conditional decision scene first). A/B keep identical chart facts and all safety requirements; their comparison tests style, NOT natal differences. Corpus v2 saves the editorial instruction version and refuses mixed provenance. The wrapper is confined to the opt-in local capture script, never Direct Jyotish production. Run against the actual approved free-tier provider with **only synthetic** input, explicit opt-in, quotas and secret handling. Preserve provider/model and timestamp, source seed, language, prompt version and output for a reviewer; never store user natals or API keys. No project source can invent this corpus.
 
 **Blind human editorial audit (0–4 score in each dimension):**
 - verified graha/sign/house/source integrity (zero fabricated facts is mandatory);

@@ -8,6 +8,7 @@ import {existsSync,appendFileSync,readFileSync,realpathSync} from 'node:fs';
 import {resolve,sep} from 'node:path';
 import {generateDirectJyotish} from '../apps/api/src/direct-jyotish.ts';
 import {n4SyntheticAuditChart,n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
+import {n4SyntheticVariantFetcher,N4_EDITORIAL_VARIANT_VERSION} from './n4-ai-editorial-variants.mjs';
 if(process.env.N4_LIVE_EDITORIAL_EXPLICIT_OPT_IN!=='YES_SYNTHETIC_ONLY')
  throw Error('Live AI corpus: explicit synthetic-only opt-in required');
 const provider=process.env.N4_LIVE_EDITORIAL_PROVIDER||'';
@@ -37,9 +38,10 @@ for(let i=from;i<from+size;i++){
  const chart=n4SyntheticAuditChart(sample.seed),diagnostics=[];
  const outcome=await generateDirectJyotish(chart,sample.lang,'2026-11-04',{
   order:[provider],keys:{[provider]:keys[provider]},freeConfirmed:{[provider]:true},
+  fetcher:n4SyntheticVariantFetcher(fetch,sample.variant),
   onDiagnostic:d=>diagnostics.push({stage:d.stage,reason:d.reason,httpStatus:d.httpStatus})
  });
- const entry={corpus:N4_LIVE_AUDIT_CORPUS_VERSION,id:sample.id,seed:sample.seed,
+ const entry={corpus:N4_LIVE_AUDIT_CORPUS_VERSION,editorialVersion:N4_EDITORIAL_VARIANT_VERSION,id:sample.id,seed:sample.seed,
   lang:sample.lang,variant:sample.variant,provider,model:outcome.result?.model||null,
   generatedAt:new Date().toISOString(),
   text:outcome.result?.text||null,

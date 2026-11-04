@@ -6,6 +6,7 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {n4SyntheticAuditChart,n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
+import {N4_EDITORIAL_VARIANT_VERSION} from './n4-ai-editorial-variants.mjs';
 import {selectN4NarrativeThemes,reviewN4Narrative} from '../apps/api/src/n4-interpretation-brief.ts';
 import {auditN4ExplicitClaims} from '../apps/api/src/n4-ai-claims.ts';
 import {reviewGeneratedConsultation} from '../apps/api/src/consultation-prose-review.ts';
@@ -14,7 +15,7 @@ const f=process.argv[2];if(!f)throw Error('Usage: node --experimental-strip-type
 const rows=readFileSync(resolve(f),'utf8').split('\n').filter(Boolean).map(s=>JSON.parse(s));
 const issues=[],same=new Map(),seen=new Set();
 for(const row of rows){
- if(row.corpus!==N4_LIVE_AUDIT_CORPUS_VERSION||typeof row.id!=='string')throw Error('Untrusted corpus version/id');
+ if(row.corpus!==N4_LIVE_AUDIT_CORPUS_VERSION||row.editorialVersion!==N4_EDITORIAL_VARIANT_VERSION||typeof row.id!=='string')throw Error('Untrusted corpus version/id');
  if(seen.has(row.id))throw Error('Duplicate real-provider record '+row.id);
  seen.add(row.id);
  const index=Array.from({length:48},(_,i)=>n4AuditSampleId(i)).find(t=>t.id===row.id);

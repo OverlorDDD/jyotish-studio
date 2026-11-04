@@ -1,7 +1,7 @@
 /** The ONLY permitted source for the N4 live-text audit is synthetic chart data. */
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
 const bodies=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
-export const N4_LIVE_AUDIT_CORPUS_VERSION='n4-synthetic-prose-12x2x2-v1';
+export const N4_LIVE_AUDIT_CORPUS_VERSION='n4-synthetic-prose-12x2x2-v2';
 export function n4SyntheticAuditChart(seed){
  if(!Number.isInteger(seed)||seed<0||seed>11)throw Error('Only twelve explicitly synthetic profiles allowed');
  return calculateChart({
