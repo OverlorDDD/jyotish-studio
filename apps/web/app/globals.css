@@ -1334,3 +1334,17 @@
  .n4-placements{grid-template-columns:1fr}
  .n4-count{font-size:26px}
 }
+
+/* N4 SEO guide: visible, original and crawlable bilingual explanatory content */
+.n4-seo-guide{padding-top:26px;padding-bottom:26px}
+.n4-seo-guide h2{max-width:850px;line-height:1.18}
+.n4-seo-guide>div>p{max-width:890px;line-height:1.7}
+.n4-seo-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:22px 0 24px}
+.n4-seo-list article{min-width:0;background:#111c2b;border:1px solid #354255;border-radius:11px;padding:14px}
+.n4-seo-list article h3{color:#e8c78c;font-size:14px;line-height:1.4;margin:0 0 7px}
+.n4-seo-list article p{color:#afbbcb;font-size:12px;line-height:1.55;margin:0}
+.n4-seo-guide .as-faq-item{border-bottom:1px solid #354255;padding:11px 0}
+.n4-seo-guide .as-faq-item summary{cursor:pointer;color:#f0dbb9;font-weight:600}
+.n4-seo-guide .as-faq-item p{line-height:1.7;max-width:800px;color:#bac4d0}
+@media(max-width:930px){.n4-seo-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.n4-seo-list{grid-template-columns:1fr}.n4-seo-list article{padding:12px}}
