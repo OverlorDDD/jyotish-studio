@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Independent N4 sign oracle through separately authored PyJHora 4.8.7.
-Used only in isolated CI; PyJHora (AGPL) is NOT copied into Galaxiora or production.
+Used only in isolated CI; PyJHora (upstream GPL) is NOT copied into Galaxiora or production.
 No person/birthdate/location data: synthetic sidereal longitudes only.
 """
 import json, sys
+from importlib.metadata import version as installed_version
 from contextlib import redirect_stdout
 # PyJHora writes an import-time diagnostic to stdout. It is NOT reference JSON.
 with redirect_stdout(sys.stderr):
@@ -13,6 +14,9 @@ METHODS = {1:None,2:2,3:1,4:1,7:1,9:1,10:1,12:1,16:1,20:1,24:1,27:1,30:1,40:1,45
 NAMES = ("Ascendant","Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu")
 
 def main():
+    actual_version = installed_version('PyJHora')
+    if actual_version != '4.8.7':
+        raise RuntimeError('Expected exactly PyJHora 4.8.7, got '+actual_version)
     payload = json.load(sys.stdin)
     results = []
     for item in payload["cases"]:
@@ -31,7 +35,7 @@ def main():
                 str(name): int(sign)+1 for name,(sign, _deg) in mapped
             }
         results.append({"id":item["id"],"signs":expected})
-    json.dump({"provider":"PyJHora","version":"4.8.7","methods":METHODS,"cases":results},sys.stdout)
+    json.dump({"provider":"PyJHora","version":actual_version,"methods":METHODS,"cases":results},sys.stdout)
 
 if __name__ == "__main__":
     main()
