@@ -2,6 +2,9 @@
 Audit date: 2026-11-04 | production code assessed: `aaba34ed3fe5d68b0d8758b3fb6a1cb17969420a` (owner-confirmed deployment).
 Evidence grades: A = direct first-party GSC/GA4 or release log, B = exact versioned GitHub source/CI, C = cited Google technical policy, H = hypothesis requiring further verification.
 
+## Independent public full-crawl evidence (new)
+**A. GitHub Actions external-site crawl 2026-11-04 10:26 UTC:** run [41814209348](https://github.com/OverlorDDD/jyotish-studio/actions/runs/41814209348), job `public-site-seo-audit` completed successfully. R3.2: `{origin:https://galaxiora.com, checked:164, sitemapUrls:164, errors:0, warnings:0, passed:164}`. R4: `{checkedPages:15, assets:5, checks:103, errors:0, warnings:0}`. This independently confirms public HTTP reachability, self-canonicals, language alternates, indexability signals, H1/title and brand paths across the current sitemap. It does **not** prove real Googlebot access from Google's IP or Google index coverage. The previous GSC sitemap record of 116 URLs is a stale 2026-11-03 snapshot, not a current count.
+
 ## Core answer
 Google automatically discovers crawlable links and submitted sitemap URLs; Search Console's per-URL Request Indexing is a limited supplementary action, not a required manual workflow or guaranteed inclusion. Google's Indexing API is **not** authorized for astrology/Pedia/news article URLs: it supports qualifying JobPosting and livestream video pages only. The Search Console URL Inspection API can **read** Google's indexed state for an authorized property but cannot request indexing or run a fresh live test. Windsor.ai's currently connected GSC integration exposes search analytics and sitemap metrics, not per-URL URL Inspection status; do not claim that it can.
 
