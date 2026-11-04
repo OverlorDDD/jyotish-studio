@@ -70,6 +70,29 @@ printf 'LIVE=%s CANDIDATE=%s\n' "$LIVE" "$CANDIDATE"
 git merge-base --is-ancestor "$LIVE" "$CANDIDATE" || { echo 'BLOCK: concurrent production changes; integrate, do not overwrite'; exit 1; }
 test -z "$(git status --porcelain --untracked-files=no)" || { echo 'BLOCK: tracked changes on AWS; inspect and back up first'; exit 1; }
 ```
+After confirming the exact candidate SHA in the reviewed PR, that CI is green, a separate current PostgreSQL backup/restore check has passed, and the production site is not undergoing another release, the operator may run the following **only on the production server**:
+
+```bash
+cd /opt/galaxiora/app
+# Re-fetch: never trust the earlier candidate value after another PR has moved.
+git fetch origin feat/galaxipedia-unified-20261104
+OLD_HEAD=$(git rev-parse HEAD)
+CANDIDATE=$(git rev-parse FETCH_HEAD)
+test -z "$(git status --porcelain --untracked-files=no)" || { echo 'STOP: tracked modifications'; exit 1; }
+git merge-base --is-ancestor "$OLD_HEAD" "$CANDIDATE" || { echo 'STOP: ancestry changed'; exit 1; }
+printf 'Record rollback SHA: %s\n' "$OLD_HEAD"
+git merge --ff-only "$CANDIDATE" || exit 1
+npm run test:pedia && npm run test:content:a5 && npm run build -w @jyotish/web || {
+  echo "STOP: do not restart; build or test failed. Keep recorded old SHA for reviewed rollback."
+  exit 1
+}
+sudo systemctl restart galaxiora-web
+sudo systemctl is-active --quiet galaxiora-web || { echo "WEB FAILED"; exit 1; }
+npm run site:check && npm run launch:verify
+```
+
+This sequence deliberately does not update the API, change the database schema, remove files, or force a ref. It does not perform automatic code rollback: a failed health check must be investigated using the saved old SHA and logs, not hidden by a destructive reset. **If a build generated a tracked diff**, preserve a copy and inspect it before the next deployment. In particular, previous releases have left `apps/web/next-env.d.ts` modified; do not discard it without verifying the diff and backing it up.
+
 If the ancestry or worktree gate blocks, do **not** `git reset --hard`, `git clean`, force-push, or delete untracked icon assets. Rebuild an integration PR from the current AWS SHA and rerun CI. If green, preserve backup of server/app configuration, obtain successful recovery-tested database backup through the existing privileged backup procedure, record old SHA, and only then update using an operator-reviewed release procedure. This release needs **no Prisma migration**. Only Next.js web needs rebuilding/restarting; do not restart unrelated services by default.
 
 After authorized deploy, check:
