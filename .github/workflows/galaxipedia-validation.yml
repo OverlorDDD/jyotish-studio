@@ -120,3 +120,17 @@ jobs:
       - name: Debug web or API errors on failure
         if: failure()
         run: tail -200 /tmp/galaxipedia-browser.log || true
+
+  public-site-seo-audit:
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/seo2-permanent-astrology-redirect-and-audit-20261104'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Independent read-only full live sitemap crawl (current production)
+        run: node tools/r32-seo-audit.mjs
+      - name: Independent read-only site discovery and branding check
+        run: node tools/r4-search-discovery-audit.mjs
