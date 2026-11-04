@@ -15,7 +15,7 @@ import {calculateAllVargas,SHODASHAVARGA} from '../packages/jyotish-core/src/var
 const path=process.argv[2];
 if(!path)throw Error('N4 requires original publicly exported JHoraKit chart.json; no generated golden data');
 const bytes=readFileSync(path);
-const header=Buffer.from('blob '+bytes.length+'\\0');
+const header=Buffer.concat([Buffer.from('blob '+bytes.length),Buffer.from([0])]);
 const gitBlob=createHash('sha1').update(header).update(bytes).digest('hex');
 assert.equal(gitBlob,'abf3afd4cab0f11f8431ff193543d2ec18ec7cc3',
   'Original JHoraKit git blob provenance differs; fail closed');
