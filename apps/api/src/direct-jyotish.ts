@@ -1,4 +1,5 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
+import {compactN4VargaFacts,n4AiEligible,N4_AI_INSTRUCTION} from './n4-varga-evidence.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
@@ -107,7 +108,9 @@ export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim()).filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
- const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf));
+ const n4Approved=n4AiEligible();
+ const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf))+
+  (n4Approved?'\n\n'+compactN4VargaFacts(chart):'');
  const permit=opts.limit||consumeFreeAiRequest;
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
@@ -140,8 +143,8 @@ export async function generateDirectJyotish(
      body:JSON.stringify({model,max_tokens:provider==='groq'?3000:3800,temperature:concise?0.45:0.7,
       ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
       messages:[{role:'system',content:concise?
-       DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, actual D1/D9/D10 and the major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
-       DIRECT_JYOTISH_INSTRUCTION},
+       DIRECT_JYOTISH_INSTRUCTION+(n4Approved?N4_AI_INSTRUCTION:'')+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, actual D1/D9/D10 and the major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
+       DIRECT_JYOTISH_INSTRUCTION+(n4Approved?N4_AI_INSTRUCTION:'')},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+facts} ]})
     });
