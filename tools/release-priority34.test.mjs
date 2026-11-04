@@ -49,7 +49,10 @@ test('public sign horoscope is relative to natal Moon sign, never assumed from W
  assert.equal(natalGemini.house,10); // Pisces is the 10th from Gemini.
  assert.notEqual(publicAries.headline.uk,natalGemini.headline.uk);
  const ui=file('apps/web/app/components/HoroscopeHub.tsx');
- assert.match(ui,/data-testid="personal-sign-basis"/);
+ // Both traditions have explicit independently labelled natal reference bases.
+ assert.match(ui,/data-testid="personal-western-basis"/);
+ assert.match(ui,/data-testid="personal-vedic-basis"/);
+ assert.match(ui,/const selectedNatal=tradition==='western'\?natalSun:natalMoon/);
  assert.match(ui,/personal\?\.selected\?\.moonSign/);
  assert.match(ui,/personal\.journey\?\.daily/);
  assert.match(ui,/personal\.journey\?\.horoscope/);
