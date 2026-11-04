@@ -1,5 +1,6 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {compactN4VargaFacts,n4AiEligible,N4_AI_INSTRUCTION} from './n4-varga-evidence.ts';
+import {selectN4NarrativeThemes,compactN4NarrativeBrief,reviewN4Narrative} from './n4-interpretation-brief.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
@@ -109,8 +110,9 @@ export async function generateDirectJyotish(
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim()).filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
  const n4Approved=n4AiEligible();
+ const n4Themes=n4Approved?selectN4NarrativeThemes(chart):null;
  const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf))+
-  (n4Approved?'\n\n'+compactN4VargaFacts(chart):'');
+  (n4Approved?'\n\n'+compactN4VargaFacts(chart)+'\n\n'+compactN4NarrativeBrief(chart):'');
  const permit=opts.limit||consumeFreeAiRequest;
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
@@ -173,6 +175,20 @@ export async function generateDirectJyotish(
      console.warn('Direct Jyotish: '+provider+' rejected='+code);
      if(attempt===0&&(code==='too_short'||code==='unfinished'||code==='token_limit'))continue;
      break;
+    }
+    // N4's new output may not quietly ignore its additional verified charts.
+    // These checks apply ONLY after the two explicit N4 approval switches.
+    // Historical Reader v6 and ordinary Direct v2 responses are untouched.
+    if(n4Themes){
+     const n4Review=reviewN4Narrative(content,n4Themes);
+     if(n4Review.codes.length){
+      reason='invalid_response';
+      const issue=n4Review.codes.join(',');
+      diagnostic(provider,'validation',issue);
+      console.warn('Direct Jyotish N4 editorial review rejected='+issue);
+      if(attempt===0)continue; // Existing bounded retry; not a separate uncontrolled AI call.
+      break;
+     }
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
     if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
