@@ -14,8 +14,8 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  const {locale}=await params;
  if(!isPortalLocale(locale))return {};
  return {
-  title:(locale==='uk'?'Натальна карта онлайн — Джйотіш D1–D60, 16 варг':'Vedic Birth Chart Calculator — 16 Vargas D1–D60')+' — '+moduleTitle('jyotish'),
-  description:locale==='uk'?'Калькулятор натальної карти Джйотіш: D1, D9, D10 та всі 16 дробових карт до D60, порівняння варг, накшатри й Вімшоттарі-даша.':'Calculate your Vedic birth chart (Kundli) with Swiss Ephemeris. Explore 16 divisional charts D1–D60, compare Navamsa D9 and Dashamsa D10, and see Vimshottari Dasha.',
+  title:(locale==='uk'?'Натальна карта онлайн — безкоштовний калькулятор Джйотіш D1–D60':'Free Vedic Birth Chart Calculator (Kundli) — D1–D60')+' — '+moduleTitle('jyotish'),
+  description:locale==='uk'?'Калькулятор натальної карти Джйотіш: D1, D9, D10 та всі 16 дробових карт до D60, порівняння варг, накшатри й Вімшоттарі-даша.':'Calculate a free Vedic birth chart (Kundli) with Swiss Ephemeris. Explore 16 divisional charts D1–D60, compare Navamsa D9 and Dashamsa D10, and see Vimshottari Dasha.',
   robots:indexRobots(),
   alternates:{canonical:'/'+locale+'/astrology/jyotish',languages:{en:'/en/astrology/jyotish',uk:'/uk/astrology/jyotish','x-default':'/en/astrology/jyotish'}}
  };
