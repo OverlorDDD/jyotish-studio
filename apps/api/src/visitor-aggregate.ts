@@ -6,7 +6,7 @@ export const VISITOR_METRICS=[
 export type VisitorMetric=typeof VISITOR_METRICS[number];
 export const VISITOR_SECTIONS=[
  'home','about','astrology','jyotish','tarot','tarot_cards','panchanga','eclipses',
- 'horoscope','yoga','learn','news','community','methodology','tools'
+ 'horoscope','yoga','learn','pedia','news','community','methodology','tools'
 ] as const;
 export function validSection(x:unknown):x is typeof VISITOR_SECTIONS[number]{
  return typeof x==='string'&&(VISITOR_SECTIONS as readonly string[]).includes(x);
