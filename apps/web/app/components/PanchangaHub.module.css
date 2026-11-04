@@ -210,6 +210,12 @@
 /* P3.8.6 clean observer: saved or natal city appears IN the autocomplete input. */
 .cleanHero{margin:3px 0 14px}
 .cleanHero h1{font:600 clamp(29px,4vw,42px)/1.15 Georgia,serif;color:#f6dfb7;margin:5px 0}
+.eclipseShortcut{display:inline-flex;align-items:center;gap:8px;max-width:100%;color:#ead4a5;
+ padding:6px 10px;border:1px solid #5b6c80;border-radius:8px;background:#1d2b40;
+ font-size:13px;line-height:1.45;text-decoration:none;overflow-wrap:anywhere}
+.eclipseShortcut:hover{border-color:#ccb176;background:#273a52}
+.eclipseShortcut:focus-visible{outline:2px solid #f2d298;outline-offset:3px}
+
 .cleanObserver{display:grid;grid-template-columns:minmax(145px,230px) minmax(0,1fr);gap:14px;
  background:#182a42;border:1px solid #54708c;border-radius:15px;
  align-items:end;padding:clamp(12px,2.2vw,19px);margin:0 0 15px;min-width:0}

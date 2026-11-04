@@ -28,13 +28,18 @@ test('A4 sitemap enumerates published tools but no future content or private vie
  // The sitemap grows as new PUBLIC, real guides are published. Do not pin
  // this 2026-10 list and reject approved pages in later releases.
  for(const path of ['','about','tarot','tarot/cards','astrology/jyotish',
-  'astrology/moon-sign-vs-sun-sign','yoga','learn','horoscope','panchanga',
+  'astrology/moon-sign-vs-sun-sign','yoga','pedia','pedia/glossary','horoscope','panchanga',
   'eclipses/2027','news','community','methodology'])
   assert.ok(SEO_PATHS.includes(path), 'published canonical route missing: '+path);
  assert.equal(new Set(SEO_PATHS).size, SEO_PATHS.length, 'no duplicate canonical pages');
  for(const p of SEO_PATHS)assert.ok(!/account|admin|personal/.test(p));
  assert.ok(SEO_PATHS.includes('news')&&SEO_PATHS.includes('community')&&SEO_PATHS.includes('panchanga'));
  assert.ok(!SEO_PATHS.includes('astrology'),'redirecting alias must not be indexed');
+ assert.ok(!SEO_PATHS.includes('learn'),'legacy /learn is a permanent redirect, not a canonical');
+ const redirects=read('apps/web/next.config.mjs');
+ assert.ok(redirects.includes("source:'/'+locale+'/learn'"));
+ assert.ok(redirects.includes("destination:'/'+locale+'/pedia'"));
+ assert.ok(redirects.includes('permanent:true'));
  assert.ok(SEO_PATHS.includes('about'),'official about page should be discoverable');
  const source=read('apps/web/app/[locale]/[section]/page.tsx');
  assert.ok(source.includes('indexRobots(INDEXED_SECTIONS.some('));

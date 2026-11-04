@@ -8,6 +8,7 @@ import AcademyHub from './AcademyHub';
 import NewsWorld from './NewsWorld';
 import GalaxiCom from './GalaxiCom';
 import GalaxiComModuleLink from './GalaxiComModuleLink';
+import OrganicIntentBridge from './OrganicIntentBridge';
 import {moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 
 export const SECTIONS=['astrology','tarot','experts','yoga','learn','news','community'] as const;
@@ -45,6 +46,7 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
     <p style={{maxWidth:820}}>{copy.lead}</p>
    </header>
    <TarotStudio locale={locale}/>
+   <OrganicIntentBridge kind="tarot" locale={locale}/>
    <section className="as-lesson-section" style={{marginTop:36}} aria-label={locale==='uk'?'Значення карт Таро':'Tarot card meanings'}>
     <h2>{locale==='uk'?'Значення Старших Арканів: вивчай і практикуй':'Major Arcana meanings: learn and practice'}</h2>
     <p>{locale==='uk'?'Розпочни з восьми змістовних гідів: символи, прямі та перевернуті значення, приклади у розкладі. Усі 78 карт доступні в інтерактивній колоді вище.':'Begin with eight detailed guides covering symbolism, upright and reversed meanings and real spread context. All 78 cards remain available in the interactive deck above.'}</p>

@@ -1,0 +1,74 @@
+name: G3.2 Organic Engine - Health Intelligence Content
+on:
+  pull_request:
+    paths:
+      - 'apps/web/lib/organic-intents.ts'
+      - 'apps/web/app/components/OrganicIntentBridge.tsx'
+      - 'apps/web/app/[locale]/astrology/jyotish/page.tsx'
+      - 'apps/web/app/[locale]/panchanga/page.tsx'
+      - 'apps/web/app/components/PortalSection.tsx'
+      - 'tools/g32-*'
+      - 'docs/seo/g32-organic-*'
+      - 'package.json'
+      - '.github/workflows/g32-organic-engine.yml'
+  schedule:
+    - cron: '31 4 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  organic-quality:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+      AUTH_SECRET: g32-ci-only-disposable-secret-not-for-production
+      AI_MODE: local
+      SITE_NOINDEX: '0'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and astronomy fallback
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+          npm run db:generate
+      - name: Test read-only audit, search intelligence and original content
+        run: |
+          npm run test:g32:organic
+          node --experimental-strip-types --test tools/galaxipedia-seo.test.mjs
+          npm run test:seo:direct-intent
+      - name: Production build without deployment
+        run: npm run build
+  read-only-reports:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Create safe audit artifact folder
+        run: mkdir -p artifacts
+      - name: Daily production health (no writes or submissions)
+        run: node --experimental-strip-types tools/g32-organic-health.mjs --json > artifacts/health.json
+      - name: Optional read-only GSC report (missing access is UNKNOWN)
+        if: always()
+        run: node --experimental-strip-types tools/g32-search-intelligence.mjs --json > artifacts/search.json
+      - name: Curated content source integrity
+        if: always()
+        run: node --experimental-strip-types tools/g32-content-engine.mjs > artifacts/content.json
+      - name: Keep non-private operational artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g32-organic-safe-reports
+          path: artifacts/
+          retention-days: 14
