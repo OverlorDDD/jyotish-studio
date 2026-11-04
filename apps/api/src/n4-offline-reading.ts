@@ -81,15 +81,21 @@ const meanings:Record<number,{uk:string;en:string;questionUk:string;questionEn:s
 const local=(s:string,lang:Lang)=>names[s]?.[lang==='uk'?0:1]||s;
 const zodiac=(s:number,lang:Lang)=>signs[lang==='uk'?0:1][s-1]||'—';
 const place=(h:number,lang:Lang)=>areas[lang==='uk'?0:1][h-1]||'—';
-const chapter=(chart:CalculatedChart,d:number,anchor:string,theme:number,lang:Lang):N4OfflineChapter=>{
+const chapter=(chart:CalculatedChart,all:ReturnType<typeof calculateAllVargas>,d:number,anchor:string,theme:number,lang:Lang):N4OfflineChapter=>{
  const uk=lang==='uk',p=chart.d1.find(x=>x.name===anchor);
- const c=calculateAllVargas(chart.ascendant.longitude,chart.d1.map(g=>({
-  name:g.name,longitude:g.longitude,speed:g.retrograde?-1:1
- }))).find(x=>x.division===d);
+ const c=all.find(x=>x.division===d);
  const q=c?.planets.find(x=>x.name===anchor);
  if(!p||!q)throw new Error('N4 offline: missing verified source placement');
  const m=meanings[theme];if(!m)throw new Error('N4 offline: unknown topic');
  const planet=local(anchor,lang),sourceArea=place(p.house,lang),sameHouse=p.house===q.house,sameSign=p.sign===q.vargaSign;
+ const focusHouse=({2:2,3:3,4:4,7:5,9:7,10:10,12:4,16:4,20:9,24:5,27:6,30:6,40:4,45:9} as Record<number,number>)[d];
+ const mainLord=classicalLordshipTable(chart.ascendant.sign)[focusHouse];
+ const mainLordD1=chart.d1.find(g=>g.name===mainLord);
+ const mainLordDn=c?.planets.find(g=>g.name===mainLord);
+ const vargaAscLord=c?classicalLordshipTable(c.lagna.vargaSign)[1]:null;
+ const ascLordDn=c?.planets.find(g=>g.name===vargaAscLord);
+ if(!focusHouse||!mainLordD1||!mainLordDn||!ascLordDn)
+  throw new Error('N4 offline: cannot establish actual topical/ascendant lordship');
  const lead=uk?
   'D'+d+' — '+m.uk+'. У базовій D1 '+planet+' стоїть у домі '+p.house+' ('+sourceArea+'), а в тематичній D'+d+' — у домі '+q.house+' знаку '+zodiac(q.vargaSign,lang)+'.':
   'D'+d+' — '+m.en+'. In D1, '+planet+' occupies house '+p.house+' ('+sourceArea+'); in thematic D'+d+' it is in house '+q.house+', '+zodiac(q.vargaSign,lang)+'.';
@@ -98,11 +104,15 @@ const chapter=(chart:CalculatedChart,d:number,anchor:string,theme:number,lang:La
    'Різні доми D1 і D'+d+' підказують не зводити всю тему до одного способу прояву: життєва сфера та її тематичний контекст відрізняються. ')+
   (sameSign?'Знак планети також збігається, але сам по собі цей збіг не доводить результату. ':
    'Зміна знака між D1 та D'+d+' додає інший символічний ракурс; вона не означає автоматично ні успіху, ні невдачі. ')+
+  'У D1 управитель дому '+focusHouse+' — '+local(mainLord,lang)+' — перебуває в домі '+mainLordD1.house+', а в D'+d+' — в домі '+mainLordDn.house+'. Лагна D'+d+' у знаку '+zodiac(c!.lagna.vargaSign,lang)+'; її управитель '+local(vargaAscLord!,lang)+' у домі '+ascLordDn.house+' цієї карти. '+
   'Практичне запитання: '+m.questionUk+'?':
   (sameHouse?'The same house recurs in D1 and D'+d+', making this shared topic worth exploring. ':
    'D1 and D'+d+' place the planet in different houses; a life domain and its specialized setting need not express themselves identically. ')+
   (sameSign?'The sign is also shared, though this alone guarantees no result. ':
    'The sign shifts between D1 and D'+d+', offering a second symbolic angle rather than a simple good-or-bad verdict. ')+
+  'The D1 ruler of house '+focusHouse+', '+mainLord+', occupies D1 house '+mainLordD1.house+
+  ' and D'+d+' house '+mainLordDn.house+'. The D'+d+' ascendant is '+zodiac(c!.lagna.vargaSign,lang)+
+  ', with its ruler '+vargaAscLord+' in house '+ascLordDn.house+' of that chart. '+
   'The practical question is '+m.questionEn+'.';
  const example=uk?'Наприклад, уявімо '+m.sceneUk+'. Це приклад можливого вибору, а не опис вашого минулого.':
   'Imagine '+m.sceneEn+'. This illustrates a possible choice, not something claimed to have happened to you.';
@@ -110,7 +120,10 @@ const chapter=(chart:CalculatedChart,d:number,anchor:string,theme:number,lang:La
  const evidence=Object.freeze([
   'D1 '+anchor+' sign='+p.sign+' house='+p.house,
   'D'+d+' '+anchor+' sign='+q.vargaSign+' house='+q.house,
-  'D'+d+' lagna sign='+c!.lagna.vargaSign
+  'D'+d+' lagna sign='+c!.lagna.vargaSign,
+  'D1 house'+focusHouse+' lord='+mainLord+' house='+mainLordD1.house,
+  'D'+d+' '+mainLord+' as_d1_house_lord house='+mainLordDn.house,
+  'D'+d+' asc_lord='+vargaAscLord+' house='+ascLordDn.house
  ]);
  return Object.freeze({id:'n4-'+d,division:d,heading:'D'+d+' · '+(uk?m.uk:m.en),lead,analysis,example,action,evidence});
 };
@@ -119,8 +132,11 @@ export function n4OfflineEligible(env:Record<string,string|undefined>=process.en
 }
 export function buildN4OfflineReading(chart:CalculatedChart,lang:Lang):N4OfflineReading{
  const lords=classicalLordshipTable(chart.ascendant.sign);
- const chapters=[chapter(chart,9,'Venus',9,lang),chapter(chart,10,lords[10],10,lang),
-  ...selectN4NarrativeThemes(chart).map(t=>chapter(chart,t.division,t.anchor,t.division,lang))];
+ const all=calculateAllVargas(chart.ascendant.longitude,chart.d1.map(g=>({
+  name:g.name,longitude:g.longitude,speed:g.retrograde?-1:1
+ })));
+ const chapters=[chapter(chart,all,9,'Venus',9,lang),chapter(chart,all,10,lords[10],10,lang),
+  ...selectN4NarrativeThemes(chart).map(t=>chapter(chart,all,t.division,t.anchor,t.division,lang))];
  if(chapters.length!==5||new Set(chapters.map(c=>c.division)).size!==5)
   throw new Error('N4 offline requires distinct D9, D10 and 3 grounded supplementary themes');
  return Object.freeze({
