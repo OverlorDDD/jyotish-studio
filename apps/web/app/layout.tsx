@@ -3,6 +3,7 @@ import {headers} from 'next/headers';
 import {publicSiteOrigin} from '../lib/site-indexing';
 import {BRAND} from '../lib/brand';
 import './globals.css';
+import './pedia.css';
 import {Suspense} from 'react';
 import GrowthConsent from './components/GrowthConsent';
 
