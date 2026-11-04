@@ -6,7 +6,7 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {n4SyntheticAuditChart,n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
-import {N4_EDITORIAL_VARIANT_VERSION} from './n4-ai-editorial-variants.mjs';
+import {N4_EDITORIAL_VARIANT_VERSION,auditN4PairedModelIdentity} from './n4-ai-editorial-variants.mjs';
 import {selectN4NarrativeThemes,reviewN4Narrative} from '../apps/api/src/n4-interpretation-brief.ts';
 import {auditN4ExplicitClaims} from '../apps/api/src/n4-ai-claims.ts';
 import {reviewGeneratedConsultation} from '../apps/api/src/consultation-prose-review.ts';
@@ -36,6 +36,7 @@ for(const row of rows){
  same.set(digest,row.id);
  if(local.length)issues.push({id:row.id,reasons:[...new Set(local)]});
 }
+issues.push(...auditN4PairedModelIdentity(rows));
 const wanted=Array.from({length:48},(_,i)=>n4AuditSampleId(i).id);
 const missing=wanted.filter(id=>!seen.has(id));
 const summary={status:issues.length||missing.length?'AUTOMATED_LIVE_CORPUS_INCOMPLETE_OR_ISSUES':'AUTOMATED_PRECHECK_PASS_HUMAN_EDITORIAL_REVIEW_REQUIRED',

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
-import {n4SyntheticVariantFetcher,N4_EDITORIAL_VARIANT_VERSION,N4_SYNTHETIC_EDITORIAL_FOCUS} from './n4-ai-editorial-variants.mjs';
+import {n4SyntheticVariantFetcher,N4_EDITORIAL_VARIANT_VERSION,N4_SYNTHETIC_EDITORIAL_FOCUS,auditN4PairedModelIdentity} from './n4-ai-editorial-variants.mjs';
 test('48 cases cover 12 synthetic charts, two languages and two variants',()=>{
  const rows=Array.from({length:48},(_,i)=>n4AuditSampleId(i));
  assert.equal(new Set(rows.map(x=>x.id)).size,48);
@@ -35,4 +35,12 @@ test('A/B transport holds source chart and credentials constant but changes edit
   assert.ok(captures[i].body.messages[0].content.includes(N4_SYNTHETIC_EDITORIAL_FOCUS[i?'B':'A']));
  }
  assert.throws(()=>n4SyntheticVariantFetcher(transport,'C'),/Invalid synthetic/);
+});
+
+test('A/B study rejects a mixed model pair, not a genuine same-model pair',()=>{
+ const a={id:'A',seed:0,lang:'uk',variant:'A',provider:'gemini',model:'gemini-3.1-flash-lite'};
+ const b={...a,id:'B',variant:'B'};
+ assert.deepEqual(auditN4PairedModelIdentity([a,b]),[]);
+ const mixed={...b,model:'unrelated-random-router-model'};
+ assert.deepEqual(auditN4PairedModelIdentity([a,mixed]),[{id:'B',reasons:['paired_provider_or_model_mismatch']}]);
 });

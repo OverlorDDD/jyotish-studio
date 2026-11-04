@@ -20,3 +20,19 @@ export function n4SyntheticVariantFetcher(transport,variant){
   return transport(url,{...init,body:JSON.stringify(amended)});
  };
 }
+
+/** Identical models/providers are essential for a meaningful within-chart A/B comparison. */
+export function auditN4PairedModelIdentity(rows){
+ const pairs=new Map(),issues=[];
+ for(const row of rows){
+  if(!Number.isInteger(row.seed)||!['uk','en'].includes(row.lang)||!['A','B'].includes(row.variant)||
+     typeof row.provider!=='string'||typeof row.model!=='string')continue;
+  const key=row.seed+'|'+row.lang;
+  const prior=pairs.get(key);
+  if(prior && prior.variant!==row.variant &&
+     (prior.provider!==row.provider||prior.model!==row.model))
+   issues.push({id:row.id,reasons:['paired_provider_or_model_mismatch']});
+  else if(!prior)pairs.set(key,row);
+ }
+ return issues;
+}

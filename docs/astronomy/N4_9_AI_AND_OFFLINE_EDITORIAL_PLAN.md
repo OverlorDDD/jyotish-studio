@@ -20,6 +20,8 @@ Sources are **astrological traditions**, not empirical proof that a person's fut
 ## Real provider editorial acceptance — separate, NOT yet certified
 Create a 48-response *synthetic-only* corpus: 12 deliberately different chart signatures × 2 languages × 2 **genuinely distinct synthetic-only editorial emphasis** variants (A: verifiable placements first; B: conditional decision scene first). A/B keep identical chart facts and all safety requirements; their comparison tests style, NOT natal differences. Corpus v2 saves the editorial instruction version and refuses mixed provenance. The wrapper is confined to the opt-in local capture script, never Direct Jyotish production. Run against the actual approved free-tier provider with **only synthetic** input, explicit opt-in, quotas and secret handling. Preserve provider/model and timestamp, source seed, language, prompt version and output for a reviewer; never store user natals or API keys. No project source can invent this corpus.
 
+**A/B comparability gate:** Every A/B pair must use the SAME concrete provider AND model. A randomized free router (such as `openrouter/free`) is rejected for the capture experiment; explicitly pin a no-cost `:free` model if using OpenRouter. The evaluator rejects pairs with different returned model identities. Even a same-model pair is only a controlled comparison, not a statistical quality guarantee.
+
 **Blind human editorial audit (0–4 score in each dimension):**
 - verified graha/sign/house/source integrity (zero fabricated facts is mandatory);
 - actual D1 / D9 / D10 comparisons, plus 2 grounded extra D lenses;

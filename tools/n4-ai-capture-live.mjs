@@ -13,6 +13,8 @@ if(process.env.N4_LIVE_EDITORIAL_EXPLICIT_OPT_IN!=='YES_SYNTHETIC_ONLY')
  throw Error('Live AI corpus: explicit synthetic-only opt-in required');
 const provider=process.env.N4_LIVE_EDITORIAL_PROVIDER||'';
 if(!['gemini','groq','openrouter'].includes(provider))throw Error('Choose a supported provider');
+if(provider==='openrouter'&&(process.env.OPENROUTER_FREE_MODEL||'openrouter/free')==='openrouter/free')
+ throw Error('A/B editorial QA needs a pinned :free model, not the randomized OpenRouter free router');
 const keys={gemini:process.env.GEMINI_API_KEY,groq:process.env.GROQ_API_KEY,openrouter:process.env.OPENROUTER_API_KEY};
 const confirmed={gemini:process.env.GEMINI_FREE_TIER_CONFIRMED==='1',groq:process.env.GROQ_FREE_TIER_CONFIRMED==='1',
  openrouter:(process.env.OPENROUTER_FREE_MODEL||'openrouter/free').includes('free')};
