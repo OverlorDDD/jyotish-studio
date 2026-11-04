@@ -13,6 +13,7 @@
     "dev:web": "npm run dev -w @jyotish/web",
     "dev:full": "node tools/dev-full.mjs && npx concurrently -k \"npm run dev:api\" \"npm run dev:web\"",
     "test": "node --experimental-strip-types --test packages/jyotish-core/src/*.test.ts",
+    "test:n4": "node --experimental-strip-types --test packages/jyotish-core/src/vargas.test.ts",
     "build": "npm run build -w @jyotish/core && npm run build -w @jyotish/api && npm run build -w @jyotish/web",
     "db:generate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js generate --schema=apps/api/prisma/schema.prisma",
     "db:migrate": "node --env-file-if-exists=.env ./node_modules/prisma/build/index.js migrate deploy --schema=apps/api/prisma/schema.prisma",
