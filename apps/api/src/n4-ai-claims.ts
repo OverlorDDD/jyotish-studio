@@ -10,12 +10,11 @@ const ukrainian:Record<string,string>={
  'Сонце':'Sun','Місяць':'Moon','Марс':'Mars','Меркурій':'Mercury',
  'Юпітер':'Jupiter','Венера':'Venus','Сатурн':'Saturn','Раху':'Rahu','Кету':'Ketu'
 };
-const allNames=[...planets,...Object.keys(ukrainian)].join('|');
 const escape=(s:string)=>s.replace(/[.*+?^$\{\}()|[\]\\]/g,'\\$&');
-const n=escape(allNames); // static alternation: only known grahas, no user-generated RegExp
-const heads=new RegExp('\\bD\\s*(\\d{1,2})\\b\\s*[,;:–—-]?\\s*('+n+')\\b\\s*(?:is\\s+|sits\\s+|stands\\s+|occupies\\s+|lies\\s+|falls\\s+|appears\\s+|перебуває\\s+|стоїть\\s+|у\\s+|в\\s+|in\\s+|at\\s+|the\\s+){0,6}(?:house|H|дім|домі|дому)\\s*=?\\s*(\\d{1,2})\\b','giu');
-const feet=new RegExp('\\bD\\s*(\\d{1,2})\\b\\s*[,;:–—-]?\\s*('+n+')\\b\\s*(?:is\\s+|sits\\s+|stands\\s+|occupies\\s+|перебуває\\s+|стоїть\\s+|у\\s+|в\\s+|in\\s+|at\\s+|the\\s+){0,6}(\\d{1,2})(?:st|nd|rd|th|-му|-м)?\\s*(?:house|домі|домі|дому|дім)\\b','giu');
-const numeric=new RegExp('\\bD\\s*(\\d{1,2})\\b\\s*[,;:–—-]?\\s*('+n+')\\b\\s*(?:has\\s+)?(?:sign|знак)\\s*=?\\s*(\\d{1,2})\\b','giu');
+const n=[...planets,...Object.keys(ukrainian)].map(escape).join('|'); // static known-planet alternation
+const heads=new RegExp('\\bD\\s*(\\d{1,2})\\b\\s*[,;:–—-]?\\s*('+n+')(?=\\s|[.,;:]|$)\\s*(?:is\\s+|sits\\s+|stands\\s+|occupies\\s+|lies\\s+|falls\\s+|appears\\s+|перебуває\\s+|стоїть\\s+|у\\s+|в\\s+|in\\s+|at\\s+|the\\s+){0,6}(?:house|H|дім|домі|дому)\\s*=?\\s*(\\d{1,2})\\b','giu');
+const feet=new RegExp('\\bD\\s*(\\d{1,2})\\b\\s*[,;:–—-]?\\s*('+n+')(?=\\s|[.,;:]|$)\\s*(?:is\\s+|sits\\s+|stands\\s+|occupies\\s+|перебуває\\s+|стоїть\\s+|у\\s+|в\\s+|in\\s+|at\\s+|the\\s+){0,6}(\\d{1,2})(?:st|nd|rd|th|-му|-м)?\\s*(?:house|домі|дому|дім)(?=\\W|$)','giu');
+const numeric=new RegExp('\\bD\\s*(\\d{1,2})\\b\\s*[,;:–—-]?\\s*('+n+')(?=\\s|[.,;:]|$)\\s*(?:has\\s+)?(?:sign|знак)\\s*=?\\s*(\\d{1,2})\\b','giu');
 const supported=new Set([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
 export type N4ClaimAudit=Readonly<{claims:readonly string[];errors:readonly string[];correct:number}>;
 export function auditN4ExplicitClaims(text:string,chart:CalculatedChart):N4ClaimAudit{
