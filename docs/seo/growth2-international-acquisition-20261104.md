@@ -105,3 +105,29 @@ Optional, when justified:
 - Google Trends normalization: https://support.google.com/trends/answer/4365533
 
 **Implementation separation:** No PR merge, live AWS deployment, social post or API submission executed by this playbook. Developer chat remains sole production release owner.
+
+
+## Verified plugin reconnaissance — 2026-11-04
+
+**Ahrefs:** Plugin is connected in ChatGPT but even the free `subscription-info-limits-and-usage` request responded `UNAVAILABLE / Insufficient plan`. No site explorer, keyword difficulty, backlinks, or competitor rankings were obtained via Ahrefs in this check. **Do not claim Ahrefs data as confirmed or pay for an upgrade blindly.** First check account/plan eligibility and compare any quotes to expected research needs. Previously cited Semrush estimates are external secondary evidence, not live Ahrefs output.
+
+**vidIQ:** Connected and working. These are **estimated YouTube monthly searches worldwide** for English/Latin-letter keyword research, NOT Google search volume, and country-specific figures were frequently unknown. vidIQ uses a separate 0–100 volume/competition score; when returned `<750`, preserve it as a censored estimate, **not 0**.
+
+| Seed phrase | vidIQ estimated monthly YouTube searches | Competition score | Operational use |
+| --- | ---: | ---: | --- |
+| `vedic birth chart` | <750 | 20 | Precisely targeted calculator explainer, but too narrow for primary video reach |
+| `panchang today` | <750 | 41 | Strong on-site product / search intent, weaker YouTube exact-term discovery |
+| `free tarot reading` | 4,471 | 32 | Good conversion-oriented Tarot video theme |
+| `vedic astrology` | 37,198 | 48 | Wider educational entry point; verify content intent |
+| `jyotish` | 12,178 | 42 | Community education opportunity; estimated demand down 11.7% in returned sample |
+| `tarot reading` | 152,998 | 61 | High-reach but more competitive |
+| `pick a card` | 122,223 | 42 | Strong short-form video format suitable for an actual free Tarot tool |
+| `tarot card reading` | 214,550 | 41 | Broad educational demonstrations; short-term trend +50.3% in snapshot |
+| `love tarot reading` | 19,588 | 42 | Prominent interest but avoid exploitative certainty about personal relationships |
+
+These estimates are vidIQ provider outputs on the check date, are modeled (not direct Google/YouTube first-party reporting), and may change. Country `US` was requested; a **null countryVolume is unknown, NOT the national zero**. Keyword related terms can include irrelevant signals (`gemini`, `shorts`, `yt`), so the list was editorially filtered.
+
+**vidIQ video outlier caveat:** An English-filtered `pick a card tarot reading` Shorts search returned mostly **Uzbek-language** titles from one channel despite the query language filter. Some outlier performance scores were strong (5.7×–18× versus that channel's own norm) but the sample is linguistically mismatched and unrepresentative of English-speaking audience. Do **not** treat those specific Shorts as English competitor proof. Test an original English 15–30 second `pick a card` demo; only scale if actual profile-link clicks and completed readings appear.
+
+**Revised first experiments:** Lead *video reach* with `pick a card`, `tarot reading`, `vedic astrology`; lead *high-intent owned-site SEO* with `free Vedic birth chart`, `Panchang today by city`, and genuine `Galaxiora` branded discovery. Use the video to invite users into verified free tools. Cross-check results with GA4/visitor aggregates, not video views alone.
+
