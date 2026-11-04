@@ -2,6 +2,7 @@ import type {MetadataRoute} from 'next';
 import {publicIndexingEnabled,publicSiteOrigin,SEO_PATHS} from '../lib/site-indexing';
 import {YOGA_PRACTICES} from '../lib/yoga-content';
 import {ACADEMY_LESSONS} from '../lib/academy-content';
+import {PEDIA_ARTICLES} from '../lib/pedia-content';
 import {MOON_SIGN_GUIDES} from '../lib/moon-sign-guides';
 import {TAROT_GUIDES} from '../lib/tarot-guides';
 import {publishedList} from '../lib/editorial-public';
@@ -12,9 +13,9 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
  const [yoga,academy]=await Promise.all([publishedList('YOGA'),publishedList('ACADEMY')]);
  const allPages=[...new Set([...SEO_PATHS,...MOON_SIGN_GUIDES.map(s=>'horoscope/'+s.slug),
   ...MOON_SIGN_GUIDES.map(s=>'horoscope/western/'+s.slug),
-  ...YOGA_PRACTICES.map(p=>'yoga/'+p.slug),...ACADEMY_LESSONS.map(l=>'learn/'+l.slug),
+  ...YOGA_PRACTICES.map(p=>'yoga/'+p.slug),...ACADEMY_LESSONS.map(l=>'pedia/'+l.slug),...PEDIA_ARTICLES.map(a=>'pedia/'+a.slug),
   ...TAROT_GUIDES.map(card=>'tarot/cards/'+card.slug),
-  ...yoga.map(p=>'yoga/'+p.slug),...academy.map(p=>'learn/'+p.slug)])];
+  ...yoga.map(p=>'yoga/'+p.slug),...academy.map(p=>'pedia/'+p.slug)])];
  return allPages.flatMap(suffix=>(['en','uk'] as const).map(locale=>({
   url:base+paths(locale,suffix),
   alternates:{languages:{en:base+paths('en',suffix),uk:base+paths('uk',suffix),'x-default':base+paths('en',suffix)}},
