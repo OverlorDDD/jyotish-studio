@@ -11,7 +11,7 @@ import PanchangaRangeView from './PanchangaRangeView';
 import PanchangaLiveDay from './PanchangaLiveDay';
 import GlossaryText from './GlossaryText';
 import styles from './PanchangaHub.module.css';
-import {reportGrowthEvent} from '../../lib/growth-metrics';
+import {reportGrowthEvent,reportPublicToolEvent} from '../../lib/growth-metrics';
 
 type Form={date:string;timeZone:string;latitude:string;longitude:string;place:string};
 type Day=LivePanchangaDay&{
@@ -43,6 +43,8 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [autoSave,setAutoSave]=useState(true);
  const [saveState,setSaveState]=useState<'idle'|'saving'|'saved'|'error'>('idle');
  const saveSequence=useRef(0),saveQueue=useRef<Promise<unknown>>(Promise.resolve());
+ // The initial automatic city/day fetch is not a user-initiated completion.
+ const manualDayRequest=useRef(false);
  useEffect(()=>{
   const qs=new URLSearchParams(window.location.search);
   if(qs.get('view')==='personal')setView('week'); // retired duplicate 7/30 view
@@ -81,6 +83,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   saveQueue.current=pending.catch(()=>{if(version===saveSequence.current)setSaveState('error')});
  }
  function selectLocation(next:Form){
+  manualDayRequest.current=true;
   setForm(next);setRequested(next);setDay(null);
   saveCity(next);
  }
@@ -102,6 +105,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  }
  function setDate(date:string){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
+  manualDayRequest.current=true;
   const next={...form,date};setForm(next);setRequested(next);setDay(null);
  }
  function pickDay(date:string){setDate(date);setView('day')}
@@ -112,6 +116,9 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  }
  useEffect(()=>{
   if(!requested||view!=='day')return;
+  const explicit=manualDayRequest.current;
+  manualDayRequest.current=false;
+  if(explicit)reportPublicToolEvent('public_tool_started','panchanga');
   let live=true;const ctl=new AbortController();setLoading(true);setError(false);setDay(null);
   const q=new URLSearchParams({date:requested.date,zone:requested.timeZone,
    latitude:requested.latitude,longitude:requested.longitude});
@@ -123,10 +130,13 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
      Math.abs(result.location.latitude-Number(requested.latitude))<1e-8&&
      Math.abs(result.location.longitude-Number(requested.longitude))<1e-8){
       setDay(result);
-      reportGrowthEvent('panchanga_calculation_completed');
+      // Legacy event counts all successful loads, including the default day.
+       reportGrowthEvent('panchanga_calculation_completed');
+       // Qualified user-action completion must NOT include automatic prefetch.
+       if(explicit)reportPublicToolEvent('public_tool_completed','panchanga');
     }
    })
-   .catch(()=>{if(live&&!ctl.signal.aborted)setError(true)})
+   .catch(()=>{if(live&&!ctl.signal.aborted){setError(true);if(explicit)reportPublicToolEvent('public_tool_failed','panchanga');}})
    .finally(()=>{if(live)setLoading(false)});
   return()=>{live=false;ctl.abort()};
  },[requested,view]);
@@ -154,7 +164,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   </div>
   <nav className={styles.calendarTabs} aria-label={uk?'Період календаря':'Calendar period'}>
    {(['day','week','month'] as const).map(period=><button type="button" key={period}
-    aria-current={view===period?'page':undefined} onClick={()=>{setView(period);}}>
+    aria-current={view===period?'page':undefined} onClick={()=>{if(period==='day'&&view!=='day')manualDayRequest.current=true;setView(period);}}>
     {period==='day'?(uk?'День':'Day'):period==='week'?(uk?'7 днів':'7 days'):(uk?'Місяць':'Month')}
    </button>)}
   </nav>
