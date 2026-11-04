@@ -7,7 +7,10 @@ test('global account UI connects to existing cookie session without client-side 
  const login=source('apps/web/app/components/GlobalAccount.tsx');
  const api=source('apps/api/src/account.ts');
  assert.match(shell,/<GlobalAccount locale=\{locale\}\/>/);
- for(const word of ["'/api/v1/account/me'","'/api/v1/account/logout'","'/api/v1/account/'+mode"])assert.ok(login.includes(word),word);
+ // Current authentication uses an email-verification endpoint on registration.
+ // The old literal "+mode" path ignored verify/OTP and was obsolete.
+ for(const word of ["'/api/v1/account/me'","'/api/v1/account/logout'","'/api/v1/account/'+endpoint","'register/verify'","credentials:'same-origin'"])assert.ok(login.includes(word),word);
+ assert.match(login,/mode==='register'\?\{email,password,turnstileToken\}/);
  assert.ok(api.includes('publicUser(user)'));
  const policy=source('apps/api/src/account-policy.ts');
  assert.ok(policy.includes('role:user.role'),'Roles are provided by server');
@@ -35,7 +38,10 @@ test('post-payment private brief endpoint is fail-closed and ownership-checked',
  assert.ok(checkout.includes('disabled aria-disabled="true"'));
  assert.ok(!offer.includes('fetch('));
  const section=source('apps/web/app/components/PortalSection.tsx');
- assert.ok(section.includes('<ExpertOffer locale={locale}/>'));
+ assert.ok(section.includes('<TarotStudio locale={locale}/>'));
+ assert.ok(!section.includes('<ExpertOffer locale={locale}/>'),'Old checkout pitch must not appear beside the live expert inquiry form');
+ const tarot=source('apps/web/app/components/TarotStudio.tsx');
+ assert.ok(tarot.includes('<ExpertQuestionForm locale={locale}/>'));
  assert.ok(!section.includes('<ReadingIntake locale={locale}/>'));
 });
 test('provider calls record usage fields and never log raw user prompts or keys',()=>{
@@ -44,7 +50,7 @@ test('provider calls record usage fields and never log raw user prompts or keys'
  assert.ok(ai.includes('prompt_tokens'));
  assert.ok(ai.includes("reportUsage('provider_error')"));
  assert.ok(ai.includes("reportUsage('returned',result)"));
- assert.ok(nest.includes("recordAiUsage(event,'detailed_report')"));
+ assert.ok(nest.includes("recordAiUsage(event,'direct_jyotish')"));
  assert.ok(nest.includes("recordAiUsage(event,'short_reading')"));
  const admin=source('apps/api/src/admin.ts');
  assert.ok(admin.includes('requestsWithTokenUsage'));

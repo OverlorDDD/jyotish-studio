@@ -1,0 +1,135 @@
+# Galaxiora — повний аудит SEO, GA4 і зростання
+**Дата:** 2 листопада 2026 • **Базова production-версія:** `e58b0493fadbf6eaad97244c6ea63a281e676f17` (підтверджена власником) • **Ціль:** виправити вимірювання й усунути перевірені перешкоди пошукової видимості.  
+**Статус:** кодові зміни в окремій PR-гілці; НЕ вважати встановленими на AWS до післярелізної перевірки.
+
+## 1. Резюме і метод дослідження
+
+Основна проблема — **нестача достовірних даних**, а не доведене блокування Google. На скриншоті GA4 Realtime 0 користувачів у 30-хвилинному вікні. Власник бачив ≈1 відвідування за добу. Ці метрики не слід змішувати. Google Search Console раніше підтвердив: `https://galaxiora.com/` **доступна Google і придатна до індексації**; R3.2-аудит перевіряв sitemap і canonical/hreflang. Але технічна придатність не гарантує індексування чи позицій.
+
+Джерела доказів (розділяємо їх):
+- **Знайдено безпосередньо в GitHub-коді:** фактичні помилки обліку `/`, порядку згоди GA4, неповні тестові сценарії; надто загальний H1 головної.
+- **Власні скриншоти/термінал:** live URL inspection «доступен Google», активний AWS і виконання R4.2-коміту; GA4 Realtime нуль у момент знімка. Це НЕ свідчить про нуль за всю добу.
+- **Публічна документація Google:** правила crawling/indexing, канонікалів, site name/favicon, Core Web Vitals, people-first content, GA4/Consent Mode/Tag Assistant.
+- **Публічні сторінки конкурентів:** функціональні порівняння, не їхні неоголошені SEO-рейтинги чи трафік.
+- **Відкриті питання:** реальний Google collector hit, GSC «Performance», live Core Web Vitals за пристроями, реальні зовнішні посилання й Telegram-канал. Без реальних даних не стверджувати, що вони пройшли тест.
+
+У поточному середовищі `galaxiora.com` не розв'язується через DNS, хоча користувач працює з живим сайтом. Це **обмеження нашого інструмента, не доказ падіння production**. Ми НЕ маємо доступу до закритих алгоритмів ранжування Google, внутрішніх даних GA4 або таємних «важелів» SEO. Ніхто не може гарантувати 1-ше місце чи змінити AI Overview вручну.
+
+## 2. Матриця ризиків і підтверджень
+
+| ID | Важливість | Що саме перевірили | Доказ / наслідок | Рішення |
+|---|---|---|---|---|
+| GA-01 | P0 | `safeGrowthPath('/')` повертав null | Google-брендовий перехід на кореневу сторінку не створював `page_view` навіть після згоди | **Виправлено:** root нормалізується в канонічне `/en`, без UTM/PII |
+| GA-02 | P0 | `gtag('js')` стояв до `consent default` | Google рекомендує consent default до команд вимірювання; передавання некоректне чи непередбачуване | **Виправлено:** default denied → update granted після згоди → js → config → event; Basic Consent Mode |
+| GA-03 | P0 | Тести GA4 повертали порожній JS для Google-тега | CI доказував локальні виклики, але НЕ фактичний прийом подій Google | **Виправлено діагностику:** стан завантаження/помилки тегу, сценарій blockedbyclient, надійний AWS bundle doctor; реальну доставку слід підтвердити Tag Assistant/DevTools |
+| GA-04 | P1 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` компілюється в Next | Помилка між .env і .next можлива після build/restart | **Додано** `npm run r42:ga:doctor`, перевіряє public ID в скомпільованих чанках |
+| GA-05 | P1 | Analytics після відкликання згоди | Видалення `script` не вивантажує вже виконаний JS | **Додано** повне перезавантаження після відкликання, без нових events під поточною згодою |
+| GA-06 | P1 | 0 у Realtime | 30-хвилинний звіт, новий тег, згода, блокувальник, затримка до 24 год, пороги приватності | НЕ трактувати як SEO-відмову; пройти `Tag Assistant → page_view` і Network collector |
+| SEO-01 | P1 | H1 `Explore the unseen / Досліджуй невидиме` | Ідентичність бренду гарна, але тема сторінки з H1 не очевидна | **Виправлено:** H1 UA/EN явно називає астрологію, Таро й Панчангу; ліричний підзаголовок збережений |
+| SEO-02 | P1 | Старий `noindex` домену `/` | Раніше був, власник перевірив live URL після виправлення: індексацію дозволено | Вже усунуто на production; новий аудитор повторно перевіряє root |
+| SEO-03 | P1 | R3.2 аудитор обходив лише sitemap | Корінь, іконки, контентний H1, внутрішні посилання та structured data лишалися поза тестами | **Додано** `npm run r4:search:audit` (read-only) і CI-інтеграцію |
+| SEO-04 | P1 | Sitemap адреси позначені доступними | Crawlable **не** дорівнює indexed, indexed **не** дорівнює impressions чи rankings | Потрібний GSC Pages+Performance для реального стану |
+| SEO-05 | P1 | Новий бренд без перевіреного зовнішнього профілю | Google може змішувати назву з іншими сайтами у AI Overview; іконка може оновитися після обходу | Створити офіційні *реальні* профілі, послідовне найменування, підкріплювати згадки авторським контентом; не вигадувати `sameAs` |
+| SEO-06 | P1 | Лінки на фахові інструменти й уроки | Наявні SSR URL, але жодної незалежної оцінки глибини внутрішньої перелінковки всіх 100+ сторінок | Новий crawler перевіряє ключові сторінки; далі аудит сиріт і тематичних кластерів |
+| SEO-07 | P2 | Чисельні Core Web Vitals production | Немає польового CrUX/PSI для нового домену; код має анімації й важкі модулі | Перевірити мобільний Lighthouse та LCP≤2.5s, INP≤200ms, CLS≤0.1; реальне прискорення тільки після профілювання |
+| SEO-08 | P2 | Змістовність загальних гороскопів / агрегованих новин | Потенційна канібалізація і похідний контент; без live GSC не відомо, що саме ранжується | Не масово публікувати шаблони. Розвивати оригінальні пояснення/порівняння та реальні калькулятори |
+| GSC-01 | P1 | Зв'язок Search Console ↔ Google Analytics 4 | Немає доказу, що Web stream GA4 зв'язаний із підтвердженим GSC Domain property; без цього не буде спільних звітів пошукових запитів, цільових сторінок і поведінки | **Потрібна дія власника в GA4 Admin → Product links → Search Console Links**, вибрати `galaxiora.com` і існуючий Web stream; не створювати новий ресурс |\n| MKT-01 | P0 | Відсутність підтверджених реальних джерел аудиторії | 1 повідомлений відвідувач — недостатньо для тестів конверсії | Створити офіційний публічний Telegram-канал і 1 відеоформат, не накручувати трафік |
+| MKT-02 | P1 | @Galaxiora | Власник має Telegram-акаунт, а не підтверджений канал із публічною адресою | Не додавати `sameAs` та посилання на канал, доки його немає |
+| FUN-01 | P1 | Фактичні conversion funnel події | Tarot/Panchanga мають перші події, але немає повного підтвердження Jyotish і signup | Далі: події лише після реального успіху, воронка article→tool→success→opt-in account |
+| PRIV-01 | P0 | Чутливі дані натальних карт і питань | Не мають потрапляти до GA4, search URL чи newsletter | Зберегти білий список маршрутів, без user_id, дат/часу/координат, авторських запитань |
+
+## 3. Глибша перевірка механізмів Google
+
+### Discovery → crawling → indexing → serving → ranking
+1. **Discovery**: Google дізнається про URL із sitemap, внутрішніх <a href>, реальних зовнішніх джерел. Sitemap — підказка, не наказ.
+2. **Crawling**: HTTP 200, відсутність робот-блокувань, правильна доступність мобільної версії й ресурсів. Search Console live test підтверджує crawlability окремої адреси, не всього сайту.
+3. **Indexing**: Google вибирає canonical, оцінює релевантність/дублікати/якість і може не включити кожну URL. Для `/` ми подаємо канонічну `/en`, UA має власну `/uk`.
+4. **Serving/ranking**: корисність, актуальність для запиту, сигнали довіри та незалежні згадки не можна «вмикати» прапорцем. Structured data допомагає розумінню, але не купує позицію.
+5. **Title/favicon/site name/AI Overview**: автоматика. Нові іконки та JSON-LD — коректні сигнали, але Google може оновлювати їх днями/тижнями і не гарантує текст AI Overview.
+
+### Мобільна SEO-якість
+- Перевірка реального першого екрану на OnePlus 11R, ширині 360/390/430px: відсутність overflow, CTA видно одразу, читабельний заголовок, Panсhanga/Eclipse не захований.
+- Пороги якісних CWV: LCP < 2.5 s, INP < 200 ms, CLS < 0.1; потрібні польові або хоча б лабораторні виміри, не вигадані значення.
+- Мобільні навігаційні <a href> і наявність головного тексту в HTTP HTML важливі для discovery.
+
+### Контентні кластери для органічного попиту (план, не підтверджені search volumes)
+- `/uk/astrology/jyotish`: «ведична натальна карта онлайн», «джйотіш лагна», сидеричний vs тропічний зодіак, D1/D9/D10, даша.
+- `/uk/panchanga`: «накшатра сьогодні», «тітхі сьогодні», «Панчанга місто», місцеві переходи; **не** створювати тисячі doorway-сторінок міст.
+- `/uk/tarot/cards` + 8 унікальних пояснень: «значення карти Місяць», «перевернутий Маг»; не розмножувати текст механічно.
+- `/uk/eclipses/2027`: астрономічні факти NASA, локальна видимість через наявний калькулятор.
+- EN: відповідні довгі запити і контент; не боротися лише за надконкурентні «horoscope», «tarot» поки домен новий.
+- GalaxiNews: підтримка перекладів/джерел/ліцензій, не вважати автоматично переписані іноземні новини оригінальною SEO-перевагою.
+
+## 4. Конкурентні орієнтири, без непідтверджених цифр
+- **Astro-Seek / Astro.com:** фахові безкоштовні інструменти та довіра до калькуляторів. Galaxiora слід вимірювати завершені калькуляції, пояснювати точність й timezone, не підміняти звіт загальними порадами.
+- **Drik Panchang:** локальний релігійний календар і час переходів. Наша відмінність — UA/EN, дружня локальна географія й інтеграція зі справжнім персональним Джйотіш.
+- **GrahaLab (grahalab.com/ua):** чіткий шлях «безкоштовна карта → питання → календар/звіти», перевірки й приватність на головній; корисний UX-орієнтир.
+- **Jyotira (jyotira.com):** практична персональна ведична астрологія, публічно названі Swiss Ephemeris/Lahiri; для Galaxiora важливе наочне підтвердження власної методології.
+- **GyaaniJyotish (gyaanijyotish.com):** вхід із безкоштовного Moon-sign читання й безкоштовна кундлі; не копіювати описи, а забезпечити миттєвий корисний досвід.
+- **Навчальні сайти Таро:** окремі картки й приклади застосування; обирати оригінальність і якість кожного гіда, а не 78 коротких шаблонів.
+
+## 5. GA4: тест, який відрізняє реальний збір від імітації
+
+**Не плутати послідовні стани:**
+- `CONFIGURED_IN_COMPILED_CLIENT`: AWS `.next/static` містить очікуваний публічний Measurement ID. Це перевіряє лише встановлення.
+- `script loaded` у вікні налаштувань згоди: браузер завантажив `gtag.js`. Це **не** означає, що Google уже прийняв дані.
+- `g/collect` (або запит GA4 collect) у DevTools → Network після opt-in: браузер намагався надіслати подію. Перевірити статус, домен і `tid=G-SZDVCT8TF4`, **не** публікувати знімок із cookie/ідентифікаторами.
+- Google Tag Assistant (https://tagassistant.google.com): підтвердити `G-SZDVCT8TF4` і `page_view`, порядок згоди, відсутність дубля.
+- Realtime/DebugView GA4: остаточне підтвердження приймання й показу Google. Діагностика може зайняти до 24 год для нового потоку; Realtime — 30 хв.
+
+**Точний браузерний сценарій, без реальних персональних даних:**
+1. Вікно інкогніто без розширень. Відкрити `https://galaxiora.com/`.
+2. До відповіді — DevTools Network → фільтри `gtag`, `collect`, `analytics`: жодних сторонніх GA4 запитів.
+3. Дозволити аналітику; відкрити «Налаштування аналітики». Стан `script loaded` або пояснення блокування.
+4. Знайти `gtag/js?id=G-SZDVCT8TF4`, далі відповідний `collect`. Перевірити, що page_location канонічний `/en`, без приватних параметрів.
+5. Зробити один ручний розрахунок Панчанги та один тестовий розклад Таро (без приватного запитання); підтвердити name-only events.
+6. Відкликати згоду, перевірити, що після перезавантаження Google-тег не завантажується й повторні події не відправляються.
+7. В GA4 Realtime перевірити події; якщо 0 — Tag Assistant, фільтри репортингу, блокувальники, Enhanced Measurement/подвоєння, очікування обробки.
+
+Не звинувачувати search ranking у відсутності GA4: Google Analytics не є індексатором Search Console і не встановлює рейтинг сайту.
+
+## 6. Пріоритетний план зростання (шість тижнів після достовірного запуску)
+
+**Тиждень 1 — Дані:** R4.2 repair CI→AWS; root/site audit, Tag Assistant і Realtime; зв'язати GA4 Web stream із підтвердженим GSC Domain property (Admin → Product links → Search Console Links); зафіксувати GSC Pages/Performance за UA/EN. Дані GSC у GA4 можуть з'являтися приблизно через 48 год, колекцію звітів за потреби опублікувати через Library. Всі непідтверджені показники — «не виміряно».
+**Тиждень 2 — Перше органічне охоплення:** канал, створений і контрольований власником з акаунта @Galaxiora; два змістовні пости й один короткий авторський відеоприклад з посиланнями на Джйотіш/Таро/Панчангу. Звірити реальний URL каналу перед `sameAs`.
+**Тиждень 3 — Глибокі зв’язки:** доповнити 2 найважливіші уроки за запитами GSC; коректна перелінковка до безкоштовних калькуляторів; перевірка CTA на мобільному.
+**Тиждень 4 — Конверсійна воронка:** перевірені `jyotish_calculation_completed`, `sign_up`; owner-дашборд з GA4/GSC агрегатами і знаменниками, без імен/днів народження.
+**Тиждень 5 — Реальні партнерства:** тематичні викладачі/автори, не купувати backlinks і не накручувати користувачів; освітні публікації про методи обчислення з джерелами.
+**Тиждень 6 — Рішення за метриками:** 28-денна тенденція показів, кліків і CTR, фактичні consented sessions, article-to-tool CTR, tool completed/start, мобільні CWV; переглянути відвідувані сторінки, виправити 2 конкретні точки втрати.
+
+Ніяких «5000 користувачів до кінця тижня» з нульової вибірки: KPI спершу визначаються зі справжньої бази, не з припущень.
+
+## 7. Офіційні мануали, перевірені для цього аудиту
+
+- Google Search crawling/indexing FAQ: https://developers.google.com/search/help/crawling-index-faq
+- Canonicalization: https://developers.google.com/search/docs/crawling-indexing/canonicalization
+- Google crawler errors / sitemaps / mobile links: https://developers.google.com/search/docs/crawling-indexing/troubleshoot-crawling-errors
+- Google links: https://developers.google.com/search/docs/crawling-indexing/links-crawlable
+- People-first / E-E-A-T: https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+- Web Vitals: https://developers.google.com/search/docs/appearance/core-web-vitals
+- Site names: https://developers.google.com/search/docs/appearance/site-names
+- Favicon: https://developers.google.com/search/docs/appearance/favicon-in-search
+- Google Tag consent ordering: https://developers.google.com/tag-platform/security/guides/consent
+- GA4 Basic vs Advanced Consent Mode: https://support.google.com/analytics/answer/14009635
+- GA4 missing data: https://support.google.com/analytics/answer/9311124
+- GA4 Realtime vs DebugView: https://support.google.com/analytics/answer/9333790
+- GA4 debug events: https://support.google.com/analytics/answer/7201382
+- Google tag events/config: https://developers.google.com/tag-platform/gtagjs/reference\n- **Official GA4/Search Console integration (important):** https://support.google.com/analytics/answer/10737381?hl=uk\n- GA4 Traffic acquisition reports: https://support.google.com/analytics/answer/12923437?hl=uk
+- Telegram channels: https://telegram.org/faq_channels?setln=uk
+
+Це офіційні публічні джерела; не потрібно встановлювати сторонні «SEO-бібліотеки», котрі обіцяють доступ до внутрішніх алгоритмів Google.
+
+## 8. Реалізовано в PR, перевірки й реліз
+
+**Код:**
+- `apps/web/lib/growth-metrics.ts`: root → `/en`, canonical pageview, при цьому заборонені особисті URL лишаються забороненими.
+- `apps/web/app/components/GrowthConsent.tsx`: consent default denied → update granted → js → config, діагностика load/blocked, відновлення приватності після відкликання.
+- `apps/web/app/components/PortalHome.tsx`: контекстні UA/EN H1, не втрачаючи стиль бренду.
+- `tools/r42-ga4-doctor.mjs`: перевіряє public GA4 ID всередині client bundle, НЕ надсилає подій.
+- `tools/r4-search-discovery-audit.mjs`: read-only root/15 публічних маршрутів/sitemap/robots/favicon/structured links; попередження про server timing, але не вимірює CrUX.
+- `tools/r42-growth.test.mjs`, `e2e/r42-ga4-diagnostics.spec.mjs`, нова GitHub Actions workflow: граничні регресії.
+- `tools/r42-ga4-seo-release.sh`: безпечний AWS workflow (тести, build, doctor, restart, readiness, site:check, launch:verify, sitemap+discovery).
+
+**Після релізу:** перевірити точний SHA і `R42_GA4_DISCOVERY_AUDIT_DEPLOYED` у терміналі; власник проходить browser Tag Assistant/GA4. Не називати повний аудит production успішним на основі зеленого CI: CI є лише ізольованим доказом. Якщо `r4:search:audit` зафіксує warning, це окремий вимір для оцінювання.
+
+**Не змінювалося:** база даних, AWS DNS, оплати, натальні обчислення, Azure Translator/NMT, приватні API, новинний scheduler. Жодних автоматичних публікацій у Telegram або платних рекламних запусків.

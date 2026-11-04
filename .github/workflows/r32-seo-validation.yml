@@ -1,0 +1,115 @@
+name: R3.2 SEO Validation
+on:
+  push:
+    branches: [fix/r32-search-brand-and-sitemap-20261101]
+  workflow_dispatch:
+jobs:
+  seo:
+    name: R3.2 canonical SEO, brand assets and production build
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+      SITE_NOINDEX: '0'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema apps/api/prisma/schema.prisma
+      - name: Install Swiss Ephemeris fallback
+        run: python -m pip install pyswisseph
+      - name: SEO existing contract
+        run: npm run test:seo
+      - name: Audit syntax gate
+        run: node --check tools/r32-seo-audit.mjs
+      - name: R3.2 SEO regression
+        run: npm run test:r32:seo
+      - name: Production build
+        run: npm run build
+
+  browser:
+    name: R3.2 mobile and desktop browser regression
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: 'true'
+      GALAXIORA_E2E_TEST_AUTH: '1'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
+      AUTH_SECRET: r32-ephemeral-ci-session-signing-secret-do-not-reuse
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+      WEB_PORT: '3000'
+      PORT: '4000'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and Swiss Ephemeris
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Prepare disposable test database
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: Build site
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start production-mode test web/API
+        run: |
+          printf 'DATABASE_URL=%s\nAUTH_SECRET=%s\nAI_MODE=local\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' "$DATABASE_URL" "$AUTH_SECRET" > .env
+          npm run start:full > /tmp/galaxiora-r32.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/uk >/dev/null &&
+               curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -100 /tmp/galaxiora-r32.log
+          exit 1
+      - name: Browser SEO, responsive layout and favicon
+        run: npx playwright test --config=playwright.config.mjs e2e/r32-seo.spec.mjs e2e/galaxiora-favicon.spec.mjs
+      - name: Collect synthetic mobile and desktop performance (non-field baseline)
+        run: node tools/r32-browser-performance.mjs
+
+  public-baseline:
+    name: Public Galaxiora full sitemap crawl (post-deploy gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Crawl all public production URLs (fail on crawler or SEO error)
+        run: node --check tools/r32-seo-audit.mjs
+      - name: Perform read-only live audit
+        env:
+          R32_SITE_ORIGIN: https://galaxiora.com
+        run: node tools/r32-seo-audit.mjs

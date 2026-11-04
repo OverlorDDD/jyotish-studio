@@ -1,0 +1,52 @@
+name: R4.3 First Real Visitors — Bilingual Content
+on:
+  push:
+    branches:
+      - feat/r43-first-visitors-english-content-20261102
+  pull_request:
+    paths:
+      - apps/web/app/[locale]/astrology/moon-sign-vs-sun-sign/**
+      - apps/web/app/components/SearchGuides.tsx
+      - apps/web/lib/site-indexing.ts
+      - tools/r43-first-visitors.test.mjs
+      - docs/seo/r43-english-first-audience-launch-kit.md
+      - .github/workflows/r43-first-visitors-validation.yml
+      - package.json
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visitors-seo:
+    name: Bilingual article, search index and production build
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+      AUTH_SECRET: r43-ephemeral-ci-only-not-used-in-production
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Generate Prisma client
+        run: npm run db:generate
+      - name: R4.3 offline SEO and IndexNow regression
+        run: |
+          npm run test:r43:visitors
+          npm run test:r43:seo
+          npm run test:r32:seo
+          npm run test:r33:authority
+      - name: Production build — no external submissions
+        run: npm run build

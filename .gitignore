@@ -18,3 +18,12 @@ playwright-report/
 test-results/
 backups/
 *.dump
+
+# Generated Galaxiora brand bitmaps (source of truth: apps/web/brand-assets/galaxiora-approved-spiral-6.png)
+/apps/web/app/icon.png
+/apps/web/public/galaxiora-favicon.png
+/apps/web/public/galaxiora-logo-128.png
+/apps/web/public/apple-touch-icon.png
+/apps/web/public/galaxiora-192.png
+/apps/web/public/galaxiora-512.png
+/apps/web/public/favicon.ico

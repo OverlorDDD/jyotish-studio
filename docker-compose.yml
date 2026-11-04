@@ -15,5 +15,43 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+  # The official LibreTranslate image runs as UID/GID 1032. New named
+  # Docker volumes are root-owned, so first boot cannot create Argos dirs.
+  # This one-shot init fixes ownership without deleting cached models or DB.
+  translator-volume-init:
+    image: libretranslate/libretranslate:latest
+    profiles: ["translation"]
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-ec"]
+    command: ["chown -R 1032:1032 /home/libretranslate/.local/share /home/libretranslate/.local/cache"]
+    volumes:
+      - galaxiora-argos-models:/home/libretranslate/.local/share
+      - galaxiora-argos-cache:/home/libretranslate/.local/cache
+    restart: "no"
+  # Optional local/production NMT, disabled unless profile is explicitly started.
+  # API is loopback-only; the public Next/Nest stack never exposes this service.
+  translator:
+    image: libretranslate/libretranslate:latest
+    profiles: ["translation"]
+    depends_on:
+      translator-volume-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5100:5000"
+    command: ["--load-only", "en,uk"]
+    environment:
+      LT_DISABLE_WEB_UI: "true"
+      # First start downloads needed EN->UK language packages into writable volumes.
+      LT_UPDATE_MODELS: "true"
+      ARGOS_CHUNK_TYPE: "MINISBD"
+    volumes:
+      - galaxiora-argos-models:/home/libretranslate/.local/share
+      - galaxiora-argos-cache:/home/libretranslate/.local/cache
+    mem_limit: 1536m
+    cpus: 1.5
+
 volumes:
   jyotish-postgres:
+  galaxiora-argos-models:
+  galaxiora-argos-cache:

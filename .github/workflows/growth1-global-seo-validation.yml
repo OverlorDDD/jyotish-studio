@@ -1,0 +1,64 @@
+name: GROWTH-1 International SEO and Brand Discovery
+on:
+  push:
+    branches:
+      - feat/growth1-global-brand-discovery-20261103
+  pull_request:
+    paths:
+      - apps/web/app/layout.tsx
+      - apps/web/app/components/PortalHome.tsx
+      - apps/web/app/[locale]/about/page.tsx
+      - apps/web/app/[locale]/panchanga/page.tsx
+      - apps/web/app/[locale]/astrology/jyotish/page.tsx
+      - docs/seo/growth1-*
+      - tools/growth1-global-seo.test.mjs
+      - tools/r32-seo.test.mjs
+      - package.json
+      - tools/growth1-aws-release-guarded.sh
+      - tools/growth1-aws-release.sh
+      - tools/growth1-release-contract.test.mjs
+      - .github/workflows/growth1-global-seo-validation.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  search-and-brand:
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      SITE_NOINDEX: '0'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/growth1_ci
+      AUTH_SECRET: growth1-ci-ephemeral-secret-not-production
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Validate deployment Bash syntax without touching production
+        run: |
+          bash -n tools/growth1-aws-release.sh
+          bash -n tools/growth1-aws-release-guarded.sh
+          bash -n tools/ga4-visitor-aws-release.sh
+          node --test tools/growth1-release-contract.test.mjs
+      - name: Generate Prisma client
+        run: npm run db:generate
+      - name: Brand, international search, sitemap and IndexNow tests
+        run: |
+          npm run test:growth1:seo
+          npm run test:r32:seo
+          npm run test:r43:seo
+          npm run test:r43:visitors
+      - name: Full production build (no live search submissions or deployment)
+        run: npm run build

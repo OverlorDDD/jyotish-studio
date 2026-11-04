@@ -83,5 +83,5 @@ test('A8.6 evidence rendering no longer uses empty-bullet list and UI identifies
  const section=ui.slice(a,b);
  assert.ok(section.includes('reading-evidence-entry'));
  assert.doesNotMatch(section,/<ul>|<li[\s>]/);
- assert.match(ui,/Jyotish Reader v5/);
+ assert.match(ui,/Jyotish Reader v6/);
 });

@@ -26,6 +26,20 @@ test('CSRF origin validation rejects foreign hosts',()=>{
  assert.equal(sameOrigin({headers:{host:'localhost:4000','x-forwarded-host':'localhost:3000',origin:'http://localhost:3000'}}),true);
  assert.equal(sameOrigin({headers:{host:'localhost:4000','x-forwarded-host':'localhost:3000',origin:'https://attacker.example'}}),false);
 });
+test('public HTTPS same-origin writes work when Next proxy rewrites backend host',()=>{
+ const prior=process.env.NEXT_PUBLIC_SITE_URL;
+ try{
+  process.env.NEXT_PUBLIC_SITE_URL='https://galaxiora.com';
+  const headers={host:'127.0.0.1:4000',origin:'https://galaxiora.com','sec-fetch-site':'same-origin'};
+  assert.equal(sameOrigin({headers}),true);
+  assert.equal(sameOrigin({headers:{...headers,origin:'https://attacker.example'}}),false);
+  assert.equal(sameOrigin({headers:{...headers,'sec-fetch-site':'cross-site'}}),false);
+  assert.equal(sameOrigin({headers:{...headers,origin:'http://galaxiora.com'}}),false);
+ }finally{
+  if(prior===undefined)delete process.env.NEXT_PUBLIC_SITE_URL;
+  else process.env.NEXT_PUBLIC_SITE_URL=prior;
+ }
+});
 test('guest calculation and reports have no Prisma writes; old saved chart reads check owner',()=>{
  const code=source('apps/api/src/nest.ts');
  assert.ok(code.includes('return await runCalculation(birth)'));

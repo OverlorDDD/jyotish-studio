@@ -1,0 +1,110 @@
+name: Galaxiora release safety gate
+on:
+  push:
+    branches:
+      - fix/galaxinews-editorial-qa-20261030
+      - feat/western-vedic-horoscopes-20261031
+      - feat/astrological-synthesis-engine-v1-20261031
+      - feat/astrological-synthesis-engine-v2-v3-20261031
+      - fix/horoscope-deterministic-editorial-20261031
+      - fix/news-freshness-admin-ops-20261101
+      - fix/news-nmt-hindi-headlines-20261101
+      - fix/news-nmt-backlog-drain-20261101
+      - feat/news-bilingual-teasers-20261101
+      - fix/mobile-header-account-dialog-20261101
+  workflow_dispatch:
+concurrency:
+  group: galaxiora-release-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d galaxiora_a1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.com
+      SITE_NOINDEX: '1'
+      PUBLIC_REGISTRATION_ENABLED: '0'
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/galaxiora_a1_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install candidate dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma types
+        run: npm run db:generate
+      - name: Authentication security
+        run: npm run test:access
+      - name: Create isolated PostgreSQL schema
+        run: npm run db:migrate
+      - name: Real NestJS HTTP signup and login regression
+        env:
+          CI: 'true'
+        run: node --test tools/registration-http-smoke.test.mjs
+      - name: Runtime Swagger crash regression
+        run: npm run test:swagger
+      - name: Bilingual GalaxiNews
+        run: npm run test:news
+      - name: Real mixed-language headline safety and Azure reserved metering
+        run: node --test tools/news-nmt-reliability.test.mjs
+      - name: Bilingual headline backlog eligibility and source fallback
+        run: node --test tools/news-nmt-backlog.test.mjs
+      - name: Bilingual source-backed teasers and no-fabrication Azure budget safeguards
+        run: node --test tools/news-bilingual-teasers.test.mjs
+      - name: GalaxiNews freshness, production scheduler and admin operations
+        run: node --test tools/news-operational.test.mjs
+      - name: Independent Western and Vedic Swiss horoscope verification
+        run: node --test tools/western-horoscope.test.mjs && npm run test:horoscope-basis
+      - name: Astrological Synthesis Engine native Swiss and deterministic evidence
+        run: node --test tools/astrological-synthesis.test.mjs tools/astrological-synthesis-v2-v3.test.mjs
+      - name: GalaxiCom
+        run: npm run test:com
+      - name: Release / SEO
+        run: npm run test:r2-r3
+      - name: Release script syntax and browser test syntax
+        run: |
+          bash -n tools/galaxiora-final-release.sh
+          bash -n tools/galaxiora-web-hotfix-20261031.sh
+          bash -n tools/galaxiora-horoscope-production-update.sh
+          bash -n tools/galaxiora-synthesis-production-update.sh
+          bash -n tools/galaxiora-horoscope-editorial-production-update.sh
+          bash -n tools/galaxiora-news-admin-production-update.sh
+          bash -n tools/galaxiora-nmt-production-update.sh
+          bash -n tools/galaxiora-news-backlog-production-update.sh
+          bash -n tools/galaxiora-news-teasers-production-update.sh
+          bash -n tools/galaxiora-mobile-header-account-update.sh
+          node --check e2e/support/disposable-accounts.mjs
+          for file in e2e/*.spec.mjs; do node --check "$file"; done
+      - name: Natal city autocomplete and privacy disclosure regression
+        run: node --test tools/galaxiora-city-privacy.test.mjs
+      - name: Full production build
+        run: npm run build
+      - name: Browser audit — all Western/Vedic switch states, UA/EN, desktop/mobile
+        run: |
+          npx playwright install --with-deps chromium
+          printf 'AUTH_SECRET=ci-temporary-browser-token-abcdefghijklmnopqrstuvwxyz0123456789\nDATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/galaxiora_a1_test\nNEXT_PUBLIC_SITE_URL=https://galaxiora.com\nSITE_NOINDEX=1\nAI_MODE=free\n' > .env
+          npm run start -w @jyotish/web > /tmp/galaxiora-browser-web.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for n in $(seq 1 80); do
+            if curl -fsS --max-time 3 http://127.0.0.1:3000/uk/horoscope >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" != 1 ]; then cat /tmp/galaxiora-browser-web.log; exit 1; fi
+          npx playwright test e2e/horoscope-switching.spec.mjs e2e/horoscope-synthesis.spec.mjs --project=desktop-chromium --project=mobile-chromium
+          npx playwright test e2e/mobile-header-account.spec.mjs --project=mobile-chromium --project=desktop-chromium

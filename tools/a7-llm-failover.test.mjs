@@ -61,7 +61,7 @@ test('API and web always distinguish model output from deterministic text and re
  const ui=readFileSync(new URL('../apps/web/app/components/DetailedReport.tsx',import.meta.url),'utf8');
  assert.match(nest,/source:'llm'/);
  assert.match(nest,/source:'deterministic'/);
- assert.match(nest,/cached:true/);
+ assert.match(nest,/cached:reused/);
  assert.match(ui,/data-testid="reading-ai-provenance"/);
  assert.match(ui,/Відповіді від зовнішньої LLM немає/);
  assert.match(ui,/Google Gemini/);

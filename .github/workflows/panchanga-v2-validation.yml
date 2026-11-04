@@ -1,0 +1,63 @@
+name: Panchanga 2.0 Quality
+on:
+  push:
+    branches:
+      - feat/panchanga-v2-p21-unified-location-and-range-20261102
+      - feat/panchanga-v2-p22-live-day-20261102
+      - feat/panchanga-v2-p23-smart-calendar-20261102
+      - feat/panchanga-v2-p24-unified-hub-20261102
+      - release/panchanga-v2-p25-integrated-20261102
+      - feat/panchanga-p31-my-day-ux-20261102
+      - feat/panchanga-p32-interpretation-engine-20261102
+      - feat/panchanga-p33-personal-resonance-20261102
+      - feat/panchanga-p34-time-guidance-20261102
+      - feat/panchanga-p35-personal-calendar-7-30-20261102
+      - release/panchanga-p36-production-acceptance-20261102
+      - feat/panchanga-p37-classical-interpretation-20261103
+      - feat/panchanga-p38-verifiable-muhurta-core-20261103
+      - feat/panchanga-p384-event-lagna-20261103
+      - feat/panchanga-p385-classical-time-finder-20261103
+      - feat/panchanga-p386-clean-day-ux-20261103
+  pull_request:
+    paths:
+      - 'apps/api/src/panchanga*'
+      - 'apps/api/src/personal.ts'
+      - 'apps/api/src/vedic-calendar.ts'
+      - 'apps/api/prisma/**'
+      - 'apps/web/app/components/Panchanga*'
+      - 'apps/web/lib/panchanga-*'
+      - 'tools/panchanga*'
+      - 'packages/jyotish-core/src/lunar-phase-calendar.ts'
+      - 'apps/api/src/vedic-calendar-controller.ts'
+      - 'tools/vedic-calendar-rises.py'
+      - 'e2e/panchanga*'
+jobs:
+  panchanga-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install verified sunrise dependencies for real P410 ephemeris checks
+        run: |
+          python -m pip install pyswisseph
+          python -c 'import swisseph as s; assert s.version=="2.10.03",s.version'
+      - name: Generate Prisma client for additive profile fields
+        run: npm run db:generate
+      - name: Validate Panchanga and seven-day Vedic calendar
+        run: npm run test:panchanga && npm run test:vedic-calendar && npm run test:p410
+      - name: Verify Docker-free production database adapter and secret-safe backup handling
+        run: node --test tools/panchanga-p388-db-direct.test.mjs
+      - name: Verify generated Next.js metadata guarded reconciliation
+        run: node --test tools/panchanga-p388-next-env-guard.test.mjs
+      - name: Compile all app workspaces and Next.js
+        run: npm run build

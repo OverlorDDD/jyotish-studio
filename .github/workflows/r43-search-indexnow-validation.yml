@@ -1,0 +1,31 @@
+name: R4.3 International Search and IndexNow Safety
+on:
+  push:
+    branches:
+      - feat/r43-international-search-indexnow-20261102
+      - release/panchanga-p36-production-acceptance-20261102
+  pull_request:
+    paths:
+      - tools/r3-indexnow.mjs
+      - tools/r43-indexnow-core.mjs
+      - tools/r43-indexnow.test.mjs
+      - package.json
+      - .github/workflows/r43-search-indexnow-validation.yml
+  workflow_dispatch:
+jobs:
+  indexnow-safety:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static syntax checks
+        run: |
+          node --check tools/r43-indexnow-core.mjs
+          node --check tools/r3-indexnow.mjs
+          node --check tools/r43-indexnow.test.mjs
+      - name: Offline regression suite (never contacts IndexNow)
+        run: npm run test:r43:seo

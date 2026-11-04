@@ -10,6 +10,8 @@ import {isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
 import {publishedDetail} from '../../../../lib/editorial-public';
 import EditorialArticle from '../../../components/EditorialArticle';
+import GalaxiComBridge from '../../../components/GalaxiComBridge';
+import {articleStructuredData} from '../../../../lib/seo-structured';
 export const dynamicParams=true;
 type Params={params:Promise<{locale:string;slug:string}>};
 export function generateStaticParams(){return (['uk','en'] as const).flatMap(locale=>ACADEMY_LESSONS.map(item=>({locale,slug:item.slug})));}
@@ -35,7 +37,10 @@ export default async function AcademyLessonPage({params}:Params){
  }
  const uk=locale==='uk',position=ACADEMY_LESSONS.findIndex(l=>l.slug===slug),
   next=ACADEMY_LESSONS[position+1],topic=ACADEMY_TOPICS.find(t=>t.id===lesson.topic)!;
+ const jsonLd=articleStructuredData({locale,path:'/'+locale+'/learn/'+slug,
+  title:lesson.title[locale],description:lesson.description[locale]});
  return <PortalShell locale={locale} active="learn" languagePath={'learn/'+slug}>
+  {jsonLd&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd}}/>}
   <div className="as-wellness as-academy-detail">
    <Link href={'/'+locale+'/learn'} className="as-wellness-back"><ArrowLeft size={16}/>{uk?'Всі уроки':'All lessons'}</Link>
    <article className="as-academy-article">
@@ -59,6 +64,7 @@ export default async function AcademyLessonPage({params}:Params){
      <ul>{lesson.takeaways.map((item,i)=><li key={i}><GlossaryText text={item[locale]} locale={locale}/></li>)}</ul>
     </aside>
     <div id="knowledge-check"><AcademyQuiz locale={locale} quiz={lesson.quiz}/></div>
+    <GalaxiComBridge kind="ACADEMY" slug={slug} title={lesson.title[locale]} locale={locale}/>
     <div className="as-lesson-navigation">
      <Link href={'/'+locale+'/'+lesson.related} className="as-button as-button-secondary">{uk?'Спробувати на практиці':'Explore related tool'} <ArrowUpRight size={16}/></Link>
      {next?<Link className="as-button as-button-primary" href={'/'+locale+'/learn/'+next.slug}>{uk?'Наступний урок':'Next lesson'} <ArrowRight size={16}/></Link>:

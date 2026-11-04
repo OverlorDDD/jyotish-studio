@@ -13,6 +13,8 @@ test('A4 index gate requires configured HTTPS hostname and no preview noindex',(
    assert.equal(publicIndexingEnabled(),false,url);
   }
   process.env.NEXT_PUBLIC_SITE_URL='https://galaxiora.example';
+  assert.equal(publicIndexingEnabled(),false,'explicit SITE_NOINDEX=0 required');
+  process.env.SITE_NOINDEX='0';
   assert.equal(publicIndexingEnabled(),true);
   assert.equal(indexRobots().index,true);assert.equal(indexRobots(false).index,false);
   process.env.SITE_NOINDEX='1';assert.equal(publicIndexingEnabled(),false);
@@ -23,8 +25,17 @@ test('A4 index gate requires configured HTTPS hostname and no preview noindex',(
  }
 });
 test('A4 sitemap enumerates published tools but no future content or private views',()=>{
- assert.deepEqual([...SEO_PATHS],['','astrology','tarot','astrology/jyotish','yoga','learn']);
- for(const p of SEO_PATHS)assert.ok(!/account|admin|news|community/.test(p));
+ // The sitemap grows as new PUBLIC, real guides are published. Do not pin
+ // this 2026-10 list and reject approved pages in later releases.
+ for(const path of ['','about','tarot','tarot/cards','astrology/jyotish',
+  'astrology/moon-sign-vs-sun-sign','yoga','learn','horoscope','panchanga',
+  'eclipses/2027','news','community','methodology'])
+  assert.ok(SEO_PATHS.includes(path), 'published canonical route missing: '+path);
+ assert.equal(new Set(SEO_PATHS).size, SEO_PATHS.length, 'no duplicate canonical pages');
+ for(const p of SEO_PATHS)assert.ok(!/account|admin|personal/.test(p));
+ assert.ok(SEO_PATHS.includes('news')&&SEO_PATHS.includes('community')&&SEO_PATHS.includes('panchanga'));
+ assert.ok(!SEO_PATHS.includes('astrology'),'redirecting alias must not be indexed');
+ assert.ok(SEO_PATHS.includes('about'),'official about page should be discoverable');
  const source=read('apps/web/app/[locale]/[section]/page.tsx');
  assert.ok(source.includes('indexRobots(INDEXED_SECTIONS.some('));
  assert.ok(read('apps/web/app/sitemap.ts').includes('publicIndexingEnabled()'));

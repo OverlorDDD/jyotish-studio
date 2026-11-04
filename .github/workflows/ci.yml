@@ -8,6 +8,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  windows-fixture-integrity:
+    name: Windows JHora pinned fixture and CRLF regression
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent Swiss reference fallback
+        run: python -m pip install pyswisseph
+      - name: Install dependency graph
+        run: npm install --no-audit --no-fund
+      - name: Verify immutable JHora corpus even on Windows
+        run: npm run test:jqa3:corpus
+      - name: Verify JQA-2 cross-platform Python diagnostics
+        run: npm run test:jqa2:profiles
   test:
     runs-on: ubuntu-latest
     steps:
@@ -28,14 +47,45 @@ jobs:
         run: python -m pip install pyswisseph
       - name: Unit tests
         run: npm run test:all
+      - name: NPM dependency audit diagnostics
+        continue-on-error: true
+        run: |
+          npm audit --json > /tmp/galaxiora-npm-audit.json || true
+          node -e 'const a=require("/tmp/galaxiora-npm-audit.json"); for(const [name,v] of Object.entries(a.vulnerabilities||{})){console.log([name,v.severity,v.isDirect?"direct":"transitive",JSON.stringify(v.fixAvailable),v.range].join(" | "));} console.log("TOTAL:",JSON.stringify(a.metadata?.vulnerabilities||{}))'
+      - name: Independently certify JHora D1 D9 D10 sign parity (20 attested profiles)
+        run: npm run jqa3:certify-signs
+      - name: Diagnose historical JHora Vimshottari calendar (informational; never certifies dates)
+        run: npm run jqa3:dasha-diagnostic
+      - name: Diagnose historical Delta-T influence independently before calendar certification
+        run: npm run jqa3:delta-t-experiment
+      - name: Certify printed calendar dates using actual production Moon and genuine JHora source
+        run: npm run jqa3:certify-dates
+      - name: Certify full JQA3 200 longitudes and all 180 plus 1620 source dates
+        run: npm run jqa3:certify
+      - name: Enforce full certification fail-closed criteria
+        run: npm run test:jqa3:full-certifier-gates
+      - name: Verify independent native JHora true-solar dates for all 20 source charts
+        run: npm run test:jqa3:solar-native
+      - name: Verify pure native-ready sidereal solar crossing math
+        run: npm run test:jqa3:solar-core
+      - name: Verify JQA-3.5 UTC calendar invariants and fail-closed year-mode evidence
+        run: npm run test:jqa3:calendar-invariants
+      - name: Guard all calculation adapters against silent Moshier fallback
+        run: npm run test:ephemeris-backend
+      - name: JQA-3.5 differential diagnostics (must not self-certify)
+        run: npm run jqa3:doctor
+      - name: Explore true solar-revolution Vimshottari year interpretations (diagnostic only)
+        run: npm run jqa3:dasha-solar-arc
       - name: Full NestJS and Next.js production build
         run: npm run build
       - name: Swagger metadata and controller routes
         run: npm run test:swagger
       - name: Validate public launchers
         run: |
+          node --check tools/dev-full.mjs
           node --check tools/public-launch.mjs
           node --check tools/next-launch.mjs
+          node --check tools/jyotish-direct-live-check.mjs
 
       - name: Browser JavaScript syntax
         run: node --check apps/web/public/demo.js
@@ -106,6 +156,9 @@ jobs:
           --health-retries 12
     env:
       CI: 'true'
+      # Do not exhaust the sitewide auth fixture budget across 80 desktop/mobile E2E cases.
+      # Runtime permits this ONLY with the disposable localhost galaxiora_a1_test DB.
+      GALAXIORA_E2E_TEST_AUTH: '1'
       DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
       AUTH_SECRET: a4-only-ci-session-signing-secret-do-not-reuse
       AI_MODE: local

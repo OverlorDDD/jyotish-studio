@@ -1,0 +1,139 @@
+{
+  "title": "Mahatma Gandhi — public JHora 8.0 clipboard extraction",
+  "independentSource": {
+    "tool": "Jagannatha Hora 8.0 desktop software (third-party recorded export)",
+    "captureRepository": "https://github.com/normalmystic/JHoraKit",
+    "captureCommit": "f63826b501eabe69c6b08c5365875e1e2f74c24a",
+    "chartDataPath": "sample-data/Mahatma_Gandhi/chart_data.txt",
+    "divisionalsPath": "sample-data/Mahatma_Gandhi/divisionals.txt",
+    "extractedAyanamsaText": "22-01-26.49",
+    "ayanamsaProfile": "True Lahiri / Chitrapaksha (JHora enum 17 inferred from JHoraKit settings sweep)",
+    "d10Profile": "D-10 (5-8) from raw divisionals table; differs from Galaxiora D-10 (1-9)",
+    "nodeProfile": "True node inferred from exported Rahu longitude, not verified from bundled INI",
+    "precision": "Raw body longitudes are reported to hundredths of arc-second; D9/D10 source strings are to whole minutes"
+  },
+  "civilTime": {
+    "birthLocal": "1869-10-02T07:20:00",
+    "historicalOffset": "+04:39:16",
+    "birthUtc": "1869-10-02T02:40:44Z",
+    "latitude": 21.616666666666667,
+    "longitude": 69.81666666666666,
+    "note": "Original JHora chart uses historical local offset. Compare using the exact UTC instant, not modern Asia/Kolkata TZ."
+  },
+  "expected": {
+    "positions": {
+      "Lagna": {
+        "longitude": 186.461769444,
+        "d1": 7,
+        "d9": 8,
+        "d10_5_8": 9
+      },
+      "Sun": {
+        "longitude": 166.918347222,
+        "d1": 6,
+        "d9": 3,
+        "d10_5_8": 5
+      },
+      "Moon": {
+        "longitude": 118.024966667,
+        "d1": 4,
+        "d9": 12,
+        "d10_5_8": 11
+      },
+      "Mars": {
+        "longitude": 206.392075,
+        "d1": 7,
+        "d9": 2,
+        "d10_5_8": 3
+      },
+      "Mercury": {
+        "longitude": 191.755997222,
+        "d1": 7,
+        "d9": 10,
+        "d10_5_8": 10
+      },
+      "Jupiter": {
+        "longitude": 28.150794444,
+        "d1": 1,
+        "d9": 9,
+        "d10_5_8": 10
+      },
+      "Venus": {
+        "longitude": 204.427975,
+        "d1": 7,
+        "d9": 2,
+        "d10_5_8": 3
+      },
+      "Saturn": {
+        "longitude": 230.346886111,
+        "d1": 8,
+        "d9": 10,
+        "d10_5_8": 6
+      },
+      "Rahu": {
+        "longitude": 103.673363889,
+        "d1": 4,
+        "d9": 8,
+        "d10_5_8": 4
+      },
+      "Ketu": {
+        "longitude": 283.673363889,
+        "d1": 10,
+        "d9": 2,
+        "d10_5_8": 10
+      }
+    },
+    "vimshottari": [
+      {
+        "lord": "Mercury",
+        "start": "1855-04-06"
+      },
+      {
+        "lord": "Ketu",
+        "start": "1872-04-05"
+      },
+      {
+        "lord": "Venus",
+        "start": "1879-04-05"
+      },
+      {
+        "lord": "Sun",
+        "start": "1899-04-05"
+      },
+      {
+        "lord": "Moon",
+        "start": "1905-04-06"
+      },
+      {
+        "lord": "Mars",
+        "start": "1915-04-06"
+      },
+      {
+        "lord": "Rahu",
+        "start": "1922-04-06"
+      },
+      {
+        "lord": "Jupiter",
+        "start": "1940-04-05"
+      },
+      {
+        "lord": "Saturn",
+        "start": "1956-04-05"
+      }
+    ]
+  },
+  "comparisonProfile": {
+    "galaxiora": {
+      "ayanamsa": "Swiss traditional Lahiri",
+      "nodes": "Mean Rahu/Ketu",
+      "d10": "1-9 (even signs ninth-forward)",
+      "dashaYearDays": 365.2425
+    },
+    "configDifferenceCodes": [
+      "DIFFERENT_AYANAMSA",
+      "DIFFERENT_NODE_TYPE",
+      "DIFFERENT_D10_VARIANT",
+      "DASHA_DAY_CONVENTION_NOT_CONFIRMED"
+    ]
+  }
+}

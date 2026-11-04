@@ -47,8 +47,11 @@ test('Localized search metadata includes Galaxiora without duplicating default s
 
 test('Working Jyotish Engine and public API routes retain their technical identity',()=>{
  const page=read('apps/web/app/astrology/jyotish/page.tsx');
- assert.ok(page.includes('GALAXI'));
- assert.ok(page.includes('Galaxiora home'));
+ const shell=read('apps/web/app/components/PortalShell.tsx');
+ assert.ok(shell.includes('BRAND.name'));
+ assert.ok(page.includes('jy-portal-workbench'));
+ assert.ok(page.includes('GalaxiAstro'));
+ assert.ok(!page.includes('Galaxiora home'));
  const api=read('apps/api/src/nest.ts');
  assert.ok(api.includes('JyotishController'));
  assert.ok(api.includes('TarotController'));

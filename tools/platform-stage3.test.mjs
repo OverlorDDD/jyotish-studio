@@ -23,22 +23,26 @@ test('private draft requires account consent, daily limits and returns checkout 
  assert.ok(api.includes("where:{id,customerId}"));
  assert.ok(api.includes("status:'PAID'")&&api.includes('paymentVerifiedAt:{not:null}'));
 });
-test('question is submitted before checkout, disabled checkout never charges',()=>{
+test('Private Tarot question saves persistently; disabled donation does not charge',()=>{
  const offer=source('apps/web/app/components/ExpertOffer.tsx');
  const checkout=source('apps/web/app/components/DraftCheckout.tsx');
  assert.ok(offer.includes('<DraftCheckout locale={locale}/>'));
- assert.ok(checkout.includes("fetch('/api/v1/reading-orders/drafts'"));
+ assert.ok(checkout.includes("fetch('/api/v1/reading-orders/questions'"));
+ assert.ok(source('apps/api/src/reading-orders.ts').includes("@Post('questions')"));
+ assert.ok(source('apps/api/src/reading-orders.ts').includes("@Get('questions')"));
  assert.ok(checkout.includes('setDraft(saved)'));
  assert.ok(checkout.includes('role="dialog"'));
  assert.ok(checkout.includes('disabled aria-disabled="true"'));
  assert.ok(!checkout.includes('/api/v1/payments'));
 });
-test('admin aggregates only pre-payment draft counts, user has own drafts and delete',()=>{
+test('Legacy admin draft count stays separate from owner-controlled permanent questions',()=>{
  const admin=source('apps/api/src/admin.ts');
  const account=source('apps/web/app/components/AccountDashboard.tsx');
  assert.ok(admin.includes('readingDraft.count'));
  assert.ok(!admin.includes('readingDraft.findMany'));
- assert.ok(account.includes('/api/v1/reading-orders/drafts'));
+ assert.ok(account.includes('/api/v1/reading-orders/questions'));
+ assert.ok(source('apps/api/prisma/schema.prisma').includes('model TarotQuestion'));
+ assert.ok(source('apps/api/src/reading-orders.ts').includes("@Delete('questions/:id')"));
  assert.ok(account.includes("method:'DELETE'"));
 });
 test('new migration remains additive and includes expiry index',()=>{
@@ -46,4 +50,12 @@ test('new migration remains additive and includes expiry index',()=>{
  assert.ok(sql.includes('CREATE TABLE "ReadingDraft"'));
  assert.ok(sql.includes('ReadingDraft_expiresAt_idx'));
  assert.ok(!sql.includes('DROP TABLE'));
+});
+
+test('permanent private-question migration is additive and has owner foreign key',()=>{
+ const sql=source('apps/api/prisma/migrations/20261024150000_private_tarot_questions/migration.sql');
+ assert.match(sql,/CREATE TABLE "TarotQuestion"/);
+ assert.match(sql,/TarotQuestion_userId_fkey/);
+ assert.match(sql,/ON DELETE CASCADE/);
+ assert.doesNotMatch(sql,/DROP TABLE/);
 });

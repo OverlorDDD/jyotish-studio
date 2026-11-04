@@ -1,0 +1,118 @@
+name: Panchanga P2.1–P3.3 Browser Integration
+on:
+  push:
+    branches:
+      - feat/panchanga-v2-p22-live-day-20261102
+      - feat/panchanga-v2-p23-smart-calendar-20261102
+      - feat/panchanga-v2-p24-unified-hub-20261102
+      - release/panchanga-v2-p25-integrated-20261102
+      - feat/panchanga-p31-my-day-ux-20261102
+      - feat/panchanga-p32-interpretation-engine-20261102
+      - feat/panchanga-p33-personal-resonance-20261102
+      - feat/panchanga-p34-time-guidance-20261102
+      - feat/panchanga-p35-personal-calendar-7-30-20261102
+      - release/panchanga-p36-production-acceptance-20261102
+      - feat/panchanga-p37-classical-interpretation-20261103
+      - feat/panchanga-p38-verifiable-muhurta-core-20261103
+      - feat/panchanga-p384-event-lagna-20261103
+      - feat/panchanga-p385-classical-time-finder-20261103
+      - feat/panchanga-p386-clean-day-ux-20261103
+  pull_request:
+    paths:
+      - 'apps/web/app/components/Panchanga*'
+      - 'apps/web/lib/panchanga-*'
+      - 'packages/jyotish-core/src/panchanga.ts'
+      - 'apps/api/src/panchanga*'
+      - 'e2e/panchanga*'
+      - 'apps/api/src/vedic-calendar*'
+      - 'packages/jyotish-core/src/lunar-phase-calendar.ts'
+jobs:
+  panchanga-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_a1_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test
+      AUTH_SECRET: panchanga-v2-ci-only-synthetic-secret-2026
+      SITE_NOINDEX: '1'
+      NEWS_INGESTION_ENABLED: '0'
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      INTERNAL_API_ORIGIN: http://127.0.0.1:4000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install application and Swiss rise/set dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Generate database client and apply additive migrations to isolated CI PostgreSQL
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: Install Playwright Chromium runtime
+        run: npx playwright install --with-deps chromium
+      - name: Create synthetic local-only runtime configuration
+        run: |
+          printf '%s\n' \
+            'DATABASE_URL=postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test' \
+            'AUTH_SECRET=panchanga-v2-ci-only-synthetic-secret-2026' \
+            'SITE_NOINDEX=1' \
+            'NEWS_INGESTION_ENABLED=0' \
+            'NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000' \
+            'INTERNAL_API_ORIGIN=http://127.0.0.1:4000' > .env
+      - name: Start NestJS API and Next.js on loopback only
+        run: |
+          npm run start -w @jyotish/api > /tmp/panchanga-api.log 2>&1 &
+          npm run dev -w @jyotish/web > /tmp/panchanga-web.log 2>&1 &
+          node --input-type=module -e 'let ok=false; for(let i=0;i<180;i++){try{const r=await fetch("http://127.0.0.1:3000/uk/panchanga");if(r.ok){ok=true;break}}catch{} await new Promise(resolve=>setTimeout(resolve,1000));} if(!ok)process.exit(1);'
+      - name: Exercise day/range/live named timeline in desktop and phone Chromium
+        run: |
+          if [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-p387-unified-personal-calendar-20261103" ]]; then
+            # P3.8.7 retains P3.8.6 one-calendar contract and adds integrated
+            # owner-only 7/28–31 day events and 7/30-day screened time finder.
+            # Each P386/P387 mobile regression explicitly sets a 320px viewport;
+            # avoid doubling expensive Swiss observer queries in two Playwright projects.
+            npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
+          elif [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-p386-clean-day-ux-20261103" ]]; then
+            # P3.8.6 intentionally removed the P2/P3.7 duplicated widgets. Old
+            # browser specs assert their presence; the new full-page contract
+            # is tested explicitly instead. Astronomy/API regression stays in
+            # npm run test:panchanga and the Next/Nest build workflow.
+            npx playwright test e2e/panchanga-p386.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+          elif [[ "${{ github.head_ref || github.ref_name }}" == "feat/panchanga-daily-opportunities-20261103" || "${{ github.head_ref || github.ref_name }}" == "fix/p410-panchanga-simplify-ux-20261103" || "${{ github.head_ref || github.ref_name }}" == "release/panchanga-p36-production-acceptance-20261102" ]]; then
+            # P4.10 replaces My Day landing; historic P2/P3 tests assert deleted
+            # duplicate UI. Run their maintained replacement contracts plus
+            # protected specialist, week/month, and bilingual mobile tests.
+            npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs e2e/panchanga-p388.spec.mjs e2e/panchanga-p389.spec.mjs e2e/panchanga-daily-opportunities.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
+          else
+            npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs e2e/panchanga-p25.spec.mjs e2e/panchanga-p31.spec.mjs e2e/panchanga-p32.spec.mjs e2e/panchanga-p33.spec.mjs e2e/panchanga-p34.spec.mjs e2e/panchanga-p35.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
+          fi
+      - name: Print development server logs if browser checks fail
+        if: failure()
+        run: |
+          tail -n 140 /tmp/panchanga-api.log || true
+          tail -n 140 /tmp/panchanga-web.log || true
+      - name: Upload failing browser traces without secrets
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: panchanga-p22-e2e-traces
+          path: test-results/
+          retention-days: 3
