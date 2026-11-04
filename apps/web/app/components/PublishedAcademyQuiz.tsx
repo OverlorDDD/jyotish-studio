@@ -23,7 +23,7 @@ export default function PublishedAcademyQuiz({quiz,locale,slug}:{quiz:NonNullabl
  return <section className="as-academy-quiz" aria-label={uk?'Перевірка знань':'Knowledge check'}>
   <span className="as-overline">{uk?'ПЕРЕВІР СЕБЕ':'KNOWLEDGE CHECK'}</span>
   <h2>{quiz.question[locale]}</h2>
-  {completed&&<p role="status">{uk?'Тест пройдено — збережено в браузері.':'Quiz passed — saved in this browser.'}</p>}
+  {completed&&<p>{uk?'Тест пройдено — збережено в браузері.':'Quiz passed — saved in this browser.'}</p>}
   <fieldset disabled={checked}><legend>{uk?'Обери відповідь':'Choose an answer'}</legend>
   <div className="as-academy-choices">{quiz.choices.map((choice,i)=><label className="as-academy-choice" key={i}>
    <input type="radio" name="published-answer" checked={selected===i} onChange={()=>setSelected(i)}/>
