@@ -1,3 +1,6 @@
+import {PEDIA_SEO_PANCHANGA} from './pedia-seo-panchanga';
+import {PEDIA_SEO_JYOTISH} from './pedia-seo-jyotish';
+import {PEDIA_SEO_COSMOS} from './pedia-seo-cosmos';
 /** Hand-edited, bilingual reference guides. No scraped, synthetic or bulk SEO pages. */
 export type PediaLocale='en'|'uk';
 export type PediaText={en:string;uk:string};
@@ -17,6 +20,9 @@ export const PEDIA_CATEGORIES:{id:PediaCategory;title:PediaText;description:Pedi
  {id:'practice',title:{en:'Mindfulness & Practice',uk:'Усвідомленість і практики'},description:{en:'Yoga, breath and practical reflection',uk:'Йога, дихання та щоденна рефлексія'}}
 ];
 export const PEDIA_ARTICLES:PediaArticle[]=[
+ ...PEDIA_SEO_PANCHANGA,
+ ...PEDIA_SEO_JYOTISH,
+ ...PEDIA_SEO_COSMOS,
  {slug:'panchanga-five-limbs-explained',category:'panchanga',minutes:9,
   title:{en:'The Five Parts of Panchanga: Tithi, Vara, Nakshatra, Yoga and Karana',uk:'П’ять складників Панчанги: тітхі, вара, накшатра, йога й карана'},
   summary:{en:'Learn what each Panchanga element measures, why transitions differ from midnight, and how to use a calendar for your own city.',uk:'Що вимірює кожен складник Панчанги, чому переходи не збігаються з північчю та як читати календар для свого міста.'},
