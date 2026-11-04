@@ -19,7 +19,7 @@ export default function EditorialPublishedCards({kind,locale}:{kind:'ACADEMY'|'Y
   <div className="as-wellness-section-header"><span className="as-overline">{uk?'РЕДАКЦІЙНІ ПУБЛІКАЦІЇ':'EDITORIAL RELEASES'}</span>
    <h2>{uk?'Нові матеріали Galaxiora':'New from Galaxiora'}</h2></div>
   <div className="as-wellness-grid">{items.map(entry=><Link className="as-wellness-card" key={entry.slug}
-   data-published={entry.slug} href={'/'+locale+'/'+(kind==='ACADEMY'?'learn':'yoga')+'/'+entry.slug}>
+   data-published={entry.slug} href={'/'+locale+'/'+(kind==='ACADEMY'?'pedia':'yoga')+'/'+entry.slug}>
    <span className="as-wellness-card-icon">{kind==='ACADEMY'?<BookOpen size={26}/>:<Leaf size={26}/>}</span>
    <span className="as-wellness-meta">{entry.topic}</span>
    <h3>{entry.document.title[locale]}</h3><p>{entry.document.summary[locale]}</p>
