@@ -143,18 +143,19 @@ export default function GrowthConsent(){
   };
   const onGrowth=(event:Event)=>{
    const detail=(event as CustomEvent<{name?:string;tool?:string}>).detail;
-   if(!detail||!safeGrowthEvent(detail.name||''))return;
+   const name=detail?.name;
+   if(!name||!safeGrowthEvent(name))return;
    if(!safeGrowthPath(window.location.pathname))return;
-   if(safePublicToolEvent(detail.name)){
+   if(safePublicToolEvent(name)){
     // A forged event or a future component change cannot attach arbitrary
     // tool identifiers or turn a private page into a trackable action.
     const currentTool=safeGrowthToolForPath(window.location.pathname);
     if(!currentTool||!safePublicTool(detail.tool||'')||detail.tool!==currentTool)return;
-    window.gtag?.('event',detail.name,{tool:currentTool,
+    window.gtag?.('event',name,{tool:currentTool,
      locale:window.location.pathname.startsWith('/uk/')?'uk':'en',send_to:measurementId});
     return;
    }
-   window.gtag?.('event',detail.name);
+   window.gtag?.('event',name);
   };
   document.addEventListener('click',onClick);
   window.addEventListener('galaxiora:growth',onGrowth);
