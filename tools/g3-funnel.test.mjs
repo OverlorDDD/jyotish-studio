@@ -14,6 +14,12 @@ test('G3 public tool route attribution is exact and privacy-safe',()=>{
   ['/en/panchanga','panchanga'],['/uk/panchanga','panchanga'],
   ['/en/tarot','tarot'],['/uk/tarot','tarot']
  ]){assert.equal(safeGrowthToolForPath(path),tool);assert.ok(safeGrowthPath(path));}
+ for(const [path,safe] of [
+  ['/en/pedia','/en/pedia'],['/uk/pedia/what-is-tithi-lunar-day','/uk/pedia'],
+  ['/en/pedia/topic/panchanga','/en/pedia'],
+  ['/en/pedia/topic/panchanga?birthDate=secret',null],
+  ['/en/pedia/private/user/123',null]
+ ])assert.equal(safeGrowthPath(path),safe,path);
  for(const path of [
   '/en/tarot/cards/moon','/en/astrology/jyotish/private',
   '/en/account','/en/personal','/uk/admin','/en/community/topic/123',
@@ -71,6 +77,8 @@ test('G3 consented collection validates actual tool route, never sends whole det
  assert.match(code,/public_tool_viewed/);
  assert.match(code,/window\.gtag\?\.\('event',name,\{tool:currentTool,/);
  assert.doesNotMatch(code,/window\.gtag\?\.\('event',name,detail/);
+ assert.match(code,/pedia/);
+ assert.match(code,/from_section:from\.split\('\/'\)\[2\]/);
  assert.match(code,/send_page_view:false/);
  assert.match(code,/page_location:'https:\/\/galaxiora\.com'\+safe/);
 });
