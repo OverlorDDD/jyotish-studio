@@ -7,7 +7,7 @@ function html(path,links=''){
  return '<!doctype html><html lang="'+lang+'"><head><title>Galaxiora</title>'+
  '<meta name="description" content="Original calculations and guides"/>'+
  '<link rel="canonical" href="'+origin+path+'"/>'+
- ...['en','uk'].map(l=>'<link rel="alternate" hreflang="'+l+'" href="'+origin+'/'+l+suffix+'"/>')+
+ ['en','uk'].map(l=>'<link rel="alternate" hreflang="'+l+'" href="'+origin+'/'+l+suffix+'"/>').join('')+
  '</head><body><h1>Galaxiora</h1>'+links+'</body></html>';
 }
 test('rejects arbitrary remote hosts and path-bearing targets',()=>{
