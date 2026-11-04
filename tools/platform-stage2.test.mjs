@@ -7,7 +7,10 @@ test('global account UI connects to existing cookie session without client-side 
  const login=source('apps/web/app/components/GlobalAccount.tsx');
  const api=source('apps/api/src/account.ts');
  assert.match(shell,/<GlobalAccount locale=\{locale\}\/>/);
- for(const word of ["'/api/v1/account/me'","'/api/v1/account/logout'","'/api/v1/account/'+mode"])assert.ok(login.includes(word),word);
+ // Current authentication uses an email-verification endpoint on registration.
+ // The old literal "+mode" path ignored verify/OTP and was obsolete.
+ for(const word of ["'/api/v1/account/me'","'/api/v1/account/logout'","'/api/v1/account/'+endpoint","'register/verify'","credentials:'same-origin'"])assert.ok(login.includes(word),word);
+ assert.match(login,/mode==='register'\?\{email,password,turnstileToken\}/);
  assert.ok(api.includes('publicUser(user)'));
  const policy=source('apps/api/src/account-policy.ts');
  assert.ok(policy.includes('role:user.role'),'Roles are provided by server');
