@@ -131,3 +131,10 @@ These estimates are vidIQ provider outputs on the check date, are modeled (not d
 
 **Revised first experiments:** Lead *video reach* with `pick a card`, `tarot reading`, `vedic astrology`; lead *high-intent owned-site SEO* with `free Vedic birth chart`, `Panchang today by city`, and genuine `Galaxiora` branded discovery. Use the video to invite users into verified free tools. Cross-check results with GA4/visitor aggregates, not video views alone.
 
+
+
+### Country-specific YouTube follow-up (vidIQ, 2026-11-04)
+
+A focused `country_search` returned **US-specific estimated monthly YouTube keyword volumes** for `tarot reading` **38,250**, `pick a card` **50,000**, `tarot` **50,881**, and `tarot card reading` **7,849**. This directly supports the US audience test for the Tarot short-form campaign. For India, `vedic astrology` was **18,599** and broad `astrology` **127,249** estimated monthly YouTube searches; the broad term is noisy, mixed-language and not a proof of convertible interest. All are vidIQ modeled estimates, not verified first-party visits or Google Search volumes. The country-mode response omits global scores/competition: do not combine unreported data into a single synthetic score.
+
+**Decision:** Run one original English `pick a card` Shorts test for US reach, one `vedic astrology` chart explainer for India/diaspora, with unique source attribution and completed tools as the leading KPI. Do not infer that language or geography alone guarantees conversion.
