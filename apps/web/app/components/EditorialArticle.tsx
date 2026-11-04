@@ -7,11 +7,11 @@ import GalaxiComBridge from './GalaxiComBridge';
 import {articleStructuredData} from '../../lib/seo-structured';
 import type {PublishedContent,Locale} from '../../lib/editorial-public';
 export default function EditorialArticle({entry,locale}:{entry:PublishedContent;locale:Locale}){
- const uk=locale==='uk',academy=entry.kind==='ACADEMY',base=academy?'learn':'yoga';
+ const uk=locale==='uk',academy=entry.kind==='ACADEMY',base=academy?'pedia':'yoga';
  const body=entry.document.body[locale].split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
  const jsonLd=academy?articleStructuredData({locale,path:'/'+locale+'/'+base+'/'+entry.slug,
   title:entry.document.title[locale],description:entry.document.summary[locale],publishedAt:entry.publishedAt}):null;
- return <PortalShell locale={locale} active={base} languagePath={base+'/'+entry.slug}>
+ return <PortalShell locale={locale} active={academy?'learn':'yoga'} languagePath={base+'/'+entry.slug}>
   {jsonLd&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd}}/>}
   <div className="as-wellness as-wellness-detail as-academy-detail">
    <Link href={'/'+locale+'/'+base} className="as-wellness-back"><ArrowLeft size={16}/>{uk?'До бібліотеки':'Back to library'}</Link>
