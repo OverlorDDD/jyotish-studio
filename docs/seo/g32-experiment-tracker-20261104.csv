@@ -1,0 +1,7 @@
+"experiment","audience","channel","landing","campaign_id","asset_count","publication_status","publication_url","actual_external_users","consented_sessions","tool_starts","tool_completions","feedback_count","spend_usd","review_after","decision"
+"E1","US/EN Tarot first-timers","YouTube Shorts","/en/tarot","G32-E1-YT","3","not_published","","unknown","unknown","unknown","unknown","unknown","0","7 days after first real post","unknown"
+"E2","English-language Jyotish India/diaspora","YouTube Shorts","/en/astrology/jyotish","G32-E2-YT","3","not_published","","unknown","unknown","unknown","unknown","unknown","0","7 days after first real post","unknown"
+"E3","Location-aware Panchanga learners","YouTube Shorts","/en/panchanga","G32-E3-YT","2","not_published","","unknown","unknown","unknown","unknown","unknown","0","7 days after first real post","unknown"
+"E3-UA","Ukrainian Panchanga audience","Owned Telegram","/uk/panchanga","G32-E3-TG","1","not_published","","unknown","unknown","unknown","unknown","unknown","0","7 days after first real post","unknown"
+"E4","Uncoached independent usability volunteers","Allowed community","/en/astrology/jyotish","G32-E4-COMMUNITY","1","not_published","","unknown","unknown","unknown","unknown","unknown","0","7 days after voluntary request","unknown"
+"E5","Independent creator methodology reviewers","Manual one-to-one creator review","/en/astrology/jyotish","G32-E5-PARTNER","8 candidates","not_contacted","","unknown","unknown","unknown","unknown","unknown","0","14 days after first invited response","unknown"
