@@ -67,10 +67,10 @@ test('Academy hub: eight original lessons, topic anchors, deep link EN/UK',async
  await expect(page.locator('[data-lesson]').first()).toBeVisible();
  await page.getByRole('button',{name:'Усі теми'}).click();
  await page.locator('[data-lesson="sidereal-and-tropical"]').click();
- await expect(page).toHaveURL(/\/uk\/learn\/sidereal-and-tropical$/);
+ await expect(page).toHaveURL(/\/uk\/pedia\/sidereal-and-tropical$/);
  await expect(page.locator('.as-lesson-section')).toHaveCount(3);
  await page.locator('.as-language a[lang="en"]').click();
- await expect(page).toHaveURL(/\/en\/learn\/sidereal-and-tropical$/);
+ await expect(page).toHaveURL(/\/en\/pedia\/sidereal-and-tropical$/);
  await expect(page.getByRole('heading',{level:1})).toContainText('Sidereal');
 });
 test('Academy knowledge check: wrong answer, retry and correct explanation',async({page})=>{
