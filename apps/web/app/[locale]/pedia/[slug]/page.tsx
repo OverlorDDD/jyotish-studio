@@ -71,7 +71,7 @@ export default async function AcademyLessonPage({params}:Params){
     <aside className="as-lesson-takeaways"><h2>{uk?'Головне з уроку':'Key takeaways'}</h2>
      <ul>{lesson.takeaways.map((item,i)=><li key={i}><GlossaryText text={item[locale]} locale={locale}/></li>)}</ul>
     </aside>
-    <div id="knowledge-check"><AcademyQuiz locale={locale} quiz={lesson.quiz}/></div>
+    <div id="knowledge-check"><AcademyQuiz locale={locale} quiz={lesson.quiz} slug={slug}/></div>
     <GalaxiComBridge kind="ACADEMY" slug={slug} title={lesson.title[locale]} locale={locale}/>
     <div className="as-lesson-navigation">
      <Link href={'/'+locale+'/'+lesson.related} className="as-button as-button-secondary">{uk?'Спробувати на практиці':'Explore related tool'} <ArrowUpRight size={16}/></Link>
