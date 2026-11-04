@@ -1,0 +1,89 @@
+name: SEO-1 + GROWTH-3.0 Unified Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/lib/growth-metrics.ts'
+      - 'apps/web/app/components/GrowthConsent.tsx'
+      - 'tools/g3-funnel.test.mjs'
+      - 'tools/seo1-g30-live-audit*'
+      - 'docs/seo/seo1-g30-*'
+      - 'package.json'
+      - '.github/workflows/seo1-g30-unified.yml'
+  workflow_dispatch:
+    inputs:
+      require_pedia:
+        type: boolean
+        description: Require GalaxiPedia indexable articles and breadcrumbs on production (only after dependency PRs)
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  privacy-seo-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_seo1_g30
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_seo1_g30"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_seo1_g30?schema=public
+      AUTH_SECRET: seo1-g30-ci-only-disposable-session-key
+      AI_MODE: local
+      SITE_NOINDEX: '0'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and Swiss Ephemeris
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+          npm run db:generate
+          npm run db:migrate
+      - name: SEO and privacy-safe G3 unit contracts
+        run: |
+          npm run test:seo1:g3
+          npm run test:g3:funnel
+          npm run test:visitor-analytics
+          npm run test:r42:growth
+          npm run test:seo:direct-intent
+          npm run test:growth1:seo
+          npm run test:r32:seo
+      - name: Build complete monolith without deployment
+        run: npm run build
+
+  public-readonly-audit:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Live public-only SEO audit, no mutation and no GA4 ping
+        env:
+          SEO1_G30_ORIGIN: https://galaxiora.com
+          REQUIRE_PEDIA: ${{ inputs.require_pedia }}
+        run: |
+          if [ "$REQUIRE_PEDIA" = "true" ]; then
+            node tools/seo1-g30-live-audit.mjs --json --require-pedia
+          else
+            node tools/seo1-g30-live-audit.mjs --json
+          fi
