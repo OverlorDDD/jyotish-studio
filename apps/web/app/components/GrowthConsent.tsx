@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {usePathname} from 'next/navigation';
-import {safeGrowthCampaign,safeGrowthEvent,safeGrowthPath} from '../../lib/growth-metrics';
+import {safeGrowthCampaign,safeGrowthEvent,safeGrowthPath,safeGrowthToolForPath,safePublicToolEvent,safePublicTool} from '../../lib/growth-metrics';
 
 const CONSENT_KEY='galaxiora-analytics-choice-v1';
 const measurementId=process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim()||'';
@@ -119,6 +119,10 @@ export default function GrowthConsent(){
   const debug=new URLSearchParams(window.location.search).get('ga4_debug')==='1';
   window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,
    page_title:'Galaxiora',page_referrer:'',send_to:measurementId,...(debug?{debug_mode:true}:{})});
+  // Count only public calculator landings; never send form state or URL queries.
+  const viewedTool=safeGrowthToolForPath(pathname||'');
+  if(viewedTool)window.gtag?.('event','public_tool_viewed',{tool:viewedTool,
+   locale:pathname?.startsWith('/uk/')?'uk':'en',send_to:measurementId});
   // Explicit, allowlisted control event: only for a manually opted-in debug visit.
   if(debug)window.gtag?.('event','galaxiora_debug_ping',{send_to:measurementId,debug_mode:true});
  },[loaded,choice,pathname]);
@@ -138,9 +142,18 @@ export default function GrowthConsent(){
     window.gtag?.('event','article_to_tool_click',{from_section:from.split('/')[2],tool:to.split('/').slice(2).join('_')});
   };
   const onGrowth=(event:Event)=>{
-   const detail=(event as CustomEvent<{name?:string}>).detail;
+   const detail=(event as CustomEvent<{name?:string;tool?:string}>).detail;
    if(!detail||!safeGrowthEvent(detail.name||''))return;
    if(!safeGrowthPath(window.location.pathname))return;
+   if(safePublicToolEvent(detail.name)){
+    // A forged event or a future component change cannot attach arbitrary
+    // tool identifiers or turn a private page into a trackable action.
+    const currentTool=safeGrowthToolForPath(window.location.pathname);
+    if(!currentTool||!safePublicTool(detail.tool||'')||detail.tool!==currentTool)return;
+    window.gtag?.('event',detail.name,{tool:currentTool,
+     locale:window.location.pathname.startsWith('/uk/')?'uk':'en',send_to:measurementId});
+    return;
+   }
    window.gtag?.('event',detail.name);
   };
   document.addEventListener('click',onClick);
