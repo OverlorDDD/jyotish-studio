@@ -1,12 +1,12 @@
 import {test,expect} from '@playwright/test';
-// These scenarios exercise navigation/layout, not analytics consent. Reject tracking
-// through the real UI; dedicated R4.2 tests assert the consent gate itself.
+// Wait for the hydrated consent prompt before interacting with mobile UI.
+// Reject via the actual button; R4.2 independently tests opt-in and revocation.
 async function rejectAnalyticsIfPrompted(page){
  const dialog=page.getByRole('dialog',{name:/Аналітика відвідувань|Visitor analytics/});
- if(await dialog.isVisible()){
-  await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
-  await expect(dialog).toHaveCount(0);
- }
+ try { await dialog.waitFor({state:'visible',timeout:8000}); }
+ catch { return; } // Previously decided consent or prompt intentionally absent.
+ await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
+ await expect(dialog).toHaveCount(0);
 }
 
 const DAY='2026-11-05'; // future relative to the Nov 3 design baseline
