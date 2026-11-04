@@ -4,6 +4,7 @@ on:
     branches:
       - feat/galaxipedia-unified-20261104
       - feat/galaxipedia-search-first-ux-20261104
+      - feat/galaxipedia-search-first-approved-20261104
   pull_request:
     branches:
       - release/growth1-preserve-live-ga4-20261104
