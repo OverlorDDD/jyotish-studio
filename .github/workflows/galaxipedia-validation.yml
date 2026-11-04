@@ -29,7 +29,7 @@ jobs:
     env:
       SITE_NOINDEX: '0'
       NEXT_PUBLIC_SITE_URL: https://galaxiora.example
-      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_pedia_ci
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test
       AUTH_SECRET: pedia-ci-only-never-deploy
       AI_MODE: local
       TAROT_AI_ENABLED: 'false'
@@ -62,11 +62,11 @@ jobs:
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
-          POSTGRES_DB: galaxiora_pedia_ci
+          POSTGRES_DB: galaxiora_a1_test
         ports:
           - 5433:5432
         options: >-
-          --health-cmd "pg_isready -U ci -d galaxiora_pedia_ci"
+          --health-cmd "pg_isready -U ci -d galaxiora_a1_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
@@ -75,7 +75,7 @@ jobs:
       GALAXIORA_E2E_TEST_AUTH: '1'
       SITE_NOINDEX: '0'
       NEXT_PUBLIC_SITE_URL: https://galaxiora.example
-      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_pedia_ci?schema=public
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_a1_test?schema=public
       AUTH_SECRET: pedia-browser-ci-only-never-deploy
       AI_MODE: local
       TAROT_AI_ENABLED: 'false'
