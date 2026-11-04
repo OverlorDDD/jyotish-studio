@@ -183,9 +183,12 @@ export async function generateDirectJyotish(
     if(n4Themes){
      const n4Review=reviewN4Narrative(content,n4Themes);
      const checked=auditN4ExplicitClaims(content,chart);
+     const supported=new Set(n4Themes.filter(t=>
+      checked.claims.some(c=>c.startsWith('D'+t.division+' '))).map(t=>t.division));
      const problems=[...n4Review.codes,
       ...(checked.errors.length?['n4_explicit_planet_sign_or_house_mismatch']:[]),
-      ...(checked.correct<2?['n4_insufficient_two_verified_placement_claims']:[])];
+      ...(checked.correct<2?['n4_insufficient_two_verified_placement_claims']:[]),
+      ...(supported.size<2?['n4_missing_grounded_placement_in_two_selected_lenses']:[])];
      if(problems.length){
       reason='invalid_response';
       const issue=problems.join(',');
