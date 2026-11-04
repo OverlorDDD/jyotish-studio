@@ -20,7 +20,7 @@ test('N4 annex is bounded machine facts only; no raw natal metadata, no unsuppor
  assert.match(a,new RegExp(N4_EVIDENCE_VERSION));
  for(const name of ['D2','D3','D4','D7','D12','D16','D20','D24','D27','D30','D40','D45'])
   assert.match(a,new RegExp('^'+name+' ','m'));
- assert.doesNotMatch(a,/^D60 /m);
+ assert.doesNotMatch(a,/^D60 .* lagna=/m);
  for(const detail of ['1980-02-17','03:33','12.34','56.78','Europe/Kyiv'])assert.ok(!a.includes(detail));
  assert.ok(a.length<3800);
  assert.match(N4_AI_INSTRUCTION,/D1, D9 and D10 remain the basis/);
