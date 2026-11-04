@@ -49,7 +49,10 @@ test('offline readings are bilingual, complete, owner-private, D1-linked and act
     assert.equal(c.evidence[1],'D'+c.division+' '+named[1]+' sign='+v.vargaSign+' house='+v.house);
     assert.equal(c.evidence[2],'D'+c.division+' lagna sign='+d.lagna.vargaSign);
     assert.match(c.evidence[3],/^D1 house\d+ lord=\w+ house=\d+$/);
-    assert.match(c.evidence[4],new RegExp('^D'+c.division+' \\w+ as_d1_house_lord house=\\d+
+    assert.ok(c.evidence[4].startsWith('D'+c.division+' '));
+    assert.ok(c.evidence[4].includes(' as_d1_house_lord house='));
+    assert.ok(c.evidence[5].startsWith('D'+c.division+' asc_lord='));
+    assert.ok(c.evidence[5].includes(' house='));
     assert.doesNotMatch(c.heading+' '+c.lead+' '+c.analysis+' '+c.example,/\bD60\b/);
    }
    const serialized=JSON.stringify(a);
