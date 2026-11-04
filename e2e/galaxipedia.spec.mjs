@@ -15,7 +15,7 @@ test('GalaxiPedia migration: all former Academy URLs 308 to locale-preserving pa
 
 test('GalaxiPedia: static lessons + guides, category filters, text search and no duplicate header tab',async({page})=>{
  await page.goto('/en/pedia');
- await expect(page.getByRole('heading',{level:1})).toContainText('Explore the cosmos');
+ await expect(page.getByRole('heading',{level:1})).toContainText('GalaxiPedia — Astrology');
  await expect(page.locator('[data-lesson]')).toHaveCount(8);
  await expect(page.locator('a[href$="/pedia/panchanga-five-limbs-explained"]')).toBeVisible();
  const header=page.locator('.as-main-nav');
