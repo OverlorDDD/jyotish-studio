@@ -8,6 +8,10 @@
     "packages/*"
   ],
   "scripts": {
+    "test:g32:organic": "node --experimental-strip-types --test tools/g32-organic-health.test.mjs tools/g32-search-intelligence.test.mjs tools/g32-content-engine.test.mjs",
+    "g32:organic:health": "node --experimental-strip-types tools/g32-organic-health.mjs --json",
+    "g32:organic:search": "node --experimental-strip-types tools/g32-search-intelligence.mjs --json",
+    "g32:organic:content": "node --experimental-strip-types tools/g32-content-engine.mjs",
     "dev": "node --experimental-strip-types apps/api/src/standalone.ts",
     "dev:api": "npm run start:dev -w @jyotish/api",
     "dev:web": "npm run dev -w @jyotish/web",
