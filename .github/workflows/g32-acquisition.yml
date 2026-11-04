@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'apps/web/lib/growth-metrics.ts'
+      - 'apps/web/app/components/PanchangaHub.tsx'
+      - 'apps/web/app/components/PanchangaHub.module.css'
+      - 'tools/r4-growth.test.mjs'
       - 'tools/g32-campaigns*'
       - 'docs/seo/g32-*'
       - 'package.json'
@@ -24,6 +27,7 @@ jobs:
       - name: Strict campaign manifest URL and privacy policy tests
         run: |
           npm run test:g32:campaigns
+          npm run test:r4:growth
           npm run test:r42:growth
           npm run test:g3:funnel
       - name: Generate and inspect approved links, no calls to external networks
