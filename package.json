@@ -91,7 +91,7 @@
     "test:r33:authority": "node --experimental-strip-types --test tools/r33-authority.test.mjs",
     "test:r4:growth": "node --test tools/r4-growth.test.mjs",
     "r32:seo:audit": "node tools/r32-seo-audit.mjs",
-    "test:pedia": "node --experimental-strip-types --test tools/galaxipedia.test.mjs tools/galaxipedia-seo.test.mjs",
+    "test:pedia": "node --experimental-strip-types --test tools/galaxipedia.test.mjs tools/galaxipedia-seo.test.mjs tools/galaxipedia-layout.test.mjs",
     "test:content:a5": "node --experimental-strip-types --test tools/a5-content.test.mjs",
     "test:breathing": "node --experimental-strip-types --test tools/breathing-engine.test.mjs",
     "test:editorial:a6": "node --experimental-strip-types --test tools/a6-editorial.test.mjs",

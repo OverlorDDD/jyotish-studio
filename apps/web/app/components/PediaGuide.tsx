@@ -18,7 +18,13 @@ export default function PediaGuide({article,locale}:{article:PediaArticle;locale
  return <PortalShell locale={locale} active="learn" languagePath={'pedia/'+article.slug}>
   {jsonLd&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:jsonLd}}/>}
   <div className="as-wellness as-academy-detail">
-   <Link className="as-wellness-back" href={'/'+locale+'/pedia'}><ArrowLeft size={16}/>{uk?'До GalaxiPedia':'Back to GalaxiPedia'}</Link>
+   <nav className="as-pedia-breadcrumb" aria-label={uk?'Навігація':'Breadcrumbs'}>
+    <Link href={'/'+locale+'/pedia'}><ArrowLeft size={16} aria-hidden="true"/>GalaxiPedia</Link>
+    <span aria-hidden="true">/</span>
+    {category&&<Link href={'/'+locale+'/pedia/topic/'+category.id}>{category.title[locale]}</Link>}
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">{article.title[locale]}</span>
+   </nav>
    <article className="as-academy-article">
     <header className="as-wellness-detail-head">
      <span className="as-overline">GALAXIPEDIA · {category?.title[locale]} · {article.minutes} {uk?'хв читання':'min read'}</span>
