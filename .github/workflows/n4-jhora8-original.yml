@@ -9,6 +9,9 @@ on:
       - 'tools/n4-jhorakit-import.mjs'
       - 'tools/n4-external-varga-gate.mjs'
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   original-jhora8-provenance:
     name: 50 genuine JHora 8.0 captures, 8000 same-method sign comparisons
@@ -21,6 +24,20 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - uses: actions/checkout@v4
+      - name: Publisher-owned JHora 8.0 ZIP preflight (fail fast before Wine install)
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/jh_short_install.zip"
+          for host in 'https://www.vedicastrologer.org/jh' 'https://mail.vedicastrologer.org/jh' 'https://vedicastrologer.org/jh'; do
+            if curl -fsSL --retry 1 --connect-timeout 12 --max-time 60 \
+                "$host/jh_short_install.zip" -o "$archive" && unzip -t "$archive" >/dev/null; then
+              echo 'N4_GENUINE_JHORA8_OFFICIAL_ZIP_AVAILABLE'
+              exit 0
+            fi
+          done
+          echo '::error title=Original JHora 8.0 blocked::All publisher-owned URLs rejected the ZIP (HTTP 406); zero original JHora charts were generated'
+          exit 1
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

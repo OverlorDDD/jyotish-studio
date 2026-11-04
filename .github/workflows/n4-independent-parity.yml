@@ -9,6 +9,9 @@ on:
       - 'tools/n4-jhora-public-sample.test.mjs'
       - '.github/workflows/n4-independent-parity.yml'
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   synthetic-sign-parity:
     name: 50 synthetic profiles, 8000 independent PyJHora sign assignments

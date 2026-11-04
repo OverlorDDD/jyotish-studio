@@ -12,12 +12,14 @@ command -v swift >/dev/null
 wineboot -u
 wineserver -w
 install="$RUNNER_TEMP/jh_short_install.zip"
-for base in 'https://www.vedicastrologer.org/jh' 'https://mail.vedicastrologer.org/jh' 'https://vedicastrologer.org/jh'; do
-  if curl --fail --location --retry 2 --connect-timeout 15 --max-time 180 \
-     -H 'User-Agent: Mozilla/5.0' "$base/jh_short_install.zip" -o "$install"; then
-    if unzip -t "$install" >/dev/null; then break; fi
-  fi
-done
+if [[ ! -s "$install" ]] || ! unzip -t "$install" >/dev/null 2>&1; then
+  for base in 'https://www.vedicastrologer.org/jh' 'https://mail.vedicastrologer.org/jh' 'https://vedicastrologer.org/jh'; do
+    if curl --fail --location --retry 2 --connect-timeout 15 --max-time 180 \
+       -H 'User-Agent: Mozilla/5.0' "$base/jh_short_install.zip" -o "$install"; then
+      if unzip -t "$install" >/dev/null; then break; fi
+    fi
+  done
+fi
 unzip -t "$install" >/dev/null || { echo 'N4_JHORA_DOWNLOAD_UNAVAILABLE: authentic author ZIP not accessible'; exit 1; }
 mkdir -p "$RUNNER_TEMP/jhinstaller"
 unzip -qo "$install" -d "$RUNNER_TEMP/jhinstaller"
