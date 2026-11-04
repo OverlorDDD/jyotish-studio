@@ -5,7 +5,6 @@ import PediaCatalog,{type PediaCatalogItem} from './PediaCatalog';
 import {ACADEMY_LESSONS} from '../../lib/academy-content';
 import {PEDIA_ARTICLES,PEDIA_CATEGORIES} from '../../lib/pedia-content';
 import type {ContentLocale} from '../../lib/yoga-content';
-import EditorialPublishedCards from './EditorialPublishedCards';
 
 const CATALOG:PediaCatalogItem[]=[
  ...ACADEMY_LESSONS.map(lesson=>({
@@ -33,7 +32,6 @@ export default function AcademyHub({locale}:{locale:ContentLocale}){
    </div>
   </section>
   <PediaCatalog locale={locale} items={CATALOG} categories={PEDIA_CATEGORIES}/>
-  <EditorialPublishedCards kind="ACADEMY" locale={locale}/>
   <aside className="as-wellness-note"><LibraryBig size={23} aria-hidden="true"/><div>
    <strong>{uk?'Знання, практика й точність':'Learning, practice and accuracy'}</strong>
    <p>{uk?'Уроки й редакційні статті залишаються доступними. Розрахунки астрономічних положень, історичні правила та традиційні тлумачення позначено окремо. Тест допомагає перевірити знання, а не передбачає події.':'The existing lessons and editorial articles remain available. Astronomical calculations, historical rules and traditional interpretations are kept distinct. Quizzes check understanding rather than predict personal outcomes.'}</p>
