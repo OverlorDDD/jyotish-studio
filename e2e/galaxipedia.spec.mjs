@@ -46,7 +46,7 @@ test('GalaxiPedia glossary: bilingual definitions with search and useful links',
  const field=page.getByRole('searchbox',{name:'Find a term'});
  await field.fill('Tithi');
  await expect(page.getByRole('heading',{name:'Tithi'})).toBeVisible();
- await expect(page.getByRole('link',{name:/Five Parts of Panchanga/})).toBeVisible();
+ await expect(page.getByRole('link',{name:/Five Parts of Panchanga/}).first()).toBeVisible();
  await page.locator('.as-language a[lang="uk"]').click();
  await expect(page).toHaveURL(/\/uk\/pedia\/glossary$/);
  await expect(page.getByRole('heading',{level:1})).toContainText('Словник');
