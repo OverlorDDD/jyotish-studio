@@ -181,6 +181,8 @@
     "test:p410": "node --experimental-strip-types --test tools/panchanga-daily-opportunities.test.mjs",
     "test:growth1:seo": "node --experimental-strip-types --test tools/growth1-global-seo.test.mjs",
     "test:g3:funnel": "node --experimental-strip-types --test tools/g3-funnel.test.mjs",
+    "test:g32:campaigns": "node --experimental-strip-types --test tools/g32-campaigns.test.mjs",
+    "g32:links": "node --experimental-strip-types tools/g32-campaigns.mjs --json",
     "test:seo:direct-intent": "node --test tools/seo-direct-intent.test.mjs"
   },
   "devDependencies": {

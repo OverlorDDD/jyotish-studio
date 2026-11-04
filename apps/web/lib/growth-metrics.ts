@@ -63,7 +63,7 @@ export function safeGrowthCampaign(query:string):{campaign_source:string;campaig
  const source=params.get('utm_source')?.toLowerCase();
  const medium=params.get('utm_medium')?.toLowerCase();
  const campaign=params.get('utm_campaign')?.toLowerCase();
- const approvedSources=new Set(['telegram','youtube','partner']);
+ const approvedSources=new Set(['telegram','youtube','partner','community']);
  const approvedCampaigns=new Set(['launch','astro_basics','tarot_cards','panchanga_today','eclipses_2027']);
  if(!source||!approvedSources.has(source)||medium!=='social'||!campaign||!approvedCampaigns.has(campaign))return null;
  return {campaign_source:source,campaign_medium:'social',campaign_name:campaign};
