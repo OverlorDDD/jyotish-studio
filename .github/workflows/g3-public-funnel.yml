@@ -1,0 +1,87 @@
+name: G3 Public Tool Funnel and Competitive Evidence
+on:
+  push:
+    branches:
+      - feat/g3-0-g3-1-funnel-competitive-intelligence-20261104
+  pull_request:
+    paths:
+      - apps/web/lib/growth-metrics.ts
+      - apps/web/app/components/GrowthConsent.tsx
+      - apps/web/app/components/TarotStudio.tsx
+      - apps/web/app/components/PanchangaHub.tsx
+      - apps/web/app/astrology/jyotish/page.tsx
+      - tools/g3-funnel.test.mjs
+      - e2e/g3-public-tool-funnel.spec.mjs
+      - docs/seo/g3-*
+      - package.json
+      - .github/workflows/g3-public-funnel.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  funnel-privacy-and-build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: galaxiora_g3_ci
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d galaxiora_g3_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_g3_ci?schema=public
+      AUTH_SECRET: g3-ci-ephemeral-secret-long-enough-for-tests-only
+      GALAXIORA_E2E_TEST_AUTH: '1'
+      AI_MODE: local
+      TAROT_AI_ENABLED: 'false'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
+      SITE_NOINDEX: '0'
+      WEB_PORT: '3000'
+      PORT: '4000'
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Node and Swiss Ephemeris support
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Prepare disposable PostgreSQL
+        run: |
+          npm run db:generate
+          npm run db:migrate
+      - name: G3 source, privacy and backward-compatibility tests
+        run: |
+          npm run test:g3:funnel
+          npm run test:r42:growth
+          npm run test:visitor-analytics
+          npm run test:growth1:seo
+          npm run test:r32:seo
+      - name: Full production build without deploying
+        run: npm run build
+      - name: Install Chromium for two viewport sizes
+        run: npx playwright install --with-deps chromium
+      - name: Launch disposable API and website
+        run: |
+          printf 'DATABASE_URL=%s\nAUTH_SECRET=%s\nAI_MODE=local\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\nNEXT_PUBLIC_GA4_MEASUREMENT_ID=G-TEST123456\n' "$DATABASE_URL" "$AUTH_SECRET" > .env
+          npm run start:full >/tmp/g3-funnel-e2e.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/en >/dev/null &&
+               curl -fsS http://127.0.0.1:4000/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -100 /tmp/g3-funnel-e2e.log
+          exit 1
+      - name: G3 browser tests - consent, safe events and automatic Panchanga exclusions
+        run: npx playwright test --config=playwright.config.mjs e2e/g3-public-tool-funnel.spec.mjs
