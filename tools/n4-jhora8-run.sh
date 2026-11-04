@@ -11,20 +11,21 @@ command -v wine >/dev/null
 command -v swift >/dev/null
 wineboot -u
 wineserver -w
-install="$RUNNER_TEMP/jh_short_install.zip"
+install="$RUNNER_TEMP/n4-jhora8-publisher.zip"
 if [[ ! -s "$install" ]] || ! unzip -t "$install" >/dev/null 2>&1; then
-  for base in 'https://www.vedicastrologer.org/jh' 'https://mail.vedicastrologer.org/jh' 'https://vedicastrologer.org/jh'; do
-    if curl --fail --location --retry 2 --connect-timeout 15 --max-time 180 \
-       -H 'User-Agent: Mozilla/5.0' "$base/jh_short_install.zip" -o "$install"; then
-      if unzip -t "$install" >/dev/null; then break; fi
-    fi
+  for package in jh_short_install.zip jh_full_install.zip; do
+    for base in 'https://www.vedicastrologer.org/jh' 'https://mail.vedicastrologer.org/jh' 'https://vedicastrologer.org/jh'; do
+      if curl --fail --location --retry 2 --connect-timeout 15 --max-time 300 \
+        -H 'User-Agent: Mozilla/5.0' "$base/$package" -o "$install" &&
+         unzip -t "$install" >/dev/null; then break 2; fi
+    done
   done
 fi
-unzip -t "$install" >/dev/null || { echo 'N4_JHORA_DOWNLOAD_UNAVAILABLE: authentic author ZIP not accessible'; exit 1; }
+unzip -t "$install" >/dev/null || { echo 'N4_JHORA_DOWNLOAD_UNAVAILABLE: verified original author ZIP required'; exit 1; }
 mkdir -p "$RUNNER_TEMP/jhinstaller"
 unzip -qo "$install" -d "$RUNNER_TEMP/jhinstaller"
-installer="$(find "$RUNNER_TEMP/jhinstaller" -iname 'jh_short_install.exe' -type f | head -1)"
-test -n "$installer"
+installer="$(find "$RUNNER_TEMP/jhinstaller" -type f \( -iname 'jh_short_install.exe' -o -iname 'jh_full_install.exe' \) | head -1)"
+test -n "$installer" || { echo 'N4_JHORA_INSTALLER_MISSING'; exit 1; }
 echo 'N4_JHORA_ORIGINAL_OFFICIAL_INSTALLER_DOWNLOADED'
 # The author supplies a Windows setup program. /S is supported by some installers;
 # use the result, never assume it worked without verifying the actual JHora executable.

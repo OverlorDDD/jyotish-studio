@@ -1,5 +1,7 @@
 name: N4 Original Jagannatha Hora 8.0 — 50-profile parity
 on:
+  push:
+    branches: [test/n4-jhora8-official-full-20261104]
   pull_request:
     branches: [main]
     paths:
@@ -28,15 +30,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          archive="$RUNNER_TEMP/jh_short_install.zip"
-          for host in 'https://www.vedicastrologer.org/jh' 'https://mail.vedicastrologer.org/jh' 'https://vedicastrologer.org/jh'; do
-            if curl -fsSL --retry 1 --connect-timeout 12 --max-time 60 \
-                "$host/jh_short_install.zip" -o "$archive" && unzip -t "$archive" >/dev/null; then
-              echo 'N4_GENUINE_JHORA8_OFFICIAL_ZIP_AVAILABLE'
-              exit 0
-            fi
+          archive="$RUNNER_TEMP/n4-jhora8-publisher.zip"
+          for package in jh_short_install.zip jh_full_install.zip; do
+            for host in 'https://www.vedicastrologer.org/jh' 'https://mail.vedicastrologer.org/jh' 'https://vedicastrologer.org/jh'; do
+              echo "N4_OFFICIAL_PREFLIGHT_TRY $host/$package"
+              if curl -fsSL --retry 1 --connect-timeout 15 --max-time 300 \
+                  "$host/$package" -o "$archive" &&
+                 unzip -t "$archive" >/dev/null &&
+                 unzip -Z1 "$archive" | grep -Eiq '(^|/|\\)(jh_short_install|jh_full_install)\\.exe$'; then
+                echo "N4_GENUINE_JHORA8_OFFICIAL_ZIP_AVAILABLE $host/$package"
+                sha256sum "$archive"
+                exit 0
+              fi
+            done
           done
-          echo '::error title=Original JHora 8.0 blocked::All publisher-owned URLs rejected the ZIP (HTTP 406); zero original JHora charts were generated'
+          echo '::error title=Original JHora 8.0 blocked::No valid author-owned short or full JHora ZIP could be retrieved; not certified'
           exit 1
       - uses: actions/setup-node@v4
         with:
