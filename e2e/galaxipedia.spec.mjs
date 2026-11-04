@@ -123,3 +123,56 @@ test('SEO sitemap includes new localized topical hubs and 14 guides without old 
  expect(sitemap).not.toContain('https://galaxiora.example/uk/learn/');
  await expect((await request.get('/en/learn',{maxRedirects:0})).status()).toBe(308);
 });
+
+
+test('GP-UX-1: prominent bilingual search in first viewport, not beneath category cards',async({page})=>{
+ for(const [width,height] of [[360,780],[768,900],[1440,900]]){
+  await page.setViewportSize({width,height});
+  await page.goto('/uk/pedia');
+  const search=page.getByRole('searchbox',{name:'Пошук у GalaxiPedia'});
+  await expect(search).toBeVisible();
+  const searchBox=await search.boundingBox();
+  const intro=await page.locator('.as-pedia-intro').boundingBox();
+  const topics=await page.locator('#pedia-topics').boundingBox();
+  const results=await page.locator('#pedia-results').boundingBox();
+  expect(searchBox).not.toBeNull();
+  expect(searchBox.y+searchBox.height,width+' px search must be on first screen').toBeLessThan(height);
+  expect(searchBox.y).toBeGreaterThan(intro.y);
+  expect(searchBox.y).toBeLessThan(results.y);
+  expect(results.y).toBeLessThan(topics.y);
+  const excess=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(excess,width+' px horizontal overflow').toBeLessThanOrEqual(2);
+ }
+});
+
+test('GP-UX-1: search is keyboard-operable, bilingual and searches published library, with reset and topic links',async({page,request})=>{
+ await page.goto('/uk/pedia');
+ const search=page.getByRole('searchbox',{name:'Пошук у GalaxiPedia'});
+ await search.fill('tithi'); // EN spelling must match the Ukrainian catalog
+ await expect(page.locator('a[href="/uk/pedia/what-is-tithi-lunar-day"]')).toBeVisible();
+ await search.fill('no-such-seo-guide-12345');
+ await expect(page.getByRole('status')).toContainText('0');
+ await expect(page.getByRole('button',{name:'Показати всі матеріали'})).toBeVisible();
+ await page.getByRole('button',{name:'Показати всі матеріали'}).click();
+ await expect(search).toHaveValue('');
+ await expect(page.locator('[data-lesson]')).toHaveCount(8);
+ await page.getByRole('button',{name:'Панчанга й ведичний календар'}).click();
+ await expect(page.locator('a[href="/uk/pedia/rahu-kalam-calculation"]')).toBeVisible();
+ await expect(page.locator('a[href="/uk/pedia/astrology-aspect-orbs"]')).toHaveCount(0);
+ await page.getByRole('button',{name:'Усі теми'}).click();
+ await search.fill('Місяць');
+ await search.press('Enter');
+ await expect(page.locator('#pedia-results')).toBeInViewport();
+ const html=await (await request.get('/en/pedia')).text();
+ expect(html).toContain('href="/en/pedia/topic/panchanga"');
+ expect(html).toContain('href="/en/pedia/rahu-kalam-calculation"');
+});
+
+test('GP-UX-1: guides and lessons have crawlable topic breadcrumbs, existing canonicals untouched',async({page})=>{
+ await page.goto('/en/pedia/rahu-kalam-calculation');
+ await expect(page.locator('nav.as-pedia-breadcrumb a[href="/en/pedia/topic/panchanga"]')).toBeVisible();
+ await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://galaxiora.example/en/pedia/rahu-kalam-calculation');
+ await page.goto('/uk/pedia/sidereal-and-tropical');
+ await expect(page.locator('nav.as-pedia-breadcrumb a[href="/uk/pedia/topic/jyotish"]')).toBeVisible();
+ await expect(page.locator('.as-academy-quiz')).toBeVisible();
+});
