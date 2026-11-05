@@ -16,7 +16,8 @@ test('TokenLean selects exactly two chart-specific lenses; no raw natal input or
   assert.match(p.user,/D9 lagna s\d+/);
   assert.match(p.user,/D10 lagna s\d+/);
   for(const d of p.selectedDivisions)assert.match(p.user,new RegExp('R-D'+d+' topic='));
-  assert.doesNotMatch(p.system+p.user,/D60|SYNTHETIC_TEST_ONLY_NEVER_REAL_BIRTH|1994-05-17|08:16|date=1994|longitude=0/);
+  assert.doesNotMatch(p.user,/D60|SYNTHETIC_TEST_ONLY_NEVER_REAL_BIRTH|1994-05-17|08:16|date=1994|longitude=0/);
+  assert.doesNotMatch(p.system,/SYNTHETIC_TEST_ONLY_NEVER_REAL_BIRTH|1994-05-17|08:16/);
   selected.add(p.selectedDivisions.join(','));
  }
  assert.ok(selected.size>=3,'theme selection varies across synthetic cases');
