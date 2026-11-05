@@ -31,6 +31,8 @@ test('N4: verified chart places D1 beside the selected D chart BEFORE Reader, sw
   report:el.querySelector('.jy-ai-launch')?.getBoundingClientRect().top||0
  }));
  expect(ids.explorer).toBeLessThan(ids.report);
+ await expect(page.locator('.n4-core-tabs button')).toHaveCount(3);
+ await page.getByTestId('n4-extra-details').locator('summary').click();
  await page.locator('.n4-tabs button').filter({hasText:'D24'}).click();
  await expect(page.locator('.n4-chart-head h3')).toContainText('D24');
  await expect(page.locator('.n4-placements>div')).toHaveCount(9);

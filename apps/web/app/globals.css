@@ -1367,3 +1367,17 @@
 .n4-offline-chapter details code{white-space:normal;overflow-wrap:anywhere;font-size:12px}
 .n4-offline-chapter details ul{padding-left:22px}
 @media(max-width:700px){.n4-offline-reading{padding:16px}.n4-offline-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* N4.12 progressive discovery: 3 primary D charts before 13 themed advanced charts. */
+.n4-chart-picker{display:grid;gap:12px;min-width:0}
+.n4-core-heading{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
+.n4-core-heading h3{margin:0;color:#f1dbb3;font-size:17px}
+.n4-core-heading p{margin:0;color:#bac5d2;font-size:12px;line-height:1.5}
+.n4-core-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.n4-extra-details{border:1px solid #3a4859;border-radius:12px;background:#101b2b;min-width:0}
+.n4-extra-details>summary{cursor:pointer;padding:13px 16px;font-size:14px;font-weight:650;color:#f0d4a4;line-height:1.55}
+.n4-extra-details>summary:focus-visible{outline:3px solid #ecc48d;outline-offset:3px}
+.n4-extra-groups{padding:0 14px 16px;display:grid;gap:18px}
+.n4-varga-group{min-width:0}
+.n4-varga-group h4{font-size:12px;color:#bac6d4;font-weight:650;margin:4px 0 10px}
+@media(max-width:570px){.n4-core-tabs{grid-template-columns:minmax(0,1fr)!important}.n4-extra-groups{padding:0 10px 12px}}

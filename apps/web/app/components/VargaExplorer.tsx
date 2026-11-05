@@ -33,6 +33,13 @@ export const VARGA_INFO:readonly VargaInfo[]=[
  {n:45,label:'Akshavedamsa',uk:'Батьківська спадщина',en:'Paternal lineage',ukNote:'Традиційно розглядають вплив батьківської лінії.',enNote:'Traditionally associated with paternal lineage.'},
  {n:60,label:'Shashtiamsa',uk:'Тонкі закономірності',en:'Fine distinctions',ukNote:'Надзвичайно чутлива до точності часу народження варга.',enNote:'A varga highly sensitive to birth-time accuracy.'}
 ];
+const CORE_VARGAS=new Set<VargaNumber>([1,9,10]);
+const VARGA_GROUPS:readonly {key:string;uk:string;en:string;charts:readonly VargaNumber[]}[]=[
+ {key:'family',uk:'Родина, оселя й спадщина',en:'Family, home and lineage',charts:[4,7,12,40,45]},
+ {key:'resources',uk:'Ресурси й комфорт',en:'Resources and comfort',charts:[2,16]},
+ {key:'growth',uk:'Навчання, сміливість і практика',en:'Learning, courage and practice',charts:[3,20,24,27]},
+ {key:'challenges',uk:'Виклики й тонкі відмінності',en:'Challenges and fine distinctions',charts:[30,60]}
+];
 const sname=(n:number,lang:'en'|'uk')=>(lang==='uk'?UK_SIGNS:EN_SIGNS)[n-1]||'—';
 const pname=(s:string,lang:'en'|'uk')=>lang==='uk'?(G_UK[s]||s):s;
 export default function VargaExplorer({chart,lang}:{chart:Natal|null;lang:'en'|'uk'}){
@@ -56,11 +63,30 @@ export default function VargaExplorer({chart,lang}:{chart:Natal|null;lang:'en'|'
     <p>{uk?'Обирай життєву тему й порівнюй її карту з основною D1. Спочатку факти, після них — трактування.':'Choose a life theme and compare its chart with D1. First the calculated placements, then the reading.'}</p></div>
    <span className="n4-count">16 <small>{uk?'карт':'charts'}</small></span>
   </div>
-  <nav className="n4-tabs jy-varga-tabs" aria-label={uk?'Обрати дробову карту':'Select a divisional chart'}>
-   {VARGA_INFO.map(v=><button key={v.n} type="button" className={selected===v.n?'selected':''}
-    onClick={()=>setSelected(v.n)} aria-pressed={selected===v.n}
-    title={uk?v.uk:v.en}>D{v.n}<span>{uk?v.uk:v.en}</span></button>)}
-  </nav>
+  <div className="n4-chart-picker">
+   <div className="n4-core-heading"><h3>{uk?'Головні карти':'Key charts'}</h3><p>{uk?'D1 — основа, D9 — стосунки, D10 — покликання.':'D1 is the foundation, D9 covers relationships, D10 covers work.'}</p></div>
+   <nav className="n4-tabs n4-core-tabs jy-varga-tabs" aria-label={uk?'Головні дробові карти':'Primary divisional charts'}>
+    {VARGA_INFO.filter(v=>CORE_VARGAS.has(v.n)).map(v=><button key={v.n} type="button" className={selected===v.n?'selected':''}
+     onClick={()=>setSelected(v.n)} aria-pressed={selected===v.n}
+     title={uk?v.uk:v.en}>D{v.n}<span>{uk?v.uk:v.en}</span></button>)}
+   </nav>
+   <details className="n4-extra-details" data-testid="n4-extra-details">
+    <summary>{uk?'Розкрити ще 13 карт за життєвими темами':'Explore 13 more charts by life area'}{!CORE_VARGAS.has(selected)?' · D'+selected:''}</summary>
+    <div className="n4-extra-groups">
+     {VARGA_GROUPS.map(group=><section className="n4-varga-group" key={group.key}>
+      <h4>{uk?group.uk:group.en}</h4>
+      <nav className="n4-tabs jy-varga-tabs" aria-label={uk?group.uk:group.en}>
+       {group.charts.map(n=>{
+        const v=VARGA_INFO.find(item=>item.n===n)!;
+        return <button key={v.n} type="button" className={selected===v.n?'selected':''}
+         onClick={()=>setSelected(v.n)} aria-pressed={selected===v.n}
+         title={uk?v.uk:v.en}>D{v.n}<span>{uk?v.uk:v.en}</span></button>;
+       })}
+      </nav>
+     </section>)}
+    </div>
+   </details>
+  </div>
   <div className="n4-chart-head">
    <div><h3>D{selected} · {info.label}</h3><p>{uk?info.ukNote:info.enNote}</p></div>
    {selected===60&&<span className="n4-caution">{uk?'Потрібен точний час народження':'Precise birth time required'}</span>}

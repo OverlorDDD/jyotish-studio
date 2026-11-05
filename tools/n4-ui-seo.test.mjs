@@ -38,3 +38,15 @@ test('Responsive varga explorer uses one-column chart pairing on mobile',()=>{
  assert.ok(css.includes('.n4-comparison{grid-template-columns:minmax(0,1fr)}'));
  assert.ok(css.includes('.n4-tabs button:focus-visible'));
 });
+
+test('N4 prioritizes D1 D9 D10 and groups the other thirteen without dropping any charts',()=>{
+ const explorer=file('apps/web/app/components/VargaExplorer.tsx');
+ const css=file('apps/web/app/globals.css');
+ for(const chart of [1,9,10])assert.ok(explorer.includes('CORE_VARGAS')&&explorer.includes('1,9,10'));
+ assert.ok(explorer.includes('n4-extra-details'));
+ for(const label of ['family','resources','growth','challenges'])assert.ok(explorer.includes("key:'"+label+"'"));
+ assert.ok(css.includes('.n4-core-tabs'));
+ assert.ok(css.includes('@media(max-width:570px)'));
+ const groups=[4,7,12,40,45,2,16,3,20,24,27,30,60];
+ assert.equal(new Set([1,9,10,...groups]).size,16);
+});
