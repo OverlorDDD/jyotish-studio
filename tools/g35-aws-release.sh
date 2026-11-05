@@ -109,7 +109,7 @@ check_changes(){
      apps/web/middleware.ts|apps/web/lib/visitor-analytics-policy.ts|\
      apps/api/src/admin.ts|apps/api/src/visitor-analytics.ts|\
      apps/api/src/visitor-aggregate.ts|\
-     e2e/g3-public-tool-funnel.spec.mjs|e2e/r42-consent.spec.mjs|\
+     e2e/g3-public-tool-funnel.spec.mjs|e2e/mobile-header-account.spec.mjs|e2e/r42-consent.spec.mjs|\
      e2e/r42-ga4-diagnostics.spec.mjs|e2e/visitor-analytics.spec.mjs|\
      tools/r42-growth.test.mjs|tools/visitor-analytics.test.mjs|\
      tools/g34-first-party-analytics.test.mjs|tools/admin-realtime-ga4.test.mjs|\
