@@ -8,6 +8,7 @@ import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts'
 import {calculateAllVargas} from '../../../packages/jyotish-core/src/vargas.ts';
 import {classicalLordshipTable} from './reader-classical.ts';
 import {selectN4NarrativeThemes} from './n4-interpretation-brief.ts';
+import {n4OfflineSynthesis} from './n4-offline-synthesis.ts';
 
 export const N4_OFFLINE_READING_VERSION='n4-offline-editorial-v1' as const;
 type Lang='uk'|'en';
@@ -96,6 +97,7 @@ const chapter=(chart:CalculatedChart,all:ReturnType<typeof calculateAllVargas>,d
  const ascLordDn=c?.planets.find(g=>g.name===vargaAscLord);
  if(!focusHouse||!mainLordD1||!mainLordDn||!ascLordDn)
   throw new Error('N4 offline: cannot establish actual topical/ascendant lordship');
+ const bridge=n4OfflineSynthesis(d,mainLordD1.house,mainLordDn.house,lang);
  const lead=uk?
   'D'+d+' — '+m.uk+'. У базовій D1 '+planet+' стоїть у домі '+p.house+' ('+sourceArea+'), а в тематичній D'+d+' — у домі '+q.house+' знаку '+zodiac(q.vargaSign,lang)+'.':
   'D'+d+' — '+m.en+'. In D1, '+planet+' occupies house '+p.house+' ('+sourceArea+'); in thematic D'+d+' it is in house '+q.house+', '+zodiac(q.vargaSign,lang)+'.';
@@ -125,7 +127,8 @@ const chapter=(chart:CalculatedChart,all:ReturnType<typeof calculateAllVargas>,d
   'D'+d+' '+mainLord+' as_d1_house_lord house='+mainLordDn.house,
   'D'+d+' asc_lord='+vargaAscLord+' house='+ascLordDn.house
  ]);
- return Object.freeze({id:'n4-'+d,division:d,heading:'D'+d+' · '+(uk?m.uk:m.en),lead,analysis,example,action,evidence});
+ return Object.freeze({id:'n4-'+d,division:d,heading:'D'+d+' · '+(uk?m.uk:m.en),lead,
+  analysis:analysis+' '+bridge.analysis,example:example+' '+bridge.example,action:action+' '+bridge.action,evidence});
 };
 export function n4OfflineEligible(env:Record<string,string|undefined>=process.env){
  return env.N4_OFFLINE_READER_ENABLED==='1'&&env.N4_VARGA_INDEPENDENT_REFERENCE_APPROVED==='1';

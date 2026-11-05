@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
 import {calculateAllVargas} from '../packages/jyotish-core/src/vargas.ts';
 import {buildDetailedReport} from '../apps/api/src/report.ts';
+import {n4OfflineSynthesis} from '../apps/api/src/n4-offline-synthesis.ts';
 import {buildN4OfflineReading,n4OfflineEligible,N4_OFFLINE_READING_VERSION}
  from '../apps/api/src/n4-offline-reading.ts';
 const names=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
@@ -90,4 +91,30 @@ test('Reader v6 and fingerprint stay byte-identical when optional N4 offline con
   if(origA===undefined)delete process.env.N4_OFFLINE_READER_ENABLED;else process.env.N4_OFFLINE_READER_ENABLED=origA;
   if(origB===undefined)delete process.env.N4_VARGA_INDEPENDENT_REFERENCE_APPROVED;else process.env.N4_VARGA_INDEPENDENT_REFERENCE_APPROVED=origB;
  }
+});
+
+test('N4 no-AI thematic advice reflects the actual D1 and Dn house-lord context in both languages',()=>{
+ const themes=new Set();
+ for(const lang of ['uk','en']){
+  const suggestions=new Set();
+  for(let seed=0;seed<12;seed++){
+   const reading=buildN4OfflineReading(make(seed),lang);
+   for(const chapter of reading.chapters){
+    const d1=chapter.evidence[3].match(/house=(\\d+)$/);
+    const dn=chapter.evidence[4].match(/house=(\\d+)$/);
+    assert.ok(d1&&dn,'proof must expose source house-lord placement');
+    const bridge=n4OfflineSynthesis(chapter.division,Number(d1[1]),Number(dn[1]),lang);
+    assert.ok(chapter.analysis.includes(bridge.analysis));
+    assert.ok(chapter.example.includes(bridge.example));
+    assert.ok(chapter.action.includes(bridge.action));
+    assert.doesNotMatch(chapter.action,/guarantee|гарантован|завжди станеться/iu);
+    if(chapter.division===9) suggestions.add(chapter.action);
+    if(lang==='uk')themes.add(bridge.contextKey);
+   }
+  }
+  assert.ok(suggestions.size>=2,'same D9 topic must produce distinct chart-conditioned next steps');
+ }
+ assert.ok(themes.size>=4,'house contexts must not collapse to one generic template');
+ assert.throws(()=>n4OfflineSynthesis(9,0,2,'uk'),/valid 1-based house/);
+ assert.throws(()=>n4OfflineSynthesis(9,2,13,'en'),/valid 1-based house/);
 });
