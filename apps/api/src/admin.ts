@@ -122,7 +122,7 @@ export class AdminController {
   });
   const totals=Object.fromEntries(VISITOR_METRICS.map(m=>[m,0])) as Record<string,number>;
   const sources=Object.fromEntries(
-   ['google','other_search','social','partner_tag','other_referral','unknown'].map(k=>[k,0])
+   ['google','other_search','social','partner_tag','other_referral','internal','unknown'].map(k=>[k,0])
   ) as Record<string,number>;
   const bySection:Record<string,number>={};
   const daily=new Map<string,number>();
