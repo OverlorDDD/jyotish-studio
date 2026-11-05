@@ -2,10 +2,10 @@
 import type {PrismaService} from './prisma.ts';
 export const VISITOR_METRICS=[
  'public_html_request','jyotish_chart_completed','tarot_spread_completed','panchanga_calculation_completed',
- 'ref_google','ref_other_search','ref_social','ref_partner_tag','ref_other_referral','ref_unknown'
+ 'ref_google','ref_other_search','ref_social','ref_partner_tag','ref_other_referral','ref_internal','ref_unknown'
 ] as const;
 export type VisitorMetric=typeof VISITOR_METRICS[number];
-export const REFERRAL_BUCKETS=['google','other_search','social','partner_tag','other_referral','unknown'] as const;
+export const REFERRAL_BUCKETS=['google','other_search','social','partner_tag','other_referral','internal','unknown'] as const;
 export type ReferralBucket=typeof REFERRAL_BUCKETS[number];
 export function validReferralBucket(input:unknown):input is ReferralBucket{
  return typeof input==='string'&&(REFERRAL_BUCKETS as readonly string[]).includes(input);
