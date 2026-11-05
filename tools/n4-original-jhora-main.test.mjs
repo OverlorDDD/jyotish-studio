@@ -9,13 +9,13 @@ const ds=[1,9,10,2,3,4,7,12,16,20,24,27,30,40,45,60];
 const places=bodies.map((b,i)=>i*30+7.3);
 const field=i=>'7 '+codes[i]+' 18\u0027 00.00"';
 function originalMain(){
- const intro='C:\\windows\\temp\\input\\n\\nNatal Chart\\n\\n'+
-  'Date:          January 5, 1990\\nTime:          5:11:00\\n'+
-  'Time Zone:     9:00:00 (West of GMT)\\n'+
-  'Place:         150 W 00\\u0027 00", 48 S 00\\u0027 00"\\n'+
-  'Ayanamsa:      23-44-11.32\\n\\nBody                    Longitude        Nakshatra Pada Rasi Navamsa\\n';
+ const intro='C:\\windows\\temp\\input\n\nNatal Chart\n\n'+
+  'Date:          January 5, 1990\nTime:          5:11:00\n'+
+  'Time Zone:     9:00:00 (West of GMT)\n'+
+  'Place:         150 W 00\u0027 00", 48 S 00\u0027 00"\n'+
+  'Ayanamsa:      23-44-11.32\n\nBody                    Longitude        Nakshatra Pada Rasi Navamsa\n';
  const rows=bodies.map((body,i)=>body.padEnd(24)+field(i)+'  Sample    1   Ar  Ar').join('\n');
- return intro+rows+'\n'+'SAMPLE METADATA\\n'.repeat(70);
+ return intro+rows+'\n'+'SAMPLE METADATA\n'.repeat(70);
 }
 function originalDivisionals(){
  const header='Body'.padEnd(23)+ds.map(d=>'D-'+d+(d===2?' (US)':'')).join(' ');
