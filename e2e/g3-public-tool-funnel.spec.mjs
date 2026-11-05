@@ -10,9 +10,10 @@ test('G3 events require analytics opt-in and never send arbitrary private payloa
  await page.route(/googletagmanager\.com|google-analytics\.com/,route=>
   route.fulfill({status:200,contentType:'application/javascript',body:''}));
  await page.goto('/en/tarot?question=PRIVATE_G3_TEST');
- await expect(page.getByRole('button',{name:'Allow analytics'})).toBeVisible();
  expect((await eventData(page)).filter(x=>x.name?.startsWith('public_tool_'))).toHaveLength(0);
+ await page.goto('/en/privacy');
  await page.getByRole('button',{name:'Allow analytics'}).click();
+ await page.goto('/en/tarot?question=PRIVATE_G3_TEST');
  await expect.poll(async()=>(await eventData(page)).some(e=>e.name==='public_tool_viewed'&&e.params.tool==='tarot')).toBe(true);
  const before=(await eventData(page)).length;
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('galaxiora:growth',{
@@ -35,8 +36,9 @@ test('G3 events require analytics opt-in and never send arbitrary private payloa
 test('G3 automatic Panchanga day load does not count as explicit user completion',async({page})=>{
  await page.route(/googletagmanager\.com|google-analytics\.com/,route=>
   route.fulfill({status:200,contentType:'application/javascript',body:''}));
- await page.goto('/en/panchanga');
+ await page.goto('/en/privacy');
  await page.getByRole('button',{name:'Allow analytics'}).click();
+ await page.goto('/en/panchanga');
  await expect.poll(async()=>(await eventData(page)).some(e=>e.name==='public_tool_viewed'&&e.params.tool==='panchanga')).toBe(true);
  // Default place/day GET may still emit the old legacy metric, which is NOT a
  // user-completion KPI. It must never be counted as public_tool_completed.
@@ -46,10 +48,11 @@ test('G3 automatic Panchanga day load does not count as explicit user completion
 });
 
 test('G3.2 GalaxiPedia article CTA is attributed without query or reading data',async({page})=>{
- await page.route(/googletagmanager\\.com|google-analytics\\.com/,route=>
+ await page.route(/googletagmanager\.com|google-analytics\.com/,route=>
   route.fulfill({status:200,contentType:'application/javascript',body:''}));
- await page.goto('/en/pedia/panchanga-five-limbs-explained?birthDate=SECRET_BIRTH_DATE');
+ await page.goto('/en/privacy');
  await page.getByRole('button',{name:'Allow analytics'}).click();
+ await page.goto('/en/pedia/panchanga-five-limbs-explained?birthDate=SECRET_BIRTH_DATE');
  await expect.poll(async()=> (await eventData(page)).some(e=>e.name==='page_view')).toBe(true);
  const link=page.locator('a[href="/en/panchanga"]').first();
  await expect(link).toBeVisible();
