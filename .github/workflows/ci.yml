@@ -214,6 +214,7 @@ jobs:
             e2e/galaxiora-favicon.spec.mjs \
             e2e/galaxipedia.spec.mjs \
             e2e/g3-public-tool-funnel.spec.mjs \
+            e2e/g32-organic-ux.spec.mjs \
             e2e/horoscope-switching.spec.mjs \
             e2e/horoscope-synthesis.spec.mjs \
             e2e/jyotish-layout.spec.mjs \
@@ -240,6 +241,7 @@ jobs:
             e2e/galaxiora-favicon.spec.mjs \
             e2e/galaxipedia.spec.mjs \
             e2e/g3-public-tool-funnel.spec.mjs \
+            e2e/g32-organic-ux.spec.mjs \
             e2e/horoscope-switching.spec.mjs \
             e2e/mobile-header-account.spec.mjs \
             e2e/panchanga-daily-opportunities.spec.mjs \
