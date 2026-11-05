@@ -29,6 +29,7 @@ const SOURCES:Record<string,[string,string]>={
  social:['Соцмережі','Social platforms'],
  partner_tag:['Партнерський UTM','Partner UTM tag'],
  other_referral:['Інші сайти','Other websites'],
+ internal:['Переходи всередині сайту','Internal navigation'],
  unknown:['Прямий / невизначений','Direct / unattributed']
 };
 function numeric(value:unknown,locale:'uk'|'en'){
