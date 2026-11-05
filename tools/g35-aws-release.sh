@@ -116,7 +116,7 @@ check_changes(){
      tools/g35-aws-release.sh|tools/g34-release-contract.test.mjs|\
      .github/workflows/g34-first-party-analytics.yml|\
      docs/operations/g34-first-party-analytics-social-login-20261105.md|\
-     apps/api/src/social-auth.ts|apps/api/src/account.ts|apps/api/src/nest.ts|\
+     apps/api/src/social-auth.ts|apps/api/src/account.ts|apps/api/src/main.ts|apps/api/src/nest.ts|\
      apps/api/prisma/schema.prisma|apps/api/prisma/migrations/20261105170000_optional_oidc_identities/migration.sql|\
      apps/api/package.json|tools/g35-social-auth.test.mjs|tools/g35-aws-release.sh|\
      tools/g35-release-contract.test.mjs|.github/workflows/g35-social-auth.yml|\
