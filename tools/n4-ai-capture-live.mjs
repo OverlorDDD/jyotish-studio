@@ -23,13 +23,18 @@ const confirmed={gemini:process.env.GEMINI_FREE_TIER_CONFIRMED==='1',groq:proces
  openrouter:/^[\w.-]+\/[\w.:-]+:free$/i.test(process.env.OPENROUTER_FREE_MODEL||'')};
 if(!keys[provider]?.trim()||!confirmed[provider])
  throw Error('Refusing call without configured key AND independently confirmed free-tier model');
+if(process.env.N4_LIVE_EDITORIAL_TOKEN_LEAN==='1'&&process.env.N4_LIVE_EDITORIAL_FULL_LIFE==='1')
+ throw Error('N4 synthetic lab cannot mix TokenLean and full-life report modes');
+const auditMode=process.env.N4_LIVE_EDITORIAL_FULL_LIFE==='1'?'full-life-v1':
+ process.env.N4_LIVE_EDITORIAL_TOKEN_LEAN==='1'?'tokenlean-v1':'legacy-v2';
 const dest=n4SafeLocalOutput(process.env.N4_LIVE_EDITORIAL_OUTPUT);
 const from=Number(process.env.N4_LIVE_EDITORIAL_START||0),size=Number(process.env.N4_LIVE_EDITORIAL_BATCH_SIZE||2);
 if(!Number.isInteger(from)||from<0||from>=48||!Number.isInteger(size)||size<1||size>2||from+size>48)
  throw Error('Batch index/count must stay inside 0..47 and <=2 calls');
 const previous=existsSync(dest)?readFileSync(dest,'utf8').split('\n').filter(Boolean).map(x=>JSON.parse(x)):[];
 const used=new Set(previous.map(x=>x.id));
-if(previous.some(x=>x.corpus!==N4_LIVE_AUDIT_CORPUS_VERSION||!x.model||typeof x.text!=='string'))
+if(previous.some(x=>x.corpus!==N4_LIVE_AUDIT_CORPUS_VERSION||!x.model||typeof x.text!=='string'||
+   (x.auditMode||'legacy-v2')!==auditMode))
  throw Error('Mixed corpus versions in output — refuse');
 process.env.N4_VARGA_AI_ENABLED='1';
 process.env.N4_VARGA_INDEPENDENT_REFERENCE_APPROVED='1'; // ISOLATED TEST-ONLY; no server, no production flags.
@@ -45,12 +50,13 @@ for(let i=from;i<from+size;i++){
   limit:budget.limit,
   fetcher:n4SyntheticVariantFetcher(fetch,sample.variant),
   n4TokenLean:process.env.N4_LIVE_EDITORIAL_TOKEN_LEAN==='1',
+  n4FullLife:process.env.N4_LIVE_EDITORIAL_FULL_LIFE==='1',
   onTokenUsage:u=>{tokenUsage=u;},
   onRejectedText:ev=>{editorialRejection=ev;},
   onDiagnostic:d=>diagnostics.push({stage:d.stage,reason:d.reason,httpStatus:d.httpStatus})
  });
  const entry={corpus:N4_LIVE_AUDIT_CORPUS_VERSION,editorialVersion:N4_EDITORIAL_VARIANT_VERSION,id:sample.id,seed:sample.seed,
-  lang:sample.lang,variant:sample.variant,provider,model:outcome.result?.model||null,
+  lang:sample.lang,variant:sample.variant,provider,auditMode,model:outcome.result?.model||null,
   generatedAt:new Date().toISOString(),
   text:outcome.result?.text||null,
   failureReason:outcome.reason||null,diagnostics,tokenUsage};

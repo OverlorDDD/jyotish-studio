@@ -3,6 +3,8 @@ import {compactN4VargaFacts,n4AiEligible,N4_AI_INSTRUCTION} from './n4-varga-evi
 import {compactN4NarrativeBrief} from './n4-interpretation-brief.ts';
 import {reviewN4EditorialGate} from './n4-editorial-gate.ts';
 import {buildN4TokenLeanPrompt} from './n4-token-lean.ts';
+import {buildN4CompletePrompt} from './n4-comprehensive-reading.ts';
+import {reviewN4CompleteLifeText} from './n4-comprehensive-quality.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
@@ -85,6 +87,8 @@ export type DirectOptions={
  timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>void|Promise<void>;
  /** N4 audit-only one-shot prompt experiment; never enables N4 on its own. */
  n4TokenLean?:boolean;
+ /** N4 synthetic-only full coverage report; no production caller opts in. */
+ n4FullLife?:boolean;
  onTokenUsage?:(u:{promptTokens:number;completionTokens:number;totalTokens:number;cachedTokens:number;finishReason:string})=>void;
  /** Optional synthetic-lab-only callback for privately retained rejected model prose. */
  onRejectedText?:(event:{text:string;codes:readonly string[]})=>void;
@@ -117,17 +121,20 @@ export async function generateDirectJyotish(
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim()).filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
  const n4Approved=n4AiEligible();
+ if(opts.n4TokenLean&&opts.n4FullLife)throw Error('Choose exactly one experimental N4 writing mode');
  const lean=n4Approved&&opts.n4TokenLean===true;
- const leanPrompt=lean?buildN4TokenLeanPrompt(chart,lang,asOf):null;
+ const full=n4Approved&&opts.n4FullLife===true;
+ const oneShotPrompt=lean?buildN4TokenLeanPrompt(chart,lang,asOf):
+  full?buildN4CompletePrompt(chart,lang,asOf):null;
 
- const facts=lean?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf))+
+ const facts=oneShotPrompt?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf))+
   (n4Approved?'\n\n'+compactN4VargaFacts(chart)+'\n\n'+compactN4NarrativeBrief(chart):'');
  const permit=opts.limit||consumeFreeAiRequest;
  const validTokens=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value:undefined;
  // Meter each upstream HTTP completion even if editorial validation rejects the returned prose.
  const meter=async(event:AiUsageEvent)=>{try{await opts.onUsage?.(event);}catch{}};
  const rejected=(value:string,codes:readonly string[])=>{
-  if(lean&&value.trim())try{opts.onRejectedText?.({text:value.slice(0,32000),codes});}catch{}
+  if((lean||full)&&value.trim())try{opts.onRejectedText?.({text:value.slice(0,32000),codes});}catch{}
  };
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
@@ -149,7 +156,7 @@ export async function generateDirectJyotish(
    // Free models frequently stop before a long requested consultation is complete.
    // A single bounded corrective retry is allowed only for truncated/short prose.
    // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
-   for(let attempt=0;attempt<(lean?1:2);attempt++){
+   for(let attempt=0;attempt<((lean||full)?1:2);attempt++){
     if(attempt>0){
      if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
      console.warn('Direct Jyotish: '+provider+' retrying_incomplete_text');
@@ -157,12 +164,12 @@ export async function generateDirectJyotish(
     const concise=attempt===1;
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
-     body:JSON.stringify({model,max_tokens:lean?2400:provider==='groq'?3000:3800,temperature:lean?0.35:concise?0.45:0.7,
+     body:JSON.stringify({model,max_tokens:full?4400:lean?2400:provider==='groq'?3000:3800,temperature:full||lean?0.35:concise?0.45:0.7,
       ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
-      messages:[{role:'system',content:leanPrompt?leanPrompt.system:concise?
+      messages:[{role:'system',content:oneShotPrompt?oneShotPrompt.system:concise?
        DIRECT_JYOTISH_INSTRUCTION+(n4Approved?N4_AI_INSTRUCTION:'')+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, actual D1/D9/D10 and the major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
        DIRECT_JYOTISH_INSTRUCTION+(n4Approved?N4_AI_INSTRUCTION:'')},
-       {role:'user',content:leanPrompt?leanPrompt.user:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
+       {role:'user',content:oneShotPrompt?oneShotPrompt.user:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+facts} ]})
     });
     if(!response.ok){
@@ -211,7 +218,7 @@ export async function generateDirectJyotish(
     // These checks apply ONLY after the two explicit N4 approval switches.
     // Historical Reader v6 and ordinary Direct v2 responses are untouched.
     if(n4Approved){
-     const gate=reviewN4EditorialGate(content,chart,lang,asOf);
+     const gate=full?reviewN4CompleteLifeText(content,chart,lang,asOf):reviewN4EditorialGate(content,chart,lang,asOf);
      if(gate.codes.length){
       reason='invalid_response';
       const issue=gate.codes.join(',');

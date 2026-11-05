@@ -82,8 +82,10 @@ export function buildN4LifeEvidence(chart:CalculatedChart,asOf:string){
   scopes:Object.freeze(scopes),
   dasha:Object.freeze({major:major?.lord||null,minor:minor?.lord||null,
    status:'NOT_INDEPENDENTLY_JHORA_DATE_CERTIFIED'}),
-  missingMechanisms:Object.freeze(['FULL_SHADBALA','BHAVABALA','VIMSHOPAKA_BALA','ASHTAKAVARGA',
-   'UNIMPLEMENTED_COMBUSTION_OR_YOGAS','ORIGINAL_JHORA_8_PARITY','BIRTH_TIME_STABILITY_D60'])
+  missingMechanisms:Object.freeze(['COMPLETE_SHADBALA_NOT_IMPLEMENTED','COMPLETE_BHAVABALA_NOT_IMPLEMENTED',
+   'VIMSHOPAKA_BALA_NOT_CERTIFIED','UNREDUCED_ASHTAKAVARGA_EXISTS_NOT_IN_PROMPT',
+   'GRAHA_DRISHTI_EXISTS_NOT_IN_PROMPT','FULL_YOGA_CATALOG_NOT_IMPLEMENTED',
+   'ORIGINAL_JHORA_8_PARITY','BIRTH_TIME_STABILITY_D60'])
  });
 }
 export function buildN4CompletePrompt(chart:CalculatedChart,lang:'uk'|'en',asOf:string){
@@ -96,6 +98,8 @@ export function buildN4CompletePrompt(chart:CalculatedChart,lang:'uk'|'en',asOf:
   'Integrate D1 with relevant topical charts. Refer to relevant house lords, Dn Lagna and the specific planets. Contrast support and tension only when justified by the supplied facts.',
   'Account for the whole available scope D2 D3 D4 D7 D9 D10 D12 D16 D20 D24 D27 D30 D40 D45: group them by life domain, but do not fabricate separate events for each.',
   'Give specific conditional situations, realistic opportunities and limitations, three grounded practical next actions, and a final individual synthesis rather than a list of slogans.',
+  'House topics: 1 self, 2 speech/resources, 3 initiative, 4 home, 5 learning/creativity, 6 duties, 7 partnership, 8 change/shared resources, 9 knowledge/dharma, 10 career, 11 community/results, 12 retreat/expenses.',
+  'Interpret D1 lordship as baseline, varga Lagna and its lord as topical structure, and sign dignity ONLY as one conditional indicator; own or exalted alone is not a promised strength or outcome.',
   'sN means a SIGN, hN means a HOUSE counted from the relevant chart ascendant. Never confuse the two or transfer houses between D1 and Dn.',
   'D60 is withheld. Sign dignity is not Shadbala or global strength. Do not invent combustion, aspects, yogas, remedies, strengths, promises, dates or biographies not in the facts.',
   'Do not presume marriage, employment, children or illness in real life. Avoid guaranteed outcomes, investment prescriptions and medical diagnoses.',
