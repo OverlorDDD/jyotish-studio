@@ -16,6 +16,8 @@ on:
       - 'e2e/g3-public-tool-funnel.spec.mjs'
       - 'tools/g34-first-party-analytics.test.mjs'
       - 'tools/g34-aws-release.sh'
+      - 'tools/g35-aws-release.sh'
+      - 'tools/g35-release-contract.test.mjs'
       - 'tools/g34-release-contract.test.mjs'
       - '.github/workflows/g34-first-party-analytics.yml'
   push:
@@ -34,6 +36,8 @@ on:
       - 'e2e/g3-public-tool-funnel.spec.mjs'
       - 'tools/g34-first-party-analytics.test.mjs'
       - 'tools/g34-aws-release.sh'
+      - 'tools/g35-aws-release.sh'
+      - 'tools/g35-release-contract.test.mjs'
       - 'tools/g34-release-contract.test.mjs'
       - '.github/workflows/g34-first-party-analytics.yml'
 permissions:
