@@ -100,8 +100,8 @@ test('N4 no-AI thematic advice reflects the actual D1 and Dn house-lord context 
   for(let seed=0;seed<12;seed++){
    const reading=buildN4OfflineReading(make(seed),lang);
    for(const chapter of reading.chapters){
-    const d1=chapter.evidence[3].match(/house=(\\d+)$/);
-    const dn=chapter.evidence[4].match(/house=(\\d+)$/);
+    const d1=chapter.evidence[3].match(/house=(\d+)$/);
+    const dn=chapter.evidence[4].match(/house=(\d+)$/);
     assert.ok(d1&&dn,'proof must expose source house-lord placement');
     const bridge=n4OfflineSynthesis(chapter.division,Number(d1[1]),Number(dn[1]),lang);
     assert.ok(chapter.analysis.includes(bridge.analysis));
