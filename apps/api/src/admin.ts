@@ -111,19 +111,47 @@ export class AdminController {
   return readGa4Realtime();
  }
  @Get('traffic/visitor-analytics') @Header('Cache-Control','private,no-store')
- async visitorAnalytics(@Req()req:IncomingMessage){
+ async visitorAnalytics(@Req()req:IncomingMessage,@Query('days')rawDays?:string){
   await this.requireAdmin(req);
-  const since=new Date();since.setUTCDate(since.getUTCDate()-6);since.setUTCHours(0,0,0,0);
+  const days=rawDays===undefined?7:Number(rawDays);
+  if(days!==7&&days!==30)throw new BadRequestException('days must be 7 or 30');
+  const today=new Date();today.setUTCHours(0,0,0,0);
+  const since=new Date(today);since.setUTCDate(today.getUTCDate()-(days-1));
   const rows=await this.prisma.visitorAggregate.findMany({
    where:{day:{gte:since}},select:{day:true,section:true,metric:true,count:true}
   });
   const totals=Object.fromEntries(VISITOR_METRICS.map(m=>[m,0])) as Record<string,number>;
-  for(const row of rows)if(row.metric in totals)totals[row.metric]+=row.count;
-  return {status:'ok',source:'server_aggregate',period:'last_7_utc_dates',generatedAt:new Date().toISOString(),
-   totals,bySection:rows.filter(r=>r.metric==='public_html_request').reduce((out,r)=>{
-    out[r.section]=(out[r.section]||0)+r.count;return out;
-   },{} as Record<string,number>),
-   caveat:'HTML request candidates, not unique visitors or GA4 sessions; user-agent bot filtering and middleware counts are approximate. Cached, redirected, or JS-only interactions may differ.'};
+  const sources=Object.fromEntries(
+   ['google','other_search','social','partner_tag','other_referral','internal','unknown'].map(k=>[k,0])
+  ) as Record<string,number>;
+  const bySection:Record<string,number>={};
+  const daily=new Map<string,number>();
+  for(let i=0;i<days;i++){
+   const date=new Date(since);date.setUTCDate(since.getUTCDate()+i);
+   daily.set(date.toISOString().slice(0,10),0);
+  }
+  for(const row of rows){
+   if(row.metric in totals)totals[row.metric]+=row.count;
+   if(row.metric==='public_html_request'){
+    bySection[row.section]=(bySection[row.section]||0)+row.count;
+    const key=row.day.toISOString().slice(0,10);
+    if(daily.has(key))daily.set(key,(daily.get(key)||0)+row.count);
+   }
+   if(row.metric.startsWith('ref_')){
+    const channel=row.metric.slice(4);
+    if(channel in sources)sources[channel]+=row.count;
+   }
+  }
+  // A source row is a separate counter for the same request, NOT more traffic.
+  // Old anonymous hits predate attribution and are explicitly unclassified.
+  const attributed=Object.values(sources).reduce((a,b)=>a+b,0);
+  const requests=totals.public_html_request||0;
+  return {status:'ok',source:'server_aggregate',period:'last_'+days+'_utc_dates',
+   days,generatedAt:new Date().toISOString(),totals,bySection,
+   daily:Array.from(daily,([date,count])=>({date,count})),
+   bySource:sources,sourceAttributionCount:attributed,
+   unattributedHistoricCount:Math.max(0,requests-attributed),
+   caveat:'Anonymous HTML request candidates, not unique visitors, users or GA4 sessions. Referrer/UTM category is approximate and begins only after this release. Automatic API operations are not verified human conversions. No raw source, IP, URL, user identifiers or birth details retained.'};
  }
  @Get('overview') @Header('Cache-Control','private,no-store')
  async overview(@Req()req:IncomingMessage){

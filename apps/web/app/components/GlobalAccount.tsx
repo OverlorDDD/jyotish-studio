@@ -183,6 +183,12 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
     <button className="as-button as-button-primary" type="submit"
      disabled={busy||(mode==='register'&&(!siteKey||!turnstileToken))}><LogIn size={15}/>{mode==='login'?(uk?'Увійти':'Sign in'):mode==='verify'?(uk?'Підтвердити email':'Verify email'):(uk?'Отримати код':'Send verification code')}</button>
     <button type="button" className="as-mode-toggle" onClick={()=>{setMode(mode==='login'?'register':'login');setError('');setTurnstileToken('')}}>{mode==='login'?(uk?'Створити акаунт':'Create an account'):(uk?'Повернутися до входу':'Back to sign in')}</button>
+    <p className="as-account-guest-note">{uk?
+     'Реєстрація необов’язкова. Джйотіш, Панчанга й Таро доступні без входу. Акаунт потрібен лише для збереження власних результатів.':
+     'An account is optional. Jyotish, Panchanga and Tarot work as a guest. Sign in only to save personal results.'}</p>
+    <button type="button" className="as-account-guest" onClick={()=>setOpen(false)}>
+     {uk?'Продовжити без акаунта':'Continue as guest'}
+    </button>
    </form>}
    {error&&<p className="as-account-error" role="alert">{error}</p>}
    </div>

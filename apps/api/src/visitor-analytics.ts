@@ -7,7 +7,7 @@ import type {IncomingMessage} from 'node:http';
 import {timingSafeEqual} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
 
-import {countVisitorAggregate,validSection} from './visitor-aggregate.ts';
+import {countVisitorAggregate,validSection,validReferralBucket,referralMetric} from './visitor-aggregate.ts';
 function loopbackAddress(address:string|undefined){
  return address==='127.0.0.1'||address==='::1'||address==='::ffff:127.0.0.1';
 }
@@ -28,6 +28,12 @@ export class InternalVisitorAnalyticsController {
   const section=(body as {section?:unknown}|null)?.section;
   if(!validSection(section))throw new ForbiddenException('Invalid aggregate section');
   await countVisitorAggregate(this.prisma,'public_html_request',section);
+  const referral=(body as {channel?:unknown}|null)?.channel;
+  if(validReferralBucket(referral)){
+   // Same coarse UTC date/section aggregation: raw Referer and UTM values
+   // are never transmitted to this controller or persisted in the database.
+   await countVisitorAggregate(this.prisma,referralMetric(referral),section);
+  }
  }
 }
 Reflect.defineMetadata('design:paramtypes',[Object,Object],InternalVisitorAnalyticsController.prototype,'hit');

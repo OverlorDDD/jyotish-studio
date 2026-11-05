@@ -1,0 +1,53 @@
+name: G3.4 First-Party Analytics Privacy and UX
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/api/src/admin.ts'
+      - 'apps/api/src/visitor-analytics.ts'
+      - 'apps/api/src/visitor-aggregate.ts'
+      - 'apps/web/middleware.ts'
+      - 'apps/web/lib/visitor-analytics-policy.ts'
+      - 'apps/web/app/components/AdminDashboard.tsx'
+      - 'apps/web/app/components/AdminAnalyticsPanel.tsx'
+      - 'apps/web/app/components/AdminAnalyticsPanel.module.css'
+      - 'apps/web/app/components/GlobalAccount.tsx'
+      - 'apps/web/app/globals.css'
+      - 'tools/g34-first-party-analytics.test.mjs'
+      - 'tools/g34-aws-release.sh'
+      - 'tools/g34-release-contract.test.mjs'
+      - '.github/workflows/g34-first-party-analytics.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/admin.ts'
+      - 'apps/api/src/visitor-analytics.ts'
+      - 'apps/api/src/visitor-aggregate.ts'
+      - 'apps/web/middleware.ts'
+      - 'apps/web/lib/visitor-analytics-policy.ts'
+      - 'apps/web/app/components/AdminDashboard.tsx'
+      - 'apps/web/app/components/AdminAnalyticsPanel.tsx'
+      - 'apps/web/app/components/AdminAnalyticsPanel.module.css'
+      - 'apps/web/app/components/GlobalAccount.tsx'
+      - 'apps/web/app/globals.css'
+      - 'tools/g34-first-party-analytics.test.mjs'
+      - 'tools/g34-aws-release.sh'
+      - 'tools/g34-release-contract.test.mjs'
+      - '.github/workflows/g34-first-party-analytics.yml'
+permissions:
+  contents: read
+jobs:
+  analytics-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Anonymous source and UI contracts
+        run: |
+          node --experimental-strip-types --test tools/g34-first-party-analytics.test.mjs
+          node --experimental-strip-types --test tools/visitor-analytics.test.mjs
+          node --test tools/g34-release-contract.test.mjs
+      - name: No external production mutations
+        run: echo 'All tests run in CI only. AWS deployment is owner-controlled.'

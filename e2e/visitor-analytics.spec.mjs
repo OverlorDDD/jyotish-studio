@@ -25,6 +25,21 @@ test('HTTP HTML requests aggregate without consent, bots and private paths exclu
  await request.get('/en/panchanga',{headers:{...headers,Purpose:'prefetch'}});
  await expect.poll(async()=>await total()).toBe(withHome);
 });
+test('Anonymous source buckets count public HTML without duplicate users or private referrer storage',async({request})=>{
+ const headers={Accept:'text/html,application/xhtml+xml',
+  'User-Agent':Chrome,'Sec-Fetch-Dest':'document'};
+ const before=await total('ref_google');
+ const response=await request.get('/en/astrology/jyotish',{
+  headers:{...headers,Referer:'https://www.google.com/search?q=PRIVATE_BIRTH_INPUT'}});
+ expect(response.ok()).toBeTruthy();
+ await expect.poll(async()=>await total('ref_google')).toBeGreaterThanOrEqual(before+1);
+ const counted=await total('ref_google');
+ const bot=await request.get('/en/astrology/jyotish',{
+  headers:{...headers,'User-Agent':'Googlebot/2.1',Referer:'https://www.google.com/search?q=private'}});
+ expect(bot.ok()).toBeTruthy();
+ await expect.poll(async()=>await total('ref_google')).toBe(counted);
+});
+
 test('Consented page_view triggers one collector request with correct Measurement ID, no private params',async({page})=>{
  const outgoing=[];
  await page.route(/google-analytics\.com\/g\/collect/,async route=>{
