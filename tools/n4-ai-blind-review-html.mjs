@@ -2,7 +2,7 @@
 import {n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
 import {N4_EDITORIAL_VARIANT_VERSION,auditN4PairedModelIdentity} from './n4-ai-editorial-variants.mjs';
 const escape=(value)=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const scores=['Точність фактів','Зв’язок D1 із варгами','Конкретність прикладів','Природність мови'];
+const scores=['Достовірність положень та управителів','Синтез D1, D9, D10 та двох тематичних варг','Індивідуальність щодо інших карт','Реалістичні альтернативи й практичний крок','Природність української чи англійської','Чесність щодо часу народження й меж висновків'];
 export function renderN4BlindReview(rows){
  if(!Array.isArray(rows)||rows.length!==48)throw Error('N4 blind review requires 48 genuine full-corpus records');
  const indexed=new Map();
@@ -37,7 +37,8 @@ export function renderN4BlindReview(rows){
     '<div class="assessment"><fieldset><legend>Яке трактування краще?</legend>'+
     ['left','right','tie','neither'].map((v,i)=>'<label><input name="'+pair+'" type="radio" value="'+v+'">'+
      ['Версія 1','Версія 2','Однаково','Обидва слабкі'][i]+'</label>').join('')+
-    '</fieldset><div class="scores">'+fields+'</div>'+
+    '</fieldset><p>Оцініть обраний кращий текст за всіма шістьма критеріями (0 — неприйнятно, 4 — відмінно).</p><div class="scores">'+fields+'</div>'+
+    '<label><input type="checkbox" data-critical> Критична вигадана позиція планети, приватні дані або гарантована подія — FAIL</label>'+
     '<label>Помилки фактів / що звучить шаблонно<textarea rows="3" placeholder="Конкретні приклади, без особистих даних"></textarea></label></div></section>');
  }
  return '<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
@@ -52,13 +53,13 @@ export function renderN4BlindReview(rows){
   'button{padding:12px 22px;color:white;background:#425ac5;border:0;border-radius:10px;cursor:pointer}'+
   '@media(max-width:700px){.comparison,.scores{grid-template-columns:1fr}.prose{max-height:350px}}'+
   '</style></head><body><h1>Galaxiora N4 · Сліпе A/B-оцінювання</h1>'+
-  '<p>24 пари, однакові синтетичні карти й моделі. Назви A/B приховані. Читайте кожну пару, оберіть кращий текст, виставте 0–4 і зафіксуйте помилки. Результат зберігається лише у вашому локальному JSON-файлі. Не вводьте приватні дані.</p>'+
+  '<p>24 пари, однакові синтетичні карти й моделі. Назви A/B приховані. Читайте кожну пару, оберіть кращий текст, оцініть його за шістьма критеріями 0–4 та відмітьте критичні вигадані факти. Результат зберігається лише у вашому локальному JSON-файлі. Не вводьте приватні дані.</p>'+
   '<button id="export">Зберегти мої оцінки (.json)</button><main>'+blocks.join('')+'</main>'+
   '<script>document.getElementById("export").addEventListener("click",()=>{'+
   'const rows=Array.from(document.querySelectorAll(".pair")).map(section=>({'+
   'pair:section.dataset.pair,preferred:section.querySelector("input[type=radio]:checked")?.value||null,'+
   'scores:Array.from(section.querySelectorAll("[data-score]")).map(s=>s.value===""?null:Number(s.value)),'+
-  'notes:section.querySelector("textarea").value.slice(0,2000)}));'+
+  'critical:section.querySelector("[data-critical]").checked,notes:section.querySelector("textarea").value.slice(0,2000)}));'+
   'const blob=new Blob([JSON.stringify({schema:"n4-blind-human-review-v1",reviewedAt:new Date().toISOString(),rows},null,2)],{type:"application/json"});'+
   'const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="galaxiora-n4-my-blind-review.json";a.click();URL.revokeObjectURL(url);'+
   '});</script></body></html>';

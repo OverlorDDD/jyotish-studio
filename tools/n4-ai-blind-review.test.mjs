@@ -17,6 +17,8 @@ test('blind A/B local review is safe, responsive and never exposes A/B labels to
  assert.ok(html.includes('&lt;script&gt;alert(&quot;DO-NOT-EXECUTE&quot;)&lt;/script&gt;'));
  assert.ok(!html.includes('N4-SYNTH-01-uk-A')&&!html.includes('N4-SYNTH-01-uk-B'));
  assert.ok(html.includes('Зберегти мої оцінки'));
+ assert.equal((html.match(/data-score=/g)||[]).length,24*6);
+ assert.equal((html.match(/data-critical/g)||[]).length,24+1);
 });
 test('review refuses incomplete or unpaired mixed-model corpus',()=>{
  assert.throws(()=>renderN4BlindReview(fixture.slice(0,47)),/48 genuine/);
