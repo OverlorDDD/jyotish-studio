@@ -42,7 +42,7 @@ jobs:
           npm run db:generate
       - name: Validate OIDC guards, legacy auth and server types
         run: |
-          node --experimental-strip-types --test tools/g35-social-auth.test.mjs
+          node --import tsx --test tools/g35-social-auth.test.mjs
           node --experimental-strip-types --test tools/account-access.test.mjs
           npm run build -w @jyotish/api
       - name: No live OAuth provider or EC2 mutations
