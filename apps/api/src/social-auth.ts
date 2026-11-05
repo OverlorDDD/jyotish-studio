@@ -270,7 +270,7 @@ export class SocialAuthController {
     const session=cookieHeader(sessionToken(userId),req);
     // Public OAuth callbacks always return to HTTPS; enforce Secure even if
     // Next's internal rewrite drops x-forwarded-proto.
-    res.setHeader('Set-Cookie',[origin.startsWith('https:')&&!/;\\s*Secure(?:;|$)/.test(session)?session+'; Secure':session,clear]);
+    res.setHeader('Set-Cookie',[origin.startsWith('https:')&&!/;\s*Secure(?:;|$)/.test(session)?session+'; Secure':session,clear]);
    }
    redirect(res,origin+'/'+locale+'/account?oauth=success',post);
   }catch(error){
