@@ -2,7 +2,7 @@
  * No provider button or external request until its server credentials are configured.
  * Identity is (provider, verified sub), NEVER a matching email address alone.
  */
-import {Controller,Get,Post,Param,Query,Req,Res,Inject,ForbiddenException,ServiceUnavailableException} from '@nestjs/common';
+import {Controller,Get,Post,Param,Query,Req,Res,Inject,Header,ForbiddenException,ServiceUnavailableException} from '@nestjs/common';
 import type {IncomingMessage,ServerResponse} from 'node:http';
 import {createHash,createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {existsSync,readFileSync} from 'node:fs';
@@ -172,7 +172,7 @@ function callbackParams(data:unknown){
 @Controller('api/v1/account/oauth')
 export class SocialAuthController {
  constructor(@Inject(PrismaService)private readonly prisma:PrismaService){}
- @Get('providers')
+ @Get('providers') @Header('Cache-Control','no-store')
  async providers(@Req()req:IncomingMessage){
   const userId=cookieUser(req);
   const linked=userId?await this.prisma.externalIdentity.findMany({
