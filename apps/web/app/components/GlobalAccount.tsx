@@ -8,6 +8,7 @@ import {readApiJson} from '../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../lib/brand';
 
 type User={id:string;email:string;role:'MEMBER'|'EXPERT'|'SUPPORT'|'ADMIN';subscription?:{tier:'FREE'|'PREMIUM';currentPeriodEnd:string|null}};
+type SocialSettings={google:boolean;apple:boolean;linked:string[]};
 const siteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY||'';
 type TurnstileApi={render:(element:HTMLElement,options:{sitekey:string;action:string;callback:(token:string)=>void;'expired-callback':()=>void;'error-callback':()=>void})=>string;remove:(id:string)=>void;reset:(id:string)=>void};
 export default function GlobalAccount({locale}:{locale:PortalLocale}){
@@ -22,6 +23,30 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
  const widgetIdRef=useRef<string|null>(null);
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [expertUnread,setExpertUnread]=useState(0);
+ const [social,setSocial]=useState<SocialSettings>({google:false,apple:false,linked:[]});
+ useEffect(()=>{
+  if(!open)return;
+  let alive=true;
+  fetch('/api/v1/account/oauth/providers',{cache:'no-store',credentials:'same-origin'})
+   .then(r=>readApiJson<SocialSettings>(r))
+   .then(data=>{if(alive)setSocial(data)})
+   .catch(()=>{if(alive)setSocial({google:false,apple:false,linked:[]})});
+  return()=>{alive=false};
+ },[open,user?.id]);
+ useEffect(()=>{
+  const code=new URLSearchParams(window.location.search).get('oauth_error');
+  if(!code)return;
+  const messages:Record<string,[string,string]>={
+   existing_email:['Цей email вже зареєстрований. Увійдіть паролем і підключіть провайдера в кабінеті.','This email already has an account. Sign in with its password, then link the provider.'],
+   email_unverified:['Провайдер не підтвердив email.','The provider did not verify the email address.'],
+   invalid_state:['Сеанс входу завершився. Спробуйте ще раз.','Sign-in session expired. Try again.'],
+   cancelled:['Вхід скасовано.','Sign-in was cancelled.'],
+   link_conflict:['Цей провайдер вже пов’язаний з іншим акаунтом.','This provider belongs to a different account.']
+  };
+  const message=messages[code]||(uk?['Не вдалося завершити вхід. Спробуйте ще раз.',''] : ['','Could not finish sign-in. Please retry.']);
+  setError(uk?message[0]:message[1]);setOpen(true);
+  window.history.replaceState(null,'',window.location.pathname+window.location.hash);
+ },[uk]);
  useEffect(()=>{
   let alive=true;
   fetch('/api/v1/account/me',{credentials:'same-origin',cache:'no-store'})
@@ -130,7 +155,26 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
   }
   finally{setBusy(false)}
  }
- async function logout(){
+ async function socialLogin(provider:'google'|'apple'){
+  // Navigation is initiated only by clicking the provider button.
+  window.location.assign('/api/v1/account/oauth/'+provider+'/start?locale='+locale);
+ }
+ async function linkSocial(provider:'google'|'apple'){
+  setBusy(true);setError('');
+  try{
+   const response=await fetch('/api/v1/account/oauth/'+provider+'/link',{
+    method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({locale})
+   });
+   const payload=await readApiJson<{url:string}>(response);
+   const target=new URL(payload.url);
+   if((provider==='google'&&target.origin!=='https://accounts.google.com')||
+      (provider==='apple'&&target.origin!=='https://appleid.apple.com'))
+     throw new Error('Unexpected sign-in destination');
+   window.location.assign(target.toString());
+  }catch(e){setError(e instanceof Error?e.message:String(e));setBusy(false)}
+ }
+  async function logout(){
   setBusy(true);setError('');
   try{
    await readApiJson(await fetch('/api/v1/account/logout',{method:'POST',credentials:'same-origin'}));
@@ -161,6 +205,15 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
     <small>{user.role} · {user.subscription?.tier==='PREMIUM'?'Premium':'Free'}</small>
     <Link href={portalPath(locale,'personal')} onClick={()=>setOpen(false)}>{uk?'Galaxiora Personal — Мій Всесвіт':'Galaxiora Personal — My Universe'}</Link>
      <Link href={portalPath(locale,'account')} onClick={()=>setOpen(false)}>{uk?'Акаунт і запитання':'Account & questions'}</Link>
+    {(social.google||social.apple)&&<div className="as-social-connections">
+     <span>{uk?'Способи входу (необов’язково)':'Optional sign-in methods'}</span>
+     {social.google&&(social.linked.includes('google')?
+      <small>{uk?'Google підключено':'Google connected'}</small>:
+      <button type="button" onClick={()=>void linkSocial('google')} disabled={busy}>{uk?'Підключити Google':'Link Google account'}</button>)}
+     {social.apple&&(social.linked.includes('apple')?
+      <small>{uk?'Apple підключено':'Apple connected'}</small>:
+      <button type="button" onClick={()=>void linkSocial('apple')} disabled={busy}>{uk?'Підключити Apple':'Link Apple account'}</button>)}
+    </div>}
     {user.role==='ADMIN'&&<Link href={portalPath(locale,'admin')} onClick={()=>setOpen(false)}><Shield size={15}/>{uk?'Панель адміністратора':'Admin overview'}{expertUnread>0?' ('+expertUnread+')':''}</Link>}
     <button type="button" onClick={logout} disabled={busy}><LogOut size={15}/>{uk?'Вийти':'Sign out'}</button>
    </div>:<form onSubmit={authenticate} className="as-account-form">
@@ -182,6 +235,16 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
     {mode==='register'&&(siteKey?<div ref={challengeRef} aria-label={uk?'Захист від ботів':'Bot protection'}/>:<p role="status">{uk?'Реєстрація поки закрита: триває налаштування захисту.':'Registration is temporarily closed for security setup.'}</p>)}
     <button className="as-button as-button-primary" type="submit"
      disabled={busy||(mode==='register'&&(!siteKey||!turnstileToken))}><LogIn size={15}/>{mode==='login'?(uk?'Увійти':'Sign in'):mode==='verify'?(uk?'Підтвердити email':'Verify email'):(uk?'Отримати код':'Send verification code')}</button>
+    {mode!=='verify'&&(social.google||social.apple)&&
+     <div className="as-social-login" role="group" aria-label={uk?'Вхід через іншого провайдера':'Other sign-in options'}>
+      <span>{uk?'Або без пароля':'Or sign in without a password'}</span>
+      {social.google&&<button type="button" onClick={()=>void socialLogin('google')} disabled={busy}>
+       <span className="as-social-logo" aria-hidden="true">G</span>{uk?'Увійти через Google':'Continue with Google'}
+      </button>}
+      {social.apple&&<button type="button" onClick={()=>void socialLogin('apple')} disabled={busy}>
+       <span className="as-social-logo" aria-hidden="true">●</span>{uk?'Увійти через Apple':'Continue with Apple'}
+      </button>}
+     </div>}
     <button type="button" className="as-mode-toggle" onClick={()=>{setMode(mode==='login'?'register':'login');setError('');setTurnstileToken('')}}>{mode==='login'?(uk?'Створити акаунт':'Create an account'):(uk?'Повернутися до входу':'Back to sign in')}</button>
     <p className="as-account-guest-note">{uk?
      'Реєстрація необов’язкова. Джйотіш, Панчанга й Таро доступні без входу. Акаунт потрібен лише для збереження власних результатів.':

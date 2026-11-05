@@ -1,0 +1,60 @@
+name: G3.5 Optional Google and Apple Auth Security
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/api/src/social-auth.ts'
+      - 'apps/api/src/account.ts'
+      - 'apps/api/src/nest.ts'
+      - 'apps/api/src/main.ts'
+      - 'apps/api/prisma/schema.prisma'
+      - 'apps/api/prisma/migrations/20261105170000_optional_oidc_identities/migration.sql'
+      - 'apps/api/package.json'
+      - 'apps/web/app/components/GlobalAccount.tsx'
+      - 'apps/web/app/globals.css'
+      - 'e2e/mobile-header-account.spec.mjs'
+      - 'tools/g35-social-auth.test.mjs'
+      - 'tools/g35-aws-release.sh'
+      - 'tools/g35-release-contract.test.mjs'
+      - 'docs/operations/g35-google-apple-operator-guide-20261105.md'
+      - '.github/workflows/g35-social-auth.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/src/social-auth.ts'
+      - 'apps/api/src/account.ts'
+      - 'apps/api/src/nest.ts'
+      - 'apps/api/src/main.ts'
+      - 'apps/api/prisma/schema.prisma'
+      - 'apps/api/prisma/migrations/20261105170000_optional_oidc_identities/migration.sql'
+      - 'apps/api/package.json'
+      - 'apps/web/app/components/GlobalAccount.tsx'
+      - 'apps/web/app/globals.css'
+      - 'e2e/mobile-header-account.spec.mjs'
+      - 'tools/g35-social-auth.test.mjs'
+      - 'tools/g35-aws-release.sh'
+      - 'tools/g35-release-contract.test.mjs'
+      - 'docs/operations/g35-google-apple-operator-guide-20261105.md'
+      - '.github/workflows/g35-social-auth.yml'
+permissions:
+  contents: read
+jobs:
+  social-auth-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies and Prisma client
+        run: |
+          npm install --no-audit --no-fund
+          npm run db:generate
+      - name: Validate OIDC guards, legacy auth and server types
+        run: |
+          TSX_TSCONFIG_PATH=apps/api/tsconfig.json node --import tsx --test tools/g35-social-auth.test.mjs
+          node --experimental-strip-types --test tools/account-access.test.mjs
+          node --test tools/g35-release-contract.test.mjs
+          npm run build -w @jyotish/api
+      - name: No live OAuth provider or EC2 mutations
+        run: echo 'Provider credentials and production migrations are operator configured.'

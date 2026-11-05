@@ -10,6 +10,7 @@ import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts'
 import {SuccessfulConsultationCache} from './consultation-replay.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
+import {SocialAuthController} from './social-auth.ts';
 import {CHART_USE_CASES,SavedChartUseCases,SavedChartError} from './chart-application.ts';
 import {PrismaSavedChartStore} from './chart-prisma.ts';
 import {JYOTISH_REPORT_USE_CASES,JyotishReportUseCases} from './jyotish-report-application.ts';
@@ -192,7 +193,7 @@ for(const [method,types]of [
  Reflect.defineMetadata('design:paramtypes',types,JyotishController.prototype,method);
 }
 
-@Module({controllers:[InternalVisitorAnalyticsController,JyotishController,AccountController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,HoroscopeController,PanchangaController,PanchangaPlacesController,AstronomicalEventsController,VedicCalendarController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController,ComGrowthController],
+@Module({controllers:[InternalVisitorAnalyticsController,JyotishController,AccountController,SocialAuthController,AdminController,EditorialController,PublicContentController,ReadingOrdersController,TarotController,PersonalController,HoroscopeController,PanchangaController,PanchangaPlacesController,AstronomicalEventsController,VedicCalendarController,NewsController,ComController,ComSocialController,ComContextController,ComSafetyController,ComGrowthController],
  providers:[PrismaService,NewsIngestionService,
   {provide:CHART_USE_CASES,useFactory:(prisma:PrismaService)=>
    new SavedChartUseCases(new PrismaSavedChartStore(prisma),runCalculation,buildDetailedReport),inject:[PrismaService]},

@@ -71,3 +71,31 @@ test('desktop account dialog opens next to the button and never clips left viewp
  await page.mouse.click(4,4);
  await expect(dialog).toHaveCount(0);
 });
+
+
+test('G3.5: optional social buttons are visible only in account dialog and guest mode stays unobstructed',async({page})=>{
+ await page.route('**/api/v1/account/oauth/providers',route=>
+  route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   google:true,apple:true,linked:[]
+  })}));
+ await page.goto('/en');
+ await expect(page.getByRole('dialog',{name:'Account'})).toHaveCount(0);
+ await page.getByRole('button',{name:'Sign in'}).click();
+ const dialog=page.getByRole('dialog',{name:'Account'});
+ await expect(dialog.getByRole('button',{name:'Continue with Google'})).toBeVisible();
+ await expect(dialog.getByRole('button',{name:'Continue with Apple'})).toBeVisible();
+ await dialog.getByRole('button',{name:'Continue as guest'}).click();
+ await expect(dialog).toHaveCount(0);
+});
+test('G3.5: no nonfunctional provider buttons before backend setup',async({page})=>{
+ await page.route('**/api/v1/account/oauth/providers',route=>
+  route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   google:false,apple:false,linked:[]
+  })}));
+ await page.goto('/uk');
+ await page.getByRole('button',{name:'Увійти'}).click();
+ const dialog=page.getByRole('dialog',{name:'Обліковий запис'});
+ await expect(dialog.getByRole('button',{name:'Увійти через Google'})).toHaveCount(0);
+ await expect(dialog.getByRole('button',{name:'Увійти через Apple'})).toHaveCount(0);
+ await expect(dialog.getByRole('button',{name:'Продовжити без акаунта'})).toBeVisible();
+});
