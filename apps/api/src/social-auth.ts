@@ -26,6 +26,7 @@ function providerName(value:string):SocialProvider{
 }
 export function providerConfig(provider:SocialProvider){
  if(!authReady())return false;
+ try{publicOrigin();}catch{return false;}
  if(provider==='google')return !!(process.env.GOOGLE_OAUTH_CLIENT_ID&&process.env.GOOGLE_OAUTH_CLIENT_SECRET);
  const path=process.env.APPLE_OAUTH_PRIVATE_KEY_FILE;
  return !!(process.env.APPLE_OAUTH_SERVICE_ID&&process.env.APPLE_OAUTH_TEAM_ID&&
@@ -266,7 +267,10 @@ export class SocialAuthController {
    if(flow.actor){
     res.setHeader('Set-Cookie',clear);
    }else{
-    res.setHeader('Set-Cookie',[cookieHeader(sessionToken(userId),req),clear]);
+    const session=cookieHeader(sessionToken(userId),req);
+    // Public OAuth callbacks always return to HTTPS; enforce Secure even if
+    // Next's internal rewrite drops x-forwarded-proto.
+    res.setHeader('Set-Cookie',[session.includes('Secure')?session:session+'; Secure',clear]);
    }
    redirect(res,origin+'/'+locale+'/account?oauth=success',post);
   }catch(error){
