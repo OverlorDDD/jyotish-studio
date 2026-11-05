@@ -95,6 +95,7 @@ check_changes(){
  while IFS= read -r path; do
    case "$path" in
      .github/workflows/ci.yml|.github/workflows/g32-organic-engine.yml|\
+     .github/workflows/g33-release-safety.yml|\
      apps/web/app/components/OrganicIntentBridge.module.css|\
      apps/web/app/components/OrganicIntentBridge.tsx|\
      docs/seo/g322-search-console-connection-20261105.md|\
