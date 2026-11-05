@@ -15,20 +15,24 @@ test('G3 events require analytics opt-in and never send arbitrary private payloa
  await page.getByRole('button',{name:'Allow analytics'}).click();
  await page.goto('/en/tarot?question=PRIVATE_G3_TEST');
  await expect.poll(async()=>(await eventData(page)).some(e=>e.name==='public_tool_viewed'&&e.params.tool==='tarot')).toBe(true);
- const before=(await eventData(page)).length;
+ // Count only this funnel event. Background events may legitimately arrive
+ // asynchronously on mobile (e.g. Tarot initialization or a page view).
+ const started=events=>events.filter(x=>x.name==='public_tool_started');
+ const before=started(await eventData(page));
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('galaxiora:growth',{
   detail:{name:'public_tool_started',tool:'jyotish',question:'PRIVATE_G3_TEST'}
  })));
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('galaxiora:growth',{
   detail:{name:'public_tool_started',tool:'tarot',question:'PRIVATE_G3_TEST',birth:'PRIVATE_G3_TEST'}
  })));
+ await expect.poll(async()=>started(await eventData(page)).length).toBe(before.length+1);
  const after=await eventData(page);
- expect(after.length).toBe(before+1);
- const last=after.at(-1);
- expect(last.name).toBe('public_tool_started');
- expect(last.params.tool).toBe('tarot');
- expect(last.params.locale).toBe('en');
- expect(Object.keys(last.params).sort()).toEqual(['locale','send_to','tool']);
+ const accepted=started(after).slice(before.length);
+ expect(accepted).toHaveLength(1);
+ expect(accepted[0].name).toBe('public_tool_started');
+ expect(accepted[0].params.tool).toBe('tarot');
+ expect(accepted[0].params.locale).toBe('en');
+ expect(Object.keys(accepted[0].params).sort()).toEqual(['locale','send_to','tool']);
  const serialized=JSON.stringify(after);
  expect(serialized).not.toContain('PRIVATE_G3_TEST');
 });
