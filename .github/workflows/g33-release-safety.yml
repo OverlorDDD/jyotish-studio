@@ -1,0 +1,33 @@
+name: G3.3 Release Safety and First Users Contract
+on:
+  pull_request:
+    paths:
+      - 'tools/g33-aws-release.sh'
+      - 'tools/g33-release-contract.test.mjs'
+      - 'docs/seo/g33-first-real-visitors-20261105.md'
+      - 'docs/seo/g33-first-real-visitors-tracker-20261105.csv'
+      - '.github/workflows/g33-release-safety.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/g33-aws-release.sh'
+      - 'tools/g33-release-contract.test.mjs'
+      - 'docs/seo/g33-first-real-visitors-20261105.md'
+      - 'docs/seo/g33-first-real-visitors-tracker-20261105.csv'
+      - '.github/workflows/g33-release-safety.yml'
+permissions:
+  contents: read
+jobs:
+  release-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate guarded release and consent-safe experiment
+        run: |
+          bash -n tools/g33-aws-release.sh
+          node --test tools/g33-release-contract.test.mjs
+      - name: Prohibit production mutation from CI
+        run: echo 'Read-only CI. EC2 release requires operator SSH approval.'
