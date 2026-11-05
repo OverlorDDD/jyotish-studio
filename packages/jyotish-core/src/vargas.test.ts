@@ -110,3 +110,25 @@ test('Sampled time sensitivity identifies changed D60 Lagna without inventing mi
   {offsetMinutes:1,ascendantLongitude:10,points:base},
   {offsetMinutes:1,ascendantLongitude:11,points:base}]),/unique/);
 });
+
+test('D60 exact all-720 half-degree cell matrix and boundary-side geometry independent of LLM',()=>{
+ const counts=Array<number>(12).fill(0);
+ let checked=0;
+ for(let sign=0;sign<12;sign++)for(let part=0;part<60;part++){
+  const left=30*sign+0.5*part;
+  const expected=(sign+part)%12;
+  for(const offset of [1e-7,0.25,0.5-1e-7]){
+   assert.equal(vargaSign(left+offset,60),expected,
+    'D60 sign='+sign+' cell='+part+' position='+offset);
+   assert.equal(vargaPart(left+offset,60),part);
+   checked++;
+  }
+  counts[expected]++;
+  // A sector midpoint is precisely 0.25 deg from the next/previous edge.
+  assert.ok(Math.abs(vargaBoundaryDistanceArcseconds(left+0.25,60)-900)<0.01);
+ }
+ assert.equal(checked,2160);
+ assert.deepEqual(counts,Array(12).fill(60));
+ // 359.999999 deg and 0.000001 deg belong to different pinned D60 parts.
+ assert.notEqual(vargaSign(359.999999,60),vargaSign(0.000001,60));
+});
