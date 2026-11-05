@@ -196,15 +196,15 @@ if [[ "$(git diff --name-only)" == 'apps/web/next-env.d.ts' ]]; then git restore
 SWITCHED=0
 on_failure(){
  local code=$?
- trap - ERR
- if [[ "$SWITCHED" == 1 ]]; then
+ trap - EXIT ERR
+ if [[ "$code" != 0 && "$SWITCHED" == 1 ]]; then
    echo "G322_DEPLOY_FAILED attempting code-only rollback backup=$BACKUP" >&2
    G322_ROLLBACK_APPROVAL=I_APPROVE_CODE_ONLY_ROLLBACK rollback_to_backup "$BACKUP" ||
      echo "G322_ROLLBACK_NEEDS_OPERATOR backup=$BACKUP" >&2
  fi
  exit "$code"
 }
-trap on_failure ERR
+trap on_failure EXIT
 SWITCHED=1
 git switch --detach "$TARGET"
 npm install --no-audit --no-fund
@@ -223,7 +223,17 @@ console.log('G322_APPROVED_GALAXY_6_PASS');
 NODE
 # Do not restart API: this patch does not change the API, DB schema, or .env.
 sudo systemctl restart galaxiora-web
-sudo systemctl is-active --quiet galaxiora-web
+# Give Next.js enough time to initialize before judging the new build unhealthy.
+READY=0
+for attempt in $(seq 1 30); do
+ if sudo systemctl is-active --quiet galaxiora-web &&
+    curl -fsS --max-time 3 -o /dev/null http://127.0.0.1:3000/en; then
+   READY=1
+   break
+ fi
+ sleep 2
+done
+[[ "$READY" == 1 ]] || die 'New web did not become healthy; automatic rollback requested'
 sudo systemctl is-active --quiet galaxiora-api
 sudo systemctl is-active --quiet caddy
 for path in /en /uk /en/astrology/jyotish /en/panchanga /en/tarot /uk/astrology/jyotish /uk/panchanga /uk/tarot /robots.txt /sitemap.xml; do
@@ -234,6 +244,6 @@ for path in /en /uk /en/astrology/jyotish /en/panchanga /en/tarot; do
 done
 node --env-file=.env tools/g32-organic-health.mjs --json > "$BACKUP/postdeploy-seo-health.json"
 [[ "$(git rev-parse HEAD)" == "$TARGET" ]] || die 'Unexpected deployed HEAD after build'
-trap - ERR
+trap - EXIT
 SWITCHED=0
 echo "G322_PRODUCTION_RELEASE_VERIFIED sha=$TARGET rollback_backup=$BACKUP no_docker=true no_db_mutation=true"
