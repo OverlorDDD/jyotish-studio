@@ -106,10 +106,14 @@ const b64=obj=>Buffer.from(JSON.stringify(obj)).toString('base64url');
 export function finalizedGscWindow(now=new Date()){
  const fmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',
   year:'numeric',month:'2-digit',day:'2-digit'});
- const local=fmt.formatToParts(new Date(now.getTime()-4*86400000));
+ // Subtract calendar days AFTER determining the Pacific date. Subtracting
+ // 4*24h first can produce the wrong day across a DST transition.
+ const local=fmt.formatToParts(now);
  const part=type=>local.find(x=>x.type===type)?.value;
- const end=part('year')+'-'+part('month')+'-'+part('day');
- const start=new Date(Date.parse(end+'T12:00:00Z')-9*86400000).toISOString().slice(0,10);
+ const current=part('year')+'-'+part('month')+'-'+part('day');
+ const noonUtc=Date.parse(current+'T12:00:00Z');
+ const end=new Date(noonUtc-4*86400000).toISOString().slice(0,10);
+ const start=new Date(noonUtc-13*86400000).toISOString().slice(0,10);
  return {startDate:start,endDate:end,period:start+'..'+end,dayBoundary:'America/Los_Angeles',dataState:'final'};
 }
 function totals(rows){
