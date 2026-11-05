@@ -4,6 +4,8 @@ on:
     paths:
       - 'apps/web/lib/organic-intents.ts'
       - 'apps/web/app/components/OrganicIntentBridge.tsx'
+      - 'apps/web/app/components/OrganicIntentBridge.module.css'
+      - 'e2e/g32-organic-ux.spec.mjs'
       - 'apps/web/app/[locale]/astrology/jyotish/page.tsx'
       - 'apps/web/app/[locale]/panchanga/page.tsx'
       - 'apps/web/app/components/PortalSection.tsx'
@@ -41,15 +43,18 @@ jobs:
       - name: Test read-only audit, search intelligence and original content
         run: |
           npm run test:g32:organic
+          node --experimental-strip-types --test tools/g32-report-summary.test.mjs
+          node --experimental-strip-types --test tools/g32-date-window.test.mjs
+          node --experimental-strip-types --test tools/g32-credential-guard.test.mjs
           node --experimental-strip-types --test tools/galaxipedia-seo.test.mjs
           npm run test:seo:direct-intent
       - name: Production build without deployment
         run: npm run build
   read-only-reports:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # Never expose production GSC credentials to an arbitrary workflow_dispatch
+    # branch. Schedule runs on the default branch; manual runs must do so too.
+    if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    env:
-      GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -61,10 +66,17 @@ jobs:
         run: node --experimental-strip-types tools/g32-organic-health.mjs --json > artifacts/health.json
       - name: Optional read-only GSC report (missing access is UNKNOWN)
         if: always()
+        # Scope the secret to the only step that needs it, rather than to
+        # checkout, report formatting or artifact upload.
+        env:
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
         run: node --experimental-strip-types tools/g32-search-intelligence.mjs --json > artifacts/search.json
       - name: Curated content source integrity
         if: always()
         run: node --experimental-strip-types tools/g32-content-engine.mjs > artifacts/content.json
+      - name: Publish human-readable, privacy-safe daily scorecard
+        if: always()
+        run: node tools/g32-report-summary.mjs
       - name: Keep non-private operational artifacts
         if: always()
         uses: actions/upload-artifact@v4
