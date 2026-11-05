@@ -17,6 +17,10 @@ test('blind A/B local review is safe, responsive and never exposes A/B labels to
  assert.ok(html.includes('&lt;script&gt;alert(&quot;DO-NOT-EXECUTE&quot;)&lt;/script&gt;'));
  assert.ok(!html.includes('N4-SYNTH-01-uk-A')&&!html.includes('N4-SYNTH-01-uk-B'));
  assert.ok(html.includes('Зберегти мої оцінки'));
+ assert.equal((html.match(/class="source-proof"/g)||[]).length,24);
+ assert.ok(html.includes('D9 Lagna sign='));
+ assert.ok(html.includes('D10 Lagna sign='));
+ assert.ok(!html.includes('SYNTHETIC_TEST_ONLY_NEVER_REAL_BIRTH'));
  assert.equal((html.match(/<select data-score=/g)||[]).length,24*6);
  assert.equal((html.match(/data-critical/g)||[]).length,24+1);
 });

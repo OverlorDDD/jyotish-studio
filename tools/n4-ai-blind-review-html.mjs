@@ -1,5 +1,7 @@
 /** A read-only, local, blind comparison of 48 REAL synthetic-only provider responses. */
-import {n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
+import {n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION,n4SyntheticAuditChart} from './n4-ai-synthetic-profiles.mjs';
+import {n4InternalServerSnapshot} from '../apps/api/src/n4-varga-contract.ts';
+import {selectN4NarrativeThemes} from '../apps/api/src/n4-interpretation-brief.ts';
 import {N4_EDITORIAL_VARIANT_VERSION,auditN4PairedModelIdentity} from './n4-ai-editorial-variants.mjs';
 const escape=(value)=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const scores=['Достовірність положень та управителів','Синтез D1, D9, D10 та двох тематичних варг','Індивідуальність щодо інших карт','Реалістичні альтернативи й практичний крок','Природність української чи англійської','Чесність щодо часу народження й меж висновків'];
@@ -28,10 +30,20 @@ export function renderN4BlindReview(rows){
   const flip=(seed+(lang==='uk'?1:0))%2===0;
   const left=flip?b:a,right=flip?a:b;
   const pair='n4-'+String(seed+1).padStart(2,'0')+'-'+lang;
+  const chart=n4SyntheticAuditChart(seed);
+  const source=n4InternalServerSnapshot(chart);
+  const selected=[1,9,10,...selectN4NarrativeThemes(chart).map(t=>t.division)];
+  const sourceRows=selected.map(d=>{
+   const c=source.charts.find(row=>row.division===d);
+   if(!c)throw Error('Missing independently calculated D'+d+' source facts');
+   return 'D'+d+' Lagna sign='+c.lagnaSign+'; '+c.planets.map(p=>
+    p.name+' sign='+p.sign+' house='+p.house).join('; ');
+  }).join('\n');
   const fields=scores.map((label,i)=>'<label>'+escape(label)+'<select data-score="'+i+
    '"><option value="">Оцінка 0–4</option>'+
    [0,1,2,3,4].map(n=>'<option value="'+n+'">'+n+'</option>').join('')+'</select></label>').join('');
   blocks.push('<section class="pair" data-pair="'+pair+'"><h2>Карта '+(seed+1)+' · '+lang.toUpperCase()+'</h2>'+
+    '<details class="source-proof"><summary>Перевірити еталонні положення D1, D9, D10 і тематичних варг</summary><pre>'+escape(sourceRows)+'</pre></details>'+ 
     '<div class="comparison"><article><h3>Версія 1</h3><div class="prose">'+escape(left.text)+'</div></article>'+
     '<article><h3>Версія 2</h3><div class="prose">'+escape(right.text)+'</div></article></div>'+
     '<div class="assessment"><fieldset><legend>Яке трактування краще?</legend>'+
@@ -46,7 +58,7 @@ export function renderN4BlindReview(rows){
   'body{margin:0 auto;max-width:1240px;padding:clamp(12px,3vw,30px);background:#0c1021;color:#e9ecfb;font:16px/1.55 system-ui}'+
   'h1,h2,h3{line-height:1.25}p{color:#b5c0da}.pair{margin:26px 0;padding:18px;border:1px solid #414b68;border-radius:16px}'+
   '.comparison{display:grid;grid-template-columns:1fr 1fr;gap:16px}.comparison article{min-width:0;padding:16px;background:#181d36;border-radius:12px}'+
-  '.prose{white-space:pre-wrap;overflow-wrap:anywhere;max-height:550px;overflow:auto}.assessment{margin-top:16px}'+
+  '.prose,.source-proof pre{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}.source-proof pre{overflow:auto;background:#202844;padding:10px;border-radius:8px}.prose{max-height:550px;overflow:auto}.assessment{margin-top:16px}'+
   'fieldset{display:flex;gap:20px;flex-wrap:wrap;border:1px solid #59637c;border-radius:10px}'+
   '.scores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}'+
   'label{display:block}input,select,textarea,button{font:inherit}select,textarea{display:block;width:100%;box-sizing:border-box;padding:8px;background:#252b44;color:white;border:1px solid #626e90;border-radius:7px}'+
