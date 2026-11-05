@@ -17,7 +17,7 @@ export function inspectN4OriginalJHoraIni(bytes){
  if(!Buffer.isBuffer(bytes)||bytes.length<50||bytes.length>2_000_000)
   throw Error('JHora8 INI bytes not available or too large');
  const text=bytes.toString('latin1');
- const settings=new Map<string,string>();
+ const settings=new Map();
  for(const match of text.matchAll(/^([A-Za-z][A-Za-z0-9_]*)\s*=\s*([^\r\n]*)/gm)){
   if(settings.has(match[1])&&settings.get(match[1])!==match[2].trim())
    throw Error('Conflicting INI calculation value for '+match[1]);
