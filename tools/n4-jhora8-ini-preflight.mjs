@@ -13,7 +13,7 @@ export const N4_ORIGINAL_JHORA_PINNED_SETTINGS=Object.freeze({
  D60Preference:'0',DivLongFromEndToo:'0',Siddhanta:'0',
  TopocentricPositions:'0',TruePositions:'1',TrueNodes:'0',UserSelectedAyanamsa:'0'
 });
-export function inspectN4OriginalJHoraIni(bytes:Buffer){
+export function inspectN4OriginalJHoraIni(bytes){
  if(!Buffer.isBuffer(bytes)||bytes.length<50||bytes.length>2_000_000)
   throw Error('JHora8 INI bytes not available or too large');
  const text=bytes.toString('latin1');
