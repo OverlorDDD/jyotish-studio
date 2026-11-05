@@ -113,7 +113,7 @@ check_changes(){
      e2e/r42-ga4-diagnostics.spec.mjs|e2e/visitor-analytics.spec.mjs|\
      tools/r42-growth.test.mjs|tools/visitor-analytics.test.mjs|\
      tools/g34-first-party-analytics.test.mjs|tools/admin-realtime-ga4.test.mjs|\
-     tools/g35-aws-release.sh|tools/g34-release-contract.test.mjs|\
+     tools/g34-aws-release.sh|tools/g35-aws-release.sh|tools/g34-release-contract.test.mjs|\
      .github/workflows/g34-first-party-analytics.yml|\
      docs/operations/g34-first-party-analytics-social-login-20261105.md|\
      apps/api/src/social-auth.ts|apps/api/src/account.ts|apps/api/src/main.ts|apps/api/src/nest.ts|\

@@ -19,7 +19,8 @@ test('Refuse unreviewed code and exact main race; do not edit or reset .env',()=
   'social-auth-security','analytics-contract',
   'apps/api/src/social-auth.ts','apps/api/prisma/schema.prisma',
   '20261105170000_optional_oidc_identities/migration.sql',
-  'apps/web/app/components/AdminAnalyticsPanel.tsx'])
+  'apps/web/app/components/AdminAnalyticsPanel.tsx',
+  'tools/g34-aws-release.sh'])
   assert.ok(script.includes(marker),marker);
  for(const unsafe of [
   /\bgit\s+reset\s+--hard\b/,/\bgit\s+clean\b/,/\bgit\s+stash\b/,
