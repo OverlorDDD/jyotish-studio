@@ -164,7 +164,9 @@ test('Direct Jyotish meters real successful HTTP results even when local prose i
    usage:{prompt_tokens:350,completion_tokens:50,total_tokens:400}}),{status:200})
  });
  assert.equal(output.result,null);
- assert.equal(events.length,1);
+ assert.equal(events.length,2,'legacy writer did two actual HTTP calls: each must be metered');
+ assert.deepEqual(events.map(e=>e.totalTokens),[400,400]);
+ assert.equal(events.reduce((n,e)=>n+(e.totalTokens||0),0),800);
  assert.equal(events[0].promptTokens,350);
  assert.equal(events[0].completionTokens,50);
  assert.equal(events[0].totalTokens,400);
