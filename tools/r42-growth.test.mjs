@@ -26,7 +26,8 @@ test('R4.2 accepts only normalized public URL paths, without private query data'
 test('R4.2 GA4 is opt-in only and disabled without public measurement configuration',()=>{
  const code=read('apps/web/app/components/GrowthConsent.tsx');
  assert.match(code,/NEXT_PUBLIC_GA4_MEASUREMENT_ID/);
- assert.match(code,/if\(!enabled\|\|!loaded\)return null/);
+ assert.match(code,/return null/);
+ assert.match(code,/galaxiora:analytics-choice/);
  assert.match(code,/choice!=='accepted'/);
  assert.match(code,/analytics_storage:'granted'/);
  assert.match(code,/ad_storage:'denied'/);
@@ -39,10 +40,15 @@ test('R4.2 GA4 is opt-in only and disabled without public measurement configurat
 test('R4.2 has bilingual choice, withdrawal and truthful privacy notice',()=>{
  const layout=read('apps/web/app/layout.tsx');
  const component=read('apps/web/app/components/GrowthConsent.tsx');
+ const preferences=read('apps/web/app/components/AnalyticsPreferences.tsx');
  const privacy=read('apps/web/app/[locale]/privacy/page.tsx');
  assert.match(layout,/GrowthConsent/);
- for(const key of ['Відхилити','Reject','Дозволити аналітику','Allow analytics','Відкликати згоду','Withdraw consent'])
-  assert.ok(component.includes(key),key);
+ assert.match(privacy,/AnalyticsPreferences/);
+ assert.doesNotMatch(component,/role="dialog"|position:'fixed'|Analytics settings|Налаштування аналітики/);
+ for(const key of ['Залишити вимкненою','Keep analytics off','Дозволити аналітику','Allow analytics','Відкликати згоду','Withdraw consent'])
+  assert.ok(preferences.includes(key),key);
+ assert.match(preferences,/galaxiora:analytics-choice/);
+ assert.match(preferences,/choice==='accepted'&&value==='rejected'/);
  assert.ok(privacy.includes('Google Analytics 4'));
  assert.ok(privacy.includes('Google may process'));
  assert.ok(privacy.includes('Google може обробляти'));
@@ -92,8 +98,10 @@ test('R4 diagnostics: GA4 consent default is queued before js/config, no tag bef
  assert.match(init,/tagStatus\('loading'\)/);
  assert.match(init,/tagStatus\('loaded'\)/);
  assert.match(init,/tagStatus\('blocked'\)/);
- assert.match(code,/data-testid="analytics-tag-status"/);
- assert.match(code,/window\.location\.reload\(\)/);
+ const preferences=read('apps/web/app/components/AnalyticsPreferences.tsx');
+ assert.match(preferences,/data-testid="analytics-consent-state"/);
+ assert.match(preferences,/window\.location\.reload\(\)/);
+ assert.doesNotMatch(code,/localStorage\.setItem/);
  const home=read('apps/web/app/components/PortalHome.tsx');
  assert.match(home,/Астрологія, Таро та Панчанга/);
  assert.match(home,/Astrology, Tarot & Panchanga/);
