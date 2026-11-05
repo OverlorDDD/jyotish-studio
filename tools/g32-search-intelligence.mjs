@@ -239,7 +239,12 @@ export async function runSearchIntelligence({args=process.argv.slice(2),env=proc
   return summarizeConnectedGsc(found);
  }catch(e){
   // No private credential, raw query, token or server response is exposed.
-  const reason=String(e?.message||'GSC API unavailable').slice(0,170);
+  const message=String(e?.message||'');
+  // Network/library errors may echo headers or request objects. Report only
+  // reviewed status codes, never arbitrary exception messages.
+  const reason=/^GSC_(?:OAUTH_HTTP_[0-9]{3}|OAUTH_NO_TOKEN|SITES_HTTP_[0-9]{3}|SEARCH_ANALYTICS_HTTP_[0-9]{3}|INVALID_ROWS|DIMENSION_MISMATCH)/.test(message)
+   ?message.split(':')[0]:'/GSC_PROPERTY_ACCESS_MISSING/.test(message)
+    ?'GSC_PROPERTY_ACCESS_MISSING':'GSC_API_UNAVAILABLE_OR_INVALID_CREDENTIALS';
   return {...summarizeGscRows([],{mode:'GSC_API_unavailable'}),
    access:'blocked',
    propertyTotals:{clicks:null,impressions:null,ctr:null,position:null},
