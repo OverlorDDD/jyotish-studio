@@ -13,7 +13,7 @@ test('Referrer source classification returns only approved categories, never URL
   ['https://www.reddit.com/r/astro','', 'social'],
   ['https://t.me/galaxiora','', 'social'],
   ['https://example.org/private?birth=123','', 'other_referral'],
-  ['https://galaxiora.com/en/news','', 'unknown'],
+  ['https://galaxiora.com/en/news','', 'internal'],
   [null,'?utm_source=telegram&utm_medium=social&utm_campaign=astro_basics','social'],
   [null,'?utm_source=partner&utm_medium=social&utm_campaign=astro_basics','partner_tag'],
   [null,'?utm_source=evil&utm_medium=private&birthDate=SECRET','unknown'],
