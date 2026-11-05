@@ -41,7 +41,8 @@ test('Admin real-time endpoint cannot expose Google credentials or bypass ADMIN 
  assert.doesNotMatch(service,/user_id|email.*metric|birthDate|birthTime|TarotQuestion/);
  assert.match(ui,/\/api\/v1\/admin\/traffic\/realtime/);
  assert.match(panel,/traffic\?\.status==='not_configured'/);
- assert.match(panel,/traffic\?\.status==='unavailable'/);
+ assert.match(panel,/gaStatus/);
+ assert.match(panel,/Unavailable/);
  assert.match(panel,/activeUsers30m/);
 });
 
