@@ -47,7 +47,8 @@ model User {
  id String @id @default(uuid())
  createdAt DateTime @default(now())
  email String @unique
- passwordHash String
+ passwordHash String?
+ externalIdentities ExternalIdentity[]
  role UserRole @default(MEMBER)
  subscriptionTier SubscriptionTier @default(FREE)
  subscriptionEndsAt DateTime?
@@ -78,6 +79,18 @@ model User {
  practiceSessions PersonalPracticeSession[]
  readingOrders ReadingOrder[] @relation("OrderCustomer")
  expertOrders ReadingOrder[] @relation("OrderExpert")
+}
+
+/** Provider subject is authoritative; never infer account ownership from email alone. */
+model ExternalIdentity {
+ id String @id @default(uuid())
+ provider String @db.VarChar(12)
+ subject String @db.VarChar(255)
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ createdAt DateTime @default(now())
+ @@unique([provider,subject])
+ @@index([userId])
 }
 
 model Chart {
