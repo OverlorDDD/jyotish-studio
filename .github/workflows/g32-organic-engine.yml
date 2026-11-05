@@ -44,6 +44,7 @@ jobs:
         run: |
           npm run test:g32:organic
           node --experimental-strip-types --test tools/g32-report-summary.test.mjs
+          node --experimental-strip-types --test tools/g32-date-window.test.mjs
           node --experimental-strip-types --test tools/galaxipedia-seo.test.mjs
           npm run test:seo:direct-intent
       - name: Production build without deployment
