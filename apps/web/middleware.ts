@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server';
 import type {NextRequest,NextFetchEvent} from 'next/server';
-import {eligiblePublicHtmlSection} from './lib/visitor-analytics-policy';
+import {eligiblePublicHtmlSection,classifyReferralBucket} from './lib/visitor-analytics-policy';
 
 /** Single public Jyotish website. Guest tools are available without login.
  * Protect user history at the NestJS API layer, not by hiding the entire site. */
@@ -26,7 +26,7 @@ export function middleware(request:NextRequest,event:NextFetchEvent){
  if(section){
   event.waitUntil(fetch((process.env.INTERNAL_API_ORIGIN||'http://127.0.0.1:4000')+'/api/v1/internal/visitor-analytics/hit',{
    method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','x-galaxiora-internal-key':secret!},
-   body:JSON.stringify({section})
+   body:JSON.stringify({section,channel:classifyReferralBucket(request.headers.get('referer'),request.nextUrl.search)})
   }).then(()=>{}).catch(()=>{}));
  }
  // Never cache authenticated views or frequently changing user-generated feeds.
