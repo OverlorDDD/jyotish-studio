@@ -243,8 +243,9 @@ export async function runSearchIntelligence({args=process.argv.slice(2),env=proc
   // Network/library errors may echo headers or request objects. Report only
   // reviewed status codes, never arbitrary exception messages.
   const reason=/^GSC_(?:OAUTH_HTTP_[0-9]{3}|OAUTH_NO_TOKEN|SITES_HTTP_[0-9]{3}|SEARCH_ANALYTICS_HTTP_[0-9]{3}|INVALID_ROWS|DIMENSION_MISMATCH)/.test(message)
-   ?message.split(':')[0]:'/GSC_PROPERTY_ACCESS_MISSING/.test(message)
-    ?'GSC_PROPERTY_ACCESS_MISSING':'GSC_API_UNAVAILABLE_OR_INVALID_CREDENTIALS';
+   ?message.split(':')[0]
+   :message.startsWith('GSC_PROPERTY_ACCESS_MISSING')?'GSC_PROPERTY_ACCESS_MISSING'
+   :'GSC_API_UNAVAILABLE_OR_INVALID_CREDENTIALS';
   return {...summarizeGscRows([],{mode:'GSC_API_unavailable'}),
    access:'blocked',
    propertyTotals:{clicks:null,impressions:null,ctr:null,position:null},
