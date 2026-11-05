@@ -101,7 +101,7 @@ export function buildN4CompletePrompt(chart:CalculatedChart,lang:'uk'|'en',asOf:
   'Do not presume marriage, employment, children or illness in real life. Avoid guaranteed outcomes, investment prescriptions and medical diagnoses.',
   'Use only calculated periods if available and never invent exact event dates. Finish complete sentences. Return final report Markdown only.'
  ].join('\n');
- const graha=p=>p.name+':s'+p.sign+'/h'+p.house+
+ const graha=(p:{name:string;sign:number;house:number;dignity:string})=>p.name+':s'+p.sign+'/h'+p.house+
   (p.dignity==='other'||p.dignity==='unassigned'?'':'/'+p.dignity);
  const facts=e.scopes.filter(x=>x.status==='INTERNAL_MATH_ONLY').map(x=>
   'D'+x.division+' '+x.scope+' D1H'+x.house+'lord='+x.domainLord+
