@@ -6,6 +6,8 @@
  */
 import {existsSync,appendFileSync,readFileSync} from 'node:fs';
 import {n4SafeLocalOutput} from './n4-ai-capture-path.mjs';
+import {createN4SyntheticCaptureBudget} from './n4-ai-capture-budget.mjs';
+import {consumeFreeAiRequest} from '../apps/api/src/free-ai.ts';
 import {generateDirectJyotish} from '../apps/api/src/direct-jyotish.ts';
 import {n4SyntheticAuditChart,n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
 import {n4SyntheticVariantFetcher,N4_EDITORIAL_VARIANT_VERSION} from './n4-ai-editorial-variants.mjs';
@@ -30,6 +32,7 @@ if(previous.some(x=>x.corpus!==N4_LIVE_AUDIT_CORPUS_VERSION))
  throw Error('Mixed corpus versions in output — refuse');
 process.env.N4_VARGA_AI_ENABLED='1';
 process.env.N4_VARGA_INDEPENDENT_REFERENCE_APPROVED='1'; // ISOLATED TEST-ONLY; no server, no production flags.
+const budget=createN4SyntheticCaptureBudget(2,consumeFreeAiRequest);
 let completed=0;
 for(let i=from;i<from+size;i++){
  const sample=n4AuditSampleId(i);
@@ -37,6 +40,7 @@ for(let i=from;i<from+size;i++){
  const chart=n4SyntheticAuditChart(sample.seed),diagnostics=[];
  const outcome=await generateDirectJyotish(chart,sample.lang,'2026-11-04',{
   order:[provider],keys:{[provider]:keys[provider]},freeConfirmed:{[provider]:true},
+  limit:budget.limit,
   fetcher:n4SyntheticVariantFetcher(fetch,sample.variant),
   onDiagnostic:d=>diagnostics.push({stage:d.stage,reason:d.reason,httpStatus:d.httpStatus})
  });
@@ -49,4 +53,4 @@ for(let i=from;i<from+size;i++){
  console.log('N4_SYNTHETIC_LIVE_QA_CAPTURED '+sample.id+' status='+(outcome.result?'ACCEPTED':'REJECTED'));
  completed++;
 }
-console.log('N4_LIVE_QA_PROVENANCE_SAVED_LOCALLY only_synthetic=true captured='+completed);
+console.log('N4_LIVE_QA_PROVENANCE_SAVED_LOCALLY only_synthetic=true captured='+completed+' actual_attempts='+budget.used());
