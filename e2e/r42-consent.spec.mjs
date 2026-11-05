@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 test('R4.2 quiet default: no banner, floating control or Google tag before opt-in',async({page})=>{
  const requested=[];
- await page.route(/googletagmanager\\.com|google-analytics\\.com/,route=>{
+ await page.route(/googletagmanager\.com|google-analytics\.com/,route=>{
   requested.push(route.request().url());
   return route.fulfill({status:200,contentType:'application/javascript',body:''});
  });
@@ -20,7 +20,7 @@ test('R4.2 quiet default: no banner, floating control or Google tag before opt-i
 
 test('R4.2 opt-in on Privacy sends scrubbed public paths and blocks private routes',async({page})=>{
  const requested=[];
- await page.route(/googletagmanager\\.com|google-analytics\\.com/,route=>{
+ await page.route(/googletagmanager\.com|google-analytics\.com/,route=>{
   requested.push(route.request().url());
   return route.fulfill({status:200,contentType:'application/javascript',body:''});
  });
@@ -38,7 +38,7 @@ test('R4.2 opt-in on Privacy sends scrubbed public paths and blocks private rout
 });
 
 test('R4.2 user may withdraw consent from Privacy and it remains disabled after reload',async({page})=>{
- await page.route(/googletagmanager\\.com|google-analytics\\.com/,route=>
+ await page.route(/googletagmanager\.com|google-analytics\.com/,route=>
   route.fulfill({status:200,contentType:'application/javascript',body:''}));
  await page.goto('/en/privacy');
  await page.getByRole('button',{name:'Allow analytics'}).click();
