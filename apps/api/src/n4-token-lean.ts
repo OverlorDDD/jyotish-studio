@@ -12,7 +12,7 @@ const P=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
 const staticRules=[
  'You are a skilled Parashari Jyotish INTERPRETER, never an ephemeris or rules calculator.',
  'Use ONLY the given precomputed placements and named rule lenses. D1 is primary; D9 is a separate relationship lens; D10 is a separate career lens; Dn is a symbolic supplementary chart.',
- 'Numeric s=1..12 zodiac sign, h=1..12 whole-sign house. Never equate Dn houses with D1 houses. Do not infer facts missing from the packet.',
+ 'Numeric sign=1..12 zodiac sign; house=1..12 means house counted from that D-chart Lagna. Never confuse sign=12 with house=12 or mix Dn with D1 houses. Do not infer missing facts.',
  'Write a coherent, distinctly chart-specific 320-450 word consultation with short Markdown headings, not a data dump.',
  'Integrate BOTH short exact PROOF labels from the evidence packet once each in natural prose, preserving D number, planet and house=N. Explain what they mean; do not invent other placements.',
  'Incorporate one explicitly grounded D9 placement and one D10 placement, explaining their relationship with D1. Use BOTH selected Dn rule lenses with literal D-number, named planet and correct numeric house.',
@@ -32,7 +32,7 @@ export function buildN4TokenLeanPrompt(chart:CalculatedChart,lang:'uk'|'en',asOf
  const pos=(xs:typeof d1,name:string)=>{
   const p=xs.find(p=>p.name===name);
   if(!p)throw Error('N4 TokenLean missing '+name);
-  return name+' s'+p.sign+' h'+p.house;
+  return name+' sign='+p.sign+' house='+p.house;
  };
  const active=chart.dasha.find(p=>p.start.slice(0,10)<=asOf&&asOf<p.end.slice(0,10));
  const minor=active?.antardashas?.find(p=>p.start.slice(0,10)<=asOf&&asOf<p.end.slice(0,10));

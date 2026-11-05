@@ -6,19 +6,25 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {selectN4NarrativeThemes,reviewN4Narrative} from './n4-interpretation-brief.ts';
 import {auditN4ExplicitClaims} from './n4-ai-claims.ts';
+import {extractN4NaturalHouseClaims} from './n4-natural-house-claims.ts';
+import {n4InternalServerSnapshot} from './n4-varga-contract.ts';
 import {reviewGeneratedConsultation} from './consultation-prose-review.ts';
 
-export const N4_EDITORIAL_GATE_VERSION='n4-editorial-gate-v2' as const;
+export const N4_EDITORIAL_GATE_VERSION='n4-editorial-gate-v3' as const;
 const criticalProse=new Set(['potential_house_lord_mismatch','unsupported_financial_directive','uk_language_defects']);
 export function reviewN4EditorialGate(text:string,chart:CalculatedChart,lang:'uk'|'en',asOf:string){
  const themes=selectN4NarrativeThemes(chart);
  const narrative=reviewN4Narrative(text,themes);
  const claims=auditN4ExplicitClaims(text,chart);
+ const natural=extractN4NaturalHouseClaims(text);
+ const source=n4InternalServerSnapshot(chart).charts;
+ const naturalErrors=natural.filter(c=>source.find(v=>v.division===c.division)
+  ?.planets.find(p=>p.name===c.planet)?.house!==c.house);
  const supported=themes.filter(t=>claims.claims.some(c=>c.startsWith('D'+t.division+' ')));
  const prose=reviewGeneratedConsultation(text,chart,lang,asOf);
  const codes=[
   ...narrative.codes,
-  ...(claims.errors.length?['n4_explicit_planet_sign_or_house_mismatch']:[]),
+  ...(claims.errors.length||naturalErrors.length?['n4_explicit_planet_sign_or_house_mismatch']:[]),
   ...(claims.correct<2?['n4_insufficient_two_verified_placement_claims']:[]),
   ...(supported.length<2?['n4_missing_grounded_placement_in_two_selected_lenses']:[]),
   ...prose.codes.filter(c=>criticalProse.has(c)).map(c=>'n4_'+c)
@@ -29,6 +35,8 @@ export function reviewN4EditorialGate(text:string,chart:CalculatedChart,lang:'uk
   selectedDivisions:Object.freeze(themes.map(t=>t.division)),
   groundedDivisions:Object.freeze(supported.map(t=>t.division)),
   validatedClaims:claims.correct,
+  checkedNaturalHouseAssertions:natural.length,
+  rejectedNaturalHouseAssertions:naturalErrors.length,
   // Advisory-only: style, length and non-critical prose gaps still need human review.
   advisory:Object.freeze(prose.codes.filter(c=>!criticalProse.has(c)))
  });
