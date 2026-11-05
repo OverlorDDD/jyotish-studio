@@ -6,6 +6,7 @@ import {N4_NARRATIVE_VERSION,selectN4NarrativeThemes,compactN4NarrativeBrief,rev
 import {N4_AI_INSTRUCTION,compactN4VargaFacts,n4AiEligible}
  from '../apps/api/src/n4-varga-evidence.ts';
 import {generateDirectJyotish} from '../apps/api/src/direct-jyotish.ts';
+import {reviewN4EditorialGate} from '../apps/api/src/n4-editorial-gate.ts';
 
 const names=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const birth={date:'2000-01-01',time:'12:00',timeZone:'Europe/Kyiv',latitude:49.2,longitude:33.4};
@@ -108,4 +109,23 @@ test('N4 cloud adapter sees only verified facts and rejects missing two D lenses
   if(saved.enabled===undefined)delete process.env.N4_VARGA_AI_ENABLED;else process.env.N4_VARGA_AI_ENABLED=saved.enabled;
   if(saved.approved===undefined)delete process.env.N4_VARGA_INDEPENDENT_REFERENCE_APPROVED;else process.env.N4_VARGA_INDEPENDENT_REFERENCE_APPROVED=saved.approved;
  }
+});
+
+test('N4 production and 48-response validator share one strict gate for different selected lenses',()=>{
+ const chart=synthetic(4),selected=selectN4NarrativeThemes(chart);
+ const one=selected[0],two=selected[1];
+ const quote=(d)=>'D'+d.division+' '+d.anchor+' house='+d.vargaAnchorHouse;
+ const good=quote(one)+' and '+quote(two)+' describe two separately checked varga lenses. D9 and D10 are also discussed.';
+ const valid=reviewN4EditorialGate(good,chart,'en','2026-11-04');
+ assert.deepEqual(valid.codes,[]);
+ assert.deepEqual(valid.groundedDivisions,[one.division,two.division]);
+ const sameLens=quote(one)+' D'+one.division+' '+one.anchor+' sign='+one.vargaAnchorSign+
+  ' while D'+two.division+' matters to the overall narrative.';
+ const bad=reviewN4EditorialGate(sameLens,chart,'en','2026-11-04');
+ assert.ok(bad.codes.includes('n4_missing_grounded_placement_in_two_selected_lenses'));
+ const wrong=reviewN4EditorialGate(quote(one)+' D'+two.division+' '+two.anchor+' house='+
+  (two.vargaAnchorHouse===12?1:two.vargaAnchorHouse+1),chart,'en','2026-11-04');
+ assert.ok(wrong.codes.includes('n4_explicit_planet_sign_or_house_mismatch'));
+ const unsupported=reviewN4EditorialGate(good+' D60 proves a guaranteed event.',chart,'en','2026-11-04');
+ assert.ok(unsupported.codes.includes('n4_unsupported_d60_narrative'));
 });

@@ -7,9 +7,7 @@ import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {n4SyntheticAuditChart,n4AuditSampleId,N4_LIVE_AUDIT_CORPUS_VERSION} from './n4-ai-synthetic-profiles.mjs';
 import {N4_EDITORIAL_VARIANT_VERSION,auditN4PairedModelIdentity} from './n4-ai-editorial-variants.mjs';
-import {selectN4NarrativeThemes,reviewN4Narrative} from '../apps/api/src/n4-interpretation-brief.ts';
-import {auditN4ExplicitClaims} from '../apps/api/src/n4-ai-claims.ts';
-import {reviewGeneratedConsultation} from '../apps/api/src/consultation-prose-review.ts';
+import {reviewN4EditorialGate} from '../apps/api/src/n4-editorial-gate.ts';
 import {acceptDirectJyotishText} from '../apps/api/src/direct-jyotish.ts';
 const f=process.argv[2];if(!f)throw Error('Usage: node --experimental-strip-types tools/n4-ai-evaluate-live.mjs /absolute/path/to/provider-responses.jsonl');
 const rows=readFileSync(resolve(f),'utf8').split('\n').filter(Boolean).map(s=>JSON.parse(s));
@@ -24,13 +22,9 @@ for(const row of rows){
   issues.push({id:row.id,reasons:['missing_real_provider_response']});continue;
  }
  const chart=n4SyntheticAuditChart(row.seed);
- const editorial=reviewN4Narrative(row.text,selectN4NarrativeThemes(chart));
- const explicit=auditN4ExplicitClaims(row.text,chart);
- const quality=reviewGeneratedConsultation(row.text,chart,row.lang,'2026-11-04');
+ const gate=reviewN4EditorialGate(row.text,chart,row.lang,'2026-11-04');
  const accept=acceptDirectJyotishText(row.text);
- const local=[...editorial.codes,...quality.codes,...explicit.errors.map(()=> 'numeric_placement_mismatch'),
-  ...(explicit.correct<2?['fewer_than_two_source_matched_placements']:[]),
-  ...(!accept.ok?['incomplete_or_unsupported_prose']:[])];
+ const local=[...gate.codes,...gate.advisory,...(!accept.ok?['incomplete_or_unsupported_prose']:[])];
  const digest=createHash('sha256').update(row.text).digest('hex');
  if(same.has(digest)&&same.get(digest)!==row.id)local.push('verbatim_repeated_response');
  same.set(digest,row.id);

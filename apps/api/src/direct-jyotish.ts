@@ -1,7 +1,7 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {compactN4VargaFacts,n4AiEligible,N4_AI_INSTRUCTION} from './n4-varga-evidence.ts';
-import {selectN4NarrativeThemes,compactN4NarrativeBrief,reviewN4Narrative} from './n4-interpretation-brief.ts';
-import {auditN4ExplicitClaims} from './n4-ai-claims.ts';
+import {compactN4NarrativeBrief} from './n4-interpretation-brief.ts';
+import {reviewN4EditorialGate} from './n4-editorial-gate.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
@@ -111,7 +111,7 @@ export async function generateDirectJyotish(
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim()).filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
  const n4Approved=n4AiEligible();
- const n4Themes=n4Approved?selectN4NarrativeThemes(chart):null;
+
  const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf))+
   (n4Approved?'\n\n'+compactN4VargaFacts(chart)+'\n\n'+compactN4NarrativeBrief(chart):'');
  const permit=opts.limit||consumeFreeAiRequest;
@@ -180,21 +180,14 @@ export async function generateDirectJyotish(
     // N4's new output may not quietly ignore its additional verified charts.
     // These checks apply ONLY after the two explicit N4 approval switches.
     // Historical Reader v6 and ordinary Direct v2 responses are untouched.
-    if(n4Themes){
-     const n4Review=reviewN4Narrative(content,n4Themes);
-     const checked=auditN4ExplicitClaims(content,chart);
-     const supported=new Set(n4Themes.filter(t=>
-      checked.claims.some(c=>c.startsWith('D'+t.division+' '))).map(t=>t.division));
-     const problems=[...n4Review.codes,
-      ...(checked.errors.length?['n4_explicit_planet_sign_or_house_mismatch']:[]),
-      ...(checked.correct<2?['n4_insufficient_two_verified_placement_claims']:[]),
-      ...(supported.size<2?['n4_missing_grounded_placement_in_two_selected_lenses']:[])];
-     if(problems.length){
+    if(n4Approved){
+     const gate=reviewN4EditorialGate(content,chart,lang,asOf);
+     if(gate.codes.length){
       reason='invalid_response';
-      const issue=problems.join(',');
+      const issue=gate.codes.join(',');
       diagnostic(provider,'validation',issue);
       console.warn('Direct Jyotish N4 editorial review rejected='+issue);
-      if(attempt===0)continue; // Existing bounded retry; not a separate uncontrolled AI call.
+      if(attempt===0)continue; // No more than one existing corrective retry.
       break;
      }
     }
