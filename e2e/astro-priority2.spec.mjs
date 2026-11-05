@@ -12,10 +12,16 @@ for(const locale of ['uk','en']){
   const box=page.getByTestId('global-city-search');
   await expect(box).toBeVisible();
   await box.getByRole('searchbox').fill('Kremenchuk');
+  // Clean observer intentionally omits raw coordinate controls. Assert the real API contract.
+  const calculation=page.waitForRequest(request=>{
+   if(!request.url().includes('/api/v1/panchanga/day?'))return false;
+   const params=new URL(request.url()).searchParams;
+   return params.get('latitude')==='49.0665'&&
+    params.get('longitude')==='33.4139'&&params.get('zone')==='Europe/Kyiv';
+  },{timeout:30000});
   await box.getByRole('option',{name:/Kremenchuk/}).click();
-  await expect(page.getByLabel(locale==='uk'?'Широта':'Latitude')).toHaveValue('49.0665');
-  await expect(page.getByLabel(locale==='uk'?'Довгота':'Longitude')).toHaveValue('33.4139');
-  await expect(page.getByLabel(locale==='uk'?'Часовий пояс (IANA)':'Time zone (IANA)')).toHaveValue('Europe/Kyiv');
+  await calculation;
+  await expect(box.getByRole('searchbox')).toHaveValue(/Kremenchuk/);
  });
  test('Astronomical events '+locale+' teach the physical meaning and a practical tradition-separated suggestion',async({page})=>{
   await page.goto('/'+locale+'/panchanga');
