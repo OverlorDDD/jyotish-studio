@@ -17,7 +17,7 @@ export default function OrganicIntentBridge({kind,locale}:{kind:OrganicKind;loca
    </li>
   )}</ol>
   <nav className={styles.resources} aria-label={locale==='uk'?'Корисні матеріали GalaxiPedia':'Related learning guides'}>
-   {topic.guides.map(guide=><Link className={styles.resource} key={guide.path} href={'/'+locale+'/'+guide.path}>
+   {topic.guides.map(guide=><Link key={guide.path} className={styles.resource} href={'/'+locale+'/'+guide.path}>
     {guide.label[locale]} <span className={styles.arrow} aria-hidden="true">↗</span>
    </Link>)}
   </nav>
