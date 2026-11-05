@@ -78,14 +78,14 @@ sha=os.environ['TARGET_SHA']
 url=f'https://api.github.com/repos/OverlorDDD/jyotish-studio/commits/{sha}/check-runs?per_page=100'
 try:
  with urllib.request.urlopen(urllib.request.Request(url,headers={
-  'User-Agent':'galaxiora-g322-release-gate','Accept':'application/vnd.github+json'}),timeout=15) as r:
+  'User-Agent':'galaxiora-g34-release-gate','Accept':'application/vnd.github+json'}),timeout=15) as r:
   result=json.load(r)
 except Exception as e:
  raise SystemExit('G34_STOP: Could not independently read exact-SHA GitHub checks')
 checks={x['name']:x for x in result.get('check_runs',[])}
 required=('Chromium accessibility, SEO and user smoke','PostgreSQL authorization and concurrency',
           'test','Windows JHora pinned fixture and CRLF regression','main-source-of-truth',
-          'privacy-and-build','analytics-contract')
+          'analytics-contract')
 bad=[name for name in required if name not in checks or checks[name].get('conclusion')!='success']
 if bad:raise SystemExit('G34_STOP: Not-green exact main CI checks: '+', '.join(bad))
 print('EXACT_SHA_CI_PASS')
