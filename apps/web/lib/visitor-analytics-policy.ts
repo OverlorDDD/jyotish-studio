@@ -23,3 +23,37 @@ export function eligiblePublicHtmlSection(pathname:string,headers:{
   section==='horoscope'||section==='yoga'||section==='learn'||section==='news'||
   section==='community'||section==='methodology'||section==='about'?section:null;
 }
+
+
+/** One coarse referral category per eligible public HTML request.
+ * Do not persist referrers, query strings, domains, cookies or identities.
+ * UTM values are declarations, not verified traffic origins.
+ */
+export type ReferralBucket='google'|'other_search'|'social'|'partner_tag'|'other_referral'|'unknown';
+export function classifyReferralBucket(rawReferrer:string|null,rawQuery:string):ReferralBucket{
+ let host='';
+ try{
+  if(rawReferrer){
+   const url=new URL(rawReferrer);
+   if(url.protocol==='https:'||url.protocol==='http:')host=url.hostname.toLowerCase();
+  }
+ }catch{}
+ if(host==='galaxiora.com'||host==='www.galaxiora.com')return 'unknown';
+ const matches=(base:string)=>host===base||host.endsWith('.'+base);
+ if(host&&(
+  matches('google.com')||/^(.+\.)?google\.(co\.[a-z]{2}|[a-z]{2,3})$/.test(host)
+ ))return 'google';
+ if(host&&['bing.com','yahoo.com','duckduckgo.com','ecosia.org','yandex.com','yandex.ru','brave.com'].some(matches))return 'other_search';
+ if(host&&['youtube.com','youtu.be','reddit.com','t.co','x.com','twitter.com','facebook.com','instagram.com','tiktok.com','telegram.org','t.me','linkedin.com','pinterest.com','threads.net'].some(matches))return 'social';
+ if(host)return 'other_referral';
+ // Query parameters are never stored; only a fixed campaign source category
+ // can help distinguish links where messaging apps strip the Referer header.
+ try{
+  const q=new URLSearchParams(rawQuery.startsWith('?')?rawQuery.slice(1):rawQuery);
+  if(q.get('utm_medium')==='social'&&
+    ['reddit','youtube','telegram','instagram','facebook','tiktok','linkedin','twitter','x'].includes(q.get('utm_source')||''))return 'social';
+  if(q.get('utm_medium')==='social'&&q.get('utm_source')==='partner')return 'partner_tag';
+  if(q.get('utm_source')==='google'&&q.get('utm_medium')==='organic')return 'google';
+ }catch{}
+ return 'unknown';
+}
