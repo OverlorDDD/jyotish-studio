@@ -86,6 +86,8 @@ export type DirectOptions={
  /** N4 audit-only one-shot prompt experiment; never enables N4 on its own. */
  n4TokenLean?:boolean;
  onTokenUsage?:(u:{promptTokens:number;completionTokens:number;totalTokens:number;cachedTokens:number;finishReason:string})=>void;
+ /** Optional synthetic-lab-only callback for privately retained rejected model prose. */
+ onRejectedText?:(event:{text:string;codes:readonly string[]})=>void;
  /** Optional safe, machine-readable diagnostics for local troubleshooting. */
  onDiagnostic?:(diagnostic:DirectDiagnostic)=>void;
 };
@@ -121,6 +123,12 @@ export async function generateDirectJyotish(
  const facts=lean?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf))+
   (n4Approved?'\n\n'+compactN4VargaFacts(chart)+'\n\n'+compactN4NarrativeBrief(chart):'');
  const permit=opts.limit||consumeFreeAiRequest;
+ const validTokens=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0?value:undefined;
+ // Meter each upstream HTTP completion even if editorial validation rejects the returned prose.
+ const meter=async(event:AiUsageEvent)=>{try{await opts.onUsage?.(event);}catch{}};
+ const rejected=(value:string,codes:readonly string[])=>{
+  if(lean&&value.trim())try{opts.onRejectedText?.({text:value.slice(0,32000),codes});}catch{}
+ };
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
   try{opts.onDiagnostic?.({provider,stage,reason:detail,...(httpStatus===undefined?{}:{httpStatus})});}catch{}
@@ -158,23 +166,29 @@ export async function generateDirectJyotish(
         '. Here are ONLY verified calculation facts:\n'+facts} ]})
     });
     if(!response.ok){
+     await meter({provider,model,outcome:'provider_error'});
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
       response.status>=500?'provider_unavailable':'invalid_response';
      diagnostic(provider,'http',reason,response.status);
      redact(reason,provider);break;
     }
     const raw=await response.text();
-    if(raw.length>160000){reason='invalid_response';diagnostic(provider,'response','oversized_body');break;}
+    if(raw.length>160000){await meter({provider,model,outcome:'provider_error'});reason='invalid_response';diagnostic(provider,'response','oversized_body');break;}
     let parsed:{model?:string;choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>;usage?:{
       prompt_tokens?:number;completion_tokens?:number;total_tokens?:number;
       prompt_tokens_details?:{cached_tokens?:number}}}|undefined;
-    try{parsed=JSON.parse(raw);}catch{reason='invalid_response';diagnostic(provider,'response','not_json');break;}
+    try{parsed=JSON.parse(raw);}catch{await meter({provider,model,outcome:'provider_error'});reason='invalid_response';diagnostic(provider,'response','not_json');break;}
     const choice=parsed?.choices?.[0];
     const metrics=parsed?.usage;
+    await meter({provider,model:parsed?.model||model,outcome:'returned',
+     promptTokens:validTokens(metrics?.prompt_tokens),
+     completionTokens:validTokens(metrics?.completion_tokens),
+     totalTokens:validTokens(metrics?.total_tokens)});
     if(metrics){
-     try{opts.onTokenUsage?.({promptTokens:Number(metrics.prompt_tokens)||0,
-      completionTokens:Number(metrics.completion_tokens)||0,totalTokens:Number(metrics.total_tokens)||0,
-      cachedTokens:Number(metrics.prompt_tokens_details?.cached_tokens)||0,
+     try{opts.onTokenUsage?.({promptTokens:validTokens(metrics.prompt_tokens)??0,
+      completionTokens:validTokens(metrics.completion_tokens)??0,
+      totalTokens:validTokens(metrics.total_tokens)??0,
+      cachedTokens:validTokens(metrics.prompt_tokens_details?.cached_tokens)??0,
       finishReason:choice?.finish_reason||'unknown'});}catch{}
     }
     const value=choice?.message?.content;
@@ -188,6 +202,7 @@ export async function generateDirectJyotish(
      reason='invalid_response';
      const code=choice?.finish_reason==='length'?'token_limit':check.reason;
      diagnostic(provider,'validation',code);
+     rejected(content,[code]);
      console.warn('Direct Jyotish: '+provider+' rejected='+code);
      if(attempt===0&&(code==='too_short'||code==='unfinished'||code==='token_limit'))continue;
      break;
@@ -201,6 +216,7 @@ export async function generateDirectJyotish(
       reason='invalid_response';
       const issue=gate.codes.join(',');
       diagnostic(provider,'validation',issue);
+      rejected(content,gate.codes);
       console.warn('Direct Jyotish N4 editorial review rejected='+issue);
       if(attempt===0)continue; // No more than one existing corrective retry.
       break;
@@ -208,11 +224,11 @@ export async function generateDirectJyotish(
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
     if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
-    try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
     diagnostic(provider,'success','complete');
     return {result:{provider,model:parsed?.model||model,text:content.trim()}};
    }
   }catch(error){
+   await meter({provider,model,outcome:'request_error'});
    reason=controller.signal.aborted?'timeout':'network';
    diagnostic(provider,'transport',reason);
    redact(reason,provider);

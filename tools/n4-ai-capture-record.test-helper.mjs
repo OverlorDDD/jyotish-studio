@@ -19,3 +19,15 @@ export function saveN4SyntheticAttempt(dest,entry){
   failureReason:entry.failureReason||'incomplete'});
  return good;
 }
+
+/** Preserve rejected real-model prose only on local synthetic chart tests. */
+export function saveN4SyntheticRejectedProse(dest,entry){
+ if(!/^N4-SYNTH-\d{2}-(uk|en)-[AB]$/.test(entry?.id||'')||
+  typeof entry.text!=='string'||!entry.text.trim()||
+  !Array.isArray(entry.codes)||entry.codes.some(x=>typeof x!=='string'||x.length>100))
+  throw Error('Only valid synthetic editorial rejection evidence may be stored');
+ secureAppend(dest+'.editorial-rejections.jsonl',{
+  id:entry.id,provider:entry.provider,model:entry.model||null,
+  codes:entry.codes,text:entry.text.slice(0,32000),at:new Date().toISOString()
+ });
+}

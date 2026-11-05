@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,readFileSync,statSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {saveN4SyntheticAttempt} from './n4-ai-capture-record.test-helper.mjs';
+import {saveN4SyntheticAttempt,saveN4SyntheticRejectedProse} from './n4-ai-capture-record.test-helper.mjs';
 test('model failure does not poison accepted corpus and cannot leak discarded prose',()=>{
  const dir=mkdtempSync(join(tmpdir(),'n4-actual-model-')),f=join(dir,'audit.jsonl');
  assert.equal(saveN4SyntheticAttempt(f,{id:'N4-SYNTH-01-uk-A',model:'groq',text:'Reasoned synthetic reading. '.repeat(50)}),true);
@@ -14,4 +14,14 @@ test('model failure does not poison accepted corpus and cannot leak discarded pr
  assert.ok(!readFileSync(f+'.failures.jsonl','utf8').includes('PARTIAL_UNSAFE'));
  if(process.platform!=='win32')assert.equal(statSync(f).mode&0o077,0);
  assert.throws(()=>saveN4SyntheticAttempt(f,{id:'REAL-PERSON',model:'x',text:'x'}),/synthetic/);
+});
+
+test('rejected prose is kept privately for synthetic editorial review only',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'n4-local-prose-')),f=join(dir,'audit.jsonl');
+ saveN4SyntheticRejectedProse(f,{id:'N4-SYNTH-01-uk-A',provider:'groq',
+  text:'An illustrative synthetic consultation.',codes:['n4_missing_two_evidenced_lenses']});
+ const raw=readFileSync(f+'.editorial-rejections.jsonl','utf8');
+ assert.ok(raw.includes('illustrative synthetic'));
+ assert.throws(()=>saveN4SyntheticRejectedProse(f,{id:'REAL-USER',text:'private',codes:[]}),/synthetic/);
+ if(process.platform!=='win32')assert.equal(statSync(f+'.editorial-rejections.jsonl').mode&0o077,0);
 });

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {buildN4TokenLeanPrompt,N4_TOKEN_LEAN_VERSION} from '../apps/api/src/n4-token-lean.ts';
 import {n4SyntheticAuditChart} from './n4-ai-synthetic-profiles.mjs';
 import {generateDirectJyotish} from '../apps/api/src/direct-jyotish.ts';
+import {auditN4ExplicitClaims} from '../apps/api/src/n4-ai-claims.ts';
 
 test('TokenLean selects exactly two chart-specific lenses; no raw natal input or D60 is sent',()=>{
  const selected=new Set();
@@ -16,6 +17,11 @@ test('TokenLean selects exactly two chart-specific lenses; no raw natal input or
   assert.match(p.user,/D9 lagna s\d+/);
   assert.match(p.user,/D10 lagna s\d+/);
   for(const d of p.selectedDivisions)assert.match(p.user,new RegExp('R-D'+d+' topic='));
+  assert.equal(p.proofs.length,2);
+  for(const proof of p.proofs)assert.ok(p.user.includes(proof));
+  const validated=auditN4ExplicitClaims(p.proofs.join('. ')+'.',n4SyntheticAuditChart(seed));
+  assert.equal(validated.correct,2);
+  assert.equal(validated.errors.length,0);
   assert.doesNotMatch(p.user,/D60|SYNTHETIC_TEST_ONLY_NEVER_REAL_BIRTH|1994-05-17|08:16|date=1994|longitude=0/);
   assert.doesNotMatch(p.system,/SYNTHETIC_TEST_ONLY_NEVER_REAL_BIRTH|1994-05-17|08:16/);
   selected.add(p.selectedDivisions.join(','));

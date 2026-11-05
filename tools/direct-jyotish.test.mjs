@@ -154,3 +154,30 @@ test('single-provider live mode cannot contact the two other free providers',asy
  assert.ok(calls[0].includes('generativelanguage.googleapis.com'));
  assert.equal(output.result?.provider,'gemini');
 });
+
+test('Direct Jyotish meters real successful HTTP results even when local prose is rejected',async()=>{
+ const events=[];
+ const output=await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['gemini'],keys:{gemini:'SYNTHETIC_KEY'},freeConfirmed:{gemini:true},limit:()=>true,
+  onUsage:e=>events.push(e),
+  fetcher:async()=>new Response(JSON.stringify({model:'mock',choices:[{finish_reason:'stop',message:{content:'Too brief.'}}],
+   usage:{prompt_tokens:350,completion_tokens:50,total_tokens:400}}),{status:200})
+ });
+ assert.equal(output.result,null);
+ assert.equal(events.length,1);
+ assert.equal(events[0].promptTokens,350);
+ assert.equal(events[0].completionTokens,50);
+ assert.equal(events[0].totalTokens,400);
+ assert.equal(events[0].outcome,'returned');
+});
+test('HTTP 429 usage event has unknown, not invented zero tokens',async()=>{
+ const events=[];
+ await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['groq'],keys:{groq:'SYNTHETIC_KEY'},freeConfirmed:{groq:true},limit:()=>true,
+  onUsage:e=>events.push(e),fetcher:async()=>new Response('PRIVATE_BODY',{status:429})
+ });
+ assert.equal(events.length,1);
+ assert.equal(events[0].outcome,'provider_error');
+ assert.equal(events[0].totalTokens,undefined);
+ assert.ok(!JSON.stringify(events).includes('PRIVATE_BODY'));
+});
