@@ -43,17 +43,17 @@ test('Consented page_view triggers one collector request with correct Measuremen
  };q.filter(a=>Object.prototype.toString.call(a)==='[object Arguments]').forEach(emit);const push=q.push.bind(q);
  q.push=(...args)=>{for(const a of args)emit(a);return push(...args);};})();`;
  await page.route(/googletagmanager\.com\/gtag\/js/,route=>route.fulfill({status:200,contentType:'application/javascript',body:js}));
- await page.goto('/en?ga4_debug=1&birthDate=private');
+ await page.goto('/en/privacy');
  await page.getByRole('button',{name:'Allow analytics'}).click();
+ await page.goto('/en?ga4_debug=1&birthDate=private');
  await expect.poll(()=>outgoing.filter(x=>new URL(x).searchParams.get('en')==='page_view').length).toBe(1);
  await expect.poll(()=>outgoing.some(x=>new URL(x).searchParams.get('en')==='galaxiora_debug_ping')).toBe(true);
  expect(outgoing.every(x=>new URL(x).searchParams.get('tid')==='G-TEST123456')).toBe(true);
  expect(JSON.stringify(outgoing)).not.toContain('private');
  const queueTypes=await page.evaluate(()=>window.dataLayer.map(item=>Object.prototype.toString.call(item)));
  expect(queueTypes.every(type=>type==='[object Arguments]')).toBe(true);
- await page.getByRole('button',{name:'Analytics settings'}).click();
- await expect(page.getByTestId('analytics-tag-status')).toContainText('g/collect request observed');
- await page.getByRole('button',{name:'Allow'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__galaxioraTagStatus)).toBe('request_observed');
+ await page.evaluate(()=>window.dispatchEvent(new Event('galaxiora:analytics-choice')));
  await expect.poll(()=>outgoing.filter(x=>new URL(x).searchParams.get('en')==='page_view').length).toBe(1);
 });
 test('Rejection emits no real tracking and cannot be bypassed by tool event',async({page})=>{
@@ -61,8 +61,9 @@ test('Rejection emits no real tracking and cannot be bypassed by tool event',asy
  await page.route(/googletagmanager\.com|google-analytics\.com/,route=>{
   calls.push(route.request().url());return route.abort();
  });
+ await page.goto('/uk/privacy');
+ await page.getByRole('button',{name:'Залишити вимкненою'}).click();
  await page.goto('/uk');
- await page.getByRole('button',{name:'Відхилити'}).click();
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('galaxiora:growth',{detail:{name:'jyotish_chart_completed'}})));
  expect(calls).toHaveLength(0);
 });
