@@ -1,4 +1,6 @@
 -- External identity is opt-in; all existing password accounts remain unchanged.
+-- PostgreSQL DDL is atomic: do not leave a half-created provider table on failure.
+BEGIN;
 ALTER TABLE "User" ALTER COLUMN "passwordHash" DROP NOT NULL;
 CREATE TABLE "ExternalIdentity" (
   "id" TEXT NOT NULL,
@@ -12,3 +14,4 @@ CREATE UNIQUE INDEX "ExternalIdentity_provider_subject_key" ON "ExternalIdentity
 CREATE INDEX "ExternalIdentity_userId_idx" ON "ExternalIdentity"("userId");
 ALTER TABLE "ExternalIdentity" ADD CONSTRAINT "ExternalIdentity_userId_fkey" FOREIGN KEY ("userId")
   REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
