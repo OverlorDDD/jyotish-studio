@@ -16,6 +16,7 @@ test('release uses pinned main SHA, exact checks, narrow changes, and safe backu
   'untracked.tar','next-build.tar','rollback_to_backup',
   'G322_DEPLOY_APPROVAL','G322_PRODUCTION_RELEASE_VERIFIED',
   'EXACT_SHA_CI_PASS','apps/web/next-env.d.ts',
+  '.github/workflows/g33-release-safety.yml',
   'G322_PREFLIGHT_PASS','G322_APPROVED_GALAXY_6_PASS'
  ])assert.ok(script.includes(required),`Missing: ${required}`);
  for(const unsafe of [/\bgit\s+reset\s+--hard\b/,/\bgit\s+clean\b/,/\bgit\s+stash\b/,/\bdocker\s+(?:exec|compose|run|inspect)\b/,/\bdb:migrate\b/])
