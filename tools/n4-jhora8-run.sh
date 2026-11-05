@@ -85,6 +85,8 @@ export N4_JHORA_LIMIT=50
 node --experimental-strip-types tools/n4-jhora8-batch.mjs
 node --experimental-strip-types tools/n4-jhorakit-import.mjs \
  "$N4_JHORA_EXPORT_ROOT/n4-manifest.json" "$RUNNER_TEMP/n4-jhora8-sanitized.json"
+node --experimental-strip-types tools/n4-jhora8-diff-diagnostic.mjs \
+ "$RUNNER_TEMP/n4-jhora8-sanitized.json" || echo 'N4_VARIANT_DIAGNOSTIC_ONLY'
 node --experimental-strip-types tools/n4-external-varga-gate.mjs \
  "$RUNNER_TEMP/n4-jhora8-sanitized.json"
 echo 'N4_ORIGINAL_JHORA8_PARITY_PASS'
