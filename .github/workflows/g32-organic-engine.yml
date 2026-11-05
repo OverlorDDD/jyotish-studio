@@ -4,6 +4,8 @@ on:
     paths:
       - 'apps/web/lib/organic-intents.ts'
       - 'apps/web/app/components/OrganicIntentBridge.tsx'
+      - 'apps/web/app/components/OrganicIntentBridge.module.css'
+      - 'e2e/g32-organic-ux.spec.mjs'
       - 'apps/web/app/[locale]/astrology/jyotish/page.tsx'
       - 'apps/web/app/[locale]/panchanga/page.tsx'
       - 'apps/web/app/components/PortalSection.tsx'
@@ -41,6 +43,7 @@ jobs:
       - name: Test read-only audit, search intelligence and original content
         run: |
           npm run test:g32:organic
+          node --experimental-strip-types --test tools/g32-report-summary.test.mjs
           node --experimental-strip-types --test tools/galaxipedia-seo.test.mjs
           npm run test:seo:direct-intent
       - name: Production build without deployment
@@ -65,6 +68,9 @@ jobs:
       - name: Curated content source integrity
         if: always()
         run: node --experimental-strip-types tools/g32-content-engine.mjs > artifacts/content.json
+      - name: Publish human-readable, privacy-safe daily scorecard
+        if: always()
+        run: node tools/g32-report-summary.mjs
       - name: Keep non-private operational artifacts
         if: always()
         uses: actions/upload-artifact@v4
