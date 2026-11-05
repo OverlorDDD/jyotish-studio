@@ -29,7 +29,7 @@ export function eligiblePublicHtmlSection(pathname:string,headers:{
  * Do not persist referrers, query strings, domains, cookies or identities.
  * UTM values are declarations, not verified traffic origins.
  */
-export type ReferralBucket='google'|'other_search'|'social'|'partner_tag'|'other_referral'|'unknown';
+export type ReferralBucket='google'|'other_search'|'social'|'partner_tag'|'other_referral'|'internal'|'unknown';
 export function classifyReferralBucket(rawReferrer:string|null,rawQuery:string):ReferralBucket{
  let host='';
  try{
@@ -38,7 +38,7 @@ export function classifyReferralBucket(rawReferrer:string|null,rawQuery:string):
    if(url.protocol==='https:'||url.protocol==='http:')host=url.hostname.toLowerCase();
   }
  }catch{}
- if(host==='galaxiora.com'||host==='www.galaxiora.com')return 'unknown';
+ if(host==='galaxiora.com'||host==='www.galaxiora.com')return 'internal';
  const matches=(base:string)=>host===base||host.endsWith('.'+base);
  if(host&&(
   matches('google.com')||/^(.+\.)?google\.(co\.[a-z]{2}|[a-z]{2,3})$/.test(host)
