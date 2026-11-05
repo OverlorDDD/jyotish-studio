@@ -44,3 +44,12 @@ test('Mandatory custom-format PostgreSQL dump BEFORE additive schema change',()=
  assert.ok(script.includes("sudo systemctl restart galaxiora-web"));
  assert.ok(script.includes("G35_APPROVED_GALAXY_6_PASS"));
 });
+
+test('G3.4 analytics workflow publishes required postmerge check when G3.5 release code changes',()=>{
+ const workflow=readFileSync(new URL('../.github/workflows/g34-first-party-analytics.yml',import.meta.url),'utf8');
+ for(const path of ['tools/g35-aws-release.sh','tools/g35-release-contract.test.mjs']){
+  assert.equal(workflow.split("'"+path+"'").length-1,2,'workflow should include in both PR and main filters: '+path);
+ }
+ assert.match(workflow,/name: G3\.4 First-Party Analytics Privacy and UX/);
+ assert.match(workflow,/analytics-contract:/);
+});
