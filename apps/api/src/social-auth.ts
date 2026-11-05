@@ -24,7 +24,7 @@ function providerName(value:string):SocialProvider{
  if(!PROVIDERS.includes(value as SocialProvider))throw new SocialAuthError('unknown_provider');
  return value as SocialProvider;
 }
-function providerConfig(provider:SocialProvider){
+export function providerConfig(provider:SocialProvider){
  if(!authReady())return false;
  if(provider==='google')return !!(process.env.GOOGLE_OAUTH_CLIENT_ID&&process.env.GOOGLE_OAUTH_CLIENT_SECRET);
  const path=process.env.APPLE_OAUTH_PRIVATE_KEY_FILE;
@@ -43,12 +43,12 @@ function secret(){
  return key;
 }
 function cookieName(provider:SocialProvider){return 'galaxiora_oidc_'+provider;}
-function signFlow(flow:Flow){
+export function signFlow(flow:Flow){
  const data=Buffer.from(JSON.stringify(flow)).toString('base64url');
  const signature=createHmac('sha256',secret()).update(data).digest('base64url');
  return data+'.'+signature;
 }
-function validFlow(raw:string|undefined,provider:SocialProvider,state:unknown,now=Date.now()):Flow{
+export function validFlow(raw:string|undefined,provider:SocialProvider,state:unknown,now=Date.now()):Flow{
  if(typeof raw!=='string'||raw.length>3000||typeof state!=='string'||state.length>250)
   throw new SocialAuthError('invalid_state');
  const parts=raw.split('.');
@@ -74,12 +74,12 @@ function cookieValue(req:IncomingMessage,provider:SocialProvider){
  const pair=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(name));
  return pair?.slice(name.length);
 }
-function flowCookie(provider:SocialProvider,token:string,origin:string){
+export function flowCookie(provider:SocialProvider,token:string,origin:string){
  const secure=origin.startsWith('https:');
  return cookieName(provider)+'='+token+'; Path=/api/v1/account/oauth; Max-Age=600; HttpOnly; '+
   (provider==='apple'?'SameSite=None; ':'SameSite=Lax; ')+(secure?'Secure; ':'');
 }
-function clearedCookie(provider:SocialProvider,origin:string){
+export function clearedCookie(provider:SocialProvider,origin:string){
  return cookieName(provider)+'=; Path=/api/v1/account/oauth; Max-Age=0; HttpOnly; '+
   (provider==='apple'?'SameSite=None; ':'SameSite=Lax; ')+(origin.startsWith('https:')?'Secure; ':'');
 }
