@@ -78,7 +78,10 @@ test('GA4 and business-tool names only, never natal or private payload',()=>{
  assert.ok(code.includes('window.gtag=function gtag('));
  assert.ok(code.includes('dataLayer?.push(arguments)'));
  assert.ok(!code.includes('dataLayer?.push(args)'));
- assert.match(code,/g\/collect request observed/);
+ assert.match(code,/tagStatus\('request_observed'\)/);
+ assert.doesNotMatch(code,/role="dialog"|position:'fixed'/);
+ const preferences=source('apps/web/app/components/AnalyticsPreferences.tsx');
+ assert.match(preferences,/data-testid="analytics-consent-state"/);
  assert.match(chart,/reportGrowthEvent\('jyotish_chart_completed'\)/);
  assert.match(panchanga,/reportGrowthEvent\('panchanga_calculation_completed'\)/);
  assert.match(tarot,/reportGrowthEvent\('tarot_spread_completed'\)/);
