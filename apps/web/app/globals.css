@@ -1281,3 +1281,9 @@
  .as-account-popover.as-account-dialog{padding:24px 14px 18px}
  .as-brand small{font-size:7px;letter-spacing:.5px}
 }
+
+/* Guest-first authentication: no new prompts outside the existing account dialog. */
+.as-account-guest-note{margin:10px 0 0;color:#b9c9da;font-size:12px;line-height:1.7}
+.as-account-guest{width:100%;min-height:42px;cursor:pointer;border:1px solid #67758e;border-radius:10px;background:#18283d;color:#f2dcc0;font:inherit;font-size:13px;font-weight:650}
+.as-account-guest:hover{background:#293953;border-color:#d7b87e}
+.as-account-guest:focus-visible{outline:3px solid #f3d392;outline-offset:3px}
