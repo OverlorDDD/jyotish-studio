@@ -82,6 +82,8 @@ test('guest-first, no OAuth keys in browser bundle, no forced sign-in',()=>{
  assert.match(ui,/social\.apple&&<button/);
  assert.match(ui,/oauth\/providers/);
  assert.doesNotMatch(ui,/GOOGLE_OAUTH_CLIENT_SECRET|APPLE_OAUTH_PRIVATE_KEY|APPLE_OAUTH_TEAM_ID/);
+ const backend=read('apps/api/src/main.ts');
+ assert.match(backend,/useBodyParser\('urlencoded'/);
  const middleware=read('apps/web/middleware.ts');
  assert.doesNotMatch(middleware,/oauth.*redirect.*login/);
 });
