@@ -66,7 +66,7 @@ On failure after code switch, attempts **code-only rollback** to saved SHA and N
 4. With a Google Web client installed, the account dialog shows **Continue with Google**. Complete a real sign-in using a **new test email**, then verify \`/api/v1/account/me\` and saved-chart ownership. Verify email/password login still works for existing users.
 5. For an **existing** email/password account, Google sign-in without linking must show \`existing_email\` and **never** silently merge; log in with password → Link Google, then Google sign-in should reach the same user ID.
 6. With Apple Developer settings installed, test real Apple form_post login (including private relay email), link/unlink policy, cancellation, invalid nonce/state and UI on mobile. Apple button must remain hidden until configured.
-7. No ID-token, OAuth code, provider secret or natal data in browser query logs, server HTTP-access logs or GA4 payloads.
+7. No provider ID token, private key, client secret or natal data in logs or GA4. Google’s standard authorization-code callback carries a short-lived **code in its query string**; verify that Caddy access logging is disabled or redacts OAuth callback query strings before enabling Google. The NestJS HTTP_ACCESS_LOG in this repo intentionally logs no URL/query. Provider authorization codes are never sent in GA4 payloads.
 8. Only after a live Google/Apple callback succeeds may the provider be described as **production verified**. CI alone cannot verify external provider configuration.
 
 Official references:
