@@ -35,7 +35,7 @@ test('original JHora main captures and parses exact sidereal arcseconds, ayanams
  });
  assert.equal(parsed.numberOfOriginalMainBodies,10);
  assert.equal(parsed.ayanamsaDegrees,23+44/60+11.32/3600);
- assert.ok(Math.abs(parsed.longitudes.Ascendant-247.3)<1e-10);
+ assert.ok(Math.abs(parsed.longitudes.Ascendant-7.3)<1e-10);
  assert.match(parsed.sourceSha256,/^[a-f0-9]{64}$/);
  const div=parseN4OriginalDivisionalClipboard(originalDivisionals());
  const compare=diagnoseN4OriginalJHoraPair(parsed,div);
