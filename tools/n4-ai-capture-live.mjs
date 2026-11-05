@@ -39,17 +39,20 @@ for(let i=from;i<from+size;i++){
  const sample=n4AuditSampleId(i);
  if(used.has(sample.id))throw Error('Existing sample, choose an unrecorded index');
  const chart=n4SyntheticAuditChart(sample.seed),diagnostics=[];
+ let tokenUsage=null;
  const outcome=await generateDirectJyotish(chart,sample.lang,'2026-11-04',{
   order:[provider],keys:{[provider]:keys[provider]},freeConfirmed:{[provider]:true},
   limit:budget.limit,
   fetcher:n4SyntheticVariantFetcher(fetch,sample.variant),
+  n4TokenLean:process.env.N4_LIVE_EDITORIAL_TOKEN_LEAN==='1',
+  onTokenUsage:u=>{tokenUsage=u;},
   onDiagnostic:d=>diagnostics.push({stage:d.stage,reason:d.reason,httpStatus:d.httpStatus})
  });
  const entry={corpus:N4_LIVE_AUDIT_CORPUS_VERSION,editorialVersion:N4_EDITORIAL_VARIANT_VERSION,id:sample.id,seed:sample.seed,
   lang:sample.lang,variant:sample.variant,provider,model:outcome.result?.model||null,
   generatedAt:new Date().toISOString(),
   text:outcome.result?.text||null,
-  failureReason:outcome.reason||null,diagnostics};
+  failureReason:outcome.reason||null,diagnostics,tokenUsage};
  const accepted=saveN4SyntheticAttempt(dest,entry);
  console.log('N4_SYNTHETIC_LIVE_QA_CAPTURED '+sample.id+' status='+(accepted?'ACCEPTED':'REJECTED'));
  if(!accepted){process.exitCode=2;break;}
