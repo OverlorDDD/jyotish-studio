@@ -33,22 +33,25 @@ test('Admin real-time endpoint cannot expose Google credentials or bypass ADMIN 
  const api=read('apps/api/src/admin.ts');
  const service=read('apps/api/src/admin-ga4-realtime.ts');
  const ui=read('apps/web/app/components/AdminDashboard.tsx');
+ const panel=read('apps/web/app/components/AdminAnalyticsPanel.tsx');
  assert.match(api,/@Get\('traffic\/realtime'\)[\s\S]{0,220}await this\.requireAdmin\(req\)/);
  assert.match(api,/private,no-store/);
  assert.match(service,/auth\/analytics\.readonly/);
  assert.match(service,/analyticsdata\.googleapis\.com\/v1beta\/properties\//);
  assert.doesNotMatch(service,/user_id|email.*metric|birthDate|birthTime|TarotQuestion/);
  assert.match(ui,/\/api\/v1\/admin\/traffic\/realtime/);
- assert.match(ui,/traffic\?\.status==='not_configured'/);
- assert.match(ui,/traffic\?\.status==='unavailable'/);
- assert.match(ui,/activeUsers30m/);
+ assert.match(panel,/traffic\?\.status==='not_configured'/);
+ assert.match(panel,/traffic\?\.status==='unavailable'/);
+ assert.match(panel,/activeUsers30m/);
 });
 
 test('GA4 sessions are explicitly separate from realtime active users',()=>{
  assert.equal(parseGa4Sessions({rows:[{metricValues:[{value:'19'}]}]}),19);
  assert.equal(parseGa4Sessions({rows:[]}),0);
  const ui=read('apps/web/app/components/AdminDashboard.tsx');
- assert.match(ui,/Visitor Analytics/);
- assert.match(ui,/sessions7d/);
- assert.match(ui,/public_html_request/);
+ const panel=read('apps/web/app/components/AdminAnalyticsPanel.tsx');
+ assert.match(panel,/Visitor Analytics/);
+ assert.match(panel,/sessions7d/);
+ assert.match(panel,/public_html_request/);
+ assert.equal((panel.match(/data-testid="ga4-active30"/g)||[]).length,1);
 });
