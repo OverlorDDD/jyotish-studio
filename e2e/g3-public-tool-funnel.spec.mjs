@@ -15,17 +15,22 @@ test('G3 events require analytics opt-in and never send arbitrary private payloa
  await page.getByRole('button',{name:'Allow analytics'}).click();
  await page.goto('/en/tarot?question=PRIVATE_G3_TEST');
  await expect.poll(async()=>(await eventData(page)).some(e=>e.name==='public_tool_viewed'&&e.params.tool==='tarot')).toBe(true);
- const before=(await eventData(page)).length;
+ // Count only the event under test. On slower mobile browsers a pending
+ // page_view/public_tool_viewed may be queued while the synthetic clicks fire;
+ // counting ALL events made this check race with otherwise valid telemetry.
+ const startedBefore=(await eventData(page)).filter(e=>e.name==='public_tool_started').length;
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('galaxiora:growth',{
   detail:{name:'public_tool_started',tool:'jyotish',question:'PRIVATE_G3_TEST'}
  })));
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('galaxiora:growth',{
   detail:{name:'public_tool_started',tool:'tarot',question:'PRIVATE_G3_TEST',birth:'PRIVATE_G3_TEST'}
  })));
+ await expect.poll(async()=>(await eventData(page)).filter(e=>e.name==='public_tool_started').length)
+  .toBe(startedBefore+1);
  const after=await eventData(page);
- expect(after.length).toBe(before+1);
- const last=after.at(-1);
- expect(last.name).toBe('public_tool_started');
+ const started=after.filter(e=>e.name==='public_tool_started');
+ const last=started.at(-1);
+ expect(last).toBeDefined();
  expect(last.params.tool).toBe('tarot');
  expect(last.params.locale).toBe('en');
  expect(Object.keys(last.params).sort()).toEqual(['locale','send_to','tool']);
