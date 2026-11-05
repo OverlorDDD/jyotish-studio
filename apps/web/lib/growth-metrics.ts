@@ -3,7 +3,7 @@
  */
 export const GROWTH_PUBLIC_SECTIONS=new Set([
  '','about','astrology','astrology/jyotish','tarot','tarot/cards',
- 'panchanga','eclipses/2027','horoscope','yoga','learn','news','community','methodology'
+ 'panchanga','eclipses/2027','horoscope','yoga','learn','pedia','news','community','methodology'
 ]);
 export type PublicTool='jyotish'|'panchanga'|'tarot';
 export type PublicToolEvent='public_tool_started'|'public_tool_completed'|'public_tool_failed'|'public_tool_auth_required';
@@ -33,6 +33,9 @@ export function safeGrowthPath(pathname:string):string|null{
  if(GROWTH_PUBLIC_SECTIONS.has(section))return '/'+parts[0]+(section?'/'+section:'');
  if(/^tarot\/cards\/[a-z-]+$/.test(section))return '/'+parts[0]+'/tarot/cards';
  if(/^learn\/[a-z-]+$/.test(section))return '/'+parts[0]+'/learn';
+ // GalaxiPedia guides and topical hubs are public editorial content. Record
+ // only the coarse section, never a free-form slug or URL query.
+ if(/^pedia\/(?:[a-z0-9-]+|topic\/[a-z0-9-]+)$/.test(section))return '/'+parts[0]+'/pedia';
  if(/^yoga\/[a-z-]+$/.test(section))return '/'+parts[0]+'/yoga';
  if(/^horoscope\/(western\/)?[a-z-]+$/.test(section))return '/'+parts[0]+'/horoscope';
  return null;

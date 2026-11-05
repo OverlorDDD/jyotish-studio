@@ -1,10 +1,20 @@
 import {test,expect} from '@playwright/test';
+// Wait for the hydrated consent prompt before interacting with mobile UI.
+// Reject via the actual button; R4.2 independently tests opt-in and revocation.
+async function rejectAnalyticsIfPrompted(page){
+ const dialog=page.getByRole('dialog',{name:/Аналітика відвідувань|Visitor analytics/});
+ try { await dialog.waitFor({state:'visible',timeout:8000}); }
+ catch { return; } // Previously decided consent or prompt intentionally absent.
+ await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
+ await expect(dialog).toHaveCount(0);
+}
 
 for(const locale of ['uk','en']){
  test('P388 '+locale+' bilingual unified calendar, local sunrise provenance, exact no-personal-leak and 320px layout',async({page})=>{
   test.setTimeout(180000);
   await page.setViewportSize({width:320,height:740});
   await page.goto('/'+locale+'/panchanga?date=2026-11-03');
+ await rejectAnalyticsIfPrompted(page);
   const hub=page.getByTestId('panchanga-hub');
   await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
   await expect(hub.getByTestId('p410-advanced')).toHaveCount(0);

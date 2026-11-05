@@ -44,3 +44,23 @@ test('G3 automatic Panchanga day load does not count as explicit user completion
  const e=await eventData(page);
  expect(e.some(x=>x.name==='public_tool_completed'&&x.params.tool==='panchanga')).toBe(false);
 });
+
+test('G3.2 GalaxiPedia article CTA is attributed without query or reading data',async({page})=>{
+ await page.route(/googletagmanager\\.com|google-analytics\\.com/,route=>
+  route.fulfill({status:200,contentType:'application/javascript',body:''}));
+ await page.goto('/en/pedia/panchanga-five-limbs-explained?birthDate=SECRET_BIRTH_DATE');
+ await page.getByRole('button',{name:'Allow analytics'}).click();
+ await expect.poll(async()=> (await eventData(page)).some(e=>e.name==='page_view')).toBe(true);
+ const link=page.locator('a[href="/en/panchanga"]').first();
+ await expect(link).toBeVisible();
+ // Keep the browser on the article long enough to inspect the queued event.
+ await link.evaluate(a=>a.addEventListener('click',e=>e.preventDefault(),{once:true}));
+ await link.click();
+ await expect.poll(async()=> (await eventData(page)).some(e=>e.name==='article_to_tool_click')).toBe(true);
+ const all=await eventData(page);
+ const clicked=all.filter(e=>e.name==='article_to_tool_click');
+ expect(clicked).toHaveLength(1);
+ expect(clicked[0].params).toEqual({from_section:'pedia',tool:'panchanga'});
+ expect(JSON.stringify(all)).not.toContain('SECRET_BIRTH_DATE');
+ expect(JSON.stringify(all)).not.toContain('/pedia/panchanga-five-limbs-explained');
+});

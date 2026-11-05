@@ -1,4 +1,14 @@
 import {test,expect} from '@playwright/test';
+// Wait for the hydrated consent prompt before interacting with mobile UI.
+// Reject via the actual button; R4.2 independently tests opt-in and revocation.
+async function rejectAnalyticsIfPrompted(page){
+ const dialog=page.getByRole('dialog',{name:/Аналітика відвідувань|Visitor analytics/});
+ try { await dialog.waitFor({state:'visible',timeout:8000}); }
+ catch { return; } // Previously decided consent or prompt intentionally absent.
+ await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
+ await expect(dialog).toHaveCount(0);
+}
+
 
 const phones=[
  {label:'narrow-android',width:320,height:640},
@@ -10,6 +20,7 @@ for(const phone of phones){
  test('global login stays fully inside '+phone.label+' viewport',async({page})=>{
   await page.setViewportSize({width:phone.width,height:phone.height});
   await page.goto('/uk');
+  await rejectAnalyticsIfPrompted(page);
   const button=page.locator('.as-account-trigger');
   await expect(button).toBeVisible();
   const header=page.locator('.as-header');
@@ -48,6 +59,7 @@ for(const phone of phones){
 test('desktop account dialog opens next to the button and never clips left viewport',async({page})=>{
  await page.setViewportSize({width:1280,height:800});
  await page.goto('/en');
+  await rejectAnalyticsIfPrompted(page);
  const trigger=page.locator('.as-account-trigger');
  await trigger.click();
  const dialog=page.getByRole('dialog',{name:'Account'});

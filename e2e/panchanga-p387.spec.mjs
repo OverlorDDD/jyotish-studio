@@ -1,10 +1,20 @@
 import {test,expect} from '@playwright/test';
+// Wait for the hydrated consent prompt before interacting with mobile UI.
+// Reject via the actual button; R4.2 independently tests opt-in and revocation.
+async function rejectAnalyticsIfPrompted(page){
+ const dialog=page.getByRole('dialog',{name:/Аналітика відвідувань|Visitor analytics/});
+ try { await dialog.waitFor({state:'visible',timeout:8000}); }
+ catch { return; } // Previously decided consent or prompt intentionally absent.
+ await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
+ await expect(dialog).toHaveCount(0);
+}
 import {fixtureAccount} from './support/disposable-accounts.mjs';
 import {randomUUID} from 'node:crypto';
 for(const locale of ['uk','en']){
  test('P3.8.7 '+locale+' preserves activity across exact Day / Week / Month without creating unverified personal badges',async({page})=>{
   test.setTimeout(120000);
   await page.goto('/'+locale+'/panchanga?date=2026-11-02');
+ await rejectAnalyticsIfPrompted(page);
   await expect(page.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
   await expect(page.getByTestId('p410-advanced')).toHaveCount(0);
   const nav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
@@ -35,6 +45,7 @@ test('P3.8.7 guest: protected personal endpoints are not called automatically an
      r.url().includes('/api/v1/personal/panchanga/time-finder'))requested.push(r.url());
  });
  await page.goto('/uk/panchanga?date=2026-11-02');
+ await rejectAnalyticsIfPrompted(page);
  await page.getByRole('navigation',{name:'Період календаря'}).getByRole('button',{name:'Місяць'}).click();
  await expect(page.getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});
  expect(requested).toEqual([]);
@@ -45,6 +56,7 @@ test('P3.8.7 mobile 320px: Week and Month toolbars do not overflow page',async({
  test.setTimeout(120000);
  await page.setViewportSize({width:320,height:740});
  await page.goto('/uk/panchanga?date=2026-11-02');
+ await rejectAnalyticsIfPrompted(page);
  const nav=page.getByRole('navigation',{name:'Період календаря'});
  await nav.getByRole('button',{name:'7 днів'}).click();
  await expect(page.getByTestId('p387-activity-select')).toBeVisible({timeout:90000});
@@ -84,6 +96,7 @@ test('P3.8.7 real signed-in month 31/29 days, UI natal overlay, and second-owner
   expect(d.personal.events).toBeInstanceOf(Array);
  }
  await page.goto('/uk/panchanga?date=2026-11-02');
+ await rejectAnalyticsIfPrompted(page);
  const nav=page.getByRole('navigation',{name:'Період календаря'});
  await nav.getByRole('button',{name:'Місяць'}).click();
  await expect(page.getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});

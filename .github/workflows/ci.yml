@@ -164,6 +164,7 @@ jobs:
       AI_MODE: local
       TAROT_AI_ENABLED: 'false'
       NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
       SITE_NOINDEX: '0'
       WEB_PORT: '3000'
       PORT: '4000'
@@ -199,5 +200,51 @@ jobs:
           done
           tail -80 /tmp/galaxiora-a4.log
           exit 1
-      - name: Real browser regression, accessibility and indexing
-        run: npm run test:e2e
+      # The legacy all-stages E2E command is retained for historical audits,
+      # but it asserts P2/P3 and Academy UI intentionally removed in P4.10.
+      # Enforce positive current-product coverage instead, on BOTH viewports.
+      # This includes real auth/DB, privacy, SEO, GalaxiPedia, G3, Panchanga,
+      # horoscope, Jyotish, Tarot, news, accessibility and mobile width.
+      - name: Current production browser regression (desktop)
+        run: |
+          npx playwright test \
+            e2e/a4-portal.spec.mjs \
+            e2e/a5-yoga-academy.spec.mjs \
+            e2e/a9-visual-unification.spec.mjs \
+            e2e/galaxiora-favicon.spec.mjs \
+            e2e/galaxipedia.spec.mjs \
+            e2e/g3-public-tool-funnel.spec.mjs \
+            e2e/horoscope-switching.spec.mjs \
+            e2e/horoscope-synthesis.spec.mjs \
+            e2e/jyotish-layout.spec.mjs \
+            e2e/jyotish-real-pipeline.spec.mjs \
+            e2e/mobile-header-account.spec.mjs \
+            e2e/news-world.spec.mjs \
+            e2e/news-privacy.spec.mjs \
+            e2e/panchanga-daily-opportunities.spec.mjs \
+            e2e/panchanga-p386.spec.mjs \
+            e2e/panchanga-p387.spec.mjs \
+            e2e/panchanga-p388.spec.mjs \
+            e2e/panchanga-p389.spec.mjs \
+            e2e/personal.spec.mjs \
+            e2e/r32-seo.spec.mjs \
+            e2e/r33-authority-library.spec.mjs \
+            e2e/r42-consent.spec.mjs \
+            e2e/r42-ga4-diagnostics.spec.mjs \
+            e2e/tarot-expert-inquiry.spec.mjs \
+            e2e/visitor-analytics.spec.mjs \
+            --config=playwright.config.mjs --project=desktop-chromium
+      - name: Current production responsive and privacy regression (mobile)
+        run: |
+          npx playwright test \
+            e2e/galaxiora-favicon.spec.mjs \
+            e2e/galaxipedia.spec.mjs \
+            e2e/g3-public-tool-funnel.spec.mjs \
+            e2e/horoscope-switching.spec.mjs \
+            e2e/mobile-header-account.spec.mjs \
+            e2e/panchanga-daily-opportunities.spec.mjs \
+            e2e/panchanga-p386.spec.mjs \
+            e2e/panchanga-p389.spec.mjs \
+            e2e/r42-consent.spec.mjs \
+            e2e/visitor-analytics.spec.mjs \
+            --config=playwright.config.mjs --project=mobile-chromium
