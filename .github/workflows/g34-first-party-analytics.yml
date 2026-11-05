@@ -14,6 +14,8 @@ on:
       - 'apps/web/app/components/GlobalAccount.tsx'
       - 'apps/web/app/globals.css'
       - 'tools/g34-first-party-analytics.test.mjs'
+      - 'tools/g34-aws-release.sh'
+      - 'tools/g34-release-contract.test.mjs'
       - '.github/workflows/g34-first-party-analytics.yml'
   push:
     branches: [main]
@@ -29,6 +31,8 @@ on:
       - 'apps/web/app/components/GlobalAccount.tsx'
       - 'apps/web/app/globals.css'
       - 'tools/g34-first-party-analytics.test.mjs'
+      - 'tools/g34-aws-release.sh'
+      - 'tools/g34-release-contract.test.mjs'
       - '.github/workflows/g34-first-party-analytics.yml'
 permissions:
   contents: read
@@ -44,5 +48,6 @@ jobs:
         run: |
           node --experimental-strip-types --test tools/g34-first-party-analytics.test.mjs
           node --experimental-strip-types --test tools/visitor-analytics.test.mjs
+          node --test tools/g34-release-contract.test.mjs
       - name: No external production mutations
         run: echo 'All tests run in CI only. AWS deployment is owner-controlled.'
