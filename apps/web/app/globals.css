@@ -1287,3 +1287,17 @@
 .as-account-guest{width:100%;min-height:42px;cursor:pointer;border:1px solid #67758e;border-radius:10px;background:#18283d;color:#f2dcc0;font:inherit;font-size:13px;font-weight:650}
 .as-account-guest:hover{background:#293953;border-color:#d7b87e}
 .as-account-guest:focus-visible{outline:3px solid #f3d392;outline-offset:3px}
+
+/* G3.5: optional social identity, only in the existing account dialog. */
+.as-social-login,.as-social-connections{display:flex;flex-direction:column;gap:9px;min-width:0;
+ padding:14px 0 6px;border-top:1px solid rgba(204,179,133,.28);margin-top:6px}
+.as-social-login>span,.as-social-connections>span{color:#c7d1df;font-size:11px;text-align:center}
+.as-social-login>button,.as-social-connections>button{display:flex;align-items:center;justify-content:center;gap:11px;
+ width:100%;min-height:43px;border:1px solid #60708c;background:#203049;color:#f5e9d9;
+ border-radius:10px;padding:10px 13px;font:inherit;font-weight:650;font-size:13px;cursor:pointer}
+.as-social-login>button:hover,.as-social-connections>button:hover{background:#30415d;border-color:#e4c694}
+.as-social-login>button:focus-visible,.as-social-connections>button:focus-visible{outline:3px solid #e5c58c;outline-offset:2px}
+.as-social-login>button:disabled,.as-social-connections>button:disabled{opacity:.55;cursor:default}
+.as-social-logo{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;
+ background:#f1eee9;color:#23314b;font-size:14px;font-weight:800;border-radius:50%}
+.as-social-connections small{color:#bed4bb;text-align:center}
