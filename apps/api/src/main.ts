@@ -23,6 +23,8 @@ async function bootstrap(){
  // Editorial articles can be much longer than Express's default 100 kB JSON body limit.
  // Keep an explicit 2 MB ceiling to prevent unlimited request-body allocations.
  app.useBodyParser('json',{limit:'2mb'});
+ // Apple's secure web OAuth callback is a top-level form_post, not JSON.
+ app.useBodyParser('urlencoded',{limit:'16kb',extended:false,parameterLimit:12});
  app.enableShutdownHooks();
  // C4: all GalaxiCom writes share the same persistent budgets across API instances.
  // Only authenticated session claims participate; invalid sessions are rejected by controllers.
