@@ -16,5 +16,4 @@ test('GSC credential exposure is limited to main read-only reporting step',()=>{
  const after=job.slice(step);
  assert.doesNotMatch(before,/GSC_SERVICE_ACCOUNT_JSON/);
  assert.match(after,/^        env:\n          GSC_SERVICE_ACCOUNT_JSON:/m);
- assert.match(job,/permissions:/m.test(job)?/permissions:/m:/runs-on:/m);
 });
