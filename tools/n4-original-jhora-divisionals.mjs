@@ -11,6 +11,7 @@ import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {SHODASHAVARGA,vargaSign,vargaBoundaryDistanceArcseconds} from '../packages/jyotish-core/src/vargas.ts';
+import {n4UmaShambhuHoraSign} from '../packages/jyotish-core/src/hora-uma-shambhu.ts';
 
 export const N4_ORIGINAL_JHORA_PILOT_VERSION='n4-raw-gui-clipboard-pilot-v1';
 const LABELS=['Lagna','Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
@@ -74,7 +75,7 @@ export function parseN4OriginalDivisionalClipboard(raw){
 }
 export function diagnoseN4OriginalDivisionalPilot(parsed){
  assert(parsed?.version===N4_ORIGINAL_JHORA_PILOT_VERSION,'invalid original pilot parser result');
- const byDivision={};let matches=0,mismatches=0,ambiguous=0,assumedAlignedMatches=0,assumedAlignedTotal=0;
+ const byDivision={};let matches=0,mismatches=0,ambiguous=0,assumedAlignedMatches=0,assumedAlignedTotal=0,methodAwareMatches=0,methodAwareMismatches=0;
  for(const c of parsed.columns){
   const key='D'+c.division;
   const entries=[];
@@ -85,12 +86,15 @@ export function diagnoseN4OriginalDivisionalPilot(parsed){
    const near=distanceArcsec<=31; // rounded original D1 +/-30 arcsec plus numerical margin
    const same=computed===observed;
    const methodMismatch=c.division===2&&c.method==='US';
+   const methodAware=methodMismatch?n4UmaShambhuHoraSign(lon)+1:computed;
+   if(!near){if(methodAware===observed)methodAwareMatches++;else methodAwareMismatches++;}
    if(near)ambiguous++;
    else if(same)matches++;
    else mismatches++;
    if(!near&&!methodMismatch){assumedAlignedTotal++;if(same)assumedAlignedMatches++;}
    entries.push(Object.freeze({name,computed,observed,nearRoundedBoundary:near,
-    methodMismatchKnown:methodMismatch,match:same}));
+    methodMismatchKnown:methodMismatch,match:same,
+    methodAwareComputed:methodAware,methodAwareMatch:methodAware===observed}));
   }
   byDivision[key]=Object.freeze({method:c.method,entries:Object.freeze(entries),
    comparisonClass:c.division===2&&c.method==='US'?'KNOWN_METHOD_DIFFERENCE_D2_US_VS_SUN_MOON':
@@ -99,7 +103,8 @@ export function diagnoseN4OriginalDivisionalPilot(parsed){
  return Object.freeze({status:'DIAGNOSTIC_ONLY_NOT_ORIGINAL_JHORA_CERTIFIED',
   originalClipboardSha256:parsed.sourceSha256,sourcePrecision:'D1_rounded_to_nearest_arcminute',
   originalCaseCount:1,originalCertifiedCases:0,positions:160,
-  matches,mismatches,ambiguous,assumedAlignedMatches,assumedAlignedTotal,byDivision,
+  matches,mismatches,ambiguous,assumedAlignedMatches,assumedAlignedTotal,
+  methodAwareMatches,methodAwareMismatches,byDivision,
   furtherEvidenceNeeded:Object.freeze(['genuine_ctrl_c_main_chart_data_with_Ayanamsa',
    'original_binary_and_INI_hashes','verified_ayanamsa_and_D2_GUI_methods',
    '50_genuine_original_source_exports','exact_D1_longitude_and_D60_time_robustness'])});

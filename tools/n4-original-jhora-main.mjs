@@ -11,6 +11,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {vargaSign,vargaBoundaryDistanceArcseconds} from '../packages/jyotish-core/src/vargas.ts';
 import {parseN4OriginalDivisionalClipboard} from './n4-original-jhora-divisionals.mjs';
+import {n4UmaShambhuHoraSign} from '../packages/jyotish-core/src/hora-uma-shambhu.ts';
 
 export const N4_JHORA_MAIN_VERSION='n4-jhora8-original-clipboard-main-v1';
 const BODIES=['Lagna','Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
@@ -65,7 +66,7 @@ export function parseN4OriginalJHoraMain(raw,expected=null){
 export function diagnoseN4OriginalJHoraPair(main,div){
  assert(main?.version===N4_JHORA_MAIN_VERSION&&div?.expectedSigns&&div?.columns?.length===16,
   'expected original chart_data and divisional dump');
- const cases=[];let matched=0,mismatched=0,uncertain=0,alignedMatches=0;
+ const cases=[];let matched=0,mismatched=0,uncertain=0,alignedMatches=0,methodAwareMatched=0,methodAwareMismatched=0;
  for(const column of div.columns)for(const label of BODIES){
   const name=label==='Lagna'?'Ascendant':label;
   const longitude=main.longitudes[name],expected=div.expectedSigns['D'+column.division]?.[name];
@@ -73,13 +74,15 @@ export function diagnoseN4OriginalJHoraPair(main,div){
   const edge=vargaBoundaryDistanceArcseconds(longitude,column.division);
   const withinPrecision=edge<=0.05; // source printed 0.01 arcsec; conservative screen rounding
   const methodKnownDifferent=column.division===2&&column.method==='US';
+  const methodAware=methodKnownDifferent?n4UmaShambhuHoraSign(longitude)+1:actual;
+  if(!withinPrecision){if(methodAware===expected)methodAwareMatched++;else methodAwareMismatched++;}
   if(withinPrecision)uncertain++;
   else if(actual===expected)matched++;
   else mismatched++;
   if(!withinPrecision&&!methodKnownDifferent&&actual===expected)alignedMatches++;
   cases.push({division:column.division,name,expected,derivedFromJHoraOriginalD1:actual,
    edgeDistanceArcsec:Number(edge.toFixed(4)),withinD1DisplayPrecision:withinPrecision,
-   methodKnownDifferent,match:actual===expected});
+   methodKnownDifferent,match:actual===expected,methodAwareComputed:methodAware,methodAwareMatch:methodAware===expected});
  }
  return Object.freeze({status:'ONE_ORIGINAL_JHORA8_CASE_DIAGNOSTIC_NOT_CERTIFIED',
   mainSourceSha256:main.sourceSha256,divisionalsSourceSha256:div.sourceSha256,
@@ -87,7 +90,9 @@ export function diagnoseN4OriginalJHoraPair(main,div){
   ayanamsaDegrees:main.ayanamsaDegrees,
   actualOriginalSourceCases:1,mathematicallyCertifiedCases:0,
   total:cases.length,matched,mismatched,withinD1DisplayPrecision:uncertain,
-  assumedAlignedMatched:alignedMatches,originalJHora50CaseGate:'NOT_MET',
+  assumedAlignedMatched:alignedMatches,methodAwareMatched,methodAwareMismatched,
+  methodAwareSource:'Uma-Shambhu D2 from original JHora author 2012; standard D2 unchanged',
+  originalJHora50CaseGate:'NOT_MET',
   details:Object.freeze(cases)});
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
