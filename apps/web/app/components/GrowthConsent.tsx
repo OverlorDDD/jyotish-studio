@@ -88,19 +88,19 @@ export default function GrowthConsent(){
  const pathname=usePathname();
  const [choice,setChoice]=useState<Choice>(null);
  const [loaded,setLoaded]=useState(false);
- const [open,setOpen]=useState(false);
- const [tagState,setTagState]=useState<'off'|'loading'|'loaded'|'blocked'|'request_observed'>('off');
- const uk=pathname?.startsWith('/uk')??false;
+ // Quiet consent: never place a banner or floating control over public content.
+ // A visitor can opt in or withdraw from the privacy page at any time.
  useEffect(()=>{
-  const onStatus=(e:Event)=>setTagState((e as CustomEvent<'loading'|'loaded'|'blocked'|'request_observed'>).detail);
-  window.addEventListener('galaxiora:tag-status',onStatus);
-  setTagState(window.__galaxioraTagStatus||'off');
-  try{
-   const stored=localStorage.getItem(CONSENT_KEY);
-   setChoice(stored==='accepted'||stored==='rejected'?stored:null);
-  }catch{setChoice(null)}
+  const syncChoice=()=>{
+   try{
+    const stored=localStorage.getItem(CONSENT_KEY);
+    setChoice(stored==='accepted'||stored==='rejected'?stored:null);
+   }catch{setChoice(null)}
+  };
+  syncChoice();
   setLoaded(true);
-  return()=>window.removeEventListener('galaxiora:tag-status',onStatus);
+  window.addEventListener('galaxiora:analytics-choice',syncChoice);
+  return()=>window.removeEventListener('galaxiora:analytics-choice',syncChoice);
  },[]);
  useEffect(()=>{
   if(!loaded||!enabled)return;
@@ -162,35 +162,5 @@ export default function GrowthConsent(){
   return()=>{document.removeEventListener('click',onClick);window.removeEventListener('galaxiora:growth',onGrowth)};
 
  },[loaded,choice]);
- if(!enabled||!loaded)return null;
- const decide=(value:'accepted'|'rejected')=>{
-  try{localStorage.setItem(CONSENT_KEY,value)}catch{}
-  setChoice(value);setOpen(false);
-  if(value==='rejected'){
-   stopAnalytics();
-   // Removing a script tag does not unload executing gtag.js. Reload once on
-   // withdrawal so no prior analytics runtime remains in this document.
-   if(choice==='accepted')window.location.reload();
-  }
- };
- return <>
-  {choice===null&&<aside role="dialog" aria-label={uk?'Аналітика відвідувань':'Visitor analytics'} style={{position:'fixed',bottom:16,left:16,right:16,maxWidth:540,margin:'auto',zIndex:9999,background:'#161b30',color:'#fff',border:'1px solid #a08b67',borderRadius:14,padding:20,boxShadow:'0 12px 35px #0007'}}>
-   <strong>{uk?'Допоможи покращити Galaxiora':'Help improve Galaxiora'}</strong>
-   <p>{uk?'Лише за твоєю згодою ми вимірюємо відвідування публічних сторінок і переходи до інструментів через Google Analytics. Дані народження, тексти запитань і особисті записи не надсилаємо. Відмовитися можна без обмежень.':'Only with your consent, Google Analytics measures public page views and navigation to tools. Birth details, questions and private notes are never sent. You may decline without losing features.'}</p>
-   <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-    <button type="button" onClick={()=>decide('rejected')}>{uk?'Відхилити':'Reject'}</button>
-    <button type="button" onClick={()=>decide('accepted')}>{uk?'Дозволити аналітику':'Allow analytics'}</button>
-    <a href={'/'+(uk?'uk':'en')+'/privacy'} style={{color:'#ffe4ad'}}>{uk?'Конфіденційність':'Privacy'}</a>
-   </div>
-  </aside>}
-  {choice!==null&&<div style={{position:'fixed',bottom:12,right:12,zIndex:100}}>
-   <button type="button" style={{fontSize:12,opacity:.85}} onClick={()=>setOpen(v=>!v)}>{uk?'Налаштування аналітики':'Analytics settings'}</button>
-  </div>}
-  {open&&choice!==null&&<aside role="dialog" aria-label={uk?'Змінити згоду':'Change analytics consent'} style={{position:'fixed',bottom:52,right:12,zIndex:10001,background:'#161b30',color:'#fff',borderRadius:10,padding:16,maxWidth:320}}>
-   <p>{uk?'Аналітика необов’язкова. Зміни рішення:':'Analytics is optional. Change your choice:'}</p>
-   {choice==='accepted'&&<p role="status" data-testid="analytics-tag-status" style={{fontSize:12}}>{uk?'Стан Google-тега: ':'Google tag status: '}{tagState==='request_observed'?(uk?'запит g/collect виявлено (прийняття GA4 перевіряй у DebugView)':'g/collect request observed (verify receipt in GA4 DebugView)'):tagState==='loaded'?(uk?'скрипт завантажено (запит g/collect ще не підтверджений)':'script loaded (g/collect request not yet observed)'):tagState==='blocked'?(uk?'завантаження заблоковане або не вдалося':'blocked or failed to load'):(uk?'очікується завантаження':'waiting for script')}</p>}
-   <button type="button" onClick={()=>decide('rejected')}>{uk?'Відкликати згоду':'Withdraw consent'}</button>{' '}
-   <button type="button" onClick={()=>decide('accepted')}>{uk?'Дозволити':'Allow'}</button>
-  </aside>}
- </>;
+ return null;
 }
