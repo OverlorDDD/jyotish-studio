@@ -12,6 +12,9 @@ on:
       - 'apps/web/app/components/GlobalAccount.tsx'
       - 'apps/web/app/globals.css'
       - 'tools/g35-social-auth.test.mjs'
+      - 'tools/g35-aws-release.sh'
+      - 'tools/g35-release-contract.test.mjs'
+      - 'docs/operations/g35-google-apple-operator-guide-20261105.md'
       - '.github/workflows/g35-social-auth.yml'
   push:
     branches: [main]
@@ -25,6 +28,9 @@ on:
       - 'apps/web/app/components/GlobalAccount.tsx'
       - 'apps/web/app/globals.css'
       - 'tools/g35-social-auth.test.mjs'
+      - 'tools/g35-aws-release.sh'
+      - 'tools/g35-release-contract.test.mjs'
+      - 'docs/operations/g35-google-apple-operator-guide-20261105.md'
       - '.github/workflows/g35-social-auth.yml'
 permissions:
   contents: read
@@ -44,6 +50,7 @@ jobs:
         run: |
           TSX_TSCONFIG_PATH=apps/api/tsconfig.json node --import tsx --test tools/g35-social-auth.test.mjs
           node --experimental-strip-types --test tools/account-access.test.mjs
+          node --test tools/g35-release-contract.test.mjs
           npm run build -w @jyotish/api
       - name: No live OAuth provider or EC2 mutations
         run: echo 'Provider credentials and production migrations are operator configured.'
