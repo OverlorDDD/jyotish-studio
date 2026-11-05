@@ -28,3 +28,9 @@
 - No Docker production deployment, no database migration. Restart API (new aggregate metric) and Next.js (new middleware, admin UI and guest modal) only from a verified release.
 - Production smoke: ensure `VisitorAggregate` query permission ADMIN-only; `?days=7` and `?days=30` return dense UTC daily buckets and no PII; an allowed tagged public document gives exactly one base request plus one source bucket; bot/private/cached cases do not get counted; existing GA4 and GSC remain separate; verify mobile 320px and desktop.
 - Baseline data cannot be backfilled; empty source chart before deployment is **not** evidence of zero search visitors.
+
+## Operator-controlled AWS release script
+- `tools/g34-aws-release.sh preflight TARGET_SHA` validates the current production git ancestor, exact `main` SHA, strict reviewed path allowlist (quiet-consent PR #125 and this PR only), local tracked/untracked collision risk, `.env` settings, CI, services and public health. An unrelated Natal N4 main commit **blocks** this release instead of silently deploying it.
+- With explicit `G34_DEPLOY_APPROVAL=I_APPROVE_G34_PRODUCTION`, the script archives the existing `.next` build, untracked inventory, environment backup and previous SHA; updates both NestJS and Next.js without Docker or migrations; checks approved galaxy #6 artwork, guest pages and anonymous denial of ADMIN analytics; automatically attempts a code-only rollback on failures.
+- The package test `tools/g34-release-contract.test.mjs` and `G3.4 First-Party Analytics Privacy and UX` workflow validate these safety properties. Do **not** run until the exact merged `main` SHA has all required checks marked success.
+- Exact source data still starts only **after** release, and the first chart may show no source evidence; no synthetic historic traffic.
