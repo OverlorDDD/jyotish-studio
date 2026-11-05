@@ -141,7 +141,7 @@ export class AccountController{
   const body=parseLoginRequest(req.body);
   if(!allowAuthAttempt()||!allowAuthByEmail(normalizedEmail(body.email)))throw new HttpException('Too many login or registration attempts. Try again later.',HttpStatus.TOO_MANY_REQUESTS);
   const user=await this.prisma.user.findUnique({where:{email:normalizedEmail(body.email)}});
-  if(!user||!await passwordMatches(body.password,user.passwordHash))
+  if(!user||!user.passwordHash||!await passwordMatches(body.password,user.passwordHash))
    throw new UnauthorizedException('Invalid email or password.');
   setSession(res,req,sessionToken(user.id));
   return {user:publicUser(user)};
