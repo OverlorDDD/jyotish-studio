@@ -1,0 +1,45 @@
+name: G-P1 Portfolio quality gate
+on:
+  push:
+    branches: [feat/gp1-natal-home-developer-portfolio-20261106]
+    paths:
+      - '.github/workflows/gp1-validation.yml'
+      - 'apps/web/app/**'
+      - 'apps/web/lib/portfolio-profile.json'
+      - 'apps/web/public/resume/**'
+      - 'tools/gp1-portfolio.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portfolio-quality:
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/galaxiora_ci
+      AUTH_SECRET: gp1-build-only-test-secret-not-for-production
+      SITE_NOINDEX: '0'
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      NEXT_PUBLIC_GA4_MEASUREMENT_ID: G-TEST123456
+      ALLOW_PYTHON_SWISSEPH: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install Node and fallback Swiss ephemeris
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install pyswisseph
+      - name: Prisma generation
+        run: npm run db:generate
+      - name: Unit contracts — natal routes and portfolio
+        run: |
+          npm run test:gp1
+          npm run test:portal
+          npm run test:seo:direct-intent
+      - name: Production build and TypeScript validation
+        run: npm run build
+      - name: Check additional canonical SEO route contracts
+        run: npm run test:r32:seo
