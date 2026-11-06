@@ -1,7 +1,29 @@
 name: Google Brand and Favicon
 on:
   push:
-    branches: [fix/google-brand-favicon-root-discovery-20261101]
+    branches: [main]
+    paths:
+      - 'apps/web/brand-assets/**'
+      - 'apps/web/app/layout.tsx'
+      - 'apps/web/app/components/PortalShell.tsx'
+      - 'tools/brand-icons-build.mjs'
+      - 'tools/brand-icons.test.mjs'
+      - 'tools/brand-favicon.test.mjs'
+      - 'tools/google-brand-visibility.test.mjs'
+      - 'e2e/galaxiora-favicon.spec.mjs'
+      - '.github/workflows/google-brand-visibility.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/web/brand-assets/**'
+      - 'apps/web/app/layout.tsx'
+      - 'apps/web/app/components/PortalShell.tsx'
+      - 'tools/brand-icons-build.mjs'
+      - 'tools/brand-icons.test.mjs'
+      - 'tools/brand-favicon.test.mjs'
+      - 'tools/google-brand-visibility.test.mjs'
+      - 'e2e/galaxiora-favicon.spec.mjs'
+      - '.github/workflows/google-brand-visibility.yml'
   workflow_dispatch:
 jobs:
   search:
@@ -16,11 +38,12 @@ jobs:
           node-version: '22'
       - name: Install
         run: npm install --no-audit --no-fund
-      - name: Brand site and favicon source contracts
+      - name: Generate approved spiral #6 icons before tests
+        run: npm run brand:icons:build
+      - name: Verify original artwork, Google favicon, browser and mobile variants
         run: |
-          node --test tools/google-brand-visibility.test.mjs
-          node --test tools/brand-favicon.test.mjs
+          node --test tools/brand-icons.test.mjs tools/brand-favicon.test.mjs tools/google-brand-visibility.test.mjs
           npm run test:seo
           npm run test:r32:seo
-      - name: Next.js build
+      - name: Production build
         run: npm run build

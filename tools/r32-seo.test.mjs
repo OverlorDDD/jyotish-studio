@@ -26,7 +26,8 @@ test('R3.2 Galaxiora has a consistent official brand entity and an indexable Abo
  assert.match(root,/'@type':'Organization'/);
  assert.match(root,/alternateName:\['galaxiora.com','Галаксіора'\]/);
  assert.match(root,/\/#organization/);
- assert.match(root,/\/icon.png\?v=approved-galaxy-6-20261102/);
+ assert.match(root,/\/galaxiora-favicon\.png/);
+ assert.doesNotMatch(root,/galaxiora-favicon\.png\?v=/);
  const about=read('apps/web/app/[locale]/about/page.tsx');
  assert.match(about,/generateMetadata/);
  assert.match(about,/indexRobots\(\)/);

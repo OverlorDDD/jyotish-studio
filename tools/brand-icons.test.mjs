@@ -42,5 +42,7 @@ test('PWA manifest and sitewide header refer to the user-approved spiral galaxy 
  assert.doesNotMatch(shell,/MoonStar/);
  const layout=read('apps/web/app/layout.tsx');
  assert.match(layout,/\/favicon\.ico/);
+ assert.ok(layout.includes("url:'/galaxiora-favicon.png'"));
+ assert.doesNotMatch(layout,/galaxiora-favicon\.png\?v=/);
  assert.match(layout,/apple-touch-icon\.png/);
 });
