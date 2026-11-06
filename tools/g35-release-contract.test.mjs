@@ -53,3 +53,25 @@ test('G3.4 analytics workflow publishes required postmerge check when G3.5 relea
  assert.match(workflow,/name: G3\.4 First-Party Analytics Privacy and UX/);
  assert.match(workflow,/analytics-contract:/);
 });
+
+test('G3.5 release gating is isolated from unfinished N4/JHora, without bypassing release safety',()=>{
+ const start=script.indexOf('check_ci(){');
+ const end=script.indexOf('check_changes(){');
+ assert.ok(start>=0 && end>start);
+ const ci=script.slice(start,end);
+ const requiredMatch=ci.match(/required=\(([^]*?)\)/);
+ assert.ok(requiredMatch,'exact-SHA required check list missing');
+ const required=requiredMatch[1];
+ for(const name of [
+  'Chromium accessibility, SEO and user smoke',
+  'PostgreSQL authorization and concurrency','test','main-source-of-truth',
+  'analytics-contract','social-auth-security'
+ ])assert.ok(required.includes("'"+name+"'"),name);
+ assert.doesNotMatch(required,/JHora|Windows/,'unreleased N4 fixture must not gate independent OAuth');
+ assert.match(ci,/commits\/\{sha\}\/check-runs/,'exact target commit check required');
+ assert.match(ci,/get\('conclusion'\)!='success'/,'required jobs must pass');
+ const changes=script.slice(script.indexOf('check_changes(){'),script.indexOf('check_pending_migrations(){'));
+ assert.match(changes,/git diff --name-only "\$live" "\$TARGET"/);
+ assert.match(changes,/\*\) die "Unreviewed production diff path:/);
+ assert.doesNotMatch(changes,/feat\/n4-shodashavarga|jhora-windows-fixtures/);
+});
