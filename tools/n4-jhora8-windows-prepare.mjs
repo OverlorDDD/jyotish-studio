@@ -6,15 +6,25 @@ import {mkdirSync,existsSync,readFileSync,writeFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-export const N4_JHORA_INPUT_VERSION='n4-jhora8-50-synthetic-inputs-v1';
+export const N4_JHORA_INPUT_VERSION='n4-jhora8-50-synthetic-inputs-v2-decimal-minutes';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const banker=x=>{if(!Number.isFinite(x))throw Error('Non-finite JHD numeric input');
  const i=Math.floor(x),f=x-i;return f<.5-1e-8?i:f>.5+1e-8?i+1:i%2===0?i:i+1;};
+/**
+ * Original JHora8 GUI #002 proves D.MMmmmm uses decimal arcMINUTES.
+ * Prior JHoraKit-style D.MMSS00 encoded 143.93° as 143.554800,
+ * which original JHora interpreted as 143°55′29″, not intended 55′48″.
+ * New 143.558000 encodes exactly 55.8000 decimal arcminutes.
+ * Source case #001 uses whole-degree coords and remains unchanged.
+ * NEVER silently overwrite existing v1 synthetic archives.
+ */
 const dmmff=(x,eastNeg=false)=>{
  if(!Number.isFinite(x))throw Error('Invalid JHD coordinate');
- const mag=Math.abs(x),deg=Math.trunc(mag),fm=(mag-deg)*60,minutes=Math.trunc(fm),seconds=banker((fm-minutes)*60);
- const sign=eastNeg?x>=0?'-':'':x<0?'-':'';
- return sign+String(deg)+'.'+String(minutes).padStart(2,'0')+String(seconds).padStart(2,'0')+'00';
+ const abs=Math.abs(x);
+ let deg=Math.floor(abs),packed=banker((abs-deg)*60*10000);
+ if(packed>=600000){deg++;packed=0;}
+ const sign=eastNeg?(x>=0?'-':''):(x<0?'-':'');
+ return sign+String(deg)+'.'+String(packed).padStart(6,'0');
 };
 const tzDmmff=x=>{if(!Number.isFinite(x))throw Error('Invalid JHD time zone');
  const a=Math.abs(x),h=Math.trunc(a),m=banker((a-h)*60);

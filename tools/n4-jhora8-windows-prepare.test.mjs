@@ -12,6 +12,11 @@ test('50 source-identical fake birth records produce genuine JHD inputs, never J
  const raw=readFileSync(join(dir,'cases','N4-SYNTH-001.jhd'),'utf8').split('\n');
  assert.deepEqual(raw.slice(0,7),['1','5','1990','5.110000','9.000000','150.000000','-48.000000']);
  assert.equal(raw[12],'N4-SYNTH-001');
+ const corrected=n4JhdContent(n4SyntheticJHoraCase(1)).split('\n');
+ assert.equal(corrected[5],'143.558000');
+ assert.equal(corrected[6],'-46.054000');
+ assert.equal(corrected[3],'12.240000');
+ assert.equal(corrected[4],'8.000000');
  const m=JSON.parse(readFileSync(a.manifest));assert.equal(m.originalJHoraCertificate,false);
  assert.equal(m.cases.length,50);assert.equal(new Set(m.cases.map(c=>c.id)).size,50);
  assert.ok(m.cases.every(c=>c.synthetic));
