@@ -46,7 +46,7 @@ function readableH1(html){
 function structuredTypes(html){
  return tags(html,'script').filter(t=>attr(t,'type')==='application/ld+json').length>0||html.includes('application/ld+json');
 }
-const paths=['/','/uk','/en','/uk/astrology/jyotish','/en/astrology/jyotish','/uk/tarot',
+const paths=['/','/uk/about-me','/en/about-me','/uk/astrology/jyotish','/en/astrology/jyotish','/uk/tarot',
  '/uk/tarot/cards','/uk/tarot/cards/moon','/uk/panchanga','/uk/eclipses/2027',
  '/uk/learn/nakshatras','/en/about','/uk/methodology','/uk/news','/uk/horoscope'];
 const pages=await Promise.all(paths.map(get));
@@ -57,13 +57,13 @@ for(let i=0;i<paths.length;i++){
  record(path,'HTML',p.contentType.includes('text/html'),'Content-Type '+p.contentType);
  record(path,'INDEXABLE',!noindex(p.text)&&!/noindex/i.test(p.xrobots),'No meta/X-Robots noindex');
  record(path,'H1',!!readableH1(p.text),'Visible server-rendered heading: '+readableH1(p.text).slice(0,110));
- record(path,'CANONICAL',canonical(p.text)===(canonicalOrigin+(path==='/'?'/en':path)),
+ record(path,'CANONICAL',canonical(p.text)===(canonicalOrigin+path),
   'canonical='+String(canonical(p.text)));
- record(path,'H1_TOPIC',!['/','/uk','/en'].includes(path)||/Astrology|Таро|Панчанга|Panchanga/i.test(readableH1(p.text)),
+ record(path,'H1_TOPIC',!['/'].includes(path)||/Natal|Натальн|Astrology|Таро|Панчанга|Panchanga/i.test(readableH1(p.text)),
   'Homepage H1 should name an actual user tool', 'warning');
  if(p.ms>3000)record(path,'SERVER_TIMING',false,'Slow single-request response: '+p.ms+'ms (not Core Web Vitals)','warning');
 }
-const [root,uk,en]=pages;
+const [root,uk,en]=pages; // localized About Me pages are the nav discovery probes
 if(root?.status===200){
  record('/','WEBSITE_SCHEMA',root.text.includes('https://schema.org')&&root.text.includes('WebSite')&&root.text.includes('Galaxiora'),
   'Organization/WebSite markup visible on domain root');
@@ -83,8 +83,8 @@ record('/sitemap.xml','SITEMAP',sitemap.status===200&&sitemap.text.includes('<ur
  'Sitemap exists with loc/alternate link XML');
 const urls=[...sitemap.text.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]);
 if(sitemap.status===200){
- record('/sitemap.xml','BILINGUAL_SITEMAP',urls.some(x=>x.endsWith('/uk'))&&urls.some(x=>x.endsWith('/en')),
-  'UA and EN home canonicals present');
+ record('/sitemap.xml','BILINGUAL_SITEMAP',urls.some(x=>x.endsWith('/uk/astrology/jyotish'))&&urls.some(x=>x.endsWith('/en/astrology/jyotish')),
+  'UA and EN natal chart canonicals present');
  record('/sitemap.xml','CONTENT_HUBS',urls.some(x=>x.endsWith('/uk/tarot/cards'))&&urls.some(x=>x.endsWith('/uk/eclipses/2027')),
   'Original educational guides are listed');
 }

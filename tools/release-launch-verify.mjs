@@ -37,8 +37,19 @@ if(!publicDomain)warnings.push('Public domain not configured: SITE_NOINDEX=1 is 
 if(publicDomain&&process.env.SITE_NOINDEX!=='0')warnings.push('HTTPS domain present but SITE_NOINDEX remains enabled: Google indexing intentionally disabled.');
 if(process.env.NEWS_INGESTION_ENABLED!=='1')
  warnings.push('NEWS_INGESTION_ENABLED=1 is required for scheduled scans in managed production.');
-await check('Homepage UA','/uk',x=>x.r.status===200&&/Galaxiora/.test(x.body));
-await check('Homepage EN','/en',x=>x.r.status===200&&/Galaxiora/.test(x.body));
+await check('Natal homepage','/',x=>x.r.status===200&&/Galaxiora/.test(x.body)&&/jy-workbench/.test(x.body));
+for(const locale of ['uk','en']){
+ await check('Localized chart alias '+locale,'/'+locale,x=>x.r.status===308&&
+  (x.r.headers.get('location')||'').endsWith('/'+locale+'/astrology/jyotish'));
+ await check('Localized natal '+locale,'/'+locale+'/astrology/jyotish',x=>x.r.status===200);
+}
+for(const locale of ['uk','en']){
+ await check('Developer portfolio '+locale,'/'+locale+'/about-me',x=>x.r.status===200&&/My Open Works|Мої відкриті роботи/.test(x.body));
+}
+for(const locale of ['uk','en'])for(const ext of ['pdf','docx']){
+ await check('CV download '+locale+' '+ext,'/resume/denys-avramenko-cv.'+locale+'.'+ext,
+  x=>x.r.status===200&&x.body.length>1000);
+}
 const horoscope=await check('Horoscope 12 signs','/uk/horoscope',x=>x.r.status===200&&/Гороскопи/.test(x.body));
 await check('Panchanga','/uk/panchanga',x=>x.r.status===200);
 await check('Moon-sign SEO page','/uk/horoscope/aries',x=>x.r.status===200&&/Овен/.test(x.body));

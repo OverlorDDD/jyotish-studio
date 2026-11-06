@@ -1,22 +1,10 @@
-import type {Metadata} from 'next';
-import {notFound} from 'next/navigation';
-import PortalHome from '../components/PortalHome';
-import {BRAND,isPortalLocale,type PortalLocale} from '../../lib/brand';
-import {indexRobots} from '../../lib/site-indexing';
-
+import {permanentRedirect,notFound} from 'next/navigation';
+import {BRAND,isPortalLocale,portalPath} from '../../lib/brand';
+export const dynamicParams=false;
 export function generateStaticParams(){return BRAND.locales.map(locale=>({locale}));}
-export async function generateMetadata({params}:{params:Promise<{locale:string}>}):Promise<Metadata>{
- const {locale}=await params;
- if(!isPortalLocale(locale))return {};
- return {
-  title: (locale==='uk'?'Астрологія, Таро, йога та духовні практики':'Astrology, Tarot & Cosmic Wisdom')+' | '+BRAND.name,
-  description:locale==='uk'?'Galaxiora — космічний простір астрології Джйотіш, Таро, медитацій і духовних практик.':'Galaxiora is a cosmic space for Vedic astrology, tarot, mindful living and personal discovery.',
-  robots:indexRobots(),
-  alternates:{canonical:'/'+locale,languages:{en:'/en',uk:'/uk','x-default':'/en'}}
- };
-}
+/** /en and /uk are permanent aliases of the actual natal chart tools. */
 export default async function LocalizedHome({params}:{params:Promise<{locale:string}>}){
  const {locale}=await params;
  if(!isPortalLocale(locale))notFound();
- return <PortalHome locale={locale as PortalLocale}/>;
+ permanentRedirect(portalPath(locale,'astrology/jyotish'));
 }

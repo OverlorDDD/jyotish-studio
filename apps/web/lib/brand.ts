@@ -24,4 +24,4 @@ export type PortalModule = keyof typeof BRAND.moduleSuffixes;
 export const moduleTitle=(module:PortalModule):string=>module==='jyotish'?'GalaxiAstro · Jyotish':'Galaxi'+({astrology:'Astro',tarot:'Tarot',experts:'Experts',yoga:'Yoga',learn:'Pedia',news:'News',horoscope:'Horoscope',community:'Com',account:'Account',personal:'Personal',admin:'Admin'} as const)[module];
 
 export const isPortalLocale = (value:string):value is PortalLocale => value==='en'||value==='uk';
-export const portalPath=(locale:PortalLocale,section='')=>'/'+locale+(section?'/'+(section==='astrology'?'astrology/jyotish':section==='learn'?'pedia':section):'');
+export const portalPath=(locale:PortalLocale,section='')=>'/'+locale+'/'+(section?(section==='astrology'?'astrology/jyotish':section==='learn'?'pedia':section):'astrology/jyotish');

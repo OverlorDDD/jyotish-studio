@@ -1,0 +1,36 @@
+name: G-P1 Portfolio CV generation
+on:
+  push:
+    branches: [main, feat/gp1-natal-home-developer-portfolio-20261106]
+    paths:
+      - 'apps/web/lib/portfolio-profile.json'
+      - 'tools/generate-portfolio-resumes.py'
+      - '.github/workflows/gp1-resumes.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  generate-bilingual-resumes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: true}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install Unicode font and document generators
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-dejavu-core
+          python -m pip install reportlab python-docx pypdf
+      - name: Build and validate downloadable CVs from shared profile
+        run: |
+          python tools/generate-portfolio-resumes.py
+          python tools/generate-portfolio-resumes.py --check
+      - name: Commit generated binaries (no external uploads)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          git add apps/web/public/resume/denys-avramenko-cv.*.pdf apps/web/public/resume/denys-avramenko-cv.*.docx
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build(gp1): regenerate bilingual CV downloads'
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

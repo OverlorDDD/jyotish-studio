@@ -8,7 +8,7 @@ test('localized home metadata, language, indexability and semantic main',async({
   await expect(page.locator('main#main-content')).toBeVisible();
   await expect(page.locator('h1')).toBeVisible();
   const canonical=await page.locator('link[rel="canonical"]').getAttribute('href');
-  expect(canonical).toBe('https://galaxiora.example/'+locale);
+  expect(canonical).toBe('https://galaxiora.example/'+locale+'/astrology/jyotish');
   await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute('content',/noindex/);
   await expect(page.locator('nav.as-main-nav')).toHaveAttribute('aria-label',locale==='uk'?'Основна навігація':'Main navigation');
  }
