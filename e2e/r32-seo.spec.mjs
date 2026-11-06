@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test';
 for(const locale of ['uk','en']){
  test('R3.2 official Galaxiora brand is visible in '+locale+' and about page is crawlable',async({page})=>{
   await page.goto('/'+locale);
-  await expect(page.getByRole('heading',{name:locale==='uk'?'Що таке Galaxiora?':'What is Galaxiora?'})).toBeVisible();
+  await expect(page.locator('.jy-workbench')).toBeVisible();
   const about=page.locator('a[href="/'+locale+'/about"]').first();
   await expect(about).toBeVisible();
   await about.click();

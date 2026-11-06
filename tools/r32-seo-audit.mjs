@@ -35,11 +35,12 @@ async function inspect(url){
   if(item.canonical!==url)issue(errors,'CANONICAL',url,'Found '+(item.canonical||'none')+'; expected '+url);
   const lang=body.match(/<html\b[^>]*\blang=(["'])([^"']+)\1/i);
   item.language=lang?.[2]||null;
-  const expectedLang=new URL(url).pathname.split('/')[1];
+  const pathname=new URL(url).pathname;
+  const expectedLang=pathname==='/'?'en':pathname.split('/')[1];
   if(item.language!==expectedLang)issue(errors,'LANG',url,'Found '+item.language+'; expected '+expectedLang);
   const languageLinks=tags(body,'link').filter(t=>attr(t,'rel')?.toLowerCase()==='alternate'&&attr(t,'hreflang'));
   // Avoid regex escaping pitfalls: sitemap paths are /{locale} or /{locale}/...
-  const pathWithoutLocale=new URL(url).pathname.split('/').slice(2).join('/');
+  const pathWithoutLocale=pathname==='/'?'astrology/jyotish':pathname.split('/').slice(2).join('/');
   for(const loc of ['uk','en']){
    const href=languageLinks.find(t=>attr(t,'hreflang')===loc);
    const expected=origin+'/'+loc+(pathWithoutLocale?'/'+pathWithoutLocale:'');
@@ -79,7 +80,7 @@ for(const url of urls){
  let parsed;
  try{parsed=new URL(url);}catch{issue(errors,'INVALID_URL',url,'Malformed sitemap entry');continue;}
  if(parsed.origin!==origin)issue(errors,'OTHER_HOST',url,'Unexpected origin');
- if(!/^\/(uk|en)(?:\/|$)/.test(parsed.pathname))issue(errors,'UNLOCALIZED',url,'Expected /uk or /en canonical');
+ if(parsed.pathname!=='/'&&!/^\/(uk|en)(?:\/|$)/.test(parsed.pathname))issue(errors,'UNLOCALIZED',url,'Expected root or /uk or /en canonical');
  if(/\/(account|admin|personal|editorial)(\/|$)/.test(parsed.pathname))
   issue(errors,'PRIVATE_IN_SITEMAP',url,'Private route must not be in sitemap');
  if(/^\/(uk|en)\/astrology$/.test(parsed.pathname))
@@ -93,11 +94,12 @@ for(let start=0;start<urls.length;start+=5){
  results.push(...value);
 }
 for(const loc of ['uk','en']){
- for(const path of ['', '/about','/methodology','/horoscope','/astrology/jyotish','/panchanga']){
+ for(const path of ['/about','/about-me','/methodology','/horoscope','/astrology/jyotish','/panchanga']){
   const url=origin+'/'+loc+path;
   if(!urls.includes(url))issue(errors,'MISSING_CORE_URL',url,'Not listed in sitemap');
  }
 }
+if(!urls.includes(origin+'/'))issue(errors,'MISSING_CORE_URL',origin+'/','Domain-level natal homepage is missing');
 const summary={origin,checked:results.length,sitemapUrls:urls.length,errors:errors.length,
  warnings:warnings.length,passed:results.filter(x=>x.status===200).length};
 if(process.argv.includes('--json'))console.log(JSON.stringify({summary,errors,warnings,results},null,2));

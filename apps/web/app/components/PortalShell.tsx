@@ -6,8 +6,8 @@ import GlobalAccount from './GlobalAccount';
 
 type Props={locale:PortalLocale;children:React.ReactNode;active?:string;languagePath?:string};
 const LABELS={
- en:{home:'Home',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'GalaxiPedia',news:'News',community:'Community',horoscope:'Horoscopes',panchanga:'Panchanga',personal:'Personal',language:'Language',caption:'A place for celestial wisdom and mindful practice',disclaimer:'Discover Jyotish, Tarot, lunar calendars and mindful living.'},
- uk:{home:'Головна',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'GalaxiPedia',news:'Новини',community:'Форум',horoscope:'Гороскопи',panchanga:'Панчанга',personal:'Мій Всесвіт',language:'Мова',caption:'Простір астрології, Таро та живих практик',disclaimer:'Джйотіш, Таро, місячний календар та щоденні практики.'}
+ en:{home:'Home',aboutMe:'About Me',astrology:'Astrology',tarot:'Tarot',experts:'Expert readings',yoga:'Yoga & mindfulness',learn:'GalaxiPedia',news:'News',community:'Community',horoscope:'Horoscopes',panchanga:'Panchanga',personal:'Personal',language:'Language',caption:'A place for celestial wisdom and mindful practice',disclaimer:'Discover Jyotish, Tarot, lunar calendars and mindful living.'},
+ uk:{home:'Головна',aboutMe:'Про мене',astrology:'Астрологія',tarot:'Таро',experts:'Консультації',yoga:'Йога та медитація',learn:'GalaxiPedia',news:'Новини',community:'Форум',horoscope:'Гороскопи',panchanga:'Панчанга',personal:'Мій Всесвіт',language:'Мова',caption:'Простір астрології, Таро та живих практик',disclaimer:'Джйотіш, Таро, місячний календар та щоденні практики.'}
 } as const;
 const SECTIONS=['astrology','tarot','yoga','learn','news','community'] as const;
 export default function PortalShell({locale,children,active='',languagePath}:Props){
@@ -17,12 +17,12 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
   <a href="#main-content" className="as-skip-link">{locale==='uk'?'Перейти до вмісту':'Skip to main content'}</a>
   <header className="as-header">
    <div className="as-header-inner">
-    <Link href={portalPath(locale)} className="as-brand" aria-label={BRAND.name+' — '+t.home}>
+    <Link href={portalPath(locale,'astrology/jyotish')} className="as-brand" aria-label={BRAND.name+' — '+moduleTitle('jyotish')}>
      <span className="as-brand-icon"><Image src="/galaxiora-favicon.png" alt="" width={46} height={46} unoptimized priority/></span>
      <span><strong>{BRAND.name}</strong><small>ASTROLOGY · TAROT · COSMIC WISDOM</small></span>
     </Link>
     <nav className="as-main-nav" aria-label={locale==='uk'?'Основна навігація':'Main navigation'}>
-     <Link href={portalPath(locale)} aria-current={!active?'page':undefined}>{t.home}</Link>
+     <Link href={portalPath(locale,'about-me')} aria-current={active==='about-me'?'page':undefined}>{t.aboutMe}</Link>
      <Link href={portalPath(locale,'horoscope')} aria-current={active==='horoscope'?'page':undefined}>{t.horoscope}</Link>
      <Link href={portalPath(locale,'panchanga')} aria-current={active==='panchanga'?'page':undefined}>{t.panchanga}</Link>
      {SECTIONS.map(s=><Link key={s} href={portalPath(locale,s)} aria-current={active===s?'page':undefined}>{t[s]}</Link>)}
@@ -37,7 +37,7 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
   </header>
   <main className="as-main" id="main-content" tabIndex={-1}>{children}</main>
   <footer className="as-footer">
-    <div><Link className="as-footer-brand" href={portalPath(locale)}>{BRAND.name}</Link><p>{t.caption}</p></div>
+    <div><Link className="as-footer-brand" href={portalPath(locale,'astrology/jyotish')}>{BRAND.name}</Link><p>{t.caption}</p></div>
     <p className="as-footer-note">{t.disclaimer}</p>
     <Link href={'/'+locale+'/about'}>{locale==='uk'?'Про Galaxiora':'About Galaxiora'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Методологія й точність':'Methods and accuracy'} <ArrowUpRight size={15} aria-hidden="true"/></Link>

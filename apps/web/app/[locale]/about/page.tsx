@@ -11,7 +11,7 @@ const COPY={
   title:'Про Galaxiora — астрологія Джйотіш, Таро й космічні практики',
   description:'Galaxiora — українсько-англійська платформа ведичної та західної астрології з натальними картами, Панчангою, Таро й навчальними матеріалами.',
   heading:'Galaxiora — простір астрології, Таро та щоденного пізнання',
-  intro:'Galaxiora.com — офіційний сайт Galaxiora. Ми створюємо онлайн-простір для тих, хто досліджує Джйотіш, західну астрологію, символіку Таро, місячні цикли й духовні практики.',
+  intro:'Galaxiora.com — офіційний сайт Galaxiora, стартапу молодої перспективної команди друзів. Ми створюємо онлайн-простір для тих, хто досліджує Джйотіш, західну астрологію, символіку Таро, місячні цикли й духовні практики. Спробуйте наші інструменти, поділіться враженнями й підтримайте нашу команду!',
   topics:[
    {h:'Астрологічні розрахунки',p:'GalaxiAstro будує натальну карту Джйотіш із положеннями планет, лагною, накшатрами, D1, D9, D10 та періодами Вімшоттарі. Для астрономічних розрахунків використовуємо Swiss Ephemeris і визначені налаштування сидеричного зодіаку. У гороскопах чітко відрізняємо західний знак Сонця від ведичного знака Місяця.'},
    {h:'Панчанга, Таро та практика',p:'Панчанга показує традиційні елементи ведичного календаря залежно від місця й часу. Розділ Таро пропонує класичну колоду з прямими та перевернутими значеннями; йога — доступні дихальні та усвідомлені практики.'},
@@ -28,7 +28,7 @@ const COPY={
   title:'About Galaxiora — Jyotish Astrology, Tarot and Cosmic Practice',
   description:'Galaxiora is a bilingual astrology and Tarot platform with Vedic and Western birth charts, Panchanga, original lessons and mindful practices.',
   heading:'Galaxiora — astrology, Tarot and a place for daily discovery',
-  intro:'Galaxiora.com is the official website of Galaxiora. We are building an online space for people exploring Jyotish, Western astrology, Tarot symbolism, lunar cycles and mindful spiritual practices.',
+  intro:'Galaxiora.com is the official website of Galaxiora, a startup being developed by a young, ambitious team of friends. We are building an online space for people exploring Jyotish, Western astrology, Tarot symbolism, lunar cycles and mindful spiritual practices. Try our tools, share your feedback and support our growing team!',
   topics:[
    {h:'Astrological calculations',p:'GalaxiAstro calculates Jyotish natal charts with planetary positions, Ascendant, nakshatras, D1, D9, D10 and Vimshottari periods. Astronomical computations use Swiss Ephemeris with defined sidereal settings. Our horoscopes distinguish the Western Sun sign from the Vedic Moon sign.'},
    {h:'Panchanga, Tarot and practice',p:'Panchanga presents traditional Vedic calendar factors for a selected place and time. Tarot offers a classical deck with upright and reversed meanings; Yoga provides accessible breathing and mindful movement practices.'},

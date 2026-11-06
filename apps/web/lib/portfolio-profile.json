@@ -1,0 +1,244 @@
+{
+  "contact": {
+    "nameEn": "Denys Avramenko",
+    "nameUk": "Денис Авраменко",
+    "location": "Ukraine",
+    "email": "denavramenko777@gmail.com",
+    "phone": "+380 66 085 24 31",
+    "github": "https://github.com/OverlorDDD",
+    "linkedin": "https://www.linkedin.com/in/denys-avramenko-00b742154",
+    "website": "https://galaxiora.com",
+    "galaxioraRepository": "https://github.com/OverlorDDD/jyotish-studio",
+    "opspilotRepository": "https://github.com/OverlorDDD/opspilot-admin"
+  },
+  "en": {
+    "title": "Full-Stack Software Engineer",
+    "subtitle": "TypeScript · Next.js · NestJS · AI-Assisted Engineering",
+    "tagline": "I turn ideas into working products.",
+    "intro": "I design, build and ship modern web applications — from responsive interfaces and APIs to databases, automation and production releases.",
+    "profile": "Full-stack engineer with three years of client-facing freelance web development and hands-on product delivery. I work across React/Next.js, Node.js/NestJS, PostgreSQL and AWS, using structured AI-assisted workflows backed by tests and engineering judgement.",
+    "ctaWork": "Explore my open works",
+    "ctaContact": "Contact me",
+    "ctaPdf": "Download CV · PDF",
+    "ctaWord": "Download CV · Word",
+    "sectionExpertise": "What I build",
+    "sectionWorks": "My Open Works",
+    "sectionCareer": "Experience & education",
+    "sectionContact": "Let's build something useful.",
+    "contactText": "Open to Full-Stack / AI-First development opportunities, remote roles and ambitious product teams.",
+    "startupTitle": "Galaxiora — an emerging team startup",
+    "startupText": "Galaxiora is a startup being developed by a young, ambitious team of friends. We are building a bilingual space for astrology, learning and technology. Explore the platform, share your feedback and support our growing team!",
+    "startupButton": "Support our startup",
+    "startupSupport": "The best support right now is to try Galaxiora, share it and send feedback.",
+    "linksLabel": "Links",
+    "labels": {
+      "skills": "Technical skills",
+      "projects": "Selected engineering projects",
+      "experience": "Professional experience",
+      "education": "Education",
+      "languages": "Languages",
+      "live": "Live product",
+      "code": "Source code",
+      "resume": "Resume",
+      "contact": "Contact"
+    },
+    "expertise": [
+      {
+        "title": "Frontend & product UX",
+        "description": "Responsive, accessible UI with React, Next.js App Router, TypeScript, SEO and bilingual product experiences."
+      },
+      {
+        "title": "Backend & data",
+        "description": "NestJS/Node.js APIs, PostgreSQL, Prisma, Redis, authentication, RBAC and product workflows."
+      },
+      {
+        "title": "DevOps & quality",
+        "description": "AWS EC2, Linux, Caddy/HTTPS, GitHub Actions, repeatable releases, Playwright and automated testing."
+      },
+      {
+        "title": "AI-first workflows",
+        "description": "AI coding agents, structured specifications, API/LLM integrations, code review and validation gates."
+      }
+    ],
+    "skills": [
+      {
+        "label": "Frontend",
+        "value": "TypeScript, JavaScript, React, Next.js, HTML/CSS, responsive UI, SSR/SEO"
+      },
+      {
+        "label": "Backend & data",
+        "value": "Node.js, NestJS, REST APIs, PostgreSQL, Prisma ORM, Redis, JWT, RBAC"
+      },
+      {
+        "label": "DevOps & QA",
+        "value": "AWS EC2, Ubuntu/Linux, Caddy, HTTPS, Docker, Git, GitHub Actions, CI/CD, Playwright, Jest"
+      },
+      {
+        "label": "AI-assisted engineering",
+        "value": "Codex, AI coding agents, structured specifications, test-based verification, LLM/API integrations"
+      }
+    ],
+    "projects": [
+      {
+        "name": "Galaxiora",
+        "kind": "Full-Stack Product Engineering · Team Startup",
+        "period": "2026 – Present",
+        "intro": "Bilingual astrology, Tarot, Panchanga and learning platform in production on AWS.",
+        "details": [
+          "Delivered an English/Ukrainian Next.js + NestJS product with PostgreSQL, Prisma, authentication, personalized tools, content and community modules.",
+          "Implemented deterministic astronomical calculations with Swiss Ephemeris and a reference corpus of 20 natal charts covering 600 D1/D9/D10 sign comparisons.",
+          "Built interpretation workflows that separate deterministic results from AI-generated explanations, including validation and fallback paths.",
+          "Established production operations with Ubuntu, Caddy/HTTPS, GitHub Actions, regression checks, GA4 and technical SEO."
+        ],
+        "live": "https://galaxiora.com",
+        "code": "https://github.com/OverlorDDD/jyotish-studio"
+      },
+      {
+        "name": "OpsPilot Admin",
+        "kind": "Independent Engineering Project · B2B Prototype",
+        "period": "2025 – 2026",
+        "intro": "A prototype control plane for safe runtime configuration and administrative workflows.",
+        "details": [
+          "Built workspace-scoped RBAC, Redis cache-aside, revision history, approvals, audit trails and rollback flows.",
+          "Developed scoped service API keys, rate limiting and a Node.js SDK with resilient caching.",
+          "Validated a local API benchmark of 1,000 requests at concurrency 50; not a claim of production customer traffic."
+        ],
+        "code": "https://github.com/OverlorDDD/opspilot-admin"
+      }
+    ],
+    "experience": [
+      {
+        "title": "Independent Web Developer · Freelance",
+        "period": "May 2023 – Sep 2026",
+        "details": [
+          "Delivered responsive business websites and landing pages for local and referral clients, from requirements and UX structure through implementation and handover.",
+          "Worked directly with clients, incorporating design feedback, revisions and clear project communication."
+        ]
+      },
+      {
+        "title": "Creative production & commercial motion design",
+        "period": "2016 – 2023",
+        "details": [
+          "Produced client-facing visual work and animations; developed visual storytelling, composition and an eye for frontend detail."
+        ]
+      }
+    ],
+    "education": "M.Sc., Software Development · Kryvyi Rih National University · 2018",
+    "languages": "Ukrainian — native · English — intermediate (B1)"
+  },
+  "uk": {
+    "title": "Full-Stack Software Engineer",
+    "subtitle": "TypeScript · Next.js · NestJS · Розробка з AI-асистентами",
+    "tagline": "Перетворюю ідеї на працюючі продукти.",
+    "intro": "Проєктую, розробляю й запускаю сучасні вебзастосунки — від адаптивних інтерфейсів та API до баз даних, автоматизації й production-релізів.",
+    "profile": "Full-Stack розробник із трьома роками клієнтської фриланс-розробки та практичним досвідом запуску вебпродуктів. Працюю з React/Next.js, Node.js/NestJS, PostgreSQL та AWS. Використовую AI-асистентів, технічні специфікації, тестування й контроль якості.",
+    "ctaWork": "Мої відкриті роботи",
+    "ctaContact": "Написати мені",
+    "ctaPdf": "Завантажити CV · PDF",
+    "ctaWord": "Завантажити CV · Word",
+    "sectionExpertise": "Що я створюю",
+    "sectionWorks": "My Open Works",
+    "sectionCareer": "Досвід та освіта",
+    "sectionContact": "Створімо щось корисне разом.",
+    "contactText": "Розглядаю Full-Stack / AI-First вакансії, дистанційну роботу та команди, що розвивають реальні продукти.",
+    "startupTitle": "Galaxiora — стартап молодої команди",
+    "startupText": "Galaxiora — стартап молодої перспективної команди друзів. Ми розвиваємо двомовну платформу на перетині астрології, знань і технологій. Спробуйте наш продукт, залиште відгук і підтримайте нашу команду!",
+    "startupButton": "Підтримати стартап",
+    "startupSupport": "Найкраща підтримка зараз — скористатися Galaxiora, поділитися посиланням і залишити відгук.",
+    "linksLabel": "Посилання",
+    "labels": {
+      "skills": "Технічні навички",
+      "projects": "Інженерні проєкти",
+      "experience": "Професійний досвід",
+      "education": "Освіта",
+      "languages": "Мови",
+      "live": "Працюючий сайт",
+      "code": "Код на GitHub",
+      "resume": "Резюме",
+      "contact": "Контакти"
+    },
+    "expertise": [
+      {
+        "title": "Frontend та UX",
+        "description": "Адаптивні доступні інтерфейси на React, Next.js App Router, TypeScript; SEO та двомовні продукти."
+      },
+      {
+        "title": "Backend і дані",
+        "description": "NestJS/Node.js API, PostgreSQL, Prisma, Redis, авторизація, RBAC та прикладні бізнес-процеси."
+      },
+      {
+        "title": "DevOps та якість",
+        "description": "AWS EC2, Linux, Caddy/HTTPS, GitHub Actions, відтворювані релізи, Playwright і автоматичні тести."
+      },
+      {
+        "title": "AI-first процеси",
+        "description": "AI-агенти для розробки, структуровані технічні завдання, LLM/API інтеграції, code review та перевірки."
+      }
+    ],
+    "skills": [
+      {
+        "label": "Frontend",
+        "value": "TypeScript, JavaScript, React, Next.js, HTML/CSS, адаптивний UI, SSR/SEO"
+      },
+      {
+        "label": "Backend і дані",
+        "value": "Node.js, NestJS, REST API, PostgreSQL, Prisma ORM, Redis, JWT, RBAC"
+      },
+      {
+        "label": "DevOps і QA",
+        "value": "AWS EC2, Ubuntu/Linux, Caddy, HTTPS, Docker, Git, GitHub Actions, CI/CD, Playwright, Jest"
+      },
+      {
+        "label": "AI-assisted engineering",
+        "value": "Codex, AI-агенти, технічні специфікації, перевірки тестами, LLM/API інтеграції"
+      }
+    ],
+    "projects": [
+      {
+        "name": "Galaxiora",
+        "kind": "Full-Stack розробка продукту · Командний стартап",
+        "period": "2026 – дотепер",
+        "intro": "Двомовна платформа астрології, Таро, Панчанги й навчання, що працює на AWS.",
+        "details": [
+          "Реалізована українсько-англійська платформа на Next.js і NestJS із PostgreSQL, Prisma, авторизацією, персоналізацією, контентом і спільнотою.",
+          "Детерміновані астрономічні розрахунки на Swiss Ephemeris і корпус із 20 натальних карт для 600 зіставлень знаків D1/D9/D10.",
+          "Розроблені процеси трактування, що відділяють перевірені обчислення від AI-пояснень, із валідацією та резервними сценаріями.",
+          "Налагоджені production-процеси: Ubuntu, Caddy/HTTPS, GitHub Actions, регресійні перевірки, GA4 та технічне SEO."
+        ],
+        "live": "https://galaxiora.com",
+        "code": "https://github.com/OverlorDDD/jyotish-studio"
+      },
+      {
+        "name": "OpsPilot Admin",
+        "kind": "Незалежний інженерний проєкт · B2B прототип",
+        "period": "2025 – 2026",
+        "intro": "Прототип панелі керування конфігурацією й адміністративними процесами.",
+        "details": [
+          "Реалізовані RBAC з ізоляцією робочих просторів, Redis cache-aside, історія змін, погодження, аудит і відкат.",
+          "Створені API-ключі з обмеженими правами, rate limiting та Node.js SDK із кешуванням.",
+          "Перевірений локальний бенчмарк API: 1000 запитів з паралельністю 50. Це не показник трафіку реальних клієнтів."
+        ],
+        "code": "https://github.com/OverlorDDD/opspilot-admin"
+      }
+    ],
+    "experience": [
+      {
+        "title": "Незалежний веброзробник · Фриланс",
+        "period": "Травень 2023 – вересень 2026",
+        "details": [
+          "Створював адаптивні сайти бізнесів і лендінги для локальних клієнтів та за рекомендаціями — від вимог і UX до реалізації й передачі.",
+          "Самостійно спілкувався із замовниками, опрацьовував правки, поєднував розробку з увагою до дизайну."
+        ]
+      },
+      {
+        "title": "Креативне виробництво та комерційний моушн-дизайн",
+        "period": "2016 – 2023",
+        "details": [
+          "Створював візуальні матеріали й анімацію для клієнтів; розвинув навички композиції, візуальної комунікації та UI."
+        ]
+      }
+    ],
+    "education": "Магістр з розробки програмного забезпечення · Криворізький національний університет · 2018",
+    "languages": "Українська — рідна · Англійська — середній рівень (B1)"
+  }
+}

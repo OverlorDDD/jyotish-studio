@@ -1,0 +1,67 @@
+/* G-P1 developer portfolio: scoped, responsive, keyboard accessible. */
+.dp-page{color:#eef2fb;overflow:hidden}.dp-page *{box-sizing:border-box}
+.dp-page a:focus-visible{outline:3px solid #e5c58c;outline-offset:3px}
+.dp-hero{position:relative;isolation:isolate;max-width:1400px;margin:0 auto;padding:clamp(42px,6vw,90px) clamp(20px,5vw,72px) 72px;min-height:560px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);align-items:center;gap:45px}
+.dp-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 74% 37%,rgba(116,85,189,.19),transparent 34%),radial-gradient(circle at 26% 4%,rgba(32,93,154,.2),transparent 40%)}
+.dp-hero-inner{position:relative;z-index:2}
+.dp-eyebrow,.dp-section-count{display:inline-flex;align-items:center;gap:9px;color:#e3be88;letter-spacing:.18em;text-transform:uppercase;font-size:11px;font-weight:750}
+.dp-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#91d5b7;box-shadow:0 0 13px #5ca98d}
+.dp-name{font-size:clamp(17px,2vw,22px);letter-spacing:.025em;margin:29px 0 12px;color:#d8deec}
+.dp-hero h1{font-family:'DM Sans',Inter,system-ui,sans-serif;font-size:clamp(39px,5vw,72px);font-weight:800;line-height:1.08;letter-spacing:-.058em;margin:0 0 19px;max-width:800px;background:linear-gradient(130deg,#fff 20%,#d9c1ff 76%,#b4d9ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dp-role{color:#dfbf85;font-size:clamp(12px,1.1vw,14px);font-weight:700;letter-spacing:.025em;margin:0 0 22px}
+.dp-intro{color:#b9c5d5;line-height:1.8;font-size:clamp(15px,1.3vw,17px);max-width:630px;margin:0 0 30px}
+.dp-hero-actions,.dp-socials,.dp-project-links{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.dp-button{display:inline-flex;gap:10px;align-items:center;justify-content:center;min-height:48px;padding:12px 17px;border-radius:11px;font-size:13px;font-weight:750;text-decoration:none;border:1px solid transparent;transition:transform .15s,background .15s,border-color .15s}
+.dp-button:hover{transform:translateY(-2px)}
+.dp-primary{background:#ddbc88;color:#121b2a;border-color:#ddbc88}.dp-primary:hover{background:#f2d8a9}
+.dp-secondary{color:#fff;background:#1d2b40;border-color:#506078}.dp-secondary:hover{border-color:#d7c3ae;background:#29394f}
+.dp-link{color:#dfc6a2;background:transparent}.dp-link:hover{color:#fff}
+.dp-socials{margin-top:30px;gap:23px}
+.dp-socials a{display:inline-flex;gap:8px;align-items:center;color:#aebcd0;text-decoration:none;font-size:13px}.dp-socials a:hover,.dp-contact a:hover{color:#fff}
+.dp-hero-visual{min-height:350px;position:relative;display:grid;place-items:center}
+.dp-orbit{position:absolute;border:1px solid rgba(169,145,220,.19);border-radius:50%;width:92%;aspect-ratio:1;transform:rotate(-23deg)}
+.dp-orbit-two{width:73%;border-style:dashed;border-color:rgba(204,162,111,.26)}
+.dp-code-pane{position:relative;z-index:1;width:min(100%,390px);border:1px solid #53627f;border-radius:17px;background:linear-gradient(135deg,rgba(27,40,63,.95),rgba(14,21,37,.96));padding:20px 23px 25px;box-shadow:0 25px 70px rgba(0,0,0,.28);transform:rotate(-3deg)}
+.dp-code-dots{display:flex;gap:6px;margin-bottom:26px}
+.dp-code-dots i{width:8px;height:8px;border-radius:50%;background:#857ba1}.dp-code-dots i:first-child{background:#d68993}.dp-code-dots i:last-child{background:#7bb69f}
+.dp-code-pane code{display:block;color:#d5e6fa;white-space:nowrap;line-height:2;font-size:clamp(10px,1vw,13px)}
+.dp-code-pane code span{color:#b2a0ef}.dp-code-pane code em{color:#9edfc8;font-style:normal}
+.dp-body{max-width:1290px;margin:0 auto;padding:0 clamp(20px,4vw,64px) 85px}
+.dp-intro-section{padding:34px 0 65px;max-width:900px}
+.dp-intro-section h2{font-size:clamp(27px,3.5vw,42px);margin:18px 0;color:#eef1fa;letter-spacing:-.035em}
+.dp-intro-section p{color:#b9c5d5;font-size:16px;line-height:1.9;margin:0}
+.dp-section{padding:55px 0 75px;border-top:1px solid #344156}
+.dp-section-heading{margin-bottom:30px}.dp-section-heading h2{font-size:clamp(30px,3.7vw,46px);margin:15px 0 0;letter-spacing:-.04em;line-height:1.16;color:#fff}
+.dp-expertise-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.dp-skill-card{background:#18263a;border:1px solid #354660;border-radius:16px;padding:24px 21px;min-width:0}
+.dp-card-icon{width:42px;height:42px;border:1px solid #756a76;border-radius:12px;display:grid;place-items:center;color:#e0bc8b;margin-bottom:22px}
+.dp-skill-card h3{font-size:16px;margin:0 0 11px;color:#fff}
+.dp-skill-card p,.dp-stack,.dp-project li,.dp-career-card p,.dp-timeline li{font-size:13px;color:#b5c2d2;line-height:1.75}
+.dp-skill-card p{margin:0}.dp-stack{margin-top:24px;border:1px solid #344156;border-radius:15px;padding:8px 25px;background:#131e2d}
+.dp-stack>div{padding:11px 0;display:grid;grid-template-columns:180px 1fr;gap:16px}.dp-stack>div+div{border-top:1px solid #2f3b4b}.dp-stack strong{color:#e1c89e}
+.dp-projects{border-top:1px solid #344156}
+.dp-project{padding:33px 0;display:grid;grid-template-columns:75px 1fr;gap:16px;border-bottom:1px solid #344156}
+.dp-project-number{font-size:36px;letter-spacing:-.07em;color:#657a9a;font-weight:800}
+.dp-project-kind{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#dbb982;margin:2px 0 11px;font-weight:750}
+.dp-project h3{font-size:clamp(26px,2.8vw,35px);margin:0 0 10px;letter-spacing:-.03em;color:#fff}
+.dp-project-description{font-size:15px;color:#cbd5e3;margin:0 0 13px;line-height:1.8}
+.dp-project ul,.dp-timeline ul{margin:10px 0 16px;padding-left:20px}.dp-project li+li{margin-top:7px}
+.dp-project-links{gap:20px;margin-top:18px}
+.dp-project-links a{display:inline-flex;gap:5px;align-items:center;text-decoration:none;color:#eac99a;font-weight:750;font-size:13px}.dp-project-links a:hover{text-decoration:underline}
+.dp-startup{border:1px solid #826d91;background:linear-gradient(110deg,#2a2945,#1b2a42);border-radius:20px;padding:30px clamp(20px,3vw,36px);display:flex;gap:22px;align-items:center;justify-content:space-between;margin:0 0 70px}
+.dp-startup h2{margin:12px 0 12px;font-size:clamp(22px,2.5vw,32px);letter-spacing:-.03em}
+.dp-startup p{margin:0;line-height:1.8;color:#d0d9e7;max-width:720px;font-size:14px}
+.dp-startup .dp-startup-small{font-size:12px;color:#beb7cc;margin-top:12px}.dp-startup .dp-button{flex-shrink:0}
+.dp-career-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:20px}
+.dp-career-card{background:#162338;border:1px solid #354660;padding:25px;border-radius:15px}
+.dp-career-card h3{display:flex;align-items:center;gap:9px;font-size:17px;color:#fff;margin:0 0 26px}.dp-career-card h3 svg{color:#e3be88}
+.dp-timeline{border-left:2px solid #716486;padding:0 0 14px 20px;margin:0 0 17px}.dp-timeline>span{color:#d8bc91;font-size:12px}
+.dp-timeline h4{color:#f2f3f8;margin:9px 0;font-size:16px}.dp-timeline li{margin-bottom:6px}
+.dp-career-card .dp-languages{margin-top:27px;margin-bottom:10px}
+.dp-contact{text-align:center;padding:55px 15px 30px}.dp-contact h2{font-size:clamp(30px,4vw,50px);margin:17px 0;letter-spacing:-.04em}
+.dp-contact>p{max-width:600px;margin:10px auto 24px;color:#bdc6d7;line-height:1.8}
+.dp-contact>p:last-child{font-size:13px;margin:18px auto 0;overflow-wrap:anywhere}.dp-contact>p a{color:#d6bd93}
+@media(max-width:1050px){.dp-hero{grid-template-columns:1fr;min-height:0}.dp-hero-visual{display:none}.dp-expertise-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.dp-hero{padding:42px 20px 55px}.dp-hero h1{font-size:clamp(35px,8vw,55px)}.dp-hero-actions .dp-button{flex:1 1 190px}.dp-stack>div{grid-template-columns:1fr;gap:3px}.dp-career-grid{grid-template-columns:1fr}.dp-startup{flex-direction:column;align-items:flex-start}.dp-project{grid-template-columns:1fr;gap:3px}.dp-project-number{font-size:21px}.dp-socials{gap:16px}}
+@media(max-width:480px){.dp-expertise-grid{grid-template-columns:1fr}.dp-hero h1{font-size:36px}.dp-eyebrow{font-size:9px;letter-spacing:.10em}.dp-hero-actions .dp-button{width:100%}.dp-body{padding-inline:17px}.dp-startup{padding:22px}.dp-section{padding:40px 0 55px}}
+@media(prefers-reduced-motion:reduce){.dp-page *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}

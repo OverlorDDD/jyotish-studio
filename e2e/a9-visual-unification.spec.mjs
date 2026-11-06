@@ -13,25 +13,19 @@ test('Global shell is single in Jyotish and the local tool preserves saved-chart
  else await expect(page.locator('.jy-section-nav')).toBeVisible();
  await expect(page.locator('.jy-portal-toolbar')).toContainText('GalaxiAstro');
 });
-test('Cosmic hero uses circular orbit tracks, fills viewport and honors reduced motion',async({page})=>{
+test('Root and localized home open the real chart, with About Me as first navigation item',async({page})=>{
+ await page.goto('/');
+ await expect(page.locator('.jy-workbench')).toBeVisible();
+ await expect(page.locator('header.as-header')).toHaveCount(1);
+ await expect(page.getByRole('heading',{name:/Natal chart/i})).toBeVisible();
+ const first=page.locator('.as-main-nav a').first();
+ await expect(first).toHaveText('About Me');
+ await expect(first).toHaveAttribute('href','/en/about-me');
  await page.goto('/uk');
- await expect(page.locator('.as-orbit-track')).toHaveCount(3);
- const moon=page.locator('.as-moon-orb');
- await expect(moon).toHaveCount(1);
- await expect(moon).toBeEmpty();
- expect(await moon.evaluate(el=>getComputedStyle(el).backgroundImage)).toContain('radial-gradient');
- const geometry=await page.evaluate(()=>{
-  const hero=document.querySelector('.as-cosmic-hero').getBoundingClientRect();
-  const style=getComputedStyle(document.querySelector('.as-track-inner'));
-  return {left:hero.left,right:hero.right,viewport:document.documentElement.clientWidth,animation:style.animationName};
- });
- expect(geometry.left).toBeGreaterThanOrEqual(-2);
- expect(geometry.right).toBeLessThanOrEqual(geometry.viewport+2);
- expect(geometry.animation).toContain('galaxi-orbit');
- await page.emulateMedia({reducedMotion:'reduce'});
- const animation=await page.locator('.as-track-inner').evaluate(x=>getComputedStyle(x).animationName);
- expect(animation).toBe('none');
+ await expect(page).toHaveURL(/\/uk\/astrology\/jyotish$/);
+ await expect(page.locator('.jy-workbench')).toBeVisible();
 });
+
 test('Main navigation reaches practical content without splash redirect loops',async({page})=>{
  await page.goto('/uk');
  await page.locator('.as-main-nav').getByRole('link',{name:'Астрологія'}).click();

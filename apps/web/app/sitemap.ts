@@ -17,9 +17,10 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
   ...PEDIA_CATEGORIES.map(c=>'pedia/topic/'+c.id),
   ...TAROT_GUIDES.map(card=>'tarot/cards/'+card.slug),
   ...yoga.map(p=>'yoga/'+p.slug),...academy.map(p=>'pedia/'+p.slug)])];
- return allPages.flatMap(suffix=>(['en','uk'] as const).map(locale=>({
+ const localized=allPages.flatMap(suffix=>(['en','uk'] as const).map(locale=>({
   url:base+paths(locale,suffix),
   alternates:{languages:{en:base+paths('en',suffix),uk:base+paths('uk',suffix),'x-default':base+paths('en',suffix)}},
   // No invented lastmod: emit it only when a trustworthy content update timestamp exists.
  })));
+ return [{url:base+'/',alternates:{languages:{en:base+'/en/astrology/jyotish',uk:base+'/uk/astrology/jyotish','x-default':base+'/'}}},...localized];
 }

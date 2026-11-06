@@ -4,6 +4,7 @@ import {publicSiteOrigin} from '../lib/site-indexing';
 import {BRAND} from '../lib/brand';
 import './globals.css';
 import './pedia.css';
+import './portfolio.css';
 import {Suspense} from 'react';
 import GrowthConsent from './components/GrowthConsent';
 

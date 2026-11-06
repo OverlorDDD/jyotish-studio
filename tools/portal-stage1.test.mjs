@@ -7,7 +7,9 @@ test('public homepage supports bilingual Galaxiora portal and retains root HTTP 
  const localePage=code('apps/web/app/[locale]/page.tsx');
  const home=code('apps/web/app/components/PortalHome.tsx');
  const shell=code('apps/web/app/components/PortalShell.tsx');
- assert.match(root,/PortalHome locale="en"/);
+ assert.match(root,/JyotishCalculator initialLang="en"/);
+ assert.match(localePage,/permanentRedirect/);
+ assert.match(shell,/about-me/);
  assert.match(localePage,/generateStaticParams/);
  for(const slug of ['astrology','tarot','yoga','learn','news','community']){
    assert.ok(home.includes("slug:'"+slug+"'"),slug);
