@@ -10,6 +10,7 @@
  */
 import {readFileSync,existsSync,statSync,writeFileSync,mkdirSync} from 'node:fs';
 import {resolve,dirname,join} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {SHODASHAVARGA,vargaSign} from '../packages/jyotish-core/src/vargas.ts';
 import {n4UmaShambhuHoraSign} from '../packages/jyotish-core/src/hora-uma-shambhu.ts';
@@ -156,7 +157,7 @@ export async function runN413(options){
  const records=input.cases.map((r,i)=>nativeN413Case(sw,r,i));
  return {...header,...compareN413AgainstSource(input,records)};
 }
-if(import.meta.url===new URL('file://'+process.argv[1]).href){
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  try{
   const args=process.argv.slice(2),arg=k=>{const p=args.indexOf(k);return p<0?null:args[p+1]};
   assert(args.includes('--smoke')!==!!arg('--reference'),

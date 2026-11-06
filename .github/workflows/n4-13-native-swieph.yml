@@ -24,7 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-audit --no-fund
       - name: N4.13 strict negative and shape tests
         run: node --experimental-strip-types --test tools/n4-native-swieph-exact-profile.test.mjs tools/n4-original-jhora50-reference-gate.test.mjs
       - name: Native SWIEPH files and actual return-flags smoke (NOT 50-case certification)
