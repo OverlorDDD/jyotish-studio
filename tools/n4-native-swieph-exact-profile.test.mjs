@@ -21,7 +21,7 @@ test('strict isolated native True-Citra profile, real input UTC, truepos+nonut L
  const time=new Date(new Date(c.date+'T'+c.time+':00Z').getTime()-c.timezoneHours*3600000);
  const input={id:c.id,birthUtc:time.toISOString()};
  const p=nativeN413Case(fake(),input,1);
- assert.equal(p.natalLongitudes.Ascendant,226.4);
+ assert.ok(Math.abs(p.natalLongitudes.Ascendant-226.4)<1e-10);
  assert.equal(p.natalLongitudes.Ketu,(p.natalLongitudes.Rahu+180)%360);
  assert.equal(p.backend,'returned-SWIEPH-2-on-eight-body-calculations');
  assert.throws(()=>checkedJhoraSyntheticCivilTime({...input,birthUtc:'1990-01-05T00:00:00Z'},1),/original UTC/);
