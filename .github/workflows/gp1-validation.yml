@@ -8,6 +8,7 @@ on:
       - 'apps/web/lib/portfolio-profile.json'
       - 'apps/web/public/resume/**'
       - 'tools/gp1-portfolio.test.mjs'
+      - 'e2e/gp1-portfolio.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: read
