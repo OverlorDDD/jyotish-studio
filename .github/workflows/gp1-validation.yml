@@ -47,7 +47,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Start real production Next.js web server
         run: |
-          npm run start -w @jyotish/web > /tmp/gp1-web.log 2>&1 &
+          (cd apps/web && node ../../node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000) > /tmp/gp1-web.log 2>&1 &
           for attempt in $(seq 1 45); do
             if curl -fsS http://127.0.0.1:3000/ >/dev/null; then exit 0; fi
             sleep 2
