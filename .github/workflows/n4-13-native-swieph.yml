@@ -17,19 +17,29 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native-swieph:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            node: '22'
+          - os: windows-latest
+            node: '24'
+    name: Native SWIEPH ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ matrix.node }}
       - run: npm install --no-audit --no-fund
       - name: N4.13 strict negative and shape tests
         run: node --experimental-strip-types --test tools/n4-native-swieph-exact-profile.test.mjs tools/n4-original-jhora50-reference-gate.test.mjs
       - name: Native SWIEPH files and actual return-flags smoke (NOT 50-case certification)
         run: npm run n4:13:smoke
       - name: Assert no original private JHora sources in checked-in tree
+        shell: bash
         run: |
           if git ls-files | grep -E 'N4_12_50_ORIGINAL_JHORA_SANITIZED_REFERENCE_PRIVATE|N4-12-ORIGINAL-JHORA8-002-050-MAIN-ASCII|N4-SYNTH-001-ORIGINAL-JHORA-PILOT'; then
             echo 'Private original JHora sources must not be committed'; exit 1
