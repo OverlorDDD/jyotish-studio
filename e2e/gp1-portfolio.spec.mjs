@@ -14,7 +14,7 @@ for(const locale of ['en','uk']){
   await page.goto('/'+locale+'/about-me');
   await expect(page.locator('main#main-content')).toBeVisible();
   await expect(page.getByRole('heading',{name:'Galaxiora',exact:true})).toBeVisible();
-  await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute('href','https://galaxiora.example/'+locale+'/about-me');
+  await expect(page.locator('link[rel="canonical"]').first()).toHaveAttribute('href','https://galaxiora.example/'+locale+'/about-me');
   await expect(page.locator('a[href*="github.com/OverlorDDD"]').first()).toBeVisible();
   for(const ext of ['pdf','docx']){
    const href='/resume/denys-avramenko-cv.'+locale+'.'+ext;
