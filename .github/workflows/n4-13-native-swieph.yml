@@ -1,0 +1,37 @@
+name: N4.13 Native SWIEPH strict backend smoke
+on:
+  push:
+    branches: [feat/n4-shodashavarga-foundation]
+    paths:
+      - 'tools/n4-native-swieph-exact-profile.mjs'
+      - 'tools/n4-native-swieph-exact-profile.test.mjs'
+      - 'tools/n4-original-jhora50-reference-gate.mjs'
+      - '.github/workflows/n4-13-native-swieph.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: n413-native-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-swieph:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - name: N4.13 strict negative and shape tests
+        run: node --experimental-strip-types --test tools/n4-native-swieph-exact-profile.test.mjs tools/n4-original-jhora50-reference-gate.test.mjs
+      - name: Native SWIEPH files and actual return-flags smoke (NOT 50-case certification)
+        run: npm run n4:13:smoke
+      - name: Assert no original private JHora sources in checked-in tree
+        run: |
+          if git ls-files | grep -E 'N4_12_50_ORIGINAL_JHORA_SANITIZED_REFERENCE_PRIVATE|N4-12-ORIGINAL-JHORA8-002-050-MAIN-ASCII|N4-SYNTH-001-ORIGINAL-JHORA-PILOT'; then
+            echo 'Private original JHora sources must not be committed'; exit 1
+          fi
+          echo N413_NO_PRIVATE_REFERENCE_COMMITTED_PASS
