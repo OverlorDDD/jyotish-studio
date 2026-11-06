@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Galaxiora — official cosmic-G icon release (all brand formats).
+# Galaxiora — approved spiral #6 icon release (all brand formats).
 # Run after safely fast-forwarding AWS checkout to the exact CI-green commit.
 # No database migrations or DNS changes. Brand assets generated from approved original spiral #6 PNG.
 set -Eeuo pipefail
@@ -28,7 +28,7 @@ printf '%s\n' "$CURRENT" > "$BACKUP/release-sha"
 echo "=== Install explicit sharp dependency ==="
 npm install --no-audit --no-fund
 
-echo "=== Generate all G icons from official SVG ==="
+echo "=== Generate all icons from immutable approved spiral #6 PNG ==="
 npm run brand:icons:build
 npm run test:brand:icons
 npm run test:brand-favicon
@@ -65,4 +65,4 @@ for path in /favicon.ico /icon.png /galaxiora-favicon.png /galaxiora-logo-128.pn
 done
 
 echo "DEPLOYED_SHA=$(git rev-parse HEAD)"
-echo "GALAXIORA_COSMIC_G_VERIFIED"
+echo "GALAXIORA_APPROVED_SPIRAL_6_VERIFIED"

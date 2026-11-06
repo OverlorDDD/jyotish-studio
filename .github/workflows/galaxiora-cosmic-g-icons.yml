@@ -1,11 +1,9 @@
-name: Galaxiora Cosmic G Icon Release
+name: Galaxiora Approved Spiral 6 Full E2E (manual)
 on:
-  push:
-    branches: [feat/galaxiora-cosmic-g-brand-icons-20261101]
   workflow_dispatch:
 jobs:
   content:
-    name: Build and browser-verify new G logo, favicon and PWA icon variants
+    name: Build and browser-verify approved spiral #6 favicon and PWA icon variants
     runs-on: ubuntu-latest
     services:
       postgres:
