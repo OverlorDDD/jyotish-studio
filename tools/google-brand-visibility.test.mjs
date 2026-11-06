@@ -12,7 +12,7 @@ test('Google can identify Galaxiora on the hostname homepage without a root noin
  const layout=read('apps/web/app/layout.tsx');
  assert.match(layout,/'@type':'WebSite'/);
  assert.match(layout,/'@type':'Organization'/);
- assert.match(layout,/alternateName:\['galaxiora.com'\]/);
+ assert.match(layout,/alternateName:\['galaxiora.com','Галаксіора'\]/);
 });
 test('Google sees a stable PNG icon at root and a legitimate brand logo',()=>{
  const layout=read('apps/web/app/layout.tsx');
