@@ -34,6 +34,18 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm install --no-audit --no-fund
+      - name: N4.13 private Windows launcher full PowerShell 5.1 parse (never execute)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $source = 'tools/n4-13-private-run.ps1'
+          $bytes = [IO.File]::ReadAllBytes((Resolve-Path $source).Path)
+          if (@($bytes | Where-Object { $_ -gt 127 }).Count -gt 0) { throw 'N413_NON_ASCII_POWERSHELL' }
+          $tokens = $null
+          $errorsFound = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $source).Path,[ref]$tokens,[ref]$errorsFound)
+          if (@($errorsFound).Count -gt 0) { $errorsFound | ForEach-Object { Write-Host $_.Message }; throw 'N413_WINDOWS_PS51_PARSE_FAILED' }
+          Write-Host 'N413_WINDOWS_PS51_PRIVATE_LAUNCHER_PARSE_PASS'
       - name: N4.13 strict negative and shape tests
         run: node --experimental-strip-types --test tools/n4-native-swieph-exact-profile.test.mjs tools/n4-original-jhora50-reference-gate.test.mjs
       - name: Native SWIEPH files and actual return-flags smoke (NOT 50-case certification)
