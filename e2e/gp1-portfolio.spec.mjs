@@ -13,7 +13,7 @@ for(const locale of ['en','uk']){
  test('GP1 '+locale+' portfolio has links, downloads, canonical, and fits mobile',async({page,request})=>{
   await page.goto('/'+locale+'/about-me');
   await expect(page.locator('main#main-content')).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Galaxiora'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Galaxiora',exact:true})).toBeVisible();
   await expect(page.locator('head link[rel="canonical"]')).toHaveAttribute('href','https://galaxiora.example/'+locale+'/about-me');
   await expect(page.locator('a[href*="github.com/OverlorDDD"]').first()).toBeVisible();
   for(const ext of ['pdf','docx']){
