@@ -104,14 +104,14 @@ for($i=0;$i -lt 90;$i++){
 }
 if(-not $ready){throw 'Next.js preview did not start. Review the other terminal. Do not use an old 3000 server.'}
 $runtime=Invoke-RestMethod 'http://127.0.0.1:3000/api/v1/jyotish/runtime' -TimeoutSec 6
-if($runtime.readerEdition -ne 'reader-v7.0.0-n43' -or -not $runtime.previewOnly){
- throw 'API proxy is not connected to isolated N4.3 Reader v7.'
+if($runtime.readerEdition -ne 'reader-v8.0.0-n44' -or -not $runtime.previewOnly){
+ throw 'API proxy is not connected to isolated N4.4 Classical Reader 8.'
 }
 Write-Host ''
-Write-Host 'N43_REAL_READER_PREVIEW_READY — NO DOCKER, NO DATABASE, NO PRODUCTION DEPLOY' -ForegroundColor Green
+Write-Host 'N44_CLASSICAL_READER_8_PREVIEW_READY — NO DOCKER, NO DATABASE, NO PRODUCTION DEPLOY' -ForegroundColor Green
 Write-Host 'UA: http://localhost:3000/uk/astrology/jyotish'
 Write-Host 'EN: http://localhost:3000/en/astrology/jyotish'
-Write-Host 'Enter birth data and city. Compare "Read without AI — Reader 7" with AI.'
+Write-Host 'Enter birth data and city. Compare "Read without AI — Reader 8" with AI.'
 Write-Host 'If a model key is absent/invalid, AI will be clearly labelled as unavailable; Reader 7 still works.'
 Write-Host 'Leave both launched terminal windows open while reviewing.'
 Start-Process 'http://localhost:3000/uk/astrology/jyotish'
