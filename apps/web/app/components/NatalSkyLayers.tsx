@@ -11,16 +11,16 @@ import styles from './NatalSkyLayers.module.css';
  * no extra three.js bundle, GPU context, remote images or dependencies.
  */
 type BodyKind='sun'|'jupiter'|'saturn'|'neptune'|'venus'|'moon';
-type Body={kind:BodyKind;name:string;x:number;y:number;r:number;light:string;middle:string;dark:string;labelX:number;labelY:number};
+type Body={kind:BodyKind;name:string;x:number;y:number;r:number;light:string;middle:string;dark:string};
 type Star={x:number;y:number;r:number;a:number;phase:number;depth:number};
 const W=640,H=620;
 const PLANETS:readonly Body[]=[
- {kind:'sun',name:'SUN',x:164,y:254,r:28,light:'#f4e7c8',middle:'#d3ac77',dark:'#6f5a56',labelX:116,labelY:309},
- {kind:'jupiter',name:'JUPITER',x:462,y:206,r:39,light:'#e3d6c7',middle:'#a58d8b',dark:'#4b465e',labelX:499,labelY:258},
- {kind:'saturn',name:'SATURN',x:425,y:452,r:29,light:'#e2d3bc',middle:'#a69c99',dark:'#535165',labelX:465,labelY:496},
- {kind:'neptune',name:'NEPTUNE',x:229,y:459,r:24,light:'#c5c3db',middle:'#676f9b',dark:'#292c51',labelX:145,labelY:504},
- {kind:'venus',name:'VENUS',x:507,y:351,r:13,light:'#eadccf',middle:'#b9a29f',dark:'#68677e',labelX:529,labelY:361},
- {kind:'moon',name:'MOON',x:310,y:125,r:12,light:'#e1e9ed',middle:'#9da9ba',dark:'#4a5474',labelX:332,labelY:118}
+ {kind:'sun',name:'SUN',x:164,y:254,r:28,light:'#f4e7c8',middle:'#d3ac77',dark:'#6f5a56'},
+ {kind:'jupiter',name:'JUPITER',x:462,y:206,r:39,light:'#e3d6c7',middle:'#a58d8b',dark:'#4b465e'},
+ {kind:'saturn',name:'SATURN',x:425,y:452,r:29,light:'#e2d3bc',middle:'#a69c99',dark:'#535165'},
+ {kind:'neptune',name:'NEPTUNE',x:229,y:459,r:24,light:'#c5c3db',middle:'#676f9b',dark:'#292c51'},
+ {kind:'venus',name:'VENUS',x:507,y:351,r:13,light:'#eadccf',middle:'#b9a29f',dark:'#68677e'},
+ {kind:'moon',name:'MOON',x:310,y:125,r:12,light:'#e1e9ed',middle:'#9da9ba',dark:'#4a5474'}
 ];
 const CONSTELLATIONS:readonly (readonly [number,number])[][]=[
  [[73,122],[122,103],[154,141],[194,116],[247,148]],
@@ -244,7 +244,7 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
   const syncHover=()=>{
    const next=hitPlanet(m);
    if(m.hover!==next){
-    m.hover=next;m.hoverOpacity=next?0:0;
+    m.hover=next;m.hoverOpacity=0;
     setHovered(next);
     canvas.style.cursor=next?'crosshair':'default';
    }
@@ -257,6 +257,8 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
    const damp=1-Math.exp(-dt/260);
    m.x+=(m.targetX-m.x)*damp;
    m.y+=(m.targetY-m.y)*damp;
+   canvas.dataset.parallaxX=m.x.toFixed(3);
+   canvas.dataset.parallaxY=m.y.toFixed(3);
    syncHover();
    m.hoverOpacity+=(Number(m.hover!==null)-m.hoverOpacity)*(1-Math.exp(-dt/115));
    paint(now);
@@ -265,6 +267,7 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
   const stop=()=>{cancelAnimationFrame(frame);frame=0;lastFrame=0;};
   const drawStatic=()=>{
    m.targetX=0;m.targetY=0;m.x=0;m.y=0;
+   canvas.dataset.parallaxX='0';canvas.dataset.parallaxY='0';
    syncHover();
    m.hoverOpacity=m.hover?1:0;
    paint(0);
