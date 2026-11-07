@@ -68,7 +68,7 @@ test('UK D60 is the sixteenth normal tab and missing-minute hint is placed by bi
  await explorer.getByRole('button',{name:/^D60\\b/}).click();
  await expect(explorer).toContainText('D60');
  await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
- await expect(explorer.getByTestId('n4-d60-precision-warning')).toBeVisible();
+ await expect(explorer.getByTestId('n4-d60-precision-warning')).toHaveCount(0);
  await expect(page.getByTestId('n4-d60-panel')).toHaveCount(0);
 });
 test('Unknown minutes adds a form-time warning and changes D60 caveat without blocking the chart',async({page})=>{
