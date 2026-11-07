@@ -8,6 +8,7 @@ on:
       - 'apps/web/app/page.tsx'
       - 'apps/web/next.config.mjs'
       - 'tools/google-favicon-production-audit.mjs'
+      - 'tools/google-favicon-serp6-aws-release.sh'
       - 'apps/web/app/components/PortalShell.tsx'
       - 'tools/brand-icons-build.mjs'
       - 'tools/brand-icons.test.mjs'
@@ -23,6 +24,7 @@ on:
       - 'apps/web/app/page.tsx'
       - 'apps/web/next.config.mjs'
       - 'tools/google-favicon-production-audit.mjs'
+      - 'tools/google-favicon-serp6-aws-release.sh'
       - 'apps/web/app/components/PortalShell.tsx'
       - 'tools/brand-icons-build.mjs'
       - 'tools/brand-icons.test.mjs'
@@ -54,6 +56,7 @@ jobs:
       - name: Production build
         run: |
           node --check tools/google-favicon-production-audit.mjs
+          bash -n tools/google-favicon-serp6-aws-release.sh
           npm run build
       - name: Independently verify served PNG / ICO / Next icons and Googlebot-Image
         run: |
