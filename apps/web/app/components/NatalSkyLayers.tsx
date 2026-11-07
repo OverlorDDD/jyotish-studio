@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useState,type PointerEvent} from 'react';
 import s from './NatalSkyLayers.module.css';
 
 type Locale='uk'|'en';
@@ -15,14 +15,14 @@ const POINTS=[[38,70],[119,37],[206,77],[303,45],[332,142],[245,188],[177,132],[
 export default function NatalSkyLayers({lang}:{lang:Locale}){
  const [active,setActive]=useState<Theme>('strength');
  const uk=lang==='uk',current=THEMES.find(x=>x.key===active)!;
- const move=(e:React.PointerEvent<HTMLDivElement>)=>{
+ const move=(e:PointerEvent<HTMLDivElement>)=>{
   if(e.pointerType==='touch')return;
   const r=e.currentTarget.getBoundingClientRect();
   const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
   e.currentTarget.style.setProperty('--sky-x',String(-y*8)+'deg');
   e.currentTarget.style.setProperty('--sky-y',String(x*8)+'deg');
  };
- const reset=(e:React.PointerEvent<HTMLDivElement>)=>{
+ const reset=(e:PointerEvent<HTMLDivElement>)=>{
   e.currentTarget.style.setProperty('--sky-x','0deg');
   e.currentTarget.style.setProperty('--sky-y','0deg');
  };
