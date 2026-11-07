@@ -231,8 +231,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     <N4RcExplorer chart={chart} lang={lang} minutesUncertain={minutesUncertain}/>
 
     <section className="jy-ai-launch">
-     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'Одна хмарна консультація за точно обчисленою картою. Якщо модель недоступна, Reader v6 залишається доступним.':'One cloud consultation grounded in the calculated chart. Reader v6 remains available if the provider is offline.'}</small></span><ArrowUpRight size={20}/></button>
-     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}</button>
+     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'AI пояснює підтверджені факти простою мовою. Якщо модель недоступна, Reader 7 працює без AI.':'AI explains verified chart themes in plain language. Reader 7 still works without AI.'}</small></span><ArrowUpRight size={20}/></button>
+     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader 7':'Read without AI — Reader 7'}</button>
      {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
      {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
     </section>
