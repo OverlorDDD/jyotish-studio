@@ -84,15 +84,16 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   .filter(d=>d!==primary)
   .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
  const highlights=[
-  {id:'strength' as const,division:primary,title:uk?'Де у вас може бути опора':'Where you may find support',
+  {id:'strength' as const,division:primary,title:uk?'Ваша опора: '+select(primary).title:'A strength to explore: '+select(primary).title,
    text:select(primary).highlight},
-  {id:'challenge' as const,division:secondary,title:uk?'Що варто перевірити':'A pattern to watch',
+  {id:'challenge' as const,division:secondary,title:uk?'Точка уваги: '+select(secondary).title:'A tension to watch: '+select(secondary).title,
    text:select(secondary).highlight},
-  {id:'career' as const,division:10,title:uk?'Професійний напрям':'Your professional direction',
+  {id:'career' as const,division:10,title:uk?'Робота: де ваш внесок важливий':'Work: where your contribution matters',
    text:select(10).highlight}
  ];
  return {
-  version:READER_V8_VERSION,ruleSetVersion:N44_CLASSICAL_RULESET_VERSION,
+  version:READER_V8_VERSION,editorialVersion:N45_EDITORIAL_VERSION,
+  ruleSetVersion:N44_CLASSICAL_RULESET_VERSION,
   status:'available',
   introduction:uk?
    'П’ятнадцять граней вашого життя — п’ятнадцять запитань, на які варто шукати власну відповідь. Ми показуємо, що підказує традиційна карта, де можуть бути труднощі та яку конкретну дію спробувати. Це не вирок і не знання наперед про ваше життя.':
