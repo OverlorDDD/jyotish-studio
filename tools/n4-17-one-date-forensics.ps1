@@ -72,6 +72,9 @@ try {
  if($lines.Count -lt 100){throw 'N417_SOURCE_INCOMPLETE'}
  $tmpFile=Join-Path $source ('tools\n4-17-private-residual-'+[guid]::NewGuid().ToString('N')+'.mjs')
  [System.IO.File]::WriteAllText($tmpFile,([string]::Join([Environment]::NewLine,$lines)+[Environment]::NewLine),[System.Text.UTF8Encoding]::new($false))
+ & node --check $tmpFile
+ FailCode 'N418_DOWNLOADED_EXECUTABLE_CLI_SYNTAX_CHECK'
+ Write-Host 'N418_DOWNLOADED_NODE_EXECUTABLE_SYNTAX_CHECK_PASS'
  Write-Host 'N417_REUSING_PRIOR_VALIDATED_NATIVE_SWISS_WORKTREE'
  Write-Host "N417_DIAGNOSTIC_HEAD=$required"
  Push-Location $source
