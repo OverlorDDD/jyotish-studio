@@ -13,6 +13,7 @@ import {auditN4JHora50MethodAwareReference} from './n4-original-jhora50-referenc
 import {checkedJhoraSyntheticCivilTime,createN414NativeResearchSampler} from './n4-native-swieph-exact-profile.mjs';
 import {n4SyntheticJHoraCase} from './n4-jhora8-windows-prepare.mjs';
 import {auditN414UtcSensitivity,N414_RADII_SECONDS} from './n4-14-sensitivity.mjs';
+import {refineN414ObservedCrossings} from './n4-14-crossing-refinement.mjs';
 
 const PINNED_SOURCE_SHA='5dcb07d6d71f68199af97696e8ad3ca91493b30f4abc41fdd51350c14e4ff992';
 const FILE_HASHES={
@@ -26,7 +27,7 @@ function assertFiles(native){
   if(native.ephemerisFiles?.[name]?.sha256!==expected)
    fail('wrong native ephemeris file hash: '+name);
 }
-function aggregate(results){
+function aggregate(results,refinedResults=null){
  if(results.length!==50||results.some(r=>r.status!=='N414_SAMPLED_SENSITIVITY_DIAGNOSTIC_ONLY'))
   fail('incomplete private SWIEPH case set');
  const byRadius=N414_RADII_SECONDS.map(radiusSeconds=>{
@@ -43,6 +44,25 @@ function aggregate(results){
    exactContinuousSignStabilityCertified:false
   };
  });
+ let refinement=null;
+ if(refinedResults){
+  if(refinedResults.length!==50)fail('50 refinement records required');
+  const refinedBrackets=refinedResults.reduce((a,b)=>a+b.refinedBrackets,0);
+  const blockedBrackets=refinedResults.reduce((a,b)=>a+b.blockedBrackets,0);
+  const observedBrackets=refinedResults.reduce((a,b)=>a+b.observedBrackets,0);
+  if(observedBrackets!==byRadius[byRadius.length-1].observedAdjacentSecondCrossingBrackets||
+    refinedBrackets+blockedBrackets!==observedBrackets)
+   fail('refined crossings fail to reconcile with 1-second grid');
+  const maxWidth=Math.max(0,...refinedResults.map(x=>x.maximumRefinedWidthMs));
+  refinement={
+   status:blockedBrackets===0?'N414_OBSERVED_CROSSINGS_REFINED_DIAGNOSTIC_PASS':
+    'N414_OBSERVED_CROSSINGS_REFINEMENT_BLOCKED',
+   precisionTargetMs:125,refinedBrackets,observedBrackets,blockedBrackets,
+   maximumRefinedBracketWidthMs:maxWidth,
+   uniqueRootsCertified:false,missingSubsecondCrossingsExcluded:false,
+   originalFullD60StabilityCertified:false
+  };
+ }
  return {
   status:'N414_PRIVATE_NATIVE_SWIEPH_50_CASE_GRID_DIAGNOSTIC_PASS',
   sampleResolutionSeconds:1,originalSyntheticCases:50,
@@ -54,10 +74,11 @@ function aggregate(results){
   nativeHouseAndAyanamsaFlagsIndependentlyExposed:false,
   continuousD60IntervalCertified:false,
   historicalLocalTimeCertified:false,productionReleasePermitted:false,
-  fullN414CertificateIssued:false
+  fullN414CertificateIssued:false,
+  ...(refinement?{refinement}:{})
  };
 }
-export async function runN414Private({reference,epheDir,smoke=false}={}){
+export async function runN414Private({reference,epheDir,smoke=false,refine=false}={}){
  const native=await createN414NativeResearchSampler({epheDir});
  assertFiles(native);
  if(smoke){
@@ -76,7 +97,7 @@ export async function runN414Private({reference,epheDir,smoke=false}={}){
  if(sha(raw)!==PINNED_SOURCE_SHA)fail('50-case original source SHA-256 mismatch');
  const source=JSON.parse(raw.toString('utf8'));
  auditN4JHora50MethodAwareReference(source);
- const results=[];
+ const results=[],refinedResults=[];
  for(let i=0;i<50;i++){
   const c=checkedJhoraSyntheticCivilTime(source.cases[i],i);
   const report=await auditN414UtcSensitivity({
@@ -84,9 +105,17 @@ export async function runN414Private({reference,epheDir,smoke=false}={}){
    sampleAtUtc:utc=>native.atUtc({utc,latitude:c.latitude,longitude:c.longitude})
   });
   results.push(report);
+  if(refine){
+   const narrowed=await refineN414ObservedCrossings({
+    observed:report,
+    sampleAtUtc:utc=>native.atUtc({utc,latitude:c.latitude,longitude:c.longitude}),
+    precisionMs:125
+   });
+   refinedResults.push(narrowed);
+  }
   if((i+1)%10===0)console.error('N414_DIAGNOSTIC_CASES='+String(i+1)+'/50');
  }
- return {...aggregate(results),sourceReferenceSha256:PINNED_SOURCE_SHA,
+ return {...aggregate(results,refine?refinedResults:null),sourceReferenceSha256:PINNED_SOURCE_SHA,
   ephemerisFiles:native.ephemerisFiles,exactProfile:native.profile};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
@@ -94,10 +123,11 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
   const args=process.argv.slice(2),arg=k=>{
    const idx=args.indexOf(k);return idx<0?null:args[idx+1];
   };
-  const smoke=args.includes('--smoke'),reference=arg('--reference'),output=arg('--output');
+  const smoke=args.includes('--smoke'),refine=args.includes('--refine'),reference=arg('--reference'),output=arg('--output');
   if(smoke===Boolean(reference)||(!smoke&&!output))fail(
    'use --smoke OR --reference PRIVATE.json --output PRIVATE_RESULT.json');
-  const result=await runN414Private({reference,epheDir:arg('--ephe'),smoke});
+  if(smoke&&refine)fail('refine is available only with 50 private source cases');
+  const result=await runN414Private({reference,epheDir:arg('--ephe'),smoke,refine});
   const formatted=JSON.stringify(result,null,2)+'\n';
   if(output){
    const target=resolve(output);
