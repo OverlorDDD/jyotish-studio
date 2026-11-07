@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -101,6 +101,33 @@ test('All 16 charts stay in one responsive explorer at 320–1440 px',async({pag
  }
 });
 
+function mockV8(divisions){
+ return {
+  version:'reader-v8.0.0-n44',ruleSetVersion:'classical-reader-n44-1.0.0',
+  status:'available',introduction:'Підсумок класичного аналізу за розрахованою картою.',
+  method:'Brihat Jataka (1905) · Laghu Parashari (1900); перевірені OCR-уривки.',
+  d60Notice:'D60 не використовується для індивідуального трактування.',
+  highlights:[
+   {id:'strength',division:27,title:'Ресурси',text:'Практична витривалість і сталі звички.'},
+   {id:'challenge',division:30,title:'Виклики',text:'Зверніть увагу на розподіл сил.'},
+   {id:'career',division:10,title:'Робота',text:'Обирайте роботу, де корисні конкретні навички.'}
+  ],
+  insights:divisions.map(n=>({
+   division:n,title:n===27?'Сильні сторони':'Життєва тема '+n,
+   headline:'Різні аспекти карти вказують на практичні пріоритети.',
+   strength:'У цій темі можна розвивати послідовну роботу й увагу до деталей.',
+   challenge:'Складнощі можливі, коли прагнете одночасно досягти всього.',
+   context:'Умови цього тематичного поєднання уточнюють загальну карту. Brihat Jataka пропонує оцінювати кілька показників разом.',
+   step:'Спробуйте один конкретний крок, який можна виконати сьогодні.',
+   proof:['D1.house-lord.10=Mercury','D'+n+'.Mercury.house=3'],
+   ruleIds:n===10?['BJ-X-1-NAVAMSA-VOCATION']:[],
+   sources:n===10?[{id:'BJ-X-1',work:'Brihat Jataka',chapter:'X',stanza:'1',
+    edition:'N. Chidambaram Aiyar, 1905',review:'ocr_excerpt_checked',application:'direct_natal'}]:[],
+   timeSensitivity:n>=16?'higher':'ordinary'
+  }))
+ };
+}
+
 test('N4 Reader shows all source-bound varga insights and the D60 precision boundary',async({page})=>{
  await ready(page,'uk');
  const divisions=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
@@ -134,6 +161,7 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
    })),
    d60Notice:'Лагна D60 індивідуально не сертифікована.'
   },
+  readerV8:mockV8(divisions),
   vargaReadings:{version:'n4-varga-reader-1.0.0',status:'available',
    methodology:'Варги уточнюють D1, не замінюють її.',
    readings:reading,d60:{status:'provisional_no_individual_interpretation',
@@ -142,22 +170,25 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await page.route('**/api/v1/reports',route=>route.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify(data)}));
  await page.getByRole('button',{name:/Читати без AI/}).click();
- const plain=page.getByTestId('reader-v7');
+ const plain=page.getByTestId('reader-v8');
  await expect(plain).toBeVisible();
- await expect(plain.locator('[data-testid^="reader-v7-D"]')).toHaveCount(15);
- await expect(plain.getByTestId('reader-v7-highlight-strength')).toBeVisible();
- await expect(plain.getByTestId('reader-v7-D27')).toContainText('Опора у відповідальності');
- await expect(plain.getByTestId('reader-v7-d60')).toContainText('Лагна D60');
+ await expect(plain.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
+ await expect(plain.getByTestId('reader-v8-highlight-strength')).toBeVisible();
+ await expect(plain.getByTestId('reader-v8-D27')).toContainText('У цій темі можна розвивати');
+ await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
+ await plain.getByTestId('reader-v8-D10').getByText('Розрахунки та класичні джерела').click();
+ await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
+ await expect(page.getByTestId('reader-v7')).toHaveCount(0);
 
  await expect(page.getByTestId('n4-varga-reader')).toHaveCount(0);
- await expect(plain.getByTestId('reader-v7-D60')).toHaveCount(0);
+ await expect(plain.getByTestId('reader-v8-D60')).toHaveCount(0);
  // This minimal mock intentionally omits editorial chapters: no advanced disclosure is rendered.
  // A full Reader report with editorial chapters is covered by the real HTTP integration gate.
  const detail=page.locator('.reading-root details').filter({hasText:'Поглиблене астрологічне пояснення'});
  await expect(detail).toHaveCount(0);
 });
 
-test('Reader 7 remains readable without horizontal overflow on mobile and desktop',async({page})=>{
+test('Reader 8 remains readable without horizontal overflow on mobile and desktop',async({page})=>{
  await ready(page,'uk');
  const divs=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
  const v7={
@@ -174,14 +205,14 @@ test('Reader 7 remains readable without horizontal overflow on mobile and deskto
  };
  await page.route('**/api/v1/reports',r=>r.fulfill({status:200,contentType:'application/json',
   body:JSON.stringify({language:'uk',readerVersion:'6.0.0',verification:proof,sections:[{id:'test',heading:'Огляд',lead:'Огляд',paragraphs:['Дані підтверджено']}],
-   readerV7:v7,ai:{provider:'local',source:'deterministic',fallbackReason:'reader_only',text:''}})}));
+   readerV7:v7,readerV8:mockV8(divs),ai:{provider:'local',source:'deterministic',fallbackReason:'reader_only',text:''}})}));
  await page.getByRole('button',{name:/Читати без AI/}).click();
  for(const width of [320,360,390,430,768,1440]){
   await page.setViewportSize({width,height:900});
-  const reader=page.getByTestId('reader-v7');
+  const reader=page.getByTestId('reader-v8');
   await expect(reader).toBeVisible();
-  await expect(reader.locator('[data-testid^="reader-v7-D"]')).toHaveCount(15);
+  await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
   const spill=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
-  expect(spill,'Reader 7 horizontal overflow at '+width).toBeLessThanOrEqual(2);
+  expect(spill,'Reader 8 horizontal overflow at '+width).toBeLessThanOrEqual(2);
  }
 });
