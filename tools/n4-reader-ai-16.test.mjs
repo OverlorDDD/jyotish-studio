@@ -80,7 +80,7 @@ test('Compact LLM material contains source-bound D2/D24/D27/D30 but never birth 
  assert.match(facts,/D60: METHOD_ONLY/);
  assert.doesNotMatch(facts,/D60\.(?:Sun|Moon|Saturn|lagna)\.sign=/);
  assert.ok(all.length<12500,'bounded, anonymized prompt, not 16 nine-planet inventories');
- assert.match(all,/Reader v7/);
+ assert.match(all,/Classical Reader 8/);
  assert.ok(!all.includes('2000-01-01')&&!all.includes('50.45')&&!all.includes('30.52'),'birth privacy');
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/two|TWO/);
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/D60/);
