@@ -20,9 +20,30 @@ try {
  if(-not (Test-Path -LiteralPath $source -PathType Container)) {
   throw "N417_PREVIOUS_SUCCESSFUL_WORKTREE_NOT_FOUND=$source"
  }
- $root=(& git -C $source rev-parse --show-toplevel).Trim()
+ # Git for Windows typically returns C:/... while PowerShell returns C:\\...
+ # Never test the two textual representations for equality.
+ # Ask git whether $source IS the repo root; require the .git FILE that
+ # "git worktree add --detach" creates (ordinary clones have .git directory).
+ $inside = @(& git -C $source rev-parse --is-inside-work-tree)
  FailCode 'N417_GIT_WORKTREE_CHECK'
- if($root -ne (Get-Item -LiteralPath $source).FullName){throw 'N417_NOT_AN_ISOLATED_WORKTREE'}
+ if((($inside -join '')).Trim() -ne 'true'){
+  throw 'N417_NOT_INSIDE_GIT_WORKTREE'
+ }
+ $prefix = @(& git -C $source rev-parse --show-prefix)
+ FailCode 'N417_GIT_WORKTREE_ROOT_CHECK'
+ if((($prefix -join '')).Trim().Length -ne 0){
+  throw 'N417_SOURCE_MUST_BE_WORKTREE_ROOT'
+ }
+ $gitMarker = Join-Path $source '.git'
+ if(-not (Test-Path -LiteralPath $gitMarker -PathType Leaf)){
+  throw 'N417_NOT_LINKED_WORKTREE_GITFILE'
+ }
+ $branchName = @(& git -C $source rev-parse --abbrev-ref HEAD)
+ FailCode 'N417_DETACHED_WORKTREE_CHECK'
+ if((($branchName -join '')).Trim() -ne 'HEAD'){
+  throw 'N417_EXPECTED_DETACHED_RESEARCH_WORKTREE'
+ }
+ Write-Host 'N417_WORKTREE_VALIDATION_PASS'
  $origin=(& git -C $source remote get-url origin).Trim()
  FailCode 'N417_GIT_ORIGIN_CHECK'
  if($origin -notmatch '(^|[:/])OverlorDDD/jyotish-studio(\.git)?$'){
