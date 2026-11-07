@@ -29,12 +29,6 @@ const INFO:readonly Info[]=[
  {n:45,name:'Akshavedamsa',uk:'Батьківська лінія',en:'Paternal line',detailUk:'Традиційний ракурс родової спадщини.',detailEn:'Traditional paternal-line themes.'},
  {n:60,name:'Shashtiamsa',uk:'Глибокі теми',en:'Deeper patterns',detailUk:'Традиційна кармічна варга. Результат залежить від точності часу народження.',detailEn:'A traditional karmic varga, sensitive to birth-time accuracy.'}
 ];
-const CATEGORIES=[
- {key:'resources',uk:'Ресурси й дім',en:'Resources & home',ns:[2,4,16]},
- {key:'family',uk:'Родина й взаємодія',en:'Family & connections',ns:[3,7,12,40,45]},
- {key:'growth',uk:'Розвиток і практика',en:'Growth & practice',ns:[20,24,27]},
- {key:'challenges',uk:'Випробування',en:'Challenges',ns:[30,60]}
-] as const;
 const SIGNS_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGNS_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const PLANETS_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
@@ -74,35 +68,28 @@ export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:
  return <section id="varga-explorer" className={styles.panel} aria-labelledby="n4-rc-title" data-testid="n4-rc-explorer">
   <div className={styles.intro}>
    <div><small className={styles.eyebrow}>{uk?'ГАЛАКСІОРА · НАТАЛЬНІ КАРТИ':'GALAXIORA · BIRTH CHARTS'}</small>
-    <h2 id="n4-rc-title">{uk?'Одна натальна карта — 16 ракурсів':'One birth chart, 16 perspectives'}</h2>
+    <h2 id="n4-rc-title">{uk?'16 карт життя — порівняй кожну з D1':'16 life charts — compare each with D1'}</h2>
     <p>{uk?'Основна карта D1 завжди поруч. Обери сферу життя, щоб побачити додаткову варгу, її планети й доми.':
      'Your D1 chart stays in view. Select a life area to explore its divisional chart, planets and houses.'}</p></div>
    <strong className={styles.counter}>16 <small>{uk?'карт':'charts'}</small></strong>
   </div>
-  <div className={styles.mainTabs} role="group" aria-label={uk?'Основні варги':'Primary vargas'}>
-   {INFO.filter(x=>[1,9,10].includes(x.n)).map(pick)}
+  <h3 className={styles.navTitle}>{uk?'Обери сферу життя — D1 залишиться поруч':'Choose a life area — D1 stays beside it'}</h3>
+  <div className={styles.mainTabs} role="group" aria-label={uk?'Усі 16 карт життя':'All 16 life charts'} data-testid="n41-all-charts">
+   {INFO.map(pick)}
   </div>
-  <details className={styles.more} data-testid="n4-rc-additional">
-   <summary>{uk?'Інші 13 карт за життєвими темами':'Explore 13 other charts by life area'}</summary>
-   <div className={styles.categories}>
-    {CATEGORIES.map(group=><div key={group.key}>
-     <h3>{uk?group.uk:group.en}</h3>
-     <div role="group" aria-label={uk?group.uk:group.en} className={styles.tabs}>
-      {group.ns.map(n=>pick(INFO.find(x=>x.n===n)!))}
-     </div>
-    </div>)}
-   </div>
-  </details>
   {!chart?<p className={styles.empty} role="status">{uk?'Введи свої дані народження вище, щоб побачити карти.':'Enter your birth details above to see your charts.'}</p>:
     !passed?<p role="alert" className={styles.warning}>{uk?'Сервер не підтвердив метод і зв’язок додаткових карт із D1. Нові карти приховано.':'Server proof is missing or mismatched. Additional charts are hidden.'}</p>:null}
   <div className={styles.grid}>
    <article className={styles.chart}>
-    <h3>D1 · {uk?'Основа':'Foundation'}</h3>
+    <h3>D1 · {uk?'Основна карта':'Foundation chart'}</h3>
     {chart&&passed&&chart.d1&&chart.ascendant?
       <NorthIndianChart division="d1" lang={lang} planets={[...chart.d1]} lagna={chart.ascendant}/>:
       <div className={styles.placeholder}>{uk?'Очікуємо розрахунок':'Awaiting chart'}</div>}
    </article>
-   {selected!==1&&<article className={styles.chart}>
+   {selected===1?<article className={styles.comparePrompt}>
+      <strong>{uk?'Обери будь-яку з решти 15 карт вище':'Choose one of the other 15 charts above'}</strong>
+      <p>{uk?'Основна D1 залишиться зліва, а обрана карта з’явиться справа в тому самому квадратному форматі.':'D1 stays left and the selected divisional chart appears right in the same square format.'}</p>
+     </article>:<article className={styles.chart}>
     <h3>{l(info)}</h3><p>{uk?info.detailUk:info.detailEn}</p>
     {selectedReady&&positions&&lagna?
       <NorthIndianChart division={'d'+selected} lang={lang} chartLabel={info.name}
