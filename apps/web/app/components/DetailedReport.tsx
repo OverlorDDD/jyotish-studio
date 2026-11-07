@@ -1,5 +1,6 @@
 'use client';
 import GlossaryText from './GlossaryText';
+import vargaStyles from './VargaInsights.module.css';
 
 export type ReadingSection={
  id:string;heading:string;eyebrow:string;lead:string;paragraphs:string[];
@@ -9,6 +10,11 @@ export type ReadingReport={
  sections:ReadingSection[];generatedAt:string;chartSummary:string;language:'uk'|'en';readerVersion?:string;verification?:{version:string;status:string;digest:string;checks:readonly string[];externalReferenceChecked:false};
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
+ vargaReadings?:{
+  version:string;status:'available'|'unavailable';methodology:string;
+  readings:readonly {division:number;title:string;topic:string;summary:string;practice:string;scope:string;evidence:readonly string[]}[];
+  d60:{status:'provisional_no_individual_interpretation';message:string};
+ };
  editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[];sourceIds?:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
  ai:{provider:string;model?:string;text:string;fallbackReason?:string;source?:'llm'|'deterministic';cached?:boolean;documentMode?:'unified';chapters?:{id:string;paragraphs:string[];source:'llm'}[]};
@@ -235,6 +241,28 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     <p>{report.editorial.method}</p>
    </details>
   </div>:null}
+
+  {report.vargaReadings?.status==='available'&&report.vargaReadings.readings.length===15?
+   <section className={vargaStyles.section} data-testid="n4-varga-reader" aria-labelledby="varga-reader-heading">
+    <div className="reading-chapter-kicker">{uk?'✦ ТЕМАТИЧНЕ ТРАКТУВАННЯ':'✦ DIVISIONAL READING'}</div>
+    <h3 id="varga-reader-heading">{uk?'16 карт життя: що додає кожна варга':'16 life charts: what each varga adds'}</h3>
+    <p className={vargaStyles.intro}>{report.vargaReadings.methodology}</p>
+    <div className={vargaStyles.grid}>
+     {report.vargaReadings.readings.map(item=><article key={item.division} className={vargaStyles.card} data-testid={'n4-varga-reading-D'+item.division}>
+      <div className={vargaStyles.heading}><span className={vargaStyles.index}>D{item.division}</span><h4>{item.title.split(' · ')[1]}</h4></div>
+      <p className={vargaStyles.summary}><GlossaryText text={item.summary} locale={lang}/></p>
+      <p className={vargaStyles.practice}><strong>{uk?'Що спробувати':'Try this'}</strong> <GlossaryText text={item.practice} locale={lang}/></p>
+      <details className={vargaStyles.evidence}>
+       <summary>{uk?'Положення, на яких ґрунтується текст':'Calculated supporting placements'}</summary>
+       <code>{item.evidence.join(' · ')}</code>
+      </details>
+     </article>)}
+    </div>
+    <p className={vargaStyles.d60} data-testid="n4-d60-interpretation-limit"><strong>D60 · {uk?'Межа точності':'Precision boundary'}</strong> {report.vargaReadings.d60.message}</p>
+   </section>:null}
+  {report.vargaReadings?.status==='unavailable'?<p className={vargaStyles.unavailable} data-testid="n4-varga-reader-unavailable">{uk?
+   'Тематичні трактування додаткових варг недоступні: не підтверджено зв’язок із перевіреним розрахунком. Висновки за ними не створюються.':
+   'Additional varga readings are unavailable because the verified source binding is missing. No claims are generated.'}</p>:null}
 
   {!report.editorial?.chapters?.length?<>
   {report.practicalTips?.length?<section className="reading-practical" aria-label={uk?'Поради на основі карти':'Chart-inspired practical ideas'}>
