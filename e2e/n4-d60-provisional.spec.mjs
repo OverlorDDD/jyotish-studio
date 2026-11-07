@@ -58,37 +58,48 @@ async function ready(page,lang,data=fixture()){
   page.locator('button.jy-calc-btn').click()
  ]);
  await expect(page.getByTestId('n4-d60-panel')).toBeVisible();
- await page.getByTestId('n4-d60-panel').locator('summary').click();
+
 }
-test('UK D60 refuses unconfirmed birth minute and only reveals provisional chart after documented-minute declaration',async({page})=>{
+
+test('UK D60 is the sixteenth normal tab and missing-minute hint is placed by birth time',async({page})=>{
  await ready(page,'uk');
- const section=page.getByTestId('n4-d60-panel');
- await expect(section.getByTestId('n4-d60-precision-warning')).toContainText('Хвилини');
- await expect(section.getByRole('heading',{name:/D60/})).toHaveCount(0);
- await section.locator('select').selectOption('recorded_minute');
- await expect(section.getByTestId('n4-d60-content')).toBeVisible();
- await expect(section.locator('.jy-south-chart')).toHaveCount(1);
- await expect(section).toContainText('±30 секунд');
- await section.locator('select').selectOption('approximate');
- await expect(section.locator('.jy-south-chart')).toHaveCount(0);
- await expect(section).toContainText('лише номінальні знаки');
+ const explorer=page.getByTestId('n4-rc-explorer');
+ await explorer.getByTestId('n4-rc-additional').locator('summary').click();
+ await explorer.getByRole('button',{name:/^D60\\b/}).click();
+ await expect(explorer).toContainText('D60');
+ await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
+ await expect(explorer.getByTestId('n4-d60-precision-warning')).toBeVisible();
+ await expect(page.getByTestId('n4-d60-panel')).toHaveCount(0);
 });
-test('EN D60 source digest forged or falsely certified houses must never be rendered',async({page})=>{
- const fake=fixture();fake.n4D60.sourceDigest='b'.repeat(64);
- await ready(page,'en',fake);
- const section=page.getByTestId('n4-d60-panel');
- await expect(section).toContainText('not verified');
- await section.locator('select').selectOption('recorded_minute');
- await expect(section.locator('.jy-south-chart')).toHaveCount(0);
-});
-test('D60 known-minute provisional UI is responsive 320 to 1440 px; does not unlock AI D60',async({page})=>{
+test('Unknown minutes adds a form-time warning and changes D60 caveat without blocking the chart',async({page})=>{
  await ready(page,'en');
- const panel=page.getByTestId('n4-d60-panel');
- await panel.locator('select').selectOption('recorded_minute');
- await expect(panel.locator('.jy-south-chart')).toHaveCount(1);
- await expect(panel).toContainText('NOT been stability-certified');
+ const explorer=page.getByTestId('n4-rc-explorer');
+ await explorer.getByTestId('n4-rc-additional').locator('summary').click();
+ await explorer.getByRole('button',{name:/^D60\\b/}).click();
+ await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
+ await page.getByLabel('I don’t know the exact minutes').check();
+ await expect(page.getByText('Without exact minutes',{exact:false})).toBeVisible();
+ await expect(explorer.getByTestId('n4-d60-precision-warning')).toContainText('may be inaccurate');
+ await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
+});
+test('Server-forged D60 digest hides only its chart and does not corrupt the original D1',async({page})=>{
+ const wrong=fixture();wrong.n4D60.sourceDigest='b'.repeat(64);
+ await ready(page,'en',wrong);
+ const explorer=page.getByTestId('n4-rc-explorer');
+ await explorer.getByTestId('n4-rc-additional').locator('summary').click();
+ await explorer.getByRole('button',{name:/^D60\\b/}).click();
+ await expect(explorer.locator('.jy-south-chart')).toHaveCount(1);
+ await expect(explorer.getByRole('alert')).toContainText('D60 source validation failed');
+});
+test('All 16 charts stay in one responsive explorer at 320–1440 px',async({page})=>{
+ await ready(page,'en');
+ const explorer=page.getByTestId('n4-rc-explorer');
+ await explorer.getByTestId('n4-rc-additional').locator('summary').click();
+ await expect(explorer.locator('button')).toHaveCount(16);
+ await explorer.getByRole('button',{name:/^D60\\b/}).click();
  for(const width of [320,360,390,430,768,1024,1440]){
   await page.setViewportSize({width,height:850});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
+  const spill=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(spill,'viewport horizontal overflow '+width).toBeLessThanOrEqual(2);
  }
 });
