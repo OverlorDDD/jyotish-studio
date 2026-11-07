@@ -133,7 +133,9 @@ jobs:
           New-Item -ItemType Directory -Path $nested | Out-Null
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/n4-17-one-date-forensics.ps1 -ReferenceWorktree $nested -ValidateWorktreeOnly
           if ($LASTEXITCODE -eq 0) { throw 'N417_TEST_NESTED_FOLDER_FALSELY_ACCEPTED' }
+          # The last expected rejection leaves LASTEXITCODE nonzero; explicitly finish the assertion harness successfully.
           Write-Host 'N417_WINDOWS_REAL_GIT_WORKTREE_PATH_REGRESSION_PASS'
+          exit 0
   diagnostic:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
