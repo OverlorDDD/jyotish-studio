@@ -1,11 +1,11 @@
 'use client';
 import {useEffect,useState} from 'react';
 type City={id:string;name:string;region:string;country:string;latitude:number;longitude:number;timeZone:string};
-export default function CitySearch({locale,onChoose,resetToken,selectedPlace}:{locale:'uk'|'en';onChoose:(city:City)=>void;resetToken?:number;selectedPlace?:string}){
+export default function CitySearch({locale,onChoose,resetToken,selectedPlace,onClear}:{locale:'uk'|'en';onChoose:(city:City)=>void;resetToken?:number;selectedPlace?:string;onClear?:()=>void}){
  const [query,setQuery]=useState(''),[cities,setCities]=useState<City[]>([]);
  const [state,setState]=useState<'idle'|'loading'|'error'|'ready'>('idle');
  const [selected,setSelected]=useState(false);
- useEffect(()=>{if(selectedPlace===undefined)return;setQuery(selectedPlace);setSelected(Boolean(selectedPlace));setCities([]);setState('idle')},[selectedPlace]);
+ useEffect(()=>{if(!selectedPlace)return;setQuery(selectedPlace);setSelected(true);setCities([]);setState('idle')},[selectedPlace]);
  useEffect(()=>{if(resetToken===undefined)return;setQuery('');setCities([]);setState('idle');setSelected(false)},[resetToken]);
  useEffect(()=>{
   if(selected||query.trim().length<2){setCities([]);setState('idle');return;}
@@ -24,7 +24,7 @@ export default function CitySearch({locale,onChoose,resetToken,selectedPlace}:{l
   <label htmlFor="global-city-input">{uk?'Пошук міста у світі':'Search any city worldwide'}</label>
   <input id="global-city-input" autoComplete="off" type="search" value={query}
    placeholder={uk?'Введи назву, наприклад Кременчук, Tokyo…':'Search city: London, Tokyo, Mumbai…'}
-   onChange={e=>{setSelected(false);setQuery(e.target.value)}} aria-controls="global-city-results"
+   onChange={e=>{setSelected(false);setQuery(e.target.value);onClear?.()}} aria-controls="global-city-results"
    aria-autocomplete="list" aria-expanded={state==='ready'&&cities.length>0}/>
   {state==='loading'&&<small role="status">{uk?'Шукаємо населені пункти…':'Searching cities…'}</small>}
   {state==='error'&&<small role="alert">{uk?'Пошук недоступний: можна ввести координати вручну.':'Search unavailable; manual coordinates are still available.'}</small>}

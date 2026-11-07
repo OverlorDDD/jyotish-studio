@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {enterSyntheticBirthFields} from './n4-rc-legacy-compat.mjs';
 
 // Deliberately NO page.route('/api/v1/reports') and NO chart JSON fixtures.
 // CI runs the full Next.js reverse proxy, NestJS, Swiss Ephemeris, and Reader.
@@ -14,8 +15,9 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(version.referenceBenchmark?.perUserJhoraVerified).toBe(false);
  await page.goto('/uk/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
+ await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
- await expect(page.locator('.jy-primary-chart .jy-south-chart')).toBeVisible();
+ await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
  await expect(page.locator('.jy-reference-details')).toBeVisible();
  await page.locator('.jy-reference-details summary').click();
  await expect(page.locator('.jy-reference-details')).toContainText('JHora 8.0');
@@ -53,8 +55,9 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  expect((await runtime.json()).readerVersion).toBe('6.0.0');
  await page.goto('/en/astrology/jyotish');
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);
+ await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Calculate birth chart'}).click();
- await expect(page.locator('.jy-primary-chart .jy-south-chart')).toBeVisible();
+ await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
  await page.getByRole('button',{name:'Read without AI — Reader v6'}).click();
  await expect(page.locator('.reading-editorial-chapter')).toHaveCount(8);
  await expect(page.getByTestId('reading-ai-provenance')).toContainText('Reader v6');
