@@ -18,6 +18,12 @@ export function decideN4RcRelease(evidence){
  if(evidence.originalProfileProductionLahiriCases!==20||
     evidence.requiredIndependentSameProfileLahiriCases!==50||
     evidence.fullIndependent15VargaSymbolicSourceCases!==0||
+    evidence.new12IndependentOracle!=='PyJHora==4.8.7'||
+    evidence.new12IndependentSyntheticCases!==50||
+    evidence.new12IndependentSignComparisons!==6000||
+    evidence.new12IndependentHouseComparisons!==5400||
+    evidence.new12SourceRulesGitBlob!==BLOB||
+    evidence.new12SymbolicScopeOnly!==true||
     evidence.d60PubliclyExcluded!==true||
     evidence.n4AiPublicEnabled!==false||
     evidence.legacyReaderV6Modified!==false||
@@ -30,6 +36,10 @@ export function decideN4RcRelease(evidence){
   version:'n4-rc-release-decision-20261107-v1',
   status:'N4_RC_IMPLEMENTED_RELEASE_BLOCKED_PENDING_EXTERNAL_SOURCE_AND_CI',
   sourceVargaRulesBlob:BLOB,
+  new12SymbolicRuleParity:'6000/6000_SIGN_AND_5400/5400_HOUSE_METHOD_SCOPED_PYJHORA',
+  new12IndependentSyntheticCases:50,
+  new12ExactSourceHash:BLOB,
+  new12PhysicalIndividualBirthCertified:false,
   original20LahiriEvidenceAvailable:true,
   required50SameProfileOriginalsAvailable:false,
   sourceIndependent15VargaOriginalsAvailable:false,
