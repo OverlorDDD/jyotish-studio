@@ -48,7 +48,7 @@ test('UA 15 sourced charts, D60 absent, D1 not duplicated, D9 and D24 navigation
  await load(page);
  const section=page.getByTestId('n4-rc-explorer');
  await expect(section).toBeVisible();
- await page.getByRole('button',{name:/D1/}).click();
+ await page.getByTestId('n4-rc-explorer').getByRole('button',{name:/^D1\b/}).click();
  await expect(section.locator('.jy-south-chart')).toHaveCount(1);
  await page.getByRole('button',{name:/D9/}).click();
  await expect(section.locator('.jy-south-chart')).toHaveCount(2);
