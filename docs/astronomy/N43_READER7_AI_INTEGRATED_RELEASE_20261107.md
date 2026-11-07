@@ -47,3 +47,23 @@ The real Reader and AI require web **and** NestJS API from the same commit, conf
 
 ## Release state
 No merge or production publish was performed by creating this document. Check exact PR SHA and all required GitHub checks before declaring acceptance.
+
+
+## N4.3 local full-page REAL preview (without Docker)
+
+The prior `tools/n43-reader-preview.mjs` demonstrates *synthetic test charts* only, which is **not** a preview of the real birth-time input flow. To avoid requiring the production PostgreSQL database or privileged AWS credentials for local testing, N4.3 includes a loopback-only **nonproduction API** that delegates calculations to the exact same production `runCalculation`, `buildDetailedReport`, and `generateDirectJyotish` library functions. Its HTTP endpoint mirrors only the natal screen's runtime, calculate, report and public city search calls; it has no database, saved chart or login endpoints, and does not store birth records. The full Next.js natal screen still runs from PR #143. This is a real ephemeris calculation but a **local preview integration**, not a deployed NestJS application.
+
+After reviewing the independent git preview checkout (not the production clone), on Windows PowerShell with Node.js 24:
+
+```powershell
+Set-Location "$env:USERPROFILE\\galaxiora-n4-preview"
+powershell -ExecutionPolicy Bypass -File .\\tools\\n43-preview.ps1
+```
+
+The operator script performs a fast-forward-only git pull, installs missing npm dependencies with `npm install --no-package-lock` (the project currently has no tracked lockfile), checks available 3000/4000 ports, creates `.env` **only if missing**, and starts two independent local windows (Reader/AI preview API and Next.js web). It verifies that the web proxy is talking to the Reader 7 preview API before printing `N43_REAL_READER_PREVIEW_READY`. Never use `dev:full` here: that launches Docker/PostgreSQL and is not required for the isolated preview.
+
+Open http://localhost:3000/uk/astrology/jyotish or /en/astrology/jyotish. Enter a real birth date, time and birthplace (online Open-Meteo city lookup, or manual coordinates and IANA zone if the geocoder is blocked), generate the chart, and compare **Read without AI — Reader 7** to **AI consultation**. For actual Gemini output the script optionally requests a private key through a hidden prompt, only after confirming its free-tier entitlement. The key is not saved, echoed, or included in Git; the AI call may still fail due to upstream quota/network. In that case the page correctly displays Reader 7 as deterministic, **not** simulated AI. Other providers may be enabled via existing private environment variables.
+
+The native Swiss Ephemeris module must be installed; if it is missing or cannot run, the loopback preview fails closed. The script never writes to AWS, `main`, a production database, social accounts or a personal saved-chart table. Closing the two terminal windows stops the local preview.
+
+CI: `tools/n43-live-preview-api.test.mjs` performs true calculation with native Swiss Ephemeris over local HTTP and verifies that both UA and EN reports contain 15 source-bound Reader 7 insights with D60 limitations. A separate mock verifies the semantics of the AI-source label; no claim of actual Gemini output is made without human testing with a real provider key.
