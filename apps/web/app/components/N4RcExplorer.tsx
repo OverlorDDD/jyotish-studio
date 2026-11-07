@@ -108,7 +108,8 @@ export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'e
      <option value="approximate">{uk?'Орієнтовний час (або округлений)':'Approximate or rounded time'}</option>
     </select>
    </label>
-   {!d60Valid?<p className={styles.warning} role="alert">
+   {!chart?<p className={styles.empty} role="status">{uk?'Спочатку розрахуй натальну карту, щоб побачити D60.':'Calculate your birth chart first to see D60.'}</p>:
+   !d60Valid?<p className={styles.warning} role="alert">
     {uk?'Точні вхідні координати D60 не підтверджені сервером. Результат приховано.':'The server has not verified the D60 source data. Results are hidden.'}
    </p>:
    birthTimeSource==='unknown'?<p className={styles.warning} data-testid="n4-d60-precision-warning">
