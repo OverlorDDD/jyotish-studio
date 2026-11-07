@@ -351,5 +351,8 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
    fail('valid modes: no arguments or --moon-precision-jqa3-02');
   const result=mode.length===1?await auditN418JHora02PrintedMoonResolution():await auditN4Original20NativeSolarDasha();
   console.log(JSON.stringify(result,null,2));
- catch(error){console.error(error instanceof Error?error.message:String(error));process.exitCode=2;}
+ } catch(error){
+  console.error(error instanceof Error?error.message:String(error));
+  process.exitCode=2;
+ }
 }
