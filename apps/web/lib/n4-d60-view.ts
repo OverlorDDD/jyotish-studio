@@ -36,7 +36,7 @@ export function assertD60Provisional(source:Source):asserts source is Source&{n4
   !/^[a-f0-9]{64}$/.test(v.digest)||v.externalReferenceChecked!==false)
   fail('v3 proof missing');
  if(!p||p.version!==N4_D60_UI_VERSION||p.division!==60||
-  p.sourceVerificationVersion!==v.version||p.sourceDigest!==v.digest||
+  p.sourceVerificationVersion!==v?.version||p.sourceDigest!==v?.digest||
   p.sourceMethod!=='parashari-sunmoon-hora-unequal-trimsamsa-jhora-style-d60-v1'||
   p.rulesVersion!=='n4-parashari-v1.0.0'||
   p.method!=='JHora8-Traditional-own-rashi-inclusive-D60'||
