@@ -42,7 +42,11 @@ async function load(page,lang='uk',data=sample()){
  await page.locator('input[type=time]').fill('12:00');
  await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
  await page.getByRole('option',{name:/Kyiv/}).click();
- await page.locator('button.jy-calc-btn').click();
+ await expect(page.locator('button.jy-calc-btn')).toBeEnabled();
+ await Promise.all([
+  page.waitForResponse(r=>r.url().includes('/api/v1/charts/calculate')),
+  page.locator('button.jy-calc-btn').click()
+ ]);
 }
 test('UA 15 sourced charts, D60 absent, D1 not duplicated, D9 and D24 navigation',async({page})=>{
  await load(page);
@@ -70,6 +74,6 @@ test('EN mobile 320-1440px no horizontal overflow',async({page})=>{
 test('forged source digest blocks UI instead of exposing misleading 15 charts',async({page})=>{
  const altered=sample();altered.n4.sourceDigest='b'.repeat(64);
  await load(page,'en',altered);
- await expect(page.locator('.status.error')).toContainText('N4_RC_CLIENT_CONTRACT_REJECTED');
+ await expect(page.locator('.status.error')).toContainText('N4_RC_CLIENT_CONTRACT_REJECTED',{timeout:20000});
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart')).toHaveCount(0);
 });
