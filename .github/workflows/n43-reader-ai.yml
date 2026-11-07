@@ -1,4 +1,4 @@
-name: N4.3 Reader 7 and AI — fast integration gate
+name: N4.4 Classical Reader 8 and AI — integration gate
 on:
   push:
     branches: [feat/n4-d60-certified-precision-20261107]
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 jobs:
-  n43-reader:
+  n44-reader:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
