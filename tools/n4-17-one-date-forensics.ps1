@@ -92,7 +92,6 @@ try {
  Write-Host 'N417_EXACT_ONE_DAY_DISCREPANCY_ISOLATED_DIAGNOSTIC_PASS' -ForegroundColor Green
  Write-Host 'N417_YEAR_OPTION_AND_SUBDAY_CERTIFICATION_STILL_PENDING'
  Write-Host 'N417_NO_PRODUCTION_OR_UI_AI_RELEASE'
- exit 0
 } catch {
  Write-Host ('N417_FAILED: '+$_.Exception.Message) -ForegroundColor Red
  exit 1
