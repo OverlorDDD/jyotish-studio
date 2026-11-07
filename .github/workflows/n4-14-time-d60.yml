@@ -35,6 +35,9 @@ on:
       - 'tools/n4-math-scope-ledger.json'
       - 'tools/n4-math-scope-ledger.mjs'
       - 'tools/n4-math-scope-ledger.test.mjs'
+      - 'tools/n4-final-evidence-ledger.json'
+      - 'tools/n4-final-certification.mjs'
+      - 'tools/n4-final-certification.test.mjs'
       - 'tools/n4-17-one-date-forensics.ps1'
       - 'tools/n4-math-phase2-verify.ps1'
       - 'packages/jyotish-core/src/index.ts'
@@ -85,6 +88,9 @@ on:
       - 'tools/n4-math-scope-ledger.json'
       - 'tools/n4-math-scope-ledger.mjs'
       - 'tools/n4-math-scope-ledger.test.mjs'
+      - 'tools/n4-final-evidence-ledger.json'
+      - 'tools/n4-final-certification.mjs'
+      - 'tools/n4-final-certification.test.mjs'
       - 'tools/n4-17-one-date-forensics.ps1'
       - 'tools/n4-math-phase2-verify.ps1'
       - 'packages/jyotish-core/src/index.ts'
@@ -157,6 +163,13 @@ jobs:
         run: node --check tools/n4-dasha-true-solar-native.mjs && node --check tools/n4-dasha-true-solar-native.test.mjs
       - name: N4.14 fail-closed JS mathematical and civil-time regressions
         run: node --experimental-strip-types --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs tools/n4-dasha-year-mode-matrix.test.mjs tools/n4-dasha-true-solar-native.test.mjs tools/n4-math-scope-ledger.test.mjs
+      - name: N4 final evidence closed-scope decision regression
+        run: |
+          node --check tools/n4-final-certification.mjs
+          node --check tools/n4-final-certification.test.mjs
+          node --experimental-strip-types --test tools/n4-final-certification.test.mjs
+          node --experimental-strip-types tools/n4-final-certification.mjs > /tmp/n4-final-decision.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; const x=JSON.parse(readFileSync('/tmp/n4-final-decision.json','utf8')); if(!x.researchCycleClosed || x.productionN4ReleasePermitted!==false || x.productionN4MathCertified!==false || x.fullCurrentHeadCIPassAttested!==false)process.exit(1); console.log(x.status)"
       - name: Syntax-check Windows one-shot verifier without executing it
         shell: pwsh
         run: |
