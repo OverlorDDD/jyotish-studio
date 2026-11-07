@@ -44,7 +44,7 @@ test('Localized search metadata includes Galaxiora without duplicating default s
  const home=read('apps/web/app/[locale]/page.tsx');
  // /en and /uk are now intentional redirects to localized natal calculators,
  // so this route no longer owns a duplicated BRAND.name title.
- assert.match(home,/permanentRedirect\\(portalPath\\(locale,'astrology\\/jyotish'\\)\\)/);
+ assert.ok(home.includes("permanentRedirect(portalPath(locale,'astrology/jyotish'))"));
  const natalRoot=read('apps/web/app/page.tsx');
  assert.match(natalRoot,/Galaxiora/);
  assert.match(natalRoot,/canonical:'\\/'/);
