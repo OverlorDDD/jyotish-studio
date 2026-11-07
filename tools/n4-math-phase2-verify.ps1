@@ -69,9 +69,13 @@ try {
   $head=(& git rev-parse HEAD).Trim()
   CheckExit 'N4_HEAD'
   Write-Host "N4_MATH_HEAD=$head"
-  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs tools/n4-dasha-year-mode-matrix.test.mjs tools/n4-dasha-true-solar-native.test.mjs
+  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs tools/n4-dasha-year-mode-matrix.test.mjs tools/n4-dasha-true-solar-native.test.mjs tools/n4-math-scope-ledger.test.mjs
   CheckExit 'N4_METHOD_TESTS'
   Write-Host 'N4_MATH_METHOD_TESTS_PASS'
+  & node --experimental-strip-types tools/n4-math-scope-ledger.mjs
+  CheckExit 'N4_METHOD_SCOPED_EXTERNAL_SOURCE_LEDGER'
+  Write-Host 'N4_SYMBOLIC_16_VARGA_INDEPENDENT_METHOD_RULES_EVIDENCE_PASS'
+
   & node --experimental-strip-types tools/n4-d2-original-profile-crosswalk.mjs $source
   CheckExit 'N4_D2_SOURCE_CROSSWALK'
   Write-Host 'N4_JHORA50_D2_METHOD_CROSSWALK_DIAGNOSTIC_PASS'
