@@ -51,3 +51,26 @@ test('case date evidence cannot be invented from an incomplete source',()=>{
   computed:[],original:[],offsetMs:0,caseIndex:0
  }),/invalid residual inspection/);
 });
+
+test('a major start date can duplicate its first subperiod discrepancy, never count as two minor failures',()=>{
+ const lords=['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+ const base=Date.parse('2030-01-01T12:00:00.000Z');
+ const computed=lords.map((lord,i)=>{
+  const start=base+i*365*86400000;
+  return {lord,start,subs:Object.fromEntries(lords.map((s,j)=>[s,start+j*86400000]))};
+ });
+ const original=computed.map(p=>({
+  lord:p.lord,start:new Date(p.start).toISOString().slice(0,10),
+  antardashas:Object.fromEntries(Object.entries(p.subs).map(([lord,at])=>[
+   lord,new Date(at).toISOString().slice(0,10)
+  ]))
+ }));
+ const previousDay=new Date(base-86400000).toISOString().slice(0,10);
+ original[0].start=previousDay;
+ original[0].antardashas.Ketu=previousDay;
+ const r=inspectN416LocalDashaResiduals({computed,original,offsetMs:0,caseIndex:0});
+ assert.equal(r.length,2);
+ assert.equal(r.filter(x=>x.level==='mahadasha').length,1);
+ assert.equal(r.filter(x=>x.level==='antardasha').length,1);
+ assert.ok(r.every(x=>x.deltaCalendarDays===1));
+});
