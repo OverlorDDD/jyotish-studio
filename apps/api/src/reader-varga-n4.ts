@@ -89,6 +89,44 @@ const PROFILE=[
  {n:40,h:4,uk:'Тонкі життєві теми',en:'Fine-grained themes',focusUk:'родинний контекст і загальні тенденції',focusEn:'family context and broad tendencies'},
  {n:45,h:9,uk:'Цінності та спадщина',en:'Values & inheritance',focusUk:'передані цінності й широкі життєві теми',focusEn:'inherited values and broad life themes'}
 ] as const;
+const COMPARISON:Readonly<Record<number,string>>={
+ 1:'Sun',2:'Jupiter',3:'Mars',4:'Moon',7:'Jupiter',9:'Venus',10:'Sun',
+ 12:'Moon',16:'Venus',20:'Jupiter',24:'Mercury',27:'Mars',30:'Saturn',40:'Moon',45:'Sun'
+};
+const ACTION_UK:Readonly<Record<number,string>>={
+ 1:'помітити власний спосіб діяти',
+ 2:'зіставити бюджет із власними цінностями',
+ 3:'потренувати ясне прохання або рішучий крок',
+ 4:'обрати одну конкретну дію для стабільності вдома',
+ 7:'помітити, як ви підтримуєте творчість або молодших',
+ 9:'обговорити один принцип взаємності в стосунках',
+ 10:'описати свою професійну роль через реальний результат',
+ 12:'згадати, які сімейні звички хочеться зберегти, а які змінити',
+ 16:'визначити, який побутовий комфорт справді допомагає відновленню',
+ 20:'обрати послідовну духовну чи медитативну практику',
+ 24:'перевірити, який формат навчання приносить реальний поступ',
+ 27:'розділити те, що додає витривалості, і те, що виснажує',
+ 30:'назвати одну повторювану складність і безпечний спосіб дати їй раду',
+ 40:'оцінити, які родинні установки підтримують рішення сьогодні',
+ 45:'вибрати власний принцип, який варто передавати іншим'
+};
+const ACTION_EN:Readonly<Record<number,string>>={
+ 1:'notice how you initiate decisions',
+ 2:'compare spending patterns with your values',
+ 3:'practice a clear request or deliberate initiative',
+ 4:'choose one concrete step toward a more stable home',
+ 7:'notice how you support creativity or younger generations',
+ 9:'discuss one principle of reciprocity in partnership',
+ 10:'describe your professional role through a measurable result',
+ 12:'review which family habits you wish to keep or change',
+ 16:'identify which forms of comfort genuinely help you recharge',
+ 20:'choose a consistent contemplative or spiritual practice',
+ 24:'test which study method builds usable skill',
+ 27:'separate what builds resilience from what drains your effort',
+ 30:'identify one recurring obstacle and a safe practical response',
+ 40:'notice which inherited beliefs support your decisions today',
+ 45:'choose a value you would willingly pass to others'
+};
 const gname=(name:string,uk:boolean)=>uk?NAMES_UK[name]||name:name;
 const nameSign=(n:number,uk:boolean)=>(uk?SIGNS_UK:SIGNS_EN)[n-1];
 const validSign=(n:number)=>Number.isInteger(n)&&n>=1&&n<=12;
@@ -138,6 +176,10 @@ export function buildN4VargaReadings(chart:CalculatedChart,lang:Lang):VargaReadi
   const ruler=lords[profile.h];
   const from=chart.d1.find(p=>p.name===ruler)!;
   const to=varga.planets.find(p=>p.name===ruler)!;
+  // Second, distinct computed placement supports a real two-factor interpretation.
+  const chosen=COMPARISON[profile.n];
+  const secondary=chosen===ruler?(chosen==='Moon'?'Jupiter':'Moon'):chosen;
+  const factor=varga.planets.find(p=>p.name===secondary)!;
   const d1Area=(uk?HOUSE_UK:HOUSE_EN)[from.house-1];
   const dnArea=(uk?HOUSE_UK:HOUSE_EN)[to.house-1];
   const name=gname(ruler,uk);
@@ -147,14 +189,22 @@ export function buildN4VargaReadings(chart:CalculatedChart,lang:Lang):VargaReadi
    'У D1 управитель тематичного '+profile.h+'-го дому '+name+' перебуває в '+from.house+'-му домі ('+d1Area+'). У D'+profile.n+
    ' він стоїть у '+to.house+'-му домі, у '+nameSign(to.sign,true)+'. '+(common?
     'Обидва ракурси наголошують на тій самій сфері: '+dnArea+'.':
-    'Це додає інший ракурс — '+dnArea+' — до теми «'+topic+'», а не скасовує D1.') :
+    'Це додає інший ракурс — '+dnArea+' — до теми «'+topic+'», а не скасовує D1.')+
+   ' Друга опора для порівняння — '+gname(secondary,true)+' у '+factor.house+'-му домі D'+profile.n+
+   ' ('+HOUSE_UK[factor.house-1]+'). '+(factor.house===to.house?
+    'Обидві планети перебувають у тому самому домі варги, але це не означає точного сполучення за градусами.':
+    'Два різні доми показують, які життєві задачі варто розглядати разом.') :
    'In D1, '+name+' rules the relevant house '+profile.h+' and occupies house '+from.house+' ('+d1Area+'). In D'+profile.n+
    ' the same graha occupies house '+to.house+' in '+nameSign(to.sign,false)+'. '+(common?
     'Both lenses emphasize '+dnArea+'.':
-    'This adds a different lens — '+dnArea+' — to '+topic+' without overriding D1.');
+    'This adds a different lens — '+dnArea+' — to '+topic+' without overriding D1.')+
+   ' A second calculated factor is '+secondary+' in D'+profile.n+' house '+factor.house+
+   ' ('+HOUSE_EN[factor.house-1]+'). '+(factor.house===to.house?
+    'Both grahas share this divisional house, but a close degree conjunction is not established.':
+    'These different houses show where the two life themes may need coordination.');
   const practice=uk?
-   'Для роздумів про '+topic+': '+PRACTICE_UK[to.house-1]+'. Це можливий практичний крок, а не передбачення події.':
-   'To explore '+topic+', '+PRACTICE_EN[to.house-1]+'. This is a reflection prompt, not an event prediction.';
+   'Для роздумів про '+topic+': '+ACTION_UK[profile.n]+' і '+PRACTICE_UK[to.house-1]+'. Це практична пропозиція, не прогноз події.':
+   'To explore '+topic+', '+ACTION_EN[profile.n]+' and '+PRACTICE_EN[to.house-1]+'. This is a practical reflection, not an event prediction.';
   return Object.freeze({
    division:profile.n,title:'D'+profile.n+' · '+(uk?profile.uk:profile.en),topic,summary,practice,
    evidence:Object.freeze([
@@ -163,7 +213,9 @@ export function buildN4VargaReadings(chart:CalculatedChart,lang:Lang):VargaReadi
     'D1.'+ruler+'.house='+from.house,
     'D'+profile.n+'.lagna.sign='+varga.lagnaSign,
     'D'+profile.n+'.'+ruler+'.sign='+to.sign,
-    'D'+profile.n+'.'+ruler+'.house='+to.house
+    'D'+profile.n+'.'+ruler+'.house='+to.house,
+    'D'+profile.n+'.'+secondary+'.sign='+factor.sign,
+    'D'+profile.n+'.'+secondary+'.house='+factor.house
    ]),
    scope:'internal_verified_D1_derivation' as const
   });
@@ -180,9 +232,13 @@ export function compactN4VargaFacts(chart:CalculatedChart):string{
   const v=n.charts.find(c=>c.division===p.n)!;
   const ruler=lords[p.h],body=v.planets.find(g=>g.name===ruler)!;
   const before=chart.d1.find(g=>g.name===ruler)!;
+  const candidate=COMPARISON[p.n];
+  const indicator=candidate===ruler?(candidate==='Moon'?'Jupiter':'Moon'):candidate;
+  const extra=v.planets.find(g=>g.name===indicator)!;
   return 'D'+p.n+' focus='+p.focusEn+'; D1 H'+p.h+' ruler='+ruler+
    ' D1.H'+before.house+'; D'+p.n+'.lagna.sign='+v.lagnaSign+
-   '; D'+p.n+'.'+ruler+'.sign='+body.sign+',house='+body.house;
+   '; D'+p.n+'.'+ruler+'.sign='+body.sign+',house='+body.house+
+   '; second='+indicator+' sign='+extra.sign+',house='+extra.house;
  });
  return ['N4 provenance: internally verified D1 derivation, not externally certified per birth.',
   ...lines,
