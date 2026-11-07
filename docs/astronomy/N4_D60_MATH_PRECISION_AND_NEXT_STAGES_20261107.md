@@ -1,3 +1,5 @@
+> **SUPERSEDED 2026-11-07:** This is the archived initial separate-D60 design draft. The approved implementation moves D60 into the SAME 16-card Explorer, uses only an inline missing-minute warning next to the birth-time field, and closes D60 method-scoped mathematical certification. The current authoritative report is [N4_D60_CLOSED_AND_NATAL_SEO_UX_RC_20261107.md](./N4_D60_CLOSED_AND_NATAL_SEO_UX_RC_20261107.md). Do not revive the separate D60 panel or claim individual time accuracy from HH:MM alone.
+
 # Galaxiora D60 (Shashtiamsa) — method-scoped mathematical certification + release roadmap
 **2026-11-07 · Draft PR #143 targeting draft RC #142 · NO AWS / production deploy**
 
