@@ -108,6 +108,6 @@ try {
  }
  exit 0
 } catch {
- Write-Error ("N414_VERIFICATION_FAILED: " + $_.Exception.Message)
+ Write-Host ("N414_VERIFICATION_FAILED: " + $_.Exception.Message) -ForegroundColor Red
  exit 1
 }
