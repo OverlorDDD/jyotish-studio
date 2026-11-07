@@ -70,7 +70,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    const data=res.ok?await res.json():null;
    if(!live)return;
    setJhoraReference(data?.referenceBenchmark?.version==='jhora8-same-profile-v2'?data.referenceBenchmark:null);
-   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.verificationContract!=='jyotish-integrity-v3')
+   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.verificationContract!=='jyotish-integrity-v3')
     setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
    else setRuntimeMismatch('');
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
@@ -105,7 +105,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
-    saved?.readerV7?.version==='reader-v7.0.0-n43'?saved:null);
+    saved?.readerV7?.version==='reader-v7.0.0-n43'&&
+    saved?.readerV8?.version==='reader-v8.0.0-n44'?saved:null);
   setInterpretation(lang==='uk'?'Перевірену карту відкрито з кабінету.':'Verified saved chart loaded.');
   setError(false);
   setStatus(lang==='uk'?'Розрахунок перевірено.':'Calculation integrity verified.');
@@ -139,7 +140,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    });
    const data=await readApiJson<ReadingReport>(response);
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
-   if(data.readerV7?.version!=='reader-v7.0.0-n43'||data.readerV7.status!=='available')throw Error(lang==='uk'?'API ще не підтримує Reader 7 з 16 картами життя. Онови сервер API до цієї гілки.':'The API does not support Reader 7 yet. Update the API server to this branch.');
+   if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available')throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
    if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==chart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    setReport(data);
@@ -233,8 +234,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     <N4RcExplorer chart={chart} lang={lang} minutesUncertain={minutesUncertain}/>
 
     <section className="jy-ai-launch">
-     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'AI пояснює підтверджені факти простою мовою. Якщо модель недоступна, Reader 7 працює без AI.':'AI explains verified chart themes in plain language. Reader 7 still works without AI.'}</small></span><ArrowUpRight size={20}/></button>
-     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader 7':'Read without AI — Reader 7'}</button>
+     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'AI пояснює перевірені факти простою мовою. Reader 8 працює окремо й без AI.':'AI explains verified chart themes in plain language. Reader 8 also works without AI.'}</small></span><ArrowUpRight size={20}/></button>
+     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader 8':'Read without AI — Reader 8'}</button>
      {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
      {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
     </section>
