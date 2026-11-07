@@ -42,6 +42,8 @@ jobs:
           node --check tools/n4-rc-contract.test.mjs
       - name: N4 scoped provenance, 15 chart and 1 arcsecond regression tests
         run: node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-rc-lahiri-physical-audit.test.mjs
+      - name: Real native SWIEPH N4 API end-to-end and DST gap/fold tests
+        run: node --experimental-strip-types --test tools/n4-rc-runtime-integration.test.mjs
       - name: Build NestJS, core and Next.js from this exact commit
         run: npm run build
       - name: Check release candidate claims remain restricted
