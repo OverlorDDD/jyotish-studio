@@ -93,7 +93,7 @@ export function makeN4RcPayload(
    })))
   });
  });
- must(charts.length===15&&!charts.some(x=>x.division===60),'D60 must be absent');
+ must(charts.length===15&&!new Set<number>(charts.map(x=>x.division)).has(60),'D60 must be absent');
  return Object.freeze({
   version:N4_RC_CONTRACT_VERSION,
   sourceVerificationVersion:CHART_VERIFICATION_VERSION,
