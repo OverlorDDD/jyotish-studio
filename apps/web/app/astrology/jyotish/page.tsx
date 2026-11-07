@@ -9,7 +9,7 @@ const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{load
 const AccountPortal=dynamic(()=>import('../../components/AccountPortal'),{loading:()=>null});
 import N4RcExplorer from '../../components/N4RcExplorer';
 import {assertN4RcView,hasN4RcView,type N4RcView} from '../../../lib/n4-rc-view';
-import type {N4D60UI} from '../../../lib/n4-d60-view';
+import {hasD60Provisional,type N4D60UI} from '../../../lib/n4-d60-view';
 import CitySearch from '../../components/CitySearch';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
@@ -83,7 +83,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   setManualMode(!Boolean(incoming.input.place));
   // Legacy records never become visible without a fresh server-side integrity check.
   let ready=incoming;
-  if(!verified(incoming)||!hasN4RcView(incoming)){
+  if(!verified(incoming)||!hasN4RcView(incoming)||!hasD60Provisional(incoming)){
    setBusy(true);
    setReport(null);setChart(null);
    setStatus(lang==='uk'?'Перевіряємо старий збережений розрахунок…':'Revalidating an older saved calculation…');
