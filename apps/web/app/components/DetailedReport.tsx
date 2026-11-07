@@ -2,6 +2,7 @@
 import GlossaryText from './GlossaryText';
 import vargaStyles from './VargaInsights.module.css';
 import ReaderV7View,{type ReaderV7UI} from './ReaderV7View';
+import ReaderV8View,{type ReaderV8UI} from './ReaderV8View';
 
 export type ReadingSection={
  id:string;heading:string;eyebrow:string;lead:string;paragraphs:string[];
@@ -12,6 +13,7 @@ export type ReadingReport={
  practicalTips?:{id:string;title:string;meaning:string;example:string;action:string;evidence:string[]}[];
  lifePortrait?:{version:string;chapters:{id:string;title:string;overview:string;example:string;action:string;evidence:string[]}[]};
  readerV7?:ReaderV7UI;
+ readerV8?:ReaderV8UI;
  vargaReadings?:{
   version:string;status:'available'|'unavailable';methodology:string;
   readings:readonly {division:number;title:string;topic:string;summary:string;practice:string;scope:string;evidence:readonly string[]}[];
@@ -176,6 +178,7 @@ function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:Non
 export default function DetailedReport({report,lang}:{report:ReadingReport;lang:'uk'|'en'}){
  const uk=lang==='uk',ai=report.ai;
  const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text);
+ const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
  const hasV7=report.readerV7?.version==='reader-v7.0.0-n43'&&report.readerV7.status==='available'&&report.readerV7.insights.length===15;
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
  const fullConsultation=aiChapters.size>0;
@@ -204,9 +207,10 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <p className="jy-direct-source">{uk?'AI пояснює підтверджені розрахунки простою мовою. Це трактування традиції, не підтвердження фактів про ваше життя. D60 не використовується для персональних висновків.':'AI explains verified calculations in everyday language. This is a traditional interpretation, not a confirmed fact about your life. D60 is excluded from personal conclusions.'}</p>
    <DirectArticle text={ai.text} lang={lang}/>
   </article>:null}
-  {hasV7&&report.readerV7?<ReaderV7View data={report.readerV7} lang={lang}/>:null}
+  {hasV8&&report.readerV8?<ReaderV8View data={report.readerV8} lang={lang}/>:null}
+  {!hasV8&&hasV7&&report.readerV7?<ReaderV7View data={report.readerV7} lang={lang}/>:null}
     {report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?
-     <details className={vargaStyles.deepDive} open={!hasV7}>
+     <details className={vargaStyles.deepDive} open={!hasV7&&!hasV8}>
       <summary>{uk?'Поглиблене астрологічне пояснення — за бажанням':'Optional detailed traditional interpretation'}</summary>
       <div className="reading-editorial">
    <div className="reading-editorial-opening">
@@ -249,7 +253,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    </details>
   </div></details>:null}
 
-  {!hasV7&&report.vargaReadings?.status==='available'&&report.vargaReadings.readings.length===15?
+  {!hasV7&&!hasV8&&report.vargaReadings?.status==='available'&&report.vargaReadings.readings.length===15?
    <section className={vargaStyles.section} data-testid="n4-varga-reader" aria-labelledby="varga-reader-heading">
     <div className="reading-chapter-kicker">{uk?'✦ ТЕМАТИЧНЕ ТРАКТУВАННЯ':'✦ DIVISIONAL READING'}</div>
     <h3 id="varga-reader-heading">{uk?'16 карт життя: що додає кожна варга':'16 life charts: what each varga adds'}</h3>
@@ -267,7 +271,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
     </div>
     <p className={vargaStyles.d60} data-testid="n4-d60-interpretation-limit"><strong>D60 · {uk?'Межа точності':'Precision boundary'}</strong> {report.vargaReadings.d60.message}</p>
    </section>:null}
-  {!hasV7&&report.vargaReadings?.status==='unavailable'?<p className={vargaStyles.unavailable} data-testid="n4-varga-reader-unavailable">{uk?
+  {!hasV7&&!hasV8&&report.vargaReadings?.status==='unavailable'?<p className={vargaStyles.unavailable} data-testid="n4-varga-reader-unavailable">{uk?
    'Тематичні трактування додаткових варг недоступні: не підтверджено зв’язок із перевіреним розрахунком. Висновки за ними не створюються.':
    'Additional varga readings are unavailable because the verified source binding is missing. No claims are generated.'}</p>:null}
 
