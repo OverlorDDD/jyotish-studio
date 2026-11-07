@@ -53,6 +53,11 @@ export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'e
  const isCore=selected===1||selected===9||selected===10;
  const positions=selected===1?chart?.d1:selected===9?chart?.d9:selected===10?chart?.d10:selectedChart?.planets;
  const lagna=selected===1?chart?.ascendant:selected===9?chart?.lagnaD9:selected===10?chart?.lagnaD10:selectedChart?.lagna;
+ const selectedRaw=n4?.charts.find(c=>c.division===selected);
+ const boundaryGuard=selectedRaw&&Math.min(
+  selectedRaw.lagnaBoundaryArcseconds,
+  ...selectedRaw.planets.map(p=>p.boundaryDistanceArcseconds)
+ )<=1;
  const l=(item:Info)=>item.n===1?'D1 · Rashi':'D'+item.n+' · '+(uk?item.uk:item.en);
  const pick=(item:Info)=><button key={item.n} type="button"
   className={selected===item.n?styles.selected:styles.tab}
@@ -102,6 +107,10 @@ export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'e
    <p>{uk?'Лагна':'Ascendant'}: <strong>{sign(selectedChart.lagna.sign,uk)}</strong></p>
    <div className={styles.planetGrid}>{selectedChart.planets.map(p=><div key={p.name}><span>{value(p.name,uk)}</span><strong>{sign(p.sign,uk)} · {uk?'дім ':'house '}{p.house}</strong></div>)}</div>
   </div>}
+  {passed&&boundaryGuard&&<p role="status" className={styles.warning} data-testid="n4-near-boundary-warning">
+   {uk?'Увага: щонайменше одна планета або Лагна D'+selected+' перебуває в межах 1 кутової секунди від межі сектора. Для цього положення потрібна додаткова перевірка точності вихідних координат і часу народження.':
+    'Precision warning: a planet or the D'+selected+' ascendant lies within 1 arcsecond of a divisional boundary. Verify the source longitude and birth-time precision before relying on this placement.'}
+  </p>}
   <p className={styles.method}>
    {uk?'Метод: сидерична D1 Lahiri, дробові карти за зафіксованими правилами Парашарі, D2 — Sun/Moon Hora. Зв’язок із серверною D1 перевірено внутрішньо; це не незалежний сертифікат JHora вашого народження. D60 виключено через чутливість до часу.':
     'Method: Lahiri sidereal D1; pinned Parashari divisional rules, D2 Sun/Moon Hora. Bound to the internally verified server D1 — not independent JHora certification of your birth. D60 is excluded because of birth-time sensitivity.'}
