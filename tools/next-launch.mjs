@@ -1,4 +1,4 @@
-import {spawn} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const here=dirname(fileURLToPath(import.meta.url));
@@ -7,6 +7,12 @@ if(!['dev','start'].includes(command)){console.error('Expected dev or start');pr
 const port=Number(process.env.WEB_PORT||3000);
 if(!Number.isInteger(port)||port<1024||port>65535){console.error('Invalid WEB_PORT');process.exit(2);}
 const root=resolve(here,'..');
+// Build assets before local Next dev, just like npm prebuild does for production.
+// Generator refuses any source other than the approved byte-locked galaxy spiral #6.
+if(command==='dev'){
+ const icons=spawnSync(process.execPath,[resolve(root,'tools/brand-icons-build.mjs')],{cwd:root,stdio:'inherit'});
+ if(icons.status!==0){console.error('Approved galaxy #6 icon generation failed');process.exit(icons.status||1);}
+}
 const child=spawn(process.execPath,['--env-file='+resolve(root,'.env'),resolve(root,'node_modules/next/dist/bin/next'),command,'--port',String(port),...(command==='start'?['--hostname','127.0.0.1']:[])],{cwd:resolve(root,'apps/web'),stdio:'inherit',env:process.env});
 child.on('error',err=>{console.error(err.message);process.exitCode=1});
 child.on('exit',(code,signal)=>{process.exitCode=code??(signal?1:0)});
