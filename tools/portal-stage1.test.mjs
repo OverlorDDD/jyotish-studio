@@ -22,10 +22,13 @@ test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-
  const old=code('apps/web/app/astrology/jyotish/page.tsx');
  const wrapper=code('apps/web/app/[locale]/astrology/jyotish/page.tsx');
  const renderer=code('apps/web/app/components/NorthIndianChart.tsx');
+ const explorer=code('apps/web/app/components/N4RcExplorer.tsx');
  const layout=code('apps/web/lib/north-indian-layout.ts');
- for(const token of ['<NorthIndianChart','<AccountPortal','<DetailedReport','calculate','interpret']){
+ for(const token of ['<N4RcExplorer','<AccountPortal','<DetailedReport','calculate','interpret']){
   assert.ok(old.includes(token),token);
  }
+ assert.ok(explorer.includes('<NorthIndianChart'),'Explorer must actually draw Jyotish D1 and vargas');
+ assert.ok(explorer.includes('selected!==1&&<article'),'D1 must not be duplicated in Explorer');
  assert.match(renderer,/SOUTH_SIGN_GRID\.map/);
  assert.match(renderer,/chartHouseForSign/);
  assert.match(renderer,/occupants\.map/);
