@@ -33,3 +33,21 @@ In `C:\Users\Note\galaxiora-n4-preview`, run `git pull --ff-only` then `npm run 
 - Responsive 1:1ish bounded canvas, inset bodies/stars, no overflow. Visible labels are celestial objects, not life-chart headings. Existing approved texts, 16-chart viewer, D60 validation, footer, favicon and logos untouched.
 
 **Acceptance:** no hero buttons, actual rendered Jupiter pixel, responsive proportional visible canvas at 320–1440px, no horizontal overflow, bilingual text retained, existing calculations and branding unchanged. Check exact-commit CI before release and visually approve on localhost. No production deployment.
+
+
+## N4.1.2 — Brand-consistent planetary rendering + sticky-header regression
+
+**User feedback:** The N4.1.1 painted planets appear cartoonish/glossy, out of place beside the approved purple galaxy spiral #6 and Galaxiora's navy/gold UI. On scroll, the Save chart action appears in front of the sticky header and Login.
+
+**Reference analysis:** Stellarium's dark sky atlas emphasizes stars, coordinate lines, subtle position markers; NASA Eyes uses restrained trajectories, legible hierarchy and spacious atmosphere. We do not replicate assets or pretend this decorative view reflects the current sky. Reference docs: https://stellarium.org/en_US/ and https://science.nasa.gov/eyes/museums/ .
+
+**Visual plan executed in the same Canvas 2D renderer:**
+1. Replace oversized, high-saturation, glossy orange/blue bodies with smaller, desaturated antique-gold, mineral-ivory, slate-violet bodies, matching the approved brand palette.
+2. Render delicate partial orbit guides, fine astrolabe tick marks, a subtle etched planet texture, and Saturn's thinner rings, keeping the planets recognizable without clashing with the main headline.
+3. Reduce latitude grid/constellation line contrast, soften violet/gold nebula lighting, shrink and limit labels to avoid visual noise.
+4. Remove the visible debug-like "celestial atlas" capsule; keep figcaption for assistive technology.
+5. Keep the public copy, SEO, 16-chart viewer, D60 math and approved spiral #6 untouched; no WebGL deps, remote assets or time/location claims.
+
+**Sticky header root cause and fix:** The `.account-widget` globally has `position:relative; z-index:30`, the same stacking order as `.as-header` (sticky z-index 30). While scrolling, the child's save button can paint over the earlier header. The natal toolbar now has its own `position:relative; isolation:isolate; z-index:1`: its popover still layers above later hero content while the complete local stacking context remains below the sticky header. A Playwright regression scrolls and verifies the button is occluded by the header if its rectangle overlaps it. Header styles, login flow and global account widget have not been modified.
+
+**Release gates:** exact-commit Next build, UA/EN browser screenshot review, sticky header overlay assertion at desktop and mobile widths, D60 tests unchanged. User must approve preview. No production deployment.
