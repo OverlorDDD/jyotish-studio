@@ -24,6 +24,8 @@ function Resolve-N414PrivateReference([string]$explicitPath, [string]$repoRoot, 
   $locations+=@((Get-Item -LiteralPath $explicitPath).FullName)
  } else {
   $locations+=@((Join-Path $repoRoot ('tools\' + $wanted)))
+  $locations+=@('E:\Downloads\' + $wanted)
+  $locations+=@((Join-Path $env:USERPROFILE ('Downloads\' + $wanted)))
   $roots=@(
    'E:\Downloads\N413PrivateAudit',
    'E:\Downloads\Galaxiora_N413_Private_SWIEPH_Audit',
@@ -57,6 +59,12 @@ function Resolve-N414PrivateReference([string]$explicitPath, [string]$repoRoot, 
   'E:\Downloads\Galaxiora_N413_Private_SWIEPH_Audit.zip',
   (Join-Path $env:USERPROFILE 'Downloads\Galaxiora_N413_Private_SWIEPH_Audit.zip')
  )
+ # Browsers may append (1), (2), ... to the original downloaded ZIP filename.
+ foreach ($downloads in @('E:\Downloads',(Join-Path $env:USERPROFILE 'Downloads'))) {
+  if(Test-Path -LiteralPath $downloads -PathType Container) {
+   $archives+=@(Get-ChildItem -LiteralPath $downloads -File -Filter 'Galaxiora_N413_Private_SWIEPH_Audit*.zip' -ErrorAction SilentlyContinue | ForEach-Object {$_.FullName})
+  }
+ }
  foreach($archive in $archives | Select-Object -Unique) {
   if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) { continue }
   Add-Type -AssemblyName System.IO.Compression
