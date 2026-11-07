@@ -69,12 +69,19 @@ try {
   $head=(& git rev-parse HEAD).Trim()
   CheckExit 'N4_HEAD'
   Write-Host "N4_MATH_HEAD=$head"
-  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs
+  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs
   CheckExit 'N4_METHOD_TESTS'
   Write-Host 'N4_MATH_METHOD_TESTS_PASS'
   & node --experimental-strip-types tools/n4-d2-original-profile-crosswalk.mjs $source
   CheckExit 'N4_D2_SOURCE_CROSSWALK'
   Write-Host 'N4_JHORA50_D2_METHOD_CROSSWALK_DIAGNOSTIC_PASS'
+  & node --experimental-strip-types tools/n4-original50-explicit-profile-gate.mjs $source
+  CheckExit 'N4_EXPLICIT_16_VARGA_ORIGINAL_JHORA_PARITY'
+  Write-Host 'N4_JHORA50_EXPLICIT_16_VARGA_8000_PARITY_PASS'
+  & node --experimental-strip-types tools/n4-jhora20-dasha-date-audit.mjs
+  CheckExit 'N4_JHORA20_DASHA_CALENDAR_ARCHIVE_AUDIT'
+  Write-Host 'N4_JHORA20_DASHA_CALENDAR_DIAGNOSTIC_COMPLETED'
+
   & node --experimental-strip-types tools/n4-math-integration-readiness.mjs $report
   CheckExit 'N4_PROFILE_READINESS'
   Write-Host 'N4_NATAL_MATH_INTEGRATION_STILL_BLOCKED'
