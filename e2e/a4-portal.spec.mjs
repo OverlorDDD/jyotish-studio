@@ -41,11 +41,15 @@ test('SEO includes finished News and Community while account/admin stay private;
  expect(xml).not.toContain('/en/admin');
 });
 test('keyboard has visible skip link, navigable main content and focus treatment',async({page})=>{
- // The 308 alias and chart's initial-focus state vary in headless browsers.
- // Explicitly focus the real skip-link and verify keyboard Enter navigation.
+ // Wait for hydration before focusing: Next may replace server HTML during startup.
+ // Verify keyboard Enter activation and focus transfer to main content.
  await page.goto('/uk/astrology/jyotish');
- await page.locator('a.as-skip-link').focus();
- await expect(page.locator('a.as-skip-link')).toBeFocused();
+ await page.waitForLoadState('networkidle');
+ const skip=page.locator('a.as-skip-link');
+ await expect.poll(async()=>{
+  await skip.focus();
+  return skip.evaluate(el=>document.activeElement===el);
+ }).toBe(true);
  await expect(page.locator('a.as-skip-link')).toBeVisible();
  await page.keyboard.press('Enter');
  await expect(page.locator('main#main-content')).toBeFocused();
