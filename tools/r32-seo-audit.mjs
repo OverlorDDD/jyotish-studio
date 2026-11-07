@@ -75,6 +75,11 @@ const entries=[...String(sitemap||'').matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x
 const urls=[...new Set(entries)];
 if(!urls.length)issue(errors,'EMPTY_SITEMAP',origin+'/sitemap.xml','No loc URLs');
 if(entries.length!==urls.length)issue(errors,'DUPLICATE_LOC',origin+'/sitemap.xml','Duplicate URL in sitemap');
+// A locale homepage moved with 308 is not eligible to be a sitemap <loc>.
+for(const locale of ['en','uk']){
+ const redirected=origin+'/'+locale;
+ if(urls.includes(redirected))issue(errors,'REDIRECT_HOMEPAGE',redirected,'308 alias in sitemap; point to final canonical tool URL');
+}
 if(urls.length>500)throw Error('Audit capped at 500 URLs; split the sitemap into batches before running');
 for(const url of urls){
  let parsed;
