@@ -89,3 +89,24 @@ The independent author 7.65 release notes (2013-12-31) explicitly document four 
 NEW **research-only** method `auditN418JHora02PrintedMoonResolution` in `tools/n4-dasha-true-solar-native.mjs` reads the authenticated original raw Moon print, checks it against the original normalized record, then solves the *same* sidereal solar-year Jupiter/Ketu event on native verified SWIEPH with Moon longitude at **printed ±0.005\"** and original printed center. It requires both the original and next calendar day inside the physical 0.01\" source print interval, and returns all three actual native UTC instants and calendar dates, no invented original full-precision source. Optional CLI: `node --experimental-strip-types tools/n4-dasha-true-solar-native.mjs --moon-precision-jqa3-02`. A new N4.18 `-MoonPrecision` flag on the proven Windows `tools/n4-17-one-date-forensics.ps1` reuses the previously successful isolated 2026-11-07 native worktree and prints only this narrow precision evidence, without 82000 Sun evaluations for both 20-case models, npm installs, Docker or production changes.
 
 Status on code creation: theoretical half-step sensitivity computed independently; *native ±0.005\" result pending the owner's actual run*, therefore N4.18 has NOT been promoted to a mathematical certificate. Publication of all natal 16 D charts, historic UTC, D60 continuous-time claims and new AI remain blocked.
+
+
+## N4.18 confirmed on the owner's actual Windows native SWIEPH run (2026-11-07)
+
+**Research scoped result: PASS, with explicitly limited claim.** The owner supplied N4.18 execution log and native JSON output. The downloaded native executable passed syntax preflight, 8/8 same-source Node unit tests passed, and 6,150 native Swiss position calls produced `N418_STRICT_NATIVE_SWIEPH_SOURCE_PRECISION_DIAGNOSTIC_PASS`. JQA3-02, original JHora printed Moon 17 Ta 34' 24.61", first natal mahadasha Moon, later Jupiter/Ketu date. Using the 0.01 arcsecond original printed source-resolution cell (assuming nearest 0.01" printing):
+
+| Moon input offset | Strict native sidereal Solar-year Jupiter/Ketu computed UTC, fixed source offset 0 | Local calendar |
+| --- | --- | --- |
+| −0.005" | 2018-11-15T00:00:17.503Z | 2018-11-15 (original JHora GUI day) |
+| 0" | 2018-11-14T23:59:45.618Z | 2018-11-14 |
+| +0.005" | 2018-11-14T23:59:13.734Z | 2018-11-14 |
+
+Native physical interval width **63.7686064453125 s**, first-order theoretical half-width **32.8730724 s**. The only original JHora20 printed-day disagreement, **2018-11-15 versus 2018-11-14**, crosses the rounding cell, so **printed-source precision is sufficient to explain it** without changing the algorithm, original JHora expected date, or creating a fake 1620/1620 score. Real observed day parity remains **1619/1620 minor dates**, **180/180 major dates**, **810/810 holdout minor dates** in the exact original captured fixed local-offset scope. No guarantee about which side the ORIGINAL internal unrounded JHora Moon lies.
+
+**Finite closeout decision — no more 1-day forensics by default.**
+- N4 symbolic varga sign method-scoped certification: PASS from earlier true-original-JHora and independent PyJHora external 8000/8000 evidence, each for its own physical-coordinate inputs and D2 method.
+- N4 true sidereal solar-year reproduction of *printed JHora calendar days*: independent research evidence strongly supports the convention, with one calendar boundary **accounted for as source-print-resolution ambiguity**; this is **not** an exact UTC or sub-day original JHora algorithm certificate, and the actual untouched Galaxiora production `365.2425` dasha year remains incompatible with the original JHora source dates.
+- N4 full production birth calculation **NOT CERTIFIED**: separate Lahiri+apparent physical ephemeris same-method parity, actual JHora year-option `YearDefinition=0 3` mapping and unrounded source time, historical legal local civil-time provenance, continuous D60 uncertainty bounds, final full CI and owner acceptance remain blocking items. No production changes, merge, UI/AI activation, or full-math certificate is authorized.
+- Do not request another broad source corpus or repeated year-length sweep solely for the one printed-day rounding ambiguity. The precise remaining proof item for dasha is an independently attested original JHora menu/period setting and sub-day timestamp (if obtainable). If not obtainable, maintain the strict source-precision limitation in any eventual release.
+
+Owner-confirmed N4.18 evidence summary is preserved here; the full output remains a local private JSON, not published. Outcome must not be described as "all 1620 calendar transitions independently verified" or as a production certificate.
