@@ -105,6 +105,35 @@ concurrency:
   group: n414-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  windows-worktree-path-regression:
+    runs-on: windows-2022
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Windows Git vs PowerShell linked-worktree path validation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $repo = Join-Path $env:RUNNER_TEMP 'n417-path-fixture-repo'
+          $linked = Join-Path $env:RUNNER_TEMP 'n417-path-fixture-linked'
+          & git init -q $repo
+          if ($LASTEXITCODE -ne 0) { throw 'N417_TEST_GIT_INIT_FAILED' }
+          Set-Content -LiteralPath (Join-Path $repo 'fixture.txt') -Value 'synthetic'
+          & git -C $repo add fixture.txt
+          if ($LASTEXITCODE -ne 0) { throw 'N417_TEST_GIT_ADD_FAILED' }
+          & git -C $repo -c user.name=N4-Path-Test -c user.email=n4@example.invalid commit -qm fixture
+          if ($LASTEXITCODE -ne 0) { throw 'N417_TEST_GIT_COMMIT_FAILED' }
+          & git -C $repo worktree add --detach $linked HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'N417_TEST_WORKTREE_CREATE_FAILED' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/n4-17-one-date-forensics.ps1 -ReferenceWorktree $linked -ValidateWorktreeOnly
+          if ($LASTEXITCODE -ne 0) { throw 'N417_TEST_VALID_LINKED_WORKTREE_REJECTED' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/n4-17-one-date-forensics.ps1 -ReferenceWorktree $repo -ValidateWorktreeOnly
+          if ($LASTEXITCODE -eq 0) { throw 'N417_TEST_ORDINARY_GIT_REPO_FALSELY_ACCEPTED' }
+          $nested = Join-Path $linked 'nested'
+          New-Item -ItemType Directory -Path $nested | Out-Null
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/n4-17-one-date-forensics.ps1 -ReferenceWorktree $nested -ValidateWorktreeOnly
+          if ($LASTEXITCODE -eq 0) { throw 'N417_TEST_NESTED_FOLDER_FALSELY_ACCEPTED' }
+          Write-Host 'N417_WINDOWS_REAL_GIT_WORKTREE_PATH_REGRESSION_PASS'
   diagnostic:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
