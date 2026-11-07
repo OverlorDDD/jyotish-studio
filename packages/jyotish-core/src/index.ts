@@ -107,3 +107,6 @@ export function calculateChart(input:BirthInput,eph:EphemerisData):CalculatedCha
 
 // N4 isolated, opt-in Shodashavarga API; legacy CalculatedChart and digest unchanged.
 export * from './vargas.ts';
+
+// N4 research-only explicit Hora/ayanamsha variant selector; does not switch live calculator.
+export * from './varga-method-profiles.ts';
