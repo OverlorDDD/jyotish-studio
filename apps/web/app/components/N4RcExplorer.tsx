@@ -93,54 +93,6 @@ export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:
     </div>)}
    </div>
   </details>
-  {!chart?<p className={styles.empty} role="status">{uk?'Спочатку розрахуй натальну карту, щоб побачити D60.':'Calculate your birth chart first to see D60.'}</p>:
-   !d60Valid?<p className={styles.warning} role="alert">
-    {uk?'Точні вхідні координати D60 не підтверджені сервером. Результат приховано.':'The server has not verified the D60 source data. Results are hidden.'}
-   </p>:
-   birthTimeSource==='unknown'?<p className={styles.warning} data-testid="n4-d60-precision-warning">
-    {uk?'Хвилини народження не підтверджені: D60 може істотно відрізнятися. Уточни час за документом, щоб побачити попередній розрахунок.':
-     'Birth minutes are not documented: D60 can differ substantially. Confirm the recorded time to see a provisional calculation.'}
-   </p>:
-   <div data-testid="n4-d60-content">
-    <p className={styles.warning} role="status">
-     {birthTimeSource==='approximate'
-      ?uk?'Час приблизний: карта D60 та її доми не є надійними. Показуємо лише номінальні знаки планет без Лагни.':
-          'Time is approximate: D60 ascendant and houses are unreliable. Only nominal planetary signs are shown.'
-      :uk?'Час записаний до хвилини. Нижче — попередня D60 за вказаним часом: Лагна та доми ще не перевірені на стабільність у межах можливої похибки ±30 секунд.':
-          'Time is recorded to the minute. This is a provisional D60 at the entered instant; the ascendant and houses have NOT been stability-certified across a possible ±30-second rounding window.'}
-    </p>
-    {birthTimeSource==='recorded_minute'&&
-     <div className={styles.chart}>
-      <h3>D60 · {uk?'Попередня карта':'Provisional chart'}</h3>
-      <NorthIndianChart division="d60" lang={lang} chartLabel="Shashtiamsa" showDegrees={false}
-       planets={d60!.planets.map(p=>({name:p.name,sign:p.sign,house:p.house,retrograde:p.retrograde,degreesInSign:0}))}
-       lagna={{sign:d60!.lagna.sign}}/>
-     </div>}
-    <div className={styles.planetGrid}>
-     {d60!.planets.map(p=><div key={p.name}>
-      <span>{value(p.name,uk)}</span><strong>{sign(p.sign,uk)} · {uk?'частина ':'part '}{p.part}/60</strong>
-     </div>)}
-    </div>
-    {d60BoundaryWarning&&<p className={styles.warning} data-testid="n4-d60-near-boundary">
-     {uk?'Принаймні одне положення D60 ближче 1″ до межі сектора. Навіть дуже мала похибка довготи може змінити знак.':
-      'At least one D60 placement lies within 1″ of a sector boundary; a tiny longitude difference may change its sign.'}
-    </p>}
-    {selected===60&&chart&&<p className={styles.d60Caution} role="status" data-testid="n4-d60-precision-warning">
-   {minutesUncertain
-    ?uk?'Хвилини народження невідомі або час приблизний. Положення D60, особливо Лагни та домів, можуть бути неточними.':
-      'Birth minutes are unknown or the time is approximate. D60 placements, especially the ascendant and houses, may be inaccurate.'
-    :uk?'D60 розрахована на вказаний момент. Навіть час, записаний до хвилини, не гарантує стабільність Лагни D60 при відхиленні на кілька секунд.':
-      'D60 is calculated for the entered moment. Even minute-level records cannot guarantee D60 ascendant stability within a few seconds.'}
-  </p>}
-  {selected===60&&!d60Valid&&chart&&<p className={styles.warning} role="alert">
-   {uk?'Сервер не підтвердив вихідні дані D60. Карту приховано.':'D60 source validation failed. Chart hidden.'}
-  </p>}
-  <p className={styles.method}>
-     {uk?'Режим: JHora Traditional, відлік частин від власного знака. Перевірені правила відображення знаків ≠ перевірений історичний час, стабільність Лагни або дозвіл на персональні прогнози D60.':
-      'Method: JHora Traditional, own-sign inclusive. Verified symbolic mappings do not certify historical birth time, ascendant stability or individual D60 predictions.'}
-    </p>
-   </div>}
-  </details>
   {!chart?<p className={styles.empty} role="status">{uk?'Введи свої дані народження вище, щоб побачити карти.':'Enter your birth details above to see your charts.'}</p>:
     !passed?<p role="alert" className={styles.warning}>{uk?'Сервер не підтвердив метод і зв’язок додаткових карт із D1. Нові карти приховано.':'Server proof is missing or mismatched. Additional charts are hidden.'}</p>:null}
   <div className={styles.grid}>
@@ -166,6 +118,16 @@ export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:
   {selectedReady&&boundaryGuard&&<p role="status" className={styles.warning} data-testid="n4-near-boundary-warning">
    {uk?'Увага: щонайменше одна планета або Лагна D'+selected+' перебуває в межах 1 кутової секунди від межі сектора. Для цього положення потрібна додаткова перевірка точності вихідних координат і часу народження.':
     'Precision warning: a planet or the D'+selected+' ascendant lies within 1 arcsecond of a divisional boundary. Verify the source longitude and birth-time precision before relying on this placement.'}
+  </p>}
+  {selected===60&&chart&&<p className={styles.d60Caution} role="status" data-testid="n4-d60-precision-warning">
+   {minutesUncertain
+    ?uk?'Хвилини народження невідомі або час приблизний. Положення D60, особливо Лагни та домів, можуть бути неточними.':
+      'Birth minutes are unknown or the time is approximate. D60 placements, especially the ascendant and houses, may be inaccurate.'
+    :uk?'D60 розрахована на вказаний момент. Навіть час, записаний до хвилини, не гарантує стабільність Лагни D60 при відхиленні на кілька секунд.':
+      'D60 is calculated for the entered moment. Even minute-level records cannot guarantee D60 ascendant stability within a few seconds.'}
+  </p>}
+  {selected===60&&!d60Valid&&chart&&<p className={styles.warning} role="alert">
+   {uk?'Сервер не підтвердив вихідні дані D60. Карту приховано.':'D60 source validation failed. Chart hidden.'}
   </p>}
   <p className={styles.method}>
    {uk?'Метод: сидерична D1 Lahiri, дробові карти за зафіксованими правилами Парашарі, D2 — Sun/Moon Hora. Зв’язок із серверною D1 перевірено внутрішньо; це не незалежний сертифікат JHora вашого народження. D60 входить до спільного набору 16 карт; її Лагна й доми показані попередньо через чутливість до часу народження.':
