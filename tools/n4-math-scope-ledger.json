@@ -1,0 +1,65 @@
+{
+  "version": "n4-method-scoped-evidence-20261107-v1",
+  "researchOnly": true,
+  "scopeRules": [
+    {
+      "layer": "symbolic_varga_signs",
+      "method": "Galaxiora Sun/Moon Hora, fixed D3-D60 rules, raw D1 sidereal longitude input",
+      "oracle": "PyJHora 4.8.7",
+      "referenceRun": 41845004488,
+      "referenceJob": 126626101250,
+      "referenceResult": "N4_PYJHORA_PARITY_PASS 8000/8000",
+      "sourceRepoBlob": "3a4f2dec84a0ed13cb692f52a76612e0de1306e6",
+      "originalIndependentPyJhoraMethodParity": true,
+      "certifiesPhysicalBirthLongitude": false,
+      "certifiesDashaDates": false,
+      "certifiesD60Uncertainty": false
+    },
+    {
+      "layer": "symbolic_varga_signs",
+      "method": "Original JHora8 True Citra; D2 Uma-Shambhu; original source 50 cases",
+      "oracle": "Genuine original JHora8 GUI raw export, private hash-pinned source",
+      "sourceReferenceSha256": "5dcb07d6d71f68199af97696e8ad3ca91493b30f4abc41fdd51350c14e4ff992",
+      "originalOriginalJhoraSameMethodParity": "8000/8000",
+      "certifiesProductionLahiriD2SunMoon": false,
+      "certifiesDashaDates": false
+    },
+    {
+      "layer": "physical_ephemeris",
+      "method": "Current production Lahiri apparent JQA3",
+      "status": "PARTIAL_JQA3_ONLY",
+      "source": "20 JHora original Lahiri charts require current exact profile and boundary evidence",
+      "automaticallyCoveredByTrueCitraSwissResult": false
+    },
+    {
+      "layer": "dasha_calendar",
+      "method": "Production 365.2425-day fixed",
+      "status": "ORIGINAL_20_DATE_PARITY_FAILED",
+      "originalMajorDayMatches": 37,
+      "originalMajorDayTotal": 180,
+      "originalMinorDayMatches": 294,
+      "originalMinorDayTotal": 1620,
+      "sourceYearDefinition": "YearDefinition=0 3",
+      "sourceOptionSemanticsVerified": false,
+      "automaticModelSwitchAllowed": false
+    },
+    {
+      "layer": "historical_local_time",
+      "status": "IANA_DIAGNOSTIC_PASS_NOT_LEGAL_PROVENANCE",
+      "legalRecordNeededForPre1970AndDisputedTransition": true,
+      "anyFoldOrGapMayBeSilentlyResolved": false
+    },
+    {
+      "layer": "D60",
+      "status": "SYMBOLIC_SIGN_PARITY_PASS_TIME_WINDOW_CERTIFICATION_OPEN",
+      "originalObservedBracketCount": 253,
+      "observedBracketsRefinedTo125Ms": 253,
+      "continuousAllIntervalCertified": false,
+      "mayOfferUnqualifiedD60EventDates": false
+    }
+  ],
+  "productionFeatureFlagsMayBeEnabled": false,
+  "homepageNatalRedesignMayStart": false,
+  "enhancedN4AiPublicationMayStart": false,
+  "manualOwnerReleaseApprovalStillRequired": true
+}
