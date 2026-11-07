@@ -140,7 +140,7 @@ try {
   $head = (& git rev-parse HEAD).Trim()
   NeedExit 'N414_GET_HEAD_FAILED'
   Write-Host "N414_GITHUB_HEAD=$head"
-  & node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs
+  & node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs
   NeedExit 'N414_NODE_TESTS_FAILED'
   Write-Host 'N414_NODE_REGRESSION_TESTS_PASS'
   $venv = Join-Path $run 'py-venv'
