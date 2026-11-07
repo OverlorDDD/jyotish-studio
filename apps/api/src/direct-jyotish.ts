@@ -215,6 +215,13 @@ export async function generateDirectJyotish(
      break;
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
+    // Known incorrect lordships and unsupported financial directives are hard failures,
+    // not merely dashboard warnings. An offline Reader still remains available.
+    if(review.codes.some(code=>code==='potential_house_lord_mismatch'||code==='unsupported_financial_directive')){
+     reason='invalid_response';
+     diagnostic(provider,'validation','unsupported_or_incorrect_chart_claim');
+     break;
+    }
     if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
     try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
     diagnostic(provider,'success','complete');
