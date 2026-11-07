@@ -28,3 +28,9 @@ D. Obtain original JHora method-matched 50-chart corpus through a safe official 
 E. Final Core CI, mobile/desktop, bilingual proof, owner Windows acceptance, explicit approval for merging and separate AWS release; keep N4 gates OFF if any mandatory evidence is missing.
 
 **Never label N4.9 editorially certified or production-ready while 0/48 genuine texts or 0/50 authentic JHora samples remain.**
+
+
+## 2026-11-07 chronological update — original JHora now available, editorial still open
+The statement above that 0/50 original JHora samples were available refers to 2026-11-05. A later owner-private original JHora8 50-case source set and native SWIEPH True Citra / US-Hora verification were actually executed on 2026-11-06/07 (50/50 sources; 8,000/8,000 **method-aligned** sign comparisons; N4.14 time sensitivity and 253/253 numerical transition refinements). That does not certify the *different* production Lahiri/SunMoon D2 profile or the JHora Vimshottari calendar-year method.
+
+No evidence of the required 48 genuinely evaluated UK/EN LLM outputs or two independent human reviewer signoffs was supplied in the current mathematical audit. Therefore N4.9 enhanced AI publication remains BLOCKED. The existing deterministic Reader v6 and Direct Jyotish production behavior should remain unchanged; do not make chart-specific D60 or precisely dated dasha claims from the diagnostic experiments. AI/UI editorial work begins only after a complete same-profile mathematical gate and a separate reviewed launch plan.
