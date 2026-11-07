@@ -36,3 +36,8 @@
 @media(max-width:950px){.grid{grid-template-columns:minmax(0,1fr)}.categories{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:520px){.panel{margin:12px 0;padding:12px;border-radius:16px}.intro{gap:8px}.counter{font-size:25px}.counter small{font-size:10px}.tab,.selected{padding:8px 9px;gap:5px;border-radius:9px}.tab span,.selected span{font-size:11px}.mainTabs{gap:6px}.planetGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.chart{padding:8px}.grid{gap:10px}.intro h2{font-size:22px}.intro p{font-size:13px}}
 @media(prefers-reduced-motion:reduce){.tab,.selected{scroll-behavior:auto;transition:none}}
+
+/* D60 method-scoped provisional area: user declares the provenance of time */
+.d60Precision{display:flex;flex-direction:column;gap:9px;font-size:13px;font-weight:600;color:#e3cfad;margin:16px 0;max-width:490px}
+.d60Precision select{font:inherit;font-weight:500;max-width:100%;width:100%;min-width:0;background:#202f49;color:#f1f4fa;border:1px solid #8b9cb8;border-radius:12px;padding:12px;cursor:pointer}
+.d60Precision select:focus-visible{outline:3px solid #f1c98b;outline-offset:2px}
