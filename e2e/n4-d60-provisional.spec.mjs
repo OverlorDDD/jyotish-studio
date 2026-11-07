@@ -151,8 +151,10 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
 
  await expect(page.getByTestId('n4-varga-reader')).toHaveCount(0);
  await expect(plain.getByTestId('reader-v7-D60')).toHaveCount(0);
+ // This minimal mock intentionally omits editorial chapters: no advanced disclosure is rendered.
+ // A full Reader report with editorial chapters is covered by the real HTTP integration gate.
  const detail=page.locator('.reading-root details').filter({hasText:'Поглиблене астрологічне пояснення'});
- await expect(detail).toHaveCount(1);
+ await expect(detail).toHaveCount(0);
 });
 
 test('Reader 7 remains readable without horizontal overflow on mobile and desktop',async({page})=>{
