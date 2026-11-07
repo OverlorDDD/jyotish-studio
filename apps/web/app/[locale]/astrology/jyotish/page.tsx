@@ -15,7 +15,7 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  if(!isPortalLocale(locale))return {};
  return {
   title:(locale==='uk'?'Натальна карта онлайн безкоштовно — Джйотіш і 16 карт':'Free Vedic Birth Chart & Kundli Calculator — 16 Charts')+' — '+moduleTitle('jyotish'),
-  description:locale==='uk'?'Безкоштовна ведична натальна карта: 16 карт життя для дослідження сильних сторін, викликів, стосунків і кар’єри. Розрахунок за датою, часом і містом народження.':'Free Vedic birth chart and Kundli calculator: explore strengths, challenges, relationships and career through 16 life charts. Enter birth date, time and city.',
+  description:locale==='uk'?'Безкоштовна ведична натальна карта: 16 карт життя для дослідження сильних сторін, викликів, стосунків і кар’єри. Розрахунок за датою, часом і містом народження.':'Create your free Vedic birth chart (Kundli). Explore strengths, challenges, relationships and career through 16 life charts.',
   robots:indexRobots(),
   openGraph:{type:'website',title:locale==='uk'?'Натальна карта онлайн — 16 ведичних карт | Galaxiora':'Free Vedic Birth Chart — Explore 16 Charts | Galaxiora',
    description:locale==='uk'?'16 карт життя: досліджуй сильні сторони, виклики, стосунки та кар’єру через ведичну натальну карту.':'Explore strengths, challenges, relationships and career with 16 traditional Vedic life charts.',url:'/'+locale+'/astrology/jyotish'},
