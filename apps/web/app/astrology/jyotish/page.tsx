@@ -188,7 +188,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
         {lang==='uk'?'Увага: історичні часові пояси до 1970 року не завжди підтверджені незалежними місцевими документами. Точні доми та дати потребують додаткової перевірки.':
          'Note: pre-1970 local time-zone history is not always independently attested for each birthplace. Exact houses and dates need additional verification.'}
        </p>}
-      <button className="primary-btn jy-calc-btn" disabled={busy}>{busy?i.working:i.calculate}<ArrowUpRight size={16}/></button>
+      <button className="primary-btn jy-calc-btn" disabled={busy||!form.date||!form.time||
+        (!form.place&&!manualMode)||!form.latitude||!form.longitude||!form.timeZone}>{busy?i.working:i.calculate}<ArrowUpRight size={16}/></button>
      </form>
      <p className={`status ${error?'error':''}`} role="status">{status}</p>
     </details>
