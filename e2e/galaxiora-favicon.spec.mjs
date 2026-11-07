@@ -3,7 +3,8 @@ for(const locale of ['uk','en']){
  test('Galaxiora '+locale+' uses approved original galaxy #6 for header, browser and mobile icons',async({page,request})=>{
   await page.goto('/'+locale+'/panchanga');
   await expect(page.locator('link[rel="icon"][href$="/galaxiora-favicon.png"]').first()).toHaveCount(1);
-  await expect(page.locator('link[rel="shortcut icon"][href*="favicon.ico"]').first()).toHaveCount(1);
+  await expect(page.locator('link[rel="icon"]')).toHaveCount(1);
+  await expect(page.locator('link[rel="shortcut icon"]')).toHaveCount(0);
   await expect(page.locator('link[rel="apple-touch-icon"][href*="apple-touch-icon.png"]').first()).toHaveCount(1);
   await expect(page.locator('link[rel="manifest"][href*="site.webmanifest"]').first()).toHaveCount(1);
   await expect(page.locator('.as-brand-icon img[src$="/galaxiora-favicon.png"]')).toHaveCount(1);

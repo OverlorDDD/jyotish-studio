@@ -41,8 +41,9 @@ test('PWA manifest and sitewide header refer to the user-approved spiral galaxy 
  assert.match(shell,/galaxiora-favicon\.png/);
  assert.doesNotMatch(shell,/MoonStar/);
  const layout=read('apps/web/app/layout.tsx');
- assert.match(layout,/\/favicon\.ico/);
- assert.ok(layout.includes("url:'/galaxiora-favicon.png'"));
+ assert.doesNotMatch(layout,/url:'\/favicon\.ico'/);
+ assert.doesNotMatch(layout,/shortcut:/);
+ assert.ok(layout.includes("icon:[{url:'/galaxiora-favicon.png',type:'image/png',sizes:'64x64'}]"));
  assert.doesNotMatch(layout,/galaxiora-favicon\.png\?v=/);
  assert.match(layout,/apple-touch-icon\.png/);
 });

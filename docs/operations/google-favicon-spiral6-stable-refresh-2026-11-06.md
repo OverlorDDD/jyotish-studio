@@ -9,7 +9,7 @@
 
 ## Change
 - Keep the exact approved spiral artwork and build generator.
-- Advertise one primary stable (no query parameters) 64px PNG at `/galaxiora-favicon.png`, with `/favicon.ico` as the backwards-compatible shortcut/ICO. Next's generated `/icon.png` continues to work for browsers.
+- Advertise exactly one `rel="icon"` candidate: stable (no query parameters) 64px PNG at `/galaxiora-favicon.png`. Keep `/favicon.ico` and Next's generated `/icon.png` as valid legacy assets, without advertising multiple competing favicon URLs in the HTML head.
 - Header logo uses the same stable PNG path.
 - Google Brand CI now protects PRs to `main` and relevant pushes. It generates all image variants BEFORE verifying them, then builds.
 - The old "Cosmic G" workflow is manual only and renamed to identify approved spiral #6. The release script no longer mentions SVG/G branding.
@@ -23,3 +23,9 @@
 5. Use Google Search Console > URL inspection > `https://galaxiora.com/` > Request indexing once after successful production verification. Monitor branded results in the following days/weeks. Do not repeatedly resubmit unchanged URLs. Google controls the search-results favicon cache.
 
 This release is only branding/SEO. No database, astrology calculations, account data, Google OAuth, GA4, environment secrets, or AWS server settings are changed.
+
+## 2026-11-07 SERP cache discrepancy and tightened verification
+- User-supplied Google screenshot shows an obsolete blue/gold star and obsolete Ukrainian page title for the hostname, while current production homepage title is the English natal calculator title. This demonstrates a stale indexed presentation; it is **not evidence** that the current icon source still contains the star.
+- Google supports only one favicon per hostname and recommends a stable URL. The HTML now explicitly advertises only the user-approved `/galaxiora-favicon.png` candidate. Do not add URL version parameters, switch file names or substitute the retired G/star logo.
+- `tools/google-favicon-production-audit.mjs` compares live PNG, ICO and Next /icon.png bytes with the immutable approved asset; checks no old `icon.svg` is linked, checks indexable root title, robots and direct Googlebot-Image access. It reports source-readiness **only**, never claims the Google SERP cache is refreshed.
+- Once a deployment has passed this independent production audit, use Google Search Console URL Inspection for `https://galaxiora.com/` and request indexing once. Google-controlled SERP refresh may take days to weeks; no GitHub or AWS release can guarantee instantaneous replacement.

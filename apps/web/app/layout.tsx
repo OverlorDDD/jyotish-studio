@@ -19,14 +19,10 @@ export const metadata:Metadata={
    ...(process.env.BING_SITE_VERIFICATION?{other:{'msvalidate.01':process.env.BING_SITE_VERIFICATION}}:{})
   }}:{}),
   icons:{
-   // Stable, Google-supported PNG is the primary brand favicon. No cache-busting
-   // query parameters: Google Search treats the favicon URL as a durable asset.
-   // Next also discovers generated app/icon.png automatically.
-   icon:[
-    {url:'/galaxiora-favicon.png',type:'image/png',sizes:'64x64'},
-    {url:'/favicon.ico',type:'image/x-icon',sizes:'any'}
-   ],
-   shortcut:'/favicon.ico',
+   // Exactly one explicitly advertised favicon for Google Search:
+   // canonical URL stays stable; legacy /favicon.ico and Next /icon.png
+   // remain available as backwards-compatible binaries, not rival candidates.
+   icon:[{url:'/galaxiora-favicon.png',type:'image/png',sizes:'64x64'}],
    apple:[{url:'/apple-touch-icon.png',sizes:'180x180',type:'image/png'}]
   },
   manifest:'/site.webmanifest',

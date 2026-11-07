@@ -5,6 +5,10 @@ on:
     paths:
       - 'apps/web/brand-assets/**'
       - 'apps/web/app/layout.tsx'
+      - 'apps/web/app/page.tsx'
+      - 'apps/web/next.config.mjs'
+      - 'tools/google-favicon-production-audit.mjs'
+      - 'tools/google-favicon-serp6-aws-release.sh'
       - 'apps/web/app/components/PortalShell.tsx'
       - 'tools/brand-icons-build.mjs'
       - 'tools/brand-icons.test.mjs'
@@ -17,6 +21,10 @@ on:
     paths:
       - 'apps/web/brand-assets/**'
       - 'apps/web/app/layout.tsx'
+      - 'apps/web/app/page.tsx'
+      - 'apps/web/next.config.mjs'
+      - 'tools/google-favicon-production-audit.mjs'
+      - 'tools/google-favicon-serp6-aws-release.sh'
       - 'apps/web/app/components/PortalShell.tsx'
       - 'tools/brand-icons-build.mjs'
       - 'tools/brand-icons.test.mjs'
@@ -46,4 +54,17 @@ jobs:
           npm run test:seo
           npm run test:r32:seo
       - name: Production build
-        run: npm run build
+        run: |
+          node --check tools/google-favicon-production-audit.mjs
+          bash -n tools/google-favicon-serp6-aws-release.sh
+          npm run build
+      - name: Independently verify served PNG / ICO / Next icons and Googlebot-Image
+        run: |
+          (cd apps/web && node ../../node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000) >/tmp/brand-next.log 2>&1 &
+          ready=0
+          for attempt in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:3000/ -o /dev/null; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/brand-next.log; exit 1; fi
+          node tools/google-favicon-production-audit.mjs http://127.0.0.1:3000
