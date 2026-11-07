@@ -1,0 +1,17 @@
+{
+  "version": "n4-rc-release-evidence-v1",
+  "originalProfileProductionLahiriCases": 20,
+  "requiredIndependentSameProfileLahiriCases": 50,
+  "fullIndependent15VargaSymbolicSourceCases": 0,
+  "d60PubliclyExcluded": true,
+  "n4AiPublicEnabled": false,
+  "legacyReaderV6Modified": false,
+  "exactCurrentHeadCIGreenAttested": false,
+  "explicitOwnerProductionApproval": false,
+  "allHistoricalLocalTimeLegallyProven": false,
+  "notes": [
+    "20 original JQA3 cases are identical-Lahiri profile, not full 50-case 15-varge external parity",
+    "actual main runCalculation already uses native true-sidereal-solar dasha; do not revert",
+    "one unresolved JHora Moon print rounding ambiguity does not equal independent sub-day certification"
+  ]
+}
