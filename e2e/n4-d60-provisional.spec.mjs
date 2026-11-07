@@ -99,3 +99,35 @@ test('All 16 charts stay in one responsive explorer at 320–1440 px',async({pag
   expect(spill,'viewport horizontal overflow '+width).toBeLessThanOrEqual(2);
  }
 });
+
+test('N4 Reader shows all source-bound varga insights and the D60 precision boundary',async({page})=>{
+ await ready(page,'uk');
+ const divisions=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
+ const reading=divisions.map(n=>({
+  division:n,title:'D'+n+' · '+(n===27?'Сильні та слабкі сторони':'Життєва тема'),
+  topic:'тестова тема',scope:'internal_verified_D1_derivation',
+  summary:'D1: Юпітер у 9-му домі. D'+n+': Юпітер у 5-му домі, Місяць у 4-му домі. Обидва положення потрібні для трактування.',
+  practice:'Визначити один практичний крок до особистого розвитку.',
+  evidence:['D1.house-lord.9=Jupiter','D'+n+'.Jupiter.house=5','D'+n+'.Moon.house=4']
+ }));
+ const data={
+  language:'uk',readerVersion:'6.0.0',asOf:'2026-11-07',
+  verification:proof,
+  sections:[{id:'portrait',heading:'Перевірений портрет',eyebrow:'I',lead:'Звіт за картою',
+   paragraphs:['Традиційні тематичні висновки'],facts:[]}],
+  ai:{provider:'local',source:'deterministic',text:'',fallbackReason:'reader_only'},
+  vargaReadings:{version:'n4-varga-reader-1.0.0',status:'available',
+   methodology:'Варги уточнюють D1, не замінюють її.',
+   readings:reading,d60:{status:'provisional_no_individual_interpretation',
+    message:'Лагна D60 індивідуально не сертифікована; персональні висновки за домами недоступні.'}}
+ };
+ await page.route('**/api/v1/reports',route=>route.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify(data)}));
+ await page.getByRole('button',{name:/Читати без AI/}).click();
+ const reader=page.getByTestId('n4-varga-reader');
+ await expect(reader).toBeVisible();
+ await expect(reader.locator('[data-testid^="n4-varga-reading-D"]')).toHaveCount(15);
+ await expect(reader.getByTestId('n4-varga-reading-D27')).toContainText('Сильні та слабкі сторони');
+ await expect(reader.getByTestId('n4-varga-reading-D60')).toHaveCount(0);
+ await expect(reader.getByTestId('n4-d60-interpretation-limit')).toContainText('Лагна D60');
+});
