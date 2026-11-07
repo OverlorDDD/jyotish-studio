@@ -173,6 +173,98 @@ export function inspectN416LocalDashaResiduals({computed,original,offsetMs,caseI
  return Object.freeze(mismatches);
 }
 
+
+/**
+ * First-order, transparent sensitivity caused ONLY by a source printing Moon
+ * to two decimals of arcsecond. NOT a certified astronomical time error bound:
+ * native dasha roots below compute the actual physical sensitivity.
+ */
+export function n418MoonPrintSensitivitySeconds({initialLordYears,roundingStepArcsec,solarYearDays}){
+ if(!Number.isFinite(initialLordYears)||initialLordYears<=0||initialLordYears>20||
+    !Number.isFinite(roundingStepArcsec)||roundingStepArcsec<=0||roundingStepArcsec>1||
+    !Number.isFinite(solarYearDays)||solarYearDays<365||solarYearDays>366)
+  fail('invalid source precision model');
+ return (roundingStepArcsec/2)/3600/(360/27)*initialLordYears*solarYearDays*86400;
+}
+
+/** N4.18, FOCUSED JQA3-02 source-precision interval, never a release gate.
+ * Do not assume the actual unrounded original JHora8 Moon position is at any
+ * particular side of the printed 0.01-arcsec interval. No source dates modified.
+ */
+export async function auditN418JHora02PrintedMoonResolution(){
+ const records=loadCorpus().records.filter(x=>x.hasOriginalJHoraIni);
+ if(records.length!==20||records[1]?.id!=='jqa3-02')
+  fail('JQA3-02 original independent source/order absent');
+ const ref=verifyReference(records[1]);
+ const original=load20()[1];
+ if(original.index!==1||original.offsetMs!==0)fail('JQA3-02 fixed source offset changed');
+ const raw=readFileSync(new URL('../'+records[1].captureDir+'/chart_data.txt',import.meta.url),'utf8');
+ const moonLine=raw.split(/\r?\n/).find(x=>/^Moon\s/.test(x));
+ const m=moonLine?.match(/\b(\d{1,2})\s+(Ar|Ta|Ge|Cn|Le|Vi|Li|Sc|Sg|Cp|Aq|Pi)\s+(\d{1,2})'\s+(\d{1,2}\.\d{2})"/);
+ if(!m||m[2]!=='Ta')fail('Moon not printed to attested hundredth arcsecond');
+ const printed=30+Number(m[1])+Number(m[3])/60+Number(m[4])/3600;
+ if(Math.abs(printed-original.moon)>1e-10||
+    Math.abs(printed-ref.expected.positions.Moon.longitude)>1e-10)
+  fail('original raw Moon print disagrees with immutably pinned source');
+ const nak=nakshatraOf(original.moon);
+ if(nak.index!==3||DASHA_LORDS[nak.index%9]!=='Moon')fail('unexpected original Moon dasha start');
+ const expected=original.periods.find(x=>x.lord==='Jupiter')?.antardashas?.Ketu;
+ if(typeof expected!=='string'||expected!=='2018-11-15')
+  fail('JHora8 Jupiter/Ketu original printed date changed');
+ const native=await nativeSolar();
+ const variants=[];
+ for(const deltaArcseconds of [-0.005,0,0.005]){
+  const moon=original.moon+deltaArcseconds/3600;
+  if(nakshatraOf(moon).index!==nak.index)fail('source rounding crosses natal nakshatra');
+  const result=buildPeriods({...original,moon},'sidereal',at=>native.sunAt(at,'sidereal'));
+  const jupiter=result.find(x=>x.lord==='Jupiter');
+  const instant=jupiter?.subs?.Ketu;
+  if(!Number.isFinite(instant))fail('native Jupiter/Ketu transition absent');
+  const local=new Date(instant+original.offsetMs);
+  variants.push({
+   printedSourceMoonOffsetArcseconds:deltaArcseconds,
+   computedLocalCalendarDate:local.toISOString().slice(0,10),
+   computedOriginalFixedOffsetLocalClock:local.toISOString().slice(11,23),
+   utcInstant: new Date(instant).toISOString(),
+   timestampMs:instant
+  });
+ }
+ const [low,center,high]=variants;
+ const hasJHoraDay=variants.some(x=>x.computedLocalCalendarDate===expected);
+ const hasOriginalComputedDay=variants.some(x=>x.computedLocalCalendarDate===center.computedLocalCalendarDate);
+ const crossBoundary=hasJHoraDay&&hasOriginalComputedDay&&
+  variants.some(x=>x.computedLocalCalendarDate!==expected);
+ if(center.computedLocalCalendarDate!=='2018-11-14'||!crossBoundary||
+    !(low.timestampMs>center.timestampMs&&center.timestampMs>high.timestampMs))
+  fail('original 0.01 arcsec Moon precision interval does not explain observed date boundary');
+ const predictedHalfWidth=n418MoonPrintSensitivitySeconds({
+  initialLordYears:10,roundingStepArcsec:0.01,solarYearDays:365.25636
+ });
+ const deltaSeconds=(low.timestampMs-high.timestampMs)/1000;
+ if(Math.abs(deltaSeconds)>120||Math.abs(deltaSeconds)<30)
+  fail('implausible observed native source precision date sensitivity');
+ const publicVariants=variants.map(({timestampMs,...safe})=>safe);
+ return Object.freeze({
+  status:'N418_SOURCE_PRINT_PRECISION_DAY_BOUNDARY_SPANNED_STRICT_SWIEPH_PASS',
+  originalSourceCase:'JQA3-02',
+  originalJHoraMoonPrintedPrecisionArcseconds:0.01,
+  rawPrintedMoonSign:'Taurus',
+  originalJHoraJupiterKetuCalendarDate:expected,
+  initialMahadashaLord:'Moon',
+  firstOrderHalfRoundingSeconds:predictedHalfWidth,
+  nativeSourcePrintedIntervalSpanSeconds:deltaSeconds,
+  nativeSolarEphemerisCalls:native.calls(),
+  originalMoonPrintAlternatives:publicVariants,
+  originalUnroundedJHoraMoonLongitudeKnown:false,
+  sourceRoundingCanExplainSingleCalendarMismatch:true,
+  originalJHoraYearDefinitionOption3Proven:false,
+  exactSubdayJHoraTransitionVerified:false,
+  productionDashaModeChanged:false,
+  historicalCivilTimeCertified:false,
+  productionReleasePermitted:false
+ });
+}
+
 async function nativeSolar(){
  const ephe=resolve(process.cwd(),'node_modules/@swisseph/node/ephemeris');
  for(const [name,expected] of Object.entries(FILES)){
@@ -253,6 +345,11 @@ export async function auditN4Original20NativeSolarDasha(){
  });
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
- try{console.log(JSON.stringify(await auditN4Original20NativeSolarDasha(),null,2));}
+ try{
+  const mode=process.argv.slice(2);
+  if(mode.length>1||(mode.length===1&&mode[0]!=='--moon-precision-jqa3-02'))
+   fail('valid modes: no arguments or --moon-precision-jqa3-02');
+  const result=mode.length===1?await auditN418JHora02PrintedMoonResolution():await auditN4Original20NativeSolarDasha();
+  console.log(JSON.stringify(result,null,2));
  catch(error){console.error(error instanceof Error?error.message:String(error));process.exitCode=2;}
 }
