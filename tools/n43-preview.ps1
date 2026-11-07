@@ -1,7 +1,7 @@
-# N4.3 LOCAL: real ephemeris + verified Reader 7 + optional cloud AI; NO Docker/DB/AWS.
+# N4.4 LOCAL: real Swiss Ephemeris + Classical Reader 8 + optional cloud AI; NO Docker/DB/AWS.
 # Run from the independent preview folder: powershell -ExecutionPolicy Bypass -File .\tools\n43-preview.ps1
 [CmdletBinding()]
-param([switch]$SkipGitPull)
+param([switch]$SkipGitPull,[switch]$ReaderOnly)
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $root
@@ -24,8 +24,16 @@ $actual=(git branch --show-current).Trim()
 AssertExit 'Git branch inspection'
 if($actual -ne $branch){throw "Wrong branch: $actual; required $branch. Do not switch the production checkout."}
 if(-not $SkipGitPull){
- git pull --ff-only origin $branch
- AssertExit 'Safe git pull'
+ # Windows Git automatic pack cleanup can hang on locked .idx files.
+ # Fetch with automatic maintenance disabled, then fast-forward only.
+ git config --local gc.auto 0
+ AssertExit 'Disable automatic Git gc'
+ git config --local maintenance.auto false
+ AssertExit 'Disable automatic Git maintenance'
+ git -c gc.auto=0 -c maintenance.auto=false fetch --no-auto-gc --no-tags origin $branch
+ AssertExit 'Git fetch without auto gc'
+ git -c gc.auto=0 -c maintenance.auto=false merge --ff-only "origin/$branch"
+ AssertExit 'Safe Git fast-forward'
 }
 if(-not (Test-Path -LiteralPath '.\node_modules\next\dist\bin\next' -PathType Leaf)){
  Write-Host 'Installing missing npm dependencies (no package lock rewrite)...' -ForegroundColor Cyan
@@ -61,9 +69,9 @@ $env:WEB_PORT='3000'
 $env:INTERNAL_API_ORIGIN='http://127.0.0.1:4000'
 $env:NEXT_PUBLIC_SITE_URL='http://localhost:3000'
 $env:SITE_NOINDEX='1'
-$env:AI_MODE='free'
-$env:GALAXIORA_READER_ONLY='0'
-if(-not $env:GEMINI_API_KEY -and -not $env:GROQ_API_KEY -and -not $env:OPENROUTER_API_KEY){
+$env:AI_MODE=if($ReaderOnly){'off'}else{'free'}
+$env:GALAXIORA_READER_ONLY=if($ReaderOnly){'1'}else{'0'}
+if(-not $ReaderOnly -and -not $env:GEMINI_API_KEY -and -not $env:GROQ_API_KEY -and -not $env:OPENROUTER_API_KEY){
  $choice=Read-Host 'Optional: test LIVE Gemini AI? Enter Y (you supply your own key) or N (Reader-only)'
  if($choice -match '^[Yy]$'){
   $confirm=Read-Host 'Have you verified your Gemini key has a free-tier quota and you agree to one live request? (Y/N)'
@@ -80,7 +88,7 @@ if(-not $env:GEMINI_API_KEY -and -not $env:GROQ_API_KEY -and -not $env:OPENROUTE
  }
 }
 if(-not (Test-Path -LiteralPath '.\tools\n43-live-preview-api.mjs')){throw 'N4.3 preview server is missing: git pull the latest branch'}
-Write-Host '=== STARTING N4.3 ISOLATED REAL READER PREVIEW ===' -ForegroundColor Cyan
+Write-Host '=== STARTING N4.4 ISOLATED CLASSICAL READER 8 PREVIEW ===' -ForegroundColor Cyan
 $api=Start-Process -PassThru -FilePath 'powershell.exe' -WorkingDirectory $root -ArgumentList @(
  '-NoExit','-Command','node --experimental-strip-types tools/n43-live-preview-api.mjs'
 )
@@ -93,7 +101,25 @@ for($i=0;$i -lt 35;$i++){
  }catch{}
  if($api.HasExited){break}
 }
-if(-not $ready){throw 'N43 API could not start. Read the separate API terminal; no production changes were made.'}
+if(-not $ready){throw 'N44 local API did not start. Inspect the separate API terminal for Swiss/Node errors. No production changes were made.'}
+# Health alone is insufficient: run a real Swiss Ephemeris + Reader 8 report
+# against a fixed, non-user test birth (no AI, no database). Do not log the chart.
+$probe=@{
+ date='2000-01-01';time='12:00';timeZone='Etc/UTC';latitude=50.45;longitude=30.52;
+ lang='uk';preferred='local';asOf='2026-11-07'
+} | ConvertTo-Json -Compress
+try{
+ $calculated=Invoke-RestMethod -Uri 'http://127.0.0.1:4000/api/v1/reports' -Method Post -ContentType 'application/json' -Body $probe -TimeoutSec 45
+}catch{
+ throw "Reader 8 real Swiss calculation failed on local API (port 4000). Inspect the API window. $($_.Exception.Message)"
+}
+if($calculated.readerV8.version -ne 'reader-v8.0.0-n44' -or
+ $calculated.readerV8.status -ne 'available' -or
+ $calculated.readerV8.insights.Count -ne 15 -or
+ $calculated.verification.status -ne 'verified_internal'){
+ throw 'Reader 8 local API returned an incomplete or unverified report; aborting the preview.'
+}
+Write-Host 'N44_REAL_SWISS_READER_8_REPORT_VERIFIED (15 thematic readings)' -ForegroundColor Green
 $web=Start-Process -PassThru -FilePath 'powershell.exe' -WorkingDirectory $root -ArgumentList @(
  '-NoExit','-Command','npm run dev:web'
 )
@@ -116,6 +142,6 @@ Write-Host 'N44_CLASSICAL_READER_8_PREVIEW_READY — NO DOCKER, NO DATABASE, NO 
 Write-Host 'UA: http://localhost:3000/uk/astrology/jyotish'
 Write-Host 'EN: http://localhost:3000/en/astrology/jyotish'
 Write-Host 'Enter birth data and city. Compare "Read without AI — Reader 8" with AI.'
-Write-Host 'If a model key is absent/invalid, AI will be clearly labelled as unavailable; Reader 7 still works.'
+Write-Host 'If no valid AI key is configured, Reader 8 still works deterministically without AI.'
 Write-Host 'Leave both launched terminal windows open while reviewing.'
 Start-Process 'http://localhost:3000/uk/astrology/jyotish'
