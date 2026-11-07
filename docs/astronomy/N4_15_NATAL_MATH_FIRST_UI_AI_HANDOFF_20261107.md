@@ -40,3 +40,22 @@ Any missing requirement => N4_NATAL_MATH_INTEGRATION_BLOCKED. DO NOT modify home
 - No force push, no AWS production release and no merge without explicit owner approval.
 
 This record intentionally documents differences and acceptance criteria; it is NOT a mathematical certificate or UI implementation.
+
+
+## Owner rejected earlier sky-first homepage copy (2026-11-07)
+The earlier UK phrase "Дізнайся, яким було небо в момент твого народження" and EN "Discover the sky you were born under" are EXPLICITLY REJECTED by owner. Neither may be published.
+
+Future COPY DIRECTION only after math: contemporary, confident, clear utility, personal advantage and sense of opportunity, with no shaming people who do not study astrology or scientifically guaranteed outcomes.
+Suggested UNAPPROVED concepts:
+- UK headline: "Твій космічний код. Твій наступний хід."
+- UK intro: "Поки інші покладаються на випадок, досліди свої сильні сторони, життєві цикли й можливості через ведичну карту народження."
+- EN headline: "Your cosmic code. Your next move."
+- EN intro: "Explore your strengths, life cycles and new possibilities through a different lens — your personal Vedic birth chart."
+Dedicated EN tool keeps the informative H1 "Free Vedic Birth Chart Calculator", with UK counterpart. This supersedes the rejected headline, NOT the SEO team's canonical or technical requirements. No UI code modified.
+
+## Further mathematical engineering, NO prod changes
+- A new explicit method-selection 16-varga adapter in packages/jyotish-core/src/varga-method-profiles.ts retains legacy Sun/Moon and alternatively maps all 16 using Uma-Shambhu for D2. It accepts a declared physical D1 input convention; its method-profile metadata never mislabels an US chart as Sun/Moon.
+- New original-50 comparison in tools/n4-original50-explicit-profile-gate.mjs compares all 8000 original genuine JHora sign assignments against the new adapter using original TrueCitra input longitudes. This certifies ONLY source-aligned symbolic sign assignments, NOT production Lahiri astronomy.
+- New JHora20 major/minor-date audit in tools/n4-jhora20-dasha-date-audit.mjs compares actual legacy Vimshottari to 180 original major and 1620 original minor calendar day labels under UTC and captured local offset separately. Original export carries YYYY-MM-DD only and JHora option 3 has not been independently identified; calendar-day agreement alone cannot resolve year mode or exact moments.
+- New historical civil-time confidence policy in tools/n4-historical-birth-confidence.mjs blocks DST gap/fold, demands further historical legal evidence before 1970 and does not equate an IANA result with legal source certification after 1970.
+- Full D60 crossing mathematical uniqueness remains open despite 253/253 observed <=125ms refined brackets; no generated AI text may claim precise D60 life events.
