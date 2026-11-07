@@ -4,6 +4,7 @@ param([string]$PrivateReference='', [string]$N414Report='')
 $ErrorActionPreference='Stop'
 $expected='5DCB07D6D71F68199AF97696E8AD3CA91493B30F4ABC41FDD51350C14E4FF992'
 $branch='feat/n4-shodashavarga-foundation'
+$debugLog=$null
 function CheckExit([string]$stage) { if($LASTEXITCODE -ne 0) { throw "$stage EXIT=$LASTEXITCODE" } }
 try {
  foreach($tool in @('git','node','npm')) {
@@ -69,7 +70,9 @@ try {
   $head=(& git rev-parse HEAD).Trim()
   CheckExit 'N4_HEAD'
   Write-Host "N4_MATH_HEAD=$head"
-  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs tools/n4-dasha-year-mode-matrix.test.mjs tools/n4-dasha-true-solar-native.test.mjs tools/n4-math-scope-ledger.test.mjs
+  $debugLog=Join-Path $run 'N4_MATH_NODE_UNIT_TESTS.log'
+  Write-Host "N4_METHOD_TEST_LOG=$debugLog"
+  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs tools/n4-dasha-year-mode-matrix.test.mjs tools/n4-dasha-true-solar-native.test.mjs tools/n4-math-scope-ledger.test.mjs 2>&1 | Tee-Object -FilePath $debugLog
   CheckExit 'N4_METHOD_TESTS'
   Write-Host 'N4_MATH_METHOD_TESTS_PASS'
   & node --experimental-strip-types tools/n4-math-scope-ledger.mjs
@@ -140,5 +143,11 @@ try {
  exit 0
 } catch {
  Write-Host ("N4_MATH_PHASE2_FAILED: " + $_.Exception.Message) -ForegroundColor Red
+ if($debugLog -and (Test-Path -LiteralPath $debugLog -PathType Leaf)){
+  Write-Host "N4_METHOD_TEST_LOG=$debugLog" -ForegroundColor Yellow
+  Write-Host 'N4_METHOD_TEST_FAILURE_EXCERPT_BEGIN' -ForegroundColor Yellow
+  @(Get-Content -LiteralPath $debugLog -Tail 120) | ForEach-Object { Write-Host $_ }
+  Write-Host 'N4_METHOD_TEST_FAILURE_EXCERPT_END' -ForegroundColor Yellow
+ }
  exit 1
 }
