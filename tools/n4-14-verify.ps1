@@ -140,7 +140,7 @@ try {
   $head = (& git rev-parse HEAD).Trim()
   NeedExit 'N414_GET_HEAD_FAILED'
   Write-Host "N414_GITHUB_HEAD=$head"
-  & node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs
+  & node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs
   NeedExit 'N414_NODE_TESTS_FAILED'
   Write-Host 'N414_NODE_REGRESSION_TESTS_PASS'
   $venv = Join-Path $run 'py-venv'
@@ -195,6 +195,9 @@ try {
    Write-Host "N414_PRIVATE_RESULT=$resultPath"
    Write-Host ("N414_REFINED_OBSERVED_BRACKETS=" + $report.refinement.refinedBrackets)
    Write-Host ("N414_REFINEMENT_MAX_WIDTH_MS=" + $report.refinement.maximumRefinedBracketWidthMs)
+   & node --experimental-strip-types tools/n4-math-integration-readiness.mjs $resultPath
+   NeedExit 'N4_MATH_PROFILE_READINESS_AUDIT_FAILED'
+   Write-Host 'N4_MATH_CALCULATOR_PROFILE_AND_DASHA_RELEASE_STILL_BLOCKED'
    Write-Host 'N414_OBSERVED_CROSSINGS_REFINED_DIAGNOSTIC_PASS'
    foreach ($row in $report.byRadius) {
     Write-Host ("N414_RADIUS_" + $row.radiusSeconds + "S_ASC_CHANGED=" + $row.observedCasesWithAscendantSignChange + "/50")
