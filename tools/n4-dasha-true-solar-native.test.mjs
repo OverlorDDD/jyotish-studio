@@ -1,4 +1,6 @@
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
+import {loadCorpus,verifyReference} from './jqa3-corpus.mjs';
 import assert from 'node:assert/strict';
 import {solveN4SolarArcInstant,inspectN416LocalDashaResiduals,n418MoonPrintSensitivitySeconds} from './n4-dasha-true-solar-native.mjs';
 const DAY=86400000;
@@ -93,4 +95,18 @@ test('precision estimate refuses nonexistent or unphysical source step and first
   {...valid,solarYearDays:NaN},
   {...valid,solarYearDays:360}
  ]) assert.throws(()=>n418MoonPrintSensitivitySeconds(input),/invalid source precision model/);
+});
+
+test('JQA3-02 raw original JHora Moon is genuinely printed at 0.01 arcsecond precision and SHA-bound',()=>{
+ const r=loadCorpus().records.filter(x=>x.hasOriginalJHoraIni);
+ assert.equal(r.length,20);
+ assert.equal(r[1].id,'jqa3-02');
+ const ref=verifyReference(r[1]); // verifies capture SHA256 and original Git blob SHA1
+ const raw=readFileSync(new URL('../'+r[1].captureDir+'/chart_data.txt',import.meta.url),'utf8');
+ const moon=raw.split(/\r?\n/).find(x=>/^Moon\s/.test(x));
+ assert.match(moon,/17\s+Ta\s+34'\s+24\.61"/);
+ assert.equal(ref.expected.positions.Moon.longitude,30+17+34/60+24.61/3600);
+ const original=ref.expected.vimshottari.find(x=>x.lord==='Jupiter');
+ assert.equal(original.antardashas.Ketu,'2018-11-15');
+ assert.equal(ref.civilTime.birthUtc,'1982-08-14T00:20:00Z');
 });
