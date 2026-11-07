@@ -1,0 +1,77 @@
+{
+  "version": "n4-final-research-evidence-20261107-v1",
+  "scope": "USER_SUPPLIED_AGGREGATES_AND_PINNED_INDEPENDENT_SOURCES_NOT_PRODUCTION_CERTIFICATE",
+  "originalJHoraSourceSha256": "5dcb07d6d71f68199af97696e8ad3ca91493b30f4abc41fdd51350c14e4ff992",
+  "originalJHoraTwentyRecords": 20,
+  "symbolic": {
+    "methodScopedPyJhora8000Matches": 8000,
+    "methodScopedOriginalJhora8000Matches": 8000,
+    "sourceGitBlob": "3a4f2dec84a0ed13cb692f52a76612e0de1306e6",
+    "methodPairEquivalence": false
+  },
+  "evidence": [
+    {
+      "id": "N413",
+      "artifact": "N413_PRIVATE_NATIVE_SWIEPH_50_CASE_RESULT",
+      "ownerProvidedSha256": "c8c7acc9dd7153260b52b29717ac76483a497c6ab50bba31752387d8d8696a0a",
+      "observedStatus": "N413_NATIVE_SWIEPH_PRIVATE_50_CASE_DIAGNOSTIC_PASS",
+      "sampleOriginalSyntheticCases": 50,
+      "originalJhoraAlignedTrueCitraUmaShambhuOnly": true,
+      "productionLahiriProven": false
+    },
+    {
+      "id": "N414",
+      "artifact": "N414_PRIVATE_NATIVE_SWIEPH_50_CASE_GRID_RESULT_REFINED",
+      "ownerProvidedSha256": "5dcf016927c82b8e05a1b35e36c17d697d9db90334dab7f1fee7f7514a907881",
+      "observedStatus": "N414_PRIVATE_NATIVE_SWIEPH_50_CASE_GRID_DIAGNOSTIC_PASS",
+      "sampleOriginalSyntheticCases": 50,
+      "observedOneSecondEpochs": 30050,
+      "refinedObservedBoundaryBrackets": 253,
+      "continuousAllIntervalCertified": false,
+      "historicalBirthTimeProven": false
+    },
+    {
+      "id": "N417",
+      "artifact": "N417_ONE_DATE_FORENSICS_20261107-140827",
+      "ownerProvidedSha256": "f735986849bd709fdf04374f34f51c0c5ab68e90f6e94514e2209702cabe20c7",
+      "observedStatus": "N4_JHORA20_NATIVE_SOLAR_LONGITUDE_DASHA_DIAGNOSTIC_COMPLETED",
+      "majorCalendarMatches": 180,
+      "majorCalendarTotal": 180,
+      "minorCalendarMatches": 1619,
+      "minorCalendarTotal": 1620,
+      "holdoutMinorCalendarMatches": 810,
+      "holdoutMinorCalendarTotal": 810,
+      "calendarPrecisionAmbiguousSourceCase": "JQA3-02",
+      "unroundedOriginalMoonKnown": false
+    },
+    {
+      "id": "N418",
+      "artifact": "N418_JHORA02_PRINT_PRECISION_20261107-143948",
+      "ownerProvidedSha256": "a10240fdafc22a39646fbd4b3d36d6911cd2096813bd7d8f64962e321453adff",
+      "observedStatus": "N418_SOURCE_PRINT_PRECISION_DAY_BOUNDARY_SPANNED_STRICT_SWIEPH_PASS",
+      "nativeSwissEphemerisCalls": 6150,
+      "sourceMoonPrintedPrecisionArcseconds": 0.01,
+      "calculatedHalfStepSensitivitySeconds": 32.8730724,
+      "calculatedWholeCellSpanSeconds": 63.7686064453125,
+      "sourceRoundingCanExplainDisagreement": true,
+      "sourceRoundingProvenActualCause": false,
+      "actualJHoraYearOptionMapped": false,
+      "verifiedOriginalSubdayTransition": false
+    }
+  ],
+  "actualProduction": {
+    "ayanamsa": "Lahiri",
+    "d2Method": "Sun/Moon Hora",
+    "dashaYearDays": 365.2425,
+    "fullPhysicalProfileParityCertified": false
+  },
+  "release": {
+    "historicalLegalLocalTimeCertified": false,
+    "continuousD60Certified": false,
+    "originalJhoraYearMenuCodeCertified": false,
+    "currentHeadFullCIGreenAttested": false,
+    "manualOwnerApprovalRecorded": false,
+    "productionN4FeatureFlagsAllowed": false,
+    "productionN4ReleasePermitted": false
+  }
+}
