@@ -45,3 +45,37 @@ IANA explicitly says its timezone database is not authoritative and pre-1970 rul
 6. Never enable N4 feature flags, modify JQA3 production settings, deploy AWS, or issue `N414_HISTORICAL_TIME_AND_D60_CERTAINTY_PASS` before 1–5.
 
 **Current checkpoint:** `N414_SECOND_GRID_AND_ZONEINFO_FOUNDATION_COMMITTED`. NOT a math or production certificate.
+
+## 2026-11-07 N4.14 private native research execution and Windows tzdata repair
+
+### Confirmed owner observation
+- Windows Node unit tests: 13/13 PASS in prior N4.14 foundation; not a physical Swiss 50-case run.
+- Python 3.14 Windows zoneinfo failed with `ZoneInfoNotFoundError: No time zone found with key Etc/UTC` because the platform had no IANA dataset or installed Python `tzdata` package.
+- The printed `N414_EXTENDED_DIAGNOSTICS_PASS` after the PowerShell exception was a manually executed unconditional Write-Host and **is invalid evidence**.
+
+### Repairs committed
+- `tools/n4-14-python-requirements.txt` pins **tzdata==2026.6** (IANA 2026f, released October 28, 2026); `n4-14-python-zoneinfo.py` requires exactly this package, resets TZPATH to the package and logs version. GitHub CI installs it before Python tests; Windows isolated venv installs it too.
+- `tools/n4-14-sensitivity.mjs` exports a UTC-first `auditN414UtcSensitivity` and a civil IANA entrypoint. Both keep sampled-crossing brackets separate from mathematical interval proofs, with no certification claims.
+- `tools/n4-native-swieph-exact-profile.mjs` adds an isolated read-only N4.14 sampler via the N4.13 native Swiss profile; all 8 actual planet positions are required to return `SWIEPH=2`, verified file-backed ephemeris SHA256. House/ayanamsha native backend return flags are not exposed.
+- `tools/n4-14-native-private-run.mjs` requires the exact user-private original JHora reference SHA and its 50 source records; uses actual native Swiss 1-second positions for 50 × (601 samples) × 10 bodies, aggregates five temporal radii ±15s, ±30s, ±1m, ±2m, ±5m. Never uploads source or raw inputs; report contains only aggregate synthetic-case statistics. This is a **30,050 timestamp / 300,500 position** diagnostic, not a continuous proof.
+- `tools/n4-14-verify.ps1` runs an isolated Git worktree + Python virtualenv, Node tests, pinned tzdata, 50-case native SWIEPH smoke and private full sensitivity; exits nonzero on any failure. No Docker, AWS, PR merge, or production flags.
+- `tools/n4-14-utc-sensitivity.test.mjs` covers date validation, 360-degree wrap, stable synthetic samples which must remain uncertified.
+- N4.14 GitHub workflow runs all public checks without any private reference.
+
+### Run and interpret
+Run `tools/n4-14-verify.ps1` from the existing repository, with the private reference at `tools/N4_12_50_ORIGINAL_JHORA_SANITIZED_REFERENCE_PRIVATE.json`. The script leaves the original working tree untouched, checks original reference SHA256, and writes private results under the user's home directory `galaxiora-n414-private-lab`. An alternate reference path can be provided by `-PrivateReference`. `-SkipPrivateSwiss` runs only public tests; it MUST NOT count as 50-case completion.
+
+Expected *when successfully executed*, NOT pre-claimed here:
+- `N414_NODE_REGRESSION_TESTS_PASS`
+- `N414_PYTHON_PINNED_TZDATA_PASS`
+- `N414_PRIVATE_NATIVE_SWIEPH_50_CASE_GRID_DIAGNOSTIC_PASS`
+- `N414_HISTORICAL_TIME_AND_D60_CERTAINTY_PASS_NOT_ISSUED`
+
+### Outstanding blockers to full N414 certification
+1. The 50 original JHora synthetic cases intentionally use fixed offsets; they cannot certify historical IANA zone selection or DST changes for an actual birthplace. Need an authoritative historical legal/local civil-time corpus with region-specific provenance, especially pre-1970.
+2. Swiss 1-second samples cannot prove no sub-second D60 crossing. Need rigorous verified continuous longitude enclosures (including Lagna, retrograde and wrap) and independently validated crossing roots.
+3. Source JHora 50-case parity proves method-aligned varga signs at sampled moments, not time uncertainty, geographical coordinate/time zone correctness, or N4 global release.
+4. Full active-HEAD CI, browser/mobile/SEO, human editorial acceptance and independent Vimshottari/strength checks remain separate N4 gates. Keep N4 production flags OFF.
+5. Current GitHub implementation is **committed, not proof of execution** until verified runtime reports are collected and audited.
+
+References: https://docs.python.org/3/library/zoneinfo.html ; https://pypi.org/project/tzdata/2026.6/ ; https://www.iana.org/time-zones/theory.
