@@ -6,7 +6,7 @@ $expected='5DCB07D6D71F68199AF97696E8AD3CA91493B30F4ABC41FDD51350C14E4FF992'
 $branch='feat/n4-shodashavarga-foundation'
 function CheckExit([string]$stage) { if($LASTEXITCODE -ne 0) { throw "$stage EXIT=$LASTEXITCODE" } }
 try {
- foreach($tool in @('git','node')) {
+ foreach($tool in @('git','node','npm')) {
   if(-not (Get-Command $tool -ErrorAction SilentlyContinue)) { throw "N4_MISSING=$tool" }
  }
  $root=(& git rev-parse --show-toplevel).Trim()
@@ -69,7 +69,7 @@ try {
   $head=(& git rev-parse HEAD).Trim()
   CheckExit 'N4_HEAD'
   Write-Host "N4_MATH_HEAD=$head"
-  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs
+  & node --experimental-strip-types --test tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs tools/n4-exact-production-varga-methods.test.mjs tools/n4-original50-explicit-profile-gate.test.mjs tools/n4-jhora20-dasha-date-audit.test.mjs tools/n4-historical-birth-confidence.test.mjs tools/n4-dasha-year-mode-matrix.test.mjs tools/n4-dasha-true-solar-native.test.mjs
   CheckExit 'N4_METHOD_TESTS'
   Write-Host 'N4_MATH_METHOD_TESTS_PASS'
   & node --experimental-strip-types tools/n4-d2-original-profile-crosswalk.mjs $source
@@ -81,6 +81,50 @@ try {
   & node --experimental-strip-types tools/n4-jhora20-dasha-date-audit.mjs
   CheckExit 'N4_JHORA20_DASHA_CALENDAR_ARCHIVE_AUDIT'
   Write-Host 'N4_JHORA20_DASHA_CALENDAR_DIAGNOSTIC_COMPLETED'
+  Write-Host '=== N4.16 FIXED-YEAR HOLDOUT MATRIX ==='
+  $fixedRaw = @(& node --experimental-strip-types tools/n4-dasha-year-mode-matrix.mjs)
+  CheckExit 'N4_DASHA_FIXED_YEAR_MATRIX_FAILED'
+  $fixed = ($fixedRaw -join [Environment]::NewLine) | ConvertFrom-Json
+  if($fixed.status -ne 'N4_JHORA20_YEAR_MODE_HOLDOUT_FORENSICS_COMPLETED' -or
+     $fixed.actualProductionUtc.minorExact -ne 294 -or
+     $fixed.candidatesByHoldoutScore.Count -ne 12) {
+    throw 'N4_DASHA_FIXED_YEAR_MATRIX_INCOMPLETE'
+  }
+  $fixedPath=Join-Path $run 'N4_JHORA20_FIXED_YEAR_MODEL_MATRIX.json'
+  [System.IO.File]::WriteAllText($fixedPath,($fixedRaw -join "`n"),[System.Text.UTF8Encoding]::new($false))
+  Write-Host "N4_DASHA_FIXED_YEAR_MATRIX=$fixedPath"
+  foreach($candidate in $fixed.candidatesByHoldoutScore | Select-Object -First 4) {
+    Write-Host ("N4_FIXED_YEAR_CANDIDATE=" + $candidate.yearModel +
+      ";clock=" + $candidate.clock + ";holdoutMinor=" +
+      $candidate.holdout.minorExact + "/810")
+  }
+  Write-Host 'N4_DASHA_FIXED_YEAR_HOLDOUT_DIAGNOSTIC_PASS'
+  Write-Host '=== N4.16 NATIVE SWIEPH TRUE-SOLAR YEAR FORENSICS ==='
+  & npm install --no-audit --no-fund --no-package-lock
+  CheckExit 'N4_NATIVE_DEPENDENCIES_INSTALL_FAILED'
+  $solarRaw=@(& node --experimental-strip-types tools/n4-dasha-true-solar-native.mjs)
+  CheckExit 'N4_NATIVE_SOLAR_YEAR_JHORA20_AUDIT_FAILED'
+  $solar=($solarRaw -join [Environment]::NewLine) | ConvertFrom-Json
+  if($solar.status -ne 'N4_JHORA20_NATIVE_SOLAR_LONGITUDE_DASHA_DIAGNOSTIC_COMPLETED' -or
+    $solar.genuineOriginalSyntheticCases -ne 20 -or
+    $solar.actualNativeSunEphemerisCalls -lt 1000 -or
+    $solar.comparison.Count -ne 2 -or
+    $solar.productionReleasePermitted -ne $false) {
+    throw 'N4_NATIVE_SOLAR_AUDIT_INCOMPLETE'
+  }
+  $solarPath=Join-Path $run 'N4_JHORA20_TRUE_SOLAR_SWIEPH_MODE_MATRIX.json'
+  [System.IO.File]::WriteAllText($solarPath,($solarRaw -join "`n"),[System.Text.UTF8Encoding]::new($false))
+  Write-Host "N4_NATIVE_SWIEPH_SOLAR_MATRIX=$solarPath"
+  foreach($entry in $solar.comparison) {
+    foreach($clock in @('UTC','ORIGINAL_CAPTURED_LOCAL')) {
+      $set=$entry.sourceDateClockResults.$clock
+      Write-Host ("N4_TRUE_SOLAR_CANDIDATE=" + $entry.solarYearConvention +
+        ";clock=" + $clock + ";holdoutMinor=" +
+        $set.holdout.minorExact + "/810;totalMinor=" + $set.total.minorExact + "/1620")
+    }
+  }
+  Write-Host 'N4_NATIVE_SWIEPH_TRUE_SOLAR_20_CASE_DIAGNOSTIC_PASS'
+
 
   & node --experimental-strip-types tools/n4-math-integration-readiness.mjs $report
   CheckExit 'N4_PROFILE_READINESS'
