@@ -32,6 +32,13 @@ jobs:
       - name: Real ephemeral Swiss Ephemeris HTTP/Reader 7 preview integration
         run: |
           node --experimental-strip-types --test tools/n43-live-preview-api.test.mjs
+      - name: Classical Reader 8 book OCR provenance and grounded synthesis
+        run: |
+          node --experimental-strip-types --test tools/n44-classical-reader.test.mjs
+      - name: N4.4 bilingual three-chart editorial preview
+        run: |
+          node --experimental-strip-types tools/n44-reader-preview.mjs > /tmp/n44-reader-samples.log
+          grep -q 'N44_CLASSICAL_READER_8_UA_EN_3_CASES_PASS' /tmp/n44-reader-samples.log
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
