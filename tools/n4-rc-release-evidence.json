@@ -14,12 +14,23 @@
     "actual main runCalculation already uses native true-sidereal-solar dasha; do not revert",
     "one unresolved JHora Moon print rounding ambiguity does not equal independent sub-day certification",
     "Twelve NEW vargas separately verified 6000/6000 signs and 5400/5400 houses by actual PyJHora 4.8.7 GitHub CI job, 2026-11-07, 50 synthetic inputs. This does not authenticate a real birth.",
-    "Optional local genuine JHora8 50-source study can separately compare 11 matching-method new vargas; D2 in those captures is Uma-Shambhu and cannot certify production Sun/Moon D2."
+    "Owner-confirmed Windows isolated source SHA verification and original JHora50 same-method NEW11 5500/5500 log, 2026-11-07 16:18 Kyiv; raw archive and personal birth data remain private.",
+    "D2 original JHora50 Uma-Shambhu agrees with production Sun/Moon only 80/500: 420/500 is documented method disagreement, not formula failure.",
+    "Independent method-scoped symbols are accepted. There is no mathematical reason to demand 50 physical Lahiri original captures to recertify the same symbol mapping; full arbitrary-birth and historical physical certification remains restricted."
   ],
   "new12IndependentOracle": "PyJHora==4.8.7",
   "new12IndependentSyntheticCases": 50,
   "new12IndependentSignComparisons": 6000,
   "new12IndependentHouseComparisons": 5400,
   "new12SourceRulesGitBlob": "3a4f2dec84a0ed13cb692f52a76612e0de1306e6",
-  "new12SymbolicScopeOnly": true
+  "new12SymbolicScopeOnly": true,
+  "new11OwnerLocalOriginalJHoraSha256": "5dcb07d6d71f68199af97696e8ad3ca91493b30f4abc41fdd51350c14e4ff992",
+  "new11OwnerOriginalSourceCases": 50,
+  "new11OwnerOriginalJHoraSameMethodSigns": 5500,
+  "new11OwnerOriginalJHoraSameMethodSignMatches": 5500,
+  "new11OwnerLocalLogObserved": true,
+  "new12OriginalJHoraD2Method": "Uma-Shambhu",
+  "new12ProductionD2Method": "Sun/Moon",
+  "originalD2KnownMethodDisagreement": 420,
+  "new12MethodScopedMathematicsVerified": true
 }
