@@ -116,6 +116,23 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
   sections:[{id:'portrait',heading:'Перевірений портрет',eyebrow:'I',lead:'Звіт за картою',
    paragraphs:['Традиційні тематичні висновки'],facts:[]}],
   ai:{provider:'local',source:'deterministic',text:'',fallbackReason:'reader_only'},
+  readerV7:{
+   version:'reader-v7.0.0-n43',status:'available',
+   introduction:'Просте пояснення без зайвих термінів.',method:'Традиційне прочитання за розрахунком.',
+   highlights:[
+    {id:'strength',title:'Ваш можливий ресурс',text:'Практична сила й навчання.',division:27},
+    {id:'challenge',title:'Що може гальмувати',text:'Ризик перенапруги.',division:30},
+    {id:'career',title:'Що спробувати в роботі',text:'Один завершений проєкт.',division:10}
+   ],
+   insights:divisions.map(n=>({division:n,title:n===27?'Сильні сторони':'Життєва тема '+n,
+    focus:'тема '+n,headline:'Особистий висновок щодо теми '+n,
+    strength:'Опора у відповідальності й взаємодії.',
+    challenge:'Не поспішайте з висновками без конкретних прикладів.',
+    step:'Запишіть один невеликий крок на цей тиждень.',
+    proof:['D'+n+'.Jupiter.house=5'],timeSensitivity:n>=16?'higher':'ordinary'
+   })),
+   d60Notice:'Лагна D60 індивідуально не сертифікована.'
+  },
   vargaReadings:{version:'n4-varga-reader-1.0.0',status:'available',
    methodology:'Варги уточнюють D1, не замінюють її.',
    readings:reading,d60:{status:'provisional_no_individual_interpretation',
@@ -124,6 +141,13 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await page.route('**/api/v1/reports',route=>route.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify(data)}));
  await page.getByRole('button',{name:/Читати без AI/}).click();
+ const plain=page.getByTestId('reader-v7');
+ await expect(plain).toBeVisible();
+ await expect(plain.locator('[data-testid^="reader-v7-D"]')).toHaveCount(15);
+ await expect(plain.getByTestId('reader-v7-highlight-strength')).toBeVisible();
+ await expect(plain.getByTestId('reader-v7-D27')).toContainText('Опора у відповідальності');
+ await expect(plain.getByTestId('reader-v7-d60')).toContainText('Лагна D60');
+
  const reader=page.getByTestId('n4-varga-reader');
  await expect(reader).toBeVisible();
  await expect(reader.locator('[data-testid^="n4-varga-reading-D"]')).toHaveCount(15);
