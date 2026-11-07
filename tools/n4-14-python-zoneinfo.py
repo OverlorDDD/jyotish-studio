@@ -9,6 +9,7 @@ import datetime as dt
 import json
 import sys
 import importlib.metadata
+from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, reset_tzpath
 
 PINNED_TZDATA = "2026.6"
@@ -64,10 +65,23 @@ def main():
             assert len(candidates(when, "Europe/Kyiv")) == expected, (d, t)
     except ZoneInfoNotFoundError as exc:
         raise RuntimeError("N414_TZDATA_CORRUPT_OR_UNAVAILABLE") from exc
+    transitions = json.loads(
+        Path(__file__).with_name('n4-14-transition-fixtures.json').read_text('utf-8')
+    )
+    if transitions.get('authority') != 'IANA_DIAGNOSTIC_ONLY_NOT_LEGAL_TIME_CERTIFICATION':
+        raise RuntimeError('N414_HISTORICAL_EVIDENCE_PROVENANCE_INVALID')
+    if len(transitions.get('fixtures', [])) != 25:
+        raise RuntimeError('N414_TRANSITION_FIXTURES_INCOMPLETE')
+    expected_counts = {'GAP':0,'UNIQUE':1,'FOLD':2}
+    for case in transitions['fixtures']:
+        when = dt.datetime.fromisoformat(case['date'] + 'T' + case['time'])
+        matches = candidates(when, case['zone'])
+        assert len(matches) == expected_counts[case['expected']], case
     print(json.dumps({
         "status": "N414_PYTHON_ZONEINFO_DIFFERENTIAL_DIAGNOSTIC_PASS",
         "zones": len(CORPUS),
         "kyivGapFoldUniqueChecks": 3,
+        "transitionFixturesChecked": len(transitions['fixtures']),
         "timeZoneLawIndependentlyCertified": False,
         "implementation": "Python zoneinfo with pinned tzdata wheel",
         "tzdataVersion": version,
