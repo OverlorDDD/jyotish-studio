@@ -8,6 +8,7 @@ import type {ReadingReport} from '../../components/DetailedReport';
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 const AccountPortal=dynamic(()=>import('../../components/AccountPortal'),{loading:()=>null});
 import N4RcExplorer from '../../components/N4RcExplorer';
+import NatalSkyLayers from '../../components/NatalSkyLayers';
 import landing from './NatalLanding.module.css';
 import {assertN4RcView,hasN4RcView,type N4RcView} from '../../../lib/n4-rc-view';
 import {hasD60Provisional,type N4D60UI} from '../../../lib/n4-d60-view';
@@ -154,28 +155,25 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    <div className="content" id="calculator">
     <div className="jy-portal-toolbar"><span>GalaxiAstro <b>/</b> JYOTISH</span><AccountPortal birth={chart?.input||null} report={report} lang={lang} onOpenSaved={loadSaved}/></div>
     <section className={landing.hero} aria-labelledby="natal-page-title">
-      <div className={landing.heroCopy}>
-       <div className={landing.eyebrow}>{lang==='uk'?'БЕЗКОШТОВНА ВЕДИЧНА НАТАЛЬНА КАРТА':'FREE VEDIC BIRTH CHART'}</div>
-       <h1 id="natal-page-title">{lang==='uk'?'Твоя натальна карта. Більше, ніж знак зодіаку.':'Your birth chart. Beyond your zodiac sign.'}</h1>
-       <p className={landing.lead}>{lang==='uk'?
-        'Дізнайся свій знак Місяця, асцендент, теми стосунків і покликання. Створи персональну карту за датою, часом і місцем народження — а потім досліджуй усі 16 ведичних карт у власному темпі.':
-        'Discover your Moon sign, rising sign, and the traditional themes of relationships and career. Create a personal Vedic astrology chart from your birth date, time and place, then explore all 16 divisional charts at your own pace.'}</p>
-       <div className={landing.chips}>
-        <span>{lang==='uk'?'Безкоштовний розрахунок':'Free calculation'}</span>
-        <span>{lang==='uk'?'Без обов’язкової реєстрації':'No sign-up required'}</span>
-        <span>{lang==='uk'?'16 ведичних карт':'16 Vedic charts'}</span>
-       </div>
-       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Створити мою карту':'Create my birth chart'} <ArrowUpRight size={18}/></a>
-       <small className={landing.miniDisclaimer}>{lang==='uk'?'За традицією Джйотіш · на основі астрономічних розрахунків Swiss Ephemeris':'Jyotish tradition · calculated with Swiss Ephemeris astronomy'}</small>
+     <div className={landing.heroCopy}>
+      <div className={landing.eyebrow}>{lang==='uk'?'ВЕДИЧНА НАТАЛЬНА КАРТА · БЕЗКОШТОВНО':'FREE VEDIC BIRTH CHART · JYOTISH'}</div>
+      <h1 id="natal-page-title">{lang==='uk'?'16 карт життя. Досліди свої сильні й слабкі сторони.':'16 life charts. Explore your strengths and blind spots.'}</h1>
+      <p className={landing.lead}>{lang==='uk'?
+       'У чому твої природні здібності? Що може тебе стримувати? Як традиція Джйотіш пояснює стосунки, кар’єру та розвиток? Побудуй натальні карти за датою, часом і містом народження й порівняй усі 16 сфер життя.':
+       'What comes naturally to you? Which patterns may hold you back? Explore how Jyotish interprets strengths, relationships, career and personal growth through 16 Vedic birth charts.'}</p>
+      <div className={landing.chips}>
+       <span>{lang==='uk'?'Сильні сторони й виклики':'Strengths & challenges'}</span>
+       <span>{lang==='uk'?'Стосунки та кар’єра':'Relationships & career'}</span>
+       <span>{lang==='uk'?'16 карт · без реєстрації':'16 charts · no signup'}</span>
       </div>
-      <div className={landing.heroArt} aria-hidden="true">
-       <div className={landing.orbitOne}/><div className={landing.orbitTwo}/>
-       <div className={landing.orbitThree}/>
-       <span className={landing.planetSun}>☉</span>
-       <span className={landing.planetMoon}>☽</span>
-       <div className={landing.centerSigil}><span>✦</span><small>GALAXIORA</small></div>
-       <div className={landing.orbitCaption}>{lang==='uk'?'ТВОЯ ІСТОРІЯ · 16 ВИМІРІВ':'YOUR STORY · 16 LENSES'}</div>
+      <div className={landing.heroActions}>
+       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Створити мої 16 карт життя':'Create my 16 life charts'} <ArrowUpRight size={18}/></a>
+       <a className={landing.heroSecondary} href="#varga-explorer">{lang==='uk'?'Дослідити всі карти':'Explore all 16 charts'}</a>
       </div>
+      <small className={landing.miniDisclaimer}>{lang==='uk'?'Трактування традиції Джйотіш, а не психологічний діагноз. Астрономічний розрахунок: Swiss Ephemeris.':
+       'Traditional Jyotish interpretation, not a psychological diagnosis. Astronomical calculation: Swiss Ephemeris.'}</small>
+     </div>
+     <div className={landing.heroArt}><NatalSkyLayers lang={lang}/></div>
     </section>
     <div className={landing.roadmap} aria-label={lang==='uk'?'Три кроки до натальної карти':'Three steps to your birth chart'}>
      <div><b>01</b><span>{lang==='uk'?'Введи дані народження':'Enter birth details'}</span></div>
@@ -222,11 +220,11 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     </details>
 
     {!chart&&<section className={landing.discovery} aria-labelledby="natal-value">
-     <h2 id="natal-value">{lang==='uk'?'Що ти побачиш у своїй карті?':'What will your birth chart reveal?'}</h2>
+     <h2 id="natal-value">{lang==='uk'?'Навіщо досліджувати 16 карт життя?':'What can 16 life charts help you explore?'}</h2>
      <div className={landing.discoveryGrid}>
-      <article><span>☽</span><h3>{lang==='uk'?'Місячний знак і внутрішній світ':'Moon sign & inner world'}</h3><p>{lang==='uk'?'Почни зі знака Місяця, накшатри та традиційного опису емоційних схильностей.':'Explore the Moon sign, nakshatra and traditional emotional themes.'}</p></article>
-      <article><span>↗</span><h3>{lang==='uk'?'Асцендент та життєвий шлях':'Rising sign & personal path'}</h3><p>{lang==='uk'?'Дізнайся Лагну та побач, як вона формує структуру астрологічних домів.':'See your Lagna (ascendant) and how it organizes your chart houses.'}</p></article>
-      <article><span>✧</span><h3>{lang==='uk'?'Стосунки, кар’єра та інші теми':'Relationships, career & more'}</h3><p>{lang==='uk'?'D9, D10 і ще 13 дробових карт допоможуть дослідити різні аспекти життя.':'Discover D9, D10 and 13 additional divisional charts for different life themes.'}</p></article>
+      <article><span>✦</span><h3>{lang==='uk'?'Де твоя сила, а де слабкі місця?':'Where are your strengths and blind spots?'}</h3><p>{lang==='uk'?'Порівняй карти витривалості та життєвих викликів D27 і D30: які риси традиція описує як опору, а які — як зони розвитку.':'Compare the traditional lenses of resilience and challenges (D27, D30): supportive traits and areas for growth.'}</p></article>
+      <article><span>♡</span><h3>{lang==='uk'?'Які закономірності є у стосунках?':'What patterns shape your relationships?'}</h3><p>{lang==='uk'?'Досліди партнерство й цінності через D9, а родинні теми — через D12. Порівнюй кожну з основною D1.':'Explore partnerships and values with D9, family themes with D12, and compare each with the foundational D1 chart.'}</p></article>
+      <article><span>✧</span><h3>{lang==='uk'?'Як розкривається потенціал у роботі?':'How might your potential unfold at work?'}</h3><p>{lang==='uk'?'Подивись на професійну роль у D10 й освіту в D24: кожна карта висвітлює іншу сторону розвитку.':'Explore vocation in D10 and education in D24 — two distinct traditional perspectives on development.'}</p></article>
      </div>
     </section>}
     <N4RcExplorer chart={chart} lang={lang} minutesUncertain={minutesUncertain}/>
