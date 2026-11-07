@@ -67,6 +67,7 @@ function focusedHouseMeaning(proof:readonly string[],division:number,lang:Lang):
  if(!Number.isInteger(house)||house<1||house>12)return null;
  return (lang==='uk'?DOMAIN_CONTEXT_UK:DOMAIN_CONTEXT_EN)[division]?.[house-1]||null;
 }
+function unique<T>(items:readonly T[]):T[]{return [...new Set(items)];}
 function sentences(active:readonly ClassicalEvidence[],lang:Lang,limit=2){
  return active.slice(0,limit).map(x=>lang==='uk'?x.detailUk:x.detailEn).join(' ');
 }
