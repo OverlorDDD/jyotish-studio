@@ -27,11 +27,13 @@ test('A4 index gate requires configured HTTPS hostname and no preview noindex',(
 test('A4 sitemap enumerates published tools but no future content or private views',()=>{
  // The sitemap grows as new PUBLIC, real guides are published. Do not pin
  // this 2026-10 list and reject approved pages in later releases.
- for(const path of ['','about','tarot','tarot/cards','astrology/jyotish',
+ for(const path of ['about','about-me','tarot','tarot/cards','astrology/jyotish',
   'astrology/moon-sign-vs-sun-sign','yoga','pedia','pedia/glossary','horoscope','panchanga',
   'eclipses/2027','news','community','methodology'])
   assert.ok(SEO_PATHS.includes(path), 'published canonical route missing: '+path);
  assert.equal(new Set(SEO_PATHS).size, SEO_PATHS.length, 'no duplicate canonical pages');
+ assert.ok(!SEO_PATHS.includes(''),'domain root belongs to its own self-canonical sitemap entry, not localized pages');
+ assert.ok(read('apps/web/app/sitemap.ts').includes("url:base+'/'"),'root is separately included in sitemap');
  for(const p of SEO_PATHS)assert.ok(!/account|admin|personal/.test(p));
  assert.ok(SEO_PATHS.includes('news')&&SEO_PATHS.includes('community')&&SEO_PATHS.includes('panchanga'));
  assert.ok(!SEO_PATHS.includes('astrology'),'redirecting alias must not be indexed');
