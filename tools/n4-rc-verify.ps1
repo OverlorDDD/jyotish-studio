@@ -18,7 +18,7 @@ try{
  }
  $root=(& git rev-parse --show-toplevel).Trim();Step 'SOURCE_ROOT'
  $origin=(& git -C $root remote get-url origin).Trim();Step 'SOURCE_ORIGIN'
- if($origin -notmatch '(^|[:/])OverlorDDD/jyotish-studio(\.git)?
+ if($origin -notmatch '(^|[:/])OverlorDDD/jyotish-studio(\.git)?$'){throw 'N4RC_UNEXPECTED_SOURCE_REPOSITORY'}
  & git -C $root fetch origin $branch;Step 'FETCH'
  $head=(& git -C $root rev-parse ('origin/'+$branch)).Trim();Step 'HEAD'
  if($ExpectedCommit -and $head -ne $ExpectedCommit){throw ('N4RC_BRANCH_HEAD_CHANGED expected='+$ExpectedCommit+' actual='+$head)}
