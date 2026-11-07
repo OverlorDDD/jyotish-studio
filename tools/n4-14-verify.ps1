@@ -165,7 +165,7 @@ try {
    & node --experimental-strip-types tools/n4-14-native-private-run.mjs --smoke
    NeedExit 'N414_NATIVE_BACKEND_SMOKE_FAILED'
    $resultPath=Join-Path $run 'N414_PRIVATE_NATIVE_SWIEPH_50_CASE_GRID_RESULT.json'
-   & node --experimental-strip-types tools/n4-14-native-private-run.mjs --reference $PrivateReference --output $resultPath
+   & node --experimental-strip-types tools/n4-14-native-private-run.mjs --reference $PrivateReference --output $resultPath --refine
    NeedExit 'N414_PRIVATE_NATIVE_50_GRID_FAILED'
    if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
     throw 'N414_RESULT_FILE_MISSING'
@@ -179,7 +179,19 @@ try {
        $report.fullN414CertificateIssued -ne $false) {
     throw 'N414_PRIVATE_RESULT_FAIL_CLOSED'
    }
+   if ($null -eq $report.refinement -or
+       $report.refinement.status -ne 'N414_OBSERVED_CROSSINGS_REFINED_DIAGNOSTIC_PASS' -or
+       $report.refinement.blockedBrackets -ne 0 -or
+       $report.refinement.refinedBrackets -ne $report.refinement.observedBrackets -or
+       $report.refinement.maximumRefinedBracketWidthMs -gt 125) {
+    throw 'N414_CROSSING_REFINEMENT_BLOCKED_OR_INCOMPLETE'
+   }
+   & node tools/n4-14-report-gate.mjs $resultPath
+   NeedExit 'N414_AGGREGATE_EVIDENCE_GATE_FAILED'
    Write-Host "N414_PRIVATE_RESULT=$resultPath"
+   Write-Host ("N414_REFINED_OBSERVED_BRACKETS=" + $report.refinement.refinedBrackets)
+   Write-Host ("N414_REFINEMENT_MAX_WIDTH_MS=" + $report.refinement.maximumRefinedBracketWidthMs)
+   Write-Host 'N414_OBSERVED_CROSSINGS_REFINED_DIAGNOSTIC_PASS'
    foreach ($row in $report.byRadius) {
     Write-Host ("N414_RADIUS_" + $row.radiusSeconds + "S_ASC_CHANGED=" + $row.observedCasesWithAscendantSignChange + "/50")
    }
