@@ -5,6 +5,8 @@
  * day-matches are evidence of discrepancies, not a calendar-year certificate.
  */
 import {readFileSync} from 'node:fs';
+import {pathToFileURL} from 'node:url';
+import {resolve} from 'node:path';
 import {loadCorpus,verifyReference} from './jqa3-corpus.mjs';
 import {parseJHoraRaw} from './jqa3-raw-parser.mjs';
 import {vimshottari,DASHA_YEAR_DAYS} from '../packages/jyotish-core/src/index.ts';
@@ -78,7 +80,7 @@ export function auditN4JHoraOriginal20DashaDates(){
   warning:'Calendar day matches or near matches do not identify the original JHora year mode; exact dates require original time-of-day and matching convention.'
  });
 }
-if(process.argv[1]&&import.meta.url.endsWith('/'+process.argv[1].replaceAll('\\','/'))){
+if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  try{console.log(JSON.stringify(auditN4JHoraOriginal20DashaDates(),null,2))}
  catch(e){console.error(e.message);process.exitCode=2}
 }
