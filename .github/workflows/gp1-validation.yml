@@ -1,7 +1,7 @@
 name: G-P1 Portfolio quality gate
 on:
   push:
-    branches: [feat/gp1-natal-home-developer-portfolio-20261106]
+    branches: [feat/gp1-natal-home-developer-portfolio-20261106, feat/gp2-resume-technology-audit-20261107]
     paths:
       - '.github/workflows/gp1-validation.yml'
       - 'apps/web/app/**'

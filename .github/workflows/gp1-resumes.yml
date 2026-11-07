@@ -1,7 +1,7 @@
 name: G-P1 Portfolio CV generation
 on:
   push:
-    branches: [main, feat/gp1-natal-home-developer-portfolio-20261106]
+    branches: [main, feat/gp1-natal-home-developer-portfolio-20261106, feat/gp2-resume-technology-audit-20261107]
     paths:
       - 'apps/web/lib/portfolio-profile.json'
       - 'tools/generate-portfolio-resumes.py'

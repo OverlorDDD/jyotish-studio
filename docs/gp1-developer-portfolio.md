@@ -21,3 +21,11 @@
 - ProfilePage/Person structured data is attached only to About Me; WebSite/Organization remains Galaxiora.
 - No personally identifying birth-chart data is transferred into CV pages or analytics.
 - User-facing claims derive from existing resumes, repo capabilities and public deployment; benchmarks are stated as local tests, never commercial usage.
+
+## G-P2 (7 November 2026): contact correction and technical-scope refresh
+- Correct public office/mobile number: +380 66 086 24 31; supersedes the earlier incorrect `+380 66 085 24 31`.
+- CV and website share `apps/web/lib/portfolio-profile.json` as the single source of truth.
+- The CV technology summary was reviewed against implemented code for API/auth, Swiss Ephemeris, the Panchanga engine, GalaxiNews/Azure translation, SEO/analytics, AWS operations and the actual Playwright/CI workflows.
+- Claims are bounded: D1/D9/D10, not the unmerged N4 divisional work; incomplete full-muhurta certification is marked; optional OIDC is configuration-gated; OpsPilot concurrency is a local benchmark.
+- GitHub Actions regenerates EN/UK PDFs and DOCXs on the G-P2 feature branch and on `main`. Generator checks correct phone and rejects the old number; the GP1 unit contracts check bilingual coverage.
+- Deploy site changes using guarded AWS release. Resume binaries are static and must be deployed with their matching JSON profile, never separately.
