@@ -29,7 +29,7 @@ test('a single held-out day mismatch reports genuine synthetic case, lord and di
   const expected=Object.fromEntries(lords.map((x,j)=>[
    x,new Date(subs[x]+2*3600000).toISOString().slice(0,10)
   ]));
-  if(i===3)expected.Venus='2029-01-01'; // independently different day
+  if(i===3)expected.Venus=new Date(subs.Venus+2*3600000-86400000).toISOString().slice(0,10); // one day earlier
   original.push({lord:lords[i],start:new Date(at+2*3600000).toISOString().slice(0,10),
    antardashas:expected});
   computed.push({lord:lords[i],start:at,subs});
@@ -42,7 +42,7 @@ test('a single held-out day mismatch reports genuine synthetic case, lord and di
  assert.equal(r[0].level,'antardasha');
  assert.equal(r[0].majorLord,'Moon');
  assert.equal(r[0].minorLord,'Venus');
- assert.notEqual(r[0].deltaCalendarDays,0);
+ assert.equal(r[0].deltaCalendarDays,1);
  assert.equal(r[0].localTimeInterpretation.includes('not independently proven historical IANA DST'),true);
  assert.equal(r[0].secondsToNearestLocalMidnight,10);
 });
