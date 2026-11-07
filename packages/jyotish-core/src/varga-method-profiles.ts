@@ -10,10 +10,12 @@ import {calculateAllVargas,type VargaChart,type VargaPlacement,
 import {n4UmaShambhuHoraSign} from './hora-uma-shambhu.ts';
 
 export const N4_METHOD_PROFILE_VERSION='n4-explicit-method-choice-v1' as const;
+export const N4_US_HORA_PROFILE='n4-uma-shambhu-hora-parashari-16-v1' as const;
 export type N4D2Method='sun-moon'|'uma-shambhu';
 export type N4InputConvention='production-lahiri-apparent'|'original-jhora8-true-citra-geometric';
 export type N4ProfileRequest=Readonly<{d2Method:N4D2Method;
  inputConvention:N4InputConvention}>;
+export type N4MethodVargaChart=Omit<VargaChart,'profile'> & Readonly<{profile:string}>;
 export type N4VargaProfileResult=Readonly<{
  version:typeof N4_METHOD_PROFILE_VERSION;
  inputConvention:N4InputConvention;
@@ -22,7 +24,7 @@ export type N4VargaProfileResult=Readonly<{
  verifiedPhysicalSourceForThisBirth:false;
  originalJHoraDashaDateVerified:false;
  productionReleasePermitted:false;
- charts:readonly VargaChart[];
+ charts:readonly N4MethodVargaChart[];
 }>;
 const house=(sign:number,lagna:number)=>((sign-lagna+12)%12)+1;
 export function calculateN4VargasForMethod(
@@ -36,7 +38,7 @@ export function calculateN4VargasForMethod(
  const base=calculateAllVargas(ascendantLongitude,planets);
  if(base.length!==16)throw Error('N4_INCOMPLETE_DIVISION_SET');
  const charts=request.d2Method==='sun-moon'?base:Object.freeze(base.map(c=>{
-  if(c.division!==2)return c;
+  if(c.division!==2)return Object.freeze({...c,profile:N4_US_HORA_PROFILE});
   const lagnaSign=n4UmaShambhuHoraSign(c.lagna.birthLongitude)+1;
   const transform=(p:VargaPlacement)=>{
    const sign=n4UmaShambhuHoraSign(p.birthLongitude)+1;
@@ -44,7 +46,7 @@ export function calculateN4VargasForMethod(
   };
   // Preserve source D1 longitude, part index, sector boundary and retrograde.
   // The original US Hora is mapped onto an otherwise unchanged D1 dataset.
-  return Object.freeze({...c,lagna:transform(c.lagna),
+  return Object.freeze({...c,profile:N4_US_HORA_PROFILE,lagna:transform(c.lagna),
    planets:Object.freeze(c.planets.map(transform))});
  }));
  return Object.freeze({
