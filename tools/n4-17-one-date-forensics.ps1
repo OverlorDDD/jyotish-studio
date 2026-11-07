@@ -10,6 +10,7 @@ $lab=Join-Path $env:USERPROFILE 'galaxiora-n414-private-lab'
 $defaultSource=Join-Path $lab 'math-method-20261107-134700-403\source'
 $source=if($ReferenceWorktree){$ReferenceWorktree}else{$defaultSource}
 $tmpFile=$null
+$tmpTestFile=$null
 function FailCode([string]$stage){if($LASTEXITCODE -ne 0){throw "$stage EXIT=$LASTEXITCODE"}}
 try {
  foreach($exe in @('git','node')){
@@ -75,6 +76,28 @@ try {
  & node --check $tmpFile
  FailCode 'N418_DOWNLOADED_EXECUTABLE_CLI_SYNTAX_CHECK'
  Write-Host 'N418_DOWNLOADED_NODE_EXECUTABLE_SYNTAX_CHECK_PASS'
+ # Run the EXACT current remote test suite against the EXACT current remote
+ # module. Both disposable files live in the already validated detached lab;
+ # no changes are made to tracked files, main, or production.
+ $testRemote="origin/${branch}:tools/n4-dasha-true-solar-native.test.mjs"
+ $testLines=@(& git show $testRemote)
+ FailCode 'N418_TEST_SOURCE_DOWNLOAD'
+ if($testLines.Count -lt 20){throw 'N418_TEST_SOURCE_INCOMPLETE'}
+ $testText=[string]::Join([Environment]::NewLine,$testLines)+[Environment]::NewLine
+ $originalModuleImport="from './n4-dasha-true-solar-native.mjs';"
+ $temporaryModuleImport="from './"+[System.IO.Path]::GetFileName($tmpFile)+"';"
+ if(-not $testText.Contains($originalModuleImport)){throw 'N418_TEST_MODULE_IMPORT_CONTRACT_CHANGED'}
+ $testText=$testText.Replace($originalModuleImport,$temporaryModuleImport)
+ $tmpTestFile=Join-Path $source ('tools\n4-18-test-'+[guid]::NewGuid().ToString('N')+'.mjs')
+ [System.IO.File]::WriteAllText($tmpTestFile,$testText,[System.Text.UTF8Encoding]::new($false))
+ & node --check $tmpTestFile
+ FailCode 'N418_TEST_EXECUTABLE_SYNTAX_CHECK'
+ Push-Location $source
+ try {
+  & node --experimental-strip-types --test $tmpTestFile
+  FailCode 'N418_CURRENT_SOURCE_BOUND_NODE_TESTS'
+ } finally {Pop-Location}
+ Write-Host 'N418_CURRENT_BRANCH_SOURCE_BOUND_UNIT_TESTS_PASS'
  Write-Host 'N417_REUSING_PRIOR_VALIDATED_NATIVE_SWISS_WORKTREE'
  Write-Host "N417_DIAGNOSTIC_HEAD=$required"
  Push-Location $source
@@ -165,5 +188,8 @@ try {
 } finally {
  if($tmpFile -and (Test-Path -LiteralPath $tmpFile -PathType Leaf)){
   Remove-Item -LiteralPath $tmpFile -Force -ErrorAction SilentlyContinue
+ }
+ if($tmpTestFile -and (Test-Path -LiteralPath $tmpTestFile -PathType Leaf)){
+  Remove-Item -LiteralPath $tmpTestFile -Force -ErrorAction SilentlyContinue
  }
 }
