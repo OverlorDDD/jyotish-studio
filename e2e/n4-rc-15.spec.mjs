@@ -42,6 +42,7 @@ async function load(page,lang='uk',data=sample()){
  await page.locator('input[type=time]').fill('12:00');
  await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
  await page.getByRole('option',{name:/Kyiv/}).click();
+ await expect(page.locator('.jy-selected-city')).toContainText('Kyiv');
  await expect(page.locator('button.jy-calc-btn')).toBeEnabled();
  await Promise.all([
   page.waitForResponse(r=>r.url().includes('/api/v1/charts/calculate')),
