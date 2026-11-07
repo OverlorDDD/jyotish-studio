@@ -12,6 +12,89 @@ $expectedSha = '5DCB07D6D71F68199AF97696E8AD3CA91493B30F4ABC41FDD51350C14E4FF992
 function NeedExit([string]$label) {
  if ($LASTEXITCODE -ne 0) { throw "$label (exit=$LASTEXITCODE)" }
 }
+# Return the original private JHora 50-case source from the successful N4.13
+# local archive, never from an untrusted download or from the N413 result JSON.
+function Resolve-N414PrivateReference([string]$explicitPath, [string]$repoRoot, [string]$labRoot) {
+ $wanted='N4_12_50_ORIGINAL_JHORA_SANITIZED_REFERENCE_PRIVATE.json'
+ $locations=@()
+ if (-not [string]::IsNullOrWhiteSpace($explicitPath)) {
+  if (-not (Test-Path -LiteralPath $explicitPath -PathType Leaf)) {
+   throw "N414_EXPLICIT_PRIVATE_REFERENCE_MISSING=$explicitPath"
+  }
+  $locations+=@((Get-Item -LiteralPath $explicitPath).FullName)
+ } else {
+  $locations+=@((Join-Path $repoRoot ('tools\' + $wanted)))
+  $roots=@(
+   'E:\Downloads\N413PrivateAudit',
+   'E:\Downloads\Galaxiora_N413_Private_SWIEPH_Audit',
+   (Join-Path $env:USERPROFILE 'Downloads\N413PrivateAudit'),
+   (Join-Path $env:USERPROFILE 'Downloads\Galaxiora_N413_Private_SWIEPH_Audit')
+  )
+  foreach ($folder in $roots) {
+   if (Test-Path -LiteralPath $folder -PathType Container) {
+    $matches=@(Get-ChildItem -LiteralPath $folder -Filter $wanted -File -Recurse -ErrorAction SilentlyContinue)
+    foreach($m in $matches) { $locations+=@($m.FullName) }
+   }
+  }
+ }
+ foreach ($file in $locations | Select-Object -Unique) {
+  if (Test-Path -LiteralPath $file -PathType Leaf) {
+   $found=(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash
+   if ($found -ne $expectedSha) {
+    throw "N414_PRIVATE_REFERENCE_SHA_MISMATCH=$file SHA256=$found"
+   }
+   Write-Host 'N414_ORIGINAL_PRIVATE_REFERENCE_SHA256_VERIFIED'
+   Write-Host "N414_PRIVATE_REFERENCE_SOURCE=$file"
+   return $file
+  }
+ }
+ if (-not [string]::IsNullOrWhiteSpace($explicitPath)) {
+  throw 'N414_EXPLICIT_REFERENCE_NOT_VERIFIED'
+ }
+ # Previous N4.13 audit shipped as this exact named ZIP. Extract ONLY the
+ # expected JSON entry, not scripts/binaries or paths from inside the archive.
+ $archives=@(
+  'E:\Downloads\Galaxiora_N413_Private_SWIEPH_Audit.zip',
+  (Join-Path $env:USERPROFILE 'Downloads\Galaxiora_N413_Private_SWIEPH_Audit.zip')
+ )
+ foreach($archive in $archives | Select-Object -Unique) {
+  if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) { continue }
+  Add-Type -AssemblyName System.IO.Compression
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  $zip=[System.IO.Compression.ZipFile]::OpenRead($archive)
+  try {
+   $entries=@($zip.Entries | Where-Object { $_.Name -ieq $wanted })
+   if ($entries.Count -ne 1) { continue }
+   if ($entries[0].Length -le 0 -or $entries[0].Length -gt 15000000) {
+    throw 'N414_PRIVATE_ZIP_ENTRY_SIZE_INVALID'
+   }
+   $target=Join-Path $labRoot $wanted
+   if (Test-Path -LiteralPath $target) {
+    throw 'N414_RESTORED_REFERENCE_ALREADY_EXISTS'
+   }
+   $inputStream=$entries[0].Open()
+   try {
+    $outputStream=[System.IO.File]::Open($target,
+      [System.IO.FileMode]::CreateNew,[System.IO.FileAccess]::Write,
+      [System.IO.FileShare]::None)
+    try { $inputStream.CopyTo($outputStream) }
+    finally { $outputStream.Dispose() }
+   } finally { $inputStream.Dispose() }
+   $actual=(Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash
+   if ($actual -ne $expectedSha) {
+    Remove-Item -LiteralPath $target -Force
+    throw "N414_PRIVATE_ZIP_REFERENCE_SHA_MISMATCH=$archive"
+   }
+   Write-Host 'N414_ORIGINAL_PRIVATE_REFERENCE_SHA256_VERIFIED'
+   Write-Host "N414_PRIVATE_REFERENCE_RESTORED_FROM_ZIP=$archive"
+   return $target
+  } finally { $zip.Dispose() }
+ }
+ throw ('N414_PRIVATE_REFERENCE_NOT_FOUND: expected original N4.13 bundle ' +
+  'E:\Downloads\N413PrivateAudit or Galaxiora_N413_Private_SWIEPH_Audit.zip. ' +
+  'Use -PrivateReference with the exact private JSON path. ' +
+  'The N413_PRIVATE_NATIVE_SWIEPH_50_CASE_RESULT.json is a report, NOT a reference.')
+}
 try {
  foreach ($cmd in @('git','node','python')) {
   if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
@@ -27,21 +110,14 @@ try {
  }
  $major = [int](((& node -v) -replace '^v','').Split('.')[0])
  if ($major -lt 22) { throw "N414_NODE_22_OR_NEWER_REQUIRED" }
- if (-not $PrivateReference) {
-  $PrivateReference=Join-Path $root 'tools\N4_12_50_ORIGINAL_JHORA_SANITIZED_REFERENCE_PRIVATE.json'
- }
+ $lab = Join-Path $env:USERPROFILE 'galaxiora-n414-private-lab'
+ New-Item -ItemType Directory -Force -Path $lab | Out-Null
  if (-not $SkipPrivateSwiss) {
-  if (-not (Test-Path -LiteralPath $PrivateReference -PathType Leaf)) {
-   throw "N414_PRIVATE_REFERENCE_MISSING=$PrivateReference"
-  }
-  $sourceSha=(Get-FileHash -LiteralPath $PrivateReference -Algorithm SHA256).Hash
-  if ($sourceSha -ne $expectedSha) { throw 'N414_PRIVATE_REFERENCE_SHA256_MISMATCH' }
+  $PrivateReference=Resolve-N414PrivateReference $PrivateReference $root $lab
   if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
    throw 'N414_NPM_REQUIRED_FOR_NATIVE_SWIEPH'
   }
  }
- $lab = Join-Path $env:USERPROFILE 'galaxiora-n414-private-lab'
- New-Item -ItemType Directory -Force -Path $lab | Out-Null
  $run = Join-Path $lab ('audit-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
  New-Item -ItemType Directory -Force -Path $run | Out-Null
  $worktree=Join-Path $run 'source'
