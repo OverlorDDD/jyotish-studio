@@ -86,7 +86,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Start release candidate web locally, no remote writes
         run: |
-          PORT=3000 npm run start -w @jyotish/web > /tmp/n4-rc-web.log 2>&1 &
+          printf 'SITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' > .env
+          WEB_PORT=3000 npm run start -w @jyotish/web > /tmp/n4-rc-web.log 2>&1 &
           for attempt in $(seq 1 50); do
             if curl -fsS http://127.0.0.1:3000/en/astrology/jyotish > /dev/null; then exit 0; fi
             sleep 2
