@@ -79,3 +79,14 @@ Expected *when successfully executed*, NOT pre-claimed here:
 5. Current GitHub implementation is **committed, not proof of execution** until verified runtime reports are collected and audited.
 
 References: https://docs.python.org/3/library/zoneinfo.html ; https://pypi.org/project/tzdata/2026.6/ ; https://www.iana.org/time-zones/theory.
+
+
+## 2026-11-07 Windows owner execution — missing N4.13 private reference fixed
+
+The owner ran the previously committed `n4-14-verify.ps1` from `C:\\Users\\Note\\jyotish-studio-git`. Execution STOPPED before tests at `N414_PRIVATE_REFERENCE_MISSING` because the old script guessed that the private 50-case reference was directly under the current Git checkout's `tools/` directory. This location was never guaranteed: N4.13's original audit was delivered as `Galaxiora_N413_Private_SWIEPH_Audit.zip`, extracted under `E:\\Downloads\\N413PrivateAudit`. The private reference is intentionally **not** in Git.
+
+Fix: `tools/n4-14-verify.ps1` now searches the exact named original JSON under the prior N4.13 extraction and the known Downloads roots; if not extracted, it reads **only that JSON entry** from a locally present `Galaxiora_N413_Private_SWIEPH_Audit*.zip`. Every candidate and extracted entry must match the pinned N4.13 original SHA-256 `5DCB07D6D71F68199AF97696E8AD3CA91493B30F4ABC41FDD51350C14E4FF992`. No arbitrary ZIP scripts are executed, no unverified source is accepted, and no private data are pushed to GitHub. `-PrivateReference` remains supported for a user-local alternate path.
+
+If the archive is missing too, the correct outcome is `N414_PRIVATE_REFERENCE_NOT_FOUND` with the expected original archive name and a manual alternate-path option. **The aggregate `N413_PRIVATE_NATIVE_SWIEPH_50_CASE_RESULT.json` is not a substitute**: it lacks the 50 independent source records.
+
+A previously printed `N414_VERIFICATION_RUN_COMPLETED` came from a separate `Write-Host` pasted after an exception. It is **not** proof of any N4.14 execution. N4.14 private native computations have NOT run for that failed attempt. Do not mark N4.14 certified until actual runtime audit, historical reference review, continuous D60 bound proof and all CI gates succeed.
