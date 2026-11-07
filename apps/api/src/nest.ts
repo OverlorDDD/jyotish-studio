@@ -7,6 +7,7 @@ import {CHART_VERIFICATION_VERSION} from './jyotish-integrity.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
 import {buildDetailedReport} from './report.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts';
+import {N4_VARGA_READER_VERSION} from './reader-varga-n4.ts';
 import {SuccessfulConsultationCache} from './consultation-replay.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
@@ -155,7 +156,7 @@ export class JyotishController{
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION;
+  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION;
   const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(chart,birth.lang,report.asOf,{
    onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
   }));
