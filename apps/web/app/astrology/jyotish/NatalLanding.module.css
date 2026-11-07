@@ -15,18 +15,13 @@
 .chips span{color:#e9ddcb;background:rgba(255,255,255,.055);border:1px solid rgba(200,212,232,.14);padding:7px 11px;border-radius:100px;font-size:12px}
 .heroCta{display:inline-flex;gap:12px;align-items:center;justify-content:center;padding:15px 20px;border-radius:13px;background:#e5bd7e;color:#17243a!important;font-weight:800;text-decoration:none;box-shadow:0 5px 18px rgba(0,0,0,.23)}
 .heroCta:hover{background:#f0d5a6;transform:translateY(-1px)}
+.heroActions{display:flex;align-items:center;flex-wrap:wrap;gap:13px}
+.heroSecondary{color:#f1d29c;text-decoration:underline;text-underline-offset:4px;font-size:13px;font-weight:700}
+.heroSecondary:focus-visible{outline:3px solid white;outline-offset:3px}
 .heroCta:focus-visible{outline:3px solid white;outline-offset:3px}
 .miniDisclaimer{display:block;color:#aebed7;margin-top:16px;font-size:11px;line-height:1.6}
-.heroArt{min-width:0;aspect-ratio:1;max-width:435px;width:100%;position:relative;justify-self:center;display:grid;place-items:center}
-.orbitOne,.orbitTwo,.orbitThree{position:absolute;inset:12%;border:1px solid rgba(225,192,135,.38);border-radius:50%;box-shadow:0 0 40px rgba(181,168,220,.05)}
-.orbitTwo{inset:24%;transform:rotate(35deg);border-color:rgba(188,209,239,.5)}
-.orbitThree{inset:1%;border-style:dashed;border-color:rgba(196,210,240,.23)}
-.centerSigil{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px;color:#e7c28d;text-shadow:0 0 22px #c9987480}
-.centerSigil span{font-size:clamp(80px,10vw,136px);line-height:1}
-.centerSigil small{font-size:11px;letter-spacing:.34em;font-weight:800}
-.planetSun,.planetMoon{position:absolute;color:#f2d8ab;font-size:36px;z-index:2;filter:drop-shadow(0 0 17px #e2c09c70)}
-.planetSun{top:10%;left:17%}.planetMoon{right:7%;bottom:25%}
-.orbitCaption{position:absolute;bottom:4%;font-size:10px;letter-spacing:.19em;color:#aec3db}
+.heroArt{min-width:0;max-width:480px;width:100%;position:relative;justify-self:center;display:grid;place-items:center}
+
 .roadmap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0 22px}
 .roadmap>div{display:flex;align-items:center;gap:12px;min-width:0;border:1px solid rgba(173,189,218,.22);background:#17263b;border-radius:14px;padding:13px 16px;font-size:13px;color:#dce5f2}
 .roadmap b{font-size:14px;color:#e2bd85}
@@ -54,5 +49,5 @@
 .faq summary{font-size:15px;font-weight:650;color:#edf2fb;cursor:pointer}
 .faq details p{line-height:1.7;font-size:14px;color:#bccbdd;max-width:780px;margin:10px 0 2px}
 @media(max-width:900px){.hero{grid-template-columns:minmax(0,1fr) minmax(180px,.65fr)}.heroArt{max-width:270px}.birthForm :global(.jy-input-grid){grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){.canvas{padding:8px 12px 45px!important}.hero{grid-template-columns:1fr;padding:25px 20px;border-radius:18px}.hero h1{font-size:clamp(30px,9vw,44px)}.heroArt{display:none}.roadmap{grid-template-columns:1fr;gap:7px}.roadmap>div{padding:10px 13px}.birthForm :global(.jy-input-grid){grid-template-columns:minmax(0,1fr)}.birthForm :global(.jy-calc-btn){width:100%;justify-self:stretch}.discoveryGrid{grid-template-columns:1fr}.faqHeader{display:block}.faqHeader a{display:inline-block;margin:0 0 8px}.faq{margin-top:26px}.chips span{font-size:11px}}
+@media(max-width:650px){.canvas{padding:8px 12px 45px!important}.hero{grid-template-columns:1fr;padding:25px 20px;border-radius:18px}.hero h1{font-size:clamp(30px,9vw,44px)}.heroArt{display:grid;max-width:360px;margin-inline:auto}.roadmap{grid-template-columns:1fr;gap:7px}.roadmap>div{padding:10px 13px}.birthForm :global(.jy-input-grid){grid-template-columns:minmax(0,1fr)}.birthForm :global(.jy-calc-btn){width:100%;justify-self:stretch}.discoveryGrid{grid-template-columns:1fr}.faqHeader{display:block}.faqHeader a{display:inline-block;margin:0 0 8px}.faq{margin-top:26px}.chips span{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.heroCta{transition:none}.heroCta:hover{transform:none}}
