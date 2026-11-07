@@ -1,7 +1,7 @@
 'use client';
 import styles from './ReaderV7View.module.css';
 export type ReaderV8UI={
- version:string;ruleSetVersion:string;status:'available'|'unavailable';
+ version:string;editorialVersion:string;ruleSetVersion:string;status:'available'|'unavailable';
  introduction:string;method:string;d60Notice:string;
  highlights:readonly {id:string;division:number;title:string;text:string}[];
  insights:readonly {division:number;title:string;headline:string;strength:string;challenge:string;context:string;step:string;
@@ -15,7 +15,7 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
  return <section className={styles.root} data-testid="reader-v8" aria-labelledby="reader-v8-heading">
   <header className={styles.top}>
    <span className={styles.kicker}>{uk?'✦ CLASSICAL READER 8 · ПЕРСОНАЛЬНИЙ АНАЛІЗ':'✦ CLASSICAL READER 8 · PERSONAL READING'}</span>
-   <h2 id="reader-v8-heading">{uk?'Що підказують ваші карти життя':'What your life charts suggest'}</h2>
+   <h2 id="reader-v8-heading">{uk?'Ваші 15 життєвих історій':'Fifteen stories your chart can tell'}</h2>
    <p>{data.introduction}</p>
   </header>
   <div className={styles.highlights} aria-label={uk?'Головні висновки':'Main takeaways'}>
@@ -26,7 +26,7 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
    </article>)}
   </div>
   <div className={styles.sectionTitle}>
-   <h3>{uk?'15 життєвих тем — ваші можливості та виклики':'15 life themes — resources and challenges'}</h3>
+   <h3>{uk?'Сфери життя: від стосунків до роботи':'Your life themes: from relationships to work'}</h3>
    <p>{uk?'Точні астрологічні підстави та книги можна розкрити під кожним висновком.':
     'Expand any section to see the calculated evidence and the book references.'}</p>
   </div>
@@ -34,10 +34,10 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
    {data.insights.map(item=><article key={item.division} className={styles.card} data-testid={'reader-v8-D'+item.division}>
     <header className={styles.cardTitle}><span>D{item.division}</span><h4>{item.title}</h4></header>
     <p className={styles.headline}>{item.headline}</p>
-    <div className={styles.part}><strong>{uk?'Що може допомагати':'What may help'}</strong><p>{item.strength}</p></div>
-    <div className={styles.part}><strong>{uk?'На що звернути увагу':'What to be mindful of'}</strong><p>{item.challenge}</p></div>
-    <div className={styles.part}><strong>{uk?'Чому ці теми пов’язані':'How the clues fit together'}</strong><p>{item.context}</p></div>
-    <div className={styles.next}><strong>{uk?'Що спробувати':'Try this'}</strong><p>{item.step}</p></div>
+    <p className={styles.storyText}>{item.strength}</p>
+    <p className={styles.storyText}>{item.context}</p>
+    <div className={styles.part}><strong>{uk?'Де потрібна уважність':'Where to take care'}</strong><p>{item.challenge}</p></div>
+    <div className={styles.next}><strong>{uk?'Спробуйте цього тижня':'Try this week'}</strong><p>{item.step}</p></div>
     {item.timeSensitivity==='higher'||item.timeSensitivity==='near_boundary'?
      <small className={styles.warning}>{item.timeSensitivity==='near_boundary'?
       (uk?'Поблизу межі сектора: потрібна додаткова перевірка точності часу народження.':
