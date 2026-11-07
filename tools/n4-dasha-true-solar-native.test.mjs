@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {solveN4SolarArcInstant,inspectN416LocalDashaResiduals} from './n4-dasha-true-solar-native.mjs';
+import {solveN4SolarArcInstant,inspectN416LocalDashaResiduals,n418MoonPrintSensitivitySeconds} from './n4-dasha-true-solar-native.mjs';
 const DAY=86400000;
 test('solar longitude crossing agrees with constant solar period in analytic circular model',()=>{
  const yearDays=365.24219,center=Date.parse('2010-01-15T12:00:00Z');
@@ -73,4 +73,24 @@ test('a major start date can duplicate its first subperiod discrepancy, never co
  assert.equal(r.filter(x=>x.level==='mahadasha').length,1);
  assert.equal(r.filter(x=>x.level==='antardasha').length,1);
  assert.ok(r.every(x=>x.deltaCalendarDays===1));
+});
+
+test('JHora02 original Moon 0.01 arcsecond print half-step can shift a ten-year initial Dasa by ~32.873 seconds',()=>{
+ const seconds=n418MoonPrintSensitivitySeconds({
+  initialLordYears:10,roundingStepArcsec:0.01,solarYearDays:365.25636
+ });
+ assert.ok(Math.abs(seconds-32.8730724)<0.000001);
+ assert.ok(seconds>14.382);
+ assert.ok(seconds<60);
+});
+test('precision estimate refuses nonexistent or unphysical source step and first-period inputs',()=>{
+ const valid={initialLordYears:10,roundingStepArcsec:0.01,solarYearDays:365.25636};
+ for(const input of [
+  {...valid,initialLordYears:0},
+  {...valid,initialLordYears:21},
+  {...valid,roundingStepArcsec:0},
+  {...valid,roundingStepArcsec:2},
+  {...valid,solarYearDays:NaN},
+  {...valid,solarYearDays:360}
+ ]) assert.throws(()=>n418MoonPrintSensitivitySeconds(input),/invalid source precision model/);
 });
