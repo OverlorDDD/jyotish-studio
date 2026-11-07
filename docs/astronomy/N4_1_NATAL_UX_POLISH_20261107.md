@@ -51,3 +51,20 @@ In `C:\Users\Note\galaxiora-n4-preview`, run `git pull --ff-only` then `npm run 
 **Sticky header root cause and fix:** The `.account-widget` globally has `position:relative; z-index:30`, the same stacking order as `.as-header` (sticky z-index 30). While scrolling, the child's save button can paint over the earlier header. The natal toolbar now has its own `position:relative; isolation:isolate; z-index:1`: its popover still layers above later hero content while the complete local stacking context remains below the sticky header. A Playwright regression scrolls and verifies the button is occluded by the header if its rectangle overlaps it. Header styles, login flow and global account widget have not been modified.
 
 **Release gates:** exact-commit Next build, UA/EN browser screenshot review, sticky header overlay assertion at desktop and mobile widths, D60 tests unchanged. User must approve preview. No production deployment.
+
+
+## N4.1.3 — Hero Scene v3: hover labels + layered easing (2026-11-07)
+
+Owner acceptance: Variant B — no permanently drawn planet name. All six bodies (Sun, Moon, Jupiter, Venus, Saturn and Neptune) show the same navy/gold micro-label only on hover. The accessible announcement uses an off-screen `aria-live` region, not permanent on-screen text.
+
+Root cause: the previous Canvas drew permanent labels for four planets but deliberately skipped Venus and Moon; meanwhile pointer movement was copied directly into `draw()` with limited update cadence, so the scene could appear to shake rather than glide.
+
+Implementation:
+- One shared tooltip renderer and lookup for every planet; no persistent labels; consistent font, border, color, padding and near-edge placement.
+- Separate target and current pointer positions. Animation is frame-time-independent with exponential damping (260 ms response) and a 115 ms hover fade. The cursor can stop moving while the scene gradually settles.
+- Different parallax depths: ambient nebula ~3px; background stars 3–7px; coordinate grid 8px; constellations 13px; orbit tracks 19px; bodies/hover label 30px horizontally (proportionate vertical offsets). Body hit testing uses their *drawn* positions and moves smoothly with the illustration.
+- Drawing runs on requestAnimationFrame while visible; observer pauses offscreen, no dependence on scrolling or external scripts.
+- If `prefers-reduced-motion: reduce`, positions remain static but hover identification still works.
+- Browser QA adds six hover identification checks, disappearance between planets, easing inspection and static-mode coverage.
+
+Keep 16 life chart navigation, copy, exact approved logo #6, account save overlay fix and D60 mathematics unchanged. No production deployment; await exact-head CI and owner visual approval.
