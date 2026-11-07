@@ -92,6 +92,6 @@ test('old API proof cannot silently open a chart even when the calculation JSON 
  await page.goto('/uk/astrology/jyotish');
  await enterSyntheticBirthFields(page,CHART.input);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
- await expect(page.getByRole('status')).toContainText('jyotish-integrity-v3');
+ await expect(page.locator('.status.error')).toContainText('jyotish-integrity-v3');
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart')).toHaveCount(0);
 });
