@@ -41,3 +41,6 @@
 .d60Precision{display:flex;flex-direction:column;gap:9px;font-size:13px;font-weight:600;color:#e3cfad;margin:16px 0;max-width:490px}
 .d60Precision select{font:inherit;font-weight:500;max-width:100%;width:100%;min-width:0;background:#202f49;color:#f1f4fa;border:1px solid #8b9cb8;border-radius:12px;padding:12px;cursor:pointer}
 .d60Precision select:focus-visible{outline:3px solid #f1c98b;outline-offset:2px}
+
+/* D60 shares the regular 16-chart tabs; time uncertainty remains an inline note. */
+.d60Caution{display:inline-block;color:#edc28a;font-size:12px;line-height:1.6;margin:10px 0;padding:9px 12px;border:1px solid rgba(221,183,115,.37);border-radius:9px;background:rgba(163,124,59,.12);max-width:100%}
