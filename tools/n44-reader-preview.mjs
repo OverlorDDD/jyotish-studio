@@ -26,4 +26,4 @@ for(let seed=0;seed<3;seed++){
   }
  }
 }
-console.log('\nN44_READER_7_SYNTHETIC_UA_EN_3_CASES_PASS');
+console.log('\nN44_CLASSICAL_READER_8_UA_EN_3_CASES_PASS');
