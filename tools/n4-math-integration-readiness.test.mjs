@@ -7,6 +7,10 @@ test('a passing math-lab without production-specific JHora methods cannot certif
  assert.equal(r.actualCalculator.d2Method,'Sun/Moon Hora');
  assert.equal(r.originalJHora50Research.d2Method,'Uma-Shambhu Hora');
  assert.equal(r.originalJHora50Research.sameAsActualCalculator,false);
+ assert.equal(r.symbolic16VargaRuleEvidence.productionSunMoonIndependentPyjhora8000,true);
+ assert.equal(r.symbolic16VargaRuleEvidence.originalJHoraUmaShambhu8000,true);
+ assert.ok(!r.releaseBlockers.includes('D2_PRODUCTION_SUN_MOON_VS_ORIGINAL_JHORA_UMA_SHAMBHU'));
+ assert.ok(r.releaseBlockers.includes('PRODUCTION_LAHIRI_PHYSICAL_EPHEMERIS_NEEDS_INDEPENDENT_SAME_PROFILE_CLOSURE'));
  assert.equal(r.productionReleasePermitted,false);
  assert.equal(r.calculatorUiRedesignAuthorizedByMath,false);
  assert.equal(r.n4EnhancedAiPublicationAuthorizedByMath,false);
