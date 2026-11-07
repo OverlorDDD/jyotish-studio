@@ -40,7 +40,7 @@ async function load(page,lang='uk',data=sample()){
  await expect(page.locator('input[type=time]')).toHaveValue('');
  await page.locator('input[type=date]').fill('2000-01-01');
  await page.locator('input[type=time]').fill('12:00');
- await page.getByRole('searchbox').fill('Kyiv');
+ await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
  await page.getByRole('option',{name:/Kyiv/}).click();
  await page.locator('button.jy-calc-btn').click();
 }
