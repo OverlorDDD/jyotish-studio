@@ -29,6 +29,9 @@ jobs:
         run: |
           node --experimental-strip-types tools/n43-reader-preview.mjs > /tmp/n43-reader-samples.log
           grep -q 'N43_READER_7_SYNTHETIC_UA_EN_3_CASES_PASS' /tmp/n43-reader-samples.log
+      - name: Real ephemeral Swiss Ephemeris HTTP/Reader 7 preview integration
+        run: |
+          node --experimental-strip-types --test tools/n43-live-preview-api.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
