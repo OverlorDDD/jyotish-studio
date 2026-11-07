@@ -119,12 +119,9 @@ export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:
    {uk?'Увага: щонайменше одна планета або Лагна D'+selected+' перебуває в межах 1 кутової секунди від межі сектора. Для цього положення потрібна додаткова перевірка точності вихідних координат і часу народження.':
     'Precision warning: a planet or the D'+selected+' ascendant lies within 1 arcsecond of a divisional boundary. Verify the source longitude and birth-time precision before relying on this placement.'}
   </p>}
-  {selected===60&&chart&&<p className={styles.d60Caution} role="status" data-testid="n4-d60-precision-warning">
-   {minutesUncertain
-    ?uk?'Хвилини народження невідомі або час приблизний. Положення D60, особливо Лагни та домів, можуть бути неточними.':
-      'Birth minutes are unknown or the time is approximate. D60 placements, especially the ascendant and houses, may be inaccurate.'
-    :uk?'D60 розрахована на вказаний момент. Навіть час, записаний до хвилини, не гарантує стабільність Лагни D60 при відхиленні на кілька секунд.':
-      'D60 is calculated for the entered moment. Even minute-level records cannot guarantee D60 ascendant stability within a few seconds.'}
+  {selected===60&&minutesUncertain&&chart&&<p className={styles.d60Caution} role="status" data-testid="n4-d60-precision-warning">
+   {uk?'Хвилини народження невідомі або час приблизний. Положення D60, особливо Лагни та домів, можуть бути неточними.':
+      'Birth minutes are unknown or the time is approximate. D60 placements, especially the ascendant and houses, may be inaccurate.'}
   </p>}
   {selected===60&&!d60Valid&&chart&&<p className={styles.warning} role="alert">
    {uk?'Сервер не підтвердив вихідні дані D60. Карту приховано.':'D60 source validation failed. Chart hidden.'}
