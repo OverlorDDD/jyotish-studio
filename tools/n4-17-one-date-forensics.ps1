@@ -2,7 +2,7 @@
 # isolated Windows lab (already contains native @swisseph/node).
 # NO docker, npm install, production edits, CI flags, or workspace-branch changes.
 [CmdletBinding()]
-param([string]$ReferenceWorktree='')
+param([string]$ReferenceWorktree='', [switch]$ValidateWorktreeOnly)
 $ErrorActionPreference='Stop'
 $branch='feat/n4-shodashavarga-foundation'
 $required='ca2d443bb323011f26dae72170a001f85868e4e3'
@@ -44,6 +44,10 @@ try {
   throw 'N417_EXPECTED_DETACHED_RESEARCH_WORKTREE'
  }
  Write-Host 'N417_WORKTREE_VALIDATION_PASS'
+ if($ValidateWorktreeOnly){
+  Write-Host 'N417_LINKED_WORKTREE_STRUCTURE_SELFTEST_PASS'
+  return
+ }
  $origin=(& git -C $source remote get-url origin).Trim()
  FailCode 'N417_GIT_ORIGIN_CHECK'
  if($origin -notmatch '(^|[:/])OverlorDDD/jyotish-studio(\.git)?$'){
