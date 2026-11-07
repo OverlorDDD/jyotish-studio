@@ -44,3 +44,24 @@
 
 /* D60 shares the regular 16-chart tabs; time uncertainty remains an inline note. */
 .d60Caution{display:inline-block;color:#edc28a;font-size:12px;line-height:1.6;margin:10px 0;padding:9px 12px;border:1px solid rgba(221,183,115,.37);border-radius:9px;background:rgba(163,124,59,.12);max-width:100%}
+
+/* N4.1: all 16 choices are visible; no <details> or hidden secondary charts. */
+.navTitle{color:#f1d29d;font-size:14px;margin:10px 0 14px;font-weight:700}
+.mainTabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 20px}
+.mainTabs .tab,.mainTabs .selected{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:57px;padding:9px 11px}
+.mainTabs .tab span,.mainTabs .selected span{overflow-wrap:anywhere;line-height:1.3}
+.grid{max-width:1150px;margin-inline:auto;align-items:start}
+.chart{display:flex;flex-direction:column;min-width:0}
+.chart :global(.jy-south-chart){width:100%;max-width:465px;aspect-ratio:1!important;height:auto!important;min-height:0!important;grid-template-rows:repeat(4,minmax(0,1fr))!important;margin-inline:auto}
+.chart :global(.jy-south-sign){padding:clamp(2px,.48vw,6px);gap:2px}
+.chart :global(.jy-south-center strong){font-size:clamp(13px,1.9vw,23px);letter-spacing:.05em}
+.chart :global(.jy-south-center span){font-size:clamp(8px,.85vw,11px)}
+.chart :global(.jy-south-name){font-size:clamp(7px,.8vw,11px)}
+.chart :global(.jy-south-symbol){font-size:clamp(12px,1.5vw,21px)}
+.chart :global(.jy-south-planet strong){font-size:clamp(10px,1.3vw,19px)}
+.chart :global(.jy-south-planet span){font-size:clamp(7px,.72vw,10px)}
+.chart :global(.jy-south-ascendant){padding:2px 5px;font-size:10px}
+.comparePrompt{min-height:230px;padding:22px;border:1px dashed #d7b77f6b;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#f1d6aa}
+.comparePrompt strong{font-size:18px}.comparePrompt p{font-size:13px;color:#c1cee1;line-height:1.6;max-width:320px}
+@media(min-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.mainTabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.mainTabs .tab,.mainTabs .selected{min-height:53px;padding:7px 8px}.chart :global(.jy-south-name){font-size:8px}.chart :global(.jy-south-chart){max-width:100%}}
