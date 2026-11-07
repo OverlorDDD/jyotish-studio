@@ -1,7 +1,7 @@
 'use client';
 import GlossaryText from './GlossaryText';
 import vargaStyles from './VargaInsights.module.css';
-import ReaderV7View,type {ReaderV7UI} from './ReaderV7View';
+import ReaderV7View,{type ReaderV7UI} from './ReaderV7View';
 
 export type ReadingSection={
  id:string;heading:string;eyebrow:string;lead:string;paragraphs:string[];
