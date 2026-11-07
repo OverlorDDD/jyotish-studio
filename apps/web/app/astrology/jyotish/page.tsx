@@ -183,6 +183,11 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
        <label>{lang==='uk'?'Довгота':'Longitude'}<input type="number" step="any" min="-180" max="180" value={form.longitude} onChange={e=>edit('longitude',e.target.value)} required={manualMode}/></label>
        <label>{lang==='uk'?'Часовий пояс (Europe/Kyiv)':'IANA time zone (Europe/Kyiv)'}<input value={form.timeZone} onChange={e=>edit('timeZone',e.target.value)} required={manualMode}/></label>
       </details>
+      {form.date&&form.date<'1970-01-01'&&
+       <p role="status" style={{fontSize:12,color:'#d5ba8c',lineHeight:1.5,gridColumn:'1/-1'}}>
+        {lang==='uk'?'Увага: історичні часові пояси до 1970 року не завжди підтверджені незалежними місцевими документами. Точні доми та дати потребують додаткової перевірки.':
+         'Note: pre-1970 local time-zone history is not always independently attested for each birthplace. Exact houses and dates need additional verification.'}
+       </p>}
       <button className="primary-btn jy-calc-btn" disabled={busy}>{busy?i.working:i.calculate}<ArrowUpRight size={16}/></button>
      </form>
      <p className={`status ${error?'error':''}`} role="status">{status}</p>
