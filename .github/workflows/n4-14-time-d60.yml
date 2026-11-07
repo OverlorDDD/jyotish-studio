@@ -35,6 +35,7 @@ on:
       - 'tools/n4-math-scope-ledger.json'
       - 'tools/n4-math-scope-ledger.mjs'
       - 'tools/n4-math-scope-ledger.test.mjs'
+      - 'tools/n4-17-one-date-forensics.ps1'
       - 'tools/n4-math-phase2-verify.ps1'
       - 'packages/jyotish-core/src/index.ts'
       - 'packages/jyotish-core/src/varga-method-profiles.ts'
@@ -84,6 +85,7 @@ on:
       - 'tools/n4-math-scope-ledger.json'
       - 'tools/n4-math-scope-ledger.mjs'
       - 'tools/n4-math-scope-ledger.test.mjs'
+      - 'tools/n4-17-one-date-forensics.ps1'
       - 'tools/n4-math-phase2-verify.ps1'
       - 'packages/jyotish-core/src/index.ts'
       - 'packages/jyotish-core/src/varga-method-profiles.ts'
@@ -132,6 +134,10 @@ jobs:
           $tokens = $null
           $errors = $null
           [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'tools/n4-math-phase2-verify.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'tools/n4-17-one-date-forensics.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
           if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
       - name: Pinned Python zoneinfo cross-runtime differential
         run: python tools/n4-14-python-zoneinfo.py
