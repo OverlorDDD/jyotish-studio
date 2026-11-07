@@ -1,7 +1,7 @@
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable} from './reader-classical.ts';
 import {N4_RC_CONTRACT_VERSION,N4_RC_DIVISIONS,type N4RcPayload} from './n4-rc-contract.ts';
-import {N4_D60_VERSION,type D60Candidate} from './n4-d60-candidate.ts';
+import type {D60Candidate} from './n4-d60-candidate.ts';
 
 /**
  * Reader N4.2: a second, topic-specific layer on top of Reader v6.
