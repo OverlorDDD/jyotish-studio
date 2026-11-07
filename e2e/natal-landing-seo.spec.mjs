@@ -126,6 +126,7 @@ test('Hero Scene v3: reduced motion stays still but hover names remain usable',a
  await page.goto('/uk/astrology/jyotish');
  const canvas=page.getByTestId('n41-sky').locator('canvas');
  const live=page.getByTestId('n41-hovered-planet');
+ await expect(canvas).toBeVisible();
  const r=await canvas.boundingBox();
  expect(r).not.toBeNull();
  await page.mouse.move(r.x+r.width*462/640,r.y+r.height*206/620);
