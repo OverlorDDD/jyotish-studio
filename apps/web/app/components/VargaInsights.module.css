@@ -1,0 +1,19 @@
+.section{margin:38px 0 42px;padding:clamp(18px,3vw,32px);border:1px solid rgba(216,186,137,.34);border-radius:22px;background:linear-gradient(145deg,#17243b,#111d30);box-shadow:0 14px 40px #040a181c}
+.section h3{margin:9px 0 12px;font-size:clamp(23px,2.5vw,33px);line-height:1.25;color:#fff;letter-spacing:-.025em}
+.intro{font-size:14px;line-height:1.7;color:#bfd0e4;max-width:880px;margin:0 0 24px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.card{min-width:0;padding:19px;border:1px solid rgba(181,198,225,.2);border-radius:15px;background:rgba(13,26,43,.63);display:flex;flex-direction:column;gap:11px}
+.heading{display:flex;align-items:center;gap:10px}
+.index{font-weight:800;font-size:15px;border:1px solid rgba(231,195,141,.49);border-radius:9px;color:#f1d0a0;padding:8px 10px;background:rgba(219,178,115,.07);flex-shrink:0}
+.heading h4{color:#f8f3ea;margin:0;font-size:16px;line-height:1.35}
+.summary,.practice{font-size:13px;line-height:1.72;color:#d6deea;margin:0}
+.practice{padding:12px 13px;background:rgba(185,154,110,.075);border-left:2px solid rgba(225,190,133,.7);border-radius:0 7px 7px 0}
+.practice strong{display:block;color:#e8c78f;font-size:12px;margin-bottom:3px}
+.evidence{margin-top:auto;font-size:11px;color:#a8c1df}
+.evidence summary{cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.evidence code{display:block;margin-top:9px;padding:9px;border-radius:7px;background:#0b1929;color:#c8d9ef;white-space:normal;word-break:break-word;line-height:1.7}
+.d60{margin:22px 0 0;padding:17px 19px;border:1px solid rgba(218,181,124,.37);border-radius:12px;color:#d0dbeb;font-size:13px;line-height:1.65}
+.d60 strong{display:block;color:#e9c88d;margin-bottom:5px}
+.unavailable{margin:20px 0;padding:15px 19px;border:1px dashed #bf9a68;border-radius:12px;color:#d2c5a9;font-size:13px}
+@media(max-width:720px){.section{padding:17px 13px}.grid{grid-template-columns:1fr}.card{padding:15px}}
+@media(prefers-reduced-motion:reduce){.section *{transition:none!important;animation:none!important}}
