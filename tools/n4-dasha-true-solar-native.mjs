@@ -122,6 +122,57 @@ function addCase(target,computed,original,offsetMs){
   }
  }
 }
+
+/**
+ * Inspect ONLY the original JHora sidereal + original captured-local-offset
+ * calendar-day residuals. Public JQA3 cases are synthetic and SHA-bound;
+ * omit exact original birth details and source-longitude from this output.
+ * A one-day disagreement is not automatically rounded away or repaired.
+ */
+export function inspectN416LocalDashaResiduals({computed,original,offsetMs,caseIndex}){
+ if(!Array.isArray(computed)||computed.length!==9||
+    !Array.isArray(original)||original.length!==9||
+    !Number.isInteger(offsetMs)||Math.abs(offsetMs)>14*3600000||
+    !Number.isInteger(caseIndex)||caseIndex<0||caseIndex>19)
+  fail('invalid residual inspection inputs');
+ const mismatches=[];
+ function check(at,expected,lord,minorLord){
+  if(!Number.isFinite(at)||typeof expected!=='string'||
+     !/^\d{4}-\d{2}-\d{2}$/.test(expected))
+   fail('invalid original calendar boundary');
+  const wall=new Date(at+offsetMs);
+  const predicted=wall.toISOString().slice(0,10);
+  const delta=dayDiff(predicted,expected);
+  if(delta===0)return;
+  const secondsIntoLocalDay=wall.getUTCHours()*3600+
+   wall.getUTCMinutes()*60+wall.getUTCSeconds()+wall.getUTCMilliseconds()/1000;
+  mismatches.push(Object.freeze({
+   sourceCaseIndex:caseIndex+1,majorLord:lord,
+   ...(minorLord?{minorLord}:{}),
+   level:minorLord?'antardasha':'mahadasha',
+   predictedOriginalFixedOffsetLocalDate:predicted,
+   independentlyCapturedJHoraDate:expected,
+   deltaCalendarDays:delta,
+   predictedOriginalFixedOffsetLocalHHMMSS:wall.toISOString().slice(11,23),
+   secondsToNearestLocalMidnight:Math.round(Math.min(
+    secondsIntoLocalDay,86400-secondsIntoLocalDay)*1000)/1000,
+   localTimeInterpretation:'Original JHora birth-capture fixed UTC offset, not independently proven historical IANA DST'
+  }));
+ }
+ for(let i=0;i<9;i++){
+  const c=computed[i],ref=original[i];
+  if(c?.lord!==ref?.lord||!c.subs||
+     Object.keys(c.subs).length!==9||Object.keys(ref.antardashas??{}).length!==9)
+   fail('incomplete period for source residual inspection');
+  check(c.start,ref.start,c.lord,null);
+  for(const [lord,at] of Object.entries(c.subs)){
+   if(!(lord in ref.antardashas))fail('unmatched original sublord');
+   check(at,ref.antardashas[lord],c.lord,lord);
+  }
+ }
+ return Object.freeze(mismatches);
+}
+
 async function nativeSolar(){
  const ephe=resolve(process.cwd(),'node_modules/@swisseph/node/ephemeris');
  for(const [name,expected] of Object.entries(FILES)){
@@ -154,11 +205,15 @@ async function nativeSolar(){
 }
 export async function auditN4Original20NativeSolarDasha(){
  const original=load20(),physical=await nativeSolar(),out=[];
+ const siderealOriginalLocalResiduals=[];
  for(const mode of ['sidereal','tropical']){
   const results={UTC:{training:score(),holdout:score(),total:score()},
    ORIGINAL_CAPTURED_LOCAL:{training:score(),holdout:score(),total:score()}};
   for(const record of original){
    const computed=buildPeriods(record,mode,at=>physical.sunAt(at,mode));
+   if(mode==='sidereal')siderealOriginalLocalResiduals.push(...inspectN416LocalDashaResiduals({
+    computed,original:record.periods,offsetMs:record.offsetMs,caseIndex:record.index
+   }));
    for(const clock of Object.keys(results)){
     const col=results[clock],offset=clock==='UTC'?0:record.offsetMs;
     addCase(record.index<10?col.training:col.holdout,computed,record.periods,offset);
@@ -182,6 +237,9 @@ export async function auditN4Original20NativeSolarDasha(){
   genuineOriginalSyntheticCases:20,actualNativeSunEphemerisCalls:physical.calls(),
   backend:'STRICT_RETURNED_SWIEPH_2_DE431_PINNED_FILES',
   comparison:out,independentTenCaseHoldout:true,
+  originalLocalSiderealCalendarResiduals:Object.freeze(siderealOriginalLocalResiduals),
+  originalLocalSiderealResidualCount:siderealOriginalLocalResiduals.length,
+  calendarResidualsHaveOnlySyntheticReferenceCaseIds:true,
   jhoraYearDefinitionOption3Identified:false,
   originalJHoraDateTimeExactnessCertified:false,
   productionDashaModeChanged:false,productionReleasePermitted:false,
