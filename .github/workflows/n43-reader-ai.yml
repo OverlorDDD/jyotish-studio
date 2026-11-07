@@ -45,3 +45,35 @@ jobs:
           npm run build
       - name: Confirm no changes to D60 maths
         run: node --experimental-strip-types --test tools/n4-d60-contract.test.mjs
+
+  n44-windows-launcher:
+    name: Windows PowerShell preview and Git auto-gc recovery checks
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse Windows PowerShell files and verify non-destructive fetch contract
+        shell: pwsh
+        run: |
+          foreach ($file in @('tools/n43-preview.ps1','tools/n44-preview.ps1')) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $file), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "$file : $($_.Message)" }
+              throw "PowerShell parser failed: $file"
+            }
+          }
+          $safe = Get-Content -Raw 'tools/n44-preview.ps1'
+          $server = Get-Content -Raw 'tools/n43-preview.ps1'
+          foreach ($test in @(
+            @{ Name='no interactive gc'; Ok=($safe.Contains('gc.auto 0') -and $safe.Contains('maintenance.auto false') -and $safe.Contains('--no-auto-gc')) },
+            @{ Name='only fast-forward'; Ok=$safe.Contains('merge --ff-only') },
+            @{ Name='no unsafe reset or delete'; Ok=(-not $safe.Contains('reset --hard') -and -not $safe.Contains('Remove-Item')) },
+            @{ Name='local verified Reader8 probe'; Ok=($server.Contains('N44_REAL_SWISS_READER_8_REPORT_VERIFIED') -and $server.Contains("preferred='local'")) },
+            @{ Name='both API and web listeners'; Ok=($server.Contains('n43-live-preview-api.mjs') -and $server.Contains('npm run dev:web')) },
+            @{ Name='local-only API routing'; Ok=$server.Contains("INTERNAL_API_ORIGIN='http://127.0.0.1:4000'") }
+          )) {
+            if (-not $test.Ok) { throw "Windows launch contract failed: $($test.Name)" }
+          }
+          Write-Host 'N44_WINDOWS_LAUNCHER_PARSE_AND_SAFE_GIT_PASS'
