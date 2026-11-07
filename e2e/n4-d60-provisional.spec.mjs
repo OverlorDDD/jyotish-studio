@@ -148,10 +148,8 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain.getByTestId('reader-v7-D27')).toContainText('Опора у відповідальності');
  await expect(plain.getByTestId('reader-v7-d60')).toContainText('Лагна D60');
 
- const reader=page.getByTestId('n4-varga-reader');
- await expect(reader).toBeVisible();
- await expect(reader.locator('[data-testid^="n4-varga-reading-D"]')).toHaveCount(15);
- await expect(reader.getByTestId('n4-varga-reading-D27')).toContainText('Сильні та слабкі сторони');
- await expect(reader.getByTestId('n4-varga-reading-D60')).toHaveCount(0);
- await expect(reader.getByTestId('n4-d60-interpretation-limit')).toContainText('Лагна D60');
+ await expect(page.getByTestId('n4-varga-reader')).toHaveCount(0);
+ await expect(plain.getByTestId('reader-v7-D60')).toHaveCount(0);
+ const detail=page.locator('.reading-root details').filter({hasText:'Поглиблене астрологічне пояснення'});
+ await expect(detail).toHaveCount(1);
 });
