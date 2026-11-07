@@ -8,8 +8,12 @@ on:
       - 'tools/n4-14-time-d60.test.mjs'
       - 'tools/n4-14-regression-corpus.test.mjs'
       - 'tools/n4-14-sensitivity.mjs'
-      - 'tools/n4-14-sensitivity.test.mjs'
+      - 'tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs'
       - 'tools/n4-14-python-zoneinfo.py'
+      - 'tools/n4-14-python-requirements.txt'
+      - 'tools/n4-14-native-private-run.mjs'
+      - 'tools/n4-native-swieph-exact-profile.mjs'
+      - 'tools/n4-14-utc-sensitivity.test.mjs'
       - 'apps/api/src/n4-birth-time-certainty.ts'
       - 'tools/n4-birth-time-policy.test.mjs'
   push:
@@ -22,6 +26,10 @@ on:
       - 'tools/n4-14-sensitivity.mjs'
       - 'tools/n4-14-sensitivity.test.mjs'
       - 'tools/n4-14-python-zoneinfo.py'
+      - 'tools/n4-14-python-requirements.txt'
+      - 'tools/n4-14-native-private-run.mjs'
+      - 'tools/n4-native-swieph-exact-profile.mjs'
+      - 'tools/n4-14-utc-sensitivity.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,10 +45,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned IANA tzdata for Python (including Windows parity)
+        run: python -m pip install --disable-pip-version-check -r tools/n4-14-python-requirements.txt
       - name: Record host timezone implementation provenance
         run: node -e "console.log(JSON.stringify({node:process.version,icu:process.versions.icu,tz:process.versions.tz},null,2))"
       - name: Strict N4.14 isolated regression suite
         run: node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs
+      - name: Syntax-check native private 50-case CLI (no private artifacts in CI)
+        run: node --check tools/n4-14-native-private-run.mjs
       - name: Independent Python zoneinfo cross-runtime comparison
         run: python3 tools/n4-14-python-zoneinfo.py
       - name: Diagnostic only, not release certification
