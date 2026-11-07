@@ -6,6 +6,7 @@ on:
       - '.github/workflows/n4-14-time-d60.yml'
       - 'tools/n4-14-time-d60.mjs'
       - 'tools/n4-14-time-d60.test.mjs'
+      - 'tools/n4-14-regression-corpus.test.mjs'
       - 'apps/api/src/n4-birth-time-certainty.ts'
       - 'tools/n4-birth-time-policy.test.mjs'
   push:
@@ -14,6 +15,7 @@ on:
       - '.github/workflows/n4-14-time-d60.yml'
       - 'tools/n4-14-time-d60.mjs'
       - 'tools/n4-14-time-d60.test.mjs'
+      - 'tools/n4-14-regression-corpus.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,7 +34,7 @@ jobs:
       - name: Record host timezone implementation provenance
         run: node -e "console.log(JSON.stringify({node:process.version,icu:process.versions.icu,tz:process.versions.tz},null,2))"
       - name: Strict N4.14 isolated regression suite
-        run: node --test tools/n4-14-time-d60.test.mjs
+        run: node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs
       - name: Diagnostic only, not release certification
         run: |
           echo N414_FOUNDATION_DIAGNOSTIC_TESTS_PASS
