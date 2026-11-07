@@ -4,7 +4,8 @@
 .canvas{display:block!important;width:100%;max-width:1400px;min-width:0;margin:0 auto;padding:18px clamp(12px,2.4vw,32px) 56px!important;box-sizing:border-box}
 .canvas :global(.main){width:100%;max-width:100%;min-width:0;margin:0}
 .canvas :global(.content){width:100%;max-width:100%;min-width:0;padding:0!important}
-.canvas :global(.jy-portal-toolbar){max-width:100%;min-width:0;margin-bottom:18px}
+/* Keep the save-chart popover above hero content but below the sticky site header. */
+.canvas :global(.jy-portal-toolbar){max-width:100%;min-width:0;margin-bottom:18px;position:relative;isolation:isolate;z-index:1}
 .hero{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.13fr) minmax(250px,.87fr);gap:clamp(12px,3vw,38px);align-items:center;overflow:hidden;padding:clamp(26px,4vw,58px);border-radius:28px;background:radial-gradient(circle at 80% 45%,rgba(58,94,147,.33),transparent 48%),linear-gradient(130deg,#0e192b 0%,#1c2d48 53%,#101b30 100%);border:1px solid rgba(212,185,137,.35);box-shadow:0 24px 60px rgba(3,11,24,.24)}
 .hero:before{position:absolute;content:'';inset:0;pointer-events:none;opacity:.26;background-image:radial-gradient(circle,#d9dcf3 1px,transparent 1px);background-size:53px 59px;mask-image:linear-gradient(90deg,transparent,black)}
 .heroCopy{z-index:1;min-width:0}
