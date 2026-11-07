@@ -178,7 +178,7 @@ function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:Non
 export default function DetailedReport({report,lang}:{report:ReadingReport;lang:'uk'|'en'}){
  const uk=lang==='uk',ai=report.ai;
  const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text);
- const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
+ const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.editorialVersion==='n45-human-reading-1.0.0'&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
  const hasV7=report.readerV7?.version==='reader-v7.0.0-n43'&&report.readerV7.status==='available'&&report.readerV7.insights.length===15;
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
  const fullConsultation=aiChapters.size>0;
