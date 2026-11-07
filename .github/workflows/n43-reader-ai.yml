@@ -25,6 +25,10 @@ jobs:
         run: |
           node --experimental-strip-types --test tools/n4-reader-ai-16.test.mjs
           node --experimental-strip-types --test tools/a8-reader-v6-editorial.test.mjs tools/direct-jyotish.test.mjs
+      - name: Three different synthetic charts in Ukrainian and English
+        run: |
+          node --experimental-strip-types tools/n43-reader-preview.mjs > /tmp/n43-reader-samples.log
+          grep -q 'N43_READER_7_SYNTHETIC_UA_EN_3_CASES_PASS' /tmp/n43-reader-samples.log
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
