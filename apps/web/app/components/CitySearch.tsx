@@ -5,7 +5,7 @@ export default function CitySearch({locale,onChoose,resetToken,selectedPlace,onC
  const [query,setQuery]=useState(''),[cities,setCities]=useState<City[]>([]);
  const [state,setState]=useState<'idle'|'loading'|'error'|'ready'>('idle');
  const [selected,setSelected]=useState(false);
- useEffect(()=>{if(selectedPlace===undefined)return;setQuery(selectedPlace);setSelected(Boolean(selectedPlace));setCities([]);setState('idle')},[selectedPlace]);
+ useEffect(()=>{if(!selectedPlace)return;setQuery(selectedPlace);setSelected(true);setCities([]);setState('idle')},[selectedPlace]);
  useEffect(()=>{if(resetToken===undefined)return;setQuery('');setCities([]);setState('idle');setSelected(false)},[resetToken]);
  useEffect(()=>{
   if(selected||query.trim().length<2){setCities([]);setState('idle');return;}
