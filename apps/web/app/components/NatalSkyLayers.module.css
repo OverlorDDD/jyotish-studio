@@ -1,24 +1,8 @@
-.sky{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;width:100%;min-height:440px;padding:12px 0 0;overflow:hidden;--sky-x:0deg;--sky-y:0deg}
-.glow{position:absolute;inset:4% 4% 25%;background:radial-gradient(circle,rgba(222,169,110,.26),rgba(70,115,168,.18) 40%,transparent 70%);filter:blur(17px);pointer-events:none}
-.stack{position:absolute;inset:0 0 91px;perspective:850px;transform:rotateX(var(--sky-x)) rotateY(var(--sky-y));transform-style:preserve-3d;transition:transform .2s ease-out;pointer-events:none}
-.plane{position:absolute;top:40%;left:50%;width:66%;aspect-ratio:1;border:1px solid rgba(175,202,237,.35);border-radius:18px;background:linear-gradient(135deg,rgba(39,66,97,.3),rgba(8,23,45,.72));box-shadow:0 15px 40px #030a2290,inset 0 0 27px #d6e4ff0b;color:#91b9e9;transform:translate(-50%,-50%) rotate(45deg) skew(-8deg,-8deg);transition:border-color .3s,box-shadow .3s,background .3s}
-.plane svg{position:absolute;inset:7%;width:86%;height:86%;transform:rotate(-45deg) skew(8deg,8deg);filter:drop-shadow(0 0 6px #b9cceb66)}
-.back{top:32%;left:48%;opacity:.6;animation:floatA 12s ease-in-out infinite alternate}
-.middle{top:43%;left:51%;opacity:.8;animation:floatB 11s ease-in-out infinite alternate}
-.front{top:54%;left:53%;opacity:.95;animation:floatC 14s ease-in-out infinite alternate}
-.active{border-color:#edc98fa8;background:linear-gradient(135deg,#86684445,#142d4ace);box-shadow:0 15px 48px #040b2599,0 0 34px #ddb57829}
-.layerLabel{position:absolute;bottom:9%;right:7%;font-size:9px;font-weight:800;letter-spacing:.08em;color:#f4d49c;transform:rotate(-45deg)}
-.star{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font-size:38px;color:#ffdfa7;text-shadow:0 0 24px #ffc27899;animation:pulse 6s ease-in-out infinite}
-.current{position:relative;z-index:1;display:flex;align-items:center;gap:12px;padding:9px 14px;margin-top:auto;margin-bottom:11px;border:1px solid #d8bb8a88;border-radius:12px;background:#0a1729e8;box-shadow:0 10px 35px #02071480;color:#eef3fb;min-width:220px}
-.current>b{font-size:19px;color:#f3c989;padding-right:11px;border-right:1px solid #d8bb8a66}
-.current strong,.current small{display:block}.current strong{font-size:13px}.current small{margin-top:3px;font-size:11px;color:#b9cce3}
-.controls{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;max-width:346px}
-.choice,.picked{min-height:37px;padding:8px 10px;border:1px solid #c8d8ee55;border-radius:10px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.35;background:#14283ee8;color:#e2ecfa;cursor:pointer}
-.picked{border-color:#f9ddac;background:#eac287;color:#132239}
-.choice:hover{border-color:#f3cc94;background:#304761}
-.choice:focus-visible,.picked:focus-visible{outline:3px solid white;outline-offset:2px}
-.note{position:relative;text-align:center;font-size:10px;line-height:1.6;color:#bed0e5;margin:10px 0 0}
-@keyframes floatA{to{translate:0 -8px}}@keyframes floatB{to{translate:0 7px}}@keyframes floatC{to{translate:0 -6px}}@keyframes pulse{50%{opacity:.67}}
-@media(max-width:900px){.sky{min-height:355px}.stack{inset:0 0 88px}.plane{width:72%}}
-@media(max-width:650px){.sky{min-height:315px}.stack{inset:0 0 91px}.plane{width:min(53%,220px)}.current{margin-bottom:7px}.controls{max-width:320px}}
-@media(prefers-reduced-motion:reduce){.plane,.star{animation:none!important}.stack,.plane{transition:none!important}}
+/* Original celestial atlas: lightweight 2D canvas, not a natal-chart widget. */
+.scene{position:relative;isolation:isolate;display:block;align-self:center;width:100%;max-width:480px;margin:0;min-width:0;aspect-ratio:640 / 620;overflow:visible;background:radial-gradient(ellipse at 54% 48%,rgba(54,98,154,.19),rgba(30,55,94,.065) 53%,transparent 78%);}
+.scene::before{content:'';position:absolute;inset:12% 13%;border-radius:50%;background:radial-gradient(circle,rgba(169,183,232,.12),transparent 68%);filter:blur(25px);z-index:-1;pointer-events:none}
+.canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:pan-y;user-select:none}
+.caption{position:absolute;bottom:0;left:50%;transform:translateX(-50%);max-width:100%;white-space:nowrap;margin:0;padding:4px 9px;font:500 10px/1.35 system-ui,sans-serif;letter-spacing:.06em;color:#a7bbd7;background:rgba(15,27,47,.36);border-radius:100px;pointer-events:none;text-align:center}
+@media(max-width:900px){.caption{font-size:8px;letter-spacing:0}.scene{width:100%}}
+@media(max-width:650px){.scene{width:min(100%,360px);margin:0 auto;max-width:100%}.caption{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.scene,.canvas{animation:none!important;transition:none!important}}
