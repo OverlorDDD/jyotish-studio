@@ -50,3 +50,17 @@ test('GP1 all 4 downloadable resumes are real committed binaries, not print plac
  }
 });
 function sourceBinary(p){return readFileSync(new URL('../'+p,import.meta.url));}
+
+test('GP2 CV phone and technology inventory are current, bilingual and substantial',()=>{
+ assert.equal(profile.contact.phone,'+380 66 086 24 31');
+ assert.ok(!JSON.stringify(profile).includes('+380 66 085 24 31'));
+ for(const language of ['en','uk']){
+  const p=profile[language];
+  assert.ok(p.skills.length>=8,'CV must cover full technology categories');
+  assert.ok(p.projects[0].details.length>=9,'Galaxiora implementation details missing');
+  const text=JSON.stringify(p);
+  for(const evidence of ['Swiss Ephemeris','PostgreSQL','Prisma','Next.js','NestJS','Playwright','Azure','OIDC','GA4','IndexNow']){
+   assert.ok(text.includes(evidence),language+' missing evidence: '+evidence);
+  }
+ }
+});

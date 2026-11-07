@@ -4,7 +4,7 @@
     "nameUk": "Денис Авраменко",
     "location": "Ukraine",
     "email": "denavramenko777@gmail.com",
-    "phone": "+380 66 085 24 31",
+    "phone": "+380 66 086 24 31",
     "github": "https://github.com/OverlorDDD",
     "linkedin": "https://www.linkedin.com/in/denys-avramenko-00b742154",
     "website": "https://galaxiora.com",
@@ -13,10 +13,10 @@
   },
   "en": {
     "title": "Full-Stack Software Engineer",
-    "subtitle": "TypeScript · Next.js · NestJS · AI-Assisted Engineering",
+    "subtitle": "TypeScript · React / Next.js · NestJS · PostgreSQL · AWS",
     "tagline": "I turn ideas into working products.",
-    "intro": "I design, build and ship modern web applications — from responsive interfaces and APIs to databases, automation and production releases.",
-    "profile": "Full-stack engineer with three years of client-facing freelance web development and hands-on product delivery. I work across React/Next.js, Node.js/NestJS, PostgreSQL and AWS, using structured AI-assisted workflows backed by tests and engineering judgement.",
+    "intro": "I build and ship full-stack products: multilingual interfaces, reliable APIs, verified computation engines, content pipelines, cloud deployments and automated release checks.",
+    "profile": "Full-stack software engineer with client-facing freelance experience and hands-on delivery of Galaxiora, a bilingual production platform. Work spans architecture, accessible React/Next.js interfaces, NestJS APIs, PostgreSQL/Prisma data models, deterministic astronomical calculations, integrations, security, CI/CD, analytics and AWS operations. I use AI coding tools with reviews, tests and documented acceptance gates rather than treating generated code as verified.",
     "ctaWork": "Explore my open works",
     "ctaContact": "Contact me",
     "ctaPdf": "Download CV · PDF",
@@ -62,20 +62,36 @@
     ],
     "skills": [
       {
-        "label": "Frontend",
-        "value": "TypeScript, JavaScript, React, Next.js, HTML/CSS, responsive UI, SSR/SEO"
+        "label": "Languages & frontend",
+        "value": "TypeScript, JavaScript, React 19, Next.js 15 (App Router, SSR, metadata), HTML5, CSS3/CSS Modules, responsive/mobile UX, accessibility"
       },
       {
-        "label": "Backend & data",
-        "value": "Node.js, NestJS, REST APIs, PostgreSQL, Prisma ORM, Redis, JWT, RBAC"
+        "label": "Backend & architecture",
+        "value": "Node.js 24, NestJS 10, REST/JSON APIs, monorepo/npm workspaces, typed validation, modular services, rate limiting"
       },
       {
-        "label": "DevOps & QA",
-        "value": "AWS EC2, Ubuntu/Linux, Caddy, HTTPS, Docker, Git, GitHub Actions, CI/CD, Playwright, Jest"
+        "label": "Data & access control",
+        "value": "PostgreSQL, SQL, Prisma ORM/migrations, Redis (OpsPilot), authentication, session/JWT flows, RBAC, scoped API keys"
       },
       {
-        "label": "AI-assisted engineering",
-        "value": "Codex, AI coding agents, structured specifications, test-based verification, LLM/API integrations"
+        "label": "Auth & integrations",
+        "value": "Email/password flows, secure cookies, optional Google/Apple OAuth 2.0 / OIDC implementation (configuration-gated), PKCE, state/nonce, JWKS verification"
+      },
+      {
+        "label": "Scientific & domain engines",
+        "value": "Swiss Ephemeris (@swisseph/node, pyswisseph), astronomy/time-zone/DST handling, natal D1/D9/D10, Vimshottari, rule-based Panchanga and time-window search"
+      },
+      {
+        "label": "Data, content & AI",
+        "value": "RSS/news ingestion, Azure AI Translator (NMT), multilingual normalization, Wikimedia Commons licensed-image metadata, LLM API integration/fallback, AI-assisted coding"
+      },
+      {
+        "label": "Cloud, SEO & analytics",
+        "value": "AWS EC2, Ubuntu/Linux, Caddy/HTTPS, systemd, Docker for development, GA4, Search Console, IndexNow, sitemap.xml, JSON-LD, hreflang"
+      },
+      {
+        "label": "Testing & delivery",
+        "value": "Git/GitHub, GitHub Actions CI/CD, Node.js unit/integration tests, Playwright desktop/mobile E2E, TypeScript builds, reference datasets, guarded releases and PostgreSQL backups"
       }
     ],
     "projects": [
@@ -83,12 +99,18 @@
         "name": "Galaxiora",
         "kind": "Full-Stack Product Engineering · Team Startup",
         "period": "2026 – Present",
-        "intro": "Bilingual astrology, Tarot, Panchanga and learning platform in production on AWS.",
+        "intro": "English/Ukrainian production platform combining computational astrology, personalized calendars, editorial news, educational tools and community features.",
         "details": [
-          "Delivered an English/Ukrainian Next.js + NestJS product with PostgreSQL, Prisma, authentication, personalized tools, content and community modules.",
-          "Implemented deterministic astronomical calculations with Swiss Ephemeris and a reference corpus of 20 natal charts covering 600 D1/D9/D10 sign comparisons.",
-          "Built interpretation workflows that separate deterministic results from AI-generated explanations, including validation and fallback paths.",
-          "Established production operations with Ubuntu, Caddy/HTTPS, GitHub Actions, regression checks, GA4 and technical SEO."
+          "Engineered a TypeScript monorepo with React 19 / Next.js 15 (App Router) frontend, NestJS 10 REST services, PostgreSQL, Prisma migrations and bilingual responsive UX.",
+          "Integrated Swiss Ephemeris with deterministic sidereal calculations, D1/D9/D10 natal views, Vimshottari periods, time-zone/DST checks and a 20-chart reference corpus covering 600 sign comparisons.",
+          "Developed Panchanga calendar/time guidance: five-limb daily data, planetary periods, Hora/Choghadiya windows, personalized rules, event-lagna checks and activity-specific screening that explicitly flags incomplete certification.",
+          "Built Vedic and Western horoscope/transit pipelines, natal aspect analysis, Ashtakavarga-based evidence and rules-driven synthesis; kept computed facts separate from interpretive text.",
+          "Implemented GalaxiNews: scheduled publisher ingestion, editorial quality gates, language-aware Azure Translator NMT, Hindi/English/Ukrainian normalization and open-license image attribution via Wikimedia Commons.",
+          "Delivered user workflows for accounts, saved natal data, personal dashboards, Tarot, guided Yoga sessions, GalaxiPedia educational content, GalaxiCom discussion and calendar/ICS exports.",
+          "Developed authentication and security flows including registration/email verification, authorization boundaries, rate limiting and optional Google/Apple OIDC with PKCE/state/nonce and verified identity binding.",
+          "Built AI-assisted private reading workflows with deterministic input evidence, provider fallback, output validation and separation from non-LLM public horoscope/news generation.",
+          "Owned deployment/quality workflow on AWS EC2, Ubuntu, Caddy/TLS and systemd: GitHub Actions, Playwright mobile/desktop checks, regression/reference tests, guarded releases and database backups.",
+          "Implemented technical SEO and measurement: bilingual metadata/hreflang, sitemaps/robots, JSON-LD, IndexNow, Google Search Console, GA4 and privacy-aware first-party aggregate analytics."
         ],
         "live": "https://galaxiora.com",
         "code": "https://github.com/OverlorDDD/jyotish-studio"
@@ -99,9 +121,9 @@
         "period": "2025 – 2026",
         "intro": "A prototype control plane for safe runtime configuration and administrative workflows.",
         "details": [
-          "Built workspace-scoped RBAC, Redis cache-aside, revision history, approvals, audit trails and rollback flows.",
-          "Developed scoped service API keys, rate limiting and a Node.js SDK with resilient caching.",
-          "Validated a local API benchmark of 1,000 requests at concurrency 50; not a claim of production customer traffic."
+          "Designed workspace-scoped RBAC, revisioned configuration changes, approvals, audit logs and rollback paths for administrative workflows.",
+          "Implemented Redis cache-aside, service API keys, rate limits and a Node.js SDK with resilient caching and clear authorization boundaries.",
+          "Measured a local API benchmark of 1,000 requests at concurrency 50 (development benchmark, not live customer traffic)."
         ],
         "code": "https://github.com/OverlorDDD/opspilot-admin"
       }
@@ -128,16 +150,16 @@
   },
   "uk": {
     "title": "Full-Stack Software Engineer",
-    "subtitle": "TypeScript · Next.js · NestJS · Розробка з AI-асистентами",
+    "subtitle": "TypeScript · React / Next.js · NestJS · PostgreSQL · AWS",
     "tagline": "Перетворюю ідеї на працюючі продукти.",
-    "intro": "Проєктую, розробляю й запускаю сучасні вебзастосунки — від адаптивних інтерфейсів та API до баз даних, автоматизації й production-релізів.",
-    "profile": "Full-Stack розробник із трьома роками клієнтської фриланс-розробки та практичним досвідом запуску вебпродуктів. Працюю з React/Next.js, Node.js/NestJS, PostgreSQL та AWS. Використовую AI-асистентів, технічні специфікації, тестування й контроль якості.",
+    "intro": "Розробляю та запускаю full-stack продукти: багатомовні інтерфейси, надійні API, точні обчислювальні рушії, системи контенту, хмарну інфраструктуру й автоматизовані перевірки.",
+    "profile": "Full-Stack розробник із клієнтським досвідом фрилансу та практикою запуску Galaxiora — двомовної production-платформи. Проєктую архітектуру, React/Next.js інтерфейси, NestJS API, моделі PostgreSQL/Prisma, детерміновані астрономічні розрахунки, інтеграції, авторизацію, CI/CD, аналітику та AWS-релізи. Використовую AI-асистентів із code review, тестами та чіткими критеріями приймання.",
     "ctaWork": "Мої відкриті роботи",
     "ctaContact": "Написати мені",
     "ctaPdf": "Завантажити CV · PDF",
     "ctaWord": "Завантажити CV · Word",
     "sectionExpertise": "Що я створюю",
-    "sectionWorks": "My Open Works",
+    "sectionWorks": "Мої відкриті роботи",
     "sectionCareer": "Досвід та освіта",
     "sectionContact": "Створімо щось корисне разом.",
     "contactText": "Розглядаю Full-Stack / AI-First вакансії, дистанційну роботу та команди, що розвивають реальні продукти.",
@@ -177,20 +199,36 @@
     ],
     "skills": [
       {
-        "label": "Frontend",
-        "value": "TypeScript, JavaScript, React, Next.js, HTML/CSS, адаптивний UI, SSR/SEO"
+        "label": "Мови та frontend",
+        "value": "TypeScript, JavaScript, React 19, Next.js 15 (App Router, SSR, metadata), HTML5, CSS3/CSS Modules, адаптивний UI, доступність"
       },
       {
-        "label": "Backend і дані",
-        "value": "Node.js, NestJS, REST API, PostgreSQL, Prisma ORM, Redis, JWT, RBAC"
+        "label": "Backend та архітектура",
+        "value": "Node.js 24, NestJS 10, REST/JSON API, монорепозиторій/npm workspaces, валідація DTO, модульні сервіси, rate limiting"
       },
       {
-        "label": "DevOps і QA",
-        "value": "AWS EC2, Ubuntu/Linux, Caddy, HTTPS, Docker, Git, GitHub Actions, CI/CD, Playwright, Jest"
+        "label": "Дані та права доступу",
+        "value": "PostgreSQL, SQL, Prisma ORM/міграції, Redis (OpsPilot), аутентифікація, session/JWT, RBAC, API-ключі з обмеженнями"
       },
       {
-        "label": "AI-assisted engineering",
-        "value": "Codex, AI-агенти, технічні специфікації, перевірки тестами, LLM/API інтеграції"
+        "label": "Авторизація та інтеграції",
+        "value": "Email/password, захищені cookie, опційний Google/Apple OAuth 2.0 / OIDC (потребує конфігурації), PKCE, state/nonce, JWKS"
+      },
+      {
+        "label": "Астрономія та обчислення",
+        "value": "Swiss Ephemeris (@swisseph/node, pyswisseph), часові пояси/DST, натальні D1/D9/D10, Vimshottari, правила Панчанги та пошук часових вікон"
+      },
+      {
+        "label": "Контент та AI",
+        "value": "RSS-агрегація, Azure AI Translator (NMT), багатомовна нормалізація, метадані ліцензій Wikimedia Commons, LLM API/fallback, AI-assisted coding"
+      },
+      {
+        "label": "Хмара, SEO та аналітика",
+        "value": "AWS EC2, Ubuntu/Linux, Caddy/HTTPS, systemd, Docker для розробки, GA4, Search Console, IndexNow, sitemap.xml, JSON-LD, hreflang"
+      },
+      {
+        "label": "Тести й доставка",
+        "value": "Git/GitHub, GitHub Actions CI/CD, Node.js unit/integration тести, Playwright E2E для desktop/mobile, TypeScript build, еталонні датасети, захищені релізи та backup PostgreSQL"
       }
     ],
     "projects": [
@@ -198,12 +236,18 @@
         "name": "Galaxiora",
         "kind": "Full-Stack розробка продукту · Командний стартап",
         "period": "2026 – дотепер",
-        "intro": "Двомовна платформа астрології, Таро, Панчанги й навчання, що працює на AWS.",
+        "intro": "Двомовна production-платформа з астрологічними обчисленнями, персональними календарями, редакційними новинами, навчанням і спільнотою.",
         "details": [
-          "Реалізована українсько-англійська платформа на Next.js і NestJS із PostgreSQL, Prisma, авторизацією, персоналізацією, контентом і спільнотою.",
-          "Детерміновані астрономічні розрахунки на Swiss Ephemeris і корпус із 20 натальних карт для 600 зіставлень знаків D1/D9/D10.",
-          "Розроблені процеси трактування, що відділяють перевірені обчислення від AI-пояснень, із валідацією та резервними сценаріями.",
-          "Налагоджені production-процеси: Ubuntu, Caddy/HTTPS, GitHub Actions, регресійні перевірки, GA4 та технічне SEO."
+          "Спроєктував TypeScript-монорепозиторій: React 19 / Next.js 15 (App Router), NestJS 10 REST API, PostgreSQL, Prisma-міграції, адаптивний двомовний інтерфейс.",
+          "Інтегрував Swiss Ephemeris для детермінованих сидеричних обчислень, карт D1/D9/D10, періодів Vimshottari, перевірок часових поясів/DST і корпусу 20 карт із 600 зіставленнями знаків.",
+          "Розробив Панчангу й підбір часу: п’ять елементів доби, планетарні періоди, Hora/Choghadiya, персональні правила, Lagna події та категорійні перевірки з чесним позначенням неповної сертифікації.",
+          "Реалізував ведичні й західні гороскопи, транзити, натальні аспекти, Ashtakavarga та правила синтезу; відділив математичні факти від трактувань.",
+          "Побудував GalaxiNews: планове завантаження джерел, редакційні quality gates, мовно-залежний Azure Translator NMT, нормалізацію гінді/англійської/української та атрибуцію зображень Wikimedia Commons.",
+          "Реалізував користувацькі модулі: облікові записи, збережені карти, персональний кабінет, Таро, йога-практики, GalaxiPedia, форум GalaxiCom, календарі та експорт ICS.",
+          "Розробив авторизацію й захист: реєстрація/підтвердження email, обмеження доступу, rate limiting, а також опційну Google/Apple OIDC-інтеграцію з PKCE, state/nonce і перевіркою ідентичності.",
+          "Створив AI-assisted процеси приватних консультацій із перевіреними вхідними обчисленнями, резервними LLM-провайдерами та валідацією результату; публічні гороскопи й новини залишив без генеративного AI.",
+          "Налаштував AWS EC2, Ubuntu, Caddy/TLS, systemd, GitHub Actions, Playwright desktop/mobile, регресійні й еталонні тести, контрольовані релізи та резервне копіювання БД.",
+          "Реалізував SEO й аналітику: двомовні метадані/hreflang, sitemap/robots, JSON-LD, IndexNow, Google Search Console, GA4 та агреговану first-party аналітику."
         ],
         "live": "https://galaxiora.com",
         "code": "https://github.com/OverlorDDD/jyotish-studio"
@@ -214,9 +258,9 @@
         "period": "2025 – 2026",
         "intro": "Прототип панелі керування конфігурацією й адміністративними процесами.",
         "details": [
-          "Реалізовані RBAC з ізоляцією робочих просторів, Redis cache-aside, історія змін, погодження, аудит і відкат.",
-          "Створені API-ключі з обмеженими правами, rate limiting та Node.js SDK із кешуванням.",
-          "Перевірений локальний бенчмарк API: 1000 запитів з паралельністю 50. Це не показник трафіку реальних клієнтів."
+          "Реалізував RBAC з ізоляцією робочих просторів, ревізії конфігурацій, погодження, журнали аудиту та механізми відкату.",
+          "Додав Redis cache-aside, API-ключі з обмеженими правами, rate limiting і Node.js SDK зі стійким кешуванням.",
+          "Перевірив локальний API-бенчмарк: 1000 запитів за паралельності 50 (це тест розробки, не трафік реальних клієнтів)."
         ],
         "code": "https://github.com/OverlorDDD/opspilot-admin"
       }

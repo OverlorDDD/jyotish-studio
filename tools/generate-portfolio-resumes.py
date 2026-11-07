@@ -202,6 +202,13 @@ def check(profile):
             if not path.is_file() or path.stat().st_size < 3000:
                 raise RuntimeError(f"CV file missing or too small: {path}")
         reader = PdfReader(str(name_for(locale, "pdf")))
+        text = " ".join((page.extract_text() or "") for page in reader.pages)
+        def digits(value):
+            return "".join(ch for ch in value if ch.isdigit())
+        if digits(profile["contact"]["phone"]) not in digits(text):
+            raise RuntimeError(f"Correct phone absent from PDF: {locale}")
+        if "380660852431" in digits(text):
+            raise RuntimeError(f"Legacy phone found in PDF: {locale}")
         if not 1 <= len(reader.pages) <= 4:
             raise RuntimeError(f"Unexpected PDF page count: {locale}")
         urls = [annotation.get_object().get("/A", {}).get("/URI", "")
@@ -212,6 +219,10 @@ def check(profile):
             bad = z.testzip()
             if bad or "word/document.xml" not in z.namelist():
                 raise RuntimeError(f"Corrupt DOCX: {locale}")
+            from docx import Document
+            content = " ".join(p.text for p in Document(str(name_for(locale, "docx"))).paragraphs)
+            if profile["contact"]["phone"] not in content or "+380 66 085 24 31" in content:
+                raise RuntimeError(f"Outdated DOCX phone: {locale}")
             relationships = z.read("word/_rels/document.xml.rels").decode("utf8")
             if "github.com" not in relationships or "galaxiora.com" not in relationships:
                 raise RuntimeError(f"DOCX links absent: {locale}")
