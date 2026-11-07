@@ -33,7 +33,7 @@ try{
   $env:SITE_NOINDEX='0'
   $env:ALLOW_PYTHON_SWISSEPH='0'
   Write-Host '=== N4 RC dependencies (no Docker) ===' -ForegroundColor Cyan
-  & npm ci --no-audit --no-fund;Step 'NPM_CI'
+  & npm install --no-audit --no-fund;Step 'NPM_INSTALL'
   & npm run db:generate;Step 'PRISMA'
   Write-Host '=== N4 RC unit and negative security tests ===' -ForegroundColor Cyan
   & node --check tools/n4-rc-lahiri-physical-audit.mjs;Step 'SOURCE_CHECK'
