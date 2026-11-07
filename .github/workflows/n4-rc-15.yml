@@ -31,7 +31,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - name: Install npm workspaces without Docker
         run: npm install --no-audit --no-fund
       - name: Generate build-time Prisma client (no database connection)
@@ -76,7 +75,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - name: Install and build Next.js (no Docker, API mocked by Playwright)
         run: |
           npm install --no-audit --no-fund
