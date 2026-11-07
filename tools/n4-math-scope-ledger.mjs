@@ -26,7 +26,7 @@ export function auditN4ScopedEvidence(){
  if(actual!==EXPECTED_BLOB)throw Error('N4_SOURCE_BLOB_CHANGED_REQUIRES_NEW_EXTERNAL_PYJHORA_PARITY');
  const py=ledger.scopeRules[0],original=ledger.scopeRules[1],dasha=ledger.scopeRules[3];
  if(py.sourceRepoBlob!==EXPECTED_BLOB||py.referenceRun!==41845004488||
-   py.referenceJob!==126626101250||py.originalIndependentPyjhoraMethodParity!==true||
+   py.referenceJob!==126626101250||py.originalIndependentPyJhoraMethodParity!==true||
    py.certifiesPhysicalBirthLongitude!==false||
    original.certifiesProductionLahiriD2SunMoon!==false||
    dasha.sourceYearDefinition!=='YearDefinition=0 3'||
