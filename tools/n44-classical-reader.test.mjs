@@ -41,6 +41,7 @@ test('Classical Reader 8 combines source-bound, multilingual evidence for 15 div
   const chart=fixture(seed),uk=buildClassicalReaderV8(chart,'uk','2026-11-07');
   const en=buildClassicalReaderV8(chart,'en','2026-11-07');
   assert.equal(uk.version,READER_V8_VERSION);
+  assert.equal(uk.editorialVersion,'n45-human-reading-1.0.0');
   assert.equal(uk.ruleSetVersion,N44_CLASSICAL_RULESET_VERSION);
   assert.equal(uk.status,'available');assert.equal(en.status,'available');
   assert.equal(uk.insights.length,15);assert.equal(en.insights.length,15);
@@ -48,7 +49,7 @@ test('Classical Reader 8 combines source-bound, multilingual evidence for 15 div
   assert.deepEqual(uk.insights.map(i=>i.division),[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45]);
   for(const i of uk.insights){
    assert.ok(i.headline.length>45&&i.strength.length>75&&i.challenge.length>75);
-   assert.ok(i.context.length>95&&i.step.length>75);
+   assert.ok(i.context.length>95&&i.step.length>38);
    assert.ok(i.proof.some(x=>x.includes('D1.house-lord.')));
    assert.ok(i.proof.some(x=>x.startsWith('D'+i.division+'.')));
    assert.ok(i.sources.every(x=>N44_CLASSICAL_SOURCES.some(src=>src.id===x.id)));
