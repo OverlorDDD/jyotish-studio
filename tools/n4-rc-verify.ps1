@@ -1,77 +1,113 @@
-# N4 RC offline/online Windows candidate verification, NO Docker/AWS/main changes.
-# Run from the user's current repository: one PowerShell.exe -File invocation.
+# N4 RC: independently verify 12 NEW vargas, not already certified D1/D9/D10.
+# No Docker, AWS, main branch, PR #120 merge, production deployment or user data.
 [CmdletBinding()]
 param([string]$ExpectedCommit='')
 $ErrorActionPreference='Stop'
 $branch='release/n4-natal-15-varga-rc-20261107'
-$repo='OverlorDDD/jyotish-studio'
-$base=Join-Path $env:USERPROFILE 'galaxiora-n4-rc-private-lab'
-$work=Join-Path $base ('n4-rc-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+$PID)
-$source=Join-Path $work 'source'
-$report=Join-Path $work 'N4_RC_LAHIRI20_RESULT.json'
-function Step([string]$label){
- if($LASTEXITCODE -ne 0){throw ('N4RC_'+$label+'_FAILED exit='+$LASTEXITCODE)}
+$lab=Join-Path $env:USERPROFILE 'galaxiora-n4-rc-private-lab'
+$run=Join-Path $lab ('new12-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+$PID)
+$checkout=Join-Path $run 'source'
+$venv=Join-Path $run 'pyjhora-oracle-only'
+$jsonPath=Join-Path $run 'N4_RC_NEW12_PYJHORA_INDEPENDENT_6000.json'
+function Check([string]$stage){
+ if($LASTEXITCODE -ne 0){throw ('N4RC_'+$stage+'_FAILED_EXIT_'+$LASTEXITCODE)}
 }
 try{
  foreach($exe in @('git','node','npm')){
-  if(-not (Get-Command $exe -ErrorAction SilentlyContinue)){throw ('N4RC_REQUIRED_EXE_MISSING='+$exe)}
+  if(-not (Get-Command $exe -ErrorAction SilentlyContinue)){
+   throw ('N4RC_REQUIRED_EXECUTABLE_MISSING_'+$exe)
+  }
  }
- $root=(& git rev-parse --show-toplevel).Trim();Step 'SOURCE_ROOT'
- $origin=(& git -C $root remote get-url origin).Trim();Step 'SOURCE_ORIGIN'
- if($origin -notmatch '(^|[:/])OverlorDDD/jyotish-studio(\.git)?$'){throw 'N4RC_UNEXPECTED_SOURCE_REPOSITORY'}
- & git -C $root fetch origin $branch;Step 'FETCH'
- $head=(& git -C $root rev-parse ('origin/'+$branch)).Trim();Step 'HEAD'
- if($ExpectedCommit -and $head -ne $ExpectedCommit){throw ('N4RC_BRANCH_HEAD_CHANGED expected='+$ExpectedCommit+' actual='+$head)}
- New-Item -ItemType Directory -Force -Path $work | Out-Null
- & git -C $root worktree add --detach $source $head;Step 'WORKTREE'
- Write-Host ('N4RC_SOURCE_SHA='+$head)
- Write-Host ('N4RC_ISOLATED_WORKTREE='+$source)
- Push-Location $source
+ $root=(& git rev-parse --show-toplevel).Trim()
+ Check 'GIT_ROOT'
+ $remote=(& git -C $root remote get-url origin).Trim()
+ Check 'ORIGIN'
+ if($remote -notmatch '(^|[:/])OverlorDDD/jyotish-studio(\.git)?$'){
+  throw 'N4RC_SOURCE_REPOSITORY_MISMATCH'
+ }
+ if(Get-Command py -ErrorAction SilentlyContinue){
+  $python='py';$pythonArgs=@('-3')
+ }elseif(Get-Command python -ErrorAction SilentlyContinue){
+  $python='python';$pythonArgs=@()
+ }else{
+  throw 'N4RC_PYTHON3_REQUIRED_FOR_INDEPENDENT_PYJHORA'
+ }
+ & $python @pythonArgs -c "import sys; assert sys.version_info >= (3, 10)"
+ Check 'PYTHON_VERSION'
+ & git -C $root fetch origin $branch
+ Check 'FETCH'
+ $sha=(& git -C $root rev-parse ('origin/'+$branch)).Trim()
+ Check 'HEAD'
+ if($ExpectedCommit -and $sha -ne $ExpectedCommit){
+  throw ('N4RC_HEAD_CHANGED_EXPECTED_'+$ExpectedCommit+'_ACTUAL_'+$sha)
+ }
+ New-Item -ItemType Directory -Force -Path $run | Out-Null
+ & git -C $root worktree add --detach $checkout $sha
+ Check 'ISOLATED_WORKTREE'
+ Write-Host ('N4RC_COMMIT='+$sha) -ForegroundColor Cyan
+ Write-Host ('N4RC_WORKSPACE='+$checkout)
+ Push-Location $checkout
  try{
-  $env:DATABASE_URL='postgresql://ci:ci@127.0.0.1:5433/n4_rc_verification'
+  $env:DATABASE_URL='postgresql://ci:ci@127.0.0.1:5433/n4_rc_local_isolated'
   $env:NEXT_PUBLIC_SITE_URL='https://galaxiora.example'
   $env:SITE_NOINDEX='0'
   $env:ALLOW_PYTHON_SWISSEPH='0'
-  Write-Host '=== N4 RC dependencies (no Docker) ===' -ForegroundColor Cyan
-  & npm install --no-audit --no-fund;Step 'NPM_INSTALL'
-  & npm run db:generate;Step 'PRISMA'
-  Write-Host '=== N4 RC unit and negative security tests ===' -ForegroundColor Cyan
-  & node --check tools/n4-rc-lahiri-physical-audit.mjs;Step 'SOURCE_CHECK'
-  & node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-rc-lahiri-physical-audit.test.mjs;Step 'UNIT_TESTS'
-  Write-Host 'N4RC_UNIT_TESTS_PASS' -ForegroundColor Green
-  & node --experimental-strip-types --test tools/n4-rc-runtime-integration.test.mjs
-  Step 'REAL_NATIVE_API_AND_DST'
-  Write-Host 'N4RC_REAL_NATIVE_API_DST_INTEGRATION_PASS' -ForegroundColor Green
-  Write-Host '=== N4 RC real original Lahiri SWIEPH 20-source diagnostic ===' -ForegroundColor Cyan
-  $raw=@(& node --experimental-strip-types tools/n4-rc-lahiri-physical-audit.mjs)
-  Step 'NATIVE_LAHIRI_20'
-  $physical=($raw -join [Environment]::NewLine)|ConvertFrom-Json
-  if($physical.status -ne 'N4_RC_ORIGINAL_LAHIRI_20_SOURCE_DIAGNOSTIC_COMPLETE' -or
-     $physical.originalJHoraCases -ne 20 -or
-     $physical.original50CaseExternalReleaseGatePassed -ne $false -or
-     $physical.productionN4Approved -ne $false){
-    throw 'N4RC_UNVERIFIABLE_LAHIRI_SOURCE_REPORT'
+  $env:QT_QPA_PLATFORM='offscreen'
+  $env:PYTHONWARNINGS='ignore'
+  Write-Host '=== N4 RC 12 NEW VARgas: prepare independent PyJHora ===' -ForegroundColor Cyan
+  & $python @pythonArgs -m venv $venv
+  Check 'CREATE_ORACLE_VENV'
+  $oracle=Join-Path $venv 'Scripts\python.exe'
+  if(-not (Test-Path -LiteralPath $oracle -PathType Leaf)){
+   throw 'N4RC_ORACLE_VENV_PYTHON_NOT_CREATED'
   }
-  [System.IO.File]::WriteAllText($report,($raw -join [Environment]::NewLine),
-    [System.Text.UTF8Encoding]::new($false))
-  Write-Host ('N4RC_D1_MATCHES='+$physical.signs.D1+'/200')
-  Write-Host ('N4RC_D9_MATCHES='+$physical.signs.D9+'/200')
-  Write-Host ('N4RC_D10_MATCHES='+$physical.signs.D10+'/200')
-  Write-Host ('N4RC_MOON_WITHIN_1_ARCSEC='+$physical.moonWithinOneArcsecond+'/20')
-  Write-Host ('N4RC_LAGNA_WITHIN_1_ARCSEC='+$physical.lagnaWithinOneArcsecond+'/20')
-  Write-Host ('N4RC_PRIVATE_SUMMARY='+$report)
-  Write-Host 'N4RC_NATIVE_LAHIRI_DIAGNOSTIC_PASS_NOT_50_CERTIFICATE' -ForegroundColor Green
-  Write-Host '=== N4 RC build (Core + Nest + Next) ===' -ForegroundColor Cyan
-  & npm run build;Step 'MONOREPO_BUILD'
-  Write-Host 'N4RC_MONOREPO_BUILD_PASS' -ForegroundColor Green
+  & $oracle -m pip install --disable-pip-version-check --no-cache-dir 'PyJHora==4.8.7' 'pyswisseph' 'PyQt6' 'numpy' 'geocoder' 'geopy' 'pytz' 'timezonefinder' 'python-dateutil' 'certifi'
+  Check 'INDEPENDENT_ORACLE_INSTALL'
+  & $oracle -c "from importlib.metadata import version; assert version('PyJHora') == '4.8.7'; from jhora.horoscope.chart import charts"
+  Check 'INDEPENDENT_ORACLE_VERSION'
+  $env:N4_RC_PYTHON=$oracle
+  Write-Host '=== N4 RC: 12 new cards x 50 x 10 against independent oracle ===' -ForegroundColor Cyan
+  $jsonOutput=@(& node --experimental-strip-types tools/n4-rc-new12-pyjhora-compare.mjs)
+  Check 'NEW12_EXTERNAL_REFERENCE_PARITY'
+  $sourceJson=($jsonOutput | Where-Object {$_ -notmatch '^N4_RC_NEW12_SYMBOLIC_'}) -join [Environment]::NewLine
+  $result=$sourceJson | ConvertFrom-Json
+  if($result.status -ne 'N4_RC_NEW12_PYJHORA_INDEPENDENT_6000_OF_6000_PASS' -or
+     $result.totalSigns -ne 6000 -or $result.matchedSigns -ne 6000 -or
+     $result.totalPlanetHouses -ne 5400 -or $result.matchedPlanetHouses -ne 5400 -or
+     $result.byDivision.Count -ne 12 -or
+     $result.originalJHoraSameProfile50PhysicalCertified -ne $false -or
+     $result.publicProductionReleaseAuthorized -ne $false){
+   throw 'N4RC_NEW12_ORACLE_REPORT_NOT_CREDIBLE'
+  }
+  foreach($v in $result.byDivision){
+   if($v.checked -ne 500 -or $v.signMatched -ne 500 -or $v.houseMatched -ne 450){
+    throw ('N4RC_VARGA_D'+$v.division+'_INCOMPLETE')
+   }
+   Write-Host ('N4RC_D'+$v.division+'_INDEPENDENT_SIGN_PARITY='+$v.signMatched+'/500;HOUSES='+$v.houseMatched+'/450') -ForegroundColor Green
+  }
+  [System.IO.File]::WriteAllText($jsonPath,$sourceJson,[System.Text.UTF8Encoding]::new($false))
+  Write-Host ('N4RC_NEW12_REPORT='+$jsonPath)
+  Write-Host 'N4RC_NEW12_EXTERNAL_PYJHORA_6000_6000_PASS' -ForegroundColor Green
+  Write-Host '=== N4 RC: 15-card API integrity and actual native Swiss ===' -ForegroundColor Cyan
+  & npm install --no-audit --no-fund --no-package-lock
+  Check 'NPM_INSTALL'
+  & npm run db:generate
+  Check 'PRISMA'
+  & node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-rc-runtime-integration.test.mjs
+  Check 'API_INTEGRATION_TESTS'
+  Write-Host 'N4RC_API_AND_DST_TESTS_PASS' -ForegroundColor Green
+  Write-Host '=== N4 RC: Core/NestJS/Next.js candidate build ===' -ForegroundColor Cyan
+  & npm run build
+  Check 'BUILD'
+  Write-Host 'N4RC_BUILD_PASS' -ForegroundColor Green
   & node --experimental-strip-types tools/n4-rc-release-decision.mjs
-  Step 'RELEASE_DECISION'
-  Write-Host 'N4RC_RC_LOCAL_ENGINEERING_CHECKS_PASS' -ForegroundColor Green
-  Write-Host 'N4RC_PRODUCTION_RELEASE_BLOCKED_EXPECTED_50_JHORA_AND_CI_AND_OWNER'
-  Write-Host 'N4RC_NO_DOCKER_NO_DEPLOY_NO_MERGE'
- } finally{Pop-Location}
-} catch {
- Write-Host ('N4RC_VERIFICATION_FAILED: '+$_.Exception.Message) -ForegroundColor Red
- Write-Host ('N4RC_DIAGNOSTICS_DIR='+$work)
+  Check 'RELEASE_POLICY'
+  Write-Host 'N4RC_NEW12_LOCAL_ENGINEERING_PASS' -ForegroundColor Green
+  Write-Host 'N4RC_PRODUCTION_CERTIFICATION_BLOCKED_EXPECTED_NOT_A_FAILURE'
+  Write-Host 'N4RC_NO_PRODUCTION_NO_MERGE_NO_DOCKER'
+ }finally{Pop-Location}
+}catch{
+ Write-Host ('N4RC_NEW12_VERIFY_FAIL: '+$_.Exception.Message) -ForegroundColor Red
+ Write-Host ('N4RC_DIAGNOSTICS_FOLDER='+$run)
  exit 1
 }
