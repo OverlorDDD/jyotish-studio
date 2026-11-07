@@ -200,6 +200,12 @@ jobs:
           done
           tail -80 /tmp/galaxiora-a4.log
           exit 1
+      # Run targeted SEO/keyboard regressions early, before the 100+ browser suite.
+      # This keeps crawler-tag and focus defects actionable without a long retry.
+      - name: Focused canonical metadata and keyboard smoke
+        run: |
+          npx playwright test e2e/a4-portal.spec.mjs e2e/r32-seo.spec.mjs \\
+            --project=desktop-chromium --grep 'GP1 root is canonical|keyboard has visible skip link'
       # The legacy all-stages E2E command is retained for historical audits,
       # but it asserts P2/P3 and Academy UI intentionally removed in P4.10.
       # Enforce positive current-product coverage instead, on BOTH viewports.
