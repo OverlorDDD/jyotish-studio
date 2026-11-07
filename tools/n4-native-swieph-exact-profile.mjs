@@ -157,6 +157,37 @@ export async function runN413(options){
  const records=input.cases.map((r,i)=>nativeN413Case(sw,r,i));
  return {...header,...compareN413AgainstSource(input,records)};
 }
+/**
+ * N4.14 read-only research adapter to the EXACT isolated N4.13 native
+ * Swiss/TrueCitra/TRUEPOS profile. No production imports and no global
+ * integration. Every returned planetary position must assert backend SWIEPH=2.
+ * Returned ayanamsha/house helper has no exposed backend flag: separate caveat.
+ */
+export async function createN414NativeResearchSampler({epheDir}={}){
+ const ephe=configuredEpheDir(epheDir);
+ const sw=await nativeLibrary();
+ sw.setEphemerisPath(ephe.path);
+ return Object.freeze({
+  profile:N413_PROFILE,ephemerisFiles:ephe.hashes,
+  ayanamshaAndHousesNativeReturnFlagsUnexposed:true,
+  atUtc({utc,latitude,longitude}){
+   const instant=new Date(utc);
+   assert(typeof utc==='string'&&!Number.isNaN(instant.getTime())&&
+    instant.toISOString()===utc,'N414 UTC must be exact ISO instant');
+   assert(Number.isFinite(latitude)&&latitude>=-85&&latitude<=85&&
+    Number.isFinite(longitude)&&longitude>=-180&&longitude<=180,
+    'N414 latitude/longitude outside research range');
+   const hour=instant.getUTCHours()+instant.getUTCMinutes()/60+
+    instant.getUTCSeconds()/3600+instant.getUTCMilliseconds()/3600000;
+   const jd=sw.julianDay(instant.getUTCFullYear(),instant.getUTCMonth()+1,
+    instant.getUTCDate(),hour);
+   assert(Number.isFinite(jd)&&jd>2000000,'N414 invalid SWIEPH UT JD');
+   const result=normalizedSidereal(sw,jd,latitude,longitude);
+   return result.natalLongitudes;
+  }
+ });
+}
+
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  try{
   const args=process.argv.slice(2),arg=k=>{const p=args.indexOf(k);return p<0?null:args[p+1]};
