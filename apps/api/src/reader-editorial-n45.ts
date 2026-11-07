@@ -328,25 +328,21 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
  const action=topic.actions[group(facts.focused)];
  const headline=topic.opening;
  const strength=uk?
-  tidy('У вашому розрахунку ця тема особливо пов’язана з '+focus+'. '+
-    'Потенційним інструментом тут може бути '+main.gift+'. '+
-    (input.support?'Традиційне положення планети додає цьому ракурсу ваги, але не гарантує результату. ':
-     'Це напрям для розвитку, а не готовий ярлик про ваш характер. ')):
-  tidy('Your calculated chart puts particular emphasis on '+focus+'. '+
-    'A possible strength to explore is '+main.gift+'. '+
-    (input.support?'A traditional placement gives this angle more weight, not a guaranteed outcome. ':
-     'It is a direction to develop, not a label for your personality. '));
+  tidy('У вашій карті саме тут помітна тема '+focus+'. '+
+    'Одна з можливих опор — '+main.gift+'. '+
+    'Її цінність не в самій ідеї, а в тому, що ви можете з нею зробити.'):
+  tidy('Your chart brings attention to '+focus+'. '+
+    'One possible strength here is '+main.gift+'. '+
+    'Its value lies less in the label than in what you choose to do with it.');
  const challenge=uk?
   tidy((close?'Обидва ключові акценти сходяться в одній сфері. ':
    'Інший показник додає тему '+tension+'. ')+
    'Тут легко потрапити у пастку: '+second.trap+'. '+
-   (input.friction?'У традиції для цього положення є додаткове застереження; це привід діяти уважніше, а не вважати труднощі неминучими.':
-     'Спробуйте помічати таку реакцію до того, як вона почне впливати на рішення.')):
+   'Коли це починається, поверніться до одного конкретного питання: '+topic.question+'):
   tidy((close?'Both important factors touch the same area. ':
    'Another factor brings in '+tension+'. ')+
    'A trap to watch for is '+second.trap+'. '+
-   (input.friction?'Traditional sources add a caution here; it calls for attention, not certainty about hardship.':
-     'Notice this tendency before it begins to direct your choices.'));
+   'When that happens, return to one practical question: '+topic.question+');
  const context=uk?
   tidy('Ця тема стає особливо відчутною, коли '+topic.scenario+'. '+
    (same?'Загальний і детальний погляди ведуть до схожого запитання. ':
@@ -362,7 +358,7 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
    topic.stakes+'.');
  const step=action;
  const highlight=uk?
-  tidy(topic.question+' '+(input.friction?'Тут важливо знати свої межі. ':'')+action):
-  tidy(topic.question+' '+(input.friction?'Your boundaries matter here. ':'')+action);
+  tidy('Особливу увагу варто звернути на '+focus+'. '+topic.question+' '+action):
+  tidy('A useful theme to explore is '+focus+'. '+topic.question+' '+action);
  return {headline,strength,challenge,context,step,highlight,voice:'curated_source_bound'};
 }
