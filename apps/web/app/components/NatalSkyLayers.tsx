@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,type PointerEvent} from 'react';
+import {useEffect,useRef,useState,type PointerEvent} from 'react';
 import styles from './NatalSkyLayers.module.css';
 
 /**
@@ -124,21 +124,55 @@ function planet(ctx:CanvasRenderingContext2D,body:Body,hover:boolean){
  }
  ctx.restore();
 }
-function draw(ctx:CanvasRenderingContext2D,seconds:number,pointer:{x:number;y:number;hover:BodyKind|null},reduced:boolean){
+type SkyMotion={
+ targetX:number;targetY:number;x:number;y:number;cursorX:number;cursorY:number;
+ inside:boolean;hover:BodyKind|null;hoverOpacity:number
+};
+const INITIAL_MOTION:SkyMotion={
+ targetX:0,targetY:0,x:0,y:0,cursorX:0,cursorY:0,inside:false,hover:null,hoverOpacity:0
+};
+function hitPlanet(m:SkyMotion):BodyKind|null{
+ if(!m.inside)return null;
+ // Hit testing uses the *rendered*, smoothed planet positions, not jumpy target coordinates.
+ return PLANETS.find(body=>Math.hypot(
+  body.x+m.x*30-m.cursorX,body.y+m.y*24-m.cursorY
+ )<=body.r+19)?.kind??null;
+}
+function drawHoverLabel(ctx:CanvasRenderingContext2D,body:Body,alpha:number){
+ if(alpha<=.005)return;
+ // One consistent tooltip for every body, no permanent planet names in the sky.
+ const x=body.x,y=body.y,r=body.r;
+ ctx.save();
+ ctx.globalAlpha=Math.min(1,alpha);
+ ctx.font='600 12px system-ui,sans-serif';
+ const tw=ctx.measureText(body.name).width;
+ const w=tw+28,h=29;
+ const right=x+r+17,preferred=right+w<W-14?right:x-r-w-17;
+ const bx=clamp(preferred,12,W-w-12);
+ const by=clamp(y-h/2,12,H-h-12);
+ ctx.strokeStyle='rgba(233,205,160,.50)';ctx.lineWidth=.9;
+ ctx.beginPath();ctx.moveTo(x+r+5,y);ctx.lineTo(bx+(bx>x?0:w),by+h/2);ctx.stroke();
+ ctx.fillStyle='rgba(11,22,41,.93)';
+ ctx.beginPath();ctx.roundRect(bx,by,w,h,8);ctx.fill();
+ ctx.strokeStyle='rgba(222,194,148,.72)';ctx.stroke();
+ ctx.fillStyle='#f6dfbb';ctx.textBaseline='middle';
+ ctx.fillText(body.name,bx+14,by+h/2+.5);
+ ctx.restore();
+}
+function draw(ctx:CanvasRenderingContext2D,seconds:number,pointer:SkyMotion,reduced:boolean){
  ctx.clearRect(0,0,W,H);
- const px=pointer.x*7,py=pointer.y*6;
- // A subtle purple/amber cosmic atmosphere echoes the approved spiral #6.
- const nebula=ctx.createRadialGradient(397+px,287+py,23,356,289,311);
+ const px=reduced?0:pointer.x,py=reduced?0:pointer.y;
+ // Multi-depth celestial atlas: near bodies travel ~30px, distant dust just 3–7px.
+ const nebula=ctx.createRadialGradient(397+px*3,287+py*2,23,356,289,311);
  nebula.addColorStop(0,'rgba(116,93,156,.13)');
  nebula.addColorStop(.48,'rgba(75,88,149,.065)');
  nebula.addColorStop(1,'rgba(20,34,62,0)');
  ctx.fillStyle=nebula;ctx.fillRect(0,0,W,H);
- const gold=ctx.createRadialGradient(400,337,10,400,337,225);
+ const gold=ctx.createRadialGradient(400+px*4,337+py*3,10,400,337,225);
  gold.addColorStop(0,'rgba(207,170,117,.05)');
  gold.addColorStop(1,'rgba(207,170,117,0)');
  ctx.fillStyle=gold;ctx.fillRect(0,0,W,H);
- ctx.save();ctx.translate(px*.35,py*.35);
- // Astronomy-chart coordinates at the edge; the chart stays visually open.
+ ctx.save();ctx.translate(px*8,py*6);
  ctx.lineWidth=.7;
  for(let i=0;i<3;i++){
   const y=171+i*116;
@@ -152,6 +186,9 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,pointer:{x:number;y:nu
   ctx.beginPath();ctx.moveTo(x-26,76);
   ctx.bezierCurveTo(x+66,212,x-68,434,x+26,548);ctx.stroke();
  }
+ ctx.restore();
+ // Constellations and stars drift at different speeds to create real depth.
+ ctx.save();ctx.translate(px*13,py*10);
  for(const constellation of CONSTELLATIONS){
   strokeCurve(ctx,constellation,'rgba(186,197,228,.15)',.75);
   for(const [x,y] of constellation){
@@ -159,10 +196,10 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,pointer:{x:number;y:nu
    ctx.fillStyle='rgba(235,230,231,.61)';ctx.fill();
   }
  }
- // A shallow Milky Way arc of dust and tiny stars, no oversized colored discs.
+ ctx.restore();
  for(const star of STARFIELD){
   const shimmer=reduced?1:.91+.09*Math.sin(seconds*.8+star.phase);
-  const x=star.x+pointer.x*star.depth*8,y=star.y+pointer.y*star.depth*6;
+  const x=star.x+px*6*star.depth,y=star.y+py*5*star.depth;
   ctx.globalAlpha=star.a*shimmer*.82;
   ctx.beginPath();ctx.arc(x,y,star.r*.8,0,Math.PI*2);
   ctx.fillStyle=star.r>1.4?'#f5e9d6':'#d8e5f6';ctx.fill();
@@ -172,9 +209,8 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,pointer:{x:number;y:nu
    ctx.strokeStyle='rgba(234,227,230,.3)';ctx.lineWidth=.55;ctx.stroke();
   }
  }
- ctx.restore();ctx.globalAlpha=1;
- ctx.save();ctx.translate(px*.5,py*.5);
- // Three incomplete cartographic trajectories, not a zodiac/tropical ring.
+ ctx.globalAlpha=1;
+ ctx.save();ctx.translate(px*19,py*15);
  ctx.strokeStyle='rgba(225,192,147,.25)';ctx.lineWidth=.95;
  ctx.beginPath();ctx.moveTo(76,378);
  ctx.bezierCurveTo(201,137,425,105,565,272);ctx.stroke();
@@ -185,64 +221,99 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,pointer:{x:number;y:nu
  ctx.beginPath();ctx.moveTo(138,108);
  ctx.bezierCurveTo(236,448,405,511,533,160);ctx.stroke();
  ctx.restore();
- ctx.save();ctx.translate(px,py);
+ ctx.save();ctx.translate(px*30,py*24);
  for(const body of PLANETS)planet(ctx,body,body.kind===pointer.hover);
- // Restrained micro typography is secondary to the hero's main heading.
- ctx.textBaseline='middle';ctx.font='500 9px system-ui, sans-serif';
- for(const body of PLANETS){
-  if(body.kind==='moon'||body.kind==='venus')continue;
-  ctx.fillStyle=body.kind===pointer.hover?'rgba(244,218,180,.9)':'rgba(192,192,213,.48)';
-  ctx.fillText(body.name,body.labelX,body.labelY);
- }
+ const focused=PLANETS.find(body=>body.kind===pointer.hover);
+ if(focused)drawHoverLabel(ctx,focused,pointer.hoverOpacity);
  ctx.restore();
 }
 export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
  const canvasRef=useRef<HTMLCanvasElement>(null);
- const input=useRef({x:0,y:0,hover:null as BodyKind|null});
+ const motionRef=useRef<SkyMotion>({...INITIAL_MOTION});
+ const redrawRef=useRef<()=>void>(()=>{});
+ const [hovered,setHovered]=useState<BodyKind|null>(null);
  useEffect(()=>{
   const canvas=canvasRef.current;
   if(!canvas)return;
   const ctx=canvas.getContext('2d',{alpha:true});
   if(!ctx)return;
-  const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
-  let reduced=motion.matches,visible=true,frame=0,last=0,alive=true;
-  const render=(now:number)=>{
-   if(!alive)return;
-   if(!reduced&&visible&&now-last>=30){last=now;draw(ctx,now/1000,input.current,false);}
-   if(!reduced&&visible)frame=requestAnimationFrame(render);
+  const media=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced=media.matches,visible=true,alive=true,frame=0,lastFrame=0;
+  const m=motionRef.current;
+  const paint=(time:number)=>draw(ctx,time/1000,m,reduced);
+  const syncHover=()=>{
+   const next=hitPlanet(m);
+   if(m.hover!==next){
+    m.hover=next;m.hoverOpacity=next?0:0;
+    setHovered(next);
+    canvas.style.cursor=next?'crosshair':'default';
+   }
   };
-  const paint=()=>{
-   const dpr=Math.min(window.devicePixelRatio||1,2);
-   canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
-   ctx.setTransform(dpr,0,0,dpr,0,0);
-   draw(ctx,0,input.current,reduced);
+  const tick=(now:number)=>{
+   if(!alive||!visible||reduced)return;
+   // Framerate-independent exponential smoothing, ~280ms response.
+   const dt=lastFrame?Math.min(now-lastFrame,65):16.67;
+   lastFrame=now;
+   const damp=1-Math.exp(-dt/260);
+   m.x+=(m.targetX-m.x)*damp;
+   m.y+=(m.targetY-m.y)*damp;
+   syncHover();
+   m.hoverOpacity+=(Number(m.hover!==null)-m.hoverOpacity)*(1-Math.exp(-dt/115));
+   paint(now);
+   frame=requestAnimationFrame(tick);
   };
-  const stop=()=>{cancelAnimationFrame(frame);frame=0;};
+  const stop=()=>{cancelAnimationFrame(frame);frame=0;lastFrame=0;};
+  const drawStatic=()=>{
+   m.targetX=0;m.targetY=0;m.x=0;m.y=0;
+   syncHover();
+   m.hoverOpacity=m.hover?1:0;
+   paint(0);
+  };
   const start=()=>{
-   stop();paint();
-   if(!reduced&&visible)frame=requestAnimationFrame(render);
+   stop();
+   if(!visible)return;
+   if(reduced){drawStatic();return;}
+   paint(0);
+   frame=requestAnimationFrame(tick);
   };
-  const change=()=>{reduced=motion.matches;start();};
+  const setQuality=()=>{
+   const dpr=Math.min(window.devicePixelRatio||1,2);
+   canvas.width=Math.round(W*dpr);
+   canvas.height=Math.round(H*dpr);
+   ctx.setTransform(dpr,0,0,dpr,0,0);
+   start();
+  };
+  const onMotionChange=()=>{reduced=media.matches;start();};
   const watcher=typeof IntersectionObserver==='undefined'?null:new IntersectionObserver(entries=>{
    visible=entries[0]?.isIntersecting??false;
    if(visible)start();else stop();
   },{threshold:.05});
   watcher?.observe(canvas);
-  motion.addEventListener?.('change',change);
-  paint();if(!watcher)start();
-  return ()=>{alive=false;stop();watcher?.disconnect();motion.removeEventListener?.('change',change);};
+  media.addEventListener?.('change',onMotionChange);
+  redrawRef.current=()=>{if(reduced)drawStatic();};
+  setQuality();
+  return ()=>{
+   alive=false;stop();watcher?.disconnect();
+   media.removeEventListener?.('change',onMotionChange);
+   redrawRef.current=()=>{};
+  };
  },[]);
  const point=(event:PointerEvent<HTMLCanvasElement>)=>{
   if(event.pointerType==='touch')return;
   const rect=event.currentTarget.getBoundingClientRect();
-  const x=(event.clientX-rect.left)/rect.width*W;
-  const y=(event.clientY-rect.top)/rect.height*H;
-  input.current.x=clamp((x/W-.5)*2,-1,1);input.current.y=clamp((y/H-.5)*2,-1,1);
-  const nearby=PLANETS.find(p=>Math.hypot(p.x+input.current.x*9-x,p.y+input.current.y*7-y)<p.r+12);
-  input.current.hover=nearby?.kind??null;
-  event.currentTarget.style.cursor=nearby?'crosshair':'default';
+  const m=motionRef.current;
+  m.cursorX=(event.clientX-rect.left)/rect.width*W;
+  m.cursorY=(event.clientY-rect.top)/rect.height*H;
+  m.targetX=clamp((m.cursorX/W-.5)*2,-1,1);
+  m.targetY=clamp((m.cursorY/H-.5)*2,-1,1);
+  m.inside=true;
+  redrawRef.current();
  };
- const leave=()=>{input.current={x:0,y:0,hover:null};};
+ const leave=()=>{
+  const m=motionRef.current;
+  m.inside=false;m.targetX=0;m.targetY=0;
+  redrawRef.current();
+ };
  return <figure className={styles.scene} data-testid="n41-sky" aria-label={lang==='uk'?'Інтерактивна ілюстрація зоряного неба з планетами Сонячної системи':'Interactive illustrated star atlas with Solar System planets'}>
   <canvas ref={canvasRef} width={W} height={H} className={styles.canvas}
     role="img"
@@ -250,6 +321,9 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
     onPointerMove={point} onPointerLeave={leave}>
     {lang==='uk'?'Ілюстрація небесної карти':'Illustration of a celestial atlas'}
   </canvas>
+  <span data-testid="n41-hovered-planet" className={styles.screenReaderStatus} aria-live="polite">
+   {hovered?PLANETS.find(body=>body.kind===hovered)?.name:null}
+  </span>
   <figcaption className={styles.caption}>{lang==='uk'?'Небесний атлас · інтерактивна ілюстрація':'Celestial atlas · interactive illustration'}</figcaption>
  </figure>;
 }
