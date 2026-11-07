@@ -21,3 +21,7 @@
 .boundary strong{display:block;color:#edc994}
 @media(max-width:900px){.highlights{grid-template-columns:1fr}.highlight{padding:14px}}
 @media(max-width:680px){.root{padding:17px 12px}.grid{grid-template-columns:1fr}.card{padding:15px}.top h2{font-size:26px}}
+
+/* N4.5: lyrical but scannable editorial passages, not a wall of mini-headers. */
+.storyText{font-size:14px;line-height:1.82;color:#d3ddec;margin:0;letter-spacing:.002em;max-width:70ch}
+.card .storyText + .storyText{margin-top:-5px}
