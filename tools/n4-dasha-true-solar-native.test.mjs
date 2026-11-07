@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {solveN4SolarArcInstant} from './n4-dasha-true-solar-native.mjs';
+import {solveN4SolarArcInstant,inspectN416LocalDashaResiduals} from './n4-dasha-true-solar-native.mjs';
 const DAY=86400000;
 test('solar longitude crossing agrees with constant solar period in analytic circular model',()=>{
  const yearDays=365.24219,center=Date.parse('2010-01-15T12:00:00Z');
@@ -17,4 +17,37 @@ test('invalid solar bracket never produces a fake date',()=>{
  assert.throws(()=>solveN4SolarArcInstant({
   startMs:0,years:0,yearDays:365.25,getSun:()=>15
  }),/invalid root inputs/);
+});
+
+test('a single held-out day mismatch reports genuine synthetic case, lord and distance to local midnight',()=>{
+ const lords=['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+ const first=Date.parse('2026-01-01T21:59:50.000Z');
+ const original=[],computed=[];
+ for(let i=0;i<9;i++){
+  const at=first+i*365*86400000;
+  const subs=Object.fromEntries(lords.map((x,j)=>[x,at+j*86400000]));
+  const expected=Object.fromEntries(lords.map((x,j)=>[
+   x,new Date(subs[x]+2*3600000).toISOString().slice(0,10)
+  ]));
+  if(i===3)expected.Venus='2029-01-01'; // independently different day
+  original.push({lord:lords[i],start:new Date(at+2*3600000).toISOString().slice(0,10),
+   antardashas:expected});
+  computed.push({lord:lords[i],start:at,subs});
+ }
+ const r=inspectN416LocalDashaResiduals({
+  computed,original,offsetMs:7200000,caseIndex:7
+ });
+ assert.equal(r.length,1);
+ assert.equal(r[0].sourceCaseIndex,8);
+ assert.equal(r[0].level,'antardasha');
+ assert.equal(r[0].majorLord,'Moon');
+ assert.equal(r[0].minorLord,'Venus');
+ assert.notEqual(r[0].deltaCalendarDays,0);
+ assert.equal(r[0].localTimeInterpretation.includes('not independently proven historical IANA DST'),true);
+ assert.equal(r[0].secondsToNearestLocalMidnight,10);
+});
+test('case date evidence cannot be invented from an incomplete source',()=>{
+ assert.throws(()=>inspectN416LocalDashaResiduals({
+  computed:[],original:[],offsetMs:0,caseIndex:0
+ }),/invalid residual inspection/);
 });
