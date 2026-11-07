@@ -104,7 +104,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   setChart(ready);
   setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
-    saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'?saved:null);
+    saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
+    saved?.readerV7?.version==='reader-v7.0.0-n43'?saved:null);
   setInterpretation(lang==='uk'?'Перевірену карту відкрито з кабінету.':'Verified saved chart loaded.');
   setError(false);
   setStatus(lang==='uk'?'Розрахунок перевірено.':'Calculation integrity verified.');
@@ -138,6 +139,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    });
    const data=await readApiJson<ReadingReport>(response);
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
+   if(data.readerV7?.version!=='reader-v7.0.0-n43'||data.readerV7.status!=='available')throw Error(lang==='uk'?'API ще не підтримує Reader 7 з 16 картами життя. Онови сервер API до цієї гілки.':'The API does not support Reader 7 yet. Update the API server to this branch.');
    if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==chart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    setReport(data);
