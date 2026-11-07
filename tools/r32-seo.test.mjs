@@ -24,10 +24,10 @@ test('GP1 sitemap excludes redirected locale homepage aliases and keeps self-can
  const sitemap=read('apps/web/app/sitemap.ts');
  const home=read('apps/web/app/page.tsx');
  const alias=read('apps/web/app/[locale]/page.tsx');
- assert.match(home,/canonical:'\\/'/);
- assert.match(alias,/permanentRedirect\\(portalPath\\(locale,'astrology\\/jyotish'\\)\\)/);
- assert.match(sitemap,/allPages\\.filter\\(suffix=>suffix!==''\\)\\.flatMap/);
- assert.match(sitemap,/url:base\\+'\\/'/);
+ assert.ok(home.includes("canonical:'/'"));
+ assert.ok(alias.includes("permanentRedirect(portalPath(locale,'astrology/jyotish'))"));
+ assert.ok(sitemap.includes("allPages.filter(suffix=>suffix!=='').flatMap"));
+ assert.ok(sitemap.includes("url:base+'/'"));
 });
 
 test('R3.2 Galaxiora has a consistent official brand entity and an indexable About page',()=>{
