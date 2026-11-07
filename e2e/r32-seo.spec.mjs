@@ -56,5 +56,6 @@ test('GP1 root is canonical and locale homepage 308 aliases do not appear in sit
  }
  const xml=await (await request.get('/sitemap.xml')).text();
  expect(xml).toContain('<loc>https://galaxiora.example/</loc>');
- expect(xml).not.toMatch(/<loc>https:\\/\\/galaxiora\\.example\\/(en|uk)<\\/loc>/);
+ expect(xml).not.toContain('<loc>https://galaxiora.example/en</loc>');
+ expect(xml).not.toContain('<loc>https://galaxiora.example/uk</loc>');
 });
