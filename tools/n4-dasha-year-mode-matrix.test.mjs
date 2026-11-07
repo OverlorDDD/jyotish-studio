@@ -17,3 +17,19 @@ test('12 year/clock combinations source-bound to original 20 JHora GUI records',
  assert.equal(r.productionDashaDatesCertified,false);
  assert.equal(r.fixedCalendarYearModelAutomaticallyApproved,false);
 });
+
+test('original source holdout pins actual 20-case year-length results, no overfitting',()=>{
+ const r=auditN4DashaModeMatrix();
+ const find=name=>r.candidatesByHoldoutScore.find(x=>x.yearModel===name&&x.clock==='UTC');
+ const current=find('current-gregorian-365.2425');
+ const sidereal=find('sidereal-365.25636');
+ const savana=find('savana-360');
+ assert.equal(current.training.minorExact,144);
+ assert.equal(current.holdout.minorExact,150);
+ assert.equal(current.overall.minorExact,294);
+ assert.equal(sidereal.training.minorExact,188);
+ assert.equal(sidereal.holdout.minorExact,152);
+ assert.equal(sidereal.overall.minorExact,340);
+ assert.equal(savana.overall.minorExact,6);
+ assert.equal(r.productionDashaDatesCertified,false);
+});
