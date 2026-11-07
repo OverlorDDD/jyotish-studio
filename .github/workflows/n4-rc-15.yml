@@ -1,0 +1,97 @@
+name: N4 RC 15 Vargas — strict candidate QA (no production release)
+on:
+  push:
+    branches: [release/n4-natal-15-varga-rc-20261107]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/api/src/n4-rc-contract.ts'
+      - 'apps/api/src/logic.ts'
+      - 'apps/web/lib/n4-rc-view.ts'
+      - 'apps/web/app/astrology/jyotish/page.tsx'
+      - 'apps/web/app/components/N4RcExplorer*'
+      - 'apps/web/app/components/NorthIndianChart.tsx'
+      - 'apps/web/app/components/CitySearch.tsx'
+      - 'packages/jyotish-core/src/vargas.ts'
+      - 'tools/n4-rc-*'
+      - 'e2e/n4-rc-15.spec.mjs'
+      - '.github/workflows/n4-rc-15.yml'
+permissions:
+  contents: read
+jobs:
+  candidate-unit-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n4_rc_candidate
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install npm workspaces without Docker
+        run: npm install --no-audit --no-fund
+      - name: Generate build-time Prisma client (no database connection)
+        run: npm run db:generate
+      - name: Check N4 scripts compile (including actual CLI)
+        run: |
+          node --check tools/n4-rc-lahiri-physical-audit.mjs
+          node --check tools/n4-rc-lahiri-physical-audit.test.mjs
+          node --check tools/n4-rc-contract.test.mjs
+      - name: N4 scoped provenance, 15 chart and 1 arcsecond regression tests
+        run: node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-rc-lahiri-physical-audit.test.mjs
+      - name: Build NestJS, core and Next.js from this exact commit
+        run: npm run build
+      - name: Check release candidate claims remain restricted
+        run: |
+          node --experimental-strip-types tools/n4-rc-release-decision.mjs
+      - name: Independent 20 original JHora native Lahiri comparison (informational only)
+        id: lahiri20
+        continue-on-error: true
+        run: |
+          node --experimental-strip-types tools/n4-rc-lahiri-physical-audit.mjs > /tmp/n4-rc-lahiri20.json
+          node --input-type=module -e "import fs from 'node:fs';const r=JSON.parse(fs.readFileSync('/tmp/n4-rc-lahiri20.json'));if(r.original50CaseExternalReleaseGatePassed!==false||r.productionN4Approved!==false||r.originalJHoraCases!==20)process.exit(1);console.log(JSON.stringify(r))"
+      - name: Upload aggregate only, never raw birth records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n4-rc-lahiri-20-diagnostic
+          path: /tmp/n4-rc-lahiri20.json
+          if-no-files-found: ignore
+
+  candidate-visual:
+    needs: candidate-unit-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n4_rc_candidate
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install and build Next.js (no Docker, API mocked by Playwright)
+        run: |
+          npm install --no-audit --no-fund
+          npm run build -w @jyotish/core
+          npm run build -w @jyotish/web
+      - name: Headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start release candidate web locally, no remote writes
+        run: |
+          PORT=3000 npm run start -w @jyotish/web > /tmp/n4-rc-web.log 2>&1 &
+          for attempt in $(seq 1 50); do
+            if curl -fsS http://127.0.0.1:3000/en/astrology/jyotish > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -80 /tmp/n4-rc-web.log
+          exit 1
+      - name: UA/EN, 15 charts, D60 absent, tamper and 7 viewport Playwright
+        run: npx playwright test e2e/n4-rc-15.spec.mjs --config=playwright.config.mjs
