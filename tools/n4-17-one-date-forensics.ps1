@@ -56,8 +56,8 @@ try {
   $report=($raw -join [Environment]::NewLine) | ConvertFrom-Json
  } finally {Pop-Location}
  if($report.status -ne 'N4_JHORA20_NATIVE_SOLAR_LONGITUDE_DASHA_DIAGNOSTIC_COMPLETED' -or
-   $report.originalLocalSiderealResidualCount -ne 1 -or
-   @($report.originalLocalSiderealCalendarResiduals).Count -ne 1){
+   $report.originalLocalSiderealMinorResidualCount -ne 1 -or
+   @($report.originalLocalSiderealMinorCalendarResiduals).Count -ne 1){
   throw 'N417_BASELINE_RESIDUAL_COUNT_CHANGED_OR_REPORT_INVALID'
  }
  $sidereal=@($report.comparison | Where-Object {
@@ -68,7 +68,7 @@ try {
    $sidereal[0].sourceDateClockResults.ORIGINAL_CAPTURED_LOCAL.holdout.minorExact -ne 810) {
   throw 'N417_ORIGINAL_JHORA20_SIDEREAL_1619_OF_1620_NOT_REPRODUCED'
  }
- $one=$report.originalLocalSiderealCalendarResiduals[0]
+ $one=$report.originalLocalSiderealMinorCalendarResiduals[0]
  if($one.level -ne 'antardasha' -or
     $one.sourceCaseIndex -lt 1 -or $one.sourceCaseIndex -gt 20 -or
     $one.deltaCalendarDays -eq 0){
@@ -78,6 +78,7 @@ try {
  [System.IO.File]::WriteAllText($output,($raw -join [Environment]::NewLine),[System.Text.UTF8Encoding]::new($false))
  Write-Host '=== N4.17 SINGLE-DATE RESULT ===' -ForegroundColor Cyan
  Write-Host ('N417_REFERENCE_SYNTHETIC_CASE=JQA3-'+$one.sourceCaseIndex.ToString('00'))
+ Write-Host ('N417_TOTAL_MAHADASHA_DATE_MISMATCHES='+$report.originalLocalSiderealMajorResidualCount)
  Write-Host ('N417_MAHADASHA='+$one.majorLord)
  Write-Host ('N417_ANTARDASHA='+$one.minorLord)
  Write-Host ('N417_JHORA_CAPTURE_DATE='+$one.independentlyCapturedJHoraDate)
