@@ -99,7 +99,7 @@ export function verifiedVargaSource(chart:CalculatedChart):N4RcPayload|null{
   n?.version!==N4_RC_CONTRACT_VERSION||
   n.sourceVerificationVersion!==v.version||n.sourceDigest!==v.digest||
   n.status!=='INTERNALLY_VERIFIED_D1_DERIVATION_NOT_EXTERNAL_LAHIRI_CERTIFICATE'||
-  n.ruleVersion!=='n4-parashari-v1.0.0'||
+  n.ruleVersion!=='n4-parashari-v1.0.0'||n.d2Method!=='Sun/Moon Hora'||
   n.method!=='parashari-sunmoon-hora-unequal-trimsamsa-jhora-style-d60-v1'||
   n.d60Excluded!==true||n.externalJhoraPerBirthCertified!==false||
   n.charts?.length!==N4_RC_DIVISIONS.length)return null;
