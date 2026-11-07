@@ -8,6 +8,7 @@ import type {ReadingReport} from '../../components/DetailedReport';
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 const AccountPortal=dynamic(()=>import('../../components/AccountPortal'),{loading:()=>null});
 import N4RcExplorer from '../../components/N4RcExplorer';
+import landing from './NatalLanding.module.css';
 import {assertN4RcView,hasN4RcView,type N4RcView} from '../../../lib/n4-rc-view';
 import {hasD60Provisional,type N4D60UI} from '../../../lib/n4-d60-view';
 import CitySearch from '../../components/CitySearch';
@@ -58,7 +59,7 @@ const nakshatraName=(name:string,lang:'en'|'uk')=>lang==='uk'?(NAKSHATRA_UK[name
 const grahaFull=(name:string,lang:'en'|'uk')=>lang==='uk'?(GRAHA_UK[name]||name):name;
 const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-1];
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
- const lang=initialLang; const [form,setForm]=useState<Form>(EMPTY_FORM),[cityReset,setCityReset]=useState(0),[manualMode,setManualMode]=useState(false),[chart,setChart]=useState<Chart|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
+ const lang=initialLang; const [minutesUncertain,setMinutesUncertain]=useState(false),[form,setForm]=useState<Form>(EMPTY_FORM),[cityReset,setCityReset]=useState(0),[manualMode,setManualMode]=useState(false),[chart,setChart]=useState<Chart|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
  const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false}|null>(null);
@@ -81,6 +82,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   if(!incoming?.input||!Array.isArray(incoming.d1))return;
   setForm({...incoming.input,latitude:String(incoming.input.latitude),longitude:String(incoming.input.longitude)});
   setManualMode(!Boolean(incoming.input.place));
+  setMinutesUncertain(false); // provenance is never inferred from an old stored HH:MM clock value
   // Legacy records never become visible without a fresh server-side integrity check.
   let ready=incoming;
   if(!verified(incoming)||!hasN4RcView(incoming)||!hasD60Provisional(incoming)){
@@ -147,31 +149,55 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const now=Date.now();
  const activeDasha=chart?.dasha.find(d=>Date.parse(d.start)<=now&&Date.parse(d.end)>now);
  const activeAntar=activeDasha?.antardashas.find(a=>Date.parse(a.start)<=now&&Date.parse(a.end)>now);
- return <div className="jy-workbench jy-portal-workbench">
-  <aside className="sidebar jy-section-nav" aria-label={lang==='uk'?'Навігація Джйотіш':'Jyotish navigation'}>
-
-   <div className="side-section">{lang==='uk'?'ДЖЙОТІШ':'JYOTISH'}</div>
-   <nav className="side-nav">
-    <a href="#calculator" className="active"><Compass size={17}/> {lang==='uk'?'Карта D1':'D1 chart'}</a>
-    <a href="#chart-data"><Orbit size={17}/> {lang==='uk'?'Дані карти':'Chart data'}</a>
-    <a href="#timeline"><Clock3 size={17}/> {lang==='uk'?'Даші':'Dashas'}</a>
-    <a href="#interpretation"><Sparkles size={17}/> {lang==='uk'?'AI-трактування':'AI reading'}</a>
-   </nav>
-   <div className="side-bottom"><span className="live-dot"/>{lang==='uk'?'Обчислювальне ядро Джйотіш':'Deterministic Jyotish Core'}<p>LAHIRI · D1 / D9 / D10</p></div>
-  </aside>
+ return <div className={'jy-workbench jy-portal-workbench '+landing.canvas}>
   <div className="main">
    <div className="content" id="calculator">
     <div className="jy-portal-toolbar"><span>GalaxiAstro <b>/</b> JYOTISH</span><AccountPortal birth={chart?.input||null} report={report} lang={lang} onOpenSaved={loadSaved}/></div>
-    <div className="jy-title-row">
-     <div><div className="eyebrow"><span className="accent-line"/> {lang==='uk'?'НАТАЛЬНИЙ РОЗРАХУНОК ДЖЙОТІШ':'JYOTISH NATAL CALCULATION'}</div><h1>{lang==='uk'?'Натальна карта':'Natal chart'}<span className="gold">.</span></h1><p>{lang==='uk'?'Сидеричний розрахунок Лахірі, дробові карти та Вімшоттарі-даша в одному робочому просторі.':'Lahiri sidereal chart, divisional charts and Vimshottari dasha in one workspace.'}</p></div>
-     <div className="jy-title-symbol">☉</div>
+    <section className={landing.hero} aria-labelledby="natal-page-title">
+      <div className={landing.heroCopy}>
+       <div className={landing.eyebrow}>{lang==='uk'?'БЕЗКОШТОВНА ВЕДИЧНА НАТАЛЬНА КАРТА':'FREE VEDIC BIRTH CHART'}</div>
+       <h1 id="natal-page-title">{lang==='uk'?'Твоя натальна карта. Більше, ніж знак зодіаку.':'Your birth chart. Beyond your zodiac sign.'}</h1>
+       <p className={landing.lead}>{lang==='uk'?
+        'Дізнайся свій знак Місяця, асцендент, теми стосунків і покликання. Створи персональну карту за датою, часом і місцем народження — а потім досліджуй усі 16 ведичних карт у власному темпі.':
+        'Discover your Moon sign, rising sign, and the traditional themes of relationships and career. Create a personal Vedic astrology chart from your birth date, time and place, then explore all 16 divisional charts at your own pace.'}</p>
+       <div className={landing.chips}>
+        <span>{lang==='uk'?'Безкоштовний розрахунок':'Free calculation'}</span>
+        <span>{lang==='uk'?'Без обов’язкової реєстрації':'No sign-up required'}</span>
+        <span>{lang==='uk'?'16 ведичних карт':'16 Vedic charts'}</span>
+       </div>
+       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Створити мою карту':'Create my birth chart'} <ArrowUpRight size={18}/></a>
+       <small className={landing.miniDisclaimer}>{lang==='uk'?'За традицією Джйотіш · на основі астрономічних розрахунків Swiss Ephemeris':'Jyotish tradition · calculated with Swiss Ephemeris astronomy'}</small>
+      </div>
+      <div className={landing.heroArt} aria-hidden="true">
+       <div className={landing.orbitOne}/><div className={landing.orbitTwo}/>
+       <div className={landing.orbitThree}/>
+       <span className={landing.planetSun}>☉</span>
+       <span className={landing.planetMoon}>☽</span>
+       <div className={landing.centerSigil}><span>✦</span><small>GALAXIORA</small></div>
+       <div className={landing.orbitCaption}>{lang==='uk'?'ТВОЯ ІСТОРІЯ · 16 ВИМІРІВ':'YOUR STORY · 16 LENSES'}</div>
+      </div>
+    </section>
+    <div className={landing.roadmap} aria-label={lang==='uk'?'Три кроки до натальної карти':'Three steps to your birth chart'}>
+     <div><b>01</b><span>{lang==='uk'?'Введи дані народження':'Enter birth details'}</span></div>
+     <div><b>02</b><span>{lang==='uk'?'Отримай персональні карти':'Get your personal charts'}</span></div>
+     <div><b>03</b><span>{lang==='uk'?'Досліджуй значення':'Explore their meaning'}</span></div>
     </div>
 
-    <details className="jy-input-panel panel" open={!chart}>
-     <summary><span><BookOpen size={17}/><strong>{i.details}</strong></span><small>{chart?(lang==='uk'?'Змінити вихідні дані':'Edit source data'):(lang==='uk'?'Заповніть для розрахунку':'Enter details to calculate')}</small></summary>
+    <details id="birth-details" className={"jy-input-panel panel "+landing.birthForm} open={!chart}>
+     <summary><span><BookOpen size={17}/><strong>{lang==='uk'?'Створи безкоштовну натальну карту':'Create your free birth chart'}</strong></span><small>{chart?(lang==='uk'?'Змінити вихідні дані':'Edit source data'):(lang==='uk'?'Заповніть для розрахунку':'Enter details to calculate')}</small></summary>
      <form onSubmit={calculate} className="jy-input-grid">
       <label>{i.date}<input type="date" value={form.date} onChange={e=>edit('date',e.target.value)} required/></label>
-      <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
+      <div className={landing.timeField}>
+       <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
+       <label className={landing.minuteOption}>
+        <input type="checkbox" checked={minutesUncertain} onChange={e=>setMinutesUncertain(e.target.checked)}/>
+        {lang==='uk'?'Не знаю точних хвилин':'I don’t know the exact minutes'}
+       </label>
+       {(!form.time||minutesUncertain)&&<p className={landing.timeHint} role="status">
+        {lang==='uk'?'Без точних хвилин результат може бути неточним, особливо D60. Якщо хвилини невідомі, введи приблизний час (наприклад, 14:00) і познач це вище.':
+         'Without exact minutes, some placements may be inaccurate, especially D60. If you only know the hour, enter an approximate time (for example 14:00) and mark it above.'}
+       </p>}
+      </div>
       <div className="jy-city-search-field">
        <CitySearch locale={lang} onChoose={chooseCity} resetToken={cityReset} selectedPlace={form.place||''}
          onClear={()=>setForm(old=>({...old,place:undefined,latitude:'',longitude:'',timeZone:''}))}/>
@@ -195,7 +221,15 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <p className={`status ${error?'error':''}`} role="status">{status}</p>
     </details>
 
-    <N4RcExplorer chart={chart} lang={lang}/>
+    {!chart&&<section className={landing.discovery} aria-labelledby="natal-value">
+     <h2 id="natal-value">{lang==='uk'?'Що ти побачиш у своїй карті?':'What will your birth chart reveal?'}</h2>
+     <div className={landing.discoveryGrid}>
+      <article><span>☽</span><h3>{lang==='uk'?'Місячний знак і внутрішній світ':'Moon sign & inner world'}</h3><p>{lang==='uk'?'Почни зі знака Місяця, накшатри та традиційного опису емоційних схильностей.':'Explore the Moon sign, nakshatra and traditional emotional themes.'}</p></article>
+      <article><span>↗</span><h3>{lang==='uk'?'Асцендент та життєвий шлях':'Rising sign & personal path'}</h3><p>{lang==='uk'?'Дізнайся Лагну та побач, як вона формує структуру астрологічних домів.':'See your Lagna (ascendant) and how it organizes your chart houses.'}</p></article>
+      <article><span>✧</span><h3>{lang==='uk'?'Стосунки, кар’єра та інші теми':'Relationships, career & more'}</h3><p>{lang==='uk'?'D9, D10 і ще 13 дробових карт допоможуть дослідити різні аспекти життя.':'Discover D9, D10 and 13 additional divisional charts for different life themes.'}</p></article>
+     </div>
+    </section>}
+    <N4RcExplorer chart={chart} lang={lang} minutesUncertain={minutesUncertain}/>
 
     <section className="jy-ai-launch">
      <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'Одна хмарна консультація за точно обчисленою картою. Якщо модель недоступна, Reader v6 залишається доступним.':'One cloud consultation grounded in the calculated chart. Reader v6 remains available if the provider is offline.'}</small></span><ArrowUpRight size={20}/></button>
@@ -254,6 +288,18 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <div className="jy-dasha-strip">{chart?chart.dasha.map((d,ix)=>{const active=Date.parse(d.start)<=now&&Date.parse(d.end)>now;return <div className={'jy-dasha-cell '+(active?'current':'')} key={ix}><span>{GRAHA_SYMBOL[d.lord]||'•'}</span><strong>{grahaFull(d.lord,lang)}</strong><small>{d.start.slice(0,4)}–{d.end.slice(0,4)}</small>{active&&<b>{lang==='uk'?'ЗАРАЗ':'NOW'}</b>}</div>}):<div className="jy-dasha-empty">{i.waiting}</div>}</div>
     </section>
 
+
+    <section className={landing.faq} aria-labelledby="natal-faq-title">
+     <div className={landing.faqHeader}>
+      <div><span className={landing.eyebrow}>{lang==='uk'?'ЗАПИТАННЯ ТА ВІДПОВІДІ':'GOOD TO KNOW'}</span>
+      <h2 id="natal-faq-title">{lang==='uk'?'Натальна карта — це просто':'Birth charts, explained simply'}</h2></div>
+      <a href={'/'+lang+'/panchanga'}>{lang==='uk'?'Подивитися Панчангу на сьогодні':'Explore today’s Panchanga'}</a>
+     </div>
+     <details><summary>{lang==='uk'?'Що таке натальна карта?':'What is a birth chart?'}</summary><p>{lang==='uk'?'Це астрологічна схема положень планет і домів для заданого моменту та місця народження. Galaxiora використовує сидеричний підхід Джйотіш. Трактування описують ведичну традицію, а не науково підтверджене передбачення майбутнього.':'A birth chart maps planetary positions and houses for a specified birth time and location. Galaxiora uses the sidereal Jyotish tradition. Interpretations reflect this tradition rather than scientifically established predictions.'}</p></details>
+     <details><summary>{lang==='uk'?'Чим ведична карта відрізняється від західного гороскопа?':'How is a Vedic chart different from a Western horoscope?'}</summary><p>{lang==='uk'?'У Джйотіш застосовується сидеричний зодіак і аянамша Лахірі. Тому знак Сонця або Місяця може відрізнятися від популярного західного тропічного гороскопа.':'Jyotish uses a sidereal zodiac and Lahiri ayanamsa. Your Sun or Moon sign can therefore differ from a familiar Western tropical horoscope.'}</p></details>
+     <details><summary>{lang==='uk'?'Чи потрібен точний час народження?':'Do I need an exact birth time?'}</summary><p>{lang==='uk'?'Дата, час і місце потрібні для розрахунку Лагни та домів. За приблизного часу ці показники можуть змінюватися. Особливо чутлива D60: навіть документально записані хвилини не гарантують стабільності її Лагни.':'Date, time and place are used to calculate the ascendant and houses. Approximate times can change these placements. D60 is especially sensitive: even documented minutes cannot guarantee a stable D60 ascendant.'}</p></details>
+     <details><summary>{lang==='uk'?'Що означають D1, D9, D10 і D60?':'What do D1, D9, D10 and D60 mean?'}</summary><p>{lang==='uk'?'D1 — основна натальна схема. D9 традиційно аналізує партнерство і дхарму, D10 — професійні теми, а D60 — тонкі кармічні значення. У Galaxiora доступні всі 16 карт Шодашаварги.':'D1 is the foundation. D9 traditionally explores partnership and dharma, D10 vocational themes, and D60 subtle karmic themes. Galaxiora includes all 16 Shodashavarga charts.'}</p></details>
+    </section>
 
     {chart&&<a className="as-button as-button-secondary jy-journal-link" href={'/'+lang+'/account#personal-journal'}>{lang==='uk'?'Мій особистий журнал — у кабінеті':'My personal journal — open account'}</a>}
 
