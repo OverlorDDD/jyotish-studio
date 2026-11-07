@@ -41,8 +41,11 @@ test('Localized search metadata includes Galaxiora without duplicating default s
  const root=read('apps/web/app/layout.tsx');
  assert.ok(root.includes("template:'%s'"));
  assert.ok(root.includes('BRAND.name'));
- const home=read('apps/web/app/[locale]/page.tsx');
- assert.ok(home.includes('BRAND.name'));
+ // Localized homepage aliases now permanently redirect to canonical chart pages.
+ const aliases=read('apps/web/app/[locale]/page.tsx');
+ assert.ok(aliases.includes("permanentRedirect(portalPath(locale,'astrology/jyotish'))"));
+ const rootHome=read('apps/web/app/page.tsx');
+ assert.ok(rootHome.includes('Galaxiora'),'public root metadata must name Galaxiora');
  const sections=read('apps/web/app/[locale]/[section]/page.tsx');
  assert.ok(sections.includes('moduleTitle(section)'));
  const vedic=read('apps/web/app/[locale]/astrology/jyotish/page.tsx');
