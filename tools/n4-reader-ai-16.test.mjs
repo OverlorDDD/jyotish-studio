@@ -5,7 +5,7 @@ import {makeN4RcPayload,N4_RC_DIVISIONS} from '../apps/api/src/n4-rc-contract.ts
 import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 import {buildN4VargaReadings,compactN4VargaFacts,verifiedVargaSource,N4_VARGA_READER_VERSION} from '../apps/api/src/reader-varga-n4.ts';
 import {buildDetailedReport} from '../apps/api/src/report.ts';
-import {compactJyotishFacts,validateN4ConsultationReferences,DIRECT_JYOTISH_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
+import {compactJyotishFacts,generateDirectJyotish,validateN4ConsultationReferences,DIRECT_JYOTISH_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
 import {astrologicalFacts} from '../apps/api/src/ai.ts';
 
 const names=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
@@ -97,4 +97,35 @@ test('AI reference review rejects D60/fantasy D5, and fails if new vargas are ig
  const plain=calculateChart(birth,fixed());
  assert.equal(validateN4ConsultationReferences('D9 and D10',plain).ok,true);
  assert.equal(validateN4ConsultationReferences('D27 D24',plain).ok,false);
+});
+
+test('Cloud AI input carries new N4 evidence and accepts only grounded multi-varga synthesis',async()=>{
+ const chart=fixture();
+ const prose='## Grounded Jyotish overview\\n\\n'+
+  'D27 gives a contextual view of resilience when compared with the D1 thematic house ruler, while D24 refines learning. '+
+  ('One planetary placement is only a symbol for reflection and never a guarantee of outcomes. ').repeat(14)+
+  'A practical response is to compare the two themes in a real choice and observe which habits support long-term learning.';
+ let payload;
+ const result=await generateDirectJyotish(chart,'en','2026-11-07',{
+  order:['gemini'],keys:{gemini:'test'},freeConfirmed:{gemini:true},limit:()=>true,
+  fetcher:async(_url,request)=>{
+   payload=JSON.parse(request.body);
+   return new Response(JSON.stringify({model:'fake-gemini',choices:[{finish_reason:'stop',message:{content:prose}}]}),{status:200});
+  }
+ });
+ assert.ok(payload.messages[1].content.includes('D27 focus='));
+ assert.ok(payload.messages[1].content.includes('D24 focus='));
+ assert.ok(!payload.messages[1].content.includes(birth.date));
+ assert.equal(result.result?.provider,'gemini');
+ assert.equal(result.result?.text,prose);
+});
+test('Cloud AI refuses a confident D60 claim and retains deterministic Reader fallback',async()=>{
+ const chart=fixture();
+ const prose='## Claimed prediction\\n\\n'+('D60 guarantees a past-life outcome with certainty. ').repeat(40);
+ const result=await generateDirectJyotish(chart,'en','2026-11-07',{
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async()=>new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:prose}}]}),{status:200})
+ });
+ assert.equal(result.result,null);
+ assert.equal(result.reason,'invalid_response');
 });
