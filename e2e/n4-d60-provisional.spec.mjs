@@ -75,6 +75,7 @@ test('Unknown minutes adds a form-time warning and changes D60 caveat without bl
  const explorer=page.getByTestId('n4-rc-explorer');
  await explorer.getByRole('button',{name:/^D60\b/}).click();
  await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
+ await page.locator('#birth-details > summary').click(); // Form is intentionally closed after calculation.
  await page.getByLabel('I don’t know the exact minutes').check();
  await expect(page.getByText('Without exact minutes',{exact:false})).toBeVisible();
  await expect(explorer.getByTestId('n4-d60-precision-warning')).toContainText('may be inaccurate');
