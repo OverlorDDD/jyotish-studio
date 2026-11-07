@@ -88,6 +88,39 @@ try{
   [System.IO.File]::WriteAllText($jsonPath,$sourceJson,[System.Text.UTF8Encoding]::new($false))
   Write-Host ('N4RC_NEW12_REPORT='+$jsonPath)
   Write-Host 'N4RC_NEW12_EXTERNAL_PYJHORA_6000_6000_PASS' -ForegroundColor Green
+  Write-Host '=== Optional ORIGINAL JHora8 private 50: eleven shared NEW cards ===' -ForegroundColor Cyan
+  $originalName='N4_12_50_ORIGINAL_JHORA_SANITIZED_REFERENCE_PRIVATE.json'
+  $originals=@(
+   (Join-Path $root ('tools\'+$originalName)),
+   (Join-Path (Join-Path $env:USERPROFILE 'galaxiora-n414-private-lab') $originalName),
+   (Join-Path 'E:\Downloads\N413PrivateAudit' $originalName)
+  )
+  $authentic=$null
+  foreach($candidate in $originals){
+   if(Test-Path -LiteralPath $candidate -PathType Leaf){
+    $authentic=(Get-Item -LiteralPath $candidate).FullName
+    break
+   }
+  }
+  if($authentic){
+   $originalOutput=@(& node --experimental-strip-types tools/n4-rc-original11-jhora50-local.mjs $authentic)
+   Check 'ORIGINAL_JHORA_NEW11_PRIVATE'
+   $source50=($originalOutput -join [Environment]::NewLine) | ConvertFrom-Json
+   if($source50.status -ne 'N4_RC_ORIGINAL_JHORA8_11_NEW_SHARED_METHOD_5500_OF_5500_PASS' -or
+      $source50.matchedSharedMethodSigns -ne 5500 -or
+      $source50.checkedSharedMethodSigns -ne 5500 -or
+      $source50.d2MethodDifferentOn -ne 420 -or
+      $source50.claimsProductionLahiriPhysicalCertified -ne $false){
+    throw 'N4RC_PRIVATE_JHORA11_SOURCE_FAILED'
+   }
+   $pathOriginal=Join-Path $run 'N4_RC_ORIGINAL11_METHOD_SCOPED_SUMMARY.json'
+   [System.IO.File]::WriteAllText($pathOriginal,($originalOutput -join [Environment]::NewLine),
+    [System.Text.UTF8Encoding]::new($false))
+   Write-Host 'N4RC_ORIGINAL_JHORA_NEW11_SHARED_METHOD_5500_5500_PASS' -ForegroundColor Green
+   Write-Host 'N4RC_D2_SOURCE_US_VS_PRODUCTION_SUN_MOON_420_500_DIFFER_EXPECTED' -ForegroundColor Yellow
+  }else{
+   Write-Host 'N4RC_ORIGINAL_JHORA_PRIVATE_REFERENCE_NOT_PRESENT_LOCAL_DIAGNOSTIC_SKIPPED' -ForegroundColor Yellow
+  }
   Write-Host '=== N4 RC: 15-card API integrity and actual native Swiss ===' -ForegroundColor Cyan
   & npm install --no-audit --no-fund --no-package-lock
   Check 'NPM_INSTALL'
@@ -103,7 +136,7 @@ try{
   & node --experimental-strip-types tools/n4-rc-release-decision.mjs
   Check 'RELEASE_POLICY'
   Write-Host 'N4RC_NEW12_LOCAL_ENGINEERING_PASS' -ForegroundColor Green
-  Write-Host 'N4RC_PRODUCTION_CERTIFICATION_BLOCKED_EXPECTED_NOT_A_FAILURE'
+  Write-Host 'N4RC_PRODUCTION_SAME_PROFILE_PHYSICAL_CERTIFICATION_BLOCKED_EXPECTED_NOT_A_FAILURE'
   Write-Host 'N4RC_NO_PRODUCTION_NO_MERGE_NO_DOCKER'
  }finally{Pop-Location}
 }catch{
