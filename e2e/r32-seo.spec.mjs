@@ -49,9 +49,11 @@ test('GP1 root is canonical and locale homepage 308 aliases do not appear in sit
  expect(root.status()).toBe(200);
  const html=await root.text();
  const head=html.split('</head>')[0];
- expect(head).toContain('<link rel="canonical" href="https://galaxiora.example/"');
- expect(head).toContain('hreflang="en"');
- expect(head).toContain('hreflang="uk"');
+ const match=head.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/i);
+ expect(match,'server-rendered root canonical must be in initial <head>').not.toBeNull();
+ expect(new URL(match[1]).href).toBe('https://galaxiora.example/');
+ expect(head.toLowerCase()).toContain('hreflang="en"');
+ expect(head.toLowerCase()).toContain('hreflang="uk"');
  for(const locale of ['en','uk']){
   const alias=await request.get('/'+locale,{maxRedirects:0});
   expect(alias.status()).toBe(308);
