@@ -153,3 +153,32 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  const detail=page.locator('.reading-root details').filter({hasText:'Поглиблене астрологічне пояснення'});
  await expect(detail).toHaveCount(1);
 });
+
+test('Reader 7 remains readable without horizontal overflow on mobile and desktop',async({page})=>{
+ await ready(page,'uk');
+ const divs=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
+ const v7={
+  version:'reader-v7.0.0-n43',status:'available',introduction:'Зрозумілий опис можливостей і складнощів.',
+  method:'Традиційне тематичне пояснення',
+  highlights:[{id:'strength',title:'Ресурс',text:'Можливість робити кроки щодня.',division:27},
+   {id:'challenge',title:'Ризик',text:'Краще не поспішати.',division:30},
+   {id:'career',title:'Робота',text:'Один вимірюваний результат.',division:10}],
+  insights:divs.map(n=>({division:n,title:'Сфера '+n,focus:'сфера',headline:'Тематичний зв’язок із життям.',
+   strength:'Можлива опора в уважному ставленні до завдань.',challenge:'Ризик поспіху під навантаженням.',
+   step:'Оберіть одну невелику дію для наступного тижня.',proof:['D'+n+'.Jupiter.house=5'],
+   timeSensitivity:n>=16?'higher':'ordinary'})),
+  d60Notice:'D60 не використовується для персонального висновку.'
+ };
+ await page.route('**/api/v1/reports',r=>r.fulfill({status:200,contentType:'application/json',
+  body:JSON.stringify({language:'uk',readerVersion:'6.0.0',verification:proof,sections:[{id:'test',heading:'Огляд',lead:'Огляд',paragraphs:['Дані підтверджено']}],
+   readerV7:v7,ai:{provider:'local',source:'deterministic',fallbackReason:'reader_only',text:''}})}));
+ await page.getByRole('button',{name:/Читати без AI/}).click();
+ for(const width of [320,360,390,430,768,1440]){
+  await page.setViewportSize({width,height:900});
+  const reader=page.getByTestId('reader-v7');
+  await expect(reader).toBeVisible();
+  await expect(reader.locator('[data-testid^="reader-v7-D"]')).toHaveCount(15);
+  const spill=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(spill,'Reader 7 horizontal overflow at '+width).toBeLessThanOrEqual(2);
+ }
+});
