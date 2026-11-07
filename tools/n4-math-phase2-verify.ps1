@@ -130,6 +130,27 @@ try {
         $set.holdout.minorExact + "/810;totalMinor=" + $set.total.minorExact + "/1620")
     }
   }
+  $sidereal = @($solar.comparison | Where-Object {
+    $_.solarYearConvention -eq 'TRUE_SIDEREAL_SOLAR_LONGITUDE_360_DEGREES'
+  })
+  if($sidereal.Count -ne 1 -or
+     $sidereal[0].sourceDateClockResults.ORIGINAL_CAPTURED_LOCAL.total.minorExact -ne 1619 -or
+     $sidereal[0].sourceDateClockResults.ORIGINAL_CAPTURED_LOCAL.holdout.minorExact -ne 810 -or
+     $solar.originalLocalSiderealResidualCount -ne 1 -or
+     $solar.originalLocalSiderealCalendarResiduals.Count -ne 1) {
+    throw 'N416_SIDEREAL_1619_OF_1620_ORIGINAL_BASELINE_CHANGED'
+  }
+  $single=$solar.originalLocalSiderealCalendarResiduals[0]
+  Write-Host '=== N4.17 EXACT ONE-DATE FORENSICS ==='
+  Write-Host ("N417_ONE_DAY_MISMATCH_CASE=JQA3-" + $single.sourceCaseIndex.ToString('00'))
+  Write-Host ("N417_ONE_DAY_MISMATCH_LORDS=" + $single.majorLord + "/" + $single.minorLord)
+  Write-Host ("N417_ONE_DAY_MISMATCH_CALENDAR_DELTA_DAYS=" + $single.deltaCalendarDays)
+  Write-Host ("N417_ONE_DAY_MISMATCH_LOCAL_CLOCK=" + $single.predictedOriginalFixedOffsetLocalHHMMSS)
+  Write-Host ("N417_ONE_DAY_MISMATCH_SECONDS_TO_MIDNIGHT=" + $single.secondsToNearestLocalMidnight)
+  Write-Host "N417_TRUE_SIDEREAL_ORIGINAL_LOCAL_HOLDOUT=810/810"
+  Write-Host "N417_TRUE_SIDEREAL_ORIGINAL_LOCAL_ALL=1619/1620"
+  Write-Host 'N417_CALENDAR_DATE_DIAGNOSTIC_PASS_NOT_A_PRODUCTION_CERTIFICATE'
+
   Write-Host 'N4_NATIVE_SWIEPH_TRUE_SOLAR_20_CASE_DIAGNOSTIC_PASS'
 
 
