@@ -64,7 +64,7 @@ async function ready(page,lang,data=fixture()){
 test('UK D60 is the sixteenth normal tab and missing-minute hint is placed by birth time',async({page})=>{
  await ready(page,'uk');
  const explorer=page.getByTestId('n4-rc-explorer');
- await explorer.getByRole('button',{name:/^D60\\b/}).click();
+ await explorer.getByRole('button',{name:/^D60\b/}).click();
  await expect(explorer).toContainText('D60');
  await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
  await expect(explorer.getByTestId('n4-d60-precision-warning')).toHaveCount(0);
@@ -73,7 +73,7 @@ test('UK D60 is the sixteenth normal tab and missing-minute hint is placed by bi
 test('Unknown minutes adds a form-time warning and changes D60 caveat without blocking the chart',async({page})=>{
  await ready(page,'en');
  const explorer=page.getByTestId('n4-rc-explorer');
- await explorer.getByRole('button',{name:/^D60\\b/}).click();
+ await explorer.getByRole('button',{name:/^D60\b/}).click();
  await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
  await page.getByLabel('I don’t know the exact minutes').check();
  await expect(page.getByText('Without exact minutes',{exact:false})).toBeVisible();
@@ -84,7 +84,7 @@ test('Server-forged D60 digest hides only its chart and does not corrupt the ori
  const wrong=fixture();wrong.n4D60.sourceDigest='b'.repeat(64);
  await ready(page,'en',wrong);
  const explorer=page.getByTestId('n4-rc-explorer');
- await explorer.getByRole('button',{name:/^D60\\b/}).click();
+ await explorer.getByRole('button',{name:/^D60\b/}).click();
  await expect(explorer.locator('.jy-south-chart')).toHaveCount(1);
  await expect(explorer.getByRole('alert')).toContainText('D60 source validation failed');
 });
@@ -92,7 +92,7 @@ test('All 16 charts stay in one responsive explorer at 320–1440 px',async({pag
  await ready(page,'en');
  const explorer=page.getByTestId('n4-rc-explorer');
  await expect(explorer.getByTestId('n41-all-charts').getByRole('button')).toHaveCount(16);
- await explorer.getByRole('button',{name:/^D60\\b/}).click();
+ await explorer.getByRole('button',{name:/^D60\b/}).click();
  for(const width of [320,360,390,430,768,1024,1440]){
   await page.setViewportSize({width,height:850});
   const spill=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
