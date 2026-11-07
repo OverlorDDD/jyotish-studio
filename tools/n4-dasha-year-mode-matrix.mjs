@@ -121,6 +121,10 @@ export function auditN4DashaModeMatrix(){
  if(production.majorExact!==37||production.minorExact!==294||
     local.majorExact!==37||local.minorExact!==293)
   fail('original production dasha 20-case baseline changed unexpectedly');
+ const modeledProduction=results.find(x=>x.yearModel==='current-gregorian-365.2425'&&x.clock==='UTC');
+ if(modeledProduction?.overall.majorExact!==production.majorExact||
+    modeledProduction?.overall.minorExact!==production.minorExact)
+  fail('independent 365.2425 candidate differs from actual production algorithm');
  const sorted=[...results].sort((a,b)=>b.holdout.minorExact-a.holdout.minorExact||
   b.holdout.majorExact-a.holdout.majorExact||
   a.holdout.minorMaxAbsDays-b.holdout.minorMaxAbsDays);
