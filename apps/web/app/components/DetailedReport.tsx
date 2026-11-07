@@ -198,7 +198,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
   {hasLlm&&ai.text&&(!ai.chapters||ai.chapters.length===0)?<article className="jy-direct-document" id="reading-ai" data-testid="jyotish-direct-consultation">
    <div className="reading-chapter-kicker">{uk?'✦ ВАШЕ ПЕРСОНАЛЬНЕ AI-ПРОЧИТАННЯ':'✦ YOUR PERSONAL AI CONSULTATION'}</div>
    <h2>{uk?'Ваш життєвий портрет за Джйотіш':'Your Jyotish life portrait'}</h2>
-   <p className="jy-direct-source">{uk?'Інтерпретація створена за перевіреними даними D1, D9, D10 та даш.':'Interpretation grounded in verified D1, D9, D10 and dasha calculations.'}</p>
+   <p className="jy-direct-source">{uk?'Інтерпретація використовує D1, D9, D10, даші та перевірені додаткові варги; персональні висновки за D60 виключено.':'Interpretation uses D1, D9, D10, dashas and verified additional vargas; individual D60 claims are excluded.'}</p>
    <DirectArticle text={ai.text} lang={lang}/>
   </article>:null}
     {report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?<div className="reading-editorial">
