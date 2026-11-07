@@ -78,3 +78,13 @@ test('forged source digest blocks UI instead of exposing misleading 15 charts',a
  await expect(page.locator('.status.error')).toContainText('N4_RC_CLIENT_CONTRACT_REJECTED',{timeout:20000});
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart')).toHaveCount(0);
 });
+
+test('N4 RC warns when a newly added varga placement is <=1 arcsecond from a sector boundary',async({page})=>{
+ const edge=sample();
+ const chart=edge.n4.charts.find(v=>v.division===24);
+ chart.planets[0].boundaryDistanceArcseconds=0.4;
+ await load(page,'en',edge);
+ await page.getByTestId('n4-rc-additional').locator('summary').click();
+ await page.getByTestId('n4-rc-explorer').getByRole('button',{name:/D24/}).click();
+ await expect(page.getByTestId('n4-near-boundary-warning')).toContainText('within 1 arcsecond');
+});
