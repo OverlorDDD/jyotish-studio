@@ -103,7 +103,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   }
   setChart(ready);
   setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
-   saved?.verification?.digest===ready.verification?.digest?saved:null);
+   saved?.verification?.digest===ready.verification?.digest&&
+    saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'?saved:null);
   setInterpretation(lang==='uk'?'Перевірену карту відкрито з кабінету.':'Verified saved chart loaded.');
   setError(false);
   setStatus(lang==='uk'?'Розрахунок перевірено.':'Calculation integrity verified.');
