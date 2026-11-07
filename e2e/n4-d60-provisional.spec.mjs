@@ -57,7 +57,7 @@ async function ready(page,lang,data=fixture()){
   page.waitForResponse(r=>r.url().includes('/api/v1/charts/calculate')),
   page.locator('button.jy-calc-btn').click()
  ]);
- await expect(page.getByTestId('n4-d60-panel')).toBeVisible();
+ await expect(page.getByTestId('n4-rc-explorer')).toBeVisible();
 
 }
 
