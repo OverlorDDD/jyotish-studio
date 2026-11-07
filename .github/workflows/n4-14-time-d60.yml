@@ -18,6 +18,8 @@ on:
       - 'tools/n4-14-report-gate.test.mjs'
       - 'tools/n4-14-transition-fixtures.json'
       - 'tools/n4-14-transition-fixtures.test.mjs'
+      - 'tools/n4-14-historical-source-ledger.json'
+      - 'tools/n4-14-historical-source-ledger.test.mjs'
       - 'tools/n4-14-native-private-run.mjs'
       - 'tools/n4-14-verify.ps1'
       - 'tools/n4-native-swieph-exact-profile.mjs'
@@ -41,6 +43,8 @@ on:
       - 'tools/n4-14-report-gate.test.mjs'
       - 'tools/n4-14-transition-fixtures.json'
       - 'tools/n4-14-transition-fixtures.test.mjs'
+      - 'tools/n4-14-historical-source-ledger.json'
+      - 'tools/n4-14-historical-source-ledger.test.mjs'
       - 'tools/n4-14-native-private-run.mjs'
       - 'tools/n4-14-verify.ps1'
       - 'tools/n4-native-swieph-exact-profile.mjs'
@@ -69,7 +73,7 @@ jobs:
       - name: Validate native research adapter and audit CLI syntax
         run: node --check tools/n4-14-native-private-run.mjs && node --check tools/n4-native-swieph-exact-profile.mjs && node --check tools/n4-14-crossing-refinement.mjs && node --check tools/n4-14-report-gate.mjs
       - name: N4.14 fail-closed JS mathematical and civil-time regressions
-        run: node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs
+        run: node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs
       - name: Syntax-check Windows one-shot verifier without executing it
         shell: pwsh
         run: |
