@@ -10,10 +10,15 @@ import {resolve} from 'node:path';
 import {VARGA_PROFILE} from '../packages/jyotish-core/src/vargas.ts';
 import {DASHA_YEAR_DAYS} from '../packages/jyotish-core/src/index.ts';
 import {auditN414AggregateEvidence} from './n4-14-report-gate.mjs';
+import {auditN4ScopedEvidence} from './n4-math-scope-ledger.mjs';
 
 export const N4_MATH_READINESS_VERSION='n4-math-method-reconciliation-v1';
 export function reviewN4MathReadiness(input={}){
  const issues=[];
+ const scoped=auditN4ScopedEvidence();
+ if(scoped.productionSunMoonVargaRulesAtPinnedBlob!==true||
+   scoped.originalJHoraUmaShambhu8000ComparisonEvidence!==true)
+  throw Error('N4_SYMBOLIC_METHOD_EVIDENCE_INCOMPLETE');
  if(VARGA_PROFILE!=='parashari-sunmoon-hora-unequal-trimsamsa-jhora-style-d60-v1')
   throw Error('N4_UNKNOWN_PRODUCTION_VARGA_PROFILE_REVIEW_REQUIRED');
  if(DASHA_YEAR_DAYS!==365.2425)throw Error('N4_PRODUCTION_DASHA_MODE_CHANGED_REVIEW_REQUIRED');
@@ -21,8 +26,7 @@ export function reviewN4MathReadiness(input={}){
   auditN414AggregateEvidence(input.n414Aggregate):null;
  if(!verifiedAggregate)issues.push('N414_NATIVE_GRID_RESULT_NOT_SUPPLIED');
  issues.push(
-  'D2_PRODUCTION_SUN_MOON_VS_ORIGINAL_JHORA_UMA_SHAMBHU',
-  'PRODUCTION_LAHIRI_VS_RESEARCH_TRUE_CITRA_GEOMETRIC',
+  'PRODUCTION_LAHIRI_PHYSICAL_EPHEMERIS_NEEDS_INDEPENDENT_SAME_PROFILE_CLOSURE',
   'VIMSHOTTARI_JHORA_YEAR_DEFINITION_AND_DATE_NOT_CERTIFIED',
   'HISTORICAL_CIVIL_TIME_LEGAL_OFFSETS_NOT_CERTIFIED',
   'D60_CONTINUOUS_TIME_ENCLOSURES_NOT_CERTIFIED',
@@ -35,6 +39,12 @@ export function reviewN4MathReadiness(input={}){
    vimshottariConstantYearDays:DASHA_YEAR_DAYS,vargaProfile:VARGA_PROFILE},
   originalJHora50Research:{ayanamsa:'True Citra',physicalPositions:'geometric',
    d2Method:'Uma-Shambhu Hora',sameAsActualCalculator:false},
+  symbolic16VargaRuleEvidence:Object.freeze({
+   productionSunMoonIndependentPyJhora8000:true,
+   originalJHoraUmaShambhu8000:true,
+   twoDifferentValidD2MethodsAreNotFormulaDefects:true,
+   originalJHoraPhysicalPositionsDoNotProveProductionLahiri:true
+  }),
   n414ResearchAggregateValidated:!!verifiedAggregate,
   n414NoContinuousCertification:verifiedAggregate?verifiedAggregate.continuousD60Certified===false:true,
   releaseBlockers:issues,
