@@ -17,3 +17,9 @@
 .unavailable{margin:20px 0;padding:15px 19px;border:1px dashed #bf9a68;border-radius:12px;color:#d2c5a9;font-size:13px}
 @media(max-width:720px){.section{padding:17px 13px}.grid{grid-template-columns:1fr}.card{padding:15px}}
 @media(prefers-reduced-motion:reduce){.section *{transition:none!important;animation:none!important}}
+
+/* N4.3: advanced v6 technical narrative remains available without crowding Reader 7. */
+.deepDive{margin:25px 0;border:1px solid rgba(178,195,219,.26);border-radius:15px;padding:12px 15px;background:rgba(21,37,57,.55)}
+.deepDive>summary{cursor:pointer;color:#e9c68f;font-weight:700;font-size:14px;padding:8px 2px;line-height:1.45}
+.deepDive>summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.deepDive[open]>summary{margin-bottom:18px}
