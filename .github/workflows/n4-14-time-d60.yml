@@ -26,6 +26,8 @@ on:
       - 'tools/n4-production-utc-transition-parity.test.mjs'
       - 'tools/n4-vimshottari-year-mode-audit.mjs'
       - 'tools/n4-vimshottari-year-mode-audit.test.mjs'
+      - 'tools/n4-math-integration-readiness.mjs'
+      - 'tools/n4-math-integration-readiness.test.mjs'
       - 'tools/n4-14-verify.ps1'
       - 'tools/n4-native-swieph-exact-profile.mjs'
       - 'apps/api/src/n4-birth-time-certainty.ts'
@@ -56,6 +58,8 @@ on:
       - 'tools/n4-production-utc-transition-parity.test.mjs'
       - 'tools/n4-vimshottari-year-mode-audit.mjs'
       - 'tools/n4-vimshottari-year-mode-audit.test.mjs'
+      - 'tools/n4-math-integration-readiness.mjs'
+      - 'tools/n4-math-integration-readiness.test.mjs'
       - 'tools/n4-14-verify.ps1'
       - 'tools/n4-native-swieph-exact-profile.mjs'
   workflow_dispatch:
@@ -83,7 +87,7 @@ jobs:
       - name: Validate native research adapter and audit CLI syntax
         run: node --check tools/n4-14-native-private-run.mjs && node --check tools/n4-native-swieph-exact-profile.mjs && node --check tools/n4-14-crossing-refinement.mjs && node --check tools/n4-14-report-gate.mjs
       - name: N4.14 fail-closed JS mathematical and civil-time regressions
-        run: node --experimental-strip-types --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs
+        run: node --experimental-strip-types --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs tools/n4-math-integration-readiness.test.mjs
       - name: Syntax-check Windows one-shot verifier without executing it
         shell: pwsh
         run: |
