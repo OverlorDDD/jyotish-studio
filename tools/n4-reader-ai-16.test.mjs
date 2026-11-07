@@ -61,6 +61,7 @@ test('Missing, mismatched, or forged N4 evidence fails closed in Reader and AI',
   {...v,n4:undefined},
   {...v,n4:{...v.n4,sourceDigest:'f'.repeat(64)}},
   {...v,n4:{...v.n4,d60Excluded:false}},
+  {...v,n4:{...v.n4,d2Method:'unsupported'}},
   {...v,n4:{...v.n4,charts:v.n4.charts.map((c,i)=>i===2?{...c,lagnaSign:13}:c)}},
   {...v,verification:{...v.verification,status:'unverified'}}
  ]){
@@ -90,6 +91,7 @@ test('AI reference review rejects D60/fantasy D5, and fails if new vargas are ig
  const v=fixture();
  assert.equal(validateN4ConsultationReferences('D9 and D10 only',v).reason,'missing_n4_cross_varga_synthesis');
  assert.equal(validateN4ConsultationReferences('D1 / D9 / D27 / D24',v).ok,true);
+ assert.equal(validateN4ConsultationReferences('Д27 і Д24 — нові тематичні карти',v).ok,true);
  assert.equal(validateN4ConsultationReferences('D4 and D60 predict past lives',v).reason,'unsupported_divisional_chart');
  assert.equal(validateN4ConsultationReferences('D27 and D5',v).reason,'unsupported_divisional_chart');
  const plain=calculateChart(birth,fixed());
