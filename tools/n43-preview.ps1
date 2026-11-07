@@ -75,7 +75,7 @@ if(-not $env:GEMINI_API_KEY -and -not $env:GROQ_API_KEY -and -not $env:OPENROUTE
 if(-not (Test-Path -LiteralPath '.\tools\n43-live-preview-api.mjs')){throw 'N4.3 preview server is missing: git pull the latest branch'}
 Write-Host '=== STARTING N4.3 ISOLATED REAL READER PREVIEW ===' -ForegroundColor Cyan
 $api=Start-Process -PassThru -FilePath 'powershell.exe' -WorkingDirectory $root -ArgumentList @(
- '-NoExit','-Command',"$env:PORT='4000'; node --experimental-strip-types tools/n43-live-preview-api.mjs"
+ '-NoExit','-Command','node --experimental-strip-types tools/n43-live-preview-api.mjs'
 )
 $ready=$false
 for($i=0;$i -lt 35;$i++){
@@ -88,7 +88,7 @@ for($i=0;$i -lt 35;$i++){
 }
 if(-not $ready){throw 'N43 API could not start. Read the separate API terminal; no production changes were made.'}
 $web=Start-Process -PassThru -FilePath 'powershell.exe' -WorkingDirectory $root -ArgumentList @(
- '-NoExit','-Command',"$env:WEB_PORT='3000'; npm run dev:web"
+ '-NoExit','-Command','npm run dev:web'
 )
 $ready=$false
 for($i=0;$i -lt 90;$i++){
