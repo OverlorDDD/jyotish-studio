@@ -1,0 +1,35 @@
+{
+  "version": "n4.14-historical-legal-provenance-v1",
+  "status": "PARTIAL_DOCUMENTED_EVENTS_NOT_FULL_ZONE_CERTIFICATION",
+  "events": [
+    {
+      "id": "UA-1990-JUL-CHANGE",
+      "region": "Ukraine",
+      "date": "1990-07-01",
+      "ianaZoneFixture": "Europe/Kyiv",
+      "eventType": "LEGAL_STANDARD_TIME_CHANGE",
+      "sourceUrl": "https://zakononline.ua/documents/show/156651___156651",
+      "sourceDescriptor": "Ukrainian SSR Supreme Council Resolution No. 15-XII, June 11, 1990",
+      "evidencedStatement": "A time calculation order change effective July 1, 1990 is documented.",
+      "sourceIndependentlyProvesExactFoldUtc": false,
+      "regionSpecificBirthplaceCoverageCertified": false,
+      "reviewerAccepted": false
+    },
+    {
+      "id": "SAMOA-2011-DATE-LINE",
+      "region": "Samoa",
+      "date": "2011-12-30",
+      "ianaZoneFixture": "Pacific/Apia",
+      "eventType": "SKIPPED_CIVIL_DATE",
+      "sourceUrl": "https://mcil.gov.ws/wp-content/uploads/2023/10/International-Date-Line-Act-2011.pdf",
+      "sourceDescriptor": "Samoa International Date Line Act 2011 No. 6, official ministry publication",
+      "evidencedStatement": "The statute changed Samoa standard time to UTC+13 and accounts for a lost civil day.",
+      "sourceIndependentlyProvesAllHistoricalDstRules": false,
+      "sourceIndependentlyProvesPreciseBirthMoment": false,
+      "reviewerAccepted": false
+    }
+  ],
+  "allHistoricalOffsetsCertified": false,
+  "allD60TimeInputsCertified": false,
+  "canEnablePublicD60": false
+}
