@@ -1,0 +1,79 @@
+name: N4 D60 — symbolic mathematics and honest birth-time UI (no deploy)
+on:
+  push:
+    branches: [feat/n4-d60-certified-precision-20261107]
+  pull_request:
+    branches: [release/n4-natal-15-varga-rc-20261107]
+permissions:
+  contents: read
+jobs:
+  d60-symbolic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONWARNINGS: ignore
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n4_d60_candidate
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install npm workspaces and isolated external Python comparator
+        run: |
+          npm install --no-audit --no-fund --no-package-lock
+          python -m pip install --no-cache-dir PyJHora==4.8.7 pyswisseph PyQt6 numpy geocoder geopy pytz timezonefinder python-dateutil certifi
+      - name: Genuine independently computed D60 (not self-comparison)
+        run: |
+          node --check tools/n4-d60-pyjhora-parity.mjs
+          python -m py_compile tools/n4-d60-pyjhora-oracle.py
+          node --experimental-strip-types tools/n4-d60-pyjhora-parity.mjs
+      - name: Reject forged precision, method and digest
+        run: node --experimental-strip-types --test tools/n4-d60-contract.test.mjs
+      - name: Full Core/Nest/Next production builds and prior N4 regression checks
+        run: |
+          npm run db:generate
+          node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-rc-runtime-integration.test.mjs
+          npm run build
+      - name: N4 D60 no-release assertions
+        run: |
+          node --experimental-strip-types tools/n4-rc-release-decision.mjs
+
+  d60-browser:
+    needs: [d60-symbolic]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n4_d60_visual
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build local static Next.js preview only
+        run: |
+          npm install --no-audit --no-fund --no-package-lock
+          npm run build -w @jyotish/core
+          npm run build -w @jyotish/web
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Launch isolated test preview; never AWS
+        run: |
+          printf 'SITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' > .env
+          WEB_PORT=3000 npm run start -w @jyotish/web >/tmp/n4-d60-web.log 2>&1 &
+          for attempt in $(seq 1 50); do
+            if curl -fsS http://127.0.0.1:3000/en/astrology/jyotish >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -60 /tmp/n4-d60-web.log
+          exit 1
+      - name: D60 UA/EN provenance, forged method and seven widths
+        run: npx playwright test e2e/n4-d60-provisional.spec.mjs --config=playwright.config.mjs
