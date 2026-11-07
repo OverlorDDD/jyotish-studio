@@ -15,11 +15,15 @@ test('Brand source is EXACT user-approved original galaxy artwork #6, no old G S
  assert.ok(!existsSync(at('apps/web/app/icon.svg')),'rejected G SVG must not be present');
 });
 test('All browser Google and Apple icon metadata names approved galaxy #6',()=>{
- for(const path of ['/favicon.ico','/galaxiora-favicon.png','/apple-touch-icon.png','/site.webmanifest'])
+ for(const path of ['/galaxiora-favicon.png','/apple-touch-icon.png','/site.webmanifest'])
   assert.ok(layout.includes(path),'missing '+path);
+ assert.equal((layout.match(/url:'\/galaxiora-favicon\.png'/g)||[]).length,1,
+  'Google should see exactly one canonical favicon declaration');
+ assert.doesNotMatch(layout,/shortcut:\s*['"]/,'Do not advertise an alternate shortcut icon');
+ assert.doesNotMatch(layout,/url:'\/favicon\.ico'/,'Legacy ICO must not compete with canonical PNG');
  assert.ok(layout.includes("logo:{'@type':'ImageObject',url:siteUrl+'/galaxiora-logo-128.png'"));
  assert.doesNotMatch(layout,/cosmic-g-20261101|galaxy-round-v4|\?v=approved-galaxy/);
- assert.ok(layout.indexOf("url:'/galaxiora-favicon.png'")<layout.indexOf("url:'/favicon.ico'"),'Google-supported PNG must be first');
+ assert.ok(layout.includes("icon:[{url:'/galaxiora-favicon.png',type:'image/png',sizes:'64x64'}]"));
  const shell=read('apps/web/app/components/PortalShell.tsx').toString();
  assert.ok(shell.includes('src="/galaxiora-favicon.png"'));
  assert.doesNotMatch(shell,/\?v=approved-galaxy/);
