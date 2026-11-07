@@ -25,3 +25,23 @@ E. GitHub CI, source-independent review and user acceptance; production D1/D9/D1
 `node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs`
 
 **Current status:** N414_FOUNDATION_IMPLEMENTED; N414_HISTORICAL_TIME_AND_D60_CERTAINTY_PASS **NOT** issued.
+
+
+## 2026-11-07 expansion: second-by-second sensitivity and external runtime
+- `tools/n4-14-sensitivity.mjs`: explicitly diagnostic one-second sweeps over ±15s, ±30s, ±1m, ±2m and ±5m, covering all 10 requested positions, fail-closed on DST fold/gap and incomplete numeric ephemeris callback. Samples NEVER become certified continuous longitude bounds, and real SWIEPH must be injected by a separate research-only runner.
+- `tools/n4-14-sensitivity.test.mjs`: synthetic crossing detection, stability-label negative test, gap/fold sampler nonexecution, malformed provider rejection.
+- `tools/n4-14-python-zoneinfo.py`: Python standard library `zoneinfo` second-runtime differential on the 20-zone January 2024 test corpus plus three Kyiv DST cases. Different runtime does **not** mean independent historical primary evidence; both may draw from related IANA data.
+- CI runs both Node test suites and the Python differential. At present CI green on the exact head SHA is **not yet evidenced**.
+
+## Critical source-quality limitation (IANA)
+IANA explicitly says its timezone database is not authoritative and pre-1970 rules often apply only to particular places. It cannot by itself prove the legality or actual use of historical local birth time. Source: https://www.iana.org/time-zones/theory. TZif format is standardized independently of the underlying source data: https://www.rfc-editor.org/rfc/rfc8536.html.
+
+## Evidence needed for final N414 certification
+1. Original synthetic case input vectors and separately captured original Jagannatha Hora results must be available in a PRIVATE local research environment. Public repository only stores aggregate and synthetic tests; no private birth data.
+2. Explicitly pin original civil date, coordinates, IANA zone, tzdb vintage, offset/FOLD choice and documentary provenance for historic disputed offsets. Require site-specific evidence before 1970.
+3. Actual @swisseph/node SWIEPH planet and tropical-ascendant callback with explicit backend 2 assertion, same source geometry and JHora method profile as N4.13.
+4. Mathematical continuous time-window enclosure for each of 10 positions; derivative or interval proof must be independently validated and account for stationary points, longitude wrap, ephemeris discontinuities and local-time boundaries. A 1-second grid is valuable for discovery but **cannot** certify crossings were absent between seconds.
+5. Independently validated D60 crossing times and 50 original test cases × 5 uncertainty radii. Full CI + browser regressions and user review.
+6. Never enable N4 feature flags, modify JQA3 production settings, deploy AWS, or issue `N414_HISTORICAL_TIME_AND_D60_CERTAINTY_PASS` before 1–5.
+
+**Current checkpoint:** `N414_SECOND_GRID_AND_ZONEINFO_FOUNDATION_COMMITTED`. NOT a math or production certificate.
