@@ -40,6 +40,14 @@ jobs:
           node --check tools/n4-rc-lahiri-physical-audit.mjs
           node --check tools/n4-rc-lahiri-physical-audit.test.mjs
           node --check tools/n4-rc-contract.test.mjs
+      - name: Parse the exact one-shot Windows PowerShell verifier
+        shell: pwsh
+        run: |
+          $tokens=$null
+          $errors=$null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'tools/n4-rc-verify.ps1'),[ref]$tokens,[ref]$errors) | Out-Null
+          if($errors.Count -ne 0){$errors | ForEach-Object {Write-Error $_};exit 1}
+          Write-Host 'N4RC_WINDOWS_POWERSHELL_SYNTAX_PASS'
       - name: N4 scoped provenance, 15 chart and 1 arcsecond regression tests
         run: node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-rc-lahiri-physical-audit.test.mjs
       - name: Real native SWIEPH N4 API end-to-end and DST gap/fold tests
