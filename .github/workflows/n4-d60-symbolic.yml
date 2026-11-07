@@ -39,6 +39,10 @@ jobs:
           node --experimental-strip-types tools/n4-d60-final-certification.mjs
       - name: Reject forged precision, method and digest
         run: node --experimental-strip-types --test tools/n4-d60-contract.test.mjs
+      - name: N4 16-chart Reader and AI thematic evidence QA
+        run: |
+          node --experimental-strip-types --test tools/n4-reader-ai-16.test.mjs
+          node --experimental-strip-types --test tools/a8-reader-v6-editorial.test.mjs tools/direct-jyotish.test.mjs
       - name: Full Core/Nest/Next production builds and prior N4 regression checks
         run: |
           npm run db:generate
