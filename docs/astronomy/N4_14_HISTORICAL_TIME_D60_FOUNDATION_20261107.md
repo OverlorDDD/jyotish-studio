@@ -3,7 +3,7 @@ Date: 2026-11-07. Research-only addition to draft PR #120; NO N4 production rele
 
 ## Deliverables introduced
 1. `tools/n4-14-time-d60.mjs`: IANA/ICU diagnostic converting civil local datetime to zero, one or multiple valid UTC instants. DST spring GAP and autumn FOLD are explicit, never silently normalized; invalid date/zone rejected. Reports host timezone provenance as **NOT externally certified**.
-2. `tools/n4-14-time-d60.test.mjs`: reproducible modern Kyiv winter, DST gap/fold, invalid-input and D60 multiple-boundary regression tests.
+2. `tools/n4-14-time-d60.test.mjs` and `tools/n4-14-regression-corpus.test.mjs`: reproducible Kyiv winter, DST gap/fold, invalid-input and D60 multiple-boundary regression tests; additional 20-region UTC sanity fixture corpus and 50 deterministic D60 interval sweeps. These remain synthetic and are not historical legal-time evidence.
 3. Exact interval arithmetic for D60 0.5-degree crossings on *unwrapped* longitude enclosures. This complements existing `apps/api/src/n4-birth-time-certainty.ts`, which already requires independently attested continuous envelopes and original JHora method certification.
 
 ## Strict scientific/engineering limitations
@@ -22,6 +22,6 @@ D. Report exact crossing times and worst-case sign stability for ±15s, ±30s, �
 E. GitHub CI, source-independent review and user acceptance; production D1/D9/D10, JQA3, flags, privacy and other modules unchanged.
 
 ## Available local smoke
-`node --test tools/n4-14-time-d60.test.mjs`
+`node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs`
 
 **Current status:** N414_FOUNDATION_IMPLEMENTED; N414_HISTORICAL_TIME_AND_D60_CERTAINTY_PASS **NOT** issued.
