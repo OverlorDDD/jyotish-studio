@@ -1,0 +1,2 @@
+# Pinned timezone data to ensure Windows and Linux use the same IANA rules.
+tzdata==2026.6
