@@ -9,7 +9,12 @@ test('16 D charts, one explicit D2 method, all 15 other divisions bit-identical'
  const us=calculateN4VargasForMethod(10,p,{d2Method:'uma-shambhu',
   inputConvention:'original-jhora8-true-citra-geometric'});
  assert.deepEqual(us.charts.map(x=>x.division),SHODASHAVARGA);
- for(let i=0;i<16;i++)if(us.charts[i].division!==2)assert.deepEqual(us.charts[i],legacy[i]);
+ for(let i=0;i<16;i++)if(us.charts[i].division!==2){
+  const {profile:_profile,...sameMath}=us.charts[i];
+  const {profile:_old,...oldMath}=legacy[i];
+  assert.deepEqual(sameMath,oldMath);
+ }
+ assert.ok(us.charts.every(x=>x.profile==='n4-uma-shambhu-hora-parashari-16-v1'));
  const old=legacy.find(x=>x.division===2),alternate=us.charts.find(x=>x.division===2);
  assert.equal(old.lagna.vargaSign,5);assert.equal(alternate.lagna.vargaSign,1);
  assert.equal(alternate.lagna.house,1);
