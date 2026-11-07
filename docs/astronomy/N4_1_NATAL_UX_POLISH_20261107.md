@@ -19,3 +19,17 @@ Date: 2026-11-07. Scope: draft PR #143, **no merge/no AWS deployment**.
 ## Local Windows preview
 
 In `C:\Users\Note\galaxiora-n4-preview`, run `git pull --ff-only` then `npm run dev:web`. Existing `.env` and npm dependencies can be retained. Browser at `http://localhost:3000/uk/astrology/jyotish`. Actual calculated charts additionally require the local API and PostgreSQL; for UI-only visual review, the empty-state navigator, interactive hero and logo work without them.
+
+
+## N4.1.1 — Celestial atlas correction (owner feedback, 2026-11-07)
+
+**Problem found in first visual preview:** three tilted square maps were awkwardly cropped, confusing decorative D27/D9/D10 layers were presented as astronomy, and 4 buttons had no reason to be inside hero art.
+
+**Resolution shipped to the same draft PR:**
+- Replaced the pseudo-divisional polygon chart entirely with a original 640:620 high-DPI canvas celestial atlas: 168 deterministically placed stars, five faint constellation tracings, celestial coordinate sweeps, and partial celestial tracks.
+- Painted six recognizable bodies with shaded discs and rings where appropriate: Sun, Jupiter, Saturn, Neptune, Venus and Moon. Mouse movement provides restrained parallax and pointer proximity highlights individual planets. This is explicitly an illustration, NOT current real ephemeris coordinates or natal positions, and never masquerades as a tropical birth wheel.
+- Removed ALL four theme buttons, the D27/D9/D10/24 visual tags, square stacked-planes, cropped frames and fake natal-grid framing.
+- No new runtime dependencies. Chosen Canvas 2D (with capped DPR=2 and ~30 fps) after reviewing Three.js / R3F alternatives: the hero needs a light decorative planetarium, not a full numerical 3D engine. An IntersectionObserver pauses animation off screen; reduced-motion users get a static painted atlas.
+- Responsive 1:1ish bounded canvas, inset bodies/stars, no overflow. Visible labels are celestial objects, not life-chart headings. Existing approved texts, 16-chart viewer, D60 validation, footer, favicon and logos untouched.
+
+**Acceptance:** no hero buttons, actual rendered Jupiter pixel, responsive proportional visible canvas at 320–1440px, no horizontal overflow, bilingual text retained, existing calculations and branding unchanged. Check exact-commit CI before release and visually approve on localhost. No production deployment.
