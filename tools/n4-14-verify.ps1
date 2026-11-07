@@ -140,7 +140,7 @@ try {
   $head = (& git rev-parse HEAD).Trim()
   NeedExit 'N414_GET_HEAD_FAILED'
   Write-Host "N414_GITHUB_HEAD=$head"
-  & node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs
+  & node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs tools/n4-14-crossing-refinement.test.mjs tools/n4-14-report-gate.test.mjs tools/n4-14-transition-fixtures.test.mjs tools/n4-14-historical-source-ledger.test.mjs tools/n4-d2-original-profile-crosswalk.test.mjs tools/n4-production-utc-transition-parity.test.mjs tools/n4-vimshottari-year-mode-audit.test.mjs
   NeedExit 'N414_NODE_TESTS_FAILED'
   Write-Host 'N414_NODE_REGRESSION_TESTS_PASS'
   $venv = Join-Path $run 'py-venv'
@@ -159,6 +159,10 @@ try {
    Write-Host 'N414_PUBLIC_DIAGNOSTICS_PASS'
    Write-Host 'N414_PRIVATE_SWIEPH_NOT_RUN_EXPLICIT_SKIP'
   } else {
+   Write-Host 'Independent original JHora D2 method-vs-production crosswalk (research only)...'
+   & node --experimental-strip-types tools/n4-d2-original-profile-crosswalk.mjs $PrivateReference
+   NeedExit 'N4_D2_ORIGINAL_JHORA_METHOD_CROSSWALK_FAILED'
+   Write-Host 'N4_D2_ORIGINAL_50_METHOD_CROSSWALK_DIAGNOSTIC_PASS'
    Write-Host 'Installing native research dependencies in isolated worktree only.'
    & npm install --no-audit --no-fund --no-package-lock
    NeedExit 'N414_NATIVE_DEPENDENCY_INSTALL_FAILED'
