@@ -1,0 +1,33 @@
+name: N4.3 Reader 7 and AI — fast integration gate
+on:
+  push:
+    branches: [feat/n4-d60-certified-precision-20261107]
+  pull_request:
+    branches: [release/n4-natal-15-varga-rc-20261107]
+permissions:
+  contents: read
+jobs:
+  n43-reader:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n43_qa
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install workspaces without rewriting the lockfile
+        run: npm install --no-audit --no-fund --no-package-lock
+      - name: Reader 7, old Reader v6 and mock Gemini/Groq tests
+        run: |
+          node --experimental-strip-types --test tools/n4-reader-ai-16.test.mjs
+          node --experimental-strip-types --test tools/a8-reader-v6-editorial.test.mjs tools/direct-jyotish.test.mjs
+      - name: Full Core + API + Next production build
+        run: |
+          npm run db:generate
+          npm run build
+      - name: Confirm no changes to D60 maths
+        run: node --experimental-strip-types --test tools/n4-d60-contract.test.mjs
