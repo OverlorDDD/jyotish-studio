@@ -99,7 +99,7 @@ export function extractN44Evidence(chart:CalculatedChart,division:number,asOf:st
  const signals:ClassicalEvidence[]=[];
  const natal=dignityFor(lord,d1.sign),vargha=dignityFor(lord,placed.sign);
  if(natal==='own'||natal==='exalted'){
-  signals.push(signal('BJ-XXI-D1-'+natal,'BJ-XXI-'+(natal==='own'?'1':'2'),'resource',
+  signals.push(signal('BJ-XXI-D1-'+natal,(natal==='own'?'BJ-XXI-1':'BJ-XXI-2'),'resource',
    'direct_natal',facts,
    name(lord,'uk')+' має традиційно підтримувальне положення у загальній карті. Це привід розглядати тему як можливий ресурс, а не обіцянка успіху.',
    lord+' has a traditionally supportive sign placement in the natal chart. This suggests a resource worth examining, not a promise of success.'));
@@ -110,7 +110,7 @@ export function extractN44Evidence(chart:CalculatedChart,division:number,asOf:st
    'The natal sign of '+lord+' has a traditional difficulty marker. It does not establish inability or failure.'));
  }
  if(vargha==='own'||vargha==='exalted'){
-  signals.push(signal('BJ-XXI-D'+division+'-'+vargha,'BJ-XXI-'+(vargha==='own'?'1':'2'),
+  signals.push(signal('BJ-XXI-D'+division+'-'+vargha,(vargha==='own'?'BJ-XXI-1':'BJ-XXI-2'),
    'resource','modern_varga_extension',facts,
    'У тематичній карті '+name(lord,'uk')+' також має підтримувальне положення за знаком. Це уточнює загальний ракурс; застосування давнього принципу до D'+division+' є сучасним розширенням.',
    'In the topic-specific chart '+lord+' also has a supportive sign status. Applying this older rule to D'+division+' is a modern interpretive extension.'));
