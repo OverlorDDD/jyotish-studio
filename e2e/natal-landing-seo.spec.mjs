@@ -14,10 +14,23 @@ for(const lang of ['en','uk']){
   await expect(page.getByTestId('n4-rc-additional')).toHaveCount(0);
   const sky=page.getByTestId('n41-sky');
   await expect(sky).toBeVisible();
-  const options=sky.getByRole('button');
-  await expect(options).toHaveCount(4);
-  await options.nth(1).click();
-  await expect(options.nth(1)).toHaveAttribute('aria-pressed','true');
+  // N4.1.1: astronomy art has no UI buttons, fake Dn labels, or cropped polygon layers.
+  await expect(sky.getByRole('button')).toHaveCount(0);
+  await expect(sky.locator('canvas')).toBeVisible();
+  await expect(sky.getByText('D27')).toHaveCount(0);
+  await expect(sky.getByText('D9')).toHaveCount(0);
+  const astronomy=await sky.locator('canvas').evaluate(el=>{
+   const canvas=el;
+   const rect=canvas.getBoundingClientRect();
+   const frame=canvas.parentElement.getBoundingClientRect();
+   const ctx=canvas.getContext('2d');
+   const px=ctx.getImageData(Math.round(canvas.width*471/640),Math.round(canvas.height*194/620),1,1).data;
+   return {drawn:px[3]>0,aligned:Math.abs(rect.left-frame.left)<=2&&Math.abs(rect.right-frame.right)<=2,
+    ratio:Math.abs(rect.width/rect.height-640/620)<.025};
+  });
+  expect(astronomy.drawn,'Jupiter should render visibly in the canvas').toBeTruthy();
+  expect(astronomy.aligned,'canvas should stay within its scene').toBeTruthy();
+  expect(astronomy.ratio,'celestial artwork must stay proportional').toBeTruthy();
   await expect(page.locator('.as-brand-icon img')).toHaveCount(1);
   expect(await page.locator('.as-brand-icon img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBeTruthy();
   await expect(page.getByText(lang==='uk'?'Навіщо досліджувати 16 карт життя?':'What can 16 life charts help you explore?')).toBeVisible();
