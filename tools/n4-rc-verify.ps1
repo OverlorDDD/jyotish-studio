@@ -39,6 +39,9 @@ try{
   & node --check tools/n4-rc-lahiri-physical-audit.mjs;Step 'SOURCE_CHECK'
   & node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-rc-lahiri-physical-audit.test.mjs;Step 'UNIT_TESTS'
   Write-Host 'N4RC_UNIT_TESTS_PASS' -ForegroundColor Green
+  & node --experimental-strip-types --test tools/n4-rc-runtime-integration.test.mjs
+  Step 'REAL_NATIVE_API_AND_DST'
+  Write-Host 'N4RC_REAL_NATIVE_API_DST_INTEGRATION_PASS' -ForegroundColor Green
   Write-Host '=== N4 RC real original Lahiri SWIEPH 20-source diagnostic ===' -ForegroundColor Cyan
   $raw=@(& node --experimental-strip-types tools/n4-rc-lahiri-physical-audit.mjs)
   Step 'NATIVE_LAHIRI_20'
