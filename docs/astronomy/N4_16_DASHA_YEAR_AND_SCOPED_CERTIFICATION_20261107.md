@@ -60,3 +60,18 @@ F. Full CI, human-reviewed actual UK/EN AI corpus, approved math-to-UI handoff, 
 - Original JHora / physical / D60 records: docs/astronomy/N4_12_ORIGINAL_JHORA50_REAL_SOURCE_PARITY_20261106.md; docs/astronomy/N4_13_NATIVE_SWIEPH_EXACT_PROFILE_PLAN_20261106.md; docs/astronomy/N4_14_HISTORICAL_TIME_D60_FOUNDATION_20261107.md.
 
 **This is a technical research release candidate, not completed public nativity certification. All production N4 switches remain OFF and redesign remains held.**
+
+
+## 2026-11-07 owner-confirmed N4.16 success; N4.17 exact residual
+
+Real owner Windows output: 29/29 unit tests pass; original 50 JHora8 synthetic sources 8000/8000 symbolic varga signs in Uma-Shambhu method; independently pinned PyJHora 4.8.7 8000/8000 for production Sun/Moon D2 varga rules. This does NOT certify absolute Lahiri physical placements.
+
+Original 20 independent synthetic JHora8 GUI records, original captured fixed-local UTC offset: STRICT native SWIEPH true sidereal solar longitude 360-degree year achieved **1619/1620 minor-period calendar-day matches**, and **810/810 in the 10-chart holdout**. Same native sidereal model compared with UTC calendar days matched 1254/1620, tropical local calendar days matched 601/1620. Owner confirmed N4_NATIVE_SWIEPH_TRUE_SOLAR_20_CASE_DIAGNOSTIC_PASS. No production changes.
+
+N4.17 code: in tools/n4-dasha-true-solar-native.mjs added an independent source-bound residual inspector to isolate a specific original synthetic JQA3 case ID, major/minor lords, signed calendar-day difference, expected vs predicted fixed-local calendar date, and time distance to midnight. It separates minor mismatches from duplicated major starts, and refuses fictitious dates. Tests pin one day from midnight and duplicated major/minor cases. CI covers the new source and Windows audit script syntax.
+
+Fast one-shot Windows program tools/n4-17-one-date-forensics.ps1 reuses previous SUCCESSFUL, isolated native research checkout C:\Users\Note\galaxiora-n414-private-lab\math-method-20261107-134700-403\source with existing verified @swisseph/node, avoiding another npm installation. It verifies git origin and detached SHA, fetches only the updated research-only JS into a disposable untracked file, runs the same genuine 20-case native comparison, verifies 1619/1620 and 810/810 and the existence of ONE minor mismatch, outputs one local JSON, then removes the disposable script. No Docker, deployment, API endpoint, CI flag or frontend change.
+
+Next task for owner AFTER reading the exact single residual: open the matching original synthetic JQA3 case in JHora 8.0 and screenshot the Vimshottari Dasa right-click selected "Definition of year" menu and the affected Maha/Antar period. If available, show time-of-day too. The original INI only encoded YearDefinition=0 3, not its human-readable option. The author's official JHora 8.0 update notes explicitly mention solar-year dasha bug fixes: https://mail.vedicastrologer.org/jh/update_8.0.htm. That background does not itself prove what option 3 means. A 1619/1620 match is very strong evidence but NOT a certified sub-day instant, all-history legal timezone proof, or complete D60 continuous-time certificate.
+
+Mathematical release, enhanced AI and newcomer-first natal UX remain OFF until method/clock source review and owner acceptance. Production untouched.
