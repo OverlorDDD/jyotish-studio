@@ -8,9 +8,6 @@ on:
       - 'apps/web/app/page.tsx'
       - 'apps/web/next.config.mjs'
       - 'tools/google-favicon-production-audit.mjs'
-      - 'apps/web/app/page.tsx'
-      - 'apps/web/next.config.mjs'
-      - 'tools/google-favicon-production-audit.mjs'
       - 'apps/web/app/components/PortalShell.tsx'
       - 'tools/brand-icons-build.mjs'
       - 'tools/brand-icons.test.mjs'
@@ -23,6 +20,9 @@ on:
     paths:
       - 'apps/web/brand-assets/**'
       - 'apps/web/app/layout.tsx'
+      - 'apps/web/app/page.tsx'
+      - 'apps/web/next.config.mjs'
+      - 'tools/google-favicon-production-audit.mjs'
       - 'apps/web/app/components/PortalShell.tsx'
       - 'tools/brand-icons-build.mjs'
       - 'tools/brand-icons.test.mjs'
@@ -52,4 +52,6 @@ jobs:
           npm run test:seo
           npm run test:r32:seo
       - name: Production build
-        run: npm run build
+        run: |
+          node --check tools/google-favicon-production-audit.mjs
+          npm run build

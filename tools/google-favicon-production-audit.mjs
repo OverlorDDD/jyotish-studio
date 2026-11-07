@@ -7,7 +7,8 @@
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 
-const origin=(process.argv[2]||'https://galaxiora.com').replace(/\\/$/,'');
+const rawOrigin=process.argv[2]||'https://galaxiora.com';
+const origin=rawOrigin.endsWith('/')?rawOrigin.slice(0,-1):rawOrigin;
 if(!/^https?:\/\//.test(origin))throw Error('URL must have http(s) origin');
 const source=readFileSync(new URL('../apps/web/brand-assets/galaxiora-approved-spiral-6.png',import.meta.url));
 const sha=b=>createHash('sha256').update(b).digest('hex');
