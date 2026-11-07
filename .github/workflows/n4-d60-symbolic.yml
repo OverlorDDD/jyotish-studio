@@ -33,6 +33,10 @@ jobs:
           node --check tools/n4-d60-pyjhora-parity.mjs
           python -m py_compile tools/n4-d60-pyjhora-oracle.py
           node --experimental-strip-types tools/n4-d60-pyjhora-parity.mjs
+      - name: Close method-scoped D60 mathematics with two independent sources
+        run: |
+          node --experimental-strip-types --test tools/n4-d60-final-certification.test.mjs
+          node --experimental-strip-types tools/n4-d60-final-certification.mjs
       - name: Reject forged precision, method and digest
         run: node --experimental-strip-types --test tools/n4-d60-contract.test.mjs
       - name: Full Core/Nest/Next production builds and prior N4 regression checks
@@ -75,5 +79,5 @@ jobs:
           done
           tail -60 /tmp/n4-d60-web.log
           exit 1
-      - name: D60 UA/EN provenance, forged method and seven widths
-        run: npx playwright test e2e/n4-d60-provisional.spec.mjs --config=playwright.config.mjs
+      - name: D60 in unified 16-chart UI, SEO landing, UA/EN, forged digest and seven widths
+        run: npx playwright test e2e/n4-d60-provisional.spec.mjs e2e/natal-landing-seo.spec.mjs e2e/n4-rc-15.spec.mjs --config=playwright.config.mjs
