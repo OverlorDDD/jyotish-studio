@@ -116,7 +116,7 @@ export function acceptDirectJyotishText(text:string):{ok:boolean;reason:string}{
 export function validateN4ConsultationReferences(text:string,chart:CalculatedChart):{ok:boolean;reason:string}{
  const verified=Boolean(verifiedVargaSource(chart));
  const allowed=new Set(verified?[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45]:[1,9,10]);
- const mentioned=[...text.matchAll(/[DД]\\s*(\\d{1,2})(?!\\d)/giu)].map(m=>Number(m[1]));
+ const mentioned=[...text.matchAll(/[DД]\s*(\d{1,2})(?!\d)/giu)].map(m=>Number(m[1]));
  if(mentioned.some(n=>!allowed.has(n)))return {ok:false,reason:'unsupported_divisional_chart'};
  if(!verified)return {ok:true,reason:'ok'};
  const novel=new Set(mentioned.filter(n=>![1,9,10].includes(n)));
