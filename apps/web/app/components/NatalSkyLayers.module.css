@@ -13,7 +13,7 @@
 .current>b{font-size:19px;color:#f3c989;padding-right:11px;border-right:1px solid #d8bb8a66}
 .current strong,.current small{display:block}.current strong{font-size:13px}.current small{margin-top:3px;font-size:11px;color:#b9cce3}
 .controls{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;max-width:346px}
-.choice,.picked{min-height:37px;padding:8px 10px;border:1px solid #c8d8ee55;border-radius:10px;font:600 11px/1.35 inherit;background:#14283ee8;color:#e2ecfa;cursor:pointer}
+.choice,.picked{min-height:37px;padding:8px 10px;border:1px solid #c8d8ee55;border-radius:10px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.35;background:#14283ee8;color:#e2ecfa;cursor:pointer}
 .picked{border-color:#f9ddac;background:#eac287;color:#132239}
 .choice:hover{border-color:#f3cc94;background:#304761}
 .choice:focus-visible,.picked:focus-visible{outline:3px solid white;outline-offset:2px}
