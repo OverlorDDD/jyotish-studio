@@ -7,7 +7,14 @@ import {reviewN4MathReadiness} from './n4-math-integration-readiness.mjs';
 
 const verified=()=>{
  const ledger=JSON.parse(readFileSync(new URL('./n4-final-evidence-ledger.json',import.meta.url),'utf8'));
- return {ledger,scoped:auditN4ScopedEvidence(),readiness:reviewN4MathReadiness()};
+ // Production gates are intentionally Object.freeze()-ed. Test mutations
+ // must target copies so an expected N4_FINAL rejection is actually tested,
+ // not a TypeError from JavaScript trying to edit a frozen object.
+ const scope=auditN4ScopedEvidence(),ready=reviewN4MathReadiness();
+ return {ledger,scoped:{...scope},readiness:{
+  ...ready,actualCalculator:{...ready.actualCalculator},
+  releaseBlockers:[...ready.releaseBlockers]
+ }};
 };
 const mutate=fn=>{
  const input=verified();
