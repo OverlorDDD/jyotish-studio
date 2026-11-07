@@ -7,6 +7,7 @@ import {buildN4VargaReadings,compactN4VargaFacts,verifiedVargaSource,N4_VARGA_RE
 import {buildDetailedReport} from '../apps/api/src/report.ts';
 import {compactJyotishFacts,generateDirectJyotish,validateN4ConsultationReferences,DIRECT_JYOTISH_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
 import {astrologicalFacts} from '../apps/api/src/ai.ts';
+import {buildReaderV7,compactReaderV7ForAi,READER_V7_VERSION} from '../apps/api/src/reader-v7.ts';
 
 const names=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const birth={date:'2000-01-01',time:'12:00',timeZone:'Etc/UTC',latitude:50.45,longitude:30.52};
@@ -78,7 +79,8 @@ test('Compact LLM material contains source-bound D2/D24/D27/D30 but never birth 
  for(const div of [2,3,4,7,12,16,20,24,27,30,40,45])assert.match(facts,new RegExp('D'+div+' focus='));
  assert.match(facts,/D60: METHOD_ONLY/);
  assert.doesNotMatch(facts,/D60\.(?:Sun|Moon|Saturn|lagna)\.sign=/);
- assert.ok(all.length<6000,'bounded prompt, not 16 nine-planet inventories');
+ assert.ok(all.length<12500,'bounded, anonymized prompt, not 16 nine-planet inventories');
+ assert.match(all,/Reader v7/);
  assert.ok(!all.includes('2000-01-01')&&!all.includes('50.45')&&!all.includes('30.52'),'birth privacy');
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/two|TWO/);
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/D60/);
@@ -99,11 +101,54 @@ test('AI reference review rejects D60/fantasy D5, and fails if new vargas are ig
  assert.equal(validateN4ConsultationReferences('D27 D24',plain).ok,false);
 });
 
+
+test('Reader 7 is concrete, multilingual, source-bound and free of unexplained chart jargon',()=>{
+ for(let seed=0;seed<2;seed++){
+  const chart=fixture(seed),ua=buildReaderV7(chart,'uk'),en=buildReaderV7(chart,'en');
+  assert.equal(ua.version,READER_V7_VERSION);
+  assert.equal(ua.status,'available');
+  assert.equal(en.status,'available');
+  assert.equal(ua.insights.length,15);
+  assert.equal(en.insights.length,15);
+  assert.equal(ua.highlights.length,3);
+  assert.equal(ua.insights.find(i=>i.division===27).title,'Сильні сторони');
+  for(const item of ua.insights){
+   assert.ok(item.headline.length>40&&item.strength.length>80&&item.challenge.length>90&&item.step.length>90);
+   assert.ok(item.proof.length>=8);
+   assert.doesNotMatch(item.strength+item.challenge+item.step,/накшатра|антардаша|лагна|йогакарака|управител[ья]|\bD\d+/iu);
+   assert.doesNotMatch(item.step,/медичн|фінансов.{0,10}порад/iu);
+  }
+  for(const item of en.insights)assert.doesNotMatch(item.strength+item.challenge+item.step,/nakshatra|antardasha|yogakaraka|house lord/iu);
+  assert.ok(!ua.insights.some(i=>i.division===60));
+  assert.ok(ua.d60Notice.includes('D60'));
+  assert.match(compactReaderV7ForAi(chart),/D27/);
+  assert.doesNotMatch(compactReaderV7ForAi(chart),/date:2000|latitude|longitude|D60\.Moon\.house/i);
+ }
+ assert.notEqual(buildReaderV7(fixture(0),'uk').insights.find(i=>i.division===10).headline,
+  buildReaderV7(fixture(1),'uk').insights.find(i=>i.division===10).headline);
+ const unverified=calculateChart(birth,fixed());
+ assert.equal(buildReaderV7(unverified,'uk').status,'unavailable');
+});
+test('Reader 7 stops on forged digest/method, rather than presenting synthetic personality findings',()=>{
+ const v=fixture();
+ for(const bad of [{...v,n4:{...v.n4,sourceDigest:'b'.repeat(64)}},{...v,n4:{...v.n4,d2Method:'other'}}]){
+  const reading=buildReaderV7(bad,'en');
+  assert.equal(reading.status,'unavailable');assert.equal(reading.insights.length,0);
+ }
+});
+test('AI rejects repeated filler and fabricated literal D27 graha houses, but allows correct facts',()=>{
+ const v=fixture();
+ assert.equal(validateN4ConsultationReferences('D27 D24 '+('Same long sentence repeated to fill space. ').repeat(4),v).reason,'repetitive_ai_filler');
+ const d27=v.n4.charts.find(d=>d.division===27),actual=d27.planets.find(p=>p.name==='Mars');
+ assert.equal(validateN4ConsultationReferences('D27 Mars house '+((actual.house%12)+1)+' and D24',v).reason,'fabricated_varga_placement');
+ assert.equal(validateN4ConsultationReferences('D27 Mars house '+actual.house+' and D24',v).ok,true);
+});
+
 test('Cloud AI input carries new N4 evidence and accepts only grounded multi-varga synthesis',async()=>{
  const chart=fixture();
  const prose='## Grounded Jyotish overview\\n\\n'+
   'D27 gives a contextual view of resilience when compared with the D1 thematic house ruler, while D24 refines learning. '+
-  ('One planetary placement is only a symbol for reflection and never a guarantee of outcomes. ').repeat(14)+
+  Array.from({length:12},(_,i)=>'Practical observation '+(i+1)+': compare a distinct choice in the fields of relationships, learning, work, recovery and boundaries with the verified themes; note what changes when conditions shift. ').join('')+
   'A practical response is to compare the two themes in a real choice and observe which habits support long-term learning.';
  let payload;
  const result=await generateDirectJyotish(chart,'en','2026-11-07',{
