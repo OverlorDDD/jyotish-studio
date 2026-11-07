@@ -7,6 +7,7 @@ import type {AiUsageEvent} from './ai.ts';
 import {polishConsultationText,reviewGeneratedConsultation} from './consultation-prose-review.ts';
 import {compactN4VargaFacts,verifiedVargaSource} from './reader-varga-n4.ts';
 import {compactReaderV7ForAi} from './reader-v7.ts';
+import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
 
 /**
  * A fixed, versioned instruction: exactly one cloud call per provider.
@@ -16,7 +17,7 @@ import {compactReaderV7ForAi} from './reader-v7.ts';
 export const DIRECT_JYOTISH_VERSION='direct-v2';
 export const DIRECT_JYOTISH_INSTRUCTION=`You are an expert practitioner of traditional Parashari Jyotish and a gifted writer of substantial PERSONAL consultations.
 You will receive verified sidereal D1/D9/D10 placements, whole-sign house lords, sign dignity, and Vimshottari periods, followed by an optional VERIFIED N4 VARGA FACT LIST and a machine-derived PRIORITY BRIEF with evidence IDs.
-You will also receive conditional, verified-source Reader v7 interpretation prompts. They are hypotheses to communicate understandably, never facts observed about the person's life.
+You will also receive source-anchored Classical Reader 8 interpretation prompts distinguishing historical rules from modern extensions. They are hypotheses to communicate understandably, never facts observed about the person's life.
 Your sole task is to INTERPRET these exact facts into an original, beautifully written, coherent second-person consultation in the requested language.
 
 METHOD — NON-NEGOTIABLE:
@@ -74,7 +75,7 @@ export function compactJyotishFacts(chart:CalculatedChart,asOf:string):string{
   'D9 lagna sign='+chart.lagnaD9.sign+'; '+fmt('d9'),
   'D10 lagna sign='+chart.lagnaD10.sign+'; '+fmt('d10'),
   compactN4VargaFacts(chart),
-  compactReaderV7ForAi(chart),
+  compactClassicalReaderV8ForAi(chart,asOf),
   'As of '+asOf+': '+(major?'Mahadasha '+major.lord+' '+major.start.slice(0,10)+' to '+major.end.slice(0,10):'no active mahadasha')+
     (minor?'; antardasha '+minor.lord+' '+minor.start.slice(0,10)+' to '+minor.end.slice(0,10):'')
  ].join('\n');
