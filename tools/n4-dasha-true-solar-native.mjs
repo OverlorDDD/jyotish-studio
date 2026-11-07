@@ -239,6 +239,12 @@ export async function auditN4Original20NativeSolarDasha(){
   comparison:out,independentTenCaseHoldout:true,
   originalLocalSiderealCalendarResiduals:Object.freeze(siderealOriginalLocalResiduals),
   originalLocalSiderealResidualCount:siderealOriginalLocalResiduals.length,
+  originalLocalSiderealMinorCalendarResiduals:Object.freeze(
+   siderealOriginalLocalResiduals.filter(x=>x.level==='antardasha')),
+  originalLocalSiderealMinorResidualCount:siderealOriginalLocalResiduals.filter(
+   x=>x.level==='antardasha').length,
+  originalLocalSiderealMajorResidualCount:siderealOriginalLocalResiduals.filter(
+   x=>x.level==='mahadasha').length,
   calendarResidualsHaveOnlySyntheticReferenceCaseIds:true,
   jhoraYearDefinitionOption3Identified:false,
   originalJHoraDateTimeExactnessCertified:false,
