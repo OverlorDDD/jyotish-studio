@@ -62,7 +62,11 @@ const DOMAIN_CONTEXT_EN:Readonly<Record<number,readonly string[]>>={
  'long-term financial goals','reserves and necessary expenses']
 };
 function focusedHouseMeaning(proof:readonly string[],division:number,lang:Lang):string|null{
- const found=proof.find(p=>new RegExp('^D'+division+'\\.[A-Za-z]+\\.house=\\d{1,2}
+ const found=proof.find(p=>p.startsWith('D'+division+'.')&&p.includes('.house='));
+ const house=Number(found?.split('.house=')[1]);
+ if(!Number.isInteger(house)||house<1||house>12)return null;
+ return (lang==='uk'?DOMAIN_CONTEXT_UK:DOMAIN_CONTEXT_EN)[division]?.[house-1]||null;
+}
 function sentences(active:readonly ClassicalEvidence[],lang:Lang,limit=2){
  return active.slice(0,limit).map(x=>lang==='uk'?x.detailUk:x.detailEn).join(' ');
 }
