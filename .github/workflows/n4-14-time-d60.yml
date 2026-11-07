@@ -13,6 +13,7 @@ on:
       - 'tools/n4-14-python-zoneinfo.py'
       - 'tools/n4-14-python-requirements.txt'
       - 'tools/n4-14-native-private-run.mjs'
+      - 'tools/n4-14-verify.ps1'
       - 'tools/n4-native-swieph-exact-profile.mjs'
       - 'apps/api/src/n4-birth-time-certainty.ts'
       - 'tools/n4-birth-time-policy.test.mjs'
@@ -29,6 +30,7 @@ on:
       - 'tools/n4-14-python-zoneinfo.py'
       - 'tools/n4-14-python-requirements.txt'
       - 'tools/n4-14-native-private-run.mjs'
+      - 'tools/n4-14-verify.ps1'
       - 'tools/n4-native-swieph-exact-profile.mjs'
   workflow_dispatch:
 permissions:
@@ -56,6 +58,13 @@ jobs:
         run: node --check tools/n4-14-native-private-run.mjs && node --check tools/n4-native-swieph-exact-profile.mjs
       - name: N4.14 fail-closed JS mathematical and civil-time regressions
         run: node --test tools/n4-14-time-d60.test.mjs tools/n4-14-regression-corpus.test.mjs tools/n4-14-sensitivity.test.mjs tools/n4-14-utc-sensitivity.test.mjs
+      - name: Syntax-check Windows one-shot verifier without executing it
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'tools/n4-14-verify.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
       - name: Pinned Python zoneinfo cross-runtime differential
         run: python tools/n4-14-python-zoneinfo.py
       - name: Diagnostic only; NO private source and NO production certificate
