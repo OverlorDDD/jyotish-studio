@@ -265,6 +265,80 @@ const TOPICS_EN:Readonly<Record<number,Topic>>={
  'Discuss an important boundary without trying to win the conversation.',
  'Decline one easy compromise that would take you away from your priorities.']}
 };
+// Editorially distinct sentences for each topic. {focus}/{gift}/{tension}/{trap}
+// are substituted ONLY after their exact D1 + Dn source tokens have been checked.
+const RESOURCE_UK:Readonly<Record<number,string>>={
+ 1:'Великі рішення починаються з малого: у {focus} варто покладатися не на випадок, а на {gift}.',
+ 2:'Фінансова свобода починається з ясності. У {focus} доречно розвивати {gift} — це може стати тихою, але стійкою опорою.',
+ 3:'Ваш голос набирає ваги не від гучності. У {focus} корисним союзником може стати {gift}.',
+ 4:'Відчуття дому складається з багатьох невидимих рішень. У {focus} підтримати вас може {gift}.',
+ 7:'Тепло має безліч мов, але найкраще говорить через справи. У {focus} йому допоможе {gift}.',
+ 9:'Стосунки стають міцнішими, коли поруч є місце для двох окремих голосів. У {focus} може знадобитися {gift}.',
+ 10:'За назвою професії легко не помітити суті. У {focus} вашою робочою перевагою може стати {gift}.',
+ 12:'У родинних історіях є невидимі нитки. У {focus} важливо навчитися застосовувати {gift}, не відмовляючись від себе.',
+ 16:'Комфорт варто будувати під себе, а не під чужі очікування. У {focus} може стати в пригоді {gift}.',
+ 20:'Внутрішній спокій не приходить за наказом. У {focus} м’якою опорою здатне стати {gift}.',
+ 24:'Найкраще знання — те, яке можна перевірити руками. У {focus} навчання підтримує {gift}.',
+ 27:'Справжня витривалість іноді виглядає дуже просто. У {focus} вашим ресурсом може бути {gift}.',
+ 30:'Уважність до своїх труднощів — теж сила. У {focus} знайти вихід може допомогти {gift}.',
+ 40:'Чужа історія не обов’язково має стати вашим сценарієм. У {focus} є простір для {gift}.',
+ 45:'Цінності краще видно у вчинках. У {focus} підтримувати їх може {gift}.'
+};
+const RESOURCE_EN:Readonly<Record<number,string>>={
+ 1:'Big decisions often begin quietly. In {focus}, you may draw on {gift} instead of waiting for certainty.',
+ 2:'Financial freedom often begins with clarity. In {focus}, {gift} may offer a steadier foundation.',
+ 3:'Your voice gains weight through purpose, not volume. In {focus}, {gift} can be worth cultivating.',
+ 4:'A sense of home is built from invisible choices. In {focus}, {gift} may help make those choices gentler.',
+ 7:'Care has many languages, but action is usually the clearest. In {focus}, {gift} may give it form.',
+ 9:'Partnership needs room for two different voices. In {focus}, {gift} may help you hear both.',
+ 10:'A job title can hide the work that matters. In {focus}, {gift} may become a useful professional strength.',
+ 12:'Family stories contain invisible threads. In {focus}, {gift} can help you choose which to carry forward.',
+ 16:'Comfort works best when it belongs to your actual life. In {focus}, {gift} can be part of that.',
+ 20:'Inner quiet cannot be ordered into existence. In {focus}, {gift} may help you find it.',
+ 24:'Useful knowledge is knowledge you can practice. In {focus}, {gift} may make learning take root.',
+ 27:'Resilience sometimes looks ordinary from the outside. In {focus}, {gift} may be one of its forms.',
+ 30:'Noticing a difficulty early is its own kind of strength. In {focus}, {gift} may help you respond.',
+ 40:'An inherited story need not become your script. In {focus}, {gift} may give you another choice.',
+ 45:'Values become real in the choices we make. In {focus}, {gift} may help you act on yours.'
+};
+const RISK_UK:Readonly<Record<number,string>>={
+ 1:'У {tension} може виникати спокуса {trap}. Перш ніж обирати напрям, варто з’ясувати, чийого схвалення ви насправді шукаєте.',
+ 2:'Коли в {tension} з’являється напруга, легко почати {trap}. Тут краще допомагає пауза, ніж ще одне поспішне рішення.',
+ 3:'У {tension} вас інколи може підводити звичка {trap}. Перевіряйте не силу враження, а ясність сказаного.',
+ 4:'Спокій у {tension} легко порушити, якщо почати {trap}. Не кожну проблему дому потрібно вирішувати самотужки.',
+ 7:'Навіть хороші наміри у {tension} можуть спіткнутися об бажання {trap}. Нехай важливішим буде завершений жест, а не його ідеальність.',
+ 9:'У {tension} може виникнути стара пастка — {trap}. Там, де з’являються здогади про чужі почуття, краще поставити пряме запитання.',
+ 10:'У {tension} ризик полягає в тому, щоб {trap}. Відділяйте те, що справді дає результат, від звички весь час бути зайнятим.',
+ 12:'У {tension} може повторюватися схильність {trap}. Звичка не стає правилом лише тому, що її давно повторюють.',
+ 16:'У {tension} легко сплутати полегшення зі звичкою {trap}. Комфорт має повертати сили, а не забирати їх.',
+ 20:'У {tension} може з’явитися бажання {trap}. Не вимагайте від себе бездоганної практики — краще помічайте справжній стан.',
+ 24:'У {tension} навчання може сповільнювати схильність {trap}. Дозвольте практичному результату бути важливішим за накопичення теорії.',
+ 27:'У {tension} витривалість часом підміняє спроба {trap}. Сила не зникає від того, що ви просите підтримки.',
+ 30:'У {tension} повторювана складність може починатися зі звички {trap}. Її простіше помітити на першому кроці, ніж після наслідків.',
+ 40:'У {tension} легко відтворити стару звичку {trap}. Спробуйте відділити повагу до минулого від обов’язку його повторювати.',
+ 45:'У {tension} принципи можуть поступатися бажанню {trap}. Питання не в досконалості, а в наступному свідомому виборі.'
+};
+const RISK_EN:Readonly<Record<number,string>>={
+ 1:'In {tension}, you may be tempted to {trap}. Before choosing a direction, ask whose approval you are seeking.',
+ 2:'When {tension} becomes tense, it is easy to {trap}. A pause often helps more than another hurried choice.',
+ 3:'In {tension}, the habit to {trap} can get in your way. Test whether your words are clear rather than impressive.',
+ 4:'In {tension}, calm can disappear when you {trap}. Not every home problem needs to be solved alone.',
+ 7:'Even good intentions in {tension} can turn into trying to {trap}. A finished gesture matters more than perfection.',
+ 9:'In {tension}, watch the impulse to {trap}. A direct question works better than guessing another person’s feelings.',
+ 10:'In {tension}, a trap is to {trap}. Separate meaningful outcomes from the habit of staying busy.',
+ 12:'In {tension}, you may repeat the urge to {trap}. Long practice does not automatically make a habit a rule.',
+ 16:'In {tension}, the urge to {trap} can masquerade as comfort. Real rest should return your energy.',
+ 20:'In {tension}, you may feel pushed to {trap}. Your practice need not be flawless to be useful.',
+ 24:'In {tension}, the tendency to {trap} may stall learning. Let practical results matter more than collecting theory.',
+ 27:'In {tension}, the impulse to {trap} may imitate strength. Asking for help does not take your resilience away.',
+ 30:'In {tension}, a repeating problem may begin when you {trap}. It is easier to notice at the first step.',
+ 40:'In {tension}, you may fall back into trying to {trap}. Respect for the past need not mean repeating it.',
+ 45:'In {tension}, principles can give way to the urge to {trap}. The next conscious choice matters more than perfection.'
+};
+function fill(pattern:string,values:Record<string,string>){
+ return pattern.replace(/\{(focus|gift|tension|trap)\}/g,(_,key:string)=>values[key]||'');
+}
+
 const PLANETS_UK:Readonly<Record<string,{gift:string;trap:string}>>={
  Sun:{gift:'готовність брати відповідальність і називати власну позицію',trap:'намагатися все вирішити самостійно'},
  Moon:{gift:'чуйність до потреб і настроїв людей',trap:'підлаштовуватися під чужий стан ціною власного спокою'},
@@ -327,22 +401,8 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
  const close=facts.focused===facts.secondaryHouse;
  const action=topic.actions[group(facts.focused)];
  const headline=topic.opening;
- const strength=uk?
-  tidy('За цією картою важливий ракурс теми відкривається у '+focus+'. '+
-    'Одна з можливих опор — '+main.gift+'. '+
-    'Її цінність не в самій ідеї, а в тому, що ви можете з нею зробити.'):
-  tidy('Your chart brings attention to '+focus+'. '+
-    'One possible strength here is '+main.gift+'. '+
-    'Its value lies less in the label than in what you choose to do with it.');
- const challenge=uk?
-  tidy((close?'Обидва ключові акценти сходяться в одній сфері. ':
-   'Інший штрих цієї історії помітний у '+tension+'. ')+
-   'Тут легко потрапити у пастку: '+second.trap+'. '+
-   'Коли це починається, поверніться до одного конкретного питання: '+topic.question+'):
-  tidy((close?'Both important factors touch the same area. ':
-   'Another factor brings in '+tension+'. ')+
-   'A trap to watch for is '+second.trap+'. '+
-   'When that happens, return to one practical question: '+topic.question+');
+ const strength=tidy(fill((uk?RESOURCE_UK:RESOURCE_EN)[input.division],{focus,gift:main.gift}));
+ const challenge=tidy(fill((uk?RISK_UK:RISK_EN)[input.division],{tension,trap:second.trap}));
  const context=uk?
   tidy('Ця тема стає особливо відчутною, коли '+topic.scenario+'. '+
    (same?'Загальний і детальний погляди ведуть до схожого запитання. ':
