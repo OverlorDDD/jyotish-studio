@@ -114,6 +114,7 @@ try{
  throw "Reader 8 real Swiss calculation failed on local API (port 4000). Inspect the API window. $($_.Exception.Message)"
 }
 if($calculated.readerV8.version -ne 'reader-v8.0.0-n44' -or
+ $calculated.readerV8.editorialVersion -ne 'n45-human-reading-1.0.0' -or
  $calculated.readerV8.status -ne 'available' -or
  $calculated.readerV8.insights.Count -ne 15 -or
  $calculated.verification.status -ne 'verified_internal'){
@@ -134,10 +135,13 @@ for($i=0;$i -lt 90;$i++){
 }
 if(-not $ready){throw 'Next.js preview did not start. Review the other terminal. Do not use an old 3000 server.'}
 $runtime=Invoke-RestMethod 'http://127.0.0.1:3000/api/v1/jyotish/runtime' -TimeoutSec 6
-if($runtime.readerEdition -ne 'reader-v8.0.0-n44' -or -not $runtime.previewOnly){
+if($runtime.readerEdition -ne 'reader-v8.0.0-n44' -or
+ $runtime.editorialEdition -ne 'n45-human-reading-1.0.0' -or
+ -not $runtime.previewOnly){
  throw 'API proxy is not connected to isolated N4.4 Classical Reader 8.'
 }
 Write-Host ''
+Write-Host 'N45_HUMAN_READER_81_VERIFIED — source-bound editorial edition active' -ForegroundColor Green
 Write-Host 'N44_CLASSICAL_READER_8_PREVIEW_READY — NO DOCKER, NO DATABASE, NO PRODUCTION DEPLOY' -ForegroundColor Green
 Write-Host 'UA: http://localhost:3000/uk/astrology/jyotish'
 Write-Host 'EN: http://localhost:3000/en/astrology/jyotish'
