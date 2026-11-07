@@ -57,6 +57,10 @@ HTTP_ACCESS_LOG=0
 }
 $env:PORT='4000'
 $env:WEB_PORT='3000'
+# Explicit process-local overrides prevent an existing .env from targeting production API or enabling public indexability.
+$env:INTERNAL_API_ORIGIN='http://127.0.0.1:4000'
+$env:NEXT_PUBLIC_SITE_URL='http://localhost:3000'
+$env:SITE_NOINDEX='1'
 $env:AI_MODE='free'
 $env:GALAXIORA_READER_ONLY='0'
 if(-not $env:GEMINI_API_KEY -and -not $env:GROQ_API_KEY -and -not $env:OPENROUTER_API_KEY){
