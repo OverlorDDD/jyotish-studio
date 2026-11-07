@@ -328,7 +328,7 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
  const action=topic.actions[group(facts.focused)];
  const headline=topic.opening;
  const strength=uk?
-  tidy('У вашій карті саме тут помітна тема '+focus+'. '+
+  tidy('За цією картою важливий ракурс теми відкривається у '+focus+'. '+
     'Одна з можливих опор — '+main.gift+'. '+
     'Її цінність не в самій ідеї, а в тому, що ви можете з нею зробити.'):
   tidy('Your chart brings attention to '+focus+'. '+
@@ -336,7 +336,7 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
     'Its value lies less in the label than in what you choose to do with it.');
  const challenge=uk?
   tidy((close?'Обидва ключові акценти сходяться в одній сфері. ':
-   'Інший показник додає тему '+tension+'. ')+
+   'Інший штрих цієї історії помітний у '+tension+'. ')+
    'Тут легко потрапити у пастку: '+second.trap+'. '+
    'Коли це починається, поверніться до одного конкретного питання: '+topic.question+'):
   tidy((close?'Both important factors touch the same area. ':
@@ -346,7 +346,7 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
  const context=uk?
   tidy('Ця тема стає особливо відчутною, коли '+topic.scenario+'. '+
    (same?'Загальний і детальний погляди ведуть до схожого запитання. ':
-    'Загальна карта також підкреслює роль '+startFocus+' — це додає другий бік рішення. ')+
+    'Загальна карта додає ще один ракурс у '+startFocus+' — тож рішення варто бачити з двох боків. ')+
    (input.contrast?'Можливий контраст: мати ресурс і не завжди знати, де його застосувати. ':
     input.complement?'Те, що складне в одному контексті, може виявитися корисним за інших умов. ':'')+
    topic.stakes+'.'):
@@ -358,7 +358,7 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
    topic.stakes+'.');
  const step=action;
  const highlight=uk?
-  tidy('Особливу увагу варто звернути на '+focus+'. '+topic.question+' '+action):
+  tidy('Сюжет цієї теми проявляється у '+focus+'. '+topic.question+' '+action):
   tidy('A useful theme to explore is '+focus+'. '+topic.question+' '+action);
  return {headline,strength,challenge,context,step,highlight,voice:'curated_source_bound'};
 }
