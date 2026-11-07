@@ -84,7 +84,7 @@ export function astrologicalFacts(chart:CalculatedChart,lang:'uk'|'en',now=Date.
   {id:'moon',fact:uk?`Місяць: ${term(moon.signName)}, дім ${moon.house}, накшатра ${term(moon.nakshatra)}, пада ${moon.pada}.`:`Moon: ${term(moon.signName)}, house ${moon.house}, nakshatra ${term(moon.nakshatra)}, pada ${moon.pada}.`},
   {id:'navamsa',fact:uk?`Лагна Навамша D9: ${term(chart.lagnaD9.signName)}.`:`Navamsa D9 ascendant: ${term(chart.lagnaD9.signName)}.`},
   {id:'dashamsa',fact:uk?`Лагна Дашамша D10: ${term(chart.lagnaD10.signName)}.`:`Dashamsa D10 ascendant: ${term(chart.lagnaD10.signName)}.`},
-  {id:'dasha',fact:active?(uk?`Поточна Вімшоттарі махадаша: ${term(active.lord)}; антардаша: ${activeSub?.lord?term(activeSub.lord):'невизначена'}.`:`Current Vimshottari Mahadasha: ${term(active.lord)}; Antardasha: ${activeSub?.lord?term(activeSub.lord):'unknown'}.`):(uk?'Поточний період поза розрахованим діапазоном.':'Current period outside calculated timeline.')}
+  {id:'dasha',fact:active?(uk?`Поточна Вімшоттарі махадаша: ${term(active.lord)}; антардаша: ${activeSub?.lord?term(activeSub.lord):'невизначена'}.`:`Current Vimshottari Mahadasha: ${term(active.lord)}; Antardasha: ${activeSub?.lord?term(activeSub.lord):'unknown'}.`):(uk?'Поточний період поза розрахованим діапазоном.':'Current period outside calculated timeline.')},
   ...(verifiedVargaSource(chart)?[{id:'n4-vargas',fact:compactN4VargaFacts(chart)}]:[])
  ] as const;
 }
