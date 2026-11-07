@@ -60,7 +60,9 @@ test('Consented page_view triggers one collector request with correct Measuremen
  await page.route(/googletagmanager\.com\/gtag\/js/,route=>route.fulfill({status:200,contentType:'application/javascript',body:js}));
  await page.goto('/en/privacy');
  await page.getByRole('button',{name:'Allow analytics'}).click();
- await page.goto('/en?ga4_debug=1&birthDate=private');
+ // /en is a 308 homepage alias and drops query parameters during redirect.
+ // Assert GA4 on the actual indexable, canonical English tool route.
+ await page.goto('/en/astrology/jyotish?ga4_debug=1&birthDate=private');
  await expect.poll(()=>outgoing.filter(x=>new URL(x).searchParams.get('en')==='page_view').length).toBe(1);
  await expect.poll(()=>outgoing.some(x=>new URL(x).searchParams.get('en')==='galaxiora_debug_ping')).toBe(true);
  expect(outgoing.every(x=>new URL(x).searchParams.get('tid')==='G-TEST123456')).toBe(true);
