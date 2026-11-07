@@ -20,6 +20,16 @@ test('R3.2 sitemap uses only canonical public route paths',()=>{
  assert.doesNotMatch(source,/priority:suffix/);
 });
 
+test('GP1 sitemap excludes redirected locale homepage aliases and keeps self-canonical root',()=>{
+ const sitemap=read('apps/web/app/sitemap.ts');
+ const home=read('apps/web/app/page.tsx');
+ const alias=read('apps/web/app/[locale]/page.tsx');
+ assert.match(home,/canonical:'\\/'/);
+ assert.match(alias,/permanentRedirect\\(portalPath\\(locale,'astrology\\/jyotish'\\)\\)/);
+ assert.match(sitemap,/allPages\\.filter\\(suffix=>suffix!==''\\)\\.flatMap/);
+ assert.match(sitemap,/url:base\\+'\\/'/);
+});
+
 test('R3.2 Galaxiora has a consistent official brand entity and an indexable About page',()=>{
  const root=read('apps/web/app/layout.tsx');
  assert.match(root,/'@type':'WebSite'/);
