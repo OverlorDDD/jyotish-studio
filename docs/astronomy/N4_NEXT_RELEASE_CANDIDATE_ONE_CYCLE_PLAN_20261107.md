@@ -30,6 +30,10 @@ D. **Implement the focused interface** without changing the root page's rejected
 E. **Automated acceptance:** exact method/profile source tests; 15 chart server/client parity; fail-closed tampered digest, boundary, historical gap/fold, unknown-time, unsupported profiles and AI-disabled tests; Next + Nest type/build, current main regression suites, UK/EN browser and 7 widths incl OnePlus, 12 synthetic reading fixtures for deterministic guidance, SEO canonical/robots/favicon spot-check, privacy/no DOB in telemetry. Check CI on the **exact release-candidate HEAD**, not an older branch commit.
 F. **Output:** one clear release candidate SHA + PR diff only N4, method & confidence manifest, result matrix, blocked items, **one grouped Windows PowerShell verifier/deploy helper**, never a dozen manual commands. No AWS changes until independently green and owner explicitly permits that release.
 
+## One-cycle fallback that still delivers visible progress
+
+If the authentic **50-case Lahiri** M1 oracle or current-head CI is blocked by an external JHoraKit/JHora 8.0 GUI dependency, do not open N4.19 and keep changing arbitrary numbers. Instead deliver the **independent UX-only release candidate**: remove Delhi/2000 defaults, fix verified city controlled state and DST gap/fold error messages, improve existing D1/D9/D10 ordering, mobile overflow/accessibility, and make the real fixed-year Vimshottari method transparent. Keep the new 12 additional vargas, D60, experimental true-solar year and N4 AI off. This fallback modifies no astronomy or existing API digest and can proceed only with normal end-to-end/current-head CI and explicit owner approval. Its value is real user onboarding even without a fabricated mathematical certificate.
+
 ## Acceptance matrix (fail-closed)
 
 | Gate | Required evidence to ship | If missing |
