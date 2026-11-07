@@ -35,6 +35,9 @@ if(-not (Test-Path -LiteralPath '.\node_modules\next\dist\bin\next' -PathType Le
 if(-not (Test-Path -LiteralPath '.\node_modules\@swisseph\node' -PathType Container)){
  throw 'Swiss Ephemeris dependency missing. Run npm install --no-package-lock, then retry.'
 }
+# A package directory alone does not prove the native Windows addon can load.
+& node --experimental-strip-types -e "import('@swisseph/node').then(m=>{ if(!m.julianDay) process.exit(2) }).catch(()=>process.exit(2))"
+AssertExit 'Native Swiss Ephemeris Windows addon'
 if((PortUsed 3000) -or (PortUsed 4000)){
  throw 'Ports 3000/4000 are already in use. Stop old Next/Nest terminals with Ctrl+C. Preview must never show an outdated server.'
 }
