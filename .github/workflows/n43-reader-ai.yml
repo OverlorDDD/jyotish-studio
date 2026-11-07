@@ -49,9 +49,12 @@ jobs:
   n44-windows-launcher:
     name: Windows PowerShell preview and Git auto-gc recovery checks
     runs-on: windows-latest
-    timeout-minutes: 8
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Parse Windows PowerShell files and verify non-destructive fetch contract
         shell: pwsh
         run: |
@@ -77,3 +80,13 @@ jobs:
             if (-not $test.Ok) { throw "Windows launch contract failed: $($test.Name)" }
           }
           Write-Host 'N44_WINDOWS_LAUNCHER_PARSE_AND_SAFE_GIT_PASS'
+      - name: Install local Windows workspaces without rewriting lock
+        shell: pwsh
+        run: npm install --no-audit --no-fund --no-package-lock
+      - name: Native Swiss Ephemeris and real Reader 8 HTTP smoke on Windows
+        shell: pwsh
+        run: |
+          node --experimental-strip-types --test tools/n43-live-preview-api.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Windows Swiss/Reader8 integration failed' }
+          Write-Host 'N44_WINDOWS_NATIVE_SWISS_REAL_READER_8_PASS'
+
