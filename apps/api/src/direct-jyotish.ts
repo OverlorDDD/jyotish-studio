@@ -5,7 +5,7 @@ import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.
 import {consumeFreeAiRequest,type FreeFallbackReason,type FreeProvider} from './free-ai.ts';
 import type {AiUsageEvent} from './ai.ts';
 import {polishConsultationText,reviewGeneratedConsultation} from './consultation-prose-review.ts';
-import {compactN4VargaFacts} from './reader-varga-n4.ts';
+import {compactN4VargaFacts,verifiedVargaSource} from './reader-varga-n4.ts';
 
 /**
  * A fixed, versioned instruction: exactly one cloud call per provider.
@@ -25,7 +25,7 @@ METHOD — NON-NEGOTIABLE:
 - Keep D1 as the main chart. D9 refines partnerships and maturation; D10 refines vocation. When VERIFIED N4 additional varga facts are provided, compare at least TWO pertinent, exact additional divisions (for example D2 resources, D4 home, D12 family, D24 learning, D27 strengths or D30 challenges) with the relevant D1 house-lord placement. Include their D-numbers, the ACTUAL provided ruler and its house; do not merely list them. Not every division needs a paragraph.
 - N4 varga meanings are topic-specific traditional lenses, NOT independent new natal skies, shadbala scores, medical/fertility diagnoses, quantitative ratings or guaranteed life outcomes. One placement cannot alone prove a strength, weakness or event; explain tradeoffs when D1 and varga differ.
 - Do NOT construct an N4 D-chart yourself, invent its grahas, special ascendants, divisions, lordships, conjunctions or strengths. Only the given focus-ruler sign/house and lagna sign may be used for each new division. D1 house lordship is NOT automatically the same as a Dn house lordship.
-- D60 is a method-verified but per-birth provisional chart: individual D60 lagna/house stability is NOT certified. Do NOT make any personal D60 interpretation, karmic verdict or past-life claim from it. If N4 facts are unavailable, stay strictly with verified D1/D9/D10.
+- D60 is a method-verified but per-birth provisional chart: individual D60 lagna/house stability is NOT certified. Do NOT mention D60 in the final consultation or make any personal D60 interpretation, karmic verdict or past-life claim. If N4 facts are unavailable, stay strictly with verified D1/D9/D10.
 - When D9 and D10 are provided, explicitly analyze AT LEAST ONE VERIFIED placement from EACH of D9 and D10 with a meaningful comparison to D1. Do not merely say they were considered or invent varga lords.
 - Dasha interpretation must cite the ACTUAL computed major and minor rulers, their lordship and D1 location. Do not infer dated marriages, separation, deaths, illness, pregnancies, wealth figures or inevitable events.
 - Never prescribe whether the reader should make, sell, stop or postpone a financial investment based only on this chart. Discuss decision patterns instead.
@@ -108,6 +108,21 @@ export function acceptDirectJyotishText(text:string):{ok:boolean;reason:string}{
  if(/(?:\bPluto\b|\bUranus\b|\bNeptune\b|\bChiron\b|\bLilith\b|Плутон|Уран(?:а|ом|і)?|Нептун|Хірон|Ліліт)/iu.test(clean))return {ok:false,reason:'unsupported_western_factors'};
  return {ok:true,reason:'ok'};
 }
+/**
+ * Lightweight post-generation guard: stop fabricated divisions and prevent an
+ * LLM from silently ignoring every new verified topical chart. This does not
+ * certify prose, which remains a symbolic interpretation.
+ */
+export function validateN4ConsultationReferences(text:string,chart:CalculatedChart):{ok:boolean;reason:string}{
+ const verified=Boolean(verifiedVargaSource(chart));
+ const allowed=new Set(verified?[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45]:[1,9,10]);
+ const mentioned=[...text.matchAll(/\bD\s*(\d{1,2})\b/giu)].map(m=>Number(m[1]));
+ if(mentioned.some(n=>!allowed.has(n)))return {ok:false,reason:'unsupported_divisional_chart'};
+ if(!verified)return {ok:true,reason:'ok'};
+ const novel=new Set(mentioned.filter(n=>![1,9,10].includes(n)));
+ if(novel.size<2)return {ok:false,reason:'missing_n4_cross_varga_synthesis'};
+ return {ok:true,reason:'ok'};
+}
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
@@ -164,7 +179,8 @@ export async function generateDirectJyotish(
     const value=choice?.message?.content;
     const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
     const content=polishConsultationText(rawContent,lang);
-    const check=acceptDirectJyotishText(content);
+    const basic=acceptDirectJyotishText(content);
+    const check=basic.ok?validateN4ConsultationReferences(content,chart):basic;
     // Some providers stop at token budget after a grammatically complete sentence:
     // finish_reason=length must still be treated as incomplete.
     const incomplete=choice?.finish_reason==='length'||!check.ok;
