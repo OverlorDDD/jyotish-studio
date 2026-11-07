@@ -43,3 +43,24 @@ test('R3.2 both Tarot landing pages expose a meaningful H1 in the initial HTML',
   await expect(page.getByRole('heading',{level:1})).toContainText('GalaxiTarot');
  }
 });
+
+test('GP1 root is canonical and locale homepage 308 aliases do not appear in sitemap',async({request})=>{
+ const root=await request.get('/',{maxRedirects:0});
+ expect(root.status()).toBe(200);
+ const html=await root.text();
+ const head=html.split('</head>')[0];
+ const match=head.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/i);
+ expect(match,'server-rendered root canonical must be in initial <head>').not.toBeNull();
+ expect(new URL(match[1]).href).toBe('https://galaxiora.example/');
+ expect(head.toLowerCase()).toContain('hreflang="en"');
+ expect(head.toLowerCase()).toContain('hreflang="uk"');
+ for(const locale of ['en','uk']){
+  const alias=await request.get('/'+locale,{maxRedirects:0});
+  expect(alias.status()).toBe(308);
+  expect(new URL(alias.headers()['location'],'https://galaxiora.example').pathname).toBe('/'+locale+'/astrology/jyotish');
+ }
+ const xml=await (await request.get('/sitemap.xml')).text();
+ expect(xml).toContain('<loc>https://galaxiora.example/</loc>');
+ expect(xml).not.toContain('<loc>https://galaxiora.example/en</loc>');
+ expect(xml).not.toContain('<loc>https://galaxiora.example/uk</loc>');
+});
