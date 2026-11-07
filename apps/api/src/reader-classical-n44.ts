@@ -19,6 +19,18 @@ export const N44_CLASSICAL_SOURCES=[
  {id:'BJ-XX-2-4',work:'Brihat Jataka',edition:'N. Chidambaram Aiyar, second edition, 1905',
   chapter:'XX',stanza:'2–4',path:'research-library/primary-texts/brihat-jataka-iyer-1905-ocr.txt',
   startLine:11095,endLine:11153,anchor:'Moon  occupy',review:'ocr_excerpt_checked',scope:'Sun and Moon in selected natal houses'},
+ {id:'BJ-XX-6-8',work:'Brihat Jataka',edition:'N. Chidambaram Aiyar, second edition, 1905',
+  chapter:'XX',stanza:'6–8',path:'research-library/primary-texts/brihat-jataka-iyer-1905-ocr.txt',
+  startLine:11177,endLine:11216,anchor:'Mercury  occupy',review:'ocr_excerpt_checked',
+  scope:'Specific natal Mercury, Jupiter and Venus placements, not verified life outcomes'},
+ {id:'BJ-XX-10',work:'Brihat Jataka',edition:'N. Chidambaram Aiyar, second edition, 1905',
+  chapter:'XX',stanza:'10',path:'research-library/primary-texts/brihat-jataka-iyer-1905-ocr.txt',
+  startLine:11234,endLine:11262,anchor:'nature  of  such',review:'ocr_excerpt_checked',
+  scope:'Read house placement with sign dignity and challenging houses, not in isolation'},
+ {id:'BJ-XX-11',work:'Brihat Jataka',edition:'N. Chidambaram Aiyar, second edition, 1905',
+  chapter:'XX',stanza:'11',path:'research-library/primary-texts/brihat-jataka-iyer-1905-ocr.txt',
+  startLine:11264,endLine:11293,anchor:'exaltation  signs',review:'ocr_excerpt_checked',
+  scope:'Dignity modifies literal effects; do not copy numeric fractions as modern scores'},
  {id:'BJ-XXI-1',work:'Brihat Jataka',edition:'N. Chidambaram Aiyar, second edition, 1905',
   chapter:'XXI',stanza:'1',path:'research-library/primary-texts/brihat-jataka-iyer-1905-ocr.txt',
   startLine:11295,endLine:11316,anchor:'own  house',review:'ocr_excerpt_checked',scope:'Own-sign planetary positions; applying to later high vargas is a modern extension'},
@@ -119,6 +131,41 @@ export function extractN44Evidence(chart:CalculatedChart,division:number,asOf:st
    'modern_varga_extension',facts,
    'Є доповнення: навіть якщо в загальній карті тема складніша, тематична карта показує інший спосіб її застосування.',
    'The focused chart offers another way to work with a topic that looks more complex in the general chart.'));
+ }
+ // Brihat Jataka XX/10 demands reading natal house and sign together.
+ if(natal!=='other'&&natal!=='unassigned'){
+  signals.push(signal('BJ-XX-10-CONTEXT-D'+division,'BJ-XX-10','context',
+   'direct_natal',facts,
+   'Книга пропонує не оцінювати положення планети лише за номером дому: її знак змінює традиційне прочитання. Тому цей висновок враховує обидві обчислені умови.',
+   'The book asks readers to judge house position together with the planet’s sign. Both calculated factors are considered here.'));
+ }
+ // Carefully selected, non-diagnostic natal themes from BJ XX/6–8.
+ if(division===24){
+  const mercury=chart.d1.find(p=>p.name==='Mercury');
+  if(mercury&&[1,4,5].includes(mercury.house)){
+   signals.push(signal('BJ-XX-6-MERCURY-LEARNING','BJ-XX-6-8','context','direct_natal',
+    ['D1.Mercury.house='+mercury.house],
+    'У загальній карті положення Меркурія підсилює тему навчання та роботи з інформацією. Це привід перевірити, які способи навчання вам справді підходять.',
+    'Mercury’s natal position adds a traditional learning and information theme. Compare it with how you actually learn.'));
+  }
+ }
+ if(division===20||division===24){
+  const jupiter=chart.d1.find(p=>p.name==='Jupiter');
+  if(jupiter&&[1,5,9].includes(jupiter.house)){
+   signals.push(signal('BJ-XX-7-JUPITER-LEARNING','BJ-XX-6-8','context','direct_natal',
+    ['D1.Jupiter.house='+jupiter.house],
+    'Юпітер у загальній карті додає тему знань, учительства чи пошуку сенсу. Давнє формулювання є символічним орієнтиром, не гарантією певної професії.',
+    'Jupiter adds a theme of knowledge, mentoring or meaning. The historical association is a reflection cue, not a guaranteed occupation.'));
+  }
+ }
+ if(division===16||division===7){
+  const venus=chart.d1.find(p=>p.name==='Venus');
+  if(venus&&[1,5].includes(venus.house)){
+   signals.push(signal('BJ-XX-8-VENUS-COMFORT','BJ-XX-6-8','context','direct_natal',
+    ['D1.Venus.house='+venus.house],
+    'Венера у загальній карті пов’язує цю тему з комфортом або творчим самовираженням. Перевірте її прояв у конкретних щоденних діях.',
+    'Venus connects this area with comfort or creative expression. Test the theme in real habits rather than treating it as destiny.'));
+  }
  }
  // Brihat Jataka chapter X, stanza 1: the 10th FROM the Moon is not the
  // same as the natal tenth house; calculate it exactly.
