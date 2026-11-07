@@ -48,3 +48,37 @@ test('natal landing responds without horizontal overflow from 320 to 1440px',asy
   expect(spill,'natal landing viewport overflow '+width+'px').toBeLessThanOrEqual(2);
  }
 });
+
+
+test('Save-chart toolbar scrolls underneath sticky navigation instead of covering Login',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('/uk/astrology/jyotish');
+ const header=page.locator('.as-header');
+ const account=page.locator('.jy-portal-toolbar .account-trigger');
+ await expect(header).toBeVisible();
+ await expect(account).toBeVisible();
+ const layers=await page.evaluate(()=>{
+  const toolbar=document.querySelector('.jy-portal-toolbar');
+  const sticky=document.querySelector('.as-header');
+  return {isolated:toolbar?getComputedStyle(toolbar).isolation==='isolate':false,
+    toolbarZ:toolbar?Number(getComputedStyle(toolbar).zIndex):NaN,
+    headerZ:sticky?Number(getComputedStyle(sticky).zIndex):NaN};
+ });
+ expect(layers.isolated).toBeTruthy();
+ expect(layers.toolbarZ).toBeLessThan(layers.headerZ);
+ await page.evaluate(()=>{
+  document.documentElement.style.scrollBehavior='auto';
+  window.scrollTo(0,160);
+ });
+ const hit=await account.evaluate(button=>{
+  const sticky=document.querySelector('.as-header');
+  if(!sticky)return false;
+  const r=button.getBoundingClientRect(),h=sticky.getBoundingClientRect();
+  const x=Math.max(r.left+2,Math.min(r.right-2,(r.left+r.right)/2));
+  const y=Math.max(r.top+2,Math.min(r.bottom-2,(r.top+r.bottom)/2));
+  if(y<h.top||y>h.bottom)return true;
+  const front=document.elementFromPoint(x,y);
+  return front===sticky||sticky.contains(front);
+ });
+ expect(hit,'save chart must not paint on top of the sticky site header').toBeTruthy();
+});
