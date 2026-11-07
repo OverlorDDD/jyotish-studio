@@ -2,10 +2,10 @@
 # isolated Windows lab (already contains native @swisseph/node).
 # NO docker, npm install, production edits, CI flags, or workspace-branch changes.
 [CmdletBinding()]
-param([string]$ReferenceWorktree='', [switch]$ValidateWorktreeOnly)
+param([string]$ReferenceWorktree='', [switch]$ValidateWorktreeOnly, [switch]$MoonPrecision)
 $ErrorActionPreference='Stop'
 $branch='feat/n4-shodashavarga-foundation'
-$required='ca2d443bb323011f26dae72170a001f85868e4e3'
+$required=if($MoonPrecision){'8aa1d904b107a5bfde517b7af823b65217303076'}else{'ca2d443bb323011f26dae72170a001f85868e4e3'}
 $lab=Join-Path $env:USERPROFILE 'galaxiora-n414-private-lab'
 $defaultSource=Join-Path $lab 'math-method-20261107-134700-403\source'
 $source=if($ReferenceWorktree){$ReferenceWorktree}else{$defaultSource}
@@ -76,10 +76,48 @@ try {
  Write-Host "N417_DIAGNOSTIC_HEAD=$required"
  Push-Location $source
  try {
-  $raw=@(& node --experimental-strip-types $tmpFile)
+  $arguments=@('--experimental-strip-types',$tmpFile)
+  if($MoonPrecision){$arguments+='--moon-precision-jqa3-02'}
+  $raw=@(& node @arguments)
   FailCode 'N417_NATIVE_JHORA20_SOLAR_AUDIT'
   $report=($raw -join [Environment]::NewLine) | ConvertFrom-Json
  } finally {Pop-Location}
+ if($MoonPrecision){
+  if($report.status -ne 'N418_SOURCE_PRINT_PRECISION_DAY_BOUNDARY_SPANNED_STRICT_SWIEPH_PASS' -or
+     $report.originalSourceCase -ne 'JQA3-02' -or
+     $report.sourceRoundingCanExplainSingleCalendarMismatch -ne $true -or
+     $report.originalUnroundedJHoraMoonLongitudeKnown -ne $false -or
+     $report.productionReleasePermitted -ne $false -or
+     $report.originalJHoraYearDefinitionOption3Proven -ne $false){
+   throw 'N418_SOURCE_MOON_PRINT_PRECISION_EVIDENCE_INVALID'
+  }
+  $alternatives=@($report.originalMoonPrintAlternatives)
+  if($alternatives.Count -ne 3 -or
+     $report.firstOrderHalfRoundingSeconds -lt 30 -or
+     $report.firstOrderHalfRoundingSeconds -gt 36 -or
+     $report.nativeSolarEphemerisCalls -lt 500){
+   throw 'N418_SWIEPH_MOON_RESOLUTION_NOT_VERIFIED'
+  }
+  $dates=@($alternatives | ForEach-Object {$_.computedLocalCalendarDate} | Select-Object -Unique)
+  if($dates -notcontains '2018-11-14' -or $dates -notcontains '2018-11-15'){
+   throw 'N418_MOON_PRINT_INTERVAL_DOES_NOT_CROSS_ORIGINAL_CALENDAR_DAY'
+  }
+  $output=Join-Path $lab ('N418_JHORA02_PRINT_PRECISION_'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.json')
+  [System.IO.File]::WriteAllText($output,($raw -join [Environment]::NewLine),[System.Text.UTF8Encoding]::new($false))
+  Write-Host '=== N4.18 JHORA ORIGINAL SOURCE PRECISION ===' -ForegroundColor Cyan
+  Write-Host ('N418_ORIGINAL_JHORA_PRINT_PRECISION_ARCSECONDS='+$report.originalJHoraMoonPrintedPrecisionArcseconds)
+  Write-Host ('N418_FIRST_ORDER_HALF_ROUNDING_SECONDS='+$report.firstOrderHalfRoundingSeconds)
+  Write-Host ('N418_NATIVE_SOURCE_INTERVAL_SPAN_SECONDS='+$report.nativeSourcePrintedIntervalSpanSeconds)
+  foreach($alternative in $alternatives){
+   Write-Host ('N418_MOON_PRINT_OFFSET_ARCSECONDS='+$alternative.printedSourceMoonOffsetArcseconds+
+    ';localCalendarDate='+$alternative.computedLocalCalendarDate+
+    ';localClock='+$alternative.computedOriginalFixedOffsetLocalClock)
+  }
+  Write-Host 'N418_SOURCE_PRINTED_MOON_ROUNDING_STRADDLES_2018_MIDNIGHT'
+  Write-Host "N418_PRIVATE_REPORT=$output"
+  Write-Host 'N418_STRICT_NATIVE_SWIEPH_SOURCE_PRECISION_DIAGNOSTIC_PASS' -ForegroundColor Green
+  Write-Host 'N418_UNROUNDED_JHORA_AND_YEAR_OPTION_UNATTESTED_NO_PRODUCTION_SWITCH'
+ } else {
  if($report.status -ne 'N4_JHORA20_NATIVE_SOLAR_LONGITUDE_DASHA_DIAGNOSTIC_COMPLETED' -or
    $report.originalLocalSiderealMinorResidualCount -ne 1 -or
    @($report.originalLocalSiderealMinorCalendarResiduals).Count -ne 1){
@@ -117,6 +155,7 @@ try {
  Write-Host 'N417_EXACT_ONE_DAY_DISCREPANCY_ISOLATED_DIAGNOSTIC_PASS' -ForegroundColor Green
  Write-Host 'N417_YEAR_OPTION_AND_SUBDAY_CERTIFICATION_STILL_PENDING'
  Write-Host 'N417_NO_PRODUCTION_OR_UI_AI_RELEASE'
+ }
 } catch {
  Write-Host ('N417_FAILED: '+$_.Exception.Message) -ForegroundColor Red
  exit 1
