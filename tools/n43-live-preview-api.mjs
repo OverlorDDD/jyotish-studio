@@ -13,6 +13,7 @@ import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from '../apps/api/src/dire
 import {CHART_VERIFICATION_VERSION} from '../apps/api/src/jyotish-integrity.ts';
 import {READER_V7_VERSION} from '../apps/api/src/reader-v7.ts';
 import {READER_V8_VERSION} from '../apps/api/src/reader-v8.ts';
+import {N45_EDITORIAL_VERSION} from '../apps/api/src/reader-editorial-n45.ts';
 
 const root=resolve(fileURLToPath(new URL('../',import.meta.url)));
 const localEnv=resolve(root,'.env');
@@ -77,7 +78,7 @@ export function createN43PreviewServer({calculator=runCalculation,reporter=build
     return json(res,200,{status:'ok',service:'n43-local-preview',database:'not_required'});
    if(req.method==='GET'&&pathname==='/api/v1/jyotish/runtime')
     return json(res,200,{service:'n43-local-preview',readerVersion:'6.0.0',
-     readerEdition:READER_V8_VERSION,pipeline:DIRECT_JYOTISH_VERSION,
+     readerEdition:READER_V8_VERSION,editorialEdition:N45_EDITORIAL_VERSION,pipeline:DIRECT_JYOTISH_VERSION,
      verificationContract:CHART_VERIFICATION_VERSION,mode:process.env.AI_MODE||'free',
      previewOnly:true,productionAuthorized:false});
    if(req.method==='GET'&&pathname==='/api/v1/panchanga/cities'){
@@ -93,7 +94,7 @@ export function createN43PreviewServer({calculator=runCalculation,reporter=build
     if(kind==='chart')return json(res,200,chart);
     const lang=request.lang||'uk',asOf=request.asOf||new Date().toISOString().slice(0,10);
     const report=reporter(chart,lang,asOf);
-    if(report.readerV8?.version!==READER_V8_VERSION||report.readerV8.status!=='available')
+    if(report.readerV8?.version!==READER_V8_VERSION||report.readerV8.status!=='available'||report.readerV8.editorialVersion!==N45_EDITORIAL_VERSION)
      throw bad(503,'Reader 8 verified data unavailable.');
     const base={...report,readerVersion:'6.0.0',verification:chart.verification,
      previewOnly:true};
