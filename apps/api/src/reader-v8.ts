@@ -55,15 +55,18 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
     'The general potential and its specific expression call for different approaches.'):
    complement?(uk?' Детальна карта додає спосіб роботи зі складнішою темою.':
     'The detailed chart adds a way to work with a complex theme.'):'');
+  // The reader must explain an actual circumstance, not stack boilerplate.
   const strength=support.length?
-   (uk?'На користь цього ракурсу є додатковий класичний показник. ':'An additional classical indicator supports this interpretation. ')+
-    sentences(support,lang,1)+' '+(uk?'Можливий прояв у житті: ':'A possible real-life expression is ')+
-    base.strength.replace(/^(Можлива опора:\s*|A possible resource is to\s*)/u,'') :
-   (uk?'Головний робочий напрям цієї теми: ':'A practical direction worth exploring: ')+
-    base.strength;
+   (uk?'Додатковий показник підтримує цю тему. ':'Another checked factor reinforces this theme. ')+
+   sentences(support,lang,1)+' '+(uk?'Як це можна використати: ':'One way to use it: ')+
+   base.strength.replace(/^(Можлива опора:\s*|A possible resource is to\s*)/u,'') :
+   (uk?'Практична можливість у цій сфері: ':'One useful direction in this area: ')+
+   base.strength.replace(/^(Можлива опора:\s*|A possible resource is to\s*)/u,'');
+  const ordinaryChallenge=base.challenge.replace(/^(На що звернути увагу:\s*|A pattern worth watching:\s*)/u,'');
   const challenge=caution.length?
-   sentences(caution,lang,1)+' '+(uk?'Для перевірки в реальному житті: ':'To test this against real life: ')+base.challenge:
-   (uk?'Зворотний бік цієї теми: ':'A possible trade-off: ')+base.challenge;
+   sentences(caution,lang,1)+' '+(uk?'На практиці варто помічати: ':'In daily life, notice whether you tend to ')+
+   ordinaryChallenge :
+   (uk?'Одна з можливих складнощів: ':'A possible trade-off is to ')+ordinaryChallenge;
   const situational=context.length?
    sentences(context,lang,2):
    (uk?'Додаткового прямого класичного правила для цього поєднання поки не підтверджено; опис є сучасним узагальненням розрахованих положень.':
@@ -92,11 +95,21 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   };
  });
  const select=(d:number)=>insights.find(x=>x.division===d)!;
+ const activated=(d:number,kind:'resource'|'friction')=>{
+  const rules=extractN44Evidence(chart,d,asOf);
+  return rules.filter(r=>r.role===kind).length*3+rules.filter(r=>r.role==='context').length;
+ };
+ // Choose actual chart-specific leading themes; the work area remains explicit.
+ const primary=([27,24,2,9,3,4,12,7,16,20,40,45,1,30,10] as const)
+  .sort((a,b)=>activated(b,'resource')-activated(a,'resource'))[0];
+ const secondary=([30,27,9,2,4,24,7,3,12,20,45,1,16,40] as const)
+  .filter(d=>d!==primary)
+  .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
  const highlights=[
-  {id:'strength' as const,division:27,title:uk?'Що може бути вашою опорою':'What may support you',
-   text:select(27).strength},
-  {id:'challenge' as const,division:30,title:uk?'Що варто врахувати':'What to watch for',
-   text:select(30).challenge},
+  {id:'strength' as const,division:primary,title:uk?'Де у вас може бути опора':'Where you may find support',
+   text:select(primary).strength},
+  {id:'challenge' as const,division:secondary,title:uk?'Що варто перевірити':'A pattern to watch',
+   text:select(secondary).challenge},
   {id:'career' as const,division:10,title:uk?'Професійний напрям':'Your professional direction',
    text:select(10).context+' '+select(10).step}
  ];
