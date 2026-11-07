@@ -1,5 +1,5 @@
 'use client';
-import {useState,useEffect} from 'react';
+import {useState} from 'react';
 import NorthIndianChart from './NorthIndianChart';
 import type {PlanetPosition} from '../../lib/north-indian-layout';
 import {hasN4RcView,type N4RcView,type VerifiedNatalSource} from '../../lib/n4-rc-view';
@@ -26,13 +26,14 @@ const INFO:readonly Info[]=[
  {n:27,name:'Bhamsha',uk:'Витривалість',en:'Resilience',detailUk:'Сильні сторони та вразливості.',detailEn:'Strengths and vulnerabilities.'},
  {n:30,name:'Trimsamsa',uk:'Виклики',en:'Challenges',detailUk:'Традиційна карта життєвих перешкод.',detailEn:'Traditional lens on obstacles.'},
  {n:40,name:'Khavedamsa',uk:'Материнська лінія',en:'Maternal line',detailUk:'Традиційний ракурс родової спадщини.',detailEn:'Traditional maternal-line themes.'},
- {n:45,name:'Akshavedamsa',uk:'Батьківська лінія',en:'Paternal line',detailUk:'Традиційний ракурс родової спадщини.',detailEn:'Traditional paternal-line themes.'}
+ {n:45,name:'Akshavedamsa',uk:'Батьківська лінія',en:'Paternal line',detailUk:'Традиційний ракурс родової спадщини.',detailEn:'Traditional paternal-line themes.'},
+ {n:60,name:'Shashtiamsa',uk:'Глибокі теми',en:'Deeper patterns',detailUk:'Традиційна кармічна варга. Результат залежить від точності часу народження.',detailEn:'A traditional karmic varga, sensitive to birth-time accuracy.'}
 ];
 const CATEGORIES=[
  {key:'resources',uk:'Ресурси й дім',en:'Resources & home',ns:[2,4,16]},
  {key:'family',uk:'Родина й взаємодія',en:'Family & connections',ns:[3,7,12,40,45]},
  {key:'growth',uk:'Розвиток і практика',en:'Growth & practice',ns:[20,24,27]},
- {key:'challenges',uk:'Випробування',en:'Challenges',ns:[30]}
+ {key:'challenges',uk:'Випробування',en:'Challenges',ns:[30,60]}
 ] as const;
 const SIGNS_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGNS_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
@@ -46,24 +47,22 @@ function onN4Only(v:N4RcView,n:number):{planets:PlanetPosition[];lagna:{sign:num
   name:p.name,sign:p.sign,house:p.house,retrograde:p.retrograde,degreesInSign:0
  }))};
 }
-export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'en'}){
+export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:Natal|null;lang:'uk'|'en';minutesUncertain?:boolean}){
  const [selected,setSelected]=useState(9);
- const [birthTimeSource,setBirthTimeSource]=useState<'unknown'|'recorded_minute'|'approximate'>('unknown');
- useEffect(()=>{setBirthTimeSource('unknown')},[chart?.verification?.digest]);
  const d60Valid=chart!==null&&hasD60Provisional(chart);
  const d60=d60Valid?chart?.n4D60:undefined;
- const d60BoundaryWarning=d60&&Math.min(
-  d60.lagna.boundaryDistanceArcseconds,...d60.planets.map(p=>p.boundaryDistanceArcseconds)
- )<=1;
+ const d60BoundaryWarning=d60&&Math.min(d60.lagna.boundaryDistanceArcseconds,
+  ...d60.planets.map(p=>p.boundaryDistanceArcseconds))<=1;
  const uk=lang==='uk',passed=chart!==null&&hasN4RcView(chart);
  const n4=passed?chart?.n4:null;
  const info=INFO.find(x=>x.n===selected)!;
- const selectedChart=n4?onN4Only(n4,selected):null;
+ const selectedChart=selected===60&&d60?{lagna:{sign:d60.lagna.sign},planets:d60.planets.map(p=>({name:p.name,sign:p.sign,house:p.house,retrograde:p.retrograde,degreesInSign:0}))}:n4?onN4Only(n4,selected):null;
  const isCore=selected===1||selected===9||selected===10;
  const positions=selected===1?chart?.d1:selected===9?chart?.d9:selected===10?chart?.d10:selectedChart?.planets;
  const lagna=selected===1?chart?.ascendant:selected===9?chart?.lagnaD9:selected===10?chart?.lagnaD10:selectedChart?.lagna;
  const selectedRaw=n4?.charts.find(c=>c.division===selected);
- const boundaryGuard=selectedRaw&&Math.min(
+ const selectedReady=selected===60?d60Valid:passed;
+ const boundaryGuard=selected===60?d60BoundaryWarning:selectedRaw&&Math.min(
   selectedRaw.lagnaBoundaryArcseconds,
   ...selectedRaw.planets.map(p=>p.boundaryDistanceArcseconds)
  )<=1;
@@ -84,7 +83,7 @@ export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'e
    {INFO.filter(x=>[1,9,10].includes(x.n)).map(pick)}
   </div>
   <details className={styles.more} data-testid="n4-rc-additional">
-   <summary>{uk?'Інші 12 карт за життєвими темами':'Explore 12 other charts by life area'}</summary>
+   <summary>{uk?'Інші 13 карт за життєвими темами':'Explore 13 other charts by life area'}</summary>
    <div className={styles.categories}>
     {CATEGORIES.map(group=><div key={group.key}>
      <h3>{uk?group.uk:group.en}</h3>
@@ -94,21 +93,7 @@ export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'e
     </div>)}
    </div>
   </details>
-  <details className={styles.more} data-testid="n4-d60-panel">
-   <summary>{uk?'D60 · Шаштіамша — тонкі кармічні впливи':'D60 · Shashtiamsa — subtle karmic themes'}</summary>
-   <p className={styles.method}>
-    {uk?'Математична формула D60 пройшла незалежну звірку для обраного методу JHora Traditional. Однак записаний час народження до хвилини не гарантує стабільність D60: Лагна може змінитися за десятки секунд.':
-     'The D60 symbolic formula passed independent method-scoped comparison with JHora Traditional. A recorded minute does not guarantee D60 stability: its ascendant can change within tens of seconds.'}
-   </p>
-   <label className={styles.d60Precision}>
-    {uk?'Наскільки точно відомий час народження?':'How accurately is your birth time known?'}
-    <select value={birthTimeSource} onChange={event=>setBirthTimeSource(event.target.value as 'unknown'|'recorded_minute'|'approximate')}>
-     <option value="unknown">{uk?'Не знаю точності / хвилини невідомі':'Unknown accuracy / minutes not known'}</option>
-     <option value="recorded_minute">{uk?'Записаний у документі до хвилини (HH:MM)':'Documented to the minute (HH:MM)'}</option>
-     <option value="approximate">{uk?'Орієнтовний час (або округлений)':'Approximate or rounded time'}</option>
-    </select>
-   </label>
-   {!chart?<p className={styles.empty} role="status">{uk?'Спочатку розрахуй натальну карту, щоб побачити D60.':'Calculate your birth chart first to see D60.'}</p>:
+  {!chart?<p className={styles.empty} role="status">{uk?'Спочатку розрахуй натальну карту, щоб побачити D60.':'Calculate your birth chart first to see D60.'}</p>:
    !d60Valid?<p className={styles.warning} role="alert">
     {uk?'Точні вхідні координати D60 не підтверджені сервером. Результат приховано.':'The server has not verified the D60 source data. Results are hidden.'}
    </p>:
@@ -140,7 +125,17 @@ export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'e
      {uk?'Принаймні одне положення D60 ближче 1″ до межі сектора. Навіть дуже мала похибка довготи може змінити знак.':
       'At least one D60 placement lies within 1″ of a sector boundary; a tiny longitude difference may change its sign.'}
     </p>}
-    <p className={styles.method}>
+    {selected===60&&chart&&<p className={styles.d60Caution} role="status" data-testid="n4-d60-precision-warning">
+   {minutesUncertain
+    ?uk?'Хвилини народження невідомі або час приблизний. Положення D60, особливо Лагни та домів, можуть бути неточними.':
+      'Birth minutes are unknown or the time is approximate. D60 placements, especially the ascendant and houses, may be inaccurate.'
+    :uk?'D60 розрахована на вказаний момент. Навіть час, записаний до хвилини, не гарантує стабільність Лагни D60 при відхиленні на кілька секунд.':
+      'D60 is calculated for the entered moment. Even minute-level records cannot guarantee D60 ascendant stability within a few seconds.'}
+  </p>}
+  {selected===60&&!d60Valid&&chart&&<p className={styles.warning} role="alert">
+   {uk?'Сервер не підтвердив вихідні дані D60. Карту приховано.':'D60 source validation failed. Chart hidden.'}
+  </p>}
+  <p className={styles.method}>
      {uk?'Режим: JHora Traditional, відлік частин від власного знака. Перевірені правила відображення знаків ≠ перевірений історичний час, стабільність Лагни або дозвіл на персональні прогнози D60.':
       'Method: JHora Traditional, own-sign inclusive. Verified symbolic mappings do not certify historical birth time, ascendant stability or individual D60 predictions.'}
     </p>
@@ -157,24 +152,24 @@ export default function N4RcExplorer({chart,lang}:{chart:Natal|null;lang:'uk'|'e
    </article>
    {selected!==1&&<article className={styles.chart}>
     <h3>{l(info)}</h3><p>{uk?info.detailUk:info.detailEn}</p>
-    {passed&&positions&&lagna?
+    {selectedReady&&positions&&lagna?
       <NorthIndianChart division={'d'+selected} lang={lang} chartLabel={info.name}
        showDegrees={isCore} planets={[...positions]} lagna={lagna}/>:
       <div className={styles.placeholder}>{uk?'Додаткова карта ще не перевірена':'Additional chart not verified'}</div>}
    </article>}
   </div>
-  {passed&&selectedChart&&<div className={styles.placements}>
+  {selectedReady&&selectedChart&&<div className={styles.placements}>
    <h3>{uk?'Фактичні положення D'+selected:'D'+selected+' placements'}</h3>
-   <p>{uk?'Лагна':'Ascendant'}: <strong>{sign(selectedChart.lagna.sign,uk)}</strong></p>
+   <p>{uk?'Лагна':'Ascendant'}: <strong>{sign(selectedChart.lagna.sign,uk)}</strong> {selected===60?<span className={styles.d60Caution}>{uk?'(попереднє положення)':'(provisional position)'}</span>:null}</p>
    <div className={styles.planetGrid}>{selectedChart.planets.map(p=><div key={p.name}><span>{value(p.name,uk)}</span><strong>{sign(p.sign,uk)} · {uk?'дім ':'house '}{p.house}</strong></div>)}</div>
   </div>}
-  {passed&&boundaryGuard&&<p role="status" className={styles.warning} data-testid="n4-near-boundary-warning">
+  {selectedReady&&boundaryGuard&&<p role="status" className={styles.warning} data-testid="n4-near-boundary-warning">
    {uk?'Увага: щонайменше одна планета або Лагна D'+selected+' перебуває в межах 1 кутової секунди від межі сектора. Для цього положення потрібна додаткова перевірка точності вихідних координат і часу народження.':
     'Precision warning: a planet or the D'+selected+' ascendant lies within 1 arcsecond of a divisional boundary. Verify the source longitude and birth-time precision before relying on this placement.'}
   </p>}
   <p className={styles.method}>
-   {uk?'Метод: сидерична D1 Lahiri, дробові карти за зафіксованими правилами Парашарі, D2 — Sun/Moon Hora. Зв’язок із серверною D1 перевірено внутрішньо; це не незалежний сертифікат JHora вашого народження. D60 доступна окремо як попередня карта з обов’язковим попередженням про час народження.':
-    'Method: Lahiri sidereal D1; pinned Parashari divisional rules, D2 Sun/Moon Hora. Bound to the internally verified server D1 — not independent JHora certification of your birth. D60 is a separate provisional chart with birth-time accuracy warnings.'}
+   {uk?'Метод: сидерична D1 Lahiri, дробові карти за зафіксованими правилами Парашарі, D2 — Sun/Moon Hora. Зв’язок із серверною D1 перевірено внутрішньо; це не незалежний сертифікат JHora вашого народження. D60 входить до спільного набору 16 карт; її Лагна й доми показані попередньо через чутливість до часу народження.':
+    'Method: Lahiri sidereal D1; pinned Parashari divisional rules, D2 Sun/Moon Hora. Bound to the internally verified server D1 — not independent JHora certification of your birth. D60 is one of the 16 charts; its ascendant and houses are provisional because of birth-time sensitivity.'}
   </p>
  </section>;
 }
