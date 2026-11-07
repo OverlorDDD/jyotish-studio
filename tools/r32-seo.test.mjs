@@ -20,6 +20,11 @@ test('R3.2 sitemap uses only canonical public route paths',()=>{
  assert.doesNotMatch(source,/priority:suffix/);
 });
 
+test('Production forces crawlable canonical metadata into initial document head',()=>{
+ const config=read('apps/web/next.config.mjs');
+ assert.ok(config.includes('htmlLimitedBots: /.*/'));
+});
+
 test('GP1 sitemap excludes redirected locale homepage aliases and keeps self-canonical root',()=>{
  const sitemap=read('apps/web/app/sitemap.ts');
  const home=read('apps/web/app/page.tsx');
