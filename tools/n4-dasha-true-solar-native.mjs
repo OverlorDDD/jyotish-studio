@@ -46,7 +46,7 @@ export function solveN4SolarArcInstant({startMs,years,yearDays,getSun}){
  let lower=prediction-12*DAY,upper=prediction+12*DAY;
  let fl=angularError(getSun(lower),target);
  let fu=angularError(getSun(upper),target);
- if(!Number.isFinite(fl)||!Number.isFinite(fu)||!(fl<=0&&fu>=0))
+ if(!Number.isFinite(fl)||!Number.isFinite(fu)||!(fl< -0.005&&fu>0.005))
   fail('target solar longitude cannot be bracketed near physically expected year');
  for(let i=0;i<45&&upper-lower>1000;i++){
   const mid=(lower+upper)/2,err=angularError(getSun(mid),target);
