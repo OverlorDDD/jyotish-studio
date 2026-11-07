@@ -30,7 +30,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(r.status,200);
    const report=await r.json();
    assert.equal(report.verification.status,'verified_internal');
-   assert.equal(report.readerV7.version,'reader-v8.0.0-n44');
+   assert.equal(report.readerV7.version,'reader-v7.0.0-n43');
    assert.equal(report.readerV7.status,'available');
    assert.equal(report.readerV7.insights.length,15);
    assert.equal(report.readerV7.highlights.length,3);
