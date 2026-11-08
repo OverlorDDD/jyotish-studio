@@ -146,6 +146,7 @@ test('A newly calculated natal chart automatically opens verified local Reader, 
  await expect(reader).toBeVisible();
  await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
  await expect(page.getByTestId('reading-ai-provenance')).toContainText('Jyotish Reader');
+ await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
  expect(calls).toEqual(['local']);
  await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
 });
