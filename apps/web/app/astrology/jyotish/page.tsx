@@ -240,7 +240,10 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
 
     <section className="jy-ai-launch">
      <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'AI пояснює перевірені факти простою мовою. Reader 8 працює окремо й без AI.':'AI explains verified chart themes in plain language. Reader 8 also works without AI.'}</small></span><ArrowUpRight size={20}/></button>
-     <button className="jy-reader-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader 8':'Read without AI — Reader 8'}</button>
+     <button className="jy-reader-launch-btn" data-testid="reader-auto-launch-btn"
+       aria-pressed={report?.ai?.fallbackReason==='reader_only'}
+       style={report?.ai?.fallbackReason==='reader_only'?{borderColor:'#dbb77c',boxShadow:'0 0 0 1px rgba(219,183,124,.27)'}:undefined}
+       disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader 8':'Read without AI — Reader 8'}</button>
      {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
      {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
     </section>
