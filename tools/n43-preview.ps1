@@ -117,6 +117,10 @@ if($calculated.readerV8.version -ne 'reader-v8.0.0-n44' -or
  $calculated.readerV8.editorialVersion -ne 'n47-synthesis-natural-voice-1.0.0' -or
  $calculated.readerV8.status -ne 'available' -or
  $calculated.readerV8.insights.Count -ne 15 -or
+ -not $calculated.readerV8.synthesis -or
+ $calculated.readerV8.synthesis.opening.Length -lt 100 -or
+ $calculated.readerV8.d60Preview.version -ne 'd60-conditional-signs-n47-v1' -or
+ $calculated.readerV8.d60Preview.status -ne 'conditional_signs' -or
  $calculated.verification.status -ne 'verified_internal'){
  throw 'Reader 8 local API returned an incomplete or unverified report; aborting the preview.'
 }
@@ -141,7 +145,7 @@ if($runtime.readerEdition -ne 'reader-v8.0.0-n44' -or
  throw 'API proxy is not connected to isolated N4.4 Classical Reader 8.'
 }
 Write-Host ''
-Write-Host 'N46_BALANCED_READER_VERIFIED — source-bound editorial edition active' -ForegroundColor Green
+Write-Host 'N47_SYNTHESIS_D60_READER_VERIFIED — chart-specific summary and conditional D60 active' -ForegroundColor Green
 Write-Host 'N44_CLASSICAL_READER_8_PREVIEW_READY — NO DOCKER, NO DATABASE, NO PRODUCTION DEPLOY' -ForegroundColor Green
 Write-Host 'UA: http://localhost:3000/uk/astrology/jyotish'
 Write-Host 'EN: http://localhost:3000/en/astrology/jyotish'
