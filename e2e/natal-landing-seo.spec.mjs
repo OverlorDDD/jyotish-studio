@@ -24,11 +24,11 @@ for(const lang of ['en','uk']){
    const rect=canvas.getBoundingClientRect();
    const frame=canvas.parentElement.getBoundingClientRect();
    const ctx=canvas.getContext('2d');
-   const px=ctx.getImageData(Math.round(canvas.width*471/640),Math.round(canvas.height*194/620),1,1).data;
+   const px=ctx.getImageData(Math.round(canvas.width*320/640),Math.round(canvas.height*310/620),1,1).data;
    return {drawn:px[3]>0,aligned:Math.abs(rect.left-frame.left)<=2&&Math.abs(rect.right-frame.right)<=2,
     ratio:Math.abs(rect.width/rect.height-640/620)<.025};
   });
-  expect(astronomy.drawn,'Jupiter should render visibly in the canvas').toBeTruthy();
+  expect(astronomy.drawn,'Sun must be at the common centre of the heliocentric drawing').toBeTruthy();
   expect(astronomy.aligned,'canvas should stay within its scene').toBeTruthy();
   expect(astronomy.ratio,'celestial artwork must stay proportional').toBeTruthy();
   await expect(page.locator('.as-brand-icon img')).toHaveCount(1);
@@ -84,7 +84,7 @@ test('Save-chart toolbar scrolls underneath sticky navigation instead of coverin
 });
 
 
-test('Hero Scene v3: six hover-only names, smooth parallax and no static legend',async({page})=>{
+test('Hero Scene v4: Sun-centred orbits, Earth Moon and ten consistent hover names',async({page})=>{
  await page.setViewportSize({width:1440,height:900});
  await page.goto('/en/astrology/jyotish');
  const sky=page.getByTestId('n41-sky'),canvas=sky.locator('canvas');
@@ -92,13 +92,24 @@ test('Hero Scene v3: six hover-only names, smooth parallax and no static legend'
  await expect(sky.getByRole('button')).toHaveCount(0);
  const live=sky.getByTestId('n41-hovered-planet');
  await expect(live).toBeEmpty();
+ await expect(sky).toHaveAttribute('data-orbit-model','heliocentric-schematic');
+ const orbitalBodies=[
+  {name:'MERCURY',radius:62,angle:-2.37},
+  {name:'VENUS',radius:96,angle:.61},
+  {name:'EARTH',radius:130,angle:2.54},
+  {name:'MARS',radius:163,angle:-.70},
+  {name:'JUPITER',radius:201,angle:1.94},
+  {name:'SATURN',radius:233,angle:-2.27},
+  {name:'URANUS',radius:258,angle:-.16},
+  {name:'NEPTUNE',radius:281,angle:1.20}
+ ];
+ const earth=orbitalBodies.find(b=>b.name==='EARTH');
+ const earthX=320+Math.cos(earth.angle)*earth.radius;
+ const earthY=310+Math.sin(earth.angle)*earth.radius*.79;
  const bodies=[
-  {name:'SUN',x:164,y:254},
-  {name:'MOON',x:310,y:125},
-  {name:'JUPITER',x:462,y:206},
-  {name:'VENUS',x:507,y:351},
-  {name:'SATURN',x:425,y:452},
-  {name:'NEPTUNE',x:229,y:459}
+  {name:'SUN',x:320,y:310},
+  ...orbitalBodies.map(b=>({name:b.name,x:320+Math.cos(b.angle)*b.radius,y:310+Math.sin(b.angle)*b.radius*.79})),
+  {name:'MOON',x:earthX+23,y:earthY-15}
  ];
  for(const body of bodies){
   const rect=await canvas.boundingBox();
@@ -120,7 +131,7 @@ test('Hero Scene v3: six hover-only names, smooth parallax and no static legend'
  await expect(live).toBeEmpty();
 });
 
-test('Hero Scene v3: reduced motion stays still but hover names remain usable',async({page})=>{
+test('Hero Scene v4: reduced motion stays still but heliocentric bodies are hoverable',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.setViewportSize({width:1440,height:900});
  await page.goto('/uk/astrology/jyotish');
@@ -129,8 +140,8 @@ test('Hero Scene v3: reduced motion stays still but hover names remain usable',a
  await expect(canvas).toBeVisible();
  const r=await canvas.boundingBox();
  expect(r).not.toBeNull();
- await page.mouse.move(r.x+r.width*462/640,r.y+r.height*206/620);
- await expect(live).toHaveText('JUPITER');
+ await page.mouse.move(r.x+r.width*320/640,r.y+r.height*310/620);
+ await expect(live).toHaveText('SUN');
  await expect(canvas).toHaveAttribute('data-parallax-x','0');
  await page.mouse.move(r.x-5,r.y-5);
  await expect(live).toBeEmpty();
