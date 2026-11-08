@@ -25,3 +25,29 @@
 /* N4.5: lyrical but scannable editorial passages, not a wall of mini-headers. */
 .storyText{font-size:14px;line-height:1.82;color:#d3ddec;margin:0;letter-spacing:.002em;max-width:70ch}
 .card .storyText + .storyText{margin-top:-5px}
+
+
+/* N4.7 — editorial synthesis sits before the per-topic readings. */
+.synthesis{padding:clamp(18px,2.8vw,28px);margin:6px 0 23px;border:1px solid rgba(219,190,140,.35);
+ border-radius:17px;background:linear-gradient(150deg,rgba(39,52,73,.83),rgba(18,34,54,.72))}
+.synthesis h3,.d60Section h3{margin:10px 0 14px;font-family:Georgia,serif;font-weight:600;
+ font-size:clamp(20px,2.5vw,27px);line-height:1.25;color:#f3d2a3}
+.synthesis>p,.synthesisDirection p,.synthesisParts p,.d60Section p{font-size:14px;line-height:1.85;
+ color:#e0e6ed;max-width:90ch;margin:6px 0 0}
+.synthesisParts{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:19px}
+.synthesisParts>div{padding:15px;border-left:2px solid rgba(224,180,118,.45);
+ background:rgba(17,30,50,.5);border-radius:0 9px 9px 0}
+.synthesisParts strong,.synthesisDirection strong{display:block;color:#f2c995;font-size:13px;margin-bottom:6px}
+.synthesisDirection{margin-top:19px}
+.synthesis small{display:block;margin-top:17px;color:#b7c3d3;line-height:1.5}
+.takeawayHeading{font-size:19px;line-height:1.3;color:#e9cfab;margin:24px 0 12px}
+.d60Section{padding:20px;margin-top:23px;border:1px solid rgba(188,185,226,.34);
+ border-radius:15px;background:rgba(33,43,66,.55)}
+.d60Section h3{font-family:inherit;font-size:20px}
+.d60Factors{display:grid;gap:9px;margin:17px 0}
+.d60Factors article{padding:11px 14px;border:1px solid rgba(192,205,235,.15);
+ background:rgba(12,24,45,.45);border-radius:9px}
+.d60Factors p{margin:0;font-size:13px}
+.d60Section .d60Warning{color:#f0d4a9;font-size:12px;border-top:1px solid rgba(199,181,147,.24);
+ margin-top:12px;padding-top:12px}
+@media(max-width:680px){.synthesisParts{grid-template-columns:1fr}.synthesis{padding:17px}}
