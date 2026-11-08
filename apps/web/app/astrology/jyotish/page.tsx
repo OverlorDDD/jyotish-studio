@@ -102,13 +102,15 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    setError(true);setStatus(lang==='uk'?'Перевірка натальної карти не пройдена.':'Natal chart integrity verification failed.');return;
   }
   setChart(ready);
-  setReport(saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
+  const compatibleSaved=saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
     saved?.readerV7?.version==='reader-v7.0.0-n43'&&
     saved?.readerV8?.version==='reader-v8.0.0-n44'&&
-    saved?.readerV8?.editorialVersion==='n45-human-reading-1.0.0'?saved:null);
+    saved?.readerV8?.editorialVersion==='n45-human-reading-1.0.0'?saved:null;
+  setReport(compatibleSaved);
   setInterpretation(lang==='uk'?'Перевірену карту відкрито з кабінету.':'Verified saved chart loaded.');
+  if(!compatibleSaved)void interpret('local',ready);
   setError(false);
   setStatus(lang==='uk'?'Розрахунок перевірено.':'Calculation integrity verified.');
  };
@@ -130,19 +132,21 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   if(!form.date||!form.time||(!form.place&&!manualMode)||!form.timeZone||!form.latitude||!form.longitude){
    setError(true);setStatus(lang==='uk'?'Заповни дату й час та обери місто зі списку або введи ручні координати.':'Enter date and time, then select a city or enter manual coordinates.');return;
   }
-  reportPublicToolEvent('public_tool_started','jyotish');setBusy(true);setError(false);setChart(null);setReport(null);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'API повернуло карту без чинного підтвердження цілісності (потрібен jyotish-integrity-v3). Перезапустіть Next.js і NestJS з однієї оновленої гілки, потім повторіть розрахунок.':'API returned a chart without the current jyotish-integrity-v3 proof. Restart Next.js and NestJS from the same updated branch, then retry.');assertN4RcView(data);setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);reportGrowthEvent('jyotish_chart_completed');reportPublicToolEvent('public_tool_completed','jyotish');}catch(e){reportPublicToolEvent('public_tool_failed','jyotish');setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
- async function interpret(mode:'auto'|'local'='auto'){
-  if(!chart)return;
+  reportPublicToolEvent('public_tool_started','jyotish');setBusy(true);setError(false);setChart(null);setReport(null);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'API повернуло карту без чинного підтвердження цілісності (потрібен jyotish-integrity-v3). Перезапустіть Next.js і NestJS з однієї оновленої гілки, потім повторіть розрахунок.':'API returned a chart without the current jyotish-integrity-v3 proof. Restart Next.js and NestJS from the same updated branch, then retry.');assertN4RcView(data);setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);reportGrowthEvent('jyotish_chart_completed');reportPublicToolEvent('public_tool_completed','jyotish');
+   // Run verified local Reader by default; calling AI always requires an explicit click.
+   void interpret('local',data);}catch(e){reportPublicToolEvent('public_tool_failed','jyotish');setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{setBusy(false)}}
+ async function interpret(mode:'auto'|'local'='auto',freshChart:Chart|null=chart){
+  if(!freshChart)return;
   setAiBusy(true);setInterpretation(lang==='uk'?'Створюємо детальний звіт…':'Preparing a detailed report…');
   try{
    const response=await fetch(api+'/api/v1/reports',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...chart.input,lang,preferred:mode,asOf:new Date().toISOString().slice(0,10)})
+    body:JSON.stringify({...freshChart.input,lang,preferred:mode,asOf:new Date().toISOString().slice(0,10)})
    });
    const data=await readApiJson<ReadingReport>(response);
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
    if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n45-human-reading-1.0.0')throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
-   if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==chart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
+   if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==freshChart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    setReport(data);
    setInterpretation(lang==='uk'?'Звіт готовий ↓ Прокрутіть нижче':'Report ready ↓ Scroll below');
