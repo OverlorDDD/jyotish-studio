@@ -63,9 +63,11 @@ test('Historical support and friction change the actual human narrative, not jus
 });
 test('Solar System illustration explicitly keeps Sun central, 8 ordered solar orbits and a Moon bound to Earth',()=>{
  const file=readFileSync(fileURLToPath(new URL('../apps/web/app/components/NatalSkyLayers.tsx',import.meta.url)),'utf8');
- const kinds=[...file.matchAll(/\{kind:'(mercury|venus|earth|mars|jupiter|saturn|uranus|neptune)',name:'[^']+',radius:(\d+)/g)];
+ const kinds=[...file.matchAll(/\{kind:'(mercury|venus|earth|mars|jupiter|saturn|uranus|neptune)',eccentricity:(\d+\.\d+),name:'[^']+',radius:(\d+)/g)];
  assert.deepEqual(kinds.map(m=>m[1]),['mercury','venus','earth','mars','jupiter','saturn','uranus','neptune']);
- const radii=kinds.map(m=>Number(m[2]));
+ const radii=kinds.map(m=>Number(m[3]));
+ const eccentricities=kinds.map(m=>Number(m[2]));
+ assert.ok(eccentricities.every(e=>e>0&&e<.3),'Sun lies at the focus of noncircular orbital ellipses');
  assert.ok(radii.every((r,i)=>i===0||r>radii[i-1]),'correct orbital order');
  assert.match(file,/SUN:Body=\{kind:'sun',name:'SUN',x:CX,y:CY/);
  assert.match(file,/orbitPosition\(ORBITS\[2\]\)\.x\+23/);
