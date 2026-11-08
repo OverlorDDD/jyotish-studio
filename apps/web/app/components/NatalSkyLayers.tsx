@@ -34,7 +34,7 @@ const PLANETS:readonly Body[]=[
  ...ORBITS.map(o=>({...orbitPosition(o),kind:o.kind,name:o.name,r:o.radiusPx,
   light:o.light,middle:o.middle,dark:o.dark})),
  /* The Moon is placed relative to Earth, not around the Sun on its own ring. */
- {kind:'moon',name:'MOON',x:orbitPosition(ORBITS[2]).x+23,y:orbitPosition(ORBITS[2]).y-15,
+ {kind:'moon',name:'MOON',x:orbitPosition(ORBITS[2]).x+23,y:orbitPosition(ORBITS[2]).y-10.5,
   r:5,light:'#e7e9eb',middle:'#adb4c7',dark:'#596077'}
 ];
 function starfield():Star[]{
@@ -168,7 +168,7 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  // Moon's LOCAL orbit is centred on Earth.
  const earth=PLANETS.find(p=>p.kind==='earth')!;
  ctx.strokeStyle='rgba(187,199,224,.29)';ctx.lineWidth=.75;
- ctx.beginPath();ctx.ellipse(earth.x,earth.y,27,20,-.25,0,Math.PI*2);ctx.stroke();
+ ctx.beginPath();ctx.ellipse(earth.x,earth.y,27,20,0,0,Math.PI*2);ctx.stroke();
  for(const planet of PLANETS)coloredDisc(ctx,planet,m.hover===planet.kind);
  const focused=PLANETS.find(p=>p.kind===m.hover);
  if(focused)hoverLabel(ctx,focused,m.hoverOpacity,lang);
