@@ -400,8 +400,6 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
  const startFocus=(uk?FOCUS_UK:FOCUS_EN)[facts.natal-1];
  const tension=(uk?FOCUS_UK:FOCUS_EN)[facts.secondaryHouse-1];
  const same=facts.natal===facts.focused;
- const close=facts.focused===facts.secondaryHouse;
- const action=topic.actions[group(facts.focused)];
  const headline=topic.opening;
  const strong=tidy(fill((uk?RESOURCE_UK:RESOURCE_EN)[input.division],{focus,gift:main.gift}));
  const shadow=tidy(fill((uk?RISK_UK:RISK_EN)[input.division],{tension,trap:second.trap}));
