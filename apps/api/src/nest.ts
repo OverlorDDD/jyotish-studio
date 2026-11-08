@@ -10,6 +10,7 @@ import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts'
 import {N4_VARGA_READER_VERSION} from './reader-varga-n4.ts';
 import {READER_V7_VERSION} from './reader-v7.ts';
 import {READER_V8_VERSION} from './reader-v8.ts';
+import {buildD60Preview} from './reader-d60-n47.ts';
 import {N45_EDITORIAL_VERSION} from './reader-editorial-n45.ts';
 import {SuccessfulConsultationCache} from './consultation-replay.ts';
 import {PrismaService} from './prisma.ts';
@@ -153,14 +154,20 @@ export class JyotishController{
    paragraphs:skyParagraphs,
    facts:['Swiss Ephemeris · Lahiri','Reference: Europe/Kyiv / Kyiv','Festival dates are candidates']
   }:null;
-  const base={...report,sections:skySection?[...report.sections,skySection]:report.sections,
+  const omitD60=birth.minutesUncertain===true;
+  // Never include individual D60 sign notes or AI D60 facts when a user
+  // explicitly says their birth minutes are unknown. D1/D9/D10 stay intact.
+  const safeChart=omitD60?({...chart,n4D60:undefined} as CalculatedChart):chart;
+  const safeReaderV8=omitD60?{...report.readerV8,d60Preview:buildD60Preview(safeChart,birth.lang)}:report.readerV8;
+  const base={...report,readerV8:safeReaderV8,
+   sections:skySection?[...report.sections,skySection]:report.sections,
    calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification};
   if(birth.preferred==='local'||process.env.GALAXIORA_READER_ONLY==='1')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION;
-  const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(chart,birth.lang,report.asOf,{
+  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':minutes-uncertain='+String(omitD60);
+  const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(safeChart,birth.lang,report.asOf,{
    onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
   }));
   if(outcome.result)
