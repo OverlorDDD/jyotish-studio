@@ -6,7 +6,9 @@
  * All individual choices derive from D1 + verified Dn evidence tokens.
  * Language is curated, not produced by an LLM or a generic house template.
  */
-export const N45_EDITORIAL_VERSION='n45-human-reading-1.0.0' as const;
+export const N46_EDITORIAL_VERSION='n46-balanced-portrait-1.0.0' as const;
+// Keep the imported symbol stable; bump the serialized edition to invalidate older saved text.
+export const N45_EDITORIAL_VERSION=N46_EDITORIAL_VERSION;
 export type ReaderLanguage='uk'|'en';
 export type EditorialInput={
  division:number; title:string; proof:readonly string[];
@@ -401,24 +403,65 @@ export function renderN45Narrative(input:EditorialInput,lang:ReaderLanguage):Edi
  const close=facts.focused===facts.secondaryHouse;
  const action=topic.actions[group(facts.focused)];
  const headline=topic.opening;
- const strength=tidy(fill((uk?RESOURCE_UK:RESOURCE_EN)[input.division],{focus,gift:main.gift}));
- const challenge=tidy(fill((uk?RISK_UK:RISK_EN)[input.division],{tension,trap:second.trap}));
+ const strong=tidy(fill((uk?RESOURCE_UK:RESOURCE_EN)[input.division],{focus,gift:main.gift}));
+ const shadow=tidy(fill((uk?RISK_UK:RISK_EN)[input.division],{tension,trap:second.trap}));
+ // Classical support and friction are calculated conditions, not arbitrary optimism.
+ // Be more explicit about a challenging placement; do not invent any life event.
+ const tone=input.friction&&input.support?'mixed':input.friction?'challenging':
+  input.support?'supportive':'nuanced';
+ const strength=uk?
+  tidy((tone==='challenging'?
+    'Тут потенціал не обов’язково відкривається легко. Іноді саме зусилля вчить користуватися власною силою. ':
+    tone==='mixed'?'У цієї теми дві сторони: вона дає інструмент і водночас вимагає майстерності ним користуватися. ':
+    tone==='supportive'?'Це один із тих сюжетів карти, де традиція бачить виразну опору. ':
+    'У цій частині карти немає підстав обіцяти легкий шлях, але є на що спертися. ')+
+   strong+' '+(uk?
+    (same?'Той самий мотив повторюється в основній і тематичній картах: його важко не помітити.':
+     'В основній карті ця якість пов’язана також із '+startFocus+'. Дві сфери можуть доповнювати одна одну.'):
+    '')) :
+  tidy((tone==='challenging'?
+    'This part of the chart does not suggest an effortless path. Sometimes the skill grows out of working through resistance. ':
+    tone==='mixed'?'Two sides meet here: a resource worth developing and a cost of using it without care. ':
+    tone==='supportive'?'Traditional factors provide an especially supportive reading of this theme. ':
+    'There is no reason to promise an easy path here, yet there is a resource worth exploring. ')+
+   strong+(same?
+    ' The natal and focused chart repeat the same area of emphasis.':
+    ' The natal chart also connects this potential with '+startFocus+'.'));
+ const challenge=uk?
+  tidy((tone==='challenging'?
+    'А ось де карта говорить суворіше. Це не вирок, але саме тут необережний вибір може дорого обійтися. ':
+    tone==='mixed'?'Сильна сторона має власну тінь: коли її стає забагато, вона починає заважати. ':
+    'Та навіть корисний дар має зворотний бік. ')+shadow+
+   (input.contrast?' Особливо важливо не плутати наявність здібності з умінням застосувати її в потрібний момент.':
+    input.complement?' Те, що заважає в одних умовах, може навчити гнучкості в інших.':'')):
+  tidy((tone==='challenging'?
+    'Here the chart gives a firmer warning. It is not a verdict, but this pattern deserves attention. ':
+    tone==='mixed'?'Every strength has a shadow: used without care, a gift can become a burden. ':
+    'Even a useful ability can have a difficult side. ')+shadow+
+   (input.contrast?' Having an ability and knowing when to use it are not the same thing.':
+    input.complement?' What is difficult in one setting can teach flexibility in another.':''));
  const context=uk?
-  tidy('Ця тема стає особливо відчутною, коли '+topic.scenario+'. '+
-   (same?'Загальний і детальний погляди ведуть до схожого запитання. ':
-    'Загальна карта додає ще один ракурс у '+startFocus+' — тож рішення варто бачити з двох боків. ')+
-   (input.contrast?'Можливий контраст: мати ресурс і не завжди знати, де його застосувати. ':
-    input.complement?'Те, що складне в одному контексті, може виявитися корисним за інших умов. ':'')+
-   topic.stakes+'.'):
-  tidy('This becomes relevant when '+topic.scenario+'. '+
-   (same?'The broad and focused charts point to a similar question. ':
-    'The main chart also stresses '+startFocus+', adding another side to the choice. ')+
-   (input.contrast?'There may be a gap between having an ability and finding where to use it. ':
-    input.complement?'What feels difficult in one setting may be useful in another. ':'')+
-   topic.stakes+'.');
- const step=action;
+  tidy('Уявіть цілком земну ситуацію: '+topic.scenario+'. '+
+   (same?'Тоді головне питання цієї сфери звучить особливо чітко: ':
+    'Тут можуть зіткнутися дві потреби — те, що важливо для '+startFocus+', і те, що відбувається у '+focus+'. ')+
+   topic.question+' '+topic.stakes+'.'+
+   (input.directCareer&&input.division===10?
+    ' У професійному трактуванні ми також звіряємо основну карту з додатковими показниками покликання, а не робимо висновок за однією планетою.':'')):
+  tidy('Picture an ordinary moment: '+topic.scenario+'. '+
+   (same?'The central question becomes clearer: ':
+    'Two needs may pull in different directions: '+startFocus+' and '+focus+'. ')+
+   topic.question+' '+topic.stakes+'.'+
+   (input.directCareer&&input.division===10?
+    ' Vocation is read through more than one checked factor, not a single planet.':''));
+ const step=topic.actions[group(facts.focused)];
  const highlight=uk?
-  tidy('Сюжет цієї теми проявляється у '+focus+'. '+topic.question+' '+action):
-  tidy('A useful theme to explore is '+focus+'. '+topic.question+' '+action);
+  tidy((tone==='challenging'?'Тут варто діяти обережніше. ':
+   tone==='mixed'?'Можливість і напруга тут ідуть поруч. ':
+   tone==='supportive'?'Тут є опора, яку варто використати. ':
+   'Ця тема заслуговує окремої уваги. ')+topic.question+' '+step):
+  tidy((tone==='challenging'?'Move carefully in this area. ':
+   tone==='mixed'?'Potential and tension meet here. ':
+   tone==='supportive'?'There is a strength worth using here. ':
+   'This theme deserves attention. ')+topic.question+' '+step);
  return {headline,strength,challenge,context,step,highlight,voice:'curated_source_bound'};
 }
