@@ -22,7 +22,7 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
    {data.highlights.map((h,i)=><article className={styles.highlight} key={h.id} data-testid={'reader-v8-highlight-'+h.id}>
     <span className={styles.number}>{String(i+1).padStart(2,'0')}</span>
     <h3>{h.title}</h3><p>{h.text}</p>
-    <small>{uk?'Підстава: тематична карта ':'Based on chart '}D{h.division}</small>
+    {/* Chart IDs and historical evidence appear only once, in the matching expanded thematic card. */}
    </article>)}
   </div>
   <div className={styles.sectionTitle}>
@@ -36,8 +36,8 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
     <p className={styles.headline}>{item.headline}</p>
     <p className={styles.storyText}>{item.strength}</p>
     <p className={styles.storyText}>{item.context}</p>
-    <div className={styles.part}><strong>{uk?'Де потрібна уважність':'Where to take care'}</strong><p>{item.challenge}</p></div>
-    <div className={styles.next}><strong>{uk?'Спробуйте цього тижня':'Try this week'}</strong><p>{item.step}</p></div>
+    <div className={styles.part}><strong>{uk?'Тінь цієї сили':'The other side of this strength'}</strong><p>{item.challenge}</p></div>
+    <div className={styles.next}><strong>{uk?'Як використати це на практиці':'What to do with this insight'}</strong><p>{item.step}</p></div>
     {item.timeSensitivity==='higher'||item.timeSensitivity==='near_boundary'?
      <small className={styles.warning}>{item.timeSensitivity==='near_boundary'?
       (uk?'Поблизу межі сектора: потрібна додаткова перевірка точності часу народження.':
