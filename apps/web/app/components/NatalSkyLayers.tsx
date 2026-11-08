@@ -11,7 +11,7 @@ import styles from './NatalSkyLayers.module.css';
  */
 type BodyKind='sun'|'mercury'|'venus'|'earth'|'moon'|'mars'|'jupiter'|'saturn'|'uranus'|'neptune';
 type Body={kind:BodyKind;name:string;x:number;y:number;r:number;light:string;middle:string;dark:string};
-type Orbit={kind:Exclude<BodyKind,'sun'|'moon'>;radius:number;eccentricity:number;phase:number;radiusPx:number;
+type Orbit={kind:Exclude<BodyKind,'sun'|'moon'>;radius:number;eccentricity:number;phase:number;periodSeconds:number;radiusPx:number;
  light:string;middle:string;dark:string;name:string};
 type Star={x:number;y:number;r:number;alpha:number;phase:number;depth:number};
 const W=640,H=620,CX=320,CY=310,FLATTEN=.79;
@@ -19,24 +19,36 @@ const SUN:Body={kind:'sun',name:'SUN',x:CX,y:CY,r:33,light:'#f6e5b9',middle:'#dc
 /* Correct radial order with approximate real orbital eccentricities in a projected view.
  * The Sun lies at the unprojected orbital focus. Angles are art-directed, not true current anomalies. */
 const ORBITS:readonly Orbit[]=[
- {kind:'mercury',eccentricity:0.2056,name:'MERCURY',radius:62,phase:-2.37,radiusPx:6,light:'#ded6cb',middle:'#a8a19b',dark:'#595b68'},
- {kind:'venus',eccentricity:0.0068,name:'VENUS',radius:96,phase:.61,radiusPx:10,light:'#f1dfc9',middle:'#c4a68e',dark:'#68606c'},
- {kind:'earth',eccentricity:0.0167,name:'EARTH',radius:130,phase:2.54,radiusPx:13,light:'#d1e7e3',middle:'#7a9cae',dark:'#35486a'},
- {kind:'mars',eccentricity:0.0934,name:'MARS',radius:163,phase:-.70,radiusPx:9,light:'#dfbea6',middle:'#aa796d',dark:'#684953'},
- {kind:'jupiter',eccentricity:0.0489,name:'JUPITER',radius:201,phase:1.94,radiusPx:27,light:'#e9d3b9',middle:'#b39b8d',dark:'#54495b'},
- {kind:'saturn',eccentricity:0.0565,name:'SATURN',radius:233,phase:-2.27,radiusPx:22,light:'#e6d3b4',middle:'#a99c93',dark:'#55566a'},
- {kind:'uranus',eccentricity:0.0472,name:'URANUS',radius:258,phase:-.16,radiusPx:13,light:'#c8dce0',middle:'#8db0bf',dark:'#4a647e'},
- {kind:'neptune',eccentricity:0.0086,name:'NEPTUNE',radius:281,phase:1.20,radiusPx:13,light:'#bdc9e4',middle:'#697aa7',dark:'#2d426a'}
+ {kind:'mercury',eccentricity:0.2056,name:'MERCURY',radius:62,phase:-2.37,periodSeconds:18,radiusPx:6,light:'#ded6cb',middle:'#a8a19b',dark:'#595b68'},
+ {kind:'venus',eccentricity:0.0068,name:'VENUS',radius:96,phase:.61,periodSeconds:30,radiusPx:10,light:'#f1dfc9',middle:'#c4a68e',dark:'#68606c'},
+ {kind:'earth',eccentricity:0.0167,name:'EARTH',radius:130,phase:2.54,periodSeconds:48,radiusPx:13,light:'#d1e7e3',middle:'#7a9cae',dark:'#35486a'},
+ {kind:'mars',eccentricity:0.0934,name:'MARS',radius:163,phase:-.70,periodSeconds:66,radiusPx:9,light:'#dfbea6',middle:'#aa796d',dark:'#684953'},
+ {kind:'jupiter',eccentricity:0.0489,name:'JUPITER',radius:201,phase:1.94,periodSeconds:118,radiusPx:27,light:'#e9d3b9',middle:'#b39b8d',dark:'#54495b'},
+ {kind:'saturn',eccentricity:0.0565,name:'SATURN',radius:233,phase:-2.27,periodSeconds:162,radiusPx:22,light:'#e6d3b4',middle:'#a99c93',dark:'#55566a'},
+ {kind:'uranus',eccentricity:0.0472,name:'URANUS',radius:258,phase:-.16,periodSeconds:210,radiusPx:13,light:'#c8dce0',middle:'#8db0bf',dark:'#4a647e'},
+ {kind:'neptune',eccentricity:0.0086,name:'NEPTUNE',radius:281,phase:1.20,periodSeconds:250,radiusPx:13,light:'#bdc9e4',middle:'#697aa7',dark:'#2d426a'}
 ];
-function orbitPosition(o:Orbit){const b=o.radius*Math.sqrt(1-o.eccentricity*o.eccentricity);return {x:CX-o.radius*o.eccentricity+Math.cos(o.phase)*o.radius,y:CY+Math.sin(o.phase)*b*FLATTEN};}
-const PLANETS:readonly Body[]=[
- SUN,
- ...ORBITS.map(o=>({...orbitPosition(o),kind:o.kind,name:o.name,r:o.radiusPx,
-  light:o.light,middle:o.middle,dark:o.dark})),
- /* The Moon is placed relative to Earth, not around the Sun on its own ring. */
- {kind:'moon',name:'MOON',x:orbitPosition(ORBITS[2]).x+23,y:orbitPosition(ORBITS[2]).y-10.5,
-  r:5,light:'#e7e9eb',middle:'#adb4c7',dark:'#596077'}
-];
+function orbitPosition(o:Orbit,seconds=0){
+ // Solve Kepler's equation with Newton iterations; the Sun lies at the focus.
+ // Periods are artistically accelerated relative to the real orbital years.
+ const mean=o.phase+seconds*2*Math.PI/o.periodSeconds;
+ let e=mean;
+ for(let i=0;i<4;i++)e-=(e-o.eccentricity*Math.sin(e)-mean)/(1-o.eccentricity*Math.cos(e));
+ const minor=o.radius*Math.sqrt(1-o.eccentricity*o.eccentricity);
+ return {x:CX+o.radius*(Math.cos(e)-o.eccentricity),
+  y:CY+minor*Math.sin(e)*FLATTEN};
+}
+function bodiesAt(seconds:number):readonly Body[]{
+ const orbiting:Body[]=ORBITS.map(o=>({...orbitPosition(o,seconds),kind:o.kind,name:o.name,r:o.radiusPx,
+  light:o.light,middle:o.middle,dark:o.dark}));
+ const earth=orbiting.find(p=>p.kind==='earth')!;
+ const phase=1.17+seconds*2*Math.PI/9.5;
+ const moon:Body={kind:'moon',name:'MOON',x:earth.x+27*Math.cos(phase),y:earth.y+20*Math.sin(phase),
+  r:5,light:'#e7e9eb',middle:'#adb4c7',dark:'#596077'};
+ return [SUN,...orbiting,moon];
+}
+const BODY_NAMES:Readonly<Record<BodyKind,string>>={sun:'SUN',mercury:'MERCURY',venus:'VENUS',
+ earth:'EARTH',moon:'MOON',mars:'MARS',jupiter:'JUPITER',saturn:'SATURN',uranus:'URANUS',neptune:'NEPTUNE'};
 function starfield():Star[]{
  let seed=0x6a71c0;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  return Array.from({length:185},()=>({x:22+random()*595,y:26+random()*565,r:.45+random()*1.25,
@@ -110,8 +122,8 @@ function coloredDisc(ctx:CanvasRenderingContext2D,b:Body,hover:boolean){
  ctx.restore();
 }
 type Motion={x:number;y:number;targetX:number;targetY:number;cursorX:number;cursorY:number;inside:boolean;
- hover:BodyKind|null;hoverOpacity:number};
-const blank=():Motion=>({x:0,y:0,targetX:0,targetY:0,cursorX:0,cursorY:0,inside:false,hover:null,hoverOpacity:0});
+ hover:BodyKind|null;hoverOpacity:number;elapsed:number;bodies:readonly Body[]};
+const blank=():Motion=>({x:0,y:0,targetX:0,targetY:0,cursorX:0,cursorY:0,inside:false,hover:null,hoverOpacity:0,elapsed:0,bodies:bodiesAt(0)});
 function hoverLabel(ctx:CanvasRenderingContext2D,b:Body,alpha:number,lang:'uk'|'en'){
  if(alpha<.01)return;
  const names:Partial<Record<BodyKind,string>>={sun:'СОНЦЕ',mercury:'МЕРКУРІЙ',venus:'ВЕНЕРА',earth:'ЗЕМЛЯ',
@@ -136,7 +148,7 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  nebula.addColorStop(1,'rgba(10,24,47,0)');
  ctx.fillStyle=nebula;ctx.fillRect(0,0,W,H);
  for(const constellation of CONSTELLATIONS){
-  ctx.save();ctx.translate(px*9,py*7);
+  ctx.save();ctx.translate(px*12,py*9);
   ctx.lineWidth=.7;ctx.strokeStyle='rgba(181,201,229,.19)';
   if(!constellation.length){ctx.restore();continue;}
   ctx.beginPath();ctx.moveTo(constellation[0][0],constellation[0][1]);
@@ -148,14 +160,14 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  }
  for(const star of STARS){
   const alpha=star.alpha*(reduced?1:.91+.09*Math.sin(seconds*.7+star.phase));
-  const x=star.x+px*6*star.depth,y=star.y+py*5*star.depth;
+  const x=star.x+px*7*star.depth,y=star.y+py*6*star.depth;
   ctx.globalAlpha=alpha;ctx.fillStyle=star.r>1.1?'#f0ddc7':'#b9cbe3';
   ctx.beginPath();ctx.arc(x,y,star.r,0,Math.PI*2);ctx.fill();
  }
  ctx.globalAlpha=1;
- // Move Sun, orbit geometry, orbiting planets and Earth-Moon together.
- // No differential planet motion that would detach planets from orbits.
- ctx.save();ctx.translate(px*3,py*2);
+ // The orbital map has deeper parallax than the star dust while every planet
+ // and its corresponding orbit share ONE transform, avoiding detachment/jitter.
+ ctx.save();ctx.translate(px*18,py*13);
  for(const orbit of ORBITS){
   const minor=orbit.radius*Math.sqrt(1-orbit.eccentricity*orbit.eccentricity);
   ctx.beginPath();ctx.ellipse(CX-orbit.radius*orbit.eccentricity,CY,orbit.radius,minor*FLATTEN,0,0,Math.PI*2);
@@ -166,19 +178,21 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  ctx.beginPath();ctx.moveTo(18,CY);ctx.lineTo(W-18,CY);ctx.stroke();
  ctx.beginPath();ctx.moveTo(CX,24);ctx.lineTo(CX,H-24);ctx.stroke();
  // Moon's LOCAL orbit is centred on Earth.
- const earth=PLANETS.find(p=>p.kind==='earth')!;
+ const rendered=bodiesAt(reduced?0:seconds);
+ m.bodies=rendered;
+ const earth=rendered.find(p=>p.kind==='earth')!;
  ctx.strokeStyle='rgba(187,199,224,.29)';ctx.lineWidth=.75;
  ctx.beginPath();ctx.ellipse(earth.x,earth.y,27,20,0,0,Math.PI*2);ctx.stroke();
- for(const planet of PLANETS)coloredDisc(ctx,planet,m.hover===planet.kind);
- const focused=PLANETS.find(p=>p.kind===m.hover);
+ for(const body of rendered)coloredDisc(ctx,body,m.hover===body.kind);
+ const focused=rendered.find(p=>p.kind===m.hover);
  if(focused)hoverLabel(ctx,focused,m.hoverOpacity,lang);
  ctx.restore();
 }
 function hit(m:Motion):BodyKind|null{
  if(!m.inside)return null;
- const x=m.cursorX-m.x*3,y=m.cursorY-m.y*2;
- // Search small satellites first so Moon remains selectable near Earth.
- return [...PLANETS].reverse().find(p=>Math.hypot(p.x-x,p.y-y)<=Math.max(9,p.r+9))?.kind||null;
+ const x=m.cursorX-m.x*18,y=m.cursorY-m.y*13;
+ // Use exactly the positions painted on the last frame, not initial orbits.
+ return [...m.bodies].reverse().find(p=>Math.hypot(p.x-x,p.y-y)<=Math.max(8,p.r+8))?.kind||null;
 }
 export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
  const canvasRef=useRef<HTMLCanvasElement>(null);
@@ -191,7 +205,7 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
   const media=window.matchMedia('(prefers-reduced-motion: reduce)');
   let reduced=media.matches,visible=true,alive=true,frame=0,last=0;
   const m=motionRef.current;
-  const paint=(time:number)=>draw(ctx,time/1000,m,reduced,lang);
+  const paint=()=>draw(ctx,m.elapsed,m,reduced,lang);
   const sync=()=>{
    const next=hit(m);
    if(next!==m.hover){m.hover=next;m.hoverOpacity=0;setHovered(next);canvas.style.cursor=next?'crosshair':'default';}
@@ -199,18 +213,22 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
   const stop=()=>{cancelAnimationFrame(frame);frame=0;last=0;};
   const still=()=>{
    m.x=0;m.y=0;m.targetX=0;m.targetY=0;
-   canvas.dataset.parallaxX='0';canvas.dataset.parallaxY='0';sync();m.hoverOpacity=m.hover?1:0;paint(0);
+   m.elapsed=0;canvas.dataset.parallaxX='0';canvas.dataset.parallaxY='0';paint();sync();m.hoverOpacity=m.hover?1:0;paint();
   };
   const tick=(now:number)=>{
    if(!alive||!visible||reduced)return;
    const dt=last?Math.min(now-last,65):16.7;last=now;
    const ease=1-Math.exp(-dt/350);
    m.x+=(m.targetX-m.x)*ease;m.y+=(m.targetY-m.y)*ease;
+   m.elapsed+=dt/1000;
    canvas.dataset.parallaxX=m.x.toFixed(3);canvas.dataset.parallaxY=m.y.toFixed(3);
-   sync();m.hoverOpacity+=(Number(m.hover!==null)-m.hoverOpacity)*(1-Math.exp(-dt/125));
-   paint(now);frame=requestAnimationFrame(tick);
+   canvas.dataset.orbitalSeconds=m.elapsed.toFixed(2);
+   // Keep hover targeting in sync with moving orbital bodies.
+   m.bodies=bodiesAt(m.elapsed);sync();
+   m.hoverOpacity+=(Number(m.hover!==null)-m.hoverOpacity)*(1-Math.exp(-dt/125));
+   paint();frame=requestAnimationFrame(tick);
   };
-  const start=()=>{stop();if(!visible)return;if(reduced){still();return;}paint(0);frame=requestAnimationFrame(tick);};
+  const start=()=>{stop();if(!visible)return;if(reduced){still();return;}paint();frame=requestAnimationFrame(tick);};
   const setup=()=>{
    const dpr=Math.min(window.devicePixelRatio||1,2);
    canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
@@ -248,7 +266,7 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
    {lang==='uk'?'Схема Сонячної системи':'Illustrated Solar System'}
   </canvas>
   <span data-testid="n41-hovered-planet" className={styles.screenReaderStatus} aria-live="polite">
-   {hovered?PLANETS.find(p=>p.kind===hovered)?.name:null}
+   {hovered?BODY_NAMES[hovered]:null}
   </span>
   <figcaption className={styles.caption}>{lang==='uk'?'Геліоцентрична схема · орбіти й розміри не в масштабі':
    'Heliocentric diagram · orbits and sizes not to scale'}</figcaption>
