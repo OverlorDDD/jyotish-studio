@@ -94,22 +94,22 @@ test('Hero Scene v4: Sun-centred orbits, Earth Moon and ten consistent hover nam
  await expect(live).toBeEmpty();
  await expect(sky).toHaveAttribute('data-orbit-model','heliocentric-schematic');
  const orbitalBodies=[
-  {name:'MERCURY',radius:62,angle:-2.37},
-  {name:'VENUS',radius:96,angle:.61},
-  {name:'EARTH',radius:130,angle:2.54},
-  {name:'MARS',radius:163,angle:-.70},
-  {name:'JUPITER',radius:201,angle:1.94},
-  {name:'SATURN',radius:233,angle:-2.27},
-  {name:'URANUS',radius:258,angle:-.16},
-  {name:'NEPTUNE',radius:281,angle:1.20}
+  {name:'MERCURY',radius:62,e:.2056,angle:-2.37},
+  {name:'VENUS',radius:96,e:.0068,angle:.61},
+  {name:'EARTH',radius:130,e:.0167,angle:2.54},
+  {name:'MARS',radius:163,e:.0934,angle:-.70},
+  {name:'JUPITER',radius:201,e:.0489,angle:1.94},
+  {name:'SATURN',radius:233,e:.0565,angle:-2.27},
+  {name:'URANUS',radius:258,e:.0472,angle:-.16},
+  {name:'NEPTUNE',radius:281,e:.0086,angle:1.20}
  ];
- const earth=orbitalBodies.find(b=>b.name==='EARTH');
- const earthX=320+Math.cos(earth.angle)*earth.radius;
- const earthY=310+Math.sin(earth.angle)*earth.radius*.79;
+ const pos=b=>({name:b.name,x:320-b.radius*b.e+Math.cos(b.angle)*b.radius,
+  y:310+Math.sin(b.angle)*b.radius*Math.sqrt(1-b.e*b.e)*.79});
+ const earth=pos(orbitalBodies.find(b=>b.name==='EARTH'));
  const bodies=[
   {name:'SUN',x:320,y:310},
-  ...orbitalBodies.map(b=>({name:b.name,x:320+Math.cos(b.angle)*b.radius,y:310+Math.sin(b.angle)*b.radius*.79})),
-  {name:'MOON',x:earthX+23,y:earthY-15}
+  ...orbitalBodies.map(pos),
+  {name:'MOON',x:earth.x+23,y:earth.y-15}
  ];
  for(const body of bodies){
   const rect=await canvas.boundingBox();
