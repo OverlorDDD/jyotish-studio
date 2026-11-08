@@ -68,7 +68,7 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
     d.birthTimePrecision!=='NOT_INFERRED_FROM_HH_MM'||
     d.d60HouseInterpretationEligible!==false||d.continuousTimeStabilityCertified!==false||
     d.planets?.length!==9)return noData(lang);
- const ordered=PLANETS.map(p=>{
+ const ordered=PLANETS.map((p):Factor|null=>{
   const original=chart.d1.find(x=>x.name===p.key);
   const fine=d.planets.find(x=>x.name===p.key);
   if(!original||!fine||original.sign<1||original.sign>12||
