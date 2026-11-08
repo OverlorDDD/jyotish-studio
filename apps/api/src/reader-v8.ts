@@ -113,6 +113,7 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
  return ['Classical Reader 8 evidence: historical book metadata are OCR-reviewed, not independently scan-certified.',
   'Full synthesis: '+r.synthesis?.opening+' Opportunity: '+r.synthesis?.strength+
    ' Challenge: '+r.synthesis?.challenge+' Direction: '+r.synthesis?.direction,
+  compactD60PreviewForAi(chart), // place BEFORE long thematic facts so it cannot be truncated
   ...selected.map(d=>{
    const i=r.insights.find(x=>x.division===d)!;
    return 'D'+d+' '+i.title+'; '+i.headline+' Resource: '+i.strength+
@@ -120,7 +121,6 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
     ' Rules: '+(i.ruleIds.join(',')||'no additional directly verified rule');
   }),
   'Distinguish the literal natal rules from modern Dn generalization. Never invent planetary houses or repeat fatalistic old predictions.',
-  compactD60PreviewForAi(chart),
   'Do not treat provisional D60 as certainty or claim personal houses, lagna, karma or events as proven.'
  ].join('\n').slice(0,6500);
 }
