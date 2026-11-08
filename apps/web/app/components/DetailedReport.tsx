@@ -175,7 +175,7 @@ function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:Non
   </div>)}</div>
  </details>;
 }
-export default function DetailedReport({report,lang}:{report:ReadingReport;lang:'uk'|'en'}){
+export default function DetailedReport({report,lang,minutesUncertain=false}:{report:ReadingReport;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',ai=report.ai;
  const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text);
  const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.editorialVersion==='n47-synthesis-natural-voice-1.0.0'&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
@@ -207,7 +207,7 @@ export default function DetailedReport({report,lang}:{report:ReadingReport;lang:
    <p className="jy-direct-source">{uk?'AI пояснює підтверджені розрахунки простою мовою. Це трактування традиції, не підтвердження фактів про ваше життя. D60 не використовується для персональних висновків.':'AI explains verified calculations in everyday language. This is a traditional interpretation, not a confirmed fact about your life. D60 is excluded from personal conclusions.'}</p>
    <DirectArticle text={ai.text} lang={lang}/>
   </article>:null}
-  {hasV8&&report.readerV8?<ReaderV8View data={report.readerV8} lang={lang}/>:null}
+  {hasV8&&report.readerV8?<ReaderV8View data={report.readerV8} lang={lang} minutesUncertain={minutesUncertain}/>:null}
   {!hasV8&&hasV7&&report.readerV7?<ReaderV7View data={report.readerV7} lang={lang}/>:null}
     {report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?
      <details className={vargaStyles.deepDive} open={!hasV7&&!hasV8}>
