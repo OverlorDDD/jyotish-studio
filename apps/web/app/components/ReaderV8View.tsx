@@ -3,6 +3,9 @@ import styles from './ReaderV7View.module.css';
 export type ReaderV8UI={
  version:string;editorialVersion:string;ruleSetVersion:string;status:'available'|'unavailable';
  introduction:string;method:string;d60Notice:string;
+ synthesis?:{version:string;title:string;opening:string;strength:string;challenge:string;direction:string;method:string};
+ d60Preview?:{version:string;status:'conditional_signs'|'unavailable';title:string;intro:string;
+  factors:readonly {planet:string;d1Sign:number;d60Sign:number;boundaryDistanceArcseconds:number;note:string}[];warning:string};
  highlights:readonly {id:string;division:number;title:string;text:string}[];
  insights:readonly {division:number;title:string;headline:string;strength:string;challenge:string;context:string;step:string;
   proof:readonly string[];ruleIds:readonly string[];
@@ -15,9 +18,21 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
  return <section className={styles.root} data-testid="reader-v8" aria-labelledby="reader-v8-heading">
   <header className={styles.top}>
    <span className={styles.kicker}>{uk?'✦ CLASSICAL READER 8 · ПЕРСОНАЛЬНИЙ АНАЛІЗ':'✦ CLASSICAL READER 8 · PERSONAL READING'}</span>
-   <h2 id="reader-v8-heading">{uk?'Ваші 15 життєвих історій':'Fifteen stories your chart can tell'}</h2>
+   <h2 id="reader-v8-heading">{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
    <p>{data.introduction}</p>
   </header>
+  {data.synthesis&&<article className={styles.synthesis} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
+   <span className={styles.kicker}>{uk?'✦ ЗАГАЛЬНИЙ СИНТЕЗ':'✦ INTEGRATED READING'}</span>
+   <h3 id="reader-v8-synthesis-title">{data.synthesis.title}</h3>
+   <p>{data.synthesis.opening}</p>
+   <div className={styles.synthesisParts}>
+    <div><strong>{uk?'Де ваша опора':'Where you can lean in'}</strong><p>{data.synthesis.strength}</p></div>
+    <div><strong>{uk?'Де виникає напруга':'Where tension can arise'}</strong><p>{data.synthesis.challenge}</p></div>
+   </div>
+   <div className={styles.synthesisDirection}><strong>{uk?'Що об’єднує ці теми':'How these themes connect'}</strong><p>{data.synthesis.direction}</p></div>
+   <small>{data.synthesis.method}</small>
+  </article>}
+  <h3 className={styles.takeawayHeading}>{uk?'Три найпомітніші акценти':'Three defining threads'}</h3>
   <div className={styles.highlights} aria-label={uk?'Головні висновки':'Main takeaways'}>
    {data.highlights.map((h,i)=><article className={styles.highlight} key={h.id} data-testid={'reader-v8-highlight-'+h.id}>
     <span className={styles.number}>{String(i+1).padStart(2,'0')}</span>
@@ -62,7 +77,19 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
     </details>
    </article>)}
   </div>
-  <p className={styles.boundary} data-testid="reader-v8-d60"><strong>D60 · {uk?'Межа точності':'Precision limit'}</strong> {data.d60Notice}</p>
+  <section className={styles.d60Section} data-testid="reader-v8-d60" aria-labelledby="reader-d60-title">
+   <span className={styles.kicker}>{uk?'✦ ДОДАТКОВИЙ ЗРІЗ':'✦ OPTIONAL LENS'}</span>
+   <h3 id="reader-d60-title">{data.d60Preview?.title||(uk?'D60 · Точність народження':'D60 · Birth-time precision')}</h3>
+   {data.d60Preview?.status==='conditional_signs'?
+    <>
+     <p>{data.d60Preview.intro}</p>
+     <div className={styles.d60Factors}>{data.d60Preview.factors.map(f=><article key={f.planet}>
+      <p>{f.note}</p>
+     </article>)}</div>
+     <p className={styles.d60Warning}>{data.d60Preview.warning}</p>
+    </>:
+    <p className={styles.d60Warning}>{data.d60Preview?.warning||data.d60Notice}</p>}
+  </section>
   <p className={styles.warning}>{data.method}</p>
  </section>;
 }
