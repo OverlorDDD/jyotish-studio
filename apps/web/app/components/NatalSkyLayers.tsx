@@ -4,31 +4,31 @@ import styles from './NatalSkyLayers.module.css';
 
 /**
  * Galaxiora solar-system illustration v4.
- * Conceptually heliocentric: Sun at the common focus, planets on their own
+ * Conceptually heliocentric: Sun at one focus of each elliptical orbit, planets on their own
  * Sun-centred orbits, and the Moon as Earth's satellite (not a ninth planet).
- * Distances, sizes, axial tilt, eccentricity and the displayed phases are
+ * Distances, sizes, orbital inclination and the displayed phases are
  * deliberately NOT to scale; this is not a date-specific ephemeris.
  */
 type BodyKind='sun'|'mercury'|'venus'|'earth'|'moon'|'mars'|'jupiter'|'saturn'|'uranus'|'neptune';
 type Body={kind:BodyKind;name:string;x:number;y:number;r:number;light:string;middle:string;dark:string};
-type Orbit={kind:Exclude<BodyKind,'sun'|'moon'>;radius:number;phase:number;radiusPx:number;
+type Orbit={kind:Exclude<BodyKind,'sun'|'moon'>;radius:number;eccentricity:number;phase:number;radiusPx:number;
  light:string;middle:string;dark:string;name:string};
 type Star={x:number;y:number;r:number;alpha:number;phase:number;depth:number};
 const W=640,H=620,CX=320,CY=310,FLATTEN=.79;
 const SUN:Body={kind:'sun',name:'SUN',x:CX,y:CY,r:33,light:'#f6e5b9',middle:'#dcad6d',dark:'#a86755'};
-/* Correct radial order and Sun-centred ellipses in a projected view.
- * Angles are composed for visual readability, not actual sky longitude. */
+/* Correct radial order with approximate real orbital eccentricities in a projected view.
+ * The Sun lies at the unprojected orbital focus. Angles are art-directed, not true current anomalies. */
 const ORBITS:readonly Orbit[]=[
- {kind:'mercury',name:'MERCURY',radius:62,phase:-2.37,radiusPx:6,light:'#ded6cb',middle:'#a8a19b',dark:'#595b68'},
- {kind:'venus',name:'VENUS',radius:96,phase:.61,radiusPx:10,light:'#f1dfc9',middle:'#c4a68e',dark:'#68606c'},
- {kind:'earth',name:'EARTH',radius:130,phase:2.54,radiusPx:13,light:'#d1e7e3',middle:'#7a9cae',dark:'#35486a'},
- {kind:'mars',name:'MARS',radius:163,phase:-.70,radiusPx:9,light:'#dfbea6',middle:'#aa796d',dark:'#684953'},
- {kind:'jupiter',name:'JUPITER',radius:201,phase:1.94,radiusPx:27,light:'#e9d3b9',middle:'#b39b8d',dark:'#54495b'},
- {kind:'saturn',name:'SATURN',radius:233,phase:-2.27,radiusPx:22,light:'#e6d3b4',middle:'#a99c93',dark:'#55566a'},
- {kind:'uranus',name:'URANUS',radius:258,phase:-.16,radiusPx:13,light:'#c8dce0',middle:'#8db0bf',dark:'#4a647e'},
- {kind:'neptune',name:'NEPTUNE',radius:281,phase:1.20,radiusPx:13,light:'#bdc9e4',middle:'#697aa7',dark:'#2d426a'}
+ {kind:'mercury',eccentricity:0.2056,name:'MERCURY',radius:62,phase:-2.37,radiusPx:6,light:'#ded6cb',middle:'#a8a19b',dark:'#595b68'},
+ {kind:'venus',eccentricity:0.0068,name:'VENUS',radius:96,phase:.61,radiusPx:10,light:'#f1dfc9',middle:'#c4a68e',dark:'#68606c'},
+ {kind:'earth',eccentricity:0.0167,name:'EARTH',radius:130,phase:2.54,radiusPx:13,light:'#d1e7e3',middle:'#7a9cae',dark:'#35486a'},
+ {kind:'mars',eccentricity:0.0934,name:'MARS',radius:163,phase:-.70,radiusPx:9,light:'#dfbea6',middle:'#aa796d',dark:'#684953'},
+ {kind:'jupiter',eccentricity:0.0489,name:'JUPITER',radius:201,phase:1.94,radiusPx:27,light:'#e9d3b9',middle:'#b39b8d',dark:'#54495b'},
+ {kind:'saturn',eccentricity:0.0565,name:'SATURN',radius:233,phase:-2.27,radiusPx:22,light:'#e6d3b4',middle:'#a99c93',dark:'#55566a'},
+ {kind:'uranus',eccentricity:0.0472,name:'URANUS',radius:258,phase:-.16,radiusPx:13,light:'#c8dce0',middle:'#8db0bf',dark:'#4a647e'},
+ {kind:'neptune',eccentricity:0.0086,name:'NEPTUNE',radius:281,phase:1.20,radiusPx:13,light:'#bdc9e4',middle:'#697aa7',dark:'#2d426a'}
 ];
-function orbitPosition(o:Orbit){return {x:CX+Math.cos(o.phase)*o.radius,y:CY+Math.sin(o.phase)*o.radius*FLATTEN};}
+function orbitPosition(o:Orbit){const b=o.radius*Math.sqrt(1-o.eccentricity*o.eccentricity);return {x:CX-o.radius*o.eccentricity+Math.cos(o.phase)*o.radius,y:CY+Math.sin(o.phase)*b*FLATTEN};}
 const PLANETS:readonly Body[]=[
  SUN,
  ...ORBITS.map(o=>({...orbitPosition(o),kind:o.kind,name:o.name,r:o.radiusPx,
@@ -157,7 +157,8 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  // No differential planet motion that would detach planets from orbits.
  ctx.save();ctx.translate(px*3,py*2);
  for(const orbit of ORBITS){
-  ctx.beginPath();ctx.ellipse(CX,CY,orbit.radius,orbit.radius*FLATTEN,0,0,Math.PI*2);
+  const minor=orbit.radius*Math.sqrt(1-orbit.eccentricity*orbit.eccentricity);
+  ctx.beginPath();ctx.ellipse(CX-orbit.radius*orbit.eccentricity,CY,orbit.radius,minor*FLATTEN,0,0,Math.PI*2);
   ctx.lineWidth=.85;ctx.strokeStyle='rgba(206,190,174,.24)';ctx.stroke();
  }
  // Hint of orbit orientation / local map grid; no inaccurate rays to planets.
