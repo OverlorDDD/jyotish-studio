@@ -70,7 +70,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    const data=res.ok?await res.json():null;
    if(!live)return;
    setJhoraReference(data?.referenceBenchmark?.version==='jhora8-same-profile-v2'?data.referenceBenchmark:null);
-   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.editorialEdition!=='n45-human-reading-1.0.0'||data?.verificationContract!=='jyotish-integrity-v3')
+   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.editorialEdition!=='n46-balanced-portrait-1.0.0'||data?.verificationContract!=='jyotish-integrity-v3')
     setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
    else setRuntimeMismatch('');
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
@@ -107,7 +107,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
     saved?.readerV7?.version==='reader-v7.0.0-n43'&&
     saved?.readerV8?.version==='reader-v8.0.0-n44'&&
-    saved?.readerV8?.editorialVersion==='n45-human-reading-1.0.0'?saved:null;
+    saved?.readerV8?.editorialVersion==='n46-balanced-portrait-1.0.0'?saved:null;
   setReport(compatibleSaved);
   setInterpretation(lang==='uk'?'Перевірену карту відкрито з кабінету.':'Verified saved chart loaded.');
   if(!compatibleSaved)void interpret('local',ready);
@@ -145,7 +145,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    });
    const data=await readApiJson<ReadingReport>(response);
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
-   if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n45-human-reading-1.0.0')throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
+   if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n46-balanced-portrait-1.0.0')throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
    if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==freshChart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    setReport(data);
