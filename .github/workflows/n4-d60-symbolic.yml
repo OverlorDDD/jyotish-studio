@@ -1,9 +1,8 @@
 name: N4 D60 — symbolic mathematics and honest birth-time UI (no deploy)
 on:
-  push:
-    branches: [feat/n4-d60-certified-precision-20261107]
   pull_request:
     branches: [release/n4-natal-15-varga-rc-20261107]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
