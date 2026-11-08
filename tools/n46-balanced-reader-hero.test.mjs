@@ -53,7 +53,7 @@ test('Historical support and friction change the actual human narrative, not jus
   assert.notEqual(positive.challenge,challenging.challenge);
   assert.notEqual(mixed.challenge,positive.challenge);
   assert.notEqual(challenging.highlight,mixed.highlight);
-  assert.equal(positive.step,mixed.step,'planetary evidence selects practical action independently of scoring');
+  assert.notEqual(positive.step,mixed.step,'a challenging placement should motivate a second specific practice');
   for(const output of [positive,challenging,mixed]){
    assert.ok(output.strength.includes(lang==='uk'?'результат':'results'));
    assert.ok(output.challenge.length>120);
