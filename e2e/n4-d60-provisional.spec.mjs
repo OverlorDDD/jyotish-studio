@@ -128,6 +128,28 @@ function mockV8(divisions){
  };
 }
 
+test('A newly calculated natal chart automatically opens verified local Reader, never Gemini or other AI',async({page})=>{
+ const calls=[];
+ await page.route('**/api/v1/reports',async route=>{
+  const payload=route.request().postDataJSON();
+  calls.push(payload.preferred);
+  const report={
+   language:'uk',readerVersion:'6.0.0',asOf:'2026-11-08',
+   verification:proof,
+   sections:[{id:'portrait',heading:'Огляд',eyebrow:'I',lead:'Особиста історія',paragraphs:['Детальний звіт'],facts:[]}],
+   readerV8:mockV8(divisions),ai:{provider:'local',source:'deterministic',text:'',fallbackReason:'reader_only'}
+  };
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(report)});
+ });
+ await ready(page,'uk');
+ const reader=page.getByTestId('reader-v8');
+ await expect(reader).toBeVisible();
+ await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
+ await expect(page.getByTestId('reading-ai-provenance')).toContainText('Jyotish Reader');
+ expect(calls).toEqual(['local']);
+ await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
+});
+
 test('N4 Reader shows all source-bound varga insights and the D60 precision boundary',async({page})=>{
  await ready(page,'uk');
  const divisions=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
