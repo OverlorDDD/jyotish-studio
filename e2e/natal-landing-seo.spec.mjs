@@ -109,7 +109,7 @@ test('Hero Scene v4: Sun-centred orbits, Earth Moon and ten consistent hover nam
  const bodies=[
   {name:'SUN',x:320,y:310},
   ...orbitalBodies.map(pos),
-  {name:'MOON',x:earth.x+23,y:earth.y-15}
+  {name:'MOON',x:earth.x+23,y:earth.y-10.5}
  ];
  for(const body of bodies){
   const rect=await canvas.boundingBox();
