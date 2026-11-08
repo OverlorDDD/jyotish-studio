@@ -43,6 +43,8 @@ jobs:
         run: node --experimental-strip-types --test tools/n45-editorial-quality.test.mjs
       - name: N4.6 balanced life portraits and heliocentric solar-system contract
         run: node --experimental-strip-types --test tools/n46-balanced-reader-hero.test.mjs
+      - name: N4.7 individual synthesis, provisional D60, and no-empty-platitudes check
+        run: node --experimental-strip-types --test tools/n47-reader-synthesis-d60.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
