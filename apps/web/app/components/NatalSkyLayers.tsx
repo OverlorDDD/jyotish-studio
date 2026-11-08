@@ -138,8 +138,9 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  for(const constellation of CONSTELLATIONS){
   ctx.save();ctx.translate(px*9,py*7);
   ctx.lineWidth=.7;ctx.strokeStyle='rgba(181,201,229,.19)';
-  ctx.beginPath();const [first,...rest]=constellation;ctx.moveTo(...first);
-  for(const xy of rest)ctx.lineTo(...xy);
+  if(!constellation.length){ctx.restore();continue;}
+  ctx.beginPath();ctx.moveTo(constellation[0][0],constellation[0][1]);
+  for(const [x,y] of constellation.slice(1))ctx.lineTo(x,y);
   ctx.stroke();
   for(const [x,y] of constellation){ctx.beginPath();ctx.arc(x,y,1.1,0,Math.PI*2);
    ctx.fillStyle='rgba(232,231,233,.6)';ctx.fill();}
