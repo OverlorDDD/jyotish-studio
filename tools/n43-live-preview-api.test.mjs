@@ -51,6 +51,14 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(report.ai.source,'deterministic');
    assert.equal(report.ai.fallbackReason,'reader_only');
   }
+  const approximate=await send(base+'/api/v1/reports',
+   {...birth,lang:'uk',preferred:'local',minutesUncertain:true,asOf:'2026-11-07'});
+  assert.equal(approximate.status,200);
+  const approximateReader=(await approximate.json()).readerV8;
+  assert.equal(approximateReader.status,'available');
+  assert.equal(approximateReader.insights.length,15);
+  assert.equal(approximateReader.d60Preview.status,'unavailable');
+  assert.equal(approximateReader.d60Preview.factors.length,0);
   const invalid=await send(base+'/api/v1/reports',{...birth,time:'12:XX',lang:'uk',preferred:'local'});
   assert.equal(invalid.status,400);
   const denied=await fetch(base+'/api/admin');
