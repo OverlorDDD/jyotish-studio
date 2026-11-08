@@ -11,6 +11,34 @@ export type D60Preview={version:typeof D60_PREVIEW_VERSION;status:'conditional_s
  title:string;intro:string;factors:readonly Factor[];warning:string};
 const UK_SIGNS=['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козорозі','Водолії','Рибах'];
 const EN_SIGNS=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const SIGNS_UK_MEANING=[
+ 'пряме починання','терпіння й стабільність','гнучкий обмін думками','потребу в безпечній опорі',
+ 'творчий самовираз','увагу до деталей','взаємність і домовленості','готовність проходити зміни',
+ 'пошук сенсу й простору','структуру та довгий шлях','незалежне мислення','уяву й співчуття'
+] as const;
+const SIGNS_EN_MEANING=[
+ 'direct initiative','patience and stability','flexible exchange of ideas','a need for a secure base',
+ 'creative expression','attention to detail','reciprocity and agreements','the ability to move through change',
+ 'seeking meaning and space','structure and the long view','independent thinking','imagination and compassion'
+] as const;
+const PRACTICE_UK:Readonly<Record<string,string>>={
+ Sun:'Коли доведеться відповідати за рішення, відділіть власну позицію від потреби подобатися.',
+ Moon:'У напружений день перевірте, що дає вам відчуття опори, перш ніж реагувати на чужий настрій.',
+ Mars:'Перед складною розмовою визначте, якого результату прагнете і де проходить ваша межа.',
+ Mercury:'У важливій домовленості уточніть два конкретні факти, які обидві сторони розуміють однаково.',
+ Jupiter:'Зіставте цінну пораду з реальним прикладом, де вона спрацювала або ні.',
+ Venus:'Назвіть прямо одну потребу у стосунках, не ховаючи її за бажанням зберегти мир.',
+ Saturn:'Перевірте, яка частина відповідальності справді ваша і що можна виконувати без виснаження.'
+};
+const PRACTICE_EN:Readonly<Record<string,string>>={
+ Sun:'When taking responsibility, separate your own view from the need for approval.',
+ Moon:'On a difficult day, check what makes you feel secure before absorbing another person’s mood.',
+ Mars:'Before a difficult conversation, name the desired outcome and your boundary.',
+ Mercury:'Clarify two concrete facts in an important agreement so both sides mean the same thing.',
+ Jupiter:'Test a cherished piece of advice against a real example.',
+ Venus:'Name one relationship need directly instead of hiding it to maintain harmony.',
+ Saturn:'Check which responsibility is really yours and what can be done without exhaustion.'
+};
 const PLANETS=[
  {key:'Sun',uk:'Сонце',ukTheme:'відповідальності й особистій позиції',enTheme:'responsibility and self-direction'},
  {key:'Moon',uk:'Місяць',ukTheme:'емоційному ритмі й потребі в безпеці',enTheme:'emotional rhythms and feeling secure'},
@@ -47,13 +75,15 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
      fine.sign<1||fine.sign>12||!Number.isFinite(fine.boundaryDistanceArcseconds)||
      fine.boundaryDistanceArcseconds<90)return null;
   const from=(uk?UK_SIGNS:EN_SIGNS)[original.sign-1],to=(uk?UK_SIGNS:EN_SIGNS)[fine.sign-1];
+  const natalTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[original.sign-1];
+  const fineTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[fine.sign-1];
   const note=uk?
-   p.uk+': основна карта показує знак в '+from+', а символічна D60 — у '+to+
-    '. Якщо час народження точний, це можна обережно зіставити в темі '+p.ukTheme+
-    '. Сам по собі цей збіг або контраст не визначає характер чи події.':
-   p.key+': the natal sign is '+from+', while the provisional D60 sign is '+to+
-    '. If the recorded birth time is accurate, compare these as a tentative theme in '+
-    p.enTheme+'. This contrast alone does not establish personality or events.';
+   p.uk+': у головній карті — '+from+', у D60 — '+to+'. Якщо час народження підтвердиться, це дає умовний контраст між «'+
+    natalTheme+'» і «'+fineTheme+'» у сфері '+p.ukTheme+'. '+
+    PRACTICE_UK[p.key]:
+   p.key+': the natal chart places this planet in '+from+', while D60 places it in '+to+
+    '. If the birth time is reliable, compare '+natalTheme+' with '+fineTheme+
+    ' as tentative themes in '+p.enTheme+'. '+PRACTICE_EN[p.key];
   return {planet:p.key,d1Sign:original.sign,d60Sign:fine.sign,
    boundaryDistanceArcseconds:fine.boundaryDistanceArcseconds,note};
  }).filter((x):x is Factor=>x!==null);
