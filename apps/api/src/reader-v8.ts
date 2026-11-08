@@ -4,6 +4,8 @@ import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {extractN44Evidence,N44_CLASSICAL_RULESET_VERSION,sourceForRule,
  type ClassicalEvidence} from './reader-classical-n44.ts';
 import {renderN45Narrative,N45_EDITORIAL_VERSION} from './reader-editorial-n45.ts';
+import {buildSourceSynthesis,type ReaderSynthesis} from './reader-synthesis-n47.ts';
+import {buildD60Preview,compactD60PreviewForAi,type D60Preview} from './reader-d60-n47.ts';
 
 export const READER_V8_VERSION='reader-v8.0.0-n44' as const;
 type Lang='uk'|'en';
@@ -22,6 +24,8 @@ export type ClassicalReaderReport={
  ruleSetVersion:typeof N44_CLASSICAL_RULESET_VERSION;
  status:'available'|'unavailable';
  introduction:string;method:string;
+ synthesis:ReaderSynthesis|null;
+ d60Preview:D60Preview;
  highlights:readonly {id:'strength'|'challenge'|'career';division:number;title:string;text:string}[];
  insights:readonly ClassicalReaderInsight[];
  d60Notice:string;
@@ -40,6 +44,7 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
    'Детальне класичне прочитання можливе лише за перевіреною натальною картою.':
    'A classical reading requires a verified natal calculation.',
   method:uk?'Правила без перевірених даних не застосовуються.':'No classical rule is applied without verified data.',
+  synthesis:null,d60Preview:buildD60Preview(chart,lang),
   highlights:[],insights:[],d60Notice:basic.d60Notice
  };
  if(!verifiedVargaSource(chart)||basic.status!=='available'||basic.insights.length!==15)return unavailable;
@@ -83,24 +88,20 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
  const secondary=([30,27,9,2,4,24,7,3,12,20,45,1,16,40] as number[])
   .filter(d=>d!==primary&&d!==10)
   .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
- const highlights=[
-  {id:'strength' as const,division:primary,title:uk?'Ваша опора: '+select(primary).title:'A strength to explore: '+select(primary).title,
-   text:select(primary).highlight},
-  {id:'challenge' as const,division:secondary,title:uk?'Точка уваги: '+select(secondary).title:'A tension to watch: '+select(secondary).title,
-   text:select(secondary).highlight},
-  {id:'career' as const,division:10,title:uk?'Робота: де ваш внесок важливий':'Work: where your contribution matters',
-   text:select(10).highlight}
- ];
+ const synthesis=buildSourceSynthesis(chart,lang,insights,primary,secondary);
+ /* The three lead cards use verified facts, not generic reflective questions. */
+ const highlights=synthesis.highlights as ClassicalReaderReport['highlights'];
  return {
   version:READER_V8_VERSION,editorialVersion:N45_EDITORIAL_VERSION,
   ruleSetVersion:N44_CLASSICAL_RULESET_VERSION,
   status:'available',
   introduction:uk?
-   'П’ятнадцять граней вашого життя — п’ятнадцять запитань, на які варто шукати власну відповідь. Ми показуємо, що підказує традиційна карта, де можуть бути труднощі та яку конкретну дію спробувати. Це не вирок і не знання наперед про ваше життя.':
-   'Fifteen sides of life, fifteen questions worth exploring. Here is what the traditional chart suggests, where tension may arise and one action you can try. This is not a verdict or a claim to know your life in advance.',
+   'Цей огляд читає основну карту разом із картою стосунків, професії, витривалості та викликів. Спочатку — ваші найвиразніші можливості й суперечності; далі — п’ятнадцять докладних життєвих тем.':
+   'This overview reads the main chart together with the relationship, vocational, resilience and challenge lenses. First comes your central pattern and its trade-offs; then the fifteen life themes.',
   method:uk?
    'Джерела: Brihat Jataka (переклад 1905) і Laghu Parashari (1900). OCR-уривки прочитані, але не всі звірені зі сканами; дослівні прогнози не переносяться. Вищі карти залежать від точності часу народження.':
    'Sources: Brihat Jataka (1905 translation) and Laghu Parashari (1900). OCR excerpts were reviewed but not all scan-verified; literal predictions are not imported. Higher divisions depend on accurate birth time.',
+  synthesis,d60Preview:buildD60Preview(chart,lang),
   highlights,insights,d60Notice:basic.d60Notice
  };
 }
@@ -110,6 +111,8 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
  if(r.status!=='available')return 'Classical Reader 8: source-bound synthesis unavailable. Use D1/D9/D10 only.';
  const selected=[10,27,30,9,24,2];
  return ['Classical Reader 8 evidence: historical book metadata are OCR-reviewed, not independently scan-certified.',
+  'Full synthesis: '+r.synthesis?.opening+' Opportunity: '+r.synthesis?.strength+
+   ' Challenge: '+r.synthesis?.challenge+' Direction: '+r.synthesis?.direction,
   ...selected.map(d=>{
    const i=r.insights.find(x=>x.division===d)!;
    return 'D'+d+' '+i.title+'; '+i.headline+' Resource: '+i.strength+
@@ -117,6 +120,7 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
     ' Rules: '+(i.ruleIds.join(',')||'no additional directly verified rule');
   }),
   'Distinguish the literal natal rules from modern Dn generalization. Never invent planetary houses or repeat fatalistic old predictions.',
-  'Do not personalize D60; do not claim actual life outcomes as proven.'
+  compactD60PreviewForAi(chart),
+  'Do not treat provisional D60 as certainty or claim personal houses, lagna, karma or events as proven.'
  ].join('\n').slice(0,6500);
 }
