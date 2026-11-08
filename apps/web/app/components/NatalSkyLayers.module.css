@@ -2,8 +2,8 @@
 .scene{position:relative;isolation:isolate;display:block;align-self:center;width:100%;max-width:480px;margin:0;min-width:0;aspect-ratio:640 / 620;overflow:visible;background:radial-gradient(ellipse at 54% 48%,rgba(54,98,154,.19),rgba(30,55,94,.065) 53%,transparent 78%);}
 .scene::before{content:'';position:absolute;inset:12% 13%;border-radius:50%;background:radial-gradient(circle,rgba(169,183,232,.12),transparent 68%);filter:blur(25px);z-index:-1;pointer-events:none}
 .canvas{display:block;width:100%;height:auto;aspect-ratio:640 / 620;object-fit:contain;touch-action:pan-y;user-select:none}
-.caption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
-@media(max-width:900px){.caption{font-size:8px;letter-spacing:0}.scene{width:100%}}
+.caption{position:absolute;left:3%;right:3%;bottom:2px;text-align:center;pointer-events:none;color:rgba(224,205,178,.75);letter-spacing:.035em;font-size:10px;line-height:1.45;text-shadow:0 1px 9px #0d1a32;white-space:normal}
+@media(max-width:900px){.caption{font-size:9px;letter-spacing:0}.scene{width:100%}}
 @media(max-width:650px){.scene{width:min(100%,360px);margin:0 auto;max-width:100%}.caption{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.scene,.canvas{animation:none!important;transition:none!important}}
 
