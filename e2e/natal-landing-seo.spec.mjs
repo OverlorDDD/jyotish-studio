@@ -84,16 +84,15 @@ test('Save-chart toolbar scrolls underneath sticky navigation instead of coverin
 });
 
 
-test('Hero Scene v4: Sun-centred orbits, Earth Moon and ten consistent hover names',async({page})=>{
+test('Hero Scene v5: all ten accessible labels follow real Kepler elliptical positions at the still frame',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
  await page.setViewportSize({width:1440,height:900});
  await page.goto('/en/astrology/jyotish');
  const sky=page.getByTestId('n41-sky'),canvas=sky.locator('canvas');
  await expect(canvas).toBeVisible();
- await expect(sky.getByRole('button')).toHaveCount(0);
- const live=sky.getByTestId('n41-hovered-planet');
- await expect(live).toBeEmpty();
  await expect(sky).toHaveAttribute('data-orbit-model','heliocentric-schematic');
- const orbitalBodies=[
+ const live=sky.getByTestId('n41-hovered-planet');
+ const orbits=[
   {name:'MERCURY',radius:62,e:.2056,angle:-2.37},
   {name:'VENUS',radius:96,e:.0068,angle:.61},
   {name:'EARTH',radius:130,e:.0167,angle:2.54},
@@ -103,32 +102,44 @@ test('Hero Scene v4: Sun-centred orbits, Earth Moon and ten consistent hover nam
   {name:'URANUS',radius:258,e:.0472,angle:-.16},
   {name:'NEPTUNE',radius:281,e:.0086,angle:1.20}
  ];
- const pos=b=>({name:b.name,x:320-b.radius*b.e+Math.cos(b.angle)*b.radius,
-  y:310+Math.sin(b.angle)*b.radius*Math.sqrt(1-b.e*b.e)*.79});
- const earth=pos(orbitalBodies.find(b=>b.name==='EARTH'));
- const bodies=[
-  {name:'SUN',x:320,y:310},
-  ...orbitalBodies.map(pos),
-  {name:'MOON',x:earth.x+23,y:earth.y-10.5}
- ];
+ const pos=b=>{
+  let e=b.angle;
+  for(let i=0;i<4;i++)e-=(e-b.e*Math.sin(e)-b.angle)/(1-b.e*Math.cos(e));
+  return {name:b.name,x:320+b.radius*(Math.cos(e)-b.e),
+   y:310+b.radius*Math.sqrt(1-b.e*b.e)*Math.sin(e)*.79};
+ };
+ const earth=pos(orbits[2]),moonPhase=1.17;
+ const bodies=[{name:'SUN',x:320,y:310},...orbits.map(pos),
+  {name:'MOON',x:earth.x+27*Math.cos(moonPhase),y:earth.y+20*Math.sin(moonPhase)}];
  for(const body of bodies){
-  const rect=await canvas.boundingBox();
-  expect(rect).not.toBeNull();
-  await page.mouse.move(rect.x+body.x/640*rect.width,rect.y+body.y/620*rect.height,{steps:6});
-  await expect(live,'missing hover label for '+body.name).toHaveText(body.name,{timeout:4000});
-  await page.mouse.move(rect.x+4,rect.y+4,{steps:5});
-  await expect(live,'hover label should disappear when not on a planet').toBeEmpty();
+  const r=await canvas.boundingBox();expect(r).not.toBeNull();
+  await page.mouse.move(r.x+body.x/640*r.width,r.y+body.y/620*r.height);
+  await expect(live,'hover '+body.name+' at its Kepler orbit position').toHaveText(body.name);
+  await page.mouse.move(r.x-4,r.y-4);
+  await expect(live).toBeEmpty();
  }
- const r=await canvas.boundingBox();
- await page.mouse.move(r.x+r.width*.92,r.y+r.height*.5,{steps:2});
+ await expect(canvas).toHaveAttribute('data-parallax-x','0');
+});
+
+test('Hero Scene v5: actual orbital animation, deep smooth parallax and return to centre',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('/en/astrology/jyotish');
+ const canvas=page.getByTestId('n41-sky').locator('canvas');
+ await expect(canvas).toBeVisible();
+ await expect.poll(async()=>Number(await canvas.getAttribute('data-orbital-seconds')),{timeout:6000}).toBeGreaterThan(.1);
+ const beginning=Number(await canvas.getAttribute('data-earth-x'));
+ await page.waitForTimeout(1250);
+ const after=Number(await canvas.getAttribute('data-earth-x'));
+ expect(Math.abs(after-beginning),'Earth should move on its orbit without mouse activity').toBeGreaterThan(4);
+ const rect=await canvas.boundingBox();expect(rect).not.toBeNull();
+ await page.mouse.move(rect.x+rect.width*.9,rect.y+rect.height*.5,{steps:2});
  const early=Number(await canvas.getAttribute('data-parallax-x'));
- await page.waitForTimeout(200);
+ await page.waitForTimeout(240);
  const later=Number(await canvas.getAttribute('data-parallax-x'));
- expect(Number.isFinite(early)&&Number.isFinite(later)).toBeTruthy();
- expect(later,'pointer movement must be eased instead of snapping to target').toBeGreaterThan(early);
- expect(later,'smoothing must not jump immediately to the pointer target').toBeLessThan(1);
- await page.mouse.move(r.x-10,r.y-10);
- await expect(live).toBeEmpty();
+ expect(later,'parallax must visibly ease toward the pointer').toBeGreaterThan(early);
+ expect(later).toBeLessThan(1);
+ await page.mouse.move(rect.x-10,rect.y-10);
+ await expect.poll(async()=>Math.abs(Number(await canvas.getAttribute('data-parallax-x')))).toBeLessThan(.06);
 });
 
 test('Hero Scene v4: reduced motion stays still but heliocentric bodies are hoverable',async({page})=>{
