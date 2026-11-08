@@ -41,7 +41,7 @@ test('Classical Reader 8 combines source-bound, multilingual evidence for 15 div
   const chart=fixture(seed),uk=buildClassicalReaderV8(chart,'uk','2026-11-07');
   const en=buildClassicalReaderV8(chart,'en','2026-11-07');
   assert.equal(uk.version,READER_V8_VERSION);
-  assert.equal(uk.editorialVersion,'n46-balanced-portrait-1.0.0');
+  assert.equal(uk.editorialVersion,'n47-synthesis-natural-voice-1.0.0');
   assert.equal(uk.ruleSetVersion,N44_CLASSICAL_RULESET_VERSION);
   assert.equal(uk.status,'available');assert.equal(en.status,'available');
   assert.equal(uk.insights.length,15);assert.equal(en.insights.length,15);
