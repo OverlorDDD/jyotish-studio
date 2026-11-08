@@ -41,6 +41,8 @@ jobs:
           grep -q 'N44_CLASSICAL_READER_8_UA_EN_3_CASES_PASS' /tmp/n44-reader-samples.log
       - name: Reader 8.1 human prose quality in UA/EN — 18 charts, no empty boilerplate
         run: node --experimental-strip-types --test tools/n45-editorial-quality.test.mjs
+      - name: N4.6 balanced life portraits and heliocentric solar-system contract
+        run: node --experimental-strip-types --test tools/n46-balanced-reader-hero.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
