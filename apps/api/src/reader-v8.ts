@@ -78,10 +78,10 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   return rules.filter(r=>r.role===kind).length*3+rules.filter(r=>r.role==='context').length;
  };
  // Choose actual chart-specific leading themes; the work area remains explicit.
- const primary=([27,24,2,9,3,4,12,7,16,20,40,45,1,30,10] as number[])
+ const primary=([27,24,2,9,3,4,12,7,16,20,40,45,1,30] as number[])
   .sort((a,b)=>activated(b,'resource')-activated(a,'resource'))[0];
  const secondary=([30,27,9,2,4,24,7,3,12,20,45,1,16,40] as number[])
-  .filter(d=>d!==primary)
+  .filter(d=>d!==primary&&d!==10)
   .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
  const highlights=[
   {id:'strength' as const,division:primary,title:uk?'Ваша опора: '+select(primary).title:'A strength to explore: '+select(primary).title,
