@@ -40,6 +40,13 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(report.readerV8.editorialVersion,'n47-synthesis-natural-voice-1.0.0');
    assert.equal(report.readerV8.status,'available');
    assert.equal(report.readerV8.insights.length,15);
+   assert.equal(report.readerV8.synthesis?.version,'n47-source-synthesis-v1');
+   assert.ok(report.readerV8.synthesis.opening.length>120);
+   assert.equal(report.readerV8.d60Preview?.version,'d60-conditional-signs-n47-v1');
+   assert.equal(report.readerV8.d60Preview.status,'conditional_signs');
+   assert.ok(report.readerV8.d60Preview.factors.length>0);
+   assert.ok(report.readerV8.d60Preview.factors.every(x=>x.boundaryDistanceArcseconds>=90));
+
    assert.ok(report.readerV8.insights.find(i=>i.division===10).ruleIds.includes('BJ-X-1-NAVAMSA-VOCATION'));
    assert.equal(report.ai.source,'deterministic');
    assert.equal(report.ai.fallbackReason,'reader_only');
