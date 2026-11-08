@@ -83,6 +83,14 @@ function coloredDisc(ctx:CanvasRenderingContext2D,b:Body,hover:boolean){
  const disc=ctx.createRadialGradient(x-r*.34,y-r*.38,r*.05,x+r*.24,y+r*.24,r*1.2);
  disc.addColorStop(0,b.light);disc.addColorStop(.49,b.middle);disc.addColorStop(1,b.dark);
  ctx.fillStyle=disc;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+ // Delicate engraved meridians make the illustration read as an atlas,
+ // rather than identical glossy sphere stickers.
+ if(r>=9&&kind!=='sun'){
+  ctx.save();ctx.beginPath();ctx.arc(x,y,r-.6,0,Math.PI*2);ctx.clip();
+  ctx.strokeStyle='rgba(250,239,211,.12)';ctx.lineWidth=.5;
+  ctx.beginPath();ctx.ellipse(x,y,r*.42,r*.97,0,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+ }
  ctx.lineWidth=.8;ctx.strokeStyle='rgba(251,226,200,.38)';ctx.stroke();
  ctx.save();ctx.beginPath();ctx.arc(x,y,r-.4,0,Math.PI*2);ctx.clip();
  if(['jupiter','saturn','neptune','uranus'].includes(kind)){
@@ -224,7 +232,10 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
    canvas.dataset.parallaxX=m.x.toFixed(3);canvas.dataset.parallaxY=m.y.toFixed(3);
    canvas.dataset.orbitalSeconds=m.elapsed.toFixed(2);
    // Keep hover targeting in sync with moving orbital bodies.
-   m.bodies=bodiesAt(m.elapsed);sync();
+   m.bodies=bodiesAt(m.elapsed);
+   canvas.dataset.earthX=m.bodies.find(p=>p.kind==='earth')!.x.toFixed(2);
+   canvas.dataset.mercuryX=m.bodies.find(p=>p.kind==='mercury')!.x.toFixed(2);
+   sync();
    m.hoverOpacity+=(Number(m.hover!==null)-m.hoverOpacity)*(1-Math.exp(-dt/125));
    paint();frame=requestAnimationFrame(tick);
   };
