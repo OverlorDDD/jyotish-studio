@@ -12,7 +12,7 @@ export type ReaderV8UI={
   sources:readonly {id:string;work:string;chapter:string;stanza:string;edition:string;review:string;application:string}[];
   timeSensitivity:'ordinary'|'higher'|'near_boundary'}[];
 };
-export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'}){
+export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:ReaderV8UI;lang:'uk'|'en';minutesUncertain?:boolean}){
  if(data.status!=='available'||data.insights.length!==15)return null;
  const uk=lang==='uk';
  return <section className={styles.root} data-testid="reader-v8" aria-labelledby="reader-v8-heading">
@@ -80,7 +80,7 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
   <section className={styles.d60Section} data-testid="reader-v8-d60" aria-labelledby="reader-d60-title">
    <span className={styles.kicker}>{uk?'✦ ДОДАТКОВИЙ ЗРІЗ':'✦ OPTIONAL LENS'}</span>
    <h3 id="reader-d60-title">{data.d60Preview?.title||(uk?'D60 · Точність народження':'D60 · Birth-time precision')}</h3>
-   {data.d60Preview?.status==='conditional_signs'?
+   {!minutesUncertain&&data.d60Preview?.status==='conditional_signs'?
     <>
      <p>{data.d60Preview.intro}</p>
      <div className={styles.d60Factors}>{data.d60Preview.factors.map(f=><article key={f.planet}>
@@ -88,7 +88,7 @@ export default function ReaderV8View({data,lang}:{data:ReaderV8UI;lang:'uk'|'en'
      </article>)}</div>
      <p className={styles.d60Warning}>{data.d60Preview.warning}</p>
     </>:
-    <p className={styles.d60Warning}>{data.d60Preview?.warning||data.d60Notice}</p>}
+    <p className={styles.d60Warning}>{minutesUncertain?(uk?'Оскільки точні хвилини народження невідомі, індивідуальні акценти D60 приховано. Основні карти й загальний підсумок доступні.':'Because the exact birth minutes are unknown, the conditional D60 planet notes are hidden. Your main charts and synthesis remain available.'):(data.d60Preview?.warning||data.d60Notice)}</p>}
   </section>
   <p className={styles.warning}>{data.method}</p>
  </section>;
