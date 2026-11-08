@@ -1,5 +1,5 @@
 import {ApiProperty} from '@nestjs/swagger';
-import {IsNumber,IsOptional,IsString,Matches,Max,Min,MaxLength} from 'class-validator';
+import {IsBoolean,IsNumber,IsOptional,IsString,Matches,Max,Min,MaxLength} from 'class-validator';
 export class BirthDto{
  @ApiProperty({type:String,example:'2000-01-01'}) @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
  @ApiProperty({type:String,example:'12:00'}) @Matches(/^([01]\d|2[0-3]):[0-5]\d$/) time!:string;
@@ -12,6 +12,7 @@ export class ReportDto extends BirthDto{
  @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) asOf?:string;
  @ApiProperty({type:String,example:'uk'}) @Matches(/^(uk|en)$/) lang!:'uk'|'en';
  @IsOptional() @Matches(/^(auto|local)$/) preferred?:'auto'|'local';
+ @IsOptional() @IsBoolean() minutesUncertain?:boolean; // do not give D60 personal signs with explicitly approximate time
 }
 export class InterpretDto{
  @ApiProperty({type:String}) @IsString() id!:string;
