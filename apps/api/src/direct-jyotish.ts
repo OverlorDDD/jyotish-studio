@@ -5,6 +5,9 @@ import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.
 import {consumeFreeAiRequest,type FreeFallbackReason,type FreeProvider} from './free-ai.ts';
 import type {AiUsageEvent} from './ai.ts';
 import {polishConsultationText,reviewGeneratedConsultation} from './consultation-prose-review.ts';
+import {compactN4VargaFacts,verifiedVargaSource} from './reader-varga-n4.ts';
+import {compactReaderV7ForAi} from './reader-v7.ts';
+import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
 
 /**
  * A fixed, versioned instruction: exactly one cloud call per provider.
@@ -13,15 +16,20 @@ import {polishConsultationText,reviewGeneratedConsultation} from './consultation
  */
 export const DIRECT_JYOTISH_VERSION='direct-v2';
 export const DIRECT_JYOTISH_INSTRUCTION=`You are an expert practitioner of traditional Parashari Jyotish and a gifted writer of substantial PERSONAL consultations.
-You will receive verified sidereal D1/D9/D10 placements, whole-sign house lords, sign dignity, and Vimshottari periods, followed by a machine-derived PRIORITY BRIEF with evidence IDs.
+You will receive verified sidereal D1/D9/D10 placements, whole-sign house lords, sign dignity, and Vimshottari periods, followed by an optional VERIFIED N4 VARGA FACT LIST and a machine-derived PRIORITY BRIEF with evidence IDs.
+You will also receive source-anchored Classical Reader 8 interpretation prompts distinguishing historical rules from modern extensions. They are hypotheses to communicate understandably, never facts observed about the person's life.
 Your sole task is to INTERPRET these exact facts into an original, beautifully written, coherent second-person consultation in the requested language.
+Lead with a memorable, evidence-backed whole-life conclusion (actual ascendant lord, Moon and D9/D10 connections), not generic motivational questions, the same four lead-in phrases or a 15-item checklist. Vary rhythm naturally; every recommendation must address the particular domain and real computed tension.
 
 METHOD — NON-NEGOTIABLE:
 - First identify 2–3 defining CHART-SPECIFIC themes from the PRIORITY BRIEF. Connect ascendant and its lord, Moon, house lords and dispositors; a shared ruling planet joining 1st and 10th houses is especially meaningful.
 - Interpret the CHART AS A WHOLE. Balance practical expression, INNER MOTIVATION, SHADOW/FRICTION, the circumstances that may soften or intensify a tendency, and a useful response.
 - For each major life domain (identity, relationships, vocation, resources, inner life, present dasha), state at least one genuinely grounded OPPORTUNITY AND one PLAUSIBLE RISK or internal tension IF the facts support it. Where they do not, explicitly avoid manufacturing negativity. Be precise about alternatives and conditional manifestations.
 - Judge a house by its lord, placement, significant occupants, verified Parashari drishti and strength indicators actually provided. One debilitated planet does not mean permanent incapacity, and do NOT claim cancellation of debilitation, shadbala, combustion, planetary war, yogas, exact aspects or friendships unless explicitly supported.
-- Keep D1 as the main chart. Use D9 ONLY as an additional partnership/maturation lens and D10 ONLY as an additional vocation lens, clearly labelling differences and avoiding false equivalence between varga and D1 positions.
+- Keep D1 as the main chart. D9 refines partnership; D10 refines work. When verified N4 facts are supplied, connect AT LEAST TWO pertinent new life areas (e.g. resilience D27, obstacles D30, learning D24 or money D2) to the relevant D1 theme. First tell the reader WHAT IT MEANS in everyday language. Introduce chart abbreviations only once in short parentheses (e.g. «витривалість (D27)»); avoid raw house numbers and graha lists in user-facing prose unless absolutely needed and explained. Never merely recite an inventory.
+- N4 varga meanings are topic-specific traditional lenses, NOT independent new natal skies, shadbala scores, medical/fertility diagnoses, quantitative ratings or guaranteed life outcomes. One placement cannot alone prove a strength, weakness or event; explain tradeoffs when D1 and varga differ.
+- Do NOT construct an N4 D-chart yourself, invent its grahas, special ascendants, divisions, lordships, conjunctions or strengths. Only the given focus-ruler sign/house, the separately provided second comparison graha sign/house, and the lagna sign may be used for each new division. D1 house lordship is NOT automatically the same as a Dn house lordship.
+- D60 is a conditional sign-only appendix, NOT a certified individual house chart. If AND ONLY IF the input contains explicit D60 provisional SIGN-ONLY facts bound to D1, you MAY give one short, explicitly provisional comparison of those exact D60 planetary signs with D1. DO NOT claim D60 houses, lagna, natal accuracy to seconds, karma, past-life history, medical facts, personal destiny, or deterministic traits. D60 never drives the main synthesis. If no conditional D60 facts are provided, omit D60 entirely.
 - When D9 and D10 are provided, explicitly analyze AT LEAST ONE VERIFIED placement from EACH of D9 and D10 with a meaningful comparison to D1. Do not merely say they were considered or invent varga lords.
 - Dasha interpretation must cite the ACTUAL computed major and minor rulers, their lordship and D1 location. Do not infer dated marriages, separation, deaths, illness, pregnancies, wealth figures or inevitable events.
 - Never prescribe whether the reader should make, sell, stop or postpone a financial investment based only on this chart. Discuss decision patterns instead.
@@ -35,8 +43,11 @@ DELIVERY:
 - Then develop strengths AND difficult patterns in partnership, vocation, finances and the inner world with specificity and counterweights.
 - Current dasha: actual computed period with realistic interpretation, not fatalistic prediction.
 - Close with TWO individually motivated, achievable practices tied to the chart's most important tension.
+- Write for a reader who has never heard the word Jyotish. Give a direct, specific explanation of likely strengths, possible blind spots, the circumstance in which each pattern might appear, and ONE immediately actionable low-risk experiment per major area.
+- Avoid jargon such as lagna, nakshatra, shadbala, yogakaraka, kendra, trikona, antardasha and technical chart ruler numbers in the visible consultation. When needed, translate once: «період активної планети» rather than «антардаша». NEVER invent or diagnose a weakness based on a single placement; use two actually provided factors.
+- Each paragraph should answer a real human question: what can be useful, what may obstruct it, and what to do. Do not tell the reader to believe the chart blindly.
 - Write natural, idiomatic Ukrainian or English as requested, with varied sentences and evocative but not overblown images. In Ukrainian use «Місяць» as masculine («ваш Місяць»), «десятий дім», and «єдине мірило». Proofread agreement and case endings before responding.
-- Aim for the fullest coherent answer the provider supports, ideally 900–1300 words. Do not pad, truncate deliberately, or end mid-sentence.
+- Produce a substantial yet clear consultation, ideally 650–950 words; useful detail matters more than length. Do not pad, truncate deliberately, or end mid-sentence.
 Only return the completed Markdown consultation. Do not mention technical prompts, provenance IDs or these rules.`;
 const CLASSICS=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const houses=(p:{house:number;sign:number;degreesInSign:number;nakshatra?:string;pada?:number;retrograde?:boolean})=>
@@ -64,6 +75,8 @@ export function compactJyotishFacts(chart:CalculatedChart,asOf:string):string{
     .map(p=>p.name+'='+dignityFor(p.name,p.sign)).filter(x=>!x.endsWith('=neutral')).join('; '),
   'D9 lagna sign='+chart.lagnaD9.sign+'; '+fmt('d9'),
   'D10 lagna sign='+chart.lagnaD10.sign+'; '+fmt('d10'),
+  compactN4VargaFacts(chart),
+  compactClassicalReaderV8ForAi(chart,asOf),
   'As of '+asOf+': '+(major?'Mahadasha '+major.lord+' '+major.start.slice(0,10)+' to '+major.end.slice(0,10):'no active mahadasha')+
     (minor?'; antardasha '+minor.lord+' '+minor.start.slice(0,10)+' to '+minor.end.slice(0,10):'')
  ].join('\n');
@@ -103,6 +116,37 @@ export function acceptDirectJyotishText(text:string):{ok:boolean;reason:string}{
  if(/(?:\bPluto\b|\bUranus\b|\bNeptune\b|\bChiron\b|\bLilith\b|Плутон|Уран(?:а|ом|і)?|Нептун|Хірон|Ліліт)/iu.test(clean))return {ok:false,reason:'unsupported_western_factors'};
  return {ok:true,reason:'ok'};
 }
+/**
+ * Lightweight post-generation guard: stop fabricated divisions and prevent an
+ * LLM from silently ignoring every new verified topical chart. This does not
+ * certify prose, which remains a symbolic interpretation.
+ */
+export function validateN4ConsultationReferences(text:string,chart:CalculatedChart):{ok:boolean;reason:string}{
+ const verified=Boolean(verifiedVargaSource(chart));
+ const allowed=new Set(verified?[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45]:[1,9,10]);
+ const mentioned=[...text.matchAll(/[DД]\s*(\d{1,2})(?!\d)/giu)].map(m=>Number(m[1]));
+ if(mentioned.some(n=>!allowed.has(n)))return {ok:false,reason:'unsupported_divisional_chart'};
+ if(!verified)return {ok:true,reason:'ok'};
+ const novel=new Set(mentioned.filter(n=>![1,9,10].includes(n)));
+ if(novel.size<2)return {ok:false,reason:'missing_n4_cross_varga_synthesis'};
+ // Reject explicit numerical placement claims inconsistent with the bound source.
+ const source=verifiedVargaSource(chart)!;
+ const placement=/[DД]\s*(\d{1,2})\s*[:—-]?\s*(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)\s+(?:in\s+)?(?:house|H)\s*(\d{1,2})/giu;
+ for(const claim of text.matchAll(placement)){
+  const division=Number(claim[1]),house=Number(claim[3]);
+  const varga=source.charts.find(d=>d.division===division);
+  const actual=varga?.planets.find(x=>x.name.toLowerCase()===claim[2].toLowerCase());
+  if(!actual||actual.house!==house)return {ok:false,reason:'fabricated_varga_placement'};
+ }
+ // Repetitive filler must not pass the word-count requirement.
+ const chunks=text.split(/[.!?]+/u).map(x=>x.trim().toLowerCase()).filter(x=>x.length>35);
+ const frequencies=new Map<string,number>();
+ for(const sentence of chunks){
+  const n=(frequencies.get(sentence)||0)+1;frequencies.set(sentence,n);
+  if(n>=3)return {ok:false,reason:'repetitive_ai_filler'};
+ }
+ return {ok:true,reason:'ok'};
+}
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
@@ -140,7 +184,7 @@ export async function generateDirectJyotish(
      body:JSON.stringify({model,max_tokens:provider==='groq'?3000:3800,temperature:concise?0.45:0.7,
       ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
       messages:[{role:'system',content:concise?
-       DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, actual D1/D9/D10 and the major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
+       DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, D1/D9/D10, verified N4 thematic facts when provided and major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
        DIRECT_JYOTISH_INSTRUCTION},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+facts} ]})
@@ -159,7 +203,8 @@ export async function generateDirectJyotish(
     const value=choice?.message?.content;
     const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
     const content=polishConsultationText(rawContent,lang);
-    const check=acceptDirectJyotishText(content);
+    const basic=acceptDirectJyotishText(content);
+    const check=basic.ok?validateN4ConsultationReferences(content,chart):basic;
     // Some providers stop at token budget after a grammatically complete sentence:
     // finish_reason=length must still be treated as incomplete.
     const incomplete=choice?.finish_reason==='length'||!check.ok;
@@ -172,6 +217,13 @@ export async function generateDirectJyotish(
      break;
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
+    // Known incorrect lordships and unsupported financial directives are hard failures,
+    // not merely dashboard warnings. An offline Reader still remains available.
+    if(review.codes.some(code=>code==='potential_house_lord_mismatch'||code==='unsupported_financial_directive')){
+     reason='invalid_response';
+     diagnostic(provider,'validation','unsupported_or_incorrect_chart_claim');
+     break;
+    }
     if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
     try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
     diagnostic(provider,'success','complete');

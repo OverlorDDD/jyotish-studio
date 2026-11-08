@@ -1,0 +1,99 @@
+name: N4.4 Classical Reader 8 and AI — integration gate
+on:
+  pull_request:
+    branches: [release/n4-natal-15-varga-rc-20261107]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  n44-reader:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n43_qa
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install workspaces without rewriting the lockfile
+        run: npm install --no-audit --no-fund --no-package-lock
+      - name: Reader 7, old Reader v6 and mock Gemini/Groq tests
+        run: |
+          node --experimental-strip-types --test tools/n4-reader-ai-16.test.mjs
+          node --experimental-strip-types --test tools/a8-reader-v6-editorial.test.mjs tools/direct-jyotish.test.mjs
+      - name: Three different synthetic charts in Ukrainian and English
+        run: |
+          node --experimental-strip-types tools/n43-reader-preview.mjs > /tmp/n43-reader-samples.log
+          grep -q 'N43_READER_7_SYNTHETIC_UA_EN_3_CASES_PASS' /tmp/n43-reader-samples.log
+      - name: Real ephemeral Swiss Ephemeris HTTP/Reader 7 preview integration
+        run: |
+          node --experimental-strip-types --test tools/n43-live-preview-api.test.mjs
+      - name: Classical Reader 8 book OCR provenance and grounded synthesis
+        run: |
+          node --experimental-strip-types --test tools/n44-classical-reader.test.mjs
+      - name: N4.4 bilingual three-chart editorial preview
+        run: |
+          node --experimental-strip-types tools/n44-reader-preview.mjs > /tmp/n44-reader-samples.log
+          grep -q 'N44_CLASSICAL_READER_8_UA_EN_3_CASES_PASS' /tmp/n44-reader-samples.log
+      - name: Reader 8.1 human prose quality in UA/EN — 18 charts, no empty boilerplate
+        run: node --experimental-strip-types --test tools/n45-editorial-quality.test.mjs
+      - name: N4.6 balanced life portraits and heliocentric solar-system contract
+        run: node --experimental-strip-types --test tools/n46-balanced-reader-hero.test.mjs
+      - name: N4.7 individual synthesis, provisional D60, and no-empty-platitudes check
+        run: node --experimental-strip-types --test tools/n47-reader-synthesis-d60.test.mjs
+      - name: N4.8 source-bound natural language and quiet illustrated orbits
+        run: node --experimental-strip-types --test tools/n48-editorial-prose.test.mjs
+      - name: Full Core + API + Next production build
+        run: |
+          npm run db:generate
+          npm run build
+      - name: Confirm no changes to D60 maths
+        run: node --experimental-strip-types --test tools/n4-d60-contract.test.mjs
+
+  n44-windows-launcher:
+    name: Windows PowerShell preview and Git auto-gc recovery checks
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Parse Windows PowerShell files and verify non-destructive fetch contract
+        shell: pwsh
+        run: |
+          foreach ($file in @('tools/n43-preview.ps1','tools/n44-preview.ps1')) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $file), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "$file : $($_.Message)" }
+              throw "PowerShell parser failed: $file"
+            }
+          }
+          $safe = Get-Content -Raw 'tools/n44-preview.ps1'
+          $server = Get-Content -Raw 'tools/n43-preview.ps1'
+          foreach ($test in @(
+            @{ Name='no interactive gc'; Ok=($safe.Contains('gc.auto 0') -and $safe.Contains('maintenance.auto false') -and $safe.Contains('--no-auto-gc')) },
+            @{ Name='only fast-forward'; Ok=$safe.Contains('merge --ff-only') },
+            @{ Name='no unsafe reset or delete'; Ok=(-not $safe.Contains('reset --hard') -and -not $safe.Contains('Remove-Item')) },
+            @{ Name='local verified Reader8 probe'; Ok=($server.Contains('N44_REAL_SWISS_READER_8_REPORT_VERIFIED') -and $server.Contains("preferred='local'")) },
+            @{ Name='both API and web listeners'; Ok=($server.Contains('n43-live-preview-api.mjs') -and $server.Contains('npm run dev:web')) },
+            @{ Name='local-only API routing'; Ok=$server.Contains("INTERNAL_API_ORIGIN='http://127.0.0.1:4000'") }
+          )) {
+            if (-not $test.Ok) { throw "Windows launch contract failed: $($test.Name)" }
+          }
+          Write-Host 'N44_WINDOWS_LAUNCHER_PARSE_AND_SAFE_GIT_PASS'
+      - name: Install local Windows workspaces without rewriting lock
+        shell: pwsh
+        run: npm install --no-audit --no-fund --no-package-lock
+      - name: Native Swiss Ephemeris and real Reader 8 HTTP smoke on Windows
+        shell: pwsh
+        run: |
+          node --experimental-strip-types --test tools/n43-live-preview-api.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Windows Swiss/Reader8 integration failed' }
+          Write-Host 'N44_WINDOWS_NATIVE_SWISS_REAL_READER_8_PASS'
+

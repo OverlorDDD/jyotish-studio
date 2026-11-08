@@ -1,0 +1,53 @@
+.root{margin:22px 0 38px;padding:clamp(17px,3vw,32px);border:1px solid rgba(224,190,135,.33);border-radius:23px;background:linear-gradient(155deg,rgba(26,42,68,.96),rgba(10,23,43,.97));color:#eef2fc;box-shadow:0 20px 55px #050b1b30}
+.top{margin:0 0 22px;max-width:870px}.kicker{font-size:11px;letter-spacing:.1em;font-weight:800;color:#ebc687}
+.top h2{margin:11px 0 13px;color:#fff;font-size:clamp(24px,3vw,36px);line-height:1.18;letter-spacing:-.026em}
+.top p,.sectionTitle p{color:#c4d1e6;font-size:14px;line-height:1.7}
+.highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.highlight{border:1px solid #b4bacb33;border-radius:15px;background:linear-gradient(130deg,#24344b,#17283e);padding:17px;min-width:0}
+.number{color:#e4bc80;font-size:12px;font-weight:800}.highlight h3{font-size:16px;line-height:1.3;margin:8px 0;color:#fff}
+.highlight p{font-size:13px;line-height:1.65;color:#dbe3f2;margin:0}.highlight small{display:block;color:#bd9a65;margin-top:12px;font-size:11px}
+.sectionTitle{margin:29px 0 16px}.sectionTitle h3{font-size:clamp(20px,2vw,25px);margin:0;color:#fff}.sectionTitle p{margin:5px 0 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{min-width:0;border:1px solid rgba(180,198,222,.2);border-radius:15px;padding:18px;background:#14233a;display:flex;flex-direction:column;gap:13px}
+.cardTitle{display:flex;align-items:center;gap:11px}.cardTitle span{font-size:14px;color:#efce9b;font-weight:800;background:#302c32;border:1px solid #c69e6555;border-radius:8px;padding:8px 10px;flex-shrink:0}.cardTitle h4{font-size:16px;line-height:1.35;color:#fff;margin:0}
+.headline{font-size:14px;color:#e2e7f2;line-height:1.62;margin:0}
+.part strong,.next strong{font-size:12px;color:#d0e2ef}.part p,.next p{font-size:13px;line-height:1.66;color:#c8d5e7;margin:4px 0 0}
+.next{border-left:2px solid #e7bf82;padding:12px 12px;background:#302f3573;border-radius:0 10px 10px 0}.next strong{color:#f2d6aa}
+.warning{color:#eecda4;font-size:11px;line-height:1.5}
+.proof{margin-top:auto;padding-top:10px;border-top:1px solid rgba(184,205,225,.15);font-size:11px;color:#b1c4da}
+.proof summary{cursor:pointer;min-height:25px;color:#e9c68c;font-weight:600}.proof summary:focus-visible{outline:2px solid #fff;outline-offset:2px}.proof p{font-size:11px;line-height:1.55}
+.proof code{display:block;font-size:10px;line-height:1.6;white-space:normal;word-break:break-word;margin:6px 0;padding:11px;border-radius:8px;background:#0c192a;color:#d4dfed}
+.boundary{margin:21px 0 0;padding:14px 17px;border:1px solid #d6b17b50;border-radius:12px;font-size:12px;line-height:1.65;color:#d7e0ec}
+.boundary strong{display:block;color:#edc994}
+@media(max-width:900px){.highlights{grid-template-columns:1fr}.highlight{padding:14px}}
+@media(max-width:680px){.root{padding:17px 12px}.grid{grid-template-columns:1fr}.card{padding:15px}.top h2{font-size:26px}}
+
+/* N4.5: lyrical but scannable editorial passages, not a wall of mini-headers. */
+.storyText{font-size:14px;line-height:1.82;color:#d3ddec;margin:0;letter-spacing:.002em;max-width:70ch}
+.card .storyText + .storyText{margin-top:-5px}
+
+
+/* N4.7 — editorial synthesis sits before the per-topic readings. */
+.synthesis{padding:clamp(18px,2.8vw,28px);margin:6px 0 23px;border:1px solid rgba(219,190,140,.35);
+ border-radius:17px;background:linear-gradient(150deg,rgba(39,52,73,.83),rgba(18,34,54,.72))}
+.synthesis h3,.d60Section h3{margin:10px 0 14px;font-family:Georgia,serif;font-weight:600;
+ font-size:clamp(20px,2.5vw,27px);line-height:1.25;color:#f3d2a3}
+.synthesis>p,.synthesisDirection p,.synthesisParts p,.d60Section p{font-size:14px;line-height:1.85;
+ color:#e0e6ed;max-width:90ch;margin:6px 0 0}
+.synthesisParts{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:19px}
+.synthesisParts>div{padding:15px;border-left:2px solid rgba(224,180,118,.45);
+ background:rgba(17,30,50,.5);border-radius:0 9px 9px 0}
+.synthesisParts strong,.synthesisDirection strong{display:block;color:#f2c995;font-size:13px;margin-bottom:6px}
+.synthesisDirection{margin-top:19px}
+.synthesis small{display:block;margin-top:17px;color:#b7c3d3;line-height:1.5}
+.takeawayHeading{font-size:19px;line-height:1.3;color:#e9cfab;margin:24px 0 12px}
+.d60Section{padding:20px;margin-top:23px;border:1px solid rgba(188,185,226,.34);
+ border-radius:15px;background:rgba(33,43,66,.55)}
+.d60Section h3{font-family:inherit;font-size:20px}
+.d60Factors{display:grid;gap:9px;margin:17px 0}
+.d60Factors article{padding:11px 14px;border:1px solid rgba(192,205,235,.15);
+ background:rgba(12,24,45,.45);border-radius:9px}
+.d60Factors p{margin:0;font-size:13px}
+.d60Section .d60Warning{color:#f0d4a9;font-size:12px;border-top:1px solid rgba(199,181,147,.24);
+ margin-top:12px;padding-top:12px}
+@media(max-width:680px){.synthesisParts{grid-template-columns:1fr}.synthesis{padding:17px}}

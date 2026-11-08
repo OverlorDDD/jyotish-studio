@@ -49,7 +49,7 @@ async function load(page,lang='uk',data=sample()){
   page.locator('button.jy-calc-btn').click()
  ]);
 }
-test('UA 15 sourced charts, D60 absent, D1 not duplicated, D9 and D24 navigation',async({page})=>{
+test('UA unified 16 tab charts, D1 not duplicated, D9 and D24 navigation',async({page})=>{
  await load(page);
  const section=page.getByTestId('n4-rc-explorer');
  await expect(section).toBeVisible();
@@ -57,11 +57,14 @@ test('UA 15 sourced charts, D60 absent, D1 not duplicated, D9 and D24 navigation
  await expect(section.locator('.jy-south-chart')).toHaveCount(1);
  await page.getByRole('button',{name:/D9/}).click();
  await expect(section.locator('.jy-south-chart')).toHaveCount(2);
- await page.getByTestId('n4-rc-additional').locator('summary').click();
- await expect(section.locator('button')).toHaveCount(15);
- await expect(section.getByRole('button',{name:/D60/})).toHaveCount(0);
+ await expect(section.getByTestId('n41-all-charts').getByRole('button')).toHaveCount(16);
+ await expect(section.getByTestId('n4-rc-additional')).toHaveCount(0);
+ await expect(section.getByRole('button',{name:/D60/})).toHaveCount(1);
  await page.getByRole('button',{name:/D24/}).click();
  await expect(section).toContainText('D24');
+ const sizes=await section.locator('.jy-south-chart').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return Math.abs(r.width-r.height)}));
+ expect(sizes).toHaveLength(2);
+ for(const difference of sizes)expect(difference,'chart must be square').toBeLessThanOrEqual(3);
 });
 test('EN mobile 320-1440px no horizontal overflow',async({page})=>{
  await load(page,'en');
@@ -84,7 +87,6 @@ test('N4 RC warns when a newly added varga placement is <=1 arcsecond from a sec
  const chart=edge.n4.charts.find(v=>v.division===24);
  chart.planets[0].boundaryDistanceArcseconds=0.4;
  await load(page,'en',edge);
- await page.getByTestId('n4-rc-additional').locator('summary').click();
  await page.getByTestId('n4-rc-explorer').getByRole('button',{name:/D24/}).click();
  await expect(page.getByTestId('n4-near-boundary-warning')).toContainText('within 1 arcsecond');
 });
