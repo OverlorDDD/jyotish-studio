@@ -141,7 +141,7 @@ if($runtime.readerEdition -ne 'reader-v8.0.0-n44' -or
  throw 'API proxy is not connected to isolated N4.4 Classical Reader 8.'
 }
 Write-Host ''
-Write-Host 'N45_HUMAN_READER_81_VERIFIED — source-bound editorial edition active' -ForegroundColor Green
+Write-Host 'N46_BALANCED_READER_VERIFIED — source-bound editorial edition active' -ForegroundColor Green
 Write-Host 'N44_CLASSICAL_READER_8_PREVIEW_READY — NO DOCKER, NO DATABASE, NO PRODUCTION DEPLOY' -ForegroundColor Green
 Write-Host 'UA: http://localhost:3000/uk/astrology/jyotish'
 Write-Host 'EN: http://localhost:3000/en/astrology/jyotish'
