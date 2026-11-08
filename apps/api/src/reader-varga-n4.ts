@@ -161,8 +161,8 @@ export function verifiedVargaSource(chart:CalculatedChart):N4RcPayload|null{
  return n;
 }
 const caution=(uk:boolean)=>uk?
- 'D60 має сертифіковану формулу для заданих довгот, але точність персональної Лагни та домів не підтверджено. Тому Reader і AI не роблять індивідуальних висновків за D60.':
- 'D60 has a certified symbolic formula for fixed longitudes, but individual lagna and house stability have not been certified. Reader and AI therefore make no personal D60 interpretation.';
+ 'D60 має перевірену формулу для заданих довгот. Лагна та доми D60 НЕ сертифіковані для конкретного народження, навіть якщо час записаний до хвилини. Reader показує лише обережне порівняння деяких планетарних знаків із D1, не робить кармічних прогнозів чи висновків за домами.':
+ 'D60 has a checked formula for fixed longitudes. Its ascendant and houses are NOT certified for an individual birth, even with a time recorded to the minute. Reader provides only conditional planetary-sign comparisons with D1, never karmic forecasts or D60 house claims.';
 export function buildN4VargaReadings(chart:CalculatedChart,lang:Lang):VargaReadingBundle{
  const uk=lang==='uk',source=verifiedVargaSource(chart);
  const d60={status:'provisional_no_individual_interpretation' as const,message:caution(uk)};
