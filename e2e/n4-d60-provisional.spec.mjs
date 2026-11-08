@@ -106,7 +106,19 @@ function mockV8(divisions){
   version:'reader-v8.0.0-n44',editorialVersion:'n47-synthesis-natural-voice-1.0.0',ruleSetVersion:'classical-reader-n44-1.0.0',
   status:'available',introduction:'Підсумок класичного аналізу за розрахованою картою.',
   method:'Brihat Jataka (1905) · Laghu Parashari (1900); перевірені OCR-уривки.',
-  d60Notice:'D60 не використовується для індивідуального трактування.',
+  d60Notice:'D60 є попереднім, доми та Лагна не трактуються.',
+  synthesis:{version:'n47-source-synthesis-v1',title:'Головний сюжет вашої карти',
+   opening:'Висхідний знак та управитель визначають центральну тему. У перевіреній основній карті ці фактори співвідносяться з тематичними картами.',
+   strength:'Додаткова карта показує потенціал, який можна перевірити конкретними діями.',
+   challenge:'Друга карта показує тінь сильної сторони, якщо діяти поспіхом.',
+   direction:'Практичний результат у роботі треба порівняти з принципами близьких стосунків.',
+   method:'Синтез D1, D9 та D10; попередній D60 окремо.'},
+  d60Preview:{version:'d60-conditional-signs-n47-v1',status:'conditional_signs',
+   title:'D60: тонкі акценти, які ще потрібно перевірити',
+   intro:'Тестовий умовний зріз, не висновок про реальне народження.',
+   factors:[{planet:'Mars',d1Sign:1,d60Sign:5,boundaryDistanceArcseconds:250,
+    note:'Марс: у головній карті — Овен, у D60 — Лев; умовно можна порівняти ініціативу та самовираження.'}],
+   warning:'D60: час до хвилини не гарантує точності; доми не трактуються.'},
   highlights:[
    {id:'strength',division:27,title:'Ресурси',text:'Практична витривалість і сталі звички.'},
    {id:'challenge',division:30,title:'Виклики',text:'Зверніть увагу на розподіл сил.'},
@@ -199,6 +211,9 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain.getByTestId('reader-v8-highlight-strength')).toBeVisible();
  await expect(plain.getByTestId('reader-v8-D27')).toContainText('У цій темі можна розвивати');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
+ await expect(plain.getByTestId('reader-v8-synthesis')).toContainText('Головний сюжет');
+ await expect(plain.getByTestId('reader-v8-d60')).toContainText('Марс: у головній карті');
+ await expect(plain.getByTestId('reader-v8-d60')).toContainText('не гарантує точності');
  await plain.getByTestId('reader-v8-D10').getByText('Розрахунки та класичні джерела').click();
  await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
  await expect(page.getByTestId('reader-v7')).toHaveCount(0);
