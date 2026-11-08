@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n46-balanced-portrait-1.0.0',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n47-synthesis-natural-voice-1.0.0',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -103,7 +103,7 @@ test('All 16 charts stay in one responsive explorer at 320–1440 px',async({pag
 
 function mockV8(divisions){
  return {
-  version:'reader-v8.0.0-n44',editorialVersion:'n46-balanced-portrait-1.0.0',ruleSetVersion:'classical-reader-n44-1.0.0',
+  version:'reader-v8.0.0-n44',editorialVersion:'n47-synthesis-natural-voice-1.0.0',ruleSetVersion:'classical-reader-n44-1.0.0',
   status:'available',introduction:'Підсумок класичного аналізу за розрахованою картою.',
   method:'Brihat Jataka (1905) · Laghu Parashari (1900); перевірені OCR-уривки.',
   d60Notice:'D60 не використовується для індивідуального трактування.',
