@@ -72,7 +72,7 @@ test('Solar System illustration explicitly keeps Sun central, 8 ordered solar or
  assert.match(file,/SUN:Body=\{kind:'sun',name:'SUN',x:CX,y:CY/);
  assert.match(file,/const moon:Body=\{kind:'moon'/);
  assert.match(file,/x:earth\.x\+27\*Math\.cos\(phase\)/);
- assert.match(file,/periodSeconds:18/);
+ assert.match(file,/periodSeconds:420/);
  assert.match(file,/m\.elapsed\+=dt\/1000/);
  assert.match(file,/data-orbit-model="heliocentric-schematic"/);
  assert.match(file,/not to scale or date-specific/i);

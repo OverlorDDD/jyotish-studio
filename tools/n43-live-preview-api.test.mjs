@@ -14,7 +14,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
   assert.equal(runtime.status,200);
   const meta=await runtime.json();
   assert.equal(meta.readerEdition,'reader-v8.0.0-n44');
-  assert.equal(meta.editorialEdition,'n47-synthesis-natural-voice-1.0.0');
+  assert.equal(meta.editorialEdition,'n48-poetic-evidence-1.0.0');
   assert.equal(meta.previewOnly,true);
   assert.equal(meta.productionAuthorized,false);
   assert.equal(meta.verificationContract,'jyotish-integrity-v3');
@@ -37,7 +37,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(report.readerV7.highlights.length,3);
    assert.equal(report.readerV7.d60Notice.includes('D60'),true);
    assert.equal(report.readerV8.version,'reader-v8.0.0-n44');
-   assert.equal(report.readerV8.editorialVersion,'n47-synthesis-natural-voice-1.0.0');
+   assert.equal(report.readerV8.editorialVersion,'n48-poetic-evidence-1.0.0');
    assert.equal(report.readerV8.status,'available');
    assert.equal(report.readerV8.insights.length,15);
    assert.equal(report.readerV8.synthesis?.version,'n47-source-synthesis-v1');

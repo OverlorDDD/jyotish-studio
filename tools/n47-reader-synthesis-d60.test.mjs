@@ -26,6 +26,8 @@ test('N47 whole-life synthesis gives a specific D1 ruler, Moon and distinct sour
    const report=buildClassicalReaderV8(chart,lang,'2026-11-08');
    assert.equal(report.status,'available');
    assert.ok(report.synthesis);
+   assert.equal(report.synthesis.version,'n48-evidence-poetic-v1');
+   for(const h of report.highlights)assert.match(h.text.trim(),/[.!?]$/,'no chopped sentences');
    assert.equal(report.synthesis.highlights.length,3);
    assert.equal(new Set(report.highlights.map(h=>h.division)).size,3);
    assert.match(report.synthesis.opening,/\d/);

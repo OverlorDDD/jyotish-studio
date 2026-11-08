@@ -130,7 +130,8 @@ test('Hero Scene v5: actual orbital animation, deep smooth parallax and return t
  const beginning=Number(await canvas.getAttribute('data-earth-x'));
  await page.waitForTimeout(1250);
  const after=Number(await canvas.getAttribute('data-earth-x'));
- expect(Math.abs(after-beginning),'Earth should move on its orbit without mouse activity').toBeGreaterThan(4);
+ expect(Math.abs(after-beginning),'Earth should drift gently rather than stay completely frozen').toBeGreaterThan(.02);
+ expect(Math.abs(after-beginning),'Orbital drift should not distract from the page content').toBeLessThan(3);
  const rect=await canvas.boundingBox();expect(rect).not.toBeNull();
  await page.mouse.move(rect.x+rect.width*.9,rect.y+rect.height*.5,{steps:2});
  const early=Number(await canvas.getAttribute('data-parallax-x'));

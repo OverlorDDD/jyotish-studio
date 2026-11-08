@@ -3,7 +3,7 @@ import {useEffect,useRef,useState,type PointerEvent} from 'react';
 import styles from './NatalSkyLayers.module.css';
 
 /**
- * Galaxiora solar-system illustration v4.
+ * Galaxiora solar-system illustration v6 — quiet illuminated manuscript.
  * Conceptually heliocentric: Sun at one focus of each elliptical orbit, planets on their own
  * Sun-centred orbits, and the Moon as Earth's satellite (not a ninth planet).
  * Distances, sizes, orbital inclination and the displayed phases are
@@ -19,14 +19,14 @@ const SUN:Body={kind:'sun',name:'SUN',x:CX,y:CY,r:33,light:'#f6e5b9',middle:'#dc
 /* Correct radial order with approximate real orbital eccentricities in a projected view.
  * The Sun lies at the unprojected orbital focus. Angles are art-directed, not true current anomalies. */
 const ORBITS:readonly Orbit[]=[
- {kind:'mercury',eccentricity:0.2056,name:'MERCURY',radius:62,phase:-2.37,periodSeconds:18,radiusPx:6,light:'#ded6cb',middle:'#a8a19b',dark:'#595b68'},
- {kind:'venus',eccentricity:0.0068,name:'VENUS',radius:96,phase:.61,periodSeconds:30,radiusPx:10,light:'#f1dfc9',middle:'#c4a68e',dark:'#68606c'},
- {kind:'earth',eccentricity:0.0167,name:'EARTH',radius:130,phase:2.54,periodSeconds:48,radiusPx:13,light:'#d1e7e3',middle:'#7a9cae',dark:'#35486a'},
- {kind:'mars',eccentricity:0.0934,name:'MARS',radius:163,phase:-.70,periodSeconds:66,radiusPx:9,light:'#dfbea6',middle:'#aa796d',dark:'#684953'},
- {kind:'jupiter',eccentricity:0.0489,name:'JUPITER',radius:201,phase:1.94,periodSeconds:118,radiusPx:27,light:'#e9d3b9',middle:'#b39b8d',dark:'#54495b'},
- {kind:'saturn',eccentricity:0.0565,name:'SATURN',radius:233,phase:-2.27,periodSeconds:162,radiusPx:22,light:'#e6d3b4',middle:'#a99c93',dark:'#55566a'},
- {kind:'uranus',eccentricity:0.0472,name:'URANUS',radius:258,phase:-.16,periodSeconds:210,radiusPx:13,light:'#c8dce0',middle:'#8db0bf',dark:'#4a647e'},
- {kind:'neptune',eccentricity:0.0086,name:'NEPTUNE',radius:281,phase:1.20,periodSeconds:250,radiusPx:13,light:'#bdc9e4',middle:'#697aa7',dark:'#2d426a'}
+ {kind:'mercury',eccentricity:0.2056,name:'MERCURY',radius:62,phase:-2.37,periodSeconds:420,radiusPx:6,light:'#ded6cb',middle:'#a8a19b',dark:'#595b68'},
+ {kind:'venus',eccentricity:0.0068,name:'VENUS',radius:96,phase:.61,periodSeconds:600,radiusPx:10,light:'#f1dfc9',middle:'#c4a68e',dark:'#68606c'},
+ {kind:'earth',eccentricity:0.0167,name:'EARTH',radius:130,phase:2.54,periodSeconds:840,radiusPx:13,light:'#d1e7e3',middle:'#7a9cae',dark:'#35486a'},
+ {kind:'mars',eccentricity:0.0934,name:'MARS',radius:163,phase:-.70,periodSeconds:1140,radiusPx:9,light:'#dfbea6',middle:'#aa796d',dark:'#684953'},
+ {kind:'jupiter',eccentricity:0.0489,name:'JUPITER',radius:201,phase:1.94,periodSeconds:1880,radiusPx:27,light:'#e9d3b9',middle:'#b39b8d',dark:'#54495b'},
+ {kind:'saturn',eccentricity:0.0565,name:'SATURN',radius:233,phase:-2.27,periodSeconds:2800,radiusPx:22,light:'#e6d3b4',middle:'#a99c93',dark:'#55566a'},
+ {kind:'uranus',eccentricity:0.0472,name:'URANUS',radius:258,phase:-.16,periodSeconds:3500,radiusPx:13,light:'#c8dce0',middle:'#8db0bf',dark:'#4a647e'},
+ {kind:'neptune',eccentricity:0.0086,name:'NEPTUNE',radius:281,phase:1.20,periodSeconds:4600,radiusPx:13,light:'#bdc9e4',middle:'#697aa7',dark:'#2d426a'}
 ];
 function orbitPosition(o:Orbit,seconds=0){
  // Solve Kepler's equation with Newton iterations; the Sun lies at the focus.
@@ -42,7 +42,7 @@ function bodiesAt(seconds:number):readonly Body[]{
  const orbiting:Body[]=ORBITS.map(o=>({...orbitPosition(o,seconds),kind:o.kind,name:o.name,r:o.radiusPx,
   light:o.light,middle:o.middle,dark:o.dark}));
  const earth=orbiting.find(p=>p.kind==='earth')!;
- const phase=1.17+seconds*2*Math.PI/9.5;
+ const phase=1.17+seconds*2*Math.PI/180;
  const moon:Body={kind:'moon',name:'MOON',x:earth.x+27*Math.cos(phase),y:earth.y+20*Math.sin(phase),
   r:5,light:'#e7e9eb',middle:'#adb4c7',dark:'#596077'};
  return [SUN,...orbiting,moon];
@@ -51,7 +51,7 @@ const BODY_NAMES:Readonly<Record<BodyKind,string>>={sun:'SUN',mercury:'MERCURY',
  earth:'EARTH',moon:'MOON',mars:'MARS',jupiter:'JUPITER',saturn:'SATURN',uranus:'URANUS',neptune:'NEPTUNE'};
 function starfield():Star[]{
  let seed=0x6a71c0;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- return Array.from({length:185},()=>({x:22+random()*595,y:26+random()*565,r:.45+random()*1.25,
+ return Array.from({length:125},()=>({x:22+random()*595,y:26+random()*565,r:.45+random()*1.25,
   alpha:.16+random()*.50,phase:random()*6.28,depth:.2+random()*.8}));
 }
 const STARS=starfield();
@@ -65,67 +65,77 @@ const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 function coloredDisc(ctx:CanvasRenderingContext2D,b:Body,hover:boolean){
  const {x,y,r,kind}=b;
  ctx.save();
+ // Antique astronomy engraving: subdued mineral inks, fine gold outlines,
+ // and very restrained light. Avoid bright glossy 3D sticker spheres.
  if(kind==='sun'){
-  const glow=ctx.createRadialGradient(x,y,r*.3,x,y,r*4.6);
-  glow.addColorStop(0,'rgba(251,219,167,.35)');glow.addColorStop(.31,'rgba(232,183,113,.16)');
-  glow.addColorStop(1,'rgba(242,178,98,0)');
-  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,r*4.6,0,Math.PI*2);ctx.fill();
+  const aura=ctx.createRadialGradient(x,y,r*.6,x,y,r*3.5);
+  aura.addColorStop(0,'rgba(234,187,118,.22)');
+  aura.addColorStop(.52,'rgba(224,165,113,.07)');
+  aura.addColorStop(1,'rgba(224,165,113,0)');
+  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(x,y,r*3.5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(219,183,132,.23)';ctx.lineWidth=.75;
+  for(let i=0;i<16;i++){
+   const a=i*Math.PI/8,inner=r+8,outer=r+(i%2===0?17:12);
+   ctx.beginPath();ctx.moveTo(x+Math.cos(a)*inner,y+Math.sin(a)*inner);
+   ctx.lineTo(x+Math.cos(a)*outer,y+Math.sin(a)*outer);ctx.stroke();
+  }
  }else{
-  const glow=ctx.createRadialGradient(x,y,r*.35,x,y,r*2.45);
-  glow.addColorStop(0,'rgba(172,166,215,.14)');glow.addColorStop(1,'rgba(172,166,215,0)');
-  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,r*2.45,0,Math.PI*2);ctx.fill();
+  const soft=ctx.createRadialGradient(x,y,0,x,y,r*2.1);
+  soft.addColorStop(0,'rgba(199,170,145,.085)');
+  soft.addColorStop(1,'rgba(199,170,145,0)');
+  ctx.fillStyle=soft;ctx.beginPath();ctx.arc(x,y,r*2.1,0,Math.PI*2);ctx.fill();
  }
+ const gradient=ctx.createLinearGradient(x-r*.9,y-r*.8,x+r,y+r);
+ gradient.addColorStop(0,b.light);
+ gradient.addColorStop(.56,b.middle);
+ gradient.addColorStop(1,b.dark);
  if(kind==='saturn'){
-  ctx.save();ctx.translate(x,y);ctx.rotate(-.32);
-  ctx.lineWidth=3;ctx.strokeStyle='rgba(210,190,160,.43)';
-  ctx.beginPath();ctx.ellipse(0,0,r*1.9,r*.57,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+  ctx.save();ctx.translate(x,y);ctx.rotate(-.28);
+  ctx.strokeStyle='rgba(221,188,153,.36)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.ellipse(0,0,r*1.77,r*.47,0,0,Math.PI*2);ctx.stroke();ctx.restore();
  }
- const disc=ctx.createRadialGradient(x-r*.34,y-r*.38,r*.05,x+r*.24,y+r*.24,r*1.2);
- disc.addColorStop(0,b.light);disc.addColorStop(.49,b.middle);disc.addColorStop(1,b.dark);
- ctx.fillStyle=disc;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
- // Delicate engraved meridians make the illustration read as an atlas,
- // rather than identical glossy sphere stickers.
- if(r>=9&&kind!=='sun'){
-  ctx.save();ctx.beginPath();ctx.arc(x,y,r-.6,0,Math.PI*2);ctx.clip();
-  ctx.strokeStyle='rgba(250,239,211,.12)';ctx.lineWidth=.5;
-  ctx.beginPath();ctx.ellipse(x,y,r*.42,r*.97,0,0,Math.PI*2);ctx.stroke();
-  ctx.restore();
+ ctx.fillStyle=gradient;
+ ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle=kind==='sun'?'rgba(247,217,172,.67)':'rgba(215,193,163,.54)';
+ ctx.lineWidth=.85;ctx.stroke();
+ ctx.save();ctx.beginPath();ctx.arc(x,y,r-.5,0,Math.PI*2);ctx.clip();
+ ctx.strokeStyle='rgba(241,232,209,.15)';ctx.lineWidth=.55;
+ if(r>=9){
+  ctx.beginPath();ctx.ellipse(x,y,r*.45,r*.94,0,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(x,y,r*.89,r*.3,0,0,Math.PI*2);ctx.stroke();
  }
- ctx.lineWidth=.8;ctx.strokeStyle='rgba(251,226,200,.38)';ctx.stroke();
- ctx.save();ctx.beginPath();ctx.arc(x,y,r-.4,0,Math.PI*2);ctx.clip();
- if(['jupiter','saturn','neptune','uranus'].includes(kind)){
-  for(let i=-3;i<=3;i++){
-   const yy=y+i*r/4.3;
-   ctx.beginPath();ctx.moveTo(x-r*1.1,yy);
-   ctx.bezierCurveTo(x-r*.35,yy-r*.12,x+r*.33,yy+r*.1,x+r*1.1,yy);
-   ctx.strokeStyle=i%2===0?'rgba(248,224,199,.18)':'rgba(23,32,59,.20)';
-   ctx.lineWidth=i%2===0?1.6:.95;ctx.stroke();
+ if(['jupiter','saturn','uranus','neptune'].includes(kind)){
+  for(let i=-2;i<=2;i++){
+   const bandY=y+i*r/3.7;
+   ctx.beginPath();ctx.moveTo(x-r*1.1,bandY);
+   ctx.bezierCurveTo(x-r*.45,bandY-r*.10,x+r*.40,bandY+r*.08,x+r*1.1,bandY);
+   ctx.strokeStyle=i%2?'rgba(18,29,47,.15)':'rgba(247,220,186,.17)';
+   ctx.lineWidth=1.1;ctx.stroke();
   }
  }
  if(kind==='earth'){
-  ctx.fillStyle='rgba(118,155,134,.43)';
-  ctx.beginPath();ctx.ellipse(x-3,y-1,r*.34,r*.68,.25,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(x+5,y+5,r*.22,r*.28,-.4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(123,157,135,.31)';
+  ctx.beginPath();ctx.ellipse(x-2,y-1,r*.34,r*.63,.2,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(x+5,y+4,r*.20,r*.31,-.4,0,Math.PI*2);ctx.fill();
  }
  if(kind==='moon'){
-  ctx.fillStyle='rgba(58,59,76,.3)';
-  ctx.beginPath();ctx.arc(x+1,y-1,1.1,0,Math.PI*2);ctx.fill();
- }
- if(kind==='sun'){
-  ctx.strokeStyle='rgba(255,248,226,.18)';ctx.lineWidth=.8;
-  for(let i=-1;i<=1;i++){
-   ctx.beginPath();ctx.ellipse(x,y+i*r*.35,r,r*.19,0,0,Math.PI*2);ctx.stroke();
-  }
+  ctx.strokeStyle='rgba(36,42,57,.28)';ctx.lineWidth=.75;
+  ctx.beginPath();ctx.arc(x+1,y,1.25,0,Math.PI*2);ctx.stroke();
  }
  ctx.restore();
  if(kind==='saturn'){
-  ctx.save();ctx.translate(x,y);ctx.rotate(-.32);
-  ctx.strokeStyle='rgba(236,206,166,.72)';ctx.lineWidth=3.1;
-  ctx.beginPath();ctx.ellipse(0,0,r*1.9,r*.57,0,.05,Math.PI-.05);ctx.stroke();ctx.restore();
+  ctx.save();ctx.translate(x,y);ctx.rotate(-.28);
+  ctx.strokeStyle='rgba(229,202,168,.63)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.ellipse(0,0,r*1.77,r*.47,0,.05,Math.PI-.05);ctx.stroke();ctx.restore();
+ }
+ if(kind==='sun'){
+  ctx.strokeStyle='rgba(242,211,170,.34)';ctx.lineWidth=.6;
+  ctx.beginPath();ctx.arc(x,y,r+5,0,Math.PI*2);ctx.stroke();
  }
  if(hover){
-  ctx.strokeStyle='rgba(242,205,157,.88)';ctx.lineWidth=1;
-  ctx.setLineDash([2,4]);ctx.beginPath();ctx.arc(x,y,r+10,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  ctx.setLineDash([2,4]);ctx.lineWidth=1.1;
+  ctx.strokeStyle='rgba(240,211,174,.84)';
+  ctx.beginPath();ctx.arc(x,y,r+8,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
  }
  ctx.restore();
 }
@@ -156,7 +166,7 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  nebula.addColorStop(1,'rgba(10,24,47,0)');
  ctx.fillStyle=nebula;ctx.fillRect(0,0,W,H);
  for(const constellation of CONSTELLATIONS){
-  ctx.save();ctx.translate(px*12,py*9);
+  ctx.save();ctx.translate(px*9,py*7);
   ctx.lineWidth=.7;ctx.strokeStyle='rgba(181,201,229,.19)';
   if(!constellation.length){ctx.restore();continue;}
   ctx.beginPath();ctx.moveTo(constellation[0][0],constellation[0][1]);
@@ -168,18 +178,18 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
  }
  for(const star of STARS){
   const alpha=star.alpha*(reduced?1:.91+.09*Math.sin(seconds*.7+star.phase));
-  const x=star.x+px*7*star.depth,y=star.y+py*6*star.depth;
+  const x=star.x+px*6*star.depth,y=star.y+py*5*star.depth;
   ctx.globalAlpha=alpha;ctx.fillStyle=star.r>1.1?'#f0ddc7':'#b9cbe3';
   ctx.beginPath();ctx.arc(x,y,star.r,0,Math.PI*2);ctx.fill();
  }
  ctx.globalAlpha=1;
  // The orbital map has deeper parallax than the star dust while every planet
  // and its corresponding orbit share ONE transform, avoiding detachment/jitter.
- ctx.save();ctx.translate(px*18,py*13);
+ ctx.save();ctx.translate(px*8,py*6);
  for(const orbit of ORBITS){
   const minor=orbit.radius*Math.sqrt(1-orbit.eccentricity*orbit.eccentricity);
   ctx.beginPath();ctx.ellipse(CX-orbit.radius*orbit.eccentricity,CY,orbit.radius,minor*FLATTEN,0,0,Math.PI*2);
-  ctx.lineWidth=.85;ctx.strokeStyle='rgba(206,190,174,.24)';ctx.stroke();
+  ctx.lineWidth=.7;ctx.strokeStyle='rgba(213,185,150,.17)';ctx.stroke();
  }
  // Hint of orbit orientation / local map grid; no inaccurate rays to planets.
  ctx.strokeStyle='rgba(185,200,219,.10)';ctx.lineWidth=.65;
@@ -198,7 +208,7 @@ function draw(ctx:CanvasRenderingContext2D,seconds:number,m:Motion,reduced:boole
 }
 function hit(m:Motion):BodyKind|null{
  if(!m.inside)return null;
- const x=m.cursorX-m.x*18,y=m.cursorY-m.y*13;
+ const x=m.cursorX-m.x*8,y=m.cursorY-m.y*6;
  // Use exactly the positions painted on the last frame, not initial orbits.
  return [...m.bodies].reverse().find(p=>Math.hypot(p.x-x,p.y-y)<=Math.max(8,p.r+8))?.kind||null;
 }
@@ -279,7 +289,6 @@ export default function NatalSkyLayers({lang}:{lang:'uk'|'en'}){
   <span data-testid="n41-hovered-planet" className={styles.screenReaderStatus} aria-live="polite">
    {hovered?BODY_NAMES[hovered]:null}
   </span>
-  <figcaption className={styles.caption}>{lang==='uk'?'Геліоцентрична схема · орбіти й розміри не в масштабі':
-   'Heliocentric diagram · orbits and sizes not to scale'}</figcaption>
+
  </figure>;
 }

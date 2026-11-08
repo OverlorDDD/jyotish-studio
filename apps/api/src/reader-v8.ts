@@ -88,7 +88,11 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
  const secondary=([30,27,9,2,4,24,7,3,12,20,45,1,16,40] as number[])
   .filter(d=>d!==primary&&d!==10)
   .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
- const synthesis=buildSourceSynthesis(chart,lang,insights,primary,secondary);
+ const polarity={
+  resource:extractN44Evidence(chart,primary,asOf).some(x=>x.role==='resource'),
+  friction:extractN44Evidence(chart,secondary,asOf).some(x=>x.role==='friction')
+ };
+ const synthesis=buildSourceSynthesis(chart,lang,insights,primary,secondary,polarity);
  /* The three lead cards use verified facts, not generic reflective questions. */
  const highlights=synthesis.highlights as ClassicalReaderReport['highlights'];
  return {

@@ -22,13 +22,13 @@ const SIGNS_EN_MEANING=[
  'seeking meaning and space','structure and the long view','independent thinking','imagination and compassion'
 ] as const;
 const PRACTICE_UK:Readonly<Record<string,string>>={
- Sun:'Коли доведеться відповідати за рішення, відділіть власну позицію від потреби подобатися.',
- Moon:'У напружений день перевірте, що дає вам відчуття опори, перш ніж реагувати на чужий настрій.',
- Mars:'Перед складною розмовою визначте, якого результату прагнете і де проходить ваша межа.',
- Mercury:'У важливій домовленості уточніть два конкретні факти, які обидві сторони розуміють однаково.',
- Jupiter:'Зіставте цінну пораду з реальним прикладом, де вона спрацювала або ні.',
- Venus:'Назвіть прямо одну потребу у стосунках, не ховаючи її за бажанням зберегти мир.',
- Saturn:'Перевірте, яка частина відповідальності справді ваша і що можна виконувати без виснаження.'
+ Sun:'Особиста позиція може ставати сильнішою там, де сміливість поєднується з відповідальністю, а не з потребою довести перевагу.',
+ Moon:'Емоційна чутливість може поглиблювати розуміння людей, але надмірна вразливість до настрою оточення стирає власний ритм.',
+ Mars:'Сила волі проявляється найкраще, коли напір має напрям; без нього рішучість може ставати зайвим спротивом.',
+ Mercury:'Гнучкий розум допомагає знайти несподіваний зв’язок, але справжня ясність вимагає відрізняти точне слово від швидкої відповіді.',
+ Jupiter:'Пошук сенсу може вести до глибоких знань, проте красива ідея набуває ваги лише тоді, коли витримує живий досвід.',
+ Venus:'Прагнення гармонії дарує тонке відчуття іншого, але спокій, куплений постійним замовчуванням, рідко буває справжнім.',
+ Saturn:'Витривалість стає опорою, доки обов’язок має сенс; без цього навіть сильна дисципліна перетворюється на тягар.'
 };
 const PRACTICE_EN:Readonly<Record<string,string>>={
  Sun:'When taking responsibility, separate your own view from the need for approval.',
@@ -51,7 +51,7 @@ const PLANETS=[
 function noData(lang:Lang):D60Preview{
  const uk=lang==='uk';
  return {version:D60_PREVIEW_VERSION,status:'unavailable',
-  title:uk?'D60: додатковий ракурс, що потребує точного часу':'D60: an optional time-sensitive lens',
+  title:uk?'D60 · Внутрішні відтінки':'D60 · Subtle inner patterns',
   intro:uk?'Перевіреної прив’язки D60 до цієї натальної карти немає.':'No verified D60-to-birth-chart binding is available.',
   factors:[],warning:uk?'Особисті висновки за D60 не формуються без перевірених вихідних даних.':'No individual D60 notes without validated input.'};
 }
@@ -78,12 +78,12 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
   const natalTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[original.sign-1];
   const fineTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[fine.sign-1];
   const note=uk?
-   p.uk+': у головній карті — '+from+', у D60 — '+to+'. Якщо час народження підтвердиться, це дає умовний контраст між «'+
-    natalTheme+'» і «'+fineTheme+'» у сфері '+p.ukTheme+'. '+
-    PRACTICE_UK[p.key]:
-   p.key+': the natal chart places this planet in '+from+', while D60 places it in '+to+
-    '. If the birth time is reliable, compare '+natalTheme+' with '+fineTheme+
-    ' as tentative themes in '+p.enTheme+'. '+PRACTICE_EN[p.key];
+   'У D1 '+p.uk+' перебуває у '+from+', а в D60 — у '+to+
+   '. За традиційною символікою це зустріч двох способів прояву: '+natalTheme+' та '+fineTheme+
+   '. '+PRACTICE_UK[p.key]:
+   'In D1, '+p.key+' occupies '+from+', while in D60 it occupies '+to+
+   '. The traditional symbolism places '+natalTheme+' beside '+fineTheme+
+   '. '+PRACTICE_EN[p.key];
   return {planet:p.key,d1Sign:original.sign,d60Sign:fine.sign,
    boundaryDistanceArcseconds:fine.boundaryDistanceArcseconds,note};
  }).filter((x):x is Factor=>x!==null);
@@ -91,12 +91,12 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
  // avoid factors within 90 arcseconds of a nominal D60 sector edge.
  const factors=[...ordered].sort((a,b)=>b.boundaryDistanceArcseconds-a.boundaryDistanceArcseconds).slice(0,3);
  const warning=uk?
-  'Це умовне прочитання лише планетарних ЗНАКІВ D60 за введеним моментом. Навіть час, записаний до хвилини, не сертифікує точність; доми та Лагна D60, карма, минулі життя й конкретні події тут НЕ трактуються. За неточного часу перевірте D60 після ректифікації.':
-  'Conditional D60 PLANETARY SIGNS only, for the entered birth instant. A time recorded to the minute is not a precision certificate. D60 houses, ascendant, karma, past lives and events are NOT interpreted. Recheck after birth-time rectification.';
+  'Методика: розраховано лише планетарні знаки D60 за введеним моментом. Лагна й доми D60 не сертифіковані для особистого часу народження і тут не трактуються. Це символічне читання, не доказ життєвих подій.':
+  'Method: D60 planetary signs for the entered instant only. Individual D60 houses and ascendant are not certified or interpreted. These symbolic themes are not evidence of specific life events.';
  return {version:D60_PREVIEW_VERSION,status:factors.length?'conditional_signs':'unavailable',
-  title:uk?'D60: тонкі акценти, які ще потрібно перевірити':'D60: fine details to verify',
-  intro:uk?'Порівняння з основною картою, а не самостійний прогноз. У цьому зрізі обираємо лише показники, не близькі до межі їхнього розрахованого сегмента.':
-   'A comparison against D1, not a stand-alone prediction. Only factors sufficiently far from their calculated segment boundary are displayed.',
+  title:uk?'D60 · Внутрішні відтінки':'D60 · Subtle inner patterns',
+  intro:uk?'Кожна планета має загальну роль у D1 та тонший відтінок у D60. Нижче — три найвиразніші зіставлення знаків, обчислені для введеного часу народження.':
+   'Each planet has a broad expression in D1 and a finer symbolic color in D60. These three sign comparisons are calculated for the entered birth time.',
   factors,warning};
 }
 export function compactD60PreviewForAi(chart:CalculatedChart):string{

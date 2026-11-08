@@ -76,20 +76,31 @@ export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:Re
      <code>{item.proof.join(' · ')}</code>
     </details>
    </article>)}
+   <article className={styles.card} data-testid="reader-v8-d60" aria-labelledby="reader-d60-title">
+    <header className={styles.cardTitle}>
+     <span>D60</span>
+     <h4 id="reader-d60-title">{data.d60Preview?.title||(uk?'D60 · Внутрішні відтінки':'D60 · Subtle inner patterns')}</h4>
+    </header>
+    {!minutesUncertain&&data.d60Preview?.status==='conditional_signs'?<>
+     <p className={styles.headline}>{data.d60Preview.intro}</p>
+     {data.d60Preview.factors.map(factor=><p className={styles.storyText} key={factor.planet}>
+      {factor.note}
+     </p>)}
+     <details className={styles.proof}>
+      <summary>{uk?'Розрахунок D60 і межі методу':'D60 calculation and method scope'}</summary>
+      <p>{data.d60Preview.warning}</p>
+      <code>{data.d60Preview.factors.map(f=>
+       f.planet+': D1 sign '+f.d1Sign+' → D60 sign '+f.d60Sign+
+       ' · boundary '+Math.round(f.boundaryDistanceArcseconds)+' arcsec').join(' · ')}</code>
+     </details>
+    </>:<>
+     <p className={styles.storyText}>{minutesUncertain?
+      (uk?'Для цього тонкого зрізу необхідний достовірний час народження. Інші п’ятнадцять карт і загальний портрет доступні незалежно від D60.':
+       'This very fine division needs a reliable birth time. Your fifteen other charts and integrated portrait remain available.'):
+      (data.d60Preview?.warning||data.d60Notice)}</p>
+    </>}
+   </article>
   </div>
-  <section className={styles.d60Section} data-testid="reader-v8-d60" aria-labelledby="reader-d60-title">
-   <span className={styles.kicker}>{uk?'✦ ДОДАТКОВИЙ ЗРІЗ':'✦ OPTIONAL LENS'}</span>
-   <h3 id="reader-d60-title">{data.d60Preview?.title||(uk?'D60 · Точність народження':'D60 · Birth-time precision')}</h3>
-   {!minutesUncertain&&data.d60Preview?.status==='conditional_signs'?
-    <>
-     <p>{data.d60Preview.intro}</p>
-     <div className={styles.d60Factors}>{data.d60Preview.factors.map(f=><article key={f.planet}>
-      <p>{f.note}</p>
-     </article>)}</div>
-     <p className={styles.d60Warning}>{data.d60Preview.warning}</p>
-    </>:
-    <p className={styles.d60Warning}>{minutesUncertain?(uk?'Оскільки точні хвилини народження невідомі, індивідуальні акценти D60 приховано. Основні карти й загальний підсумок доступні.':'Because the exact birth minutes are unknown, the conditional D60 planet notes are hidden. Your main charts and synthesis remain available.'):(data.d60Preview?.warning||data.d60Notice)}</p>}
-  </section>
   <p className={styles.warning}>{data.method}</p>
  </section>;
 }
