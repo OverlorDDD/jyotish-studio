@@ -144,7 +144,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   try{
    const response=await fetch(api+'/api/v1/reports',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...freshChart.input,lang,preferred:mode,asOf:new Date().toISOString().slice(0,10)})
+    body:JSON.stringify({...freshChart.input,lang,preferred:mode,minutesUncertain,asOf:new Date().toISOString().slice(0,10)})
    });
    const data=await readApiJson<ReadingReport>(response);
    if(requestId!==readingRequestId.current)return;
@@ -253,7 +253,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     </section>
 
     <div id="interpretation" className="jy-reading-result-anchor">
-     {report&&report.language===lang?<DetailedReport report={report} lang={lang}/>:null}
+     {report&&report.language===lang?<DetailedReport report={report} lang={lang} minutesUncertain={minutesUncertain}/>:null}
     </div>
 
     <section className="panel jy-data-workspace" id="chart-data">
