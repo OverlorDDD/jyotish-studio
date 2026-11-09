@@ -64,6 +64,8 @@ jobs:
         run: |
           bash -n tools/n49-aws-release.sh
           node --test tools/n49-aws-release-contract.test.mjs
+          bash -n tools/n491-aws-release.sh
+          node --test tools/n491-aws-release-contract.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
