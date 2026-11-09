@@ -36,17 +36,13 @@ function ukText(x:TopicInputs):string{
  const n=NAMES[x.name]||x.name,s=NAMES[x.name2]||x.name2;
  const a=GEN_UK[x.d1House-1],b=GEN_UK[x.vHouse-1],other=GEN_UK[x.v2House-1];
  const sign=SIGN_UK[x.vSign-1];
- const primary=[
-  'У головній карті '+n+' у '+x.d1House+'-му домі пов’язує цю тему зі сферою '+a+'.',
-  'У D'+x.div+' '+n+' займає '+x.vHouse+'-й дім (знак «'+sign+'»), тому до розгляду додається сфера '+b+'.'
- ];
  let first='',second='';
  switch(x.div){
   case 1:
    first='Ваш висхідний знак — '+SIGN_UK[x.ascSign-1]+'. '+n+
     ' у '+x.d1House+'-му домі ставить у центр життєвого напряму сферу '+a+'.';
-   second=s+' у '+x.v2House+'-му домі додає окрему тему '+other+
-    ': особистий напрям і внутрішні потреби не слід змішувати в один опис.';
+   second=s+' у '+x.v2House+'-му домі додає тему '+other+
+    '. Цей акцент потрібно читати поруч із положенням '+n+', а не замість нього.';
    break;
   case 2:
    first='Фінанси тут пов’язані не лише з накопиченням: управитель ресурсів '+n+
@@ -93,8 +89,8 @@ function ukText(x:TopicInputs):string{
   case 12:
    first='У родинних моделях важливий зв’язок четвертого дому через '+n+
     ' зі сферою '+a+'.';
-   second='D12 розміщує '+n+' у '+x.vHouse+'-му домі ('+b+
-    '), а '+s+' у '+x.v2House+'-му ('+other+
+   second='D12 розміщує '+n+' у '+x.vHouse+'-му домі (сфера '+b+
+    '), а '+s+' у '+x.v2House+'-му (сфера '+other+
     '). Це допомагає окремо розглядати батьківські впливи та власні життєві рішення.';
    break;
   case 16:
