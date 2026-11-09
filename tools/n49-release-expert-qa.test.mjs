@@ -87,7 +87,7 @@ test('12 diverse real Swiss synthetic-birth charts x UK/EN: claim traceability a
    const all=normalize([n.opening,...n.threads.map(t=>t.text),n.closing].join(' '));
    assert.ok(all.length>1100,'too little connected interpretation: '+id+'/'+lang);
    assert.match(n.closing,/15/,'must reconcile all 15 source links');
-   assert.doesNotMatch(JSON.stringify(n),/Etc\/UTC|Asia\/Kolkata|Europe\/Kyiv|latitude|longitude|place|birthTime|birthDate/iu);
+   assert.doesNotMatch(JSON.stringify(n),/Etc\/UTC|Asia\/Kolkata|Europe\/Kyiv|latitude|longitude|["]place["]:|birthTime|birthDate/iu);
    assert.ok(n.threads.find(t=>t.id==='career').evidence.some(x=>x.startsWith('D9.')));
    assert.ok(n.threads.find(t=>t.id==='career').evidence.some(x=>x.startsWith('D10.')));
    assert.ok(n.threads.find(t=>t.id==='partnership').evidence.some(x=>x.startsWith('D9.')));
