@@ -47,7 +47,7 @@ test('Localized search metadata includes Galaxiora without duplicating default s
  assert.ok(home.includes("permanentRedirect(portalPath(locale,'astrology/jyotish'))"));
  const natalRoot=read('apps/web/app/page.tsx');
  assert.match(natalRoot,/Galaxiora/);
- assert.ok(natalRoot.includes("canonical:'/'"));
+ assert.ok(natalRoot.includes("canonical:'/en/astrology/jyotish'"));
  const sections=read('apps/web/app/[locale]/[section]/page.tsx');
  assert.ok(sections.includes('moduleTitle(section)'));
  const vedic=read('apps/web/app/[locale]/astrology/jyotish/page.tsx');
