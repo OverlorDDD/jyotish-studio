@@ -81,7 +81,7 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
     education;
   const attention=uk?'Не визначайте професію або майбутній успіх за одним знаком: аспекти, повна сила й періоди ще не перевірені.':
    'A single sign cannot determine occupation or success: aspects, full strength and timing are not yet evaluated.';
-  add({id:'career',division:10,relatedDivisions:strong(eq)?[24]:[],planet,
+  add({id:'career',division:10,relatedDivisions:strong(eq)&&strong(q)?[24]:[],planet,
    headline,
    teaser:uk?(isYoga&&strong(q)?'Управління 5-м і 10-м домами поєднується з сильним положенням у професійній D10.':
     strong(q)?'Управитель 10-го дому має виразне знакове положення у D10.':
