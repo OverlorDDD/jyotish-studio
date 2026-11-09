@@ -1,5 +1,6 @@
 'use client';
 import styles from './ReaderV7View.module.css';
+import n49 from './ReaderV8View.module.css';
 export type ReaderV8UI={
  version:string;editorialVersion:string;ruleSetVersion:string;status:'available'|'unavailable';
  introduction:string;method:string;d60Notice:string;
@@ -25,12 +26,13 @@ export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:Re
    <h2 id="reader-v8-heading">{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
    <p>{data.introduction}</p>
   </header>
-  {data.integrated?.version==='n49-unified-evidence-v1'?<article className={styles.synthesis} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
+  {data.integrated?.version==='n49-unified-evidence-v1'?<article className={styles.synthesis+' '+n49.n49Story} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
    <span className={styles.kicker}>{uk?'✦ N4.9 · ЄДИНА ЛІНІЯ КАРТИ':'✦ N4.9 · A SINGLE CHART NARRATIVE'}</span>
    <h3 id="reader-v8-synthesis-title">{data.integrated.title}</h3>
    <p>{data.integrated.opening}</p>
-   <div className={styles.synthesisParts}>
-    {data.integrated.threads.map(t=><div key={t.id} data-testid={'reader-n49-thread-'+t.id}>
+   {minutesUncertain?<p className={n49.n49Uncertain} role="note">{uk?'Час народження приблизний: окремі тонкі варги можуть змінитися. Трактування нижче — умовний огляд, а не підтверджений висновок для високих поділів.':'Birth time is approximate: high divisions can change. The following is a conditional reading, not a birth-time-certified high-varga interpretation.'}</p>:null}
+   <div className={n49.n49ThreadList}>
+    {data.integrated.threads.map(t=><div className={n49.n49Thread} key={t.id} data-testid={'reader-n49-thread-'+t.id}>
      <strong>{t.title}</strong>
      <p>{t.text}</p>
      <details className={styles.proof}>
@@ -50,7 +52,7 @@ export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:Re
      </details>
     </div>)}
    </div>
-   <div className={styles.synthesisDirection}><strong>{uk?'Спільний висновок':'How it fits together'}</strong><p>{data.integrated.closing}</p></div>
+   <div className={n49.n49Conclusion}><strong>{uk?'Спільний висновок':'How it fits together'}</strong><p>{data.integrated.closing}</p></div>
    <small>{data.integrated.method}</small>
   </article>:null}
   {(!data.integrated||data.integrated.version!=='n49-unified-evidence-v1')&&data.synthesis&&<article className={styles.synthesis} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
