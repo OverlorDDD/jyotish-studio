@@ -290,10 +290,10 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
  const workFocus=dignityFor(careerLord,dn(10,careerLord).sign);
  const work=uk?'У професії головну роль відіграє '+name(careerLord,uk)+
   ': D1 дім '+career.house+', D10 дім '+dn(10,careerLord).house+
-  (strong(work)?', знак '+quality(work,uk):'')+'. ':
+  (strong(workFocus)?', знак '+quality(workFocus,uk):'')+'. ':
   'Career is led by '+careerLord+' (D1 house '+career.house+
   ', D10 house '+dn(10,careerLord).house+
-  (strong(work)?', '+quality(work,uk):'')+'). ';
+  (strong(workFocus)?', '+quality(workFocus,uk):'')+'). ';
  const recovery=uk?(asc.house===12?
   'Управитель висхідного знака в 12-му домі додає виразну потребу в усамітненні й відновленні. ':
   'Управитель висхідного знака перебуває у '+asc.house+'-му домі — це інший натальний акцент. '):
