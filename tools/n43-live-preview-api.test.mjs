@@ -16,7 +16,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
   assert.equal(meta.readerEdition,'reader-v8.0.0-n44');
   assert.equal(meta.editorialEdition,'n48-poetic-evidence-1.0.0');
   assert.equal(meta.interpretationEdition,'n49-unified-evidence-v1');
-  assert.equal(meta.presentationEdition,'n491-compact-cross-varga-v1');
+  assert.equal(meta.presentationEdition,'n492-meaning-first-16-v1');
   assert.equal(meta.previewOnly,true);
   assert.equal(meta.productionAuthorized,false);
   assert.equal(meta.verificationContract,'jyotish-integrity-v3');
@@ -43,6 +43,9 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(report.readerV8.status,'available');
    assert.equal(report.readerV8.insights.length,15);
    assert.equal(report.readerV8.compactCards.length,15);
+   assert.equal(report.readerV8.meaningReader.version,'n492-meaning-first-16-v1');
+   assert.deepEqual(report.readerV8.meaningReader.cards.map(c=>c.division),[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
+   assert.equal(report.readerV8.meaningReader.takeaways.length,3);
    assert.equal(report.readerV8.synthesis?.version,'n48-evidence-poetic-v1');
    assert.equal(report.readerV8.integrated?.version,'n49-unified-evidence-v1');
    assert.equal(report.readerV8.integrated.links.length,15);
