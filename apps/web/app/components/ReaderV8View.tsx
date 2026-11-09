@@ -5,7 +5,8 @@ export type ReaderV8UI={
  introduction:string;method:string;d60Notice:string;
  synthesis?:{version:string;title:string;opening:string;strength:string;challenge:string;direction:string;method:string};
  integrated?:{version:string;title:string;opening:string;closing:string;method:string;
-  threads:readonly {id:string;title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];scope:string}[];
+  threads:readonly {id:string;title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];
+   directSourceIds:readonly string[];extensionSourceIds:readonly string[];scope:string}[];
   links:readonly {division:number;polarity:string;evidence:readonly string[]}[]};
  d60Preview?:{version:string;status:'conditional_signs'|'unavailable';title:string;intro:string;
   factors:readonly {planet:string;d1Sign:number;d60Sign:number;boundaryDistanceArcseconds:number;note:string}[];warning:string};
@@ -39,11 +40,13 @@ export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:Re
        (uk?'Зв’язок D1 та тематичних варг — сучасне застосування; не дослівний висновок з книги.':
         'D1-to-varga linkage is a modern application, not a literal historical verse.')}</p>
       <code>{t.evidence.join(' · ')}</code>
-      <p>{t.sourceIds.length?
-       (uk?'Ідентифікатори зіставлених книжкових правил (статус кожного пояснено в тематичних картках): ':
-        'Mapped book-rule IDs (review status is shown in the detailed thematic cards): ')+t.sourceIds.join(', '):
-       (uk?'Для цієї ланки окреме книжкове правило не активувалося.':
-        'No additional book rule activated for this link.')}</p>
+      <p>{t.directSourceIds.length?
+       (uk?'Прямі класичні натальні методи (статус перекладу наведено нижче): ':
+        'Direct classical natal methods (translation status below): ')+t.directSourceIds.join(', '):
+       (uk?'Окремого прямого книжкового правила не активовано.':
+        'No distinct direct historical rule activated.')}</p>
+      {t.extensionSourceIds.length?<p>{(uk?'Сучасне застосування до тематичних карт: ':
+       'Modern extrapolation to divisional charts: ')+t.extensionSourceIds.join(', ')}</p>:null}
      </details>
     </div>)}
    </div>
