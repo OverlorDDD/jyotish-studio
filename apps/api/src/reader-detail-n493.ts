@@ -123,18 +123,16 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
   'Тема «'+house(d1.house,uk)+'» повторюється у D1 і D'+division+
   ', а знак додає спосіб її прояву — '+signCue+'. ':
   'Мотив «'+house(p1.house,uk)+'» у D1 переходить у сферу «'+
-  house(d1.house,uk)+'» у D'+division+'; знак додає акцент на '+signCue+'. '):
+  house(d1.house,uk)+'» у D'+division+'; знак підкреслює тему «'+signCue+'». '):
   (p1.house===d1.house?
    'D1 and D'+division+' emphasize '+house(d1.house,uk)+
    '; the divisional sign adds '+signCue+' as its symbolic approach. ':
    'D1 emphasizes '+house(p1.house,uk)+', while D'+division+' shifts toward '+
    house(d1.house,uk)+' with an emphasis on '+signCue+'. ');
  const secondaryLine=uk?(d1.house===d2.house?
-  pname(secondary,uk)+' — інша планета, пов’язана із '+secondaryTopic+
-  ' — займає той самий дім D'+division+
+  pname(secondary,uk)+' — інший тематичний показник («'+secondaryTopic+'»); він займає той самий дім D'+division+
   '. У цій сфері зустрічаються дві різні потреби, які варто узгоджувати. ':
-  pname(secondary,uk)+' — інша планета, пов’язана із '+secondaryTopic+
-  ' — стоїть у '+d2.house+'-му домі D'+division+' ('+house(d2.house,uk)+
+  pname(secondary,uk)+' — інший тематичний показник («'+secondaryTopic+'»); він стоїть у '+d2.house+'-му домі D'+division+' ('+house(d2.house,uk)+
   '). Це інша сторона теми, яку не слід губити за рішеннями управителя. '):
   (d1.house===d2.house?
    'A distinct indicator, '+secondary+', relates to '+secondaryTopic+
