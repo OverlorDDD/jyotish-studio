@@ -14,6 +14,7 @@ import {authorConsultationV6} from './reader-narrative-v6.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
 import {rankN493Patterns,type ChartPattern,N493_PATTERN_VERSION} from './reader-patterns-n493.ts';
+import {n493TopicDepth} from './reader-card-depth-n493.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -238,6 +239,10 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     }
    }
   }
+  // A second relevant planet is shown only if it has notable sign dignity
+  // or occupies the same varga house as this topic's actual ruler.
+  const depth=n493TopicDepth(chart,lang,div,lord);
+  if(depth){meaning+=' '+depth.note;proof.push(...depth.proof);}
   if(div===1){
    const special=facts.yogas.find(f=>f.planet===lord);
    if(special)proof.push(...special.evidence);
