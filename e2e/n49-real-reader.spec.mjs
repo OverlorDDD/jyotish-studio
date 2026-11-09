@@ -24,6 +24,9 @@ async function createInventedBirth(page,lang){
  expect(json.readerV8?.integrated?.threads).toHaveLength(5);
  expect(json.readerV8?.compactCards).toHaveLength(15);
  expect(json.readerV8?.meaningful?.cards).toHaveLength(16);
+ expect(json.readerV8?.meaningful?.patternVersion).toBe('n493-ranked-multifactor-v1');
+ expect(json.readerV8?.meaningful?.topInsights?.length).toBeGreaterThanOrEqual(3);
+ expect(json.readerV8?.meaningful?.topInsights?.length).toBeLessThanOrEqual(5);
  expect(json.readerV8?.meaningful?.cards[0]?.division).toBe(1);
  expect(json.readerV8?.meaningful?.cards[15]?.division).toBe(60);
  expect(json.readerV8?.d60Preview?.allPlanets).toHaveLength(9);
@@ -36,6 +39,10 @@ for(const lang of ['uk','en']){
   const reader=page.getByTestId('reader-v8');
   await expect(reader).toBeVisible();
   await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
+  await expect(reader.getByTestId('reader-n493-patterns').locator('li')).toHaveCount(report.readerV8.meaningful.topInsights.length);
+  for(const pattern of report.readerV8.meaningful.topInsights){
+   await expect(reader.getByTestId('reader-n493-patterns')).toContainText(pattern.title);
+  }
   await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
   await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
   await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
@@ -63,7 +70,7 @@ for(const lang of ['uk','en']){
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
    expect(overflow,'horizontal overflow at '+width).toBeLessThanOrEqual(2);
    if([320,430,1440].includes(width)){
-    for(const id of ['reader-v8-D10','reader-v8-d60','reader-n492-final']){
+    for(const id of ['reader-n493-patterns','reader-v8-D10','reader-v8-d60','reader-n492-final']){
      await reader.getByTestId(id).screenshot({
       path:testInfo.outputPath('n492-'+id+'-'+lang+'-'+width+'.png'),
       animations:'disabled',style:'.as-header{visibility:hidden!important}'
