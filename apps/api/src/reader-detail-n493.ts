@@ -48,7 +48,20 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
  const lords=classicalLordshipTable(chart.ascendant.sign);
  const primary=lords[focus.house];
  // Never double-count one planet as two independent thematic observations.
- const secondary=focus.reference===primary?(primary==='Moon'?'Sun':'Moon'):focus.reference;
+ // If a natural significator is already the natal house lord, use a distinct
+ // *relevant* graha rather than relabel Moon as Mars or Sun as Moon.
+ const ALTERNATIVE:Record<number,string>={3:'Mercury',4:'Venus',7:'Moon',12:'Moon',
+  16:'Moon',20:'Moon',27:'Saturn',30:'Mars',40:'Venus',45:'Jupiter'};
+ const secondary=focus.reference===primary?ALTERNATIVE[division]:focus.reference;
+ const MEANING_UK:Record<string,string>={Sun:'волею та відповідальністю',
+  Moon:'внутрішніми потребами й відновленням',Mars:'ініціативою та рішучістю',
+  Mercury:'навчанням і спілкуванням',Jupiter:'знаннями та наставництвом',
+  Venus:'близькістю й відчуттям гармонії',Saturn:'витривалістю й обов’язками'};
+ const MEANING_EN:Record<string,string>={Sun:'will and responsibility',
+  Moon:'inner needs and recovery',Mars:'initiative and resolve',
+  Mercury:'learning and communication',Jupiter:'learning and mentorship',
+  Venus:'affection and harmony',Saturn:'endurance and responsibility'};
+ const secondaryTopic=uk?MEANING_UK[secondary]:MEANING_EN[secondary];
  const p1=chart.d1.find(p=>p.name===primary)!;
  const p2=chart.d1.find(p=>p.name===secondary)!;
  const v=source.charts.find(c=>c.division===division)!;
@@ -103,16 +116,16 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
    'The emphasis shifts from '+house(p1.house,uk)+' to '+house(d1.house,uk)+
    ': the first is the natal motive, the second its expression in this division. ');
  const secondaryLine=uk?(d1.house===d2.house?
-  pname(secondary,uk)+' — інша планета, пов’язана із '+area[1]+
+  pname(secondary,uk)+' — інша планета, пов’язана із '+secondaryTopic+
   ' — займає той самий дім D'+division+
   '. У цій сфері зустрічаються дві різні потреби, які варто узгоджувати. ':
-  pname(secondary,uk)+' — інша планета, пов’язана із '+area[1]+
+  pname(secondary,uk)+' — інша планета, пов’язана із '+secondaryTopic+
   ' — стоїть у '+d2.house+'-му домі D'+division+' ('+house(d2.house,uk)+
   '). Це інша сторона теми, яку не слід губити за рішеннями управителя. '):
   (d1.house===d2.house?
-   'A distinct indicator, '+secondary+', relates to '+area[1]+
+   'A distinct indicator, '+secondary+', relates to '+secondaryTopic+
    ' and shares that D'+division+' house: two concerns in one arena, not two proofs of success. ':
-   'A separate indicator, '+secondary+' ('+area[1]+'), occupies D'+division+
+   'A separate indicator, '+secondary+' ('+secondaryTopic+'), occupies D'+division+
    ' house '+d2.house+' ('+house(d2.house,uk)+
    '). It brings a different need into the same life topic. ');
  const quality=good(q1)?(uk?
