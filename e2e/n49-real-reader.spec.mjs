@@ -40,6 +40,9 @@ for(const lang of ['uk','en']){
   await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
   await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
   await expect(reader.getByTestId('reader-n492-final')).toBeVisible();
+  await expect(reader.getByTestId('reader-n493-top-insights')).toBeVisible();
+  expect(report.readerV8.meaningful.discoveries.insights.length).toBeGreaterThanOrEqual(3);
+  expect(report.readerV8.meaningful.discoveries.insights.length).toBeLessThanOrEqual(5);
   await expect(reader.getByTestId('reader-v8-synthesis')).toHaveCount(0);
   await expect(reader.locator('[data-testid^="reader-n49-thread-"]')).toHaveCount(0);
   await expect(page.getByText('Поглиблене астрологічне пояснення — за бажанням')).toHaveCount(0);
@@ -48,6 +51,10 @@ for(const lang of ['uk','en']){
   await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
   const ordered=report.readerV8.meaningful.cards.map(c=>c.division);
   expect(ordered).toEqual([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
+  for(const item of report.readerV8.meaningful.discoveries.insights){
+   await expect(reader.getByTestId('reader-n493-top-insights')).toContainText(item.headline);
+   await expect(reader.getByTestId(item.division===60?'reader-v8-d60':'reader-v8-D'+item.division)).toContainText(item.interpretation.slice(0,70));
+  }
   for(const div of [1,2,9,10,24,60]){
    const card=div===60?reader.getByTestId('reader-v8-d60'):reader.getByTestId('reader-v8-D'+div);
    await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).title);
