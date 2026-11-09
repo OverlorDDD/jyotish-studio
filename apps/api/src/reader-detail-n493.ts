@@ -73,27 +73,65 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
   'In D1, natal house '+focus.house+' is ruled by '+primary+
   ' in house '+p1.house+' ('+house(p1.house,uk)+
   '); the secondary indicator '+secondary+' occupies house '+p2.house+'.';
- const meaning=uk?
-  'Для теми '+area[0]+' тут важливо зіставити управителя та планету, пов’язану з '+
-  area[1]+'. '+context+' '+duo+' '+
-  (different?'Ці два положення в тематичній карті підкреслюють різні сфери, тому один висновок не повинен замінювати інший. ':
-   'Обидві планети опиняються в одній тематичній сфері, що робить її помітним предметом для розгляду. ')+
-  (good(q1)||good(q2)?
-    (good(q1)&&good(q2)?
-     'Обидві планети мають сприятливу знакову гідність, але це ще не повна оцінка їхньої сили.':
-     'Сприятливу знакову гідність має '+(good(q1)?pname(primary,uk):pname(secondary,uk))+
-      '; це ще не повна оцінка сили планети.'):
-    q1==='debilitated'||q2==='debilitated'?'Є напружений знаковий показник; його слід перевіряти разом з іншими умовами.':
-    'Однозначної сильної знакової оцінки немає; висновок обмежується розрахованими зв’язками.'):
-  'For '+area[0]+', read its natal ruler together with a second indicator of '+area[1]+'. '+
-  context+' '+duo+' '+
-  (different?'They occupy different thematic houses, so one cannot stand in for the other. ':
-   'They share a thematic house; this is a focus for interpretation, not a forecast. ')+
-  (good(q1)||good(q2)?'Supportive sign dignity appears for '+
-   (good(q1)&&good(q2)?'both indicators':good(q1)?primary:secondary)+
-   ', though it is not full planetary strength.':
-   q1==='debilitated'||q2==='debilitated'?'A challenging sign dignity needs other factors before a conclusion.':
-   'There is no decisive positive dignity; the interpretation stays within the calculated relationships.');
+ // The thematic story is evidence → interpretation → a grounded action,
+ // not a list of two planetary positions and a generic disclaimer.
+ const PRACTICE:Record<number,[string,string]>={
+ 3:['Підготуйте одну важливу розмову і перевірте, чи ваша рішучість поєднується зі слуханням.',
+    'Prepare one important conversation; test whether resolve is paired with listening.'],
+ 4:['Перед рішенням про житло відокремте матеріальну стабільність від потреби відчувати себе вдома.',
+    'Before a housing decision, separate material security from the feeling of belonging.'],
+ 7:['Знайдіть конкретний спосіб передати знання або підтримати чийсь розвиток, не роблячи прогнозу про дітей.',
+    'Find one tangible way to share knowledge or nurture growth without predicting children.'],
+ 12:['Оберіть успадковане сімейне правило й перевірте, чи воно допомагає вашому теперішньому вибору.',
+     'Choose one inherited family rule and test whether it helps your choices now.'],
+ 16:['Перевірте, чи конкретна покупка або зміна побуту справді полегшує ваш день.',
+     'Check whether a concrete purchase or change in routine genuinely makes life easier.'],
+ 20:['Обирайте посильний ритм духовної практики; оцінюйте сталість, а не обіцянки швидкого результату.',
+     'Choose a sustainable spiritual routine; judge consistency, not promises of quick results.'],
+ 27:['Для складного завдання заздалегідь визначте межу навантаження й спосіб відновлення.',
+     'For a demanding task, define both a workload limit and a recovery plan.'],
+ 30:['Назвіть одну повторювану перешкоду: що ви можете змінити, а що потребує витримки?',
+     'Name one recurring obstacle: what can you change and what requires patience?'],
+ 40:['Порівняйте успадковану модель турботи з підтримкою, яку ви справді хочете отримувати.',
+     'Compare an inherited style of care with the support you actually need.'],
+ 45:['Сформулюйте власними словами один родинний принцип, який ви свідомо залишаєте собі.',
+     'Restate one family principle you consciously choose to keep.']
+ };
+ const natal=uk?'У D1 управитель '+focus.house+'-го дому '+pname(primary,uk)+
+  ' стоїть у '+p1.house+'-му домі ('+house(p1.house,uk)+'). ':
+  'In D1, house '+focus.house+' is ruled by '+primary+' in house '+p1.house+
+  ' ('+house(p1.house,uk)+'). ';
+ const varga=uk?'У D'+division+' він у '+d1.house+'-му домі ('+
+  house(d1.house,uk)+'), у '+sign(d1.sign,uk)+'. ':
+  'In D'+division+' it is in house '+d1.house+' ('+house(d1.house,uk)+
+  '), in '+sign(d1.sign,uk)+'. ';
+ const bridge=uk?(p1.house===d1.house?
+  'Обидві карти підкреслюють '+house(d1.house,uk)+': це сфера, через яку тема набуває практичного вираження. ':
+  'Головний перехід — від '+house(p1.house,uk)+' до '+house(d1.house,uk)+
+  '. Перше задає мотив, друге показує тематичний спосіб його реалізації. '):
+  (p1.house===d1.house?
+  'Both views emphasize '+house(d1.house,uk)+' as the arena of expression. ':
+  'The central shift is from '+house(p1.house,uk)+' toward '+house(d1.house,uk)+
+  ': one frames the motive, the other the thematic expression. ');
+ const second=uk?(d1.house===d2.house?
+  pname(secondary,uk)+' як окремий показник '+area[1]+' займає ту саму сферу D'+division+
+  '; це спільна тема, але не подвійна обіцянка результату. ':
+  pname(secondary,uk)+' як окремий показник '+area[1]+' у D'+division+
+  ' стоїть у '+d2.house+'-му домі ('+house(d2.house,uk)+
+  '). Це інша потреба, яку важливо не підміняти першою. '):
+  (d1.house===d2.house?
+  'The distinct indicator '+secondary+' ('+area[1]+
+  ') shares that D'+division+' house: one theme, not two outcome guarantees. ':
+  'The separate indicator '+secondary+' ('+area[1]+') occupies D'+division+
+  ' house '+d2.house+' ('+house(d2.house,uk)+'); its needs need a separate answer. ');
+ const qualified=good(q1)?(uk?'Знакова гідність управителя підтримує мотив, але не обіцяє подій. ':
+  'The ruler has supportive sign dignity, not a promise of events. '):
+  q1==='debilitated'?(uk?'Знак падіння управителя вимагає перевірки інших умов, а не фатального висновку. ':
+  'The ruler’s debilitation calls for checking other factors, not a verdict. '):'';
+ const meaning=(uk?'Тема '+area[0]+' має дві пов’язані, але не тотожні лінії. ':
+  'The theme of '+area[0]+' has two connected but distinct strands. ')+
+  natal+varga+bridge+second+qualified+
+  (uk?'Практично: ':'Try this: ')+PRACTICE[division][uk?0:1];
  const proof=['D1.house-lord.'+focus.house+'='+primary,
   'D1.'+primary+'.house='+p1.house,'D1.'+secondary+'.house='+p2.house,
   'D'+division+'.'+primary+'.house='+d1.house,'D'+division+'.'+primary+'.sign='+d1.sign,
