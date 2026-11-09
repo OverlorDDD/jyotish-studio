@@ -73,7 +73,7 @@ export function synthesizeN493(chart:CalculatedChart,lang:Lang):N493Synthesis|nu
  if(significant){
   attention=uk?
    name(significant.name)+' у D1 перебуває у знаку «'+sign(significant.sign)+'» — традиційне падіння. '+
-    'Планета керує '+influence.join('-м і ')+'-м домами; без перевірки аспектів і можливого скасування падіння цей показник не є остаточним висновком.':
+    'Планета керує '+(influence.length===1?influence[0]+'-м домом':influence.join('-м і ')+'-м домами')+'; без перевірки аспектів і можливого скасування падіння цей показник не є остаточним висновком.':
    significant.name+' occupies '+sign(significant.sign)+' in D1 (traditional debilitation) and rules houses '+
     influence.join(' and ')+'. Aspects and cancellation conditions have not been checked.';
  }else if(moon.house===12||c1.house===12){
@@ -84,8 +84,8 @@ export function synthesizeN493(chart:CalculatedChart,lang:Lang):N493Synthesis|nu
     'This differs from D10 themes of '+area(v10.house)+' without implying personal weakness.';
  }else{
   attention=uk?
-   'Місяць перебуває в '+moon.house+'-му домі ('+area(moon.house)+'), а професійна D10 підкреслює '+
-    area(v10.house)+'. Ці символічні сфери важливо не змішувати в один висновок.':
+   'Місяць перебуває в '+moon.house+'-му домі ('+area(moon.house)+'), а професійна D10 акцентує сферу '+
+    area(v10.house)+'. Це різні символічні потреби, які варто зіставляти, а не змішувати.':
    'The Moon occupies house '+moon.house+' ('+area(moon.house)+'), while D10 emphasizes '+
     area(v10.house)+'. These are distinct symbolic domains.';
  }
