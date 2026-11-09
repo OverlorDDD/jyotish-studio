@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -107,6 +107,18 @@ function mockV8(divisions){
   status:'available',introduction:'Підсумок класичного аналізу за розрахованою картою.',
   method:'Brihat Jataka (1905) · Laghu Parashari (1900); перевірені OCR-уривки.',
   d60Notice:'D60 є попереднім, доми та Лагна не трактуються.',
+  integrated:{version:'n49-unified-evidence-v1',title:'Єдиний портрет: від D1 до тематичних карт',
+   opening:'Умовний синтез, побудований на тестовій карті D1 та тематичних картах.',
+   closing:'П’ятнадцять карт розглядаються разом, але без вигаданих висновків про особу.',
+   method:'Знакова гідність не є повною силою планети.',
+   threads:['foundation','career','partnership','resource','tension'].map((id,i)=>({
+    id,title:'Доказова частина '+id,
+    text:'Тематична частина '+id+' описує розраховані доми й зв’язок із головною картою.',
+    evidence:['D1.Mercury.house=3','D9.Mercury.house=3','D10.Mercury.house=3'],
+    sourceIds:[],directSourceIds:[],extensionSourceIds:[],
+    scope:i===0?'d1_direct':'cross_varga_modern_extension'
+   })),
+   links:divisions.map(division=>({division,polarity:'unresolved',evidence:['D1.Mercury.house=3']}))},
   synthesis:{version:'n47-source-synthesis-v1',title:'Головний сюжет вашої карти',
    opening:'Висхідний знак та управитель визначають центральну тему. У перевіреній основній карті ці фактори співвідносяться з тематичними картами.',
    strength:'Додаткова карта показує потенціал, який можна перевірити конкретними діями.',
@@ -211,7 +223,7 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain.getByTestId('reader-v8-highlight-strength')).toBeVisible();
  await expect(plain.getByTestId('reader-v8-D27')).toContainText('У цій темі можна розвивати');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await expect(plain.getByTestId('reader-v8-synthesis')).toContainText('Головний сюжет');
+ await expect(plain.getByTestId('reader-v8-synthesis')).toContainText('Єдиний портрет');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('Марс: у головній карті');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('не гарантує точності');
  await plain.getByTestId('reader-v8-D10').getByText('Розрахунки та класичні джерела').click();
