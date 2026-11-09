@@ -1,0 +1,18 @@
+/* N4.9 unified interpretation: readable as ONE continuous book-style narrative,
+   unlike the two-column N4.7 comparison. Do not apply to old Reader layouts. */
+.n49Story{max-width:100%;overflow-wrap:anywhere}
+.n49ThreadList{display:flex;flex-direction:column;gap:0;margin-top:20px;max-width:84ch}
+.n49Thread{min-width:0;padding:19px 0;border-top:1px solid rgba(214,181,137,.23)}
+.n49Thread:first-child{border-top:1px solid rgba(214,181,137,.23)}
+.n49Thread strong{display:block;font-family:Georgia,serif;font-weight:600;font-size:clamp(17px,2vw,21px);line-height:1.4;color:#f4d4a9;margin-bottom:8px}
+.n49Thread p{font-size:clamp(14px,1.2vw,15px);line-height:1.9;color:#e2e8f1;max-width:78ch;margin:0}
+.n49Thread details{margin:13px 0 0;padding:10px 12px;border:1px solid rgba(205,183,154,.18);border-radius:9px;background:rgba(11,25,42,.35);font-size:12px}
+.n49Thread details summary{cursor:pointer;font-weight:650;color:#efd1a2;line-height:1.5}
+.n49Thread details summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.n49Thread details p{font-size:12px;line-height:1.7;margin-top:9px}
+.n49Thread details code{display:block;margin:10px 0;padding:12px;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word;border-radius:8px;background:#0b182a;color:#d6e5f3;font-size:11px;line-height:1.6}
+.n49Uncertain{margin:10px 0 14px!important;padding:12px 14px;border-left:3px solid #dfb77d;background:rgba(226,179,112,.08);color:#f4dcba!important;line-height:1.7!important;font-size:13px!important}
+.n49Conclusion{border-top:1px solid rgba(218,191,149,.3);padding-top:16px;margin-top:4px;max-width:84ch}
+.n49Conclusion strong{font-family:Georgia,serif;color:#f4d4a9;font-size:18px}
+.n49Conclusion p{font-size:14px;line-height:1.9;color:#e2e8f1}
+@media(max-width:680px){.n49Thread{padding:16px 0}.n49Thread p{font-size:14px;line-height:1.77}.n49Thread details{padding:9px}.n49Thread details code{font-size:10px}}
