@@ -217,7 +217,33 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     'Venus adds an independent relationship indicator in the D9 sign '+sign(venus.sign)+'.');
    else meaning+=' '+(uk?'У цій карті Венера має особливу вагу для партнерства, але оцінювати її слід разом з іншими показниками D1 і D9.':
     'Venus is especially relevant for partnership here, but needs context from the other D1 and D9 factors.');
-   proof.push('D9.Venus.sign='+venus.sign);
+   // A second relationship indicator is separate only if it is a different
+   // graha; when Venus is already the seventh ruler, use Moon for needs.
+   const secondaryName=lord==='Venus'?'Moon':'Venus';
+   const relational=same(9,secondaryName)!;
+   const d9Focus:Record<number,[string,string]>={
+    1:['автономність поряд із союзом','independence within partnership'],
+    2:['цінності, розмови й сімейні ресурси','values, conversations and family resources'],
+    3:['спілкування і здатність відкрито просити','communication and speaking up'],
+    4:['відчуття дому та безпеки','home and security'],
+    5:['спільні творчі справи та підтримку розвитку','shared creativity and learning'],
+    6:['поділ щоденних обов’язків','sharing everyday responsibilities'],
+    7:['домовленості про взаємність','reciprocity and agreements'],
+    8:['довіру та спільну відповідальність','trust and shared duties'],
+    9:['цінності, світогляд та навчання разом','values, worldview and learning together'],
+    10:['баланс роботи й обов’язків','balance between work and commitment'],
+    11:['друзів, спільноти й взаємні цілі','friendships, communities and shared goals'],
+    12:['особисті межі й потребу в тиші','privacy, boundaries and quiet']
+   };
+   meaning+=' '+(uk?'D9 розміщує управителя союзу в '+varga.house+'-му домі: '+
+    'для розвитку стосунків традиційно важлива тема «'+d9Focus[varga.house][0]+'». '+
+    (secondaryName==='Moon'?'Місяць ':'Венера ')+
+    'як окремий показник у D9 знаходиться в '+relational.house+'-му домі. '+
+    'Практично: проговоріть цю тему з іншою людиною, не припускаючи її відповіді наперед.':
+    'D9 puts the partnership ruler in house '+varga.house+', bringing a traditional focus on '+
+    d9Focus[varga.house][1]+'. '+secondaryName+' is a distinct indicator in D9 house '+
+    relational.house+'. Discuss the practical issue with the other person rather than assuming their response.');
+   proof.push('D9.Venus.sign='+venus.sign,'D9.'+secondaryName+'.house='+relational.house);
   }else if(div===2){
    const gains=lp[11],g=get(gains)!;
    meaning=uk?'Другим домом ресурсів керує '+pName(lord)+' у '+natal.house+'-му домі (сфера '+area(natal.house)+
@@ -231,7 +257,55 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     'D2 sign assessment: '+lord+' is '+degree);
    if(gains===lord)meaning+=' '+(uk?'Один управитель пов’язує збереження ресурсів і отримання результатів.':
     'The same ruler links accumulating resources with securing gains.');
+   const moneyFocus:Record<number,[string,string]>={
+    1:['особистої ініціативи','independent initiative'],2:['накопичення та сімейних цінностей','savings and family values'],
+    3:['навичок і комунікації','skills and communication'],4:['дому та довготривалої опори','home and lasting security'],
+    5:['творчих проєктів','creative projects'],6:['праці та щоденної дисципліни','work and daily discipline'],
+    7:['домовленостей і партнерства','partnership and agreements'],8:['спільних зобов’язань і змін','shared duties and change'],
+    9:['навчання та наставництва','learning and mentorship'],10:['професійної роботи','career and public work'],
+    11:['спільноти та здобутків','community and gains'],12:['витрат і потреби у відновленні','expenses and recovery']
+   };
+   meaning+=' '+(uk?'Тема збереження ресурсів у D1 пов’язана зі сферою «'+moneyFocus[natal.house][0]+'». '+
+    (natal.house===g.house?'Управителі 2-го й 11-го домів займають один дім, тож питання доходу й того, що залишається, зустрічаються в одній сфері. ':
+     'Здобутки через 11-й дім мають іншу опору: «'+moneyFocus[g.house][0]+'». ')+
+    'Практично розділяйте надходження, зобов’язання і те, що вдається зберегти.':
+    'The natal resources theme involves '+moneyFocus[natal.house][1]+'. '+
+    (natal.house===g.house?'The second and eleventh rulers share a house, linking two different money questions in one arena. ':
+     'Gains point to a different arena: '+moneyFocus[g.house][1]+'. ')+
+    'In practice separate incoming resources, obligations and what you retain.');
    proof.push('D1.house-lord.11='+gains,'D1.'+gains+'.house='+g.house);
+  }else if(div===24){
+   const otherName=lord==='Mercury'?'Jupiter':'Mercury';
+   const other=same(24,otherName)!;
+   const d24Focus:Record<number,[string,string]>={
+    1:['самостійно розпочатого завдання','a self-directed task'],
+    2:['пояснення і відтворення знань','explaining and retaining knowledge'],
+    3:['практики навички та спілкування','practicing skills and communicating'],
+    4:['міцної основи й регулярних занять','building a strong learning foundation'],
+    5:['творчого проєкту','a creative project'],
+    6:['повторень і розв’язання помилок','repetition and solving real mistakes'],
+    7:['навчання разом із партнером','learning with a partner'],
+    8:['розбору складної проблеми','investigating a complex problem'],
+    9:['навчання від наставника','learning from a mentor'],
+    10:['професійного застосування знань','professional application of knowledge'],
+    11:['взаємного обміну в спільноті','knowledge exchange in a community'],
+    12:['самостійного дослідження','independent research']
+   };
+   meaning=uk?'У D1 управитель 5-го дому '+pName(lord)+' стоїть у '+natal.house+
+    '-му домі (тема «'+area(natal.house)+'»). У D24 він у '+varga.house+
+    '-му домі, у знаку «'+sign(varga.sign)+'». '+
+    'Тому перевіряйте засвоєні знання через '+d24Focus[varga.house][0]+'. '+
+    'Другий показник навчання, '+pName(otherName)+', у D24 займає '+other.house+
+    '-й дім; його не можна прирівнювати до самого управителя п’ятого.':
+    'In D1 the fifth-house ruler '+lord+' occupies house '+natal.house+
+    ' ('+area(natal.house)+'); in D24 it occupies house '+varga.house+
+    ' in '+sign(varga.sign)+'. Test learning through '+d24Focus[varga.house][1]+
+    '. The separate learning indicator '+otherName+' is in D24 house '+other.house+
+    ', a distinct influence from the fifth ruler.';
+   const degree=statusMeaning(dnQuality,uk);
+   if(degree)meaning+=' '+(uk?'Знакова оцінка D24: '+pName(lord)+' '+degree:
+    'D24 sign dignity: '+lord+' is '+degree);
+   proof.push('D24.'+otherName+'.sign='+other.sign,'D24.'+otherName+'.house='+other.house);
   }else{
    const focused=uk?'У D'+div+' '+pName(lord)+' перебуває в '+t1+'-му домі, у знаку «'+sign(varga.sign)+'».':
      'In D'+div+', '+lord+' occupies house '+t1+' in '+sign(varga.sign)+'.';
