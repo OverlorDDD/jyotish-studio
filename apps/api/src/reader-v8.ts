@@ -5,6 +5,7 @@ import {extractN44Evidence,N44_CLASSICAL_RULESET_VERSION,sourceForRule,
  type ClassicalEvidence} from './reader-classical-n44.ts';
 import {renderN45Narrative,N45_EDITORIAL_VERSION} from './reader-editorial-n45.ts';
 import {buildSourceSynthesis,type ReaderSynthesis} from './reader-synthesis-n47.ts';
+import {buildUnifiedN49,type N49Unified} from './reader-unified-n49.ts';
 import {buildD60Preview,compactD60PreviewForAi,type D60Preview} from './reader-d60-n47.ts';
 
 export const READER_V8_VERSION='reader-v8.0.0-n44' as const;
@@ -25,6 +26,7 @@ export type ClassicalReaderReport={
  status:'available'|'unavailable';
  introduction:string;method:string;
  synthesis:ReaderSynthesis|null;
+ integrated:N49Unified|null;
  d60Preview:D60Preview;
  highlights:readonly {id:'strength'|'challenge'|'career';division:number;title:string;text:string}[];
  insights:readonly ClassicalReaderInsight[];
@@ -44,7 +46,7 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
    'Детальне класичне прочитання можливе лише за перевіреною натальною картою.':
    'A classical reading requires a verified natal calculation.',
   method:uk?'Правила без перевірених даних не застосовуються.':'No classical rule is applied without verified data.',
-  synthesis:null,d60Preview:buildD60Preview(chart,lang),
+  synthesis:null,integrated:null,d60Preview:buildD60Preview(chart,lang),
   highlights:[],insights:[],d60Notice:basic.d60Notice
  };
  if(!verifiedVargaSource(chart)||basic.status!=='available'||basic.insights.length!==15)return unavailable;
@@ -93,6 +95,17 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   friction:extractN44Evidence(chart,secondary,asOf).some(x=>x.role==='friction')
  };
  const synthesis=buildSourceSynthesis(chart,lang,insights,primary,secondary,polarity);
+ // A D1-only selection cannot serve as a second independent varga lens.
+ // Preserve legacy N4.8 highlights, but use two DISTINCT additional Dn
+ // links for N4.9. Never promote absence of a positive rule into a warning.
+ const extraDivisions=[27,24,2,9,3,4,12,7,16,20,40,45,30];
+ const n49Primary=primary!==1?primary:
+  [...extraDivisions].sort((a,b)=>activated(b,'resource')-activated(a,'resource'))[0];
+ const n49Secondary=secondary!==1&&secondary!==n49Primary?secondary:
+  [...extraDivisions].filter(d=>d!==n49Primary)
+   .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
+ const integrated=buildUnifiedN49(chart,lang,asOf,n49Primary,n49Secondary);
+ if(!integrated||integrated.links.length!==15||integrated.threads.length!==5)return unavailable;
  /* The three lead cards use verified facts, not generic reflective questions. */
  const highlights=synthesis.highlights as ClassicalReaderReport['highlights'];
  return {
@@ -105,7 +118,7 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   method:uk?
    'Джерела: Brihat Jataka (переклад 1905) і Laghu Parashari (1900). OCR-уривки прочитані, але не всі звірені зі сканами; дослівні прогнози не переносяться. Вищі карти залежать від точності часу народження.':
    'Sources: Brihat Jataka (1905 translation) and Laghu Parashari (1900). OCR excerpts were reviewed but not all scan-verified; literal predictions are not imported. Higher divisions depend on accurate birth time.',
-  synthesis,d60Preview:buildD60Preview(chart,lang),
+  synthesis,integrated,d60Preview:buildD60Preview(chart,lang),
   highlights,insights,d60Notice:basic.d60Notice
  };
 }
@@ -118,6 +131,10 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
   'Full synthesis: '+r.synthesis?.opening+' Opportunity: '+r.synthesis?.strength+
    ' Challenge: '+r.synthesis?.challenge+' Direction: '+r.synthesis?.direction,
   compactD60PreviewForAi(chart), // place BEFORE long thematic facts so it cannot be truncated
+  ...(r.integrated?[
+   'N4.9 linked evidence (conditional modern Dn synthesis, NOT literal classic verse or Shadbala):',
+   ...r.integrated.threads.map(t=>t.title+': '+t.text+' Calculated proofs: '+t.evidence.join(', '))
+  ]:[]),
   ...selected.map(d=>{
    const i=r.insights.find(x=>x.division===d)!;
    return 'D'+d+' '+i.title+'; '+i.headline+' Resource: '+i.strength+

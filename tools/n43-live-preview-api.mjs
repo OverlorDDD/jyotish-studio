@@ -14,6 +14,7 @@ import {CHART_VERIFICATION_VERSION} from '../apps/api/src/jyotish-integrity.ts';
 import {READER_V7_VERSION} from '../apps/api/src/reader-v7.ts';
 import {READER_V8_VERSION} from '../apps/api/src/reader-v8.ts';
 import {N45_EDITORIAL_VERSION} from '../apps/api/src/reader-editorial-n45.ts';
+import {N49_UNIFIED_VERSION} from '../apps/api/src/reader-unified-n49.ts';
 import {buildD60Preview} from '../apps/api/src/reader-d60-n47.ts';
 
 const root=resolve(fileURLToPath(new URL('../',import.meta.url)));
@@ -80,7 +81,7 @@ export function createN43PreviewServer({calculator=runCalculation,reporter=build
     return json(res,200,{status:'ok',service:'n43-local-preview',database:'not_required'});
    if(req.method==='GET'&&pathname==='/api/v1/jyotish/runtime')
     return json(res,200,{service:'n43-local-preview',readerVersion:'6.0.0',
-     readerEdition:READER_V8_VERSION,editorialEdition:N45_EDITORIAL_VERSION,pipeline:DIRECT_JYOTISH_VERSION,
+     readerEdition:READER_V8_VERSION,editorialEdition:N45_EDITORIAL_VERSION,interpretationEdition:N49_UNIFIED_VERSION,pipeline:DIRECT_JYOTISH_VERSION,
      verificationContract:CHART_VERIFICATION_VERSION,mode:process.env.AI_MODE||'free',
      previewOnly:true,productionAuthorized:false});
    if(req.method==='GET'&&pathname==='/api/v1/panchanga/cities'){
@@ -98,7 +99,8 @@ export function createN43PreviewServer({calculator=runCalculation,reporter=build
     const omitD60=request.minutesUncertain===true;
     const safeChart=omitD60?{...chart,n4D60:undefined}:chart;
     const report=reporter(chart,lang,asOf);
-    if(report.readerV8?.version!==READER_V8_VERSION||report.readerV8.status!=='available'||report.readerV8.editorialVersion!==N45_EDITORIAL_VERSION)
+    if(report.readerV8?.version!==READER_V8_VERSION||report.readerV8.status!=='available'||report.readerV8.editorialVersion!==N45_EDITORIAL_VERSION||
+       report.readerV8.integrated?.version!==N49_UNIFIED_VERSION)
      throw bad(503,'Reader 8 verified data unavailable.');
     const base={...report,readerVersion:'6.0.0',verification:chart.verification,
      readerV8:omitD60?{...report.readerV8,d60Preview:buildD60Preview(safeChart,lang)}:report.readerV8,

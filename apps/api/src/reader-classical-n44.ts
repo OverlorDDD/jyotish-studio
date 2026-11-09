@@ -185,17 +185,37 @@ export function extractN44Evidence(chart:CalculatedChart,division:number,asOf:st
     'Якщо відрахувати професійний сектор від Місяця, виділяється '+fromMoon.map(p=>name(p.name,'uk')).join(' і ')+'. Це другий погляд на робочі пріоритети.',
     'Counting the career sector from the Moon highlights '+fromMoon.map(p=>p.name).join(' and ')+'. This adds a second view of vocational priorities.'));
   }
-  // D9 lord of the navamsa occupied by natal tenth-house ruler,
-  // NOT the ruler of its house in D10.
-  const nav=chart.d9.find(p=>p.name===lords[10]);
-  if(nav){
-   const dispositor=CLASSICAL_RULERS[nav.sign-1];
-   signals.push(signal('BJ-X-1-NAVAMSA-VOCATION','BJ-X-1','context','direct_natal',
-    ['D1.house-lord.10='+lords[10],'D9.'+lords[10]+'.sign='+nav.sign,'D9.sign-ruler.'+nav.sign+'='+dispositor],
-    'У традиційному аналізі професії додатковий акцент пов’язаний із '+name(dispositor,'uk')+
-     ': '+TRAIT_UK[dispositor]+'. Це не передбачає певної посади; зіставте ці навички зі своїм досвідом.',
-    'A classical vocation cue points toward '+TRAIT_EN[dispositor]+
-     '. This does not guarantee a job or title; compare the theme with your own experience.'));
+  // Brihat Jataka X.1: first inspect classical planets in the 10th from
+  // Lagna or Moon. ONLY when both houses lack these planets do we use
+  // the navamsa dispositors of the 10th lords from Lagna, Moon and Sun.
+  // A modern career label is NOT a direct life-event forecast from the verse.
+  if(!tenth.length&&!fromMoon.length){
+   const sunOrigin=chart.d1.find(p=>p.name==='Sun');
+   const origins=[
+    {id:'LAGNA',sign:chart.ascendant.sign,fact:'D1.ascendant.sign='+chart.ascendant.sign,
+     uk:'Лагни',en:'the ascendant'},
+    {id:'MOON',sign:moon.sign,fact:'D1.Moon.sign='+moon.sign,uk:'Місяця',en:'the Moon'},
+    ...(sunOrigin?[{id:'SUN',sign:sunOrigin.sign,
+     fact:'D1.Sun.sign='+sunOrigin.sign,uk:'Сонця',en:'the Sun'}]:[])
+   ];
+   for(const origin of origins){
+    const tenthSign=((origin.sign+8)%12)+1;
+    const tenthLord=CLASSICAL_RULERS[tenthSign-1];
+    const nav=chart.d9.find(p=>p.name===tenthLord);
+    if(!nav)continue;
+    const navDispositor=CLASSICAL_RULERS[nav.sign-1];
+    signals.push(signal('BJ-X-1-NAVAMSA-VOCATION-'+origin.id,'BJ-X-1',
+     'context','direct_natal',
+     [origin.fact,'D1.tenth-from-'+origin.id.toLowerCase()+'.sign='+tenthSign,
+      'D1.tenth-from-'+origin.id.toLowerCase()+'.lord='+tenthLord,
+      'D9.'+tenthLord+'.sign='+nav.sign,'D9.sign-ruler.'+nav.sign+'='+navDispositor],
+     'За відсутності класичних планет у десятому домі від Лагни та Місяця, правило X.1 звертається до управителя навамші управителя десятого дому від '+origin.uk+
+      '. Тут це '+name(navDispositor,'uk')+
+      ' — символічна професійна тема ('+TRAIT_UK[navDispositor]+'), а не встановлена професія.',
+     'With no classical planet in the tenth from Lagna or Moon, X.1 uses the navamsa dispositor of the tenth lord from '+
+      origin.en+'. Here it is '+navDispositor+
+      ' ('+TRAIT_EN[navDispositor]+'), a symbolic vocation cue rather than a known occupation.'));
+   }
   }
   const sun=chart.d1.find(p=>p.name==='Sun');
   if(sun?.house===10)signals.push(signal('BJ-XX-3-SUN-10','BJ-XX-2-4','context','direct_natal',

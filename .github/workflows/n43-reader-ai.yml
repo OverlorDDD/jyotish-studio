@@ -1,7 +1,7 @@
 name: N4.4 Classical Reader 8 and AI — integration gate
 on:
   pull_request:
-    branches: [release/n4-natal-15-varga-rc-20261107]
+    branches: [release/n4-natal-15-varga-rc-20261107, feat/n4-d60-certified-precision-20261107]
   workflow_dispatch:
 permissions:
   contents: read
@@ -46,6 +46,22 @@ jobs:
         run: node --experimental-strip-types --test tools/n47-reader-synthesis-d60.test.mjs
       - name: N4.8 source-bound natural language and quiet illustrated orbits
         run: node --experimental-strip-types --test tools/n48-editorial-prose.test.mjs
+      - name: N4.9 unified natal chain, conditional Brihat Jataka X.1 and privacy regression
+        run: node --experimental-strip-types --test tools/n49-unified-synthesis.test.mjs
+      - name: N4.9 12 real Swiss invented birth QA in Ukrainian and English
+        run: node --experimental-strip-types --test tools/n49-release-expert-qa.test.mjs
+      - name: Keep 24 full invented-sample editorial reports for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n49-24-full-readings-and-evidence
+          path: qa-artifacts/
+          if-no-files-found: warn
+          retention-days: 10
+      - name: N4.9 deployment script syntax and safe rollback contract
+        run: |
+          bash -n tools/n49-aws-release.sh
+          node --test tools/n49-aws-release-contract.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
@@ -97,3 +113,52 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Windows Swiss/Reader8 integration failed' }
           Write-Host 'N44_WINDOWS_NATIVE_SWISS_REAL_READER_8_PASS'
 
+  n49-browser:
+    name: N4.9 real Swiss → Next/Reader browser + screenshot QA
+    needs: [n44-reader]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n49_qa
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+      CI: 'true'
+      ALLOW_PYTHON_SWISSEPH: '0'
+      INTERNAL_API_ORIGIN: http://127.0.0.1:4000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install workspaces and build real Next client
+        run: |
+          npm install --no-audit --no-fund --no-package-lock
+          npm run build -w @jyotish/core
+          npm run build -w @jyotish/web
+      - name: Install real Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Launch loopback-only real Swiss API and built Next (NEVER AWS)
+        run: |
+          printf 'SITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' > .env
+          PORT=4000 node --experimental-strip-types tools/n43-live-preview-api.mjs >/tmp/n49-api.log 2>&1 &
+          WEB_PORT=3000 npm run start -w @jyotish/web >/tmp/n49-web.log 2>&1 &
+          ok=0
+          for i in $(seq 1 70); do
+            if curl -fsS http://127.0.0.1:4000/api/health >/dev/null 2>&1 &&
+              curl -fsS http://127.0.0.1:3000/en/astrology/jyotish >/dev/null 2>&1; then
+              ok=1; break
+            fi
+            sleep 2
+          done
+          if [ "$ok" != 1 ]; then tail -80 /tmp/n49-api.log; tail -80 /tmp/n49-web.log; exit 1; fi
+          echo N49_BROWSER_REAL_SWISS_READY
+      - name: UA EN real Reader, interactive proofs, 7 widths, reduced-motion landing
+        run: npx playwright test e2e/n49-real-reader.spec.mjs e2e/natal-landing-seo.spec.mjs e2e/n4-d60-provisional.spec.mjs e2e/n4-rc-15.spec.mjs --config=playwright.config.mjs
+      - name: Keep screenshot samples and Playwright traces for visual inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n49-browser-screenshots-ua-en
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 10
