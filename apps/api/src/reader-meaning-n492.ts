@@ -39,6 +39,19 @@ const SIGNS_UK=['Овні','Тельці','Близнюках','Раку','Ле�
  'Стрільці','Козорозі','Водолії','Рибах'];
 const SIGNS_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio',
  'Sagittarius','Capricorn','Aquarius','Pisces'];
+const NOM_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон',
+ 'Стрілець','Козоріг','Водолій','Риби'];
+const FOCUS_UK:Readonly<Record<number,string>>={2:'фінансів',3:'спілкування й сміливості',
+ 4:'дому й майна',7:'дітей і творчого спадку',9:'партнерства',
+ 10:'кар’єри',12:'батьків і родинного походження',16:'комфорту й побуту',
+ 20:'духовної практики',24:'навчання',27:'витривалості',30:'подолання перешкод',
+ 40:'материнської родинної лінії',45:'батьківської родинної лінії'};
+const FOCUS_EN:Readonly<Record<number,string>>={2:'resources',3:'courage and communication',
+ 4:'home and property',7:'children and creative legacy',9:'partnership',
+ 10:'career',12:'parents and ancestry',16:'comfort and daily surroundings',
+ 20:'spiritual practice',24:'education',27:'resilience',30:'handling difficulties',
+ 40:'maternal-line themes',45:'paternal-line themes'};
+
 const NAMES_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',
  Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
 const GEN_UK:Record<string,string>={Sun:'Сонця',Moon:'Місяця',Mars:'Марса',
@@ -138,11 +151,17 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
 
  const d1Moon=chapter('portrait')[1];
  const d1Reading=uk?
-  'Висхідний знак задає ваш особистий напрям. Його управитель — '+name(asc)+
-  ', у D1 він стоїть у '+place(asc)+'-му домі ('+area(place(asc))+'). '+
-  'Місяць у '+sign(moon.sign)+' ('+moon.house+'-й дім) додає тему '+area(moon.house)+'.':
-  'Your ascendant ruler is '+name(asc)+' in D1 house '+place(asc)+' ('+area(place(asc))+'). '+
-  'The Moon in '+sign(moon.sign)+' (house '+moon.house+') adds '+area(moon.house)+'.';
+  (asc==='Moon'?
+   'Ваш висхідний знак — '+NOM_UK[lagna-1]+'. Його управитель Місяць у '+sign(moon.sign)+
+   ' у '+moon.house+'-му домі підкреслює '+area(moon.house)+'.':
+   'Ваш висхідний знак — '+NOM_UK[lagna-1]+', його управитель '+name(asc)+
+   ' стоїть у '+place(asc)+'-му домі ('+area(place(asc))+
+   '). Місяць у '+sign(moon.sign)+' в '+moon.house+'-му домі додає тему '+area(moon.house)+'.'):
+  (asc==='Moon'?'Cancer rises: the Moon, its ruler, occupies '+sign(moon.sign)+
+    ' in house '+moon.house+' ('+area(moon.house)+').':
+   'Your ascendant ruler '+name(asc)+' occupies D1 house '+place(asc)+' ('+
+    area(place(asc))+'). The Moon in '+sign(moon.sign)+' (house '+moon.house+
+    ') adds '+area(moon.house)+'.');
  const d1Focus=yogakaraka?
   (uk?'Особливо важливий '+name(yogakaraka)+': він керує одночасно домами '+
    context.functional.find(f=>f.graha===yogakaraka)!.houses.join(' і ')+
@@ -157,17 +176,16 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
  for(const division of N492_DIVISIONS.filter(d=>d!==1&&d!==60)){
   const rulers=HOUSES[division]||[1], main=lords[rulers[0]], p=natal(main),d=inD(division,main);
   const second=SECONDARY[division]||lords[rulers[1]||rulers[0]];
-  const alt=natal(second),dp=inD(division,second);
+  const dp=inD(division,second);
   const mainStatus=status(main,d.sign);
   const natalStatus=status(main,p.sign);
   const altStatus=status(second,dp.sign);
-  const mainFocus=division===10?'професії':division===9?'стосунків':
-   division===2?'ресурсів':division===24?'навчання':'цієї сфери';
+  const mainFocus=(uk?FOCUS_UK:FOCUS_EN)[division];
   let statement=uk?
    'У темі '+mainFocus+' важливий управитель '+rulers[0]+'-го дому — '+name(main)+
    '. У головній карті він пов’язує її зі сферою «'+area(p.house)+
    '», а в D'+division+' стоїть у '+sign(d.sign)+' ('+d.house+'-й дім).':
-   'For this area, a key D1 ruler is '+main+' (house '+rulers[0]+
+   'For '+mainFocus+', a key D1 ruler is '+main+' (house '+rulers[0]+
    '), placed in D1 house '+p.house+' ('+area(p.house)+
    '). In D'+division+', it occupies '+sign(d.sign)+' (house '+d.house+').';
   if(division===10&&yoga.includes(main)){
@@ -302,7 +320,7 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
  const d1Card=cards[0],profession=cards.find(c=>c.division===10)!;
  const relationships=cards.find(c=>c.division===9)!;
  const takeaways=[
-  {text:uk?'Ваша основа: висхідний знак '+sign(lagna)+'; управитель '+name(asc)+
+  {text:uk?'Ваша основа: висхідний знак '+NOM_UK[lagna-1]+'; управитель '+name(asc)+
     ' у '+place(asc)+'-му домі ('+area(place(asc))+'). Місяць — у '+
     moon.house+'-му ('+area(moon.house)+').':
    'Your foundation: ascendant '+sign(lagna)+', ruled by '+name(asc)+
