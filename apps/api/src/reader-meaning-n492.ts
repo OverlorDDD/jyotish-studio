@@ -292,10 +292,10 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
  const d1Reading=uk?
   (asc==='Moon'?
    'Ваш висхідний знак — '+NOM_UK[lagna-1]+'. Його управитель Місяць у '+sign(moon.sign)+
-   ' у '+moon.house+'-му домі підкреслює '+area(moon.house)+'.':
+   ' у '+moon.house+'-му домі акцентує сферу «'+area(moon.house)+'».':
    'Ваш висхідний знак — '+NOM_UK[lagna-1]+', його управитель '+name(asc)+
    ' стоїть у '+place(asc)+'-му домі ('+area(place(asc))+
-   '). Місяць у '+sign(moon.sign)+' в '+moon.house+'-му домі додає тему '+area(moon.house)+'.'):
+   '). Місяць у '+sign(moon.sign)+' в '+moon.house+'-му домі акцентує сферу «'+area(moon.house)+'».'):
   (asc==='Moon'?'Cancer rises: the Moon, its ruler, occupies '+sign(moon.sign)+
     ' in house '+moon.house+' ('+area(moon.house)+').':
    'Your ascendant ruler '+name(asc)+' occupies D1 house '+place(asc)+' ('+
@@ -449,7 +449,8 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
   'D60 shows finer symbolic planetary placements for the entered birth instant.';
  if(preview.status==='conditional_signs'&&preview.allPlanets.length===9){
   const focus=preview.factors.slice(0,2);
-  if(focus.length)d60+=' '+focus.map(x=>x.note).join(' ');
+  if(focus.length)d60+=' '+focus.map(x=>x.note.replace(' Цю різницю слід читати разом із D1, а не як окремий прогноз.','.')
+   .replace(' These two placements must be read together, not as an independent prediction.','.')).join(' ');
   else d60+=' '+(uk?'Жодне з обраних положень не має достатнього відступу від межі для персонального акценту.':
    'No selected sign is sufficiently distant from the boundary for a personal emphasis.');
  }
@@ -467,12 +468,16 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
  const d1Card=cards[0],profession=cards.find(c=>c.division===10)!;
  const relationships=cards.find(c=>c.division===9)!;
  const takeaways=[
-  {text:uk?'Ваша основа: висхідний знак '+NOM_UK[lagna-1]+'; управитель '+name(asc)+
-    ' у '+place(asc)+'-му домі ('+area(place(asc))+'). Місяць — у '+
-    moon.house+'-му ('+area(moon.house)+').':
-   'Your foundation: ascendant '+sign(lagna)+', ruled by '+name(asc)+
+  {text:uk?(asc==='Moon'?'Ваша основа: висхідний знак '+NOM_UK[lagna-1]+
+    ', його управитель Місяць у '+moon.house+'-му домі ('+area(moon.house)+').':
+    'Ваша основа: висхідний знак '+NOM_UK[lagna-1]+', управитель '+name(asc)+
+    ' у '+place(asc)+'-му домі ('+area(place(asc))+
+    '); Місяць у '+moon.house+'-му ('+area(moon.house)+').'):
+   (asc==='Moon'?'Your foundation: Cancer ascendant, its ruler Moon in house '+
+    moon.house+' ('+area(moon.house)+').':
+    'Your foundation: ascendant '+sign(lagna)+', ruled by '+name(asc)+
     ' in house '+place(asc)+' ('+area(place(asc))+'); Moon in house '+
-    moon.house+' ('+area(moon.house)+').',
+    moon.house+' ('+area(moon.house)+').'),
    sourceFacts:d1Card.sourceFacts},
   {text:uk?(yoga.includes(key)?name(key)+' — йогакарака для цієї лагни. ':'')+
      'Кар’єрний управитель у D1 стоїть у '+a.house+'-му домі, а в D10 — у '+
@@ -492,10 +497,12 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
    sourceFacts:[...d1Facts('Mercury'),...cards.find(x=>x.division===24)!.sourceFacts]
   }:context.dasha?{
    text:uk?'Поточний життєвий ритм: махадаша '+name(context.dasha.major)+
-    ' (управитель домів '+context.dasha.majorHouses.join(', ')+
-    '), її планета у D1 стоїть у '+place(context.dasha.major)+'-му домі. Це контекст для уваги зараз, а не гарантований прогноз.':
-    'Present timing lens: '+context.dasha.major+' mahadasha, ruling houses '+
-    context.dasha.majorHouses.join(', ')+' with its D1 planet in house '+
+    ' '+(context.dasha.majorHouses.length?
+     '(управитель домів '+context.dasha.majorHouses.join(', ')+'), ':'')+
+    'планета періоду у D1 стоїть у '+place(context.dasha.major)+'-му домі. Це контекст для уваги зараз, а не гарантований прогноз.':
+    'Present timing lens: '+context.dasha.major+' mahadasha'+
+    (context.dasha.majorHouses.length?', ruling houses '+context.dasha.majorHouses.join(', '):'')+
+    '; its D1 planet occupies house '+
     place(context.dasha.major)+'. This frames attention, not a promised outcome.',
    sourceFacts:[...d1Facts(context.dasha.major),'dasha.major='+context.dasha.major]
   }:{
