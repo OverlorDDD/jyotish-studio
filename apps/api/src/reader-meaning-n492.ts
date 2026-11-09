@@ -495,6 +495,18 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
     'A point of attention: Mercury in D1 '+sign(natal('Mercury').sign)+
     ' is traditionally debilitated by sign. This is not a judgment of intelligence; clarity in communication, learning and testing ideas deserve care.',
    sourceFacts:[...d1Facts('Mercury'),...cards.find(x=>x.division===24)!.sourceFacts]
+  }:(strong(dignityFor(lords[7],inD(9,lords[7]).sign))||
+      weak(dignityFor(lords[7],inD(9,lords[7]).sign)))?{
+   text:uk?'Стосунки: управитель сьомого дому '+name(lords[7])+
+    ' у D9 стоїть у '+sign(inD(9,lords[7]).sign)+' ('+
+    (strong(dignityFor(lords[7],inD(9,lords[7]).sign))?
+     'власний знак або екзальтація — традиційний ресурс':'знак падіння — традиційна точка уваги')+
+    '). Перевіряйте це разом із D1 та Венерою, не роблячи висновку про конкретну людину.':
+    'Partnership: the seventh lord '+lords[7]+' in D9 '+sign(inD(9,lords[7]).sign)+
+    ' has '+(strong(dignityFor(lords[7],inD(9,lords[7]).sign))?
+     'a favourable traditional sign dignity':'a traditionally challenging sign dignity')+
+    '. Read it with D1 and Venus, not as a verdict on another person.',
+   sourceFacts:relationships.sourceFacts
   }:context.dasha?{
    text:uk?'Поточний життєвий ритм: махадаша '+name(context.dasha.major)+
     ' '+(context.dasha.majorHouses.length?
