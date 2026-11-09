@@ -140,8 +140,11 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    const moon=get('Moon');
    if(moon&&moon.name!==lord)meaning+=' '+(uk?'Місяць у '+moon.house+'-му домі додає тему '+area(moon.house)+'.':
     'The Moon in house '+moon.house+' adds the theme of '+area(moon.house)+'.');
-   if(isYoga)meaning+=' '+(uk?'Управитель висхідного знака також має особливу роль йогакараки.':
-    'The ascendant ruler also has a yogakaraka role.');
+   if(moon?.name===lord){
+    const sun=get('Sun');
+    if(sun)meaning+=' '+(uk?'Сонце у '+sun.house+'-му домі додає інший акцент — сферу '+area(sun.house)+'.':
+     'The Sun in house '+sun.house+' introduces the distinct theme of '+area(sun.house)+'.');
+   }
   }else if(div===10){
    // Core reason the v6 hidden chapter reads better: house-lord + yoga + role + real work lens.
    meaning=truncateSentences(chapter('career')[0]||'',4);
@@ -152,8 +155,12 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
   }else if(div===9){
    meaning=truncateSentences(chapter('relationships')[0]||'',4);
    const venus=same(9,'Venus');
-   meaning+=' '+(uk?'У D9 управитель партнерства '+pName(lord)+' перебуває у знаку «'+sign(varga.sign)+'», а Венера — у «'+sign(venus!.sign)+'».':
-    'In D9 the partnership ruler '+lord+' occupies '+sign(varga.sign)+' and Venus occupies '+sign(venus!.sign)+'.');
+   meaning+=' '+(uk?'У D9 управитель партнерства '+pName(lord)+' перебуває у знаку «'+sign(varga.sign)+'». '+
+    (lord==='Venus'?'Венера і є цим управителем, тому це не другий незалежний показник.':
+      'Венера доповнює тему взаємності, перебуваючи в D9 у знаку «'+sign(venus!.sign)+'».'):
+   'In D9 the partnership ruler '+lord+' occupies '+sign(varga.sign)+'. '+
+    (lord==='Venus'?'Venus is itself the ruler here, not a second independent indicator.':
+      'Venus adds a second relationship indicator in '+sign(venus!.sign)+'.'));
    proof.push('D9.Venus.sign='+venus!.sign);
   }else if(div===2){
    meaning=truncateSentences(chapter('resources')[0]||'',4);
