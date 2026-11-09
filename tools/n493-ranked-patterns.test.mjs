@@ -58,6 +58,10 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
    assert.equal(report.meaningful.cards.at(-1).division,60);
    assert.ok(report.meaningful.summary.proof.length>=3);
    const summary=report.meaningful.summary;
+   const summarySentences=Object.values(summary).filter(x=>typeof x==='string')
+     .join(' ').split(/(?<=[.!?])\\s+/u).map(x=>x.trim()).filter(x=>x.length>55);
+   assert.equal(summarySentences.length,new Set(summarySentences).size,
+     'full synthesis repeats identical sentences instead of combining factors: '+seed+'/'+lang);
    for(const field of ['strength','attention','direction']){
     assert.ok(summary[field].length>=85&&summary[field].length<=1000,field+' '+lang+' '+seed);
     assert.doesNotMatch(summary[field],/між грошей|обидва ракурси повторюють|one planetary concentration/i);
