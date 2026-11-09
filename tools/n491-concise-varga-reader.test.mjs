@@ -50,6 +50,8 @@ test('N491 gives 15 concise chart-specific D stories grounded in D1 and one rela
     assert.ok(card.connection.length>=50&&card.connection.length<=300);
     assert.ok(['agreement','conflict','care','unresolved'].includes(card.contrast));
     assert.doesNotMatch(card.lead+' '+card.connection,/гарантовано|100%|will definitely|past life|карма|shadbala/i);
+    if(lang==='uk')assert.doesNotMatch(card.lead+' '+card.connection,/важливий Венера|той самий Венера|тема домом|тема спільними/i);
+
    }
    const serial=JSON.stringify(cards);
    assert.doesNotMatch(serial,/"(?:latitude|longitude|date|time|birthDate|place)"\s*:/i);
