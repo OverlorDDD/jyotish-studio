@@ -176,8 +176,8 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     occupants.map(pName).join(', ')+'), отже навамша-управителі не замінюють цей первинний показник. ':
     'Classical planets occupy the tenth from Lagna or Moon ('+occupants.join(', ')+
     '); navamsa dispositors do not replace these primary indicators. '):
-    (uk?'Обидва десяті доми без класичних планет: правило Brihat Jataka X.1 тоді звертається до управителів навамш від Лагни, Місяця і Сонця. ':
-    'Both tenth houses lack classical planets, so Brihat Jataka X.1 turns to the navamsa dispositors from Lagna, Moon and Sun. '))+
+    (uk?'Обидва десяті доми без класичних планет: за коментарем до Brihat Jataka X.1 тут використано управителів навамш від Лагни, Місяця і Сонця. ':
+    'Both tenth houses lack classical planets. Following one commentary on Brihat Jataka X.1, we examine navamsa dispositors from Lagna, Moon and Sun. '))+
     explanatoryTone(career.polarity,uk)+
     (uk?'Для реального вибору професійного шляху це дає конкретне запитання: як '+quality(career.lord)+
      ' може проявитися у сфері '+area(career.dnHouse)+', не відриваючись від '+area(career.d1House)+
