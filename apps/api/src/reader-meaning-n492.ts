@@ -136,7 +136,7 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
   let meaning='';
   if(div===1){
    // Start from our already authored, richer D1 consultation, not D1 vs itself.
-   meaning=truncateSentences(chapter('portrait')[0]||'',3);
+   meaning=truncateSentences(chapter('portrait')[0]||'',3).replace('лагна у Овні','лагна в Овні');
    const moon=get('Moon');
    if(moon&&moon.name!==lord)meaning+=' '+(uk?'Місяць у '+moon.house+'-му домі додає тему '+area(moon.house)+'.':
     'The Moon in house '+moon.house+' adds the theme of '+area(moon.house)+'.');
