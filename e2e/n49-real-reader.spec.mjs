@@ -66,7 +66,8 @@ for(const lang of ['uk','en']){
    expect(sizes.overflow,'document overflow at '+width).toBeLessThanOrEqual(2);
    expect(sizes.storyWidth,'narrative visible at '+width).toBeGreaterThan(220);
    if([320,430,1440].includes(width)){
-    await story.screenshot({path:testInfo.outputPath('n49-real-'+lang+'-'+width+'.png'),animations:'disabled'});
+    await story.screenshot({path:testInfo.outputPath('n49-real-'+lang+'-'+width+'.png'),animations:'disabled',
+     style:'.as-header{visibility:hidden!important}'});
    }
   }
  });
