@@ -156,15 +156,15 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
   evidence:['D1.house-lord.7='+lord7,'D1.'+lord7+'.house='+p7.house,
     'D9.'+lord7+'.sign='+v9.sign,'D9.Venus.sign='+venus.sign,
     ...(lords[8]===lord7?['D1.house-lord.8='+lord7]:[])],divisions:[1,9]});
- const lord5=lords[5],p5=find(lord5),v24=varga(24,lord5),q24=dignityFor(lord5,v24.sign);
+ const lord5=lords[5],p5=find(lord5),v24learning=varga(24,lord5),q24=dignityFor(lord5,v24learning.sign);
  add({id:'learning',title:uk?'Навчання: як розвивається майстерність':'Learning and the growth of skill',
   reading:uk?
    'Управитель п’ятого дому '+name(lord5)+' у D1 перебуває в '+p5.house+'-му домі ('+
-    where(p5.house)+'). У D24 він займає знак «'+zodiac(v24.sign)+'»'+
+    where(p5.house)+'). У D24 він займає знак «'+zodiac(v24learning.sign)+'»'+
     (q24==='exalted'?' — знак екзальтації.':q24==='own'?' — власний знак.':
       q24==='debilitated'?' — знак традиційного падіння, що вимагає перевірки інших умов.':'.'):
    'The fifth-house ruler '+lord5+' occupies D1 house '+p5.house+' ('+where(p5.house)+
-    '). In D24 it occupies '+zodiac(v24.sign)+
+    '). In D24 it occupies '+zodiac(v24learning.sign)+
     (q24==='exalted'?', its exaltation sign.':q24==='own'?', its own sign.':
       q24==='debilitated'?', its debilitation sign, requiring other checks.':'.'),
   implication:uk?'Це окрема тема освіти й практики: відповідність D10 не слід автоматично вважати незалежним доказом кар’єрного успіху.':
@@ -172,7 +172,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
   score:44+(meaningful(q24)?12:0)+(lord5===lord10?9:0),
   tier:meaningful(q24)?'prominent':'contextual',
   evidence:['D1.house-lord.5='+lord5,'D1.'+lord5+'.house='+p5.house,
-   'D24.'+lord5+'.sign='+v24.sign,'D24.'+lord5+'.house='+v24.house],divisions:[1,24]});
+   'D24.'+lord5+'.sign='+v24learning.sign,'D24.'+lord5+'.house='+v24learning.house],divisions:[1,24]});
  const lord2=lords[2],p2=find(lord2),lord11=lords[11],p11=find(lord11),v2=varga(2,lord2);
  add({id:'money',title:uk?'Ресурси: заробіток і накопичення':'Resources: earnings and stewardship',
   reading:uk?
