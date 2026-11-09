@@ -71,7 +71,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    const data=res.ok?await res.json():null;
    if(!live)return;
    setJhoraReference(data?.referenceBenchmark?.version==='jhora8-same-profile-v2'?data.referenceBenchmark:null);
-   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.editorialEdition!=='n48-poetic-evidence-1.0.0'||data?.interpretationEdition!=='n49-unified-evidence-v1'||data?.presentationEdition!=='n491-compact-cross-varga-v1'||data?.verificationContract!=='jyotish-integrity-v3')
+   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.editorialEdition!=='n48-poetic-evidence-1.0.0'||data?.interpretationEdition!=='n49-unified-evidence-v1'||data?.presentationEdition!=='n492-evidence-prioritized-16-varga-v1'||data?.verificationContract!=='jyotish-integrity-v3')
     setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
    else setRuntimeMismatch('');
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
