@@ -16,7 +16,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
   assert.equal(meta.readerEdition,'reader-v8.0.0-n44');
   assert.equal(meta.editorialEdition,'n48-poetic-evidence-1.0.0');
   assert.equal(meta.interpretationEdition,'n49-unified-evidence-v1');
-  assert.equal(meta.presentationEdition,'n492-evidence-prioritized-16-varga-v1');
+  assert.equal(meta.presentationEdition,'n493-ranked-multifactor-v1');
   assert.equal(meta.previewOnly,true);
   assert.equal(meta.productionAuthorized,false);
   assert.equal(meta.verificationContract,'jyotish-integrity-v3');
@@ -44,6 +44,9 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(report.readerV8.insights.length,15);
    assert.equal(report.readerV8.compactCards.length,15);
    assert.equal(report.readerV8.meaningful?.cards.length,16);
+   assert.equal(report.readerV8.meaningful?.patternVersion,'n493-ranked-multifactor-v1');
+   assert.ok(report.readerV8.meaningful?.topInsights?.length>=3);
+   assert.ok(report.readerV8.meaningful?.topInsights?.length<=5);
    assert.equal(report.readerV8.meaningful?.cards[0].division,1);
    assert.equal(report.readerV8.meaningful?.cards[15].division,60);
    assert.ok(report.readerV8.meaningful?.summary.direction.length>=100);
