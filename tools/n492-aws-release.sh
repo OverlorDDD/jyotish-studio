@@ -48,7 +48,8 @@ npm --version
 # Always assert source files for the exact proposed release exist before switch.
 git cat-file -e "$TARGET:tools/n49-release-expert-qa.test.mjs"
 git cat-file -e "$TARGET:e2e/n49-real-reader.spec.mjs"
-git cat-file -e "$TARGET:apps/api/src/reader-meaning-n492.ts"\ngit cat-file -e "$TARGET:tools/n492-reader-quality-gate.test.mjs"
+git cat-file -e "$TARGET:apps/api/src/reader-meaning-n492.ts"
+git cat-file -e "$TARGET:tools/n492-reader-quality-gate.test.mjs"
 git cat-file -e "$TARGET:tools/n491-concise-varga-reader.test.mjs"
 if [[ "$MODE" == '--preflight' ]]; then
   echo 'N492_AWS_PREFLIGHT_PASS (no checkout, no restart)'
@@ -60,7 +61,7 @@ fi
 
 backupBase="$HOME/.galaxiora-release-backups"
 mkdir -p -m 700 "$backupBase"
-backup="$(mktemp -d "$backupBase/n491-$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
+backup="$(mktemp -d "$backupBase/n492-$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
 chmod 700 "$backup"
 printf '%s\n' "$OLD" > "$backup/previous-commit.txt"
 printf '%s\n' "$TARGET" > "$backup/target-commit.txt"
