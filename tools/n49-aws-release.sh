@@ -128,6 +128,25 @@ curl -fsSL --max-time 30 https://galaxiora.com/api/v1/jyotish/runtime |
   ]){if(j[key]!==expected)throw Error("N49_RUNTIME_MISMATCH:"+key);}
   console.log("N49_PUBLIC_API_READER_EDITION_VERIFIED");
  });'
+# A real public /reports request is stronger than a runtime version string:
+# use invented QA birth inputs only; no personal customer chart is read or saved.
+for lang in uk en; do
+  body="$(printf '{"date":"2000-01-01","time":"12:00","timeZone":"Etc/UTC","latitude":50.45,"longitude":30.52,"lang":"%s","preferred":"local","asOf":"2026-11-09"}' "$lang")"
+  curl -fsSL --retry 1 --max-time 60 \
+    -H 'Content-Type: application/json' --data-binary "$body" \
+    https://galaxiora.com/api/v1/reports |
+   node -e '
+    let s="";
+    process.stdin.on("data",c=>s+=c);
+    process.stdin.on("end",()=>{
+      const a=JSON.parse(s),n=a.readerV8?.integrated;
+      if(a.verification?.status!=="verified_internal"||a.readerV8?.status!=="available"||
+       n?.version!=="n49-unified-evidence-v1"||n?.links?.length!==15||
+       n?.threads?.length!==5||a.ai?.fallbackReason!=="reader_only")
+         throw Error("N49_PUBLIC_REPORT_INTEGRITY_FAILURE");
+      console.log("N49_PUBLIC_REPORT_BINDING_VERIFIED");
+    });'
+done
 [[ "$(git rev-parse HEAD)" == "$TARGET" ]] || fail 'Deployed SHA mismatch'
 CHANGED=0
 trap - EXIT
