@@ -178,7 +178,7 @@ function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:Non
 export default function DetailedReport({report,lang,minutesUncertain=false}:{report:ReadingReport;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',ai=report.ai;
  const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text);
- const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.editorialVersion==='n48-poetic-evidence-1.0.0'&&report.readerV8.integrated?.version==='n49-unified-evidence-v1'&&report.readerV8.compactCards?.length===15&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
+ const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.editorialVersion==='n48-poetic-evidence-1.0.0'&&report.readerV8.integrated?.version==='n49-unified-evidence-v1'&&report.readerV8.meaningReader?.version==='n492-meaning-first-16-v1'&&report.readerV8.meaningReader.cards.length===16&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
  const hasV7=report.readerV7?.version==='reader-v7.0.0-n43'&&report.readerV7.status==='available'&&report.readerV7.insights.length===15;
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
  const fullConsultation=aiChapters.size>0;
@@ -209,7 +209,7 @@ export default function DetailedReport({report,lang,minutesUncertain=false}:{rep
   </article>:null}
   {hasV8&&report.readerV8?<ReaderV8View data={report.readerV8} lang={lang} minutesUncertain={minutesUncertain}/>:null}
   {!hasV8&&hasV7&&report.readerV7?<ReaderV7View data={report.readerV7} lang={lang}/>:null}
-    {report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?
+    {!hasV8&&report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?
      <details className={vargaStyles.deepDive} open={!hasV7&&!hasV8}>
       <summary>{uk?'Поглиблене астрологічне пояснення — за бажанням':'Optional detailed traditional interpretation'}</summary>
       <div className="reading-editorial">
