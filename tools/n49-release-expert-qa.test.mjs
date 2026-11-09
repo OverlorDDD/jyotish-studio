@@ -59,7 +59,14 @@ test('12 diverse real Swiss synthetic-birth charts x UK/EN: claim traceability a
    assert.equal(n.version,'n49-unified-evidence-v1');
    assert.equal(n.links.length,15);
    assert.equal(reader.insights.length,15);
+   assert.equal(reader.compactCards.length,15);
+   assert.equal(reader.d60Preview.allPlanets.length,9);
    assert.deepEqual(n.threads.map(x=>x.id),['foundation','career','partnership','resource','tension']);
+   for(const card of reader.compactCards){
+    assert.ok(card.lead.length<440&&card.connection.length<300,'card prose is bloated');
+    assert.ok(card.proof.some(x=>x.startsWith('D'+card.division+'.')));
+    assert.ok(card.proof.some(x=>x.startsWith('D'+card.relatedDivision+'.')));
+   }
    for(const link of n.links){
     assert.ok(DIVS.includes(link.division));
     const original=chart.d1.find(p=>p.name===link.lord);
