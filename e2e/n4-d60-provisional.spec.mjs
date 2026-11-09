@@ -53,11 +53,12 @@ async function ready(page,lang,data=fixture()){
  await page.locator('input[type=time]').fill('12:00');
  await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
  await page.getByRole('option',{name:/Kyiv/}).click();
- await Promise.all([
-  page.waitForResponse(r=>r.url().includes('/api/v1/charts/calculate')),
-  page.locator('button.jy-calc-btn').click()
- ]);
- await expect(page.getByTestId('n4-rc-explorer')).toBeVisible();
+ // The source response is mocked by this test; assert the actual chart UI,
+ // not the timing of the response event (which was flaky on slower CI runs).
+ const calculate=page.locator('button.jy-calc-btn');
+ await expect(calculate).toBeEnabled();
+ await calculate.click();
+ await expect(page.getByTestId('n4-rc-explorer')).toBeVisible({timeout:15000});
 
 }
 
