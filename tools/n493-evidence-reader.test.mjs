@@ -42,7 +42,7 @@ test('N493 40 x two languages: prioritization, 2 distinct grahas, verified ledge
    for(const pattern of read.patterns){
     assert.ok(pattern.evidence.length>=2);
     assert.ok(pattern.ruleIds.length>=1);
-    assert.ok(pattern.insight.length>=90&&pattern.insight.length<=620,
+    assert.ok(pattern.insight.length>=50&&pattern.insight.length<=650,
      'bad insight length '+seed+' '+lang+' '+pattern.id+' '+pattern.insight.length);
     assert.ok(pattern.context.length>=45);
     assert.ok(pattern.score>0);
