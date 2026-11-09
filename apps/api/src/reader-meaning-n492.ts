@@ -38,7 +38,7 @@ const HEADS:Readonly<Record<number,[string,string,number]>>={
  30:['Труднощі й стратегії подолання','Difficulties and how to face them',6],
  40:['Материнська лінія','Maternal lineage',4],
  45:['Батьківська лінія та принципи','Paternal lineage and values',9],
- 60:['D60 · Тонкі положення планет','D60 · Fine planetary positions',1]
+ 60:['Тонкі положення планет','Fine planetary positions',1]
 };
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
@@ -152,9 +152,17 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     '), у знаку «'+sign(varga.sign)+'».':
     'The D1 tenth house is ruled by '+lord+' in house '+from+' ('+area(from)+
     '). In D10 it occupies house '+to+' ('+area(to)+') in '+sign(varga.sign)+'.';
-   if(isYoga)meaning+=' '+(uk?'Для вашої лагни '+pName(lord)+
-    ' є йогакаракою: він керує і творчим/духовним потенціалом, і важливою сферою дії.':
-    'For this ascendant '+lord+' is a yogakaraka: its rulership joins a trinal and an angular life area.');
+   if(isYoga){
+    const ruled=Array.from({length:12},(_,i)=>i+1).filter(h=>lp[h]===lord);
+    const trinal=ruled.find(h=>[5,9].includes(h));
+    const angular=ruled.find(h=>[4,7,10].includes(h));
+    if(!trinal||!angular)throw Error('N492_YOGAKARAKA_HOUSE_INCONSISTENCY');
+    meaning+=' '+(uk?'Для вашої лагни '+pName(lord)+' є йогакаракою: керує '+trinal+
+      '-м та '+angular+'-м домами. Це особлива функціональна роль, але не готовий прогноз.':
+      'For this ascendant '+lord+' is a yogakaraka: it rules houses '+trinal+
+      ' and '+angular+'. This is a special natal role, not a promised career outcome.');
+    proof.push('D1.house-lord.'+trinal+'='+lord,'D1.house-lord.'+angular+'='+lord);
+   }
    const degree=statusMeaning(dnQuality,uk);
    if(degree)meaning+=' '+(uk?'Професійна варга: '+pName(lord)+' '+degree:
     'Vocational division: '+lord+' is '+degree);
