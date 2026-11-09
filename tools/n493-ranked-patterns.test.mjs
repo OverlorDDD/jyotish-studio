@@ -46,6 +46,7 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
     assert.ok(['prominent','contextual','requires-review'].includes(pattern.tier));
     assert.doesNotMatch(pattern.reading+' '+pattern.implication,/судилося|гарантовано|100%|statistically proven|you will marry|you are destined/i);
     if(lang==='en')assert.doesNotMatch(pattern.reading,/[А-Яа-яІіЇїЄєҐґ]/u);
+    if(lang==='uk')assert.doesNotMatch(pattern.reading+' '+pattern.implication,/управителя Меркурій|управителя Венера|та дому та|  +/u,'no broken Ukrainian cases or double spaces');
     for(const fact of pattern.evidence){
      const m=/^D(1|2|9|10|24)\.([A-Za-z]+)\.(sign|house)=(\d+)$/.exec(fact);
      if(!m||m[2]==='ascendant')continue;
@@ -65,6 +66,7 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
    for(const field of ['strength','attention','direction']){
     assert.ok(summary[field].length>=85&&summary[field].length<=1000,field+' '+lang+' '+seed);
     assert.doesNotMatch(summary[field],/між грошей|обидва ракурси повторюють|one planetary concentration/i);
+    if(lang==='uk')assert.doesNotMatch(summary[field],/керує \d+-м домами|D10 підкреслює (?:спільних|праці)|та дому та/u,'native speaker case scan');
    }
    const fp=ranked.map(p=>p.reading).join(' ');
    fingerprints[lang].add(fp);
