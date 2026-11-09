@@ -93,7 +93,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    careerTension?'D24 yields a contrasting sign assessment: career and learning do not carry identical indications.':
    '');
  add({id:'vocation',title:uk?'Кар’єра: головне поєднання показників':'Career: your leading indicators',
-  reading:profession+' '+classicCrossCheck,
+  reading:(profession+' '+classicCrossCheck).replace(/\s+/g,' ').trim(),
   implication:uk?(v10.house===6?
    'Варто перевіряти напрями, де цінують майстерність, дисципліну та вирішення складних задач.':
    v10.house===9?'Навчання, передавання знань і робота з наставниками заслуговують на особливу увагу.':
@@ -167,8 +167,12 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
     '). In D24 it occupies '+zodiac(v24learning.sign)+
     (q24==='exalted'?', its exaltation sign.':q24==='own'?', its own sign.':
       q24==='debilitated'?', its debilitation sign, requiring other checks.':'.'),
-  implication:uk?('Навчання в цій карті поєднує сферу '+where(p5.house)+' (D1) та '+where(v24learning.house)+' (D24). Порівняйте ці акценти зі своїм способом опановувати складні навички.'):
-   ('Learning connects '+where(p5.house)+' in D1 with '+where(v24learning.house)+' in D24. Consider how this relates to developing practical mastery.'),
+  implication:uk?('У D1 управитель навчання стоїть у '+p5.house+'-му домі ('+where(p5.house)+
+   '), а в D24 — у '+v24learning.house+'-му ('+where(v24learning.house)+
+   '). Це підказує, у яких двох життєвих сферах варто перевіряти розвиток навичок.'):
+   ('The learning ruler occupies D1 house '+p5.house+' ('+where(p5.house)+
+   ') and D24 house '+v24learning.house+' ('+where(v24learning.house)+
+   '). These are two areas to consider when developing practical mastery.'),
   score:27+(meaningful(q24)?15:0)+(lord5===lord10?12:0),
   tier:meaningful(q24)?'prominent':'contextual',
   evidence:['D1.house-lord.5='+lord5,'D1.'+lord5+'.house='+p5.house,
@@ -197,7 +201,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
   add({id:'caution',title:uk?'Положення планети, яке потребує перевірки':'A placement requiring further examination',
    reading:uk?
     name(p.name)+' у D1 перебуває у знаку «'+zodiac(p.sign)+'» (традиційне падіння). '+
-     'Він керує домами '+roles.join(' і ')+'. Сам знак не враховує скасування падіння, аспектів і повної сили планети.':
+     'Його управління охоплює '+(roles.length===1?roles[0]+'-й дім':roles.join('-й та ')+'-й доми')+'. Сам знак не враховує скасування падіння, аспектів і повної сили планети.':
     p.name+' in D1 occupies '+zodiac(p.sign)+' (traditional debilitation), while ruling houses '+
      roles.join(' and ')+'. Sign dignity alone does not establish cancellation, aspects or full strength.',
    implication:uk?'Сприймайте це як питання для поглибленої перевірки, а не як невдачу чи особистий недолік.':
