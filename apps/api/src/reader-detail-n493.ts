@@ -114,9 +114,9 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
   'The central shift is from '+house(p1.house,uk)+' toward '+house(d1.house,uk)+
   ': one frames the motive, the other the thematic expression. ');
  const second=uk?(d1.house===d2.house?
-  pname(secondary,uk)+' як окремий показник '+area[1]+' займає ту саму сферу D'+division+
+  pname(secondary,uk)+' як окремий показник, пов’язаний із '+area[1]+' займає ту саму сферу D'+division+
   '; це спільна тема, але не подвійна обіцянка результату. ':
-  pname(secondary,uk)+' як окремий показник '+area[1]+' у D'+division+
+  pname(secondary,uk)+' як окремий показник, пов’язаний із '+area[1]+' у D'+division+
   ' стоїть у '+d2.house+'-му домі ('+house(d2.house,uk)+
   '). Це інша потреба, яку важливо не підміняти першою. '):
   (d1.house===d2.house?
