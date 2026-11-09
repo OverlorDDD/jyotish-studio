@@ -13,6 +13,7 @@ import {READER_V8_VERSION} from './reader-v8.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
 import {N45_EDITORIAL_VERSION} from './reader-editorial-n45.ts';
 import {N49_UNIFIED_VERSION} from './reader-unified-n49.ts';
+import {N491_CARD_EDITION} from './reader-compact-n491.ts';
 import {SuccessfulConsultationCache} from './consultation-replay.ts';
 import {PrismaService} from './prisma.ts';
 import {AccountController} from './account.ts';
@@ -74,7 +75,7 @@ export class JyotishController{
   }});
  }
  @Get('v1/jyotish/runtime')
- runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,readerEdition:READER_V8_VERSION,editorialEdition:N45_EDITORIAL_VERSION,interpretationEdition:N49_UNIFIED_VERSION,verificationContract:CHART_VERIFICATION_VERSION,mode:process.env.AI_MODE||'free',
+ runtime(){return {service:'galaxiora-jyotish',readerVersion:'6.0.0',pipeline:DIRECT_JYOTISH_VERSION,readerEdition:READER_V8_VERSION,editorialEdition:N45_EDITORIAL_VERSION,interpretationEdition:N49_UNIFIED_VERSION,presentationEdition:N491_CARD_EDITION,verificationContract:CHART_VERIFICATION_VERSION,mode:process.env.AI_MODE||'free',
   referenceBenchmark:{
    // Versioned CI-pinned result, NOT a live JHora check of the current visitor.
    // The CI release gate runs jqa3:certify-signs against all raw source hashes.
@@ -167,7 +168,7 @@ export class JyotishController{
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':minutes-uncertain='+String(omitD60);
+  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':'+N491_CARD_EDITION+':minutes-uncertain=+String(omitD60);
   const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(safeChart,birth.lang,report.asOf,{
    onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
   }));
