@@ -82,7 +82,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    status10==='debilitated'?'У D10 це знак традиційного падіння; необхідна перевірка інших чинників. ':'')+
   (careerAgree?'У D24 той самий управитель має підтримувальне знакове положення, що додає тему навчання.':
    careerTension?'D24 показує контрастну знакову оцінку: навчання та робота не мають однакових умов.':
-   'D24 є окремою темою навчання; її положення саме по собі не підтверджує професійного успіху.'):
+   ''):
   'Career is ruled by '+lord10+' in D1 house '+p10.house+' ('+root10+
   '). In D10 it occupies house '+v10.house+' ('+sector10+') in '+zodiac(v10.sign)+'. '+
   (yoga?'For this ascendant it is a yogakaraka, ruling houses '+role.join(' and ')+'. ':'')+
@@ -91,8 +91,8 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    status10==='debilitated'?'Its D10 debilitation calls for additional checks. ':'')+
   (careerAgree?'The same ruler has supportive sign dignity in D24, adding an educational perspective.':
    careerTension?'D24 yields a contrasting sign assessment: career and learning do not carry identical indications.':
-   'D24 concerns education and cannot independently guarantee vocational outcomes.');
- add({id:'vocation',title:uk?'Професійні здібності: де знання стають дією':'Vocation: knowledge and practice',
+   '');
+ add({id:'vocation',title:uk?'Кар’єра: головне поєднання показників':'Career: your leading indicators',
   reading:profession+' '+classicCrossCheck,
   implication:uk?(v10.house===6?
    'Варто перевіряти напрями, де цінують майстерність, дисципліну та вирішення складних задач.':
@@ -112,7 +112,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    ...role.map(h=>'D1.house-lord.'+h+'='+lord10)],divisions:[1,9,10,24]});
  const ascLord=lords[1],pAsc=find(ascLord),moon=find('Moon'),sun=find('Sun');
  const self=uk?
-  'Ваш висхідний знак має управителя '+name(ascLord)+' у '+pAsc.house+'-му домі ('+
+  'Висхідним знаком керує '+name(ascLord)+' у '+pAsc.house+'-му домі ('+
    where(pAsc.house)+'). Місяць перебуває у '+moon.house+'-му домі ('+where(moon.house)+
    '), а Сонце — у '+sun.house+'-му ('+where(sun.house)+'). '+
    (pAsc.name==='Moon'?'У цьому випадку управитель висхідного знака і Місяць — одна планета, а не два незалежні підтвердження.':
@@ -142,12 +142,12 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    'Сьомим домом керує '+name(lord7)+' у '+p7.house+'-му домі ('+where(p7.house)+
    '). У D9 він перебуває у знаку «'+zodiac(v9.sign)+'».'+
    (lords[8]===lord7?' Ця сама планета керує восьмим домом, тож довіра та спільні зобов’язання входять у те саме традиційне прочитання.':'')+
-   (self7?' Венера тут є тим самим управителем — її не можна вважати окремим підтвердженням.':
+   (self7?' У цьому випадку саме Венера керує партнерством; її стан у D9 набуває особливої ваги.':
     ' Окремий показник — Венера у D9 в знаку «'+zodiac(venus.sign)+'».'):
    'The seventh-house ruler '+lord7+' occupies natal house '+p7.house+' ('+where(p7.house)+
    '). In D9 it is in '+zodiac(v9.sign)+'.'+
    (lords[8]===lord7?' The same planet also rules the eighth house, adding shared trust and commitments.':'')+
-   (self7?' Venus is the same ruler and should not count as independent evidence.':
+   (self7?' Venus itself rules partnership here, so its D9 condition carries particular importance.':
     ' A separate indicator is Venus in D9 in '+zodiac(venus.sign)+'.'),
   implication:uk?'Для оцінки близькості варто зіставити сталість домовленостей, особисті принципи й стан обох показників, а не обіцяти конкретного партнера.':
    'Consider commitments, shared values and both indicators rather than predicting a specific partner.',
@@ -167,8 +167,8 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
     '). In D24 it occupies '+zodiac(v24learning.sign)+
     (q24==='exalted'?', its exaltation sign.':q24==='own'?', its own sign.':
       q24==='debilitated'?', its debilitation sign, requiring other checks.':'.'),
-  implication:uk?'Це окрема тема освіти й практики: відповідність D10 не слід автоматично вважати незалежним доказом кар’єрного успіху.':
-   'This concerns learning and practice; an apparent match to D10 is not an independent promise of career success.',
+  implication:uk?('Навчання в цій карті поєднує сферу '+where(p5.house)+' (D1) та '+where(v24learning.house)+' (D24). Порівняйте ці акценти зі своїм способом опановувати складні навички.'):
+   ('Learning connects '+where(p5.house)+' in D1 with '+where(v24learning.house)+' in D24. Consider how this relates to developing practical mastery.'),
   score:27+(meaningful(q24)?15:0)+(lord5===lord10?12:0),
   tier:meaningful(q24)?'prominent':'contextual',
   evidence:['D1.house-lord.5='+lord5,'D1.'+lord5+'.house='+p5.house,
@@ -194,7 +194,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
  if(weak.length){
   const p=weak.find(x=>[lords[1],lords[7],lords[10],lords[5]].includes(x.name))||weak[0];
   const roles=Array.from({length:12},(_,i)=>i+1).filter(h=>lords[h]===p.name);
-  add({id:'caution',title:uk?'Слабке місце в розрахунках, яке ще слід перевірити':'A placement that needs closer checking',
+  add({id:'caution',title:uk?'Положення планети, яке потребує перевірки':'A placement requiring further examination',
    reading:uk?
     name(p.name)+' у D1 перебуває у знаку «'+zodiac(p.sign)+'» (традиційне падіння). '+
      'Він керує домами '+roles.join(' і ')+'. Сам знак не враховує скасування падіння, аспектів і повної сили планети.':
