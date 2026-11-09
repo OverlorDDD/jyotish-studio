@@ -144,35 +144,36 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     'The ascendant ruler also has a yogakaraka role.');
   }else if(div===10){
    // Core reason the v6 hidden chapter reads better: house-lord + yoga + role + real work lens.
-   meaning=truncateSentences(chapter('career')[0]||'',3);
-   meaning+=' '+(uk?'У D10 ця планета в знаку «'+sign(varga.sign)+'» та '+t1+'-му домі':
+   meaning=truncateSentences(chapter('career')[0]||'',4);
+   meaning+=' '+(uk?'У D10 '+pName(lord)+' перебуває в '+t1+'-му домі, у знаку «'+sign(varga.sign)+'»':
     'In D10 the planet occupies '+sign(varga.sign)+' in house '+t1);
    const qualifier=statusMeaning(dnQuality,uk);
    meaning+=(qualifier?', '+qualifier:'.');
   }else if(div===9){
-   meaning=truncateSentences(chapter('relationships')[0]||'',2);
+   meaning=truncateSentences(chapter('relationships')[0]||'',4);
    const venus=same(9,'Venus');
    meaning+=' '+(uk?'У D9 управитель партнерства '+pName(lord)+' перебуває у знаку «'+sign(varga.sign)+'», а Венера — у «'+sign(venus!.sign)+'».':
     'In D9 the partnership ruler '+lord+' occupies '+sign(varga.sign)+' and Venus occupies '+sign(venus!.sign)+'.');
    proof.push('D9.Venus.sign='+venus!.sign);
   }else if(div===2){
-   meaning=truncateSentences(chapter('resources')[0]||'',2);
+   meaning=truncateSentences(chapter('resources')[0]||'',4);
    meaning+=' '+(uk?'У D2 управитель ресурсів '+pName(lord)+' у знаку «'+sign(varga.sign)+'».':
     'In D2 the resources ruler '+lord+' occupies '+sign(varga.sign)+'.');
    const gains=lp[11],g=get(gains);
    if(g)proof.push('D1.house-lord.11='+gains,'D1.'+gains+'.house='+g.house);
   }else{
-   meaning=(uk?'Для теми «'+title+'» важливий управитель '+topicHouse+'-го дому '+pName(lord)+
-     '. У D1 він пов’язує її зі сферою '+area(t0)+
-     '; у D'+div+' перебуває у знаку «'+sign(varga.sign)+'» ('+t1+'-й дім).':
-     'In '+title.toLowerCase()+', natal house '+topicHouse+' is ruled by '+lord+
-     '. Its D1 placement connects this area with '+area(t0)+
-     '; in D'+div+' it occupies '+sign(varga.sign)+' (house '+t1+').');
+   const focused=uk?'У D'+div+' '+pName(lord)+' перебуває в '+t1+'-му домі, у знаку «'+sign(varga.sign)+'».':
+     'In D'+div+', '+lord+' occupies house '+t1+' in '+sign(varga.sign)+'.';
+   const base=uk?
+     'Управитель '+topicHouse+'-го дому '+pName(lord)+' стоїть у D1 в '+t0+'-му домі. '+
+     'Тому тема цієї карти пов’язана також зі сферою '+area(t0)+'.':
+     'The ruler of natal house '+topicHouse+', '+lord+', is in D1 house '+t0+
+     '. This connects the chart topic with '+area(t0)+'.';
+   meaning=base+' '+focused+' '+PRACTICAL[div][idx];
    const degree=statusMeaning(dnQuality,uk);
    if(degree)meaning+=' '+(uk?'Тут '+pName(lord)+' '+degree:lord+' is '+degree);
-   // Only mention a yogakaraka when it is the actual relevant house lord.
-   if(isYoga)meaning+=' '+(uk?'Особлива роль цієї планети: вона керує одночасно кутовим і тригональним домами, що додає ваги цьому показнику.':
-    'This planet also rules both an angular and a trinal natal house, making its role especially relevant.');
+   if(isYoga)meaning+=' '+(uk?'Це також йогакарака для вашого висхідного знака — управитель кутового й тригонального дому.':
+     'For this ascendant it is also a yogakaraka, ruling both an angular and a trinal house.');
   }
   const related=RELEVANT[div];
   let connection:string|null=null;
