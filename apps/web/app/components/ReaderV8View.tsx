@@ -26,16 +26,12 @@ export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:Re
  const uk=lang==='uk';
  return <section className={styles.root} data-testid="reader-v8" aria-labelledby="reader-v8-heading">
   <header className={styles.top}>
-   <span className={styles.kicker}>{uk?'✦ CLASSICAL READER 8 · ПЕРСОНАЛЬНИЙ АНАЛІЗ':'✦ CLASSICAL READER 8 · PERSONAL READING'}</span>
-   <h2 id="reader-v8-heading">{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
+   <span className={styles.kicker}>{uk?'✦ ТЕМИ ВАШОЇ КАРТИ':'✦ YOUR CHART BY THEME'}</span>
+   <h2 id="reader-v8-heading">{uk?'15 сфер життя':'15 life areas'}</h2>
    <p>{data.introduction}</p>
   </header>
   {minutesUncertain?<p className={n49.timeNotice} role="note">{uk?
    'Якщо час приблизний, положення в тонких картах можуть змінитися.':'An approximate birth time can change finer chart placements.'}</p>:null}
-  <div className={styles.sectionTitle}>
-   <h3>{uk?'Ваші 15 життєвих сфер':'Your 15 life areas'}</h3>
-   <p>{uk?'Кожна тема пов’язана з головною картою та ще однією доречною картою.':'Each topic is compared with the birth chart and one relevant divisional chart.'}</p>
-  </div>
   <div className={styles.grid}>
    {data.insights.map(item=>{
     const personal=data.compactCards?.find(card=>card.division===item.division);
