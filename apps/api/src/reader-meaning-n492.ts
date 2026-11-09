@@ -212,29 +212,62 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     notable(dnQuality)||isYoga?'notable':'contextual',proof,sourceIds:[]});
  }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
- const special=yoga.size?Array.from(yoga).map(pName).join(', '):'';
- const strong=Array.from(new Set([
-  ...[10,9,2,24,27].flatMap(d=>{
-   const h=HEADS[d][2],lord=lp[h],position=same(d,lord);
-   return position&&notable(dignityFor(lord,position.sign))?
-    [uk?('D'+d+': '+pName(lord)+' у знаку «'+sign(position.sign)+'» ('+
-      (dignityFor(lord,position.sign)==='exalted'?'екзальтація':'власний знак')+')'):
-     ('D'+d+': '+lord+' in '+sign(position.sign)+' ('+dignityFor(lord,position.sign)+')')]:[];
-  }),
- ])).slice(0,2);
- const hero=strong.length?strong.join('; '):(
-  uk?'найважливішим залишається управитель висхідного знака '+pName(lp[1]):
-  'the ascendant ruler '+lp[1]+' remains the main natal anchor');
- const shift=get(lp[1])!;
- const attention=uk?'Стежте за балансом між '+area(shift.house)+' та '+area(get(lp[10])!.house)+
-  '. Це два конкретні напрями карти, а не оцінка ваших реальних вчинків.':
-  'Pay attention to the balance between '+area(shift.house)+' and '+area(get(lp[10])!.house)+
-  '. These are verified chart domains, not claims about your life history.';
- const strength=uk?'Найвиразніші показники: '+hero+'.'+
-  (special?' Йогакарака: '+special+' (особливий управитель для цієї лагни).':''):
-  'The strongest sign-level leads: '+hero+'.'+
-  (special?' Yogakaraka: '+special+' (special natal lordship).':'');
- const direction=truncateSentences(chapter('conclusion')[0]||'',2);
+ const lagnaLord=lp[1],careerLord=lp[10],relationLord=lp[7];
+ const asc=get(lagnaLord)!,career=get(careerLord)!,moon=get('Moon')!;
+ const primaryYoga=[...yoga].find(g=>[lagnaLord,careerLord,lp[9],lp[5]].includes(g))||[...yoga][0];
+ const d10Yoga=primaryYoga?same(10,primaryYoga):null;
+ const chosenDignities=([10,9,2,24,27] as number[]).flatMap(div=>{
+  const graha=lp[HEADS[div][2]],p=same(div,graha);
+  return p&&notable(dignityFor(graha,p.sign))?[{div,graha,sign:p.sign,kind:dignityFor(graha,p.sign)}]:[];
+ }).slice(0,2);
+ const yogaPart=primaryYoga?(uk?
+  pName(primaryYoga)+' керує кутовим і тригональним домами (йогакарака). '+
+   (d10Yoga?'У D10 його знак «'+sign(d10Yoga.sign)+'»'+
+    (dignityFor(primaryYoga,d10Yoga.sign)==='exalted'?' — екзальтація.':'.'):''):
+  primaryYoga+' rules both an angular and a trinal natal house (yogakaraka). '+
+   (d10Yoga?'In D10 it occupies '+sign(d10Yoga.sign)+
+    (dignityFor(primaryYoga,d10Yoga.sign)==='exalted'?', its exaltation sign.':'.'):'')
+ ):'';
+ const dignityPart=chosenDignities.length?(uk?
+   chosenDignities.map(x=>'D'+x.div+': '+pName(x.graha)+' у знаку «'+sign(x.sign)+'» ('+
+     (x.kind==='exalted'?'екзальтація':'власний знак')+')').join('; ')+'.':
+   chosenDignities.map(x=>'D'+x.div+': '+x.graha+' in '+sign(x.sign)+' ('+
+     (x.kind==='exalted'?'exaltation':'own sign')+')').join('; ')+'.'):'';
+ const strength=(yogaPart+dignityPart).trim()||
+  (uk?'Основний орієнтир — управитель висхідного знака '+pName(lagnaLord)+
+     ' у '+asc.house+'-му домі, а професійний — '+pName(careerLord)+' у '+career.house+'-му.':
+    'The main anchors are ascendant ruler '+lagnaLord+' in house '+asc.house+
+     ' and career ruler '+careerLord+' in house '+career.house+'.');
+ const weak=chart.d1.find(p=>dignityFor(p.name,p.sign)==='debilitated');
+ const attention=weak?(uk?
+  pName(weak.name)+' у D1 в знаку «'+sign(weak.sign)+'» (традиційне падіння). '+
+   'Тому не варто робити висновок про його результати без аспектів, інших управлінь і сили планети.':
+  weak.name+' in D1 occupies '+sign(weak.sign)+' (traditional debilitation). '+
+   'Its meaning needs aspects, lordship and fuller strength assessment.'):
+  moon.house===career.house?(uk?
+   'Місяць і управитель кар’єри пов’язані з '+career.house+'-м домом. '+
+    'Особистий ритм і професійні вимоги мають спільну сферу, але не тотожний зміст.':
+   'The Moon and career ruler both occupy house '+career.house+
+    '; emotional rhythm and professional demands share an arena but are not identical.'):
+   (uk?'Місяць у '+moon.house+'-му домі пов’язаний із '+area(moon.house)+
+     ', а управитель кар’єри в '+career.house+'-му — зі сферою '+area(career.house)+'. '+
+     'Ці потреби варто розрізняти.':
+    'The Moon in house '+moon.house+' concerns '+area(moon.house)+
+     ', while career ruler '+careerLord+' in house '+career.house+
+     ' concerns '+area(career.house)+'. These needs need not have the same pace.');
+ const direction=lagnaLord===careerLord?(uk?
+  'Особистий і професійний вектори тут пов’язує '+pName(lagnaLord)+
+  ': планета керує обома відповідними домами. Перевірте, як рішення у сфері '+area(asc.house)+
+  ' позначаються на вашій професійній відповідальності, не підмінюючи цим усю карту.':
+  'The same '+lagnaLord+' rules both personal direction and vocation. '+
+  'Consider how '+area(asc.house)+' relates to your professional responsibilities without treating one planet as the whole chart.'):
+  (uk?'Управитель особистого напряму '+pName(lagnaLord)+' у '+asc.house+'-му домі, '+
+  'професійного — '+pName(careerLord)+' у '+career.house+'-му, '+
+  'а партнерства — '+pName(relationLord)+'. Практичне завдання — знаходити місце для цих трьох сфер, не очікуючи від однієї з них відповіді за всі інші.':
+  'Personal direction is ruled by '+lagnaLord+' in house '+asc.house+
+  ', vocation by '+careerLord+' in house '+career.house+
+  ', and partnership by '+relationLord+
+  '. These three themes need room for separate decisions rather than one universal answer.');
  return {version:N492_MEANING_VERSION,cards,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
    strength,attention,direction,proof:[
