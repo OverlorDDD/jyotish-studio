@@ -255,7 +255,7 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
     y.planet+' occupies D1 house '+y.house+' in '+sign(y.sign,uk)+
     '. Sign dignity and angular placement meet the checked '+y.name+
     ' yoga conditions; this is not full planetary strength.',
-   attention:uk?'З'єднання, аспекти, градусна сила та скасування потребують окремого аналізу.':
+   attention:uk?'З’єднання, аспекти, градусна сила та скасування потребують окремого аналізу.':
     'Conjunctions, aspects, degree strength and cancellations need separate analysis.',
    prominence:8,kind:'support',
    proof:unique(['D1.'+y.planet+'.house='+y.house,'D1.'+y.planet+'.sign='+y.sign,
