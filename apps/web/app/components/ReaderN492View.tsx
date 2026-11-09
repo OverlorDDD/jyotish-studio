@@ -7,6 +7,7 @@ type Meaningful=NonNullable<ReaderV8UI['meaningful']>;
 export default function ReaderN492View({data,lang,minutesUncertain=false}:
  {data:ReaderV8UI;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',read=data.meaningful as Meaningful|null|undefined;
+ const discoveries=read?.discoveries;
  if(!read||read.cards.length!==16)return null;
  return <section className={styles.root+' '+book.root} data-testid="reader-v8" aria-labelledby="n492-heading">
   <header className={styles.top}>
@@ -18,14 +19,14 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
   {minutesUncertain?<p className={book.notice} role="note">{uk?
    'Час народження позначено як приблизний: тонкі карти можуть змінитися; твердження щодо D60 умовні.':
    'Birth time is marked approximate: finer divisional positions may change; D60 statements are provisional.'}</p>:null}
-  {read.discoveries?.insights?.length>=3?<section className={book.discoveries} aria-labelledby="reader-n493-heading" data-testid="reader-n493-top-insights">
+  {(discoveries?.insights?.length ?? 0)>=3?<section className={book.discoveries} aria-labelledby="reader-n493-heading" data-testid="reader-n493-top-insights">
    <span className={styles.kicker}>{uk?'✦ 3–5 ГОЛОВНИХ ЗАКОНОМІРНОСТЕЙ':'✦ MAIN CHART PATTERNS'}</span>
    <h3 id="reader-n493-heading">{uk?'Що вирізняє саме вашу карту':'What stands out in your chart'}</h3>
    <p className={book.discoveriesIntro}>{uk?
     'Відібрано з перевірених положень та управлінь. Нижче кожний висновок пояснено у відповідній D-картці.':
     'Ranked from verified placements and rulerships. Each topic is explained in its divisional card below.'}</p>
    <ol>
-    {read.discoveries.insights.map(item=><li key={item.id} className={book.discovery}>
+    {discoveries!.insights.map(item=><li key={item.id} className={book.discovery}>
      <strong>{item.headline}</strong>
      <p>{item.attention}</p>
      <a href={'#reader-n493-card-D'+item.division}>{uk?'Дивитися пояснення в D'+item.division:
