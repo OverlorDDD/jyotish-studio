@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n491-compact-cross-varga-v1',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n492-meaning-first-16-v1',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -126,6 +126,17 @@ function mockV8(divisions){
    connection:'Зв’язок із D'+(division===10?24:division===24?10:9)+': цей самий Меркурій має перевірене тематичне положення.',
    proof:['D1.Mercury.house=3','D'+division+'.Mercury.house=3']
   })),
+  meaningReader:{version:'n492-meaning-first-16-v1',
+   cards:[...divisions,60].map(division=>({
+    division,reading:'Особисте трактування D'+division+': Меркурій у головній карті пов’язаний із конкретною сферою відповідальності.',
+    corroboration:division===10?'D24 підтверджує конкретний важливий показник Меркурія.':null,
+    attention:null,sensitivity:division===60?'provisional':division>=16?'fine':'ordinary',
+    sourceFacts:['D1.Mercury.house=3',...(division===1?[]:['D'+division+'.Mercury.sign=3'])],
+    sourceMethod:['PARASHARI_HOUSE_LORDSHIP']
+   })),
+   takeaways:[0,1,2].map(i=>({text:'Підсумок карти '+i+' на основі фактичних положень.',sourceFacts:['D1.Mercury.house=3']})),
+   limits:'D60 не використовує доми й лагну для персональних висновків.'
+  },
   synthesis:{version:'n47-source-synthesis-v1',title:'Головний сюжет вашої карти',
    opening:'Висхідний знак та управитель визначають центральну тему. У перевіреній основній карті ці фактори співвідносяться з тематичними картами.',
    strength:'Додаткова карта показує потенціал, який можна перевірити конкретними діями.',
@@ -230,13 +241,13 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain).toBeVisible();
  await expect(plain.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
  await expect(plain.getByTestId('reader-v8-synthesis')).toHaveCount(0);
- await expect(plain.getByTestId('reader-v8-D27')).toContainText('Для цієї сфери');
+ await expect(plain.getByTestId('reader-v8-D27')).toContainText('Особисте трактування D27');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await expect(plain.getByTestId('reader-n491-d60-nine').locator(':scope > div')).toHaveCount(9);
+ await expect(plain.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('Лев');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await plain.getByTestId('reader-v8-D10').getByText('Планети, доми та джерела').click();
- await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
+ await plain.getByTestId('reader-v8-D10').getByText('Показники та метод').click();
+ await expect(plain.getByTestId('reader-v8-D10')).toContainText('PARASHARI_HOUSE_LORDSHIP');
  await expect(page.getByTestId('reader-v7')).toHaveCount(0);
 
  await expect(page.getByTestId('n4-varga-reader')).toHaveCount(0);
