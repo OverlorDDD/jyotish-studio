@@ -23,7 +23,7 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
       'Selected for actual natal roles and divisional conditions, not word count.'}</p>
    </div>
    <ol className={book.patternList}>
-    {read.topInsights.map(pattern=><li key={pattern.id} className={book.patternItem}>
+    {(read.topInsights||[]).map(pattern=><li key={pattern.id} className={book.patternItem}>
      <h4>{pattern.title}</h4>
      <p>{pattern.reading}</p>
      <p className={book.patternImplication}><strong>{uk?'Що це означає: ':'What it suggests: '}</strong>{pattern.implication}</p>
