@@ -53,10 +53,10 @@ export default async function WesternSunSignPage({params}:Props){
      'Galaxiora independently calculates tropical Sun and Moon positions with Swiss Ephemeris. General editorial themes use whole-sign houses counted from the chosen Sun sign. Vedic Moon and Lagna are not used in this mode.'}</p>
    </section>
    <div className="as-actions" style={{display:'flex',gap:12,flexWrap:'wrap',marginTop:25}}>
-    <Link className="as-button as-button-primary" href={'/'+locale+'/horoscope?system=western&sign='+sign}>
+    <Link className="as-button as-button-primary" href={'/'+locale+'/horoscope#western-'+sign}>
      {uk?'Читати гороскоп '+name:'Read '+name+' horoscope'}
     </Link>
-    <Link className="as-button as-button-secondary" href={'/'+locale+'/horoscope?system=vedic&sign='+sign}>
+    <Link className="as-button as-button-secondary" href={'/'+locale+'/horoscope#vedic-'+sign}>
      {uk?'Порівняти з ведичним Місяцем':'Compare Vedic Moon-sign reading'}
     </Link>
    </div>
