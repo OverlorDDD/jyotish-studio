@@ -351,7 +351,7 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
  if(cards.length!==16||chosen.length<3||chosen.length>5)return null;
  const weakNatal=CLASSICAL_GRAHAS.find(n=>dignityFor(n,get(n)!.sign)==='debilitated');
  const coreLord=l[1],workLord=l[10],partnerLord=l[7];
- const core=get(coreLord)!,work=get(workLord)!,partner=get(partnerLord)!;
+ const core=get(coreLord)!,work=get(workLord)!,partnerPlanet=get(partnerLord)!;
  const workV=v(10,workLord)!;
  const intenseWork=yoga.has(workLord)&&['exalted','own'].includes(dignityFor(workLord,workV.sign));
  const innerSpace=core.house===12||core.house===8;
@@ -387,11 +387,11 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
  const relations=uk?
   (sharedTrust?'Для партнерства той самий '+name(partnerLord)+
     ' керує сьомим і восьмим домами: взаємність, довіру й спільні зобов’язання слід читати разом.':
-    'Партнерство має власний центр — '+name(partnerLord)+' у '+partner.house+
+    'Партнерство має власний центр — '+name(partnerLord)+' у '+partnerPlanet.house+
     '-му домі, отже його не можна оцінювати лише за професійними показниками.'):
   (sharedTrust?'Partnership has a distinctive trust theme: '+partnerLord+
     ' rules both the seventh and eighth houses, joining agreements with shared responsibilities.':
-    'Partnership has its own anchor, '+partnerLord+' in house '+partner.house+
+    'Partnership has its own anchor, '+partnerLord+' in house '+partnerPlanet.house+
     ', not a mere extension of the career indicators.');
  const portrait=workStatement+' '+innerStatement+relations;
  const focus=weakNatal?(uk?
@@ -414,7 +414,7 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
     'D1.house-lord.7='+partnerLord,
     'D1.'+coreLord+'.house='+core.house,
     'D1.'+workLord+'.house='+work.house,
-    'D1.'+partnerLord+'.house='+partner.house,
+    'D1.'+partnerLord+'.house='+partnerPlanet.house,
     ...vProof(10,workLord),
     ...vProof(9,partnerLord),
     ...(weakNatal?natalProof(weakNatal):[])
