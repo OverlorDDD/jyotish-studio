@@ -32,8 +32,8 @@ test('A4 sitemap enumerates published tools but no future content or private vie
   'eclipses/2027','news','community','methodology'])
   assert.ok(SEO_PATHS.includes(path), 'published canonical route missing: '+path);
  assert.equal(new Set(SEO_PATHS).size, SEO_PATHS.length, 'no duplicate canonical pages');
- assert.ok(!SEO_PATHS.includes(''),'domain root belongs to its own self-canonical sitemap entry, not localized pages');
- assert.ok(read('apps/web/app/sitemap.ts').includes("url:base+'/'"),'root is separately included in sitemap');
+ assert.ok(!SEO_PATHS.includes(''),'domain root is a duplicate alias, not a separate canonical sitemap route');
+ assert.ok(!read('apps/web/app/sitemap.ts').includes("url:base+'/'"),'the EN canonical tool supersedes the duplicate root in sitemap');
  for(const p of SEO_PATHS)assert.ok(!/account|admin|personal/.test(p));
  assert.ok(SEO_PATHS.includes('news')&&SEO_PATHS.includes('community')&&SEO_PATHS.includes('panchanga'));
  assert.ok(!SEO_PATHS.includes('astrology'),'redirecting alias must not be indexed');

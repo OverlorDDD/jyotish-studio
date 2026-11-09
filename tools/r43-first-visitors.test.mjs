@@ -41,7 +41,7 @@ test('R4.3 distinct, substantive bilingual guide avoids duplicate Academy conten
  assert.match(page,/Як правильно зіставити свої карти/);
  assert.match(page,/астрологічної традиції/);
  assert.match(page,/scientifically validated prediction/);
- assert.match(page,/learn\/sidereal-and-tropical/,'contextual link to existing Academy content');
+ assert.match(page,/pedia\/sidereal-and-tropical/,'contextual link must target canonical GalaxiPedia lesson');
  assert.match(page,/astrology\/jyotish/,'link to actual free calculation tool');
  assert.doesNotMatch(page,/'@type':'Person'|sameAs:/,'no invented person or social profiles');
 });

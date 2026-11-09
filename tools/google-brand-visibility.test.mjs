@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
-test('Google can identify Galaxiora on the hostname homepage without a root noindex',()=>{
+test('Google can identify Galaxiora on the 200 root alias with one EN canonical',()=>{
  const root=read('apps/web/app/page.tsx');
  assert.match(root,/robots:indexRobots\(\)/);
- // GP1: the canonical hostname root is an indexable EN natal page.
- assert.ok(root.includes("canonical:'/'"));
+ // Root displays the natal tool, but consolidates duplicate SEO signals to the EN route.
+ assert.ok(root.includes("canonical:'/en/astrology/jyotish'"));
  assert.ok(root.includes("uk:'/uk/astrology/jyotish'"));
  assert.ok(root.includes("Free Vedic Birth Chart Calculator"));
  assert.ok(root.includes("robots:indexRobots()"));

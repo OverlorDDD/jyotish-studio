@@ -21,7 +21,7 @@ for(const locale of ['uk','en']){
    expect(html).toContain('BreadcrumbList');
    expect(html).toContain('Article');
    expect(html).not.toMatch(/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/i);
-   expect(html).toContain('/'+locale+'/learn/tarot-reversals');
+   expect(html).toContain('/'+locale+'/pedia/tarot-reversals');
   }
  });
  test('R3.3 '+locale+' 2027 eclipse guide has NASA sources, correct dates and Panchanga links',async({request,page})=>{

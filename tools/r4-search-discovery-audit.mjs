@@ -57,7 +57,7 @@ for(let i=0;i<paths.length;i++){
  record(path,'HTML',p.contentType.includes('text/html'),'Content-Type '+p.contentType);
  record(path,'INDEXABLE',!noindex(p.text)&&!/noindex/i.test(p.xrobots),'No meta/X-Robots noindex');
  record(path,'H1',!!readableH1(p.text),'Visible server-rendered heading: '+readableH1(p.text).slice(0,110));
- record(path,'CANONICAL',canonical(p.text)===(canonicalOrigin+path),
+ record(path,'CANONICAL',canonical(p.text)===(canonicalOrigin+(path==='/'?'/en/astrology/jyotish':path)),
   'canonical='+String(canonical(p.text)));
  record(path,'H1_TOPIC',!['/'].includes(path)||/Natal|Натальн|Astrology|Таро|Панчанга|Panchanga/i.test(readableH1(p.text)),
   'Homepage H1 should name an actual user tool', 'warning');
