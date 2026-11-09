@@ -49,6 +49,18 @@ function checkCase(chart,lang){
   }
  }
  assert.ok(output.takeaways.every(t=>t.text.length>90&&t.text.length<850&&t.sourceFacts.length>=2));
+ if(lang==='uk'){
+  assert.doesNotMatch(output.takeaways.map(t=>t.text).join(' '),/управитель домів\s*\)/,
+   'Rahu/Ketu must not be assigned unowned classical houses');
+  assert.doesNotMatch(output.cards[0].reading,/додає тему (?:ресурси|творчість|повсякденна праця)/u,
+   'do not use nominative after feminine accusative construction');
+ }
+ if(chart.ascendant.sign===4){
+  assert.doesNotMatch(output.takeaways[0].text,/Місяць — у \d+-му/u,
+   'Cancer Moon ascendant must not duplicate the Moon');
+ }
+ assert.doesNotMatch(output.cards[15].reading,/Цю різницю слід читати разом із D1, а не як окремий прогноз/u,
+  'D60 must not repeat long generic caveats');
  assert.ok(output.cards[0].reading.includes(lang==='uk'?'Місяць':'Moon'));
  return output;
 }
