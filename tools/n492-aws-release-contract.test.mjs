@@ -1,0 +1,33 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+const src=readFileSync(fileURLToPath(new URL('./n492-aws-release.sh',import.meta.url)),'utf8');
+test('N4.9.2 release enforces exact pinned SHA, safe fast forward, no destructive git and verified local API',()=>{
+ assert.match(src,/^set -Eeuo pipefail/m);
+ assert.match(src,/TARGET=.*\$\{2:-\}/);
+ assert.match(src,/\^\[0-9a-f\]\{40\}\$/);
+ assert.match(src,/git merge-base --is-ancestor/);
+ assert.match(src,/git cat-file -e/);
+ assert.match(src,/Dirty tracked production files/);
+ assert.match(src,/^rollback\(\)\{/m);
+ assert.match(src,/N492_ROLLBACK_UNCONFIRMED/);
+ assert.match(src,/N492_AWS_PREFLIGHT_PASS/);
+ assert.match(src,/N492_PUBLIC_API_READER_EDITION_VERIFIED/);
+ assert.match(src,/N492_PRODUCTION_RELEASE_VERIFIED/);
+ assert.match(src,/npm run build/);
+ assert.match(src,/npm run site:check/);
+ assert.match(src,/npm run launch:verify/);
+ assert.match(src,/sudo -n systemctl restart galaxiora-api galaxiora-web/);
+ assert.doesNotMatch(src,/^\s*(?:git\s+(?:clean|reset)|docker\s+|sudo\s+rm\s+-rf|npx\s+prisma\s+migrate)/m);
+ assert.ok(src.includes('interpretationEdition'));
+ assert.ok(src.includes('n49-unified-evidence-v1'));
+ assert.ok(src.includes('n492-meaning-first-16-v1'));
+ assert.ok(src.includes('tools/n492-reader-quality-gate.test.mjs'));
+ assert.ok(src.includes('reader?.compactCards?.length!==15'));
+ assert.ok(src.includes('reader?.meaningReader?.cards?.length!==16'));
+ assert.ok(src.includes('reader?.meaningReader?.takeaways?.length!==3'));
+
+ assert.ok(src.includes('reader?.d60Preview?.allPlanets?.length!==9'));
+ assert.ok(src.includes('BRANCH=feat/n492-meaning-first-reader-20261109'));
+});
