@@ -161,18 +161,19 @@ export class JyotishController{
   // Never include individual D60 sign notes or AI D60 facts when a user
   // explicitly says their birth minutes are unknown. D1/D9/D10 stay intact.
   const safeChart=omitD60?({...chart,n4D60:undefined} as CalculatedChart):chart;
-  const safeReaderV8=omitD60?{...report.readerV8,
+  const readerForReport=report.readerV8;
+  const safeReaderV8=omitD60&&readerForReport?{...readerForReport,
    d60Preview:buildD60Preview(safeChart,birth.lang),
-   meaningReader:report.readerV8.meaningReader?{
-    ...report.readerV8.meaningReader,
-    cards:report.readerV8.meaningReader.cards.map(card=>card.division===60?{
+   meaningReader:readerForReport.meaningReader?{
+    ...readerForReport.meaningReader,
+    cards:readerForReport.meaningReader.cards.map(card=>card.division===60?{
      ...card,reading:birth.lang==='uk'?
       'За приблизного часу народження особисті висновки D60 не формуються.':
       'D60 personal conclusions are withheld for an approximate birth time.',
      corroboration:null,sourceFacts:[]
     }:card)
    }:null
-  }:report.readerV8;
+  }:readerForReport;
   const base={...report,readerV8:safeReaderV8,
    sections:skySection?[...report.sections,skySection]:report.sections,
    calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification};
