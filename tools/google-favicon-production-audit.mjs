@@ -23,11 +23,13 @@ async function request(path,{agent}={}){
  return {b,headers:res.headers,txt:b.toString('utf8')};
 }
 const root=await request('/');
+const configuredSite=(process.env.NEXT_PUBLIC_SITE_URL||'https://galaxiora.com').replace(/\/$/,'');
+const expectedCanonical=configuredSite+'/en/astrology/jyotish';
 const head=root.txt.split('</head>')[0];
 const canonicalLinks=[...head.matchAll(/<link\b[^>]*>/gi)]
  .map(match=>match[0]).filter(tag=>/\brel="canonical"/i.test(tag));
 check('canonical_root_http_200',canonicalLinks.length===1&&
- /\bhref="https:\/\/galaxiora\.com\/en\/astrology\/jyotish"/i.test(canonicalLinks[0]));
+ canonicalLinks[0].includes('href="'+expectedCanonical+'"'));
 check('indexable_root',!/<meta[^>]+name="robots"[^>]+content="noindex/i.test(root.txt));
 const tags=[...root.txt.matchAll(/<link\b[^>]*\brel="icon"[^>]*>/gi)].map(x=>x[0]);
 check('single_icon_link',tags.length===1);
