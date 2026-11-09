@@ -13,7 +13,7 @@ import {verifiedVargaSource} from './reader-varga-n4.ts';
 export const N493_INSIGHTS_VERSION='n493-ranked-patterns-1.0.0' as const;
 export type N493Insight={
  id:string;division:number;relatedDivisions:number[];planet:string;
- headline:string;interpretation:string;attention:string;
+ headline:string;teaser:string;interpretation:string;attention:string;
  prominence:number;kind:'support'|'tension'|'context';proof:string[];
 };
 export type N493Overview={
@@ -82,7 +82,14 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const attention=uk?'Не визначайте професію або майбутній успіх за одним знаком: аспекти, повна сила й періоди ще не перевірені.':
    'A single sign cannot determine occupation or success: aspects, full strength and timing are not yet evaluated.';
   add({id:'career',division:10,relatedDivisions:strong(eq)?[24]:[],planet,
-   headline,interpretation:interpretation.trim(),attention,
+   headline,
+   teaser:uk?(isYoga&&strong(q)?'Управління 5-м і 10-м домами поєднується з сильним положенням у професійній D10.':
+    strong(q)?'Управитель 10-го дому має виразне знакове положення у D10.':
+    'Управитель професії в D1 та D10 вказує на різні, але пов’язані сфери діяльності.'):
+    (isYoga&&strong(q)?'Fifth- and tenth-house rulership meets supportive D10 sign dignity.':
+     strong(q)?'The career ruler has notable D10 sign dignity.':
+     'The career ruler links two distinct areas in D1 and D10.'),
+   interpretation:interpretation.trim(),attention,
    prominence:5+(isYoga?4:0)+(strong(q)?3:0)+(b.house===6||b.house===9?1:0),
    kind:strong(q)?'support':'context',
    proof:unique(['D1.house-lord.10='+planet,'D1.'+planet+'.house='+a.house,
@@ -107,6 +114,10 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
     (planet!=='Venus'?'Venus is a separate relationship indicator in D9 '+sign(venus.sign,uk)+'. ':'')+
     (strong(q)?'The seventh ruler has supportive sign dignity in D9. ':'');
   add({id:'relationships',division:9,relatedDivisions:[1],planet,
+   teaser:uk?(double?'Той самий управитель пов’язує партнерство з довірою та спільними рішеннями.':
+    'Розташування управителя 7-го дому в D1 і D9 уточнює тему близькості.'):
+    (double?'The same ruler connects partnership with trust and shared choices.':
+     'The seventh-house ruler brings D1 and D9 into the relationship reading.'),
    headline:uk?(double?'Довіра й домовленості — пов’язані теми партнерства':
     'Що уточнює D9 у сфері партнерства'):
     (double?'Trust and agreements meet in partnership':'The D9 refinement of partnership'),
@@ -135,6 +146,10 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
       'The Moon separately occupies house '+moon.house+' ('+desc(moon.house,uk)+'). ')+
     'The Sun in house '+sun.house+' adds '+desc(sun.house,uk)+'.';
   add({id:'identity',division:1,relatedDivisions:[],planet,
+   teaser:uk?(a.house===12?'Управитель висхідного знака перебуває у 12-му домі: потреба у власному просторі має особливу роль.':
+    'Управитель висхідного знака, Місяць і Сонце показують різні сторони натальної теми.'):
+    (a.house===12?'The rising-sign ruler is in house 12: privacy and recovery are a relevant chart theme.':
+     'The ascendant ruler, Moon and Sun offer different aspects of identity.'),
    headline:uk?(a.house===12?'Внутрішнє відновлення — важлива частина особистого напряму':
     'Особистий напрям і внутрішні потреби'):
     (a.house===12?'Personal direction also requires recovery':'Identity and inner needs'),
@@ -151,6 +166,8 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const p=lords[2],q=lords[11],a=d1(p),b=d1(q),h=dn(2,p);
   const qualityD2=dignityFor(p,h.sign);
   add({id:'resources',division:2,relatedDivisions:[],planet:p,
+   teaser:uk?'Управителі 2-го й 11-го домів розділяють теми збереження ресурсів і здобутків.':
+    'Second- and eleventh-house rulers distinguish resources from gains.',
    headline:uk?'Грошові ресурси та результати роботи — різні показники':
     'Resources and professional gains have different indicators',
    interpretation:uk?'Другий дім ресурсів пов’язаний з '+name(p,uk)+' у '+a.house+
@@ -174,6 +191,10 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const c=dn(10,planet),qc=dignityFor(planet,c.sign);
   const overlaps=strong(q)&&strong(qc);
   add({id:'education',division:24,relatedDivisions:overlaps?[10]:[],planet,
+   teaser:uk?(overlaps?'D24 і D10 дають споріднені показники тієї самої планети — тему навчання й практики.':
+    'Управитель 5-го дому пов’язує освіту з конкретною тематичною D24.'):
+    (overlaps?'Related D24 and D10 placements connect study with practical work.':
+     'The fifth-house ruler links education with the thematic D24 chart.'),
    headline:uk?(overlaps?'Навчання та професійна практика мають спільний показник':
     'Як знання переходять у навичку'):
     (overlaps?'Learning and vocation share a chart indicator':'Where learning becomes practiced skill'),
@@ -201,6 +222,8 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
    const p=fallen[0],nameP=p.name;
    const roles=Array.from({length:12},(_,i)=>i+1).filter(h=>lords[h]===nameP);
    add({id:'dignity-caution',division:1,relatedDivisions:[],planet:nameP,
+    teaser:uk?name(nameP,uk)+' у D1 в знаку падіння: оцінка його тем залежить від інших перевірок.':
+      nameP+' occupies its debilitation sign in D1; other conditions must be checked.',
     headline:uk?'Показник, який потребує додаткової перевірки':
      'A placement requiring more context',
     interpretation:uk?name(nameP,uk)+' у D1 перебуває у '+sign(p.sign,uk)+
@@ -222,6 +245,8 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
  // pretend to have screened combustion/aspects/full degree strength.
  for(const y of ruleFindings(chart).yogas){
   add({id:'mahapurusha-'+y.name.toLowerCase(),division:1,relatedDivisions:[],planet:y.planet,
+   teaser:uk?'У D1 виконані перевірені умови знака та кутового дому для йоги '+y.name+'.':
+      'The chart meets the checked sign-and-angular-house conditions for '+y.name+'.',
    headline:uk?'Класична комбінація '+y.name+' у головній карті':
     'A '+y.name+' condition in the birth chart',
    interpretation:uk?name(y.planet,uk)+' перебуває у '+y.house+'-му домі D1, у '+
