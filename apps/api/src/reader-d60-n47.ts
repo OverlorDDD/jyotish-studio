@@ -89,13 +89,18 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
   const from=(uk?UK_SIGNS:EN_SIGNS)[original.sign-1],to=(uk?UK_SIGNS:EN_SIGNS)[fine.sign-1];
   const natalTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[original.sign-1];
   const fineTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[fine.sign-1];
+  const sameSign=original.sign===fine.sign;
   const note=uk?
-   role(p.key)+' — '+p.uk+'. У D1 планета в '+from+' ('+natalTheme+
-   '), у D60 — в '+to+' ('+fineTheme+
-   '). Цю різницю слід читати разом із D1, а не як окремий прогноз.':
-   role(p.key)+' — '+p.key+'. In D1 it is in '+from+' ('+natalTheme+
-   '), in D60 '+to+' ('+fineTheme+
-   '). These two placements must be read together, not as an independent prediction.';
+   role(p.key)+' — '+p.uk+'. '+(sameSign?
+    'У D1 та D60 повторюється знак «'+UK_SIGN_LABELS[fine.sign-1]+'»'+
+     ' ('+fineTheme+'). Це підтверджує збіг знаків, але не доводить точність часу народження.':
+    'У D1 планета перебуває у '+from+' ('+natalTheme+'), а в D60 — у '+to+
+     ' ('+fineTheme+'). Це два символічні ракурси однієї планети, а не прогноз події.'):
+   role(p.key)+' — '+p.key+'. '+(sameSign?
+    'Both D1 and D60 place it in '+EN_SIGNS[fine.sign-1]+
+     ' ('+fineTheme+'). This sign agreement does not verify birth-time precision.':
+    'In D1 it occupies '+from+' ('+natalTheme+'), while D60 places it in '+to+
+     ' ('+fineTheme+'). This is a conditional symbolic comparison, not an event prediction.');
   return {planet:p.key,d1Sign:original.sign,d60Sign:fine.sign,
    boundaryDistanceArcseconds:fine.boundaryDistanceArcseconds,note};
  }).filter((x):x is Factor=>x!==null);

@@ -6,6 +6,9 @@ export type ReaderV8UI={
  introduction:string;method:string;d60Notice:string;
  synthesis?:{version:string;title:string;opening:string;strength:string;challenge:string;direction:string;method:string};
  compactCards?:readonly {division:number;lead:string;connection:string;relatedDivision:number;contrast:string;proof:readonly string[]}[];
+ meaningful?:{version:string;cards:readonly {division:number;title:string;meaning:string;connection:string|null;
+  status:string;proof:string[];sourceIds:string[]}[];
+  summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};method:string};
  integrated?:{version:string;title:string;opening:string;closing:string;method:string;
   threads:readonly {id:string;title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];
    directSourceIds:readonly string[];extensionSourceIds:readonly string[];scope:string}[];

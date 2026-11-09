@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n491-compact-cross-varga-v1',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n492-evidence-prioritized-16-varga-v1',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -120,6 +120,21 @@ function mockV8(divisions){
     scope:i===0?'d1_direct':'cross_varga_modern_extension'
    })),
    links:divisions.map(division=>({division,polarity:'unresolved',evidence:['D1.Mercury.house=3']}))},
+  meaningful:{
+   version:'n492-evidence-prioritized-16-varga-v1',
+   cards:[...divisions,60].map(division=>({
+    division,title:'Життєва сфера D'+division,
+    meaning:'Для цієї сфери розраховано конкретні положення; головний управитель D1 задає її значення, а тематична карта показує другий рівень.',
+    connection:null,status:division===60?'provisional':'contextual',
+    proof:['D1.Mercury.house=3','D'+division+'.Mercury.sign=5'],sourceIds:[]
+   })),
+   summary:{title:'Що головне у вашій карті',
+    strength:'Розраховані управителі вказують на конкретні сфери.',
+    attention:'Місячний ритм та професійні цілі потребують балансу.',
+    direction:'Вибирайте спосіб дії відповідно до перевірених життєвих обставин.',
+    proof:['D1.ascendant.sign=1']},
+   method:'Парашарі, знак, доми, часові обмеження'
+  },
   compactCards:divisions.map((division)=>({
    division,lead:'Для цієї сфери один із показників — Меркурій. У D1 він пов’язаний із навчанням і в D'+division+' — з практичними навичками.',
    relatedDivision:division===10?24:division===24?10:9,contrast:'unresolved',
@@ -232,10 +247,10 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain.getByTestId('reader-v8-synthesis')).toHaveCount(0);
  await expect(plain.getByTestId('reader-v8-D27')).toContainText('Для цієї сфери');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await expect(plain.getByTestId('reader-n491-d60-nine').locator(':scope > div')).toHaveCount(9);
+ await expect(plain.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('Лев');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await plain.getByTestId('reader-v8-D10').getByText('Планети, доми та джерела').click();
+ await plain.getByTestId('reader-v8-D10').getByText('Чому такий висновок').click();
  await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
  await expect(page.getByTestId('reader-v7')).toHaveCount(0);
 
