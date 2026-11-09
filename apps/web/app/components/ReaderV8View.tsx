@@ -8,7 +8,7 @@ export type ReaderV8UI={
  compactCards?:readonly {division:number;lead:string;connection:string;relatedDivision:number;contrast:string;proof:readonly string[]}[];
  meaningful?:{version:string;discoveries?:{
   version:string;summary:string;insights:readonly {
-   id:string;division:number;relatedDivisions:number[];planet:string;headline:string;
+   id:string;division:number;relatedDivisions:number[];planet:string;headline:string;teaser:string;
    interpretation:string;attention:string;prominence:number;
    kind:'support'|'tension'|'context';proof:string[]
   }[]};
