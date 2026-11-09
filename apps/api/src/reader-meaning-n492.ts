@@ -260,12 +260,17 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    card.sourceIds=[...new Set([...card.sourceIds,'N493-TWO-INDICATOR-COMPARISON'])];
   }
  }
- const leading=new Map(discoveries.insights.map(x=>[x.division,x]));
+ const leading=new Map<number,N493Overview['insights']>();
+ for(const insight of discoveries.insights){
+  leading.set(insight.division,[...(leading.get(insight.division)||[]),insight]);
+ }
  for(const card of cards){
-  const special=leading.get(card.division);
-  if(special){
-   card.meaning=special.interpretation;
-   card.proof=[...new Set([...card.proof,...special.proof])];
+  const specials=leading.get(card.division)||[];
+  if(specials.length){
+   // Several distinct evidence patterns may belong to the same D1 card.
+   // Keep each surfaced claim verifiable at its linked destination.
+   card.meaning=specials.map(x=>x.interpretation).join(' ');
+   card.proof=[...new Set([...card.proof,...specials.flatMap(x=>x.proof)])];
    card.sourceIds=[...new Set([...card.sourceIds,'N493-EVIDENCE-PRIORITY'])];
   }
  }
