@@ -349,22 +349,76 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
     ...(division===10?['BJ_X_1_TENTH_FROM_LAGNA_MOON_SUN']:[])]});
  }
  if(cards.length!==16||chosen.length<3||chosen.length>5)return null;
- const focus=chosen.filter(p=>p.status==='tension')[0]||chosen.find(p=>p.theme==='identity')||chosen[0];
- const lead=chosen.find(p=>p.theme==='career')||chosen[0];
- const relation=chosen.find(p=>p.theme==='relationships');
- const portrait=uk?
-  'Головна закономірність цієї карти — '+lead.insight+' '+lead.context+
-   (relation&&relation.id!==lead.id?' Паралельно тема партнерства має власний показник: '+relation.insight:''):
-  'The main theme of this chart: '+lead.insight+' '+lead.context+
-   (relation&&relation.id!==lead.id?' Partnership adds a distinct concern: '+relation.insight:'');
- const summaryFocus=uk?'Зверніть особливу увагу на '+focus.title.toLowerCase()+
-   ': '+focus.context+' Це напрям для усвідомленого рішення, не готовий вирок.':
-  'Pay particular attention to '+focus.title.toLowerCase()+': '+focus.context+
-   ' This is a direction for reflection, not a fixed outcome.';
+ const weakNatal=CLASSICAL_GRAHAS.find(n=>dignityFor(n,get(n)!.sign)==='debilitated');
+ const coreLord=l[1],workLord=l[10],partnerLord=l[7];
+ const core=get(coreLord)!,work=get(workLord)!,partner=get(partnerLord)!;
+ const workV=v(10,workLord)!;
+ const intenseWork=yoga.has(workLord)&&['exalted','own'].includes(dignityFor(workLord,workV.sign));
+ const innerSpace=core.house===12||core.house===8;
+ const sharedTrust=l[7]===l[8];
+ const workStatement=uk?
+  (intenseWork?
+   'У карті виразно поєднуються здібності й професійна діяльність: '+name(workLord)+
+    ' керує важливими кутовим і тригональним домами, а в D10 займає знак «'+
+    signName(workV.sign)+'» із підтримувальною знаковою гідністю. ':
+   'Робочий напрям задає '+name(workLord)+' у '+work.house+
+    '-му домі D1 та '+workV.house+'-му домі D10. ')+
+  (work.house===9&&workV.house===6?
+   'Це традиційний акцент на переході від освіти та світогляду до щоденної майстерності.':
+   'Його конкретний зміст залежить від сфери '+area(work.house)+
+    ' та способу реалізації у D10.'):
+  (intenseWork?
+   'Vocational and creative potential share a notably placed ruler: '+workLord+
+   ' rules both an angular and a trinal house and receives supportive sign dignity in D10. ':
+   'Vocation is ruled by '+workLord+' in D1 house '+work.house+
+   ' and D10 house '+workV.house+'. ')+
+  (work.house===9&&workV.house===6?
+   'This joins education and worldview with daily craft.':
+   'Read its D1 context of '+area(work.house)+' alongside the D10 work setting.');
+ const innerStatement=uk?
+  (innerSpace?'Поруч із цим управитель висхідного знака '+name(coreLord)+' у '+core.house+
+    '-му домі підкреслює потребу у відновленні, внутрішній опорі й особистому просторі. ':
+    'Особистий напрям задає '+name(coreLord)+' у '+core.house+
+    '-му домі — його потреби не обов’язково збігаються з професійним темпом. '):
+  (innerSpace?'At the same time, the ascendant ruler '+coreLord+' in house '+core.house+
+    ' makes recovery and private space relevant. ':
+    'The ascendant ruler '+coreLord+' in house '+core.house+
+    ' adds personal priorities that need not match professional pace. ');
+ const relations=uk?
+  (sharedTrust?'Для партнерства той самий '+name(partnerLord)+
+    ' керує сьомим і восьмим домами: взаємність, довіру й спільні зобов’язання слід читати разом.':
+    'Партнерство має власний центр — '+name(partnerLord)+' у '+partner.house+
+    '-му домі, отже його не можна оцінювати лише за професійними показниками.'):
+  (sharedTrust?'Partnership has a distinctive trust theme: '+partnerLord+
+    ' rules both the seventh and eighth houses, joining agreements with shared responsibilities.':
+    'Partnership has its own anchor, '+partnerLord+' in house '+partner.house+
+    ', not a mere extension of the career indicators.');
+ const portrait=workStatement+' '+innerStatement+relations;
+ const focus=weakNatal?(uk?
+   'Окремої перевірки потребує '+name(weakNatal)+' у знаку «'+
+    signName(get(weakNatal)!.sign)+'» (традиційне падіння). Це не оцінка здібностей людини: '+
+    'спершу слід розглянути її управління, можливе скасування падіння й аспекти.':
+   weakNatal+' in '+signName(get(weakNatal)!.sign)+
+    ' occupies its traditional debilitation sign. This is not a judgement about a person: '+
+    'check lordship, possible cancellation and aspects first.'):
+   (uk?'Основна практична тема — поєднувати професійні рішення зі своїм ритмом '+
+    'та домовленостями з близькими. Це висновок із кількох показників D1, D9 та D10, а не прогноз подій.':
+    'The useful synthesis is how work demands, personal rhythm and close commitments fit together. '+
+    'This is a D1/D9/D10 reading, not an event forecast.');
  return {version:N493_VERSION,patterns:chosen,cards,
   summary:{title:uk?'Що найважливіше у вашій карті':'Your most meaningful chart pattern',
-   portrait,focus:summaryFocus,proof:unique([...lead.evidence,...focus.evidence,
-    ...(relation?.evidence||[])])},
+   portrait,focus,proof:unique([
+    'D1.ascendant.sign='+chart.ascendant.sign,
+    'D1.house-lord.1='+coreLord,
+    'D1.house-lord.10='+workLord,
+    'D1.house-lord.7='+partnerLord,
+    'D1.'+coreLord+'.house='+core.house,
+    'D1.'+workLord+'.house='+work.house,
+    'D1.'+partnerLord+'.house='+partner.house,
+    ...vProof(10,workLord),
+    ...vProof(9,partnerLord),
+    ...(weakNatal?natalProof(weakNatal):[])
+   ])},
   method:uk?'Показники відбираються за астрологічною роллю, кількома розрахованими чинниками та тематичною доречністю. Це не відсоток успіху. Джерела й межі точності відкриваються в кожній картці. D60 — умовні знаки без сертифікованих домів.':
    'Themes are prioritized by verified chart roles, multiple calculated factors and topical relevance, not percentages. Detailed evidence remains available. D60 uses provisional signs, without certified houses.'};
 }
