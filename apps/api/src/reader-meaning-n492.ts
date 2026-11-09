@@ -179,7 +179,97 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
   if(to===4&&[4,12,16,27,30,40,45].includes(division))
    return uk?'Цей показник повертає увагу до дому, відновлення та надійного середовища.':
     'This indication draws attention to home, recovery and a dependable environment.';
-  return '';
+  // For the most consequential vargas, provide concrete, domain-specific
+  // meanings for ALL twelve possible house placements; no bare "house X" output.
+  const specificUk:Readonly<Record<number,Readonly<Record<number,string>>>>={
+   10:{
+    1:'Професійний шлях тут більше залежить від власної ініціативи та вміння відповідати за рішення.',
+    2:'Важливими стають уміння представляти цінність праці, спілкуватися про гроші та тримати домовленості.',
+    3:'У роботі цінуються практична комунікація, технічні навички й здатність пояснити складне.',
+    4:'Професійна реалізація пов’язана з побудовою надійної бази та довгострокових умов роботи.',
+    5:'Творчий внесок, навчання інших і передавання власних напрацювань стають помітною професійною темою.',
+    6:'Складні щоденні задачі, дисципліна й виправлення помилок — важливий професійний канал.',
+    7:'Результат роботи залежить від уміння домовлятися з партнерами, клієнтами та командою.',
+    8:'Важливими можуть бути дослідження, конфіденційні задачі й управління спільною відповідальністю.',
+    9:'Кар’єрна тема пов’язується з освітою, наставництвом і передаванням власного світогляду.',
+    10:'Публічна відповідальність, репутація та якість видимого результату стають головним випробуванням.',
+    11:'Тривалі професійні результати тут залежать від взаємодії зі спільнотами та колом підтримки.',
+    12:'Професійна реалізація може вимагати самостійної праці, тиші або роботи поза публічною сценою.'
+   },
+   9:{
+    1:'У близькості важливо зберігати особисту позицію, не руйнуючи взаємності.',
+    2:'Питання спільних цінностей і поводження з ресурсами вимагають відкритої розмови.',
+    3:'У союзі особливого значення набувають чесна комунікація та вміння слухати.',
+    4:'Дім і відчуття безпеки — конкретні умови, через які може розкриватися близькість.',
+    5:'Творчість, навчання й турбота про дітей можуть ставати темою спільних рішень.',
+    6:'Повсякденний розподіл обов’язків важливіший за одні лише романтичні наміри.',
+    7:'Партнерство насамперед потребує чітких взаємних домовленостей.',
+    8:'Для близькості важливо навчитися розділяти довіру й спільні зобов’язання.',
+    9:'Спільні принципи, навчання та світогляд можуть підтримувати стосунки.',
+    10:'Публічна праця й очікування від професії потребують погодження часу для близьких.',
+    11:'Дружнє коло і спільні довгострокові цілі впливають на якість союзу.',
+    12:'Межі приватності й потреба у відновленні потребують поваги з обох сторін.'
+   },
+   2:{
+    1:'Матеріальні рішення тут особливо пов’язані з власною ініціативою та відповідальністю.',
+    2:'Накопичення та якість щоденних фінансових звичок мають пряме тематичне значення.',
+    3:'Ресурси пов’язані з навичками, мовленням та умінням домовлятися.',
+    4:'Надійний дім і базова фінансова подушка стають важливішими за швидкий результат.',
+    5:'Творчі здібності й навчання можуть бути частиною способу створювати цінність.',
+    6:'Матеріальна опора вимагає обліку, дисципліни та роботи з повторюваними витратами.',
+    7:'Значення мають спільні фінансові рішення, договори й межі відповідальності.',
+    8:'Ризики спільних ресурсів і великих зобов’язань варто оцінювати окремо.',
+    9:'Навчання та далекі плани потрібно порівнювати з реальними витратами.',
+    10:'Професійні результати й матеріальна опора можуть бути тісно пов’язані.',
+    11:'Мережі підтримки та довгострокові проєкти можуть впливати на здобутки.',
+    12:'Особлива увага припадає на витрати, приватний резерв і стабільність запасу.'
+   }
+  };
+  const specificEn:Readonly<Record<number,Readonly<Record<number,string>>>>={
+   10:{
+    1:'Professional initiative and personal accountability become central.',
+    2:'Communicating the value of work and maintaining financial agreements matter.',
+    3:'Practical communication, technical skills and explaining complex ideas are prominent.',
+    4:'Building a reliable base and durable working conditions becomes important.',
+    5:'Creative contributions, teaching and passing skills onward are vocational themes.',
+    6:'Difficult daily tasks, discipline and resolving errors are a central professional outlet.',
+    7:'Negotiating with partners, clients and teams matters for the outcome of work.',
+    8:'Research, confidential work and shared responsibility deserve attention.',
+    9:'Education, mentoring and communicating a worldview become part of the vocational story.',
+    10:'Public responsibility, reputation and visible results take the lead.',
+    11:'Communities and support networks affect how professional results develop.',
+    12:'Independent, quiet or behind-the-scenes work can matter more than public display.'
+   },
+   9:{
+    1:'Preserving personal agency alongside closeness is important.',
+    2:'Shared values and financial expectations call for clear discussion.',
+    3:'Honest dialogue and attentive listening become pivotal.',
+    4:'Home and emotional security form concrete conditions for closeness.',
+    5:'Creativity, education and care for children can become shared decisions.',
+    6:'How daily responsibilities are divided matters beyond romantic intentions.',
+    7:'The relationship depends on clear mutual agreements.',
+    8:'Trust and shared obligations need careful boundaries.',
+    9:'Common values, learning and worldview may support the partnership.',
+    10:'Visible work commitments must leave real time for closeness.',
+    11:'Friendship networks and shared long-term aims matter.',
+    12:'Respect for privacy and recovery is necessary on both sides.'
+   },
+   2:{
+    1:'Resources call for personal initiative and responsibility.',
+    2:'Savings and everyday financial habits are especially relevant.',
+    3:'Money and resources connect with skill, speech and negotiations.',
+    4:'A secure home base and financial reserves matter more than quick results.',
+    5:'Creative skill and learning can shape the way value is created.',
+    6:'Tracking recurring costs and maintaining discipline become central.',
+    7:'Shared financial decisions, agreements and boundaries require care.',
+    8:'Shared resources and serious obligations must be assessed separately.',
+    9:'Education and long-range plans need to be compared with real costs.',
+    10:'Material stability and professional outcomes may be strongly connected.',
+    11:'Support networks and longer projects can shape gains.',
+    12:'Expenses, private reserves and preserving a stable buffer are key themes.'
+   }
+  };
+  return (uk?specificUk:specificEn)[division]?.[to]||'';
  };
  const d1Facts=(planet:string)=>['D1.'+planet+'.sign='+natal(planet).sign,
   'D1.'+planet+'.house='+place(planet)];
