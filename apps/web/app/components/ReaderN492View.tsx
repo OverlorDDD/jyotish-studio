@@ -77,9 +77,11 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
   <section className={book.final} data-testid="reader-n492-final">
    <span className={styles.kicker}>{uk?'✦ ГОЛОВНЕ':'✦ THE ESSENTIALS'}</span>
    <h3>{read.summary.title}</h3>
-   <p><strong>{uk?'Ваша опора: ':'Your strengths: '}</strong>{read.summary.strength}</p>
-   <p><strong>{uk?'На що звернути увагу: ':'Watch for: '}</strong>{read.summary.attention}</p>
-   <p><strong>{uk?'Загальний напрям: ':'Your direction: '}</strong>{read.discoveries?.summary||read.summary.direction}</p>
+   {discoveries?.summary?<p data-testid="reader-n493-synthesis">{discoveries.summary}</p>:<>
+    <p><strong>{uk?'Ваша опора: ':'Your strengths: '}</strong>{read.summary.strength}</p>
+    <p><strong>{uk?'На що звернути увагу: ':'Watch for: '}</strong>{read.summary.attention}</p>
+    <p><strong>{uk?'Загальний напрям: ':'Your direction: '}</strong>{read.summary.direction}</p>
+   </>}
   </section>
   <details className={book.method}>
    <summary>{uk?'Методика та межі точності':'Method and limits'}</summary>
