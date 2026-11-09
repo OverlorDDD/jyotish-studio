@@ -276,7 +276,7 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     (privateLife?.implication||second.implication)+' '+
     (partnership?.implication||third.implication)+' '+
     (primary.implication||headline.implication);
- const summaryProof=uniq(topInsights.slice(0,3).flatMap(p=>p.evidence));
+ const summaryProof=[...new Set(topInsights.slice(0,3).flatMap(p=>p.evidence))];
  return {version:N492_MEANING_VERSION,topInsights,patternVersion:N493_PATTERN_VERSION,cards,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
    strength,attention,direction,proof:summaryProof},
