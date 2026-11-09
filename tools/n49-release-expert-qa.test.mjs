@@ -33,7 +33,7 @@ const normalize=s=>s.replace(/\s+/g,' ').trim();
 const forbidden=/\b(?:guaranteed destiny|certainly marry|will definitely|100% accurate|scientifically proven personality)\b|(?:гарантовано станеться|точно одружитесь|стовідсоткова доля|підтверджений діагноз)/iu;
 test('12 diverse real Swiss synthetic-birth charts x UK/EN: claim traceability and narrative editorial gate',async()=>{
  process.env.ALLOW_PYTHON_SWISSEPH='0';
- const dir=join(process.cwd(),'.qa-artifacts');
+ const dir=join(process.cwd(),'qa-artifacts');
  mkdirSync(dir,{recursive:true});
  const samples=['# N4.9 — 12 real-method invented example readings × 2 languages',
  'Every birth record is an INVENTED QA VECTOR. These are not actual people, not independently verified predictions or a human-astrologer endorsement.',
