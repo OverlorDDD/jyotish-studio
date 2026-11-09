@@ -174,10 +174,35 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    const degree=statusMeaning(dnQuality,uk);
    if(degree)meaning+=' '+(uk?'Професійна варга: '+pName(lord)+' '+degree:
     'Vocational division: '+lord+' is '+degree);
-   if(to===6)meaning+=' '+(uk?'Акцент професійної карти — щоденна майстерність, робота зі складними завданнями й системні процеси.':
-    'The vocational emphasis is disciplined problem-solving, regular craft and practical processes.');
-   else if(to===9)meaning+=' '+(uk?'Друга лінія професії — навчання, викладання або робота зі знаннями.':
-    'Education, teaching and the use of knowledge become another relevant vocational theme.');
+   // A concrete task based on the actual D10 house, not a guessed job title.
+   // This survives as the fallback when no higher-ranked discovery owns D10.
+   const vocationalTask:Record<number,[string,string]>={
+    1:['Самостійна відповідальність: перевірте цей мотив на невеликому проєкті, де вам належить головне рішення.',
+       'Own the decision on a small project and observe how independent responsibility feels.'],
+    2:['Ресурси й мовлення: спробуйте завдання з бюджетування, пояснення вартості або прозорих домовленостей.',
+       'Test work involving resource planning, explaining value or clear commercial agreements.'],
+    3:['Навички та комунікація: створіть коротку інструкцію, доповідь або прототип, який інші зможуть перевірити.',
+       'Build a short explanation, presentation or prototype others can test.'],
+    4:['Основа й стабільність: оцініть свою роботу над процесом, який робить систему або команду надійнішою.',
+       'Test a task that improves the reliability of a system, routine or team.'],
+    5:['Творчість та наставництво: перевірте тему через власний прототип або навчання іншої людини.',
+       'Test the creative or mentoring theme through a prototype or by teaching someone.'],
+    6:['Щоденна майстерність і складні задачі: оберіть процес, який можете реально полагодити й виміряти результат.',
+       'Pick a recurring complex problem you can solve and measure in practice.'],
+    7:['Спільна робота: випробуйте роль, де важливі переговори, чіткі обов’язки й взаємний результат.',
+       'Try a collaborative role that requires negotiation, clear duties and a shared result.'],
+    8:['Зміни та спільна відповідальність: проведіть аудит складної задачі й складіть план безпечного вдосконалення.',
+       'Audit a complex process and propose a careful improvement plan with shared ownership.'],
+    9:['Знання й наставництво: створіть навчальний матеріал або поясніть складну тему тому, хто лише починає.',
+       'Develop a lesson or explain a complex concept to a beginner.'],
+    10:['Відповідальність і публічний результат: візьміть невеликий проєкт від плану до завершення.',
+        'Lead a small visible project from planning to delivery.'],
+    11:['Здобутки й спільноти: оберіть роботу, де користь можна оцінити за результатом для інших.',
+        'Test a task with a measurable benefit for a group or community.'],
+    12:['Закулісна робота: дослідіть складну проблему самостійно й зафіксуйте висновок у документі.',
+        'Explore a complex problem independently and document a useful conclusion.']
+   };
+   meaning+=' '+(uk?'Практична перевірка професійного мотиву: ':'Test this vocational theme: ')+vocationalTask[to][idx];
   }else if(div===9){
    const venus=same(9,'Venus')!;
    meaning=uk?'У D1 сьомим домом керує '+pName(lord)+' у '+natal.house+'-му домі (сфера '+area(natal.house)+
