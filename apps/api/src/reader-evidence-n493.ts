@@ -39,6 +39,28 @@ const LOC_UK=[
  'домі й внутрішній опорі','творчості, дітях і навчанні','повсякденній праці й складних завданнях',
  'партнерстві й домовленостях','довірі та спільних зобов’язаннях','освіті й світогляді',
  'професії й відповідальності','результатах і колі однодумців','усамітненні й відновленні'];
+const PLANET_ROLE_UK:Record<string,string>={
+ Sun:'самостійність, відповідальність і ставлення до авторитету',
+ Moon:'внутрішній ритм і потребу у відчутті безпеки',
+ Mars:'ініціативу, сміливість і спосіб діяти',
+ Mercury:'мовлення, навчання та аналіз',
+ Jupiter:'знання, наставництво і розуміння смислу',
+ Venus:'взаємність, співпрацю та естетику',
+ Saturn:'дисципліну, тривалі зобов’язання й витримку',
+ Rahu:'незвичний досвід і пошук нових рішень',
+ Ketu:'дистанціювання і внутрішній пошук'
+};
+const PLANET_ROLE_EN:Record<string,string>={
+ Sun:'personal agency, responsibility and authority',
+ Moon:'emotional rhythm and safety',
+ Mars:'initiative, courage and decisive action',
+ Mercury:'communication, learning and analysis',
+ Jupiter:'knowledge, mentoring and meaning',
+ Venus:'reciprocity, cooperation and aesthetics',
+ Saturn:'discipline, long-term duties and endurance',
+ Rahu:'unusual experience and new approaches',
+ Ketu:'detachment and internal reflection'
+};
 const LOC_EN=[
  'personal choices','resources and family values','communication and skills',
  'home and inner stability','creativity, children and learning','daily work and problem-solving',
@@ -110,6 +132,8 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
  const name=(n:string)=>uk?NAMES_UK[n]||n:n;
  const gen=(n:string)=>uk?NAMES_GU[n]||n:n;
  const sign=(n:number)=>(uk?SIGNS_UK:SIGNS_EN)[n-1];
+ const locPrep=(n:number)=>uk&&[1,11].includes(n)?'в ':'у ';
+ const planetRole=(n:string)=>uk?PLANET_ROLE_UK[n]:PLANET_ROLE_EN[n];
  const signName=(n:number)=>(uk?SIGNS_UK_NOM:SIGNS_EN)[n-1];
  const area=(h:number)=>(uk?LOC_UK:LOC_EN)[h-1];
  const get=(n:string)=>chart.d1.find(x=>x.name===n);
@@ -125,10 +149,10 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
  add({id:'life-axis',theme:'identity',division:1,planetKeys:unique([lagna,'Moon']),
   title:uk?'Внутрішній ритм і життєвий напрям':'Inner rhythm and life direction',
   insight:uk?'Висхідним знаком керує '+name(lagna)+' у '+a.house+'-му домі ('+area(a.house)+
-   '). '+(lagna==='Moon'?'Це одночасно положення Місяця, а не ще один незалежний доказ.':
+   '). '+(lagna==='Moon'?'Місяць описує тут водночас особистий напрям і внутрішній ритм: його дім стає особливо важливим для розуміння потреб.':
    'Місяць у '+moon.house+'-му домі додає окремий показник внутрішніх потреб.'):
    'Your rising sign is ruled by '+lagna+' in house '+a.house+' ('+area(a.house)+
-   '). '+(lagna==='Moon'?'This is also the Moon itself, not a second independent confirmation.':
+   '). '+(lagna==='Moon'?'As both rising-sign ruler and Moon, it connects your outward direction with the need for emotional stability.':
    'The Moon in house '+moon.house+' provides a distinct emotional context.'),
   context:uk?(ascSpecial?'Потреба в особистому просторі та відновленні потребує місця поруч з іншими життєвими цілями.':
    'Сильний життєвий напрям не зводиться до одного показника: його треба зіставляти з іншими сферами.'):
@@ -225,10 +249,12 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
   const p=get(n)!;const owned=Array.from({length:12},(_,i)=>i+1).filter(h=>l[h]===n);
   add({id:'natal-resource-'+n.toLowerCase(),theme:'resources',division:1,
    title:uk?'Виразне натальне положення':'A notable natal resource',
-   insight:uk?name(n)+' у '+sign(p.sign)+' '+dignityTerm(dignityFor(n,p.sign),true)+
-    ' і керує домами '+owned.join(' та ')+'. Важливо, в яких сферах ці управління проявляються.':
+   insight:uk?name(n)+' '+locPrep(p.sign)+sign(p.sign)+' '+dignityTerm(dignityFor(n,p.sign),true)+
+    ', перебуває в '+p.house+'-му домі й керує '+owned.join('-м і ')+'-м домами. '+
+    'Це пов’язує '+area(owned[0])+' із '+area(p.house)+'.':
     n+' in '+sign(p.sign)+' is '+dignityTerm(dignityFor(n,p.sign),false)+
-     ', ruling houses '+owned.join(' and ')+'. Its lordship determines where this matters.',
+     ', located in house '+p.house+' and ruling houses '+owned.join(' and ')+
+     '. It connects '+area(owned[0])+' with '+area(p.house)+'.',
    context:uk?'Це виразний знаковий показник, не повна сила планети або гарантія подій.':
     'Sign dignity is only one traditional indicator, not full strength or a prediction.',
    planetKeys:[n],status:'support',score:73+(owned.includes(1)||owned.includes(9)?7:0),
@@ -306,13 +332,17 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
     ' it occupies house '+position.house+' ('+area(position.house)+'), '+sign(position.sign)+'.';
    meaning+=' '+interpretPair(division,first.house,position.house,uk);
   }
-  // Prevent redundant double counting of a natural significator which is
-  // also the topical house ruler. The alternate indicator is always distinct.
-    // SECOND, separate planet and separate sign evidence — not the same ruler counted twice.
-  meaning+=' '+(uk?'Другий незалежний показник — '+name(second)+
-   ' у D'+division+' у '+otherV.house+'-му домі ('+area(otherV.house)+').':
-   'A distinct second indicator, '+second+', occupies D'+division+
-   ' house '+otherV.house+' ('+area(otherV.house)+').');
+  // Natural indicator must be a different planet from the actual house lord.
+  // Its actual division placement adds a DIFFERENT traditional role, not a
+  // fabricated second occurrence of the same original longitude.
+  meaning+=' '+(uk?'Водночас '+name(second)+' у D'+division+' в '+otherV.house+
+   '-му домі ('+area(otherV.house)+') додає тему '+planetRole(second)+'.':
+   'Meanwhile '+second+' in D'+division+' house '+otherV.house+' ('+
+   area(otherV.house)+') adds the theme of '+planetRole(second)+'.');
+  if(position.house===otherV.house){
+   meaning+=' '+(uk?'Обидві планети акцентують одну сферу, але їхні традиційні ролі різні.':
+    'Both planets emphasize one house, but play different traditional roles.');
+  }
   if(yoga.has(lord)&&[7,10,24].includes(division)){
    const owned=Array.from({length:12},(_,i)=>i+1).filter(h=>l[h]===lord);
    meaning+=' '+(uk?name(lord)+' також є йогакаракою: керує домами '+owned.join(' і ')+'.':
