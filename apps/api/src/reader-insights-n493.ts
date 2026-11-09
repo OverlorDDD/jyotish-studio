@@ -151,7 +151,7 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const shared=planet==='Moon';
   const text=uk?'Управитель вашого висхідного знака — '+name(planet,uk)+'. У D1 ця планета перебуває у '+
     a.house+'-му домі ('+desc(a.house,uk)+'). '+
-    (shared?'Це водночас Місяць: його '+a.house+'-й дім пов’язує особистий напрям зі сферою '+desc(a.house,uk)+'. ':
+    (shared?'Це водночас Місяць: його '+a.house+'-й дім пов’язує особистий напрям із темою «'+desc(a.house,uk)+'». ':
      'Місяць окремо перебуває у '+moon.house+'-му домі ('+desc(moon.house,uk)+'). ')+
     'Сонце у '+sun.house+'-му домі додає інший вимір — '+desc(sun.house,uk)+'.':
     'Your ascendant ruler '+planet+' is in house '+a.house+' ('+desc(a.house,uk)+'). '+
@@ -313,16 +313,17 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
  const strengthText=strong(workFocus)?(uk?
    ' В D10 ця планета '+(workFocus==='exalted'?'в екзальтації.':'у власному знаку.'):
    ' D10 places it in '+(workFocus==='exalted'?'exaltation.':'its own sign.')):'';
- const work=uk?'Кар’єрний управитель '+name(careerLord,uk)+' поєднує '+desc(career.house,uk)+
-   ' в основній карті із '+desc(workD10.house,uk)+' у D10.'+strengthText+' ':
-  'The career ruler '+careerLord+' connects '+desc(career.house,uk)+
+ const work=uk?'Кар’єрний управитель '+name(careerLord,uk)+
+   ' поєднує тему «'+desc(career.house,uk)+'» в основній карті з темою «'+
+   desc(workD10.house,uk)+'» у D10.'+strengthText+' ':
+   'The career ruler '+careerLord+' connects '+desc(career.house,uk)+
    ' in the natal chart with '+desc(workD10.house,uk)+' in D10.'+strengthText+' ';
  const recovery=uk?(asc.house===12?
   'Управитель висхідного знака в 12-му домі додає помітну потребу в тиші та відновленні. ':
-  'Особистий напрям через '+name(ascLord,uk)+' пов’язаний із '+desc(asc.house,uk)+'. '):
+  'Особистий напрям через '+name(ascLord,uk)+' пов’язаний із темою «'+desc(asc.house,uk)+'». '):
   (asc.house===12?'The rising-sign ruler in house 12 adds the theme of privacy and recovery. ':
    'Personal direction through '+ascLord+' connects with '+desc(asc.house,uk)+'. ');
- const partnership=uk?'Партнерство через '+name(partnerLord,uk)+' стосується '+desc(partner.house,uk)+
+ const partnership=uk?'Партнерство через '+name(partnerLord,uk)+' пов’язане з темою «'+desc(partner.house,uk)+'»'+
   (partner.house===career.house?
    ' — це спільна сфера з професійним управителем, але не тотожний результат.':
    '; воно має власні умови, відмінні від роботи.') :
