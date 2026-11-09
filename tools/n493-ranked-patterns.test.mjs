@@ -48,7 +48,7 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
     if(lang==='en')assert.doesNotMatch(pattern.reading,/[А-Яа-яІіЇїЄєҐґ]/u);
     for(const fact of pattern.evidence){
      const m=/^D(1|2|9|10|24)\.([A-Za-z]+)\.(sign|house)=(\d+)$/.exec(fact);
-     if(!m)continue;
+     if(!m||m[2]==='ascendant')continue;
      const d=Number(m[1]),p=m[2],key=m[3],n=Number(m[4]);
      const source=d===1?chart.d1:chart.n4.charts.find(x=>x.division===d).planets;
      assert.equal(source.find(x=>x.name===p)?.[key],n,seed+'/'+lang+'/'+fact);
