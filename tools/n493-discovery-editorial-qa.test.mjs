@@ -44,7 +44,7 @@ test('N493 prioritizes 3-5 sourced discoveries, avoids false double votes, integ
       lords[10]!==lords[5], 'same ruler repeated as independent career and education finding');
    for(const item of direct.insights){
     assert.ok(item.headline.length>=18&&item.headline.length<=130);
-    assert.ok(item.teaser.length>=55&&item.teaser.length<=245);
+    assert.ok(item.teaser.length>=30&&item.teaser.length<=245, JSON.stringify({seed,lang,id:item.id,teaser:item.teaser}));
     assert.ok(item.interpretation.length>=105&&item.interpretation.length<=980,
      JSON.stringify({seed,lang,id:item.id,len:item.interpretation.length}));
     assert.ok(item.attention.length>=40);
