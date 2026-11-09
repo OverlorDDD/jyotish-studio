@@ -68,10 +68,14 @@ test('Classical Reader 8 combines source-bound, multilingual evidence for 15 div
 test('Classical signals use genuine D1 facts and D9 vocation, never invented D60 or current event',()=>{
  const chart=fixture(1);
  const career=extractN44Evidence(chart,10,'2026-11-07');
- const nav=career.find(s=>s.ruleId==='BJ-X-1-NAVAMSA-VOCATION');
- assert.ok(nav,'Brihat Jataka X/1 career rule should activate');
- assert.ok(nav.facts.some(x=>x.startsWith('D9.')));
- assert.equal(nav.application,'direct_natal');
+ const nav=career.filter(s=>s.ruleId.startsWith('BJ-X-1-NAVAMSA-VOCATION-'));
+ const moon=chart.d1.find(p=>p.name==='Moon');
+ const fromAsc=((chart.ascendant.sign+8)%12)+1,fromMoon=((moon.sign+8)%12)+1;
+ const classical=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn'];
+ const occupied=chart.d1.some(p=>classical.includes(p.name)&&[fromAsc,fromMoon].includes(p.sign));
+ assert.equal(nav.length,occupied?0:3,'BJ X.1 navamsa is a fallback, not an unconditional occupation claim');
+ assert.ok(nav.every(rule=>rule.facts.some(x=>x.startsWith('D9.'))));
+ assert.ok(nav.every(rule=>rule.application==='direct_natal'));
  assert.ok(career.every(s=>N44_CLASSICAL_SOURCES.some(x=>x.id===s.sourceId)));
  assert.deepEqual(extractN44Evidence(chart,60,'2026-11-07'),[]);
  const prompt=compactClassicalReaderV8ForAi(chart,'2026-11-07');
