@@ -61,7 +61,8 @@ test('All 15 thematic charts link back to their D1 house lord; output includes n
    const serialized=JSON.stringify(n);
    assert.doesNotMatch(serialized,/2000-01-01|50\.45|30\.52|Etc\/UTC|latitude|longitude|birthDate|birthTime|["]place["]:/iu);
    assert.doesNotMatch(n.threads.flatMap(t=>t.evidence).join(','),/D60\./);
-   assert.ok(n.threads.every(t=>t.evidence.length>=4&&t.text.length>170));
+   assert.ok(n.threads.every(t=>t.evidence.length>=4&&t.text.length>170),
+    JSON.stringify({seed,lang,counts:n.threads.map(t=>({id:t.id,evidence:t.evidence.length,characters:t.text.length}))}));
    assert.ok(n.threads.every(t=>!t.sourceIds.includes('FAKE_BOOK_VERSE')));
    portraits.push(n.opening+n.threads.map(t=>t.text).join(''));
   }
