@@ -106,15 +106,29 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
   'For '+area[0]+', '+primary+' rules D1 house '+focus.house+' and occupies house '+
   p1.house+' ('+house(p1.house,uk)+'). In D'+division+' it occupies house '+
   d1.house+' ('+house(d1.house,uk)+') in '+sign(d1.sign,uk)+'. ';
+ // Traditional sign cues modify HOW a topic is approached, not an
+ // independent strength point or a deterministic life event.
+ const SIGN_CUE_UK=['рішучий початок','сталість і послідовність','обмін думками',
+  'турбота й безпечна опора','творче самовираження','увага до деталей',
+  'пошук рівноваги й домовленості','глибина та зміна підходів',
+  'навчання й ширший горизонт','дисципліна та тривалий план',
+  'незалежне мислення й співпраця','уява та співчуття'];
+ const SIGN_CUE_EN=['direct initiative','patience and continuity','exchange of ideas',
+  'care and security','creative expression','attention to detail',
+  'balance and negotiation','depth and change','learning and broader perspective',
+  'discipline and long-range planning','independent thought and community',
+  'imagination and compassion'];
+ const signCue=(uk?SIGN_CUE_UK:SIGN_CUE_EN)[d1.sign-1];
  const bridge=uk?(p1.house===d1.house?
-  'В обох ракурсах повторюється тема '+house(d1.house,uk)+
-  ': вона стає головним способом проявити цю сферу життя. ':
-  'Тут видно перехід від '+house(p1.house,uk)+' до '+house(d1.house,uk)+
-  '. Перший дім описує початковий мотив, другий — його вираження в цій варзі. '):
+  'Тема «'+house(d1.house,uk)+'» повторюється у D1 і D'+division+
+  ', а знак додає спосіб її прояву — '+signCue+'. ':
+  'Мотив «'+house(p1.house,uk)+'» у D1 переходить у сферу «'+
+  house(d1.house,uk)+'» у D'+division+'; знак додає акцент на '+signCue+'. '):
   (p1.house===d1.house?
-   'Both lenses emphasize '+house(d1.house,uk)+' as the central arena for this theme. ':
-   'The emphasis shifts from '+house(p1.house,uk)+' to '+house(d1.house,uk)+
-   ': the first is the natal motive, the second its expression in this division. ');
+   'D1 and D'+division+' emphasize '+house(d1.house,uk)+
+   '; the divisional sign adds '+signCue+' as its symbolic approach. ':
+   'D1 emphasizes '+house(p1.house,uk)+', while D'+division+' shifts toward '+
+   house(d1.house,uk)+' with an emphasis on '+signCue+'. ');
  const secondaryLine=uk?(d1.house===d2.house?
   pname(secondary,uk)+' — інша планета, пов’язана із '+secondaryTopic+
   ' — займає той самий дім D'+division+
