@@ -74,6 +74,18 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
      (card.connection?'\nCross-chart evidence: '+card.connection:'')+
      '\nEvidence: '+card.proof.join(' · '));
    }
+   const d60=report.d60Preview;
+   const d60Selected=d60.factors[0];
+   if(d60Selected&&d60Selected.d1Sign===d60Selected.d60Sign&&lang==='uk')
+    assert.doesNotMatch(result.cards[15].meaning,/цю різницю|два різні/u,
+     'same D1 and D60 sign must not be called different');
+   if(d60Selected&&d60Selected.d1Sign===d60Selected.d60Sign&&lang==='en')
+    assert.doesNotMatch(result.cards[15].meaning,/these two placements differ|a different sign/i);
+   assert.doesNotMatch(result.summary.attention,/між грошей|та грошей|між праці|та праці|between .* and \\1/i);
+   assert.doesNotMatch(result.summary.direction,/Ваша карта не зводиться до одного скупчення|one planetary concentration/i);
+   const d9=result.cards.find(c=>c.division===9);
+   if(lords[7]==='Venus')assert.doesNotMatch(d9.meaning,/а Венера —|Venus occupies .* and Venus occupies/i,
+    'do not double-count the exact same Venus');
    assert.ok(result.summary.direction.length>=100);
    assert.ok(result.summary.direction.length<=640);
    assert.ok(result.summary.strength.length<=500);
