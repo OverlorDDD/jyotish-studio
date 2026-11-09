@@ -382,6 +382,44 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
     'Знання народжується в одній сфері, а майстерність формується в іншій':
     'Knowledge begins in one arena, while mastery grows in another';
   }
+  // The above-the-fold teaser must expose at least two exact properties of
+  // THIS chart, not a reusable slogan about a house, a division or a planet.
+  if(item.id==='career'){
+   const p=lords[10],a=d1(p),b=dn(10,p);
+   item.teaser=uk?'Управитель 10-го дому — '+name(p,uk)+
+    ': у D1 це '+a.house+'-й дім, у професійній D10 — '+b.house+'-й. '+
+    (a.house===b.house?'Акцент повторюється.':'Дія переходить в іншу сферу.'):
+    'The tenth ruler '+p+' moves from D1 house '+a.house+' to D10 house '+
+    b.house+'. '+(a.house===b.house?'The arena remains consistent.':'The focus shifts.');
+  }else if(item.id==='relationships'){
+   const p=lords[7],a=d1(p),b=dn(9,p),v=dn(9,'Venus');
+   item.teaser=uk?'Управитель партнерства — '+name(p,uk)+
+    ': D1, дім '+a.house+'; D9, дім '+b.house+'. '+
+    (p==='Venus'?'Венера вже виконує цю роль.':v.house===b.house?'Венера займає той самий дім D9.':'Венера в іншому домі D9.'):
+    'Partnership ruler '+p+': D1 house '+a.house+', D9 house '+b.house+
+    '. '+(p==='Venus'?'Venus is already this ruler.':v.house===b.house?'Venus shares its D9 house.':'Venus occupies a different D9 house.');
+  }else if(item.id==='identity'){
+   const p=lords[1],a=d1(p),m=d1('Moon');
+   item.teaser=uk?'Управитель лагни — '+name(p,uk)+', дім '+a.house+
+    '; Місяць — дім '+m.house+'. '+
+    (a.house===m.house?'Дві особисті теми сходяться в одному домі.':'Зовнішній напрям і внутрішній ритм мають різні опори.'):
+    'Ascendant ruler '+p+' occupies house '+a.house+', Moon house '+m.house+
+    '. '+(a.house===m.house?'Both concerns meet in one house.':'Direction and inner rhythms have separate anchors.');
+  }else if(item.id==='resources'){
+   const p=lords[2],q=lords[11],a=d1(p),b=d1(q);
+   item.teaser=uk?'Ресурсами керує '+name(p,uk)+' у '+a.house+'-му домі; '+
+    'здобутками — '+name(q,uk)+' у '+b.house+'-му. '+
+    (p===q?'Одна планета має дві функції.':'Управителі різні.'):
+    'Resources follow '+p+' in house '+a.house+'; gains follow '+q+
+    ' in house '+b.house+'. '+(p===q?'One planet, two functions.':'Different rulers, different questions.');
+  }else if(item.id==='education'){
+   const p=lords[5],a=d1(p),b=dn(24,p);
+   item.teaser=uk?'Управитель навчального 5-го дому — '+name(p,uk)+
+    ': D1, дім '+a.house+'; D24, дім '+b.house+
+    '. Це показує, як тема знань проявляється у варзі майстерності.':
+    'The fifth ruler '+p+' occupies D1 house '+a.house+' and D24 house '+
+    b.house+', locating the study theme in the skills division.';
+  }
   if(next)item.interpretation=(item.interpretation+' '+next).trim();
  }
  // Synthesize roles rather than repeat the discovery headlines.
