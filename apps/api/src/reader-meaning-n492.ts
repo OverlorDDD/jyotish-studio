@@ -13,6 +13,8 @@ import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts'
 import {authorConsultationV6} from './reader-narrative-v6.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
+import {buildN493Overview,type N493Overview} from './reader-insights-n493.ts';
+import {buildN493ThematicDetail} from './reader-detail-n493.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -20,7 +22,7 @@ type Lang='uk'|'en';
 type Card={division:number;title:string;meaning:string;connection:string|null;
  status:'notable'|'mixed'|'contextual'|'provisional';proof:string[];sourceIds:string[]};
 export type MeaningfulReading={version:typeof N492_MEANING_VERSION;
- cards:readonly Card[];summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
+ cards:readonly Card[];discoveries:N493Overview;summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
  method:string};
 const HEADS:Readonly<Record<number,[string,string,number]>>={
  1:['Особистість і життєвий напрям','Identity and direction',1],
@@ -106,18 +108,24 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
  const same=(div:number,name:string)=>source.find(c=>c.division===div)?.planets.find(p=>p.name===name);
  const facts=ruleFindings(chart);
  const d60=buildD60Preview(chart,lang);
+ const discoveries=buildN493Overview(chart,lang);
+ if(!discoveries)return null;
  const cards:Card[]=[];
  for(const div of N492_ORDER){
   const [titleUk,titleEn,topicHouse]=HEADS[div];
   const title=uk?titleUk:titleEn;
   if(div===60){
    const usable=d60.status==='conditional_signs'&&d60.allPlanets.length===9;
-   const main=d60.factors[0];
+   const main=d60.factors[0],second=d60.factors[1];
    const meaning=usable?
-    (uk?'За введеним часом обчислено дев’ять планетарних знаків D60. '+
-      (main?main.note:'Частина положень чутлива до меж поділу; точний висновок поки не робимо.'):
-     'Nine D60 planetary signs are calculated for the entered time. '+
-      (main?main.note:'Some placements are near divisional boundaries, so no precise conclusion is drawn.')):
+    (uk?'D60 — не ще один життєвий прогноз: це чутливий до точності часу зріз дев’яти розрахованих знаків. '+
+     (main?main.note+' ':'Немає достатньо віддалених від межі положень для персонального зіставлення. ')+
+     (second?second.note+' ':'')+
+     'Ці зіставлення допомагають побачити, як змінюється символічний акцент між D1 та D60, але самі не підтверджують точність записаного часу.':
+     'D60 is not another life forecast; it is a birth-time-sensitive view of nine calculated signs. '+
+     (main?main.note+' ':'No placements are sufficiently far from divisional boundaries for a closer personal comparison. ')+
+     (second?second.note+' ':'')+
+     'These comparisons show changes in symbolic emphasis between D1 and D60, not a certification of the recorded birth time.'):
     (uk?'Немає надійно прив’язаних до D1 даних D60 для індивідуального висновку.':
       'D60 evidence cannot currently be reliably bound to the birth chart.');
    cards.push({division:60,title,meaning,connection:null,status:'provisional',
@@ -242,6 +250,34 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    status:(dnQuality==='debilitated'&&notable(natalQuality))||(notable(dnQuality)&&natalQuality==='debilitated')?'mixed':
     notable(dnQuality)||isYoga?'notable':'contextual',proof,sourceIds:[]});
  }
+ // Use the evidence-ranked narrative as the card's source of meaning when a
+ // topic is one of the most characteristic for this specific chart.
+ // Its claim is shown only once: the top overview is a short headline; the
+ // expanded card carries the actual details and limitations.
+ // All other subject cards now require a distinct secondary graha
+ // comparison rather than a generic life-coaching tip.
+ for(const card of cards){
+  const detail=buildN493ThematicDetail(chart,lang,card.division);
+  if(detail){
+   card.meaning=detail.meaning;
+   card.proof=[...new Set([...card.proof,...detail.proof])];
+   card.sourceIds=[...new Set([...card.sourceIds,'N493-TWO-INDICATOR-COMPARISON'])];
+  }
+ }
+ const leading=new Map<number,N493Overview['insights']>();
+ for(const insight of discoveries.insights){
+  leading.set(insight.division,[...(leading.get(insight.division)||[]),insight]);
+ }
+ for(const card of cards){
+  const specials=leading.get(card.division)||[];
+  if(specials.length){
+   // Several distinct evidence patterns may belong to the same D1 card.
+   // Keep each surfaced claim verifiable at its linked destination.
+   card.meaning=specials.map(x=>x.interpretation).join(' ');
+   card.proof=[...new Set([...card.proof,...specials.flatMap(x=>x.proof)])];
+   card.sourceIds=[...new Set([...card.sourceIds,'N493-EVIDENCE-PRIORITY'])];
+  }
+ }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
  const lagnaLord=lp[1],careerLord=lp[10],relationLord=lp[7];
  const asc=get(lagnaLord)!,career=get(careerLord)!,moon=get('Moon')!;
@@ -306,7 +342,7 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
   ', vocation '+careerLord+' in house '+career.house+
   ', and partnership '+relationLord+' in house '+relationship.house+
   '. Look for actual corroboration rather than assuming one chart factor decides every area.');
- return {version:N492_MEANING_VERSION,cards,
+ return {version:N492_MEANING_VERSION,cards,discoveries,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
    strength,attention,direction,proof:[
     'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+asc.house,

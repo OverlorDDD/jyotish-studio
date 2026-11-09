@@ -46,7 +46,7 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
    for(const card of result.cards){
     assert.ok(card.title.length>5);
     assert.ok(card.meaning.length>=110&&card.meaning.length<=970, 'meaning length '+seed+'/'+lang+'/'+card.division+'/'+card.meaning.length);
-    assert.doesNotMatch(card.meaning,/Обидва ракурси повторюють|заслуговує на окрему увагу|один із показників|D1[^\n]*а в D1|мінімальний обсяг|one of the indicators/i);
+    assert.doesNotMatch(card.meaning,/Обидва ракурси повторюють|заслуговує на окрему увагу|один із показників|D1[^\n]*а в D1(?![0-9])|мінімальний обсяг|one of the indicators/i);
     if(lang==='uk')assert.doesNotMatch(card.meaning,/лагна у Овні|не рахуємо її двічі|важливий Венера|пов’язаний з Місяць/u,
       'do not leak grammar errors or editorial implementation jargon');
     assert.doesNotMatch(card.meaning,/сповнена гарантій|guaranteed fate|scientifically proven personality/i);
@@ -62,7 +62,7 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
      assert.ok(card.proof.includes('D'+card.division+'.'+name+'.sign='+dn.sign));
      if(card.division===1)assert.doesNotMatch(card.meaning,/а в D1 —|and in D1/iu);
      if(card.division===10&&yoga.includes(name)){
-      assert.match(card.meaning,lang==='uk'?/йогакаракою/:/yogakaraka/);
+      assert.match(card.meaning,lang==='uk'?/йогакаракою|йогакарака/:/yogakaraka/);
       notable.push({seed,lang,asc:chart.ascendant.sign,planet:name});
      }
      if(card.division===10&&dignityFor(name,dn.sign)==='exalted')
