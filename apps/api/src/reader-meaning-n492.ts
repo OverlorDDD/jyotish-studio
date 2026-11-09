@@ -116,12 +116,16 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
   const title=uk?titleUk:titleEn;
   if(div===60){
    const usable=d60.status==='conditional_signs'&&d60.allPlanets.length===9;
-   const main=d60.factors[0];
+   const main=d60.factors[0],second=d60.factors[1];
    const meaning=usable?
-    (uk?'За введеним часом обчислено дев’ять планетарних знаків D60. '+
-      (main?main.note:'Частина положень чутлива до меж поділу; точний висновок поки не робимо.'):
-     'Nine D60 planetary signs are calculated for the entered time. '+
-      (main?main.note:'Some placements are near divisional boundaries, so no precise conclusion is drawn.')):
+    (uk?'D60 — не ще один життєвий прогноз: це чутливий до точності часу зріз дев’яти розрахованих знаків. '+
+     (main?main.note+' ':'Немає достатньо віддалених від межі положень для персонального зіставлення. ')+
+     (second?second.note+' ':'')+
+     'Ці зіставлення допомагають побачити, як змінюється символічний акцент між D1 та D60, але самі не підтверджують точність записаного часу.':
+     'D60 is not another life forecast; it is a birth-time-sensitive view of nine calculated signs. '+
+     (main?main.note+' ':'No placements are sufficiently far from divisional boundaries for a closer personal comparison. ')+
+     (second?second.note+' ':'')+
+     'These comparisons show changes in symbolic emphasis between D1 and D60, not a certification of the recorded birth time.'):
     (uk?'Немає надійно прив’язаних до D1 даних D60 для індивідуального висновку.':
       'D60 evidence cannot currently be reliably bound to the birth chart.');
    cards.push({division:60,title,meaning,connection:null,status:'provisional',
