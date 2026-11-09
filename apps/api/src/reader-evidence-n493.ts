@@ -11,6 +11,7 @@ import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts'
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
 import {N492_ORDER} from './reader-meaning-n492.ts';
+import {composeN493Topic} from './reader-prose-n493.ts';
 
 export const N493_VERSION='n493-ranked-evidence-16-varga-v1' as const;
 type Lang='uk'|'en';
@@ -314,54 +315,19 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
    ...natalProof(lord),...vProof(division,lord),
    ...natalProof(second),...vProof(division,second)
   ]);
-  let meaning='';
-  if(division===1){
-   meaning=uk?'Ваш висхідний знак — '+signName(ascPos)+'. Його управитель '+name(lord)+
-    ' у '+first.house+'-му домі ('+area(first.house)+'); '+name(second)+
-    ' у '+other.house+'-му домі додає іншу сферу — '+area(other.house)+'.':
-    'Your rising sign is '+sign(ascPos)+'. Its ruler '+lord+' occupies house '+
-    first.house+' ('+area(first.house)+'), while '+second+' adds the distinct area of '+
-    area(other.house)+' from house '+other.house+'.';
-  }else{
-   meaning=uk?'Для теми «'+ukTitle+'» перший показник — управитель '+homeHouse+
-    '-го дому '+name(lord)+' у D1 в '+first.house+'-му домі ('+area(first.house)+'). '+
-    'У D'+division+' він у '+position.house+'-му домі ('+area(position.house)+'), '+
-    'знак «'+signName(position.sign)+'».':
-    'For '+enTitle.toLowerCase()+', natal house '+homeHouse+' is ruled by '+lord+
-    ' in D1 house '+first.house+' ('+area(first.house)+'). In D'+division+
-    ' it occupies house '+position.house+' ('+area(position.house)+'), '+sign(position.sign)+'.';
-   meaning+=' '+interpretPair(division,first.house,position.house,uk);
-  }
-  // Natural indicator must be a different planet from the actual house lord.
-  // Its actual division placement adds a DIFFERENT traditional role, not a
-  // fabricated second occurrence of the same original longitude.
-  meaning+=' '+(uk?'Водночас '+name(second)+' у D'+division+' в '+otherV.house+
-   '-му домі ('+area(otherV.house)+') додає тему '+planetRole(second)+'.':
-   'Meanwhile '+second+' in D'+division+' house '+otherV.house+' ('+
-   area(otherV.house)+') adds the theme of '+planetRole(second)+'.');
-  if(position.house===otherV.house){
-   meaning+=' '+(uk?'Обидві планети акцентують одну сферу, але їхні традиційні ролі різні.':
-    'Both planets emphasize one house, but play different traditional roles.');
-  }
+  const meaning=composeN493Topic({
+   div:division,name:lord,name2:second,d1House:first.house,
+   vHouse:position.house,v2House:otherV.house,vSign:position.sign,
+   dignity,ascSign:ascPos
+  },lang);
   if(yoga.has(lord)&&[7,10,24].includes(division)){
    const owned=Array.from({length:12},(_,i)=>i+1).filter(h=>l[h]===lord);
-   meaning+=' '+(uk?name(lord)+' також є йогакаракою: керує домами '+owned.join(' і ')+'.':
-    lord+' is also a yogakaraka, ruling houses '+owned.join(' and ')+'.');
    proof.push(...owned.map(h=>'D1.house-lord.'+h+'='+lord));
   }
-  let context:string|null=null;
-  if(dignity==='exalted'||dignity==='own')context=uk?
-   name(lord)+' у D'+division+' '+dignityTerm(dignity,true)+
-    '. Це підтримує тему за знаком, але не визначає результат без інших перевірок.':
-   lord+' is '+dignityTerm(dignity,false)+' in D'+division+
-    '. This supports the theme by sign, not by a complete strength assessment.';
-  else if(dignity==='debilitated')context=uk?
-   name(lord)+' у D'+division+' перебуває у знаку падіння; без інших перевірок це не негативний прогноз.':
-   lord+' occupies its debilitation sign in D'+division+'; no negative prediction follows from this alone.';
-  // A second aspect can qualify but not be converted into a fake categorical score.
-  if(secondDignity==='debilitated'&&dignity!=='debilitated')context=(context?context+' ':'')+
-    (uk?'Другий показник потребує додаткової перевірки: '+name(second)+' у знаку падіння.':
-     'The second indicator '+second+' is in a debilitation sign and requires contextual checks.');
+  const context=secondDignity==='debilitated'&&dignity!=='debilitated'?
+   (uk?name(second)+' — додатковий показник у знаку падіння. Його роль потребує перевірки, а не негативного прогнозу.':
+     second+' is a separate indicator in a debilitation sign; interpret it conditionally.'):null;
+  let careerCheck='';
   if(division===10){
    // Brihat Jataka X.1: compare the 10th counted from Lagna, Moon and Sun.
    // This is a verified SIGN calculation only; do not invent career titles.
@@ -369,15 +335,15 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
    const sun=get('Sun')!,sun10=((sun.sign+8)%12)+1;
    const in10=CLASSICAL_GRAHAS.filter(n=>[moon10,sun10].includes(get(n)!.sign));
    if(in10.length){
-    meaning+=' '+(uk?'За додатковою класичною перевіркою десятого знака від Місяця і Сонця там розташовані '+
-      in10.map(name).join(', ')+'. Це інші ракурси професії, не другий підрахунок D10.':
-      'A separate classical tenth-sign check from the Moon and Sun finds '+
-       in10.join(', ')+'. These are additional natal lenses, not another count of D10.');
+    careerCheck=uk?'Знак десятого дому від Місяця чи Сонця додатково містить '+in10.map(name).join(', ')+
+      '. У традиції цей ракурс уточнює оцінку професії, але не визначає її самостійно.':
+      'The tenth-sign check from the Moon or Sun includes '+in10.join(', ')+
+      '; this adds vocational context rather than deciding a job title.';
     proof.push('D1.Moon.tenth.sign='+moon10,'D1.Sun.tenth.sign='+sun10,
      ...in10.map(n=>'D1.'+n+'.sign='+get(n)!.sign));
    }
   }
-  cards.push({division,title:uk?ukTitle:enTitle,meaning,context,
+  cards.push({division,title:uk?ukTitle:enTitle,meaning:meaning+(careerCheck?' '+careerCheck:''),context,
    findingIds:related.map(r=>r.id),status:leadStatus(posStatus(dignity),posStatus(secondDignity)),
    proof:unique(proof),ruleIds:['PARASHARI_SIGN_LORDSHIP','N4_VERIFIED_VARGA_D'+division,
     ...(division===10?['BJ_X_1_TENTH_FROM_LAGNA_MOON_SUN']:[])]});
