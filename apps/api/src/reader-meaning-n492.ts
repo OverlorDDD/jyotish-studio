@@ -25,7 +25,7 @@ type Card={
  sourceMethod:readonly string[];
  sensitivity:'ordinary'|'fine'|'provisional';
 };
-type Conclusion={version:typeof N492_MEANING_VERSION;cards:readonly Card[];
+export type N492Meaning={version:typeof N492_MEANING_VERSION;cards:readonly Card[];
  takeaways:readonly {text:string;sourceFacts:readonly string[]}[];limits:string};
 const HOUSES_UK=['особисті рішення','ресурси та мовлення','навички й спілкування','дім і внутрішня опора',
  'творчість і діти','повсякденна праця та подолання перешкод','партнерство й домовленості',
@@ -94,7 +94,7 @@ const LESSON_EN:Readonly<Record<number,string>>={
 const strong=(v:string)=>v==='own'||v==='exalted';
 const weak=(v:string)=>v==='debilitated';
 const uniq=(values:readonly string[])=>[...new Set(values)];
-export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):Conclusion|null{
+export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N492Meaning|null{
  const source=verifiedVargaSource(chart);
  if(!source)return null;
  const uk=lang==='uk',context=readerClassicalContext(chart,asOf);
