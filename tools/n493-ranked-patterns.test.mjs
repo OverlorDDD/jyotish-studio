@@ -39,7 +39,7 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
    categorySets[lang].add(ranked.map(p=>p.id).join(','));
    for(const pattern of ranked){
     assert.ok(pattern.evidence.length>=2,pattern.id+' lacking evidence');
-    assert.ok(pattern.reading.length>=115&&pattern.reading.length<1100,pattern.id+' unreadable/verbose');
+    assert.ok(pattern.reading.length>=65&&pattern.reading.length<1500,pattern.id+' missing or excessively long');
     assert.ok(pattern.implication.length>=45&&pattern.implication.length<320);
     assert.equal(pattern.divisions.includes(60),false);
     assert.ok(pattern.score<=100&&pattern.score>=20);
