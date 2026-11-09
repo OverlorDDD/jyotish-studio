@@ -355,6 +355,33 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
      '. Distinguish absorbing knowledge from applying a skill.');
    if(p!=='Mercury')item.proof=unique([...item.proof,'D24.Mercury.house='+m.house]);
   }
+  // Headline must announce an actual pattern, never a topic label alone.
+  if(item.id==='career'){
+   const h=dn(10,lords[10]).house;
+   if(h===6)item.headline=uk?'Професійна сила — у щоденній майстерності та складних задачах':
+    'Work grows through craft and complex problem-solving';
+   if(h===9)item.headline=uk?'Професійна тема проходить через знання й наставництво':
+    'Knowledge and mentorship shape the vocational theme';
+   if(h===11)item.headline=uk?'Професійна тема пов’язана з результатами та спільнотами':
+    'A vocational emphasis on results and communities';
+  }else if(item.id==='relationships'){
+   const p=lords[7],b=dn(9,p),v=dn(9,'Venus');
+   if(p!=='Venus')item.headline=b.house===v.house?
+    (uk?'Близькість і домовленості зустрічаються в одній сфері':
+      'Affection and commitment meet in one life area'):
+    (uk?'Близькість і домовленості потребують різних підходів':
+      'Affection and commitment take different routes');
+  }else if(item.id==='identity'){
+   const a=d1(lords[1]),m=d1('Moon');
+   if(a.house!==m.house)item.headline=uk?
+    'Особистий напрям і потреба у відновленні не тотожні':
+    'Personal direction and the need to recover are distinct';
+  }else if(item.id==='education'){
+   const a=d1(lords[5]),b=dn(24,lords[5]);
+   if(a.house!==b.house)item.headline=uk?
+    'Знання народжується в одній сфері, а майстерність формується в іншій':
+    'Knowledge begins in one arena, while mastery grows in another';
+  }
   if(next)item.interpretation=(item.interpretation+' '+next).trim();
  }
  // Synthesize roles rather than repeat the discovery headlines.
