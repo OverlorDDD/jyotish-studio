@@ -180,7 +180,7 @@ export class JyotishController{
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':'+N492_MEANING_VERSION+':minutes-uncertain=+String(omitD60);
+  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':'+N492_MEANING_VERSION+':minutes-uncertain='+String(omitD60);
   const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(safeChart,birth.lang,report.asOf,{
    onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
   }));
