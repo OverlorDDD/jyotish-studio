@@ -125,7 +125,7 @@ curl -fsSL --max-time 30 https://galaxiora.com/api/v1/jyotish/runtime |
   for(const [key,expected] of [
     ["readerEdition","reader-v8.0.0-n44"],
     ["editorialEdition","n48-poetic-evidence-1.0.0"],
-    ["interpretationEdition","n491-unified-evidence-v1"],
+    ["interpretationEdition","n49-unified-evidence-v1"],
     ["verificationContract","jyotish-integrity-v3"],
     ["presentationEdition","n491-compact-cross-varga-v1"]
   ]){if(j[key]!==expected)throw Error("N491_RUNTIME_MISMATCH:"+key);}
@@ -144,7 +144,7 @@ for lang in uk en; do
     process.stdin.on("end",()=>{
       const a=JSON.parse(s),reader=a.readerV8, n=reader?.integrated;
       if(a.verification?.status!=="verified_internal"||a.readerV8?.status!=="available"||
-       n?.version!=="n491-unified-evidence-v1"||n?.links?.length!==15||
+       n?.version!=="n49-unified-evidence-v1"||n?.links?.length!==15||
        n?.threads?.length!==5||reader?.compactCards?.length!==15||reader?.d60Preview?.allPlanets?.length!==9||
        !reader?.compactCards?.every(card=>card.proof?.some(f=>f.startsWith("D"+card.division+"."))&&
          card.proof?.some(f=>f.startsWith("D"+card.relatedDivision+".")))||
