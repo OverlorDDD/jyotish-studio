@@ -95,7 +95,16 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   friction:extractN44Evidence(chart,secondary,asOf).some(x=>x.role==='friction')
  };
  const synthesis=buildSourceSynthesis(chart,lang,insights,primary,secondary,polarity);
- const integrated=buildUnifiedN49(chart,lang,asOf,primary,secondary);
+ // A D1-only selection cannot serve as a second independent varga lens.
+ // Preserve legacy N4.8 highlights, but use two DISTINCT additional Dn
+ // links for N4.9. Never promote absence of a positive rule into a warning.
+ const extraDivisions=[27,24,2,9,3,4,12,7,16,20,40,45,30];
+ const n49Primary=primary!==1?primary:
+  [...extraDivisions].sort((a,b)=>activated(b,'resource')-activated(a,'resource'))[0];
+ const n49Secondary=secondary!==1&&secondary!==n49Primary?secondary:
+  [...extraDivisions].filter(d=>d!==n49Primary)
+   .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
+ const integrated=buildUnifiedN49(chart,lang,asOf,n49Primary,n49Secondary);
  if(!integrated||integrated.links.length!==15||integrated.threads.length!==5)return unavailable;
  /* The three lead cards use verified facts, not generic reflective questions. */
  const highlights=synthesis.highlights as ClassicalReaderReport['highlights'];
