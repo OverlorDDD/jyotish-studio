@@ -4,6 +4,7 @@
  */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {N4_D60_VERSION,N4_D60_METHOD,type D60Candidate} from './n4-d60-candidate.ts';
+import {classicalLordshipTable} from './reader-classical.ts';
 export const D60_PREVIEW_VERSION='d60-conditional-signs-n47-v1' as const;
 type Lang='uk'|'en';
 type Factor={planet:string;d1Sign:number;d60Sign:number;boundaryDistanceArcseconds:number;note:string};
@@ -72,6 +73,13 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
   });
  }
  if(allPlanets.length!==9||new Set(allPlanets.map(p=>p.planet)).size!==9)return noData(lang);
+ const natalLords=classicalLordshipTable(chart.ascendant.sign);
+ const priorities=[natalLords[1],natalLords[10],natalLords[7],'Moon','Sun','Jupiter','Venus','Saturn','Mercury','Mars'];
+ const role=(planet:string)=>planet===natalLords[1]?
+  (uk?'Управитель вашого висхідного знака':'The ruler of your rising sign'):
+  planet===natalLords[10]?(uk?'Управитель вашої професійної сфери':'The ruler of your career sector'):
+  planet===natalLords[7]?(uk?'Управитель сфери партнерства':'The ruler of your partnership sector'):
+  (uk?'Один із натальних показників':'One of the natal indicators');
  const ordered=PLANETS.map((p):Factor|null=>{
   const original=chart.d1.find(x=>x.name===p.key);
   const fine=d.planets.find(x=>x.name===p.key);
@@ -82,17 +90,18 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
   const natalTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[original.sign-1];
   const fineTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[fine.sign-1];
   const note=uk?
-   p.uk+': D1 у '+from+' ('+natalTheme+'), D60 у '+to+
-   ' ('+fineTheme+'). Для теми '+p.ukTheme+' це два різні символічні акценти однієї планети.':
-   p.key+': D1 in '+from+' ('+natalTheme+'), D60 in '+to+
-   ' ('+fineTheme+'). These are two symbolic shades of the same planet in '+p.enTheme+'.';
+   role(p.key)+' — '+p.uk+'. У D1 планета в '+from+' ('+natalTheme+
+   '), у D60 — в '+to+' ('+fineTheme+
+   '). Цю різницю слід читати разом із D1, а не як окремий прогноз.':
+   role(p.key)+' — '+p.key+'. In D1 it is in '+from+' ('+natalTheme+
+   '), in D60 '+to+' ('+fineTheme+
+   '). These two placements must be read together, not as an independent prediction.';
   return {planet:p.key,d1Sign:original.sign,d60Sign:fine.sign,
    boundaryDistanceArcseconds:fine.boundaryDistanceArcseconds,note};
  }).filter((x):x is Factor=>x!==null);
  // Do not cherry-pick "good" planets. Choose the widest boundaries first and
  // avoid factors within 90 arcseconds of a nominal D60 sector edge.
- const priority=['Moon','Sun','Mars','Mercury','Jupiter','Venus','Saturn'];
- const factors=[...ordered].sort((a,b)=>priority.indexOf(a.planet)-priority.indexOf(b.planet)).slice(0,3);
+ const factors=[...ordered].sort((a,b)=>priorities.indexOf(a.planet)-priorities.indexOf(b.planet)).slice(0,3);
  const warning=uk?
   'D60 показує обчислені знаки планет, а не підтверджену точність часу народження. Позначені поблизу межі знаки можуть змінитися через похибку часу. Доми та асцендент D60 тут не трактуються.':
   'D60 shows calculated planetary signs, not independently verified birth-time accuracy. Near-boundary signs may change if the time is off. D60 houses and ascendant are not interpreted.';
