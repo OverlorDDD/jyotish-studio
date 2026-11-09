@@ -97,41 +97,28 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
  45:['Сформулюйте власними словами один родинний принцип, який ви свідомо залишаєте собі.',
      'Restate one family principle you consciously choose to keep.']
  };
- const natal=uk?'У D1 управитель '+focus.house+'-го дому '+pname(primary,uk)+
-  ' стоїть у '+p1.house+'-му домі ('+house(p1.house,uk)+'). ':
-  'In D1, house '+focus.house+' is ruled by '+primary+' in house '+p1.house+
-  ' ('+house(p1.house,uk)+'). ';
- const varga=uk?'У D'+division+' він у '+d1.house+'-му домі ('+
-  house(d1.house,uk)+'), у '+sign(d1.sign,uk)+'. ':
-  'In D'+division+' it is in house '+d1.house+' ('+house(d1.house,uk)+
-  '), in '+sign(d1.sign,uk)+'. ';
- const bridge=uk?(p1.house===d1.house?
-  'Обидві карти підкреслюють '+house(d1.house,uk)+': це сфера, через яку тема набуває практичного вираження. ':
-  'Головний перехід — від '+house(p1.house,uk)+' до '+house(d1.house,uk)+
-  '. Перше задає мотив, друге показує тематичний спосіб його реалізації. '):
-  (p1.house===d1.house?
-  'Both views emphasize '+house(d1.house,uk)+' as the arena of expression. ':
-  'The central shift is from '+house(p1.house,uk)+' toward '+house(d1.house,uk)+
-  ': one frames the motive, the other the thematic expression. ');
- const second=uk?(d1.house===d2.house?
-  pname(secondary,uk)+' як окремий показник, пов’язаний із '+area[1]+' займає ту саму сферу D'+division+
-  '; це спільна тема, але не подвійна обіцянка результату. ':
-  pname(secondary,uk)+' як окремий показник, пов’язаний із '+area[1]+' у D'+division+
-  ' стоїть у '+d2.house+'-му домі ('+house(d2.house,uk)+
-  '). Це інша потреба, яку важливо не підміняти першою. '):
-  (d1.house===d2.house?
-  'The distinct indicator '+secondary+' ('+area[1]+
-  ') shares that D'+division+' house: one theme, not two outcome guarantees. ':
-  'The separate indicator '+secondary+' ('+area[1]+') occupies D'+division+
-  ' house '+d2.house+' ('+house(d2.house,uk)+'); its needs need a separate answer. ');
- const qualified=good(q1)?(uk?'Знакова гідність управителя підтримує мотив, але не обіцяє подій. ':
-  'The ruler has supportive sign dignity, not a promise of events. '):
-  q1==='debilitated'?(uk?'Знак падіння управителя вимагає перевірки інших умов, а не фатального висновку. ':
-  'The ruler’s debilitation calls for checking other factors, not a verdict. '):'';
- const meaning=(uk?'Тема '+area[0]+' має дві пов’язані, але не тотожні лінії. ':
-  'The theme of '+area[0]+' has two connected but distinct strands. ')+
-  natal+varga+bridge+second+qualified+
-  (uk?'Практично: ':'Try this: ')+PRACTICE[division][uk?0:1];
+ // Two relevant, actually different grahas are checked, but a coincident
+ // house number is not counted as independent strength. Say what the chart
+ // contains; don't invent a life outcome from two raw placements.
+ const natal=uk?'Для сфери «'+area[0]+'» важливий '+pname(primary,uk)+
+  ' — управитель '+focus.house+'-го дому. У D1 він розташований у '+p1.house+
+  '-му домі ('+house(p1.house,uk)+'), а в D'+division+' — у '+d1.house+
+  '-му ('+house(d1.house,uk)+'), у '+sign(d1.sign,uk)+'. ':
+  'For '+area[0]+', the ruler of natal house '+focus.house+', '+primary+
+  ', occupies D1 house '+p1.house+' ('+house(p1.house,uk)+
+  ') and D'+division+' house '+d1.house+' ('+house(d1.house,uk)+
+  ') in '+sign(d1.sign,uk)+'. ';
+ const supplement=uk?'Другий тематичний показник — '+pname(secondary,uk)+
+  ': у D'+division+' він у '+d2.house+'-му домі ('+house(d2.house,uk)+'). ':
+  'A distinct thematic indicator, '+secondary+', occupies D'+division+
+  ' house '+d2.house+' ('+house(d2.house,uk)+'). ';
+ const dignityNote=good(q1)?(uk?
+  'Управитель має сприятливе знакове положення; без оцінки інших умов це не гарантія результату. ':
+  'The ruler has supportive sign dignity, not a guarantee without additional factors. '):
+  q1==='debilitated'?(uk?
+  'Управитель у знаку падіння; для оцінки потрібні інші умови, а не категоричний висновок. ':
+  'The ruler is in its debilitation sign; a conclusion needs other conditions. '):'';
+ const meaning=natal+supplement+dignityNote;
  const proof=['D1.house-lord.'+focus.house+'='+primary,
   'D1.'+primary+'.house='+p1.house,'D1.'+secondary+'.house='+p2.house,
   'D'+division+'.'+primary+'.house='+d1.house,'D'+division+'.'+primary+'.sign='+d1.sign,
