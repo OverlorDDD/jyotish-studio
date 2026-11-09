@@ -64,6 +64,9 @@ function interpretation(from:number,to:number,uk:boolean){
  if(from===9&&to===6)return uk?
   'Тут знання та пошук власного шляху переходять у конкретну щоденну роботу.':
   'Knowledge and a sense of direction meet the demands of practical daily work.';
+ if(from===6&&to===8)return uk?
+  'Тут щоденна дисципліна пов’язується зі здатністю переживати зміни, а не з готовою обіцянкою результату.':
+  'Daily discipline is read together with adapting to change, not as a guaranteed outcome.';
  if(from===12&&to===7)return uk?
   'Потреба в тиші й відновленні впливає на те, як будуються домовленості з іншими.':
   'A need for privacy and recovery meets the demands of close relationships.';
@@ -109,12 +112,12 @@ export function buildN491Cards(chart:CalculatedChart,lang:Lang):readonly N491Car
   if(!d1||!dn||!other)throw Error('N491_MISSING_VERIFIED_VARGA_EVIDENCE_'+division);
   const topic=FOCUS[division][uk?0:1];
   const lead=uk?
-   'Для '+topic+' один із ключових показників — '+name(lord)+
-   '. У D1 він пов’язаний із '+area(d1.house)+', а в D'+division+
-   ' — із '+area(dn.house)+'. '+interpretation(d1.house,dn.house,true):
-   'For '+topic+', one key traditional indicator is '+name(lord)+
-   '. In D1 it relates to '+area(d1.house)+', and in D'+division+
-   ' to '+area(dn.house)+'. '+interpretation(d1.house,dn.house,false);
+   'Для '+topic+' важливий '+name(lord)+': у головній карті він у '+sign(d1.sign)+
+   ' ('+area(d1.house)+'), а в D'+division+' — у '+sign(dn.sign)+
+   ' ('+area(dn.house)+'). '+interpretation(d1.house,dn.house,true):
+   'For '+topic+', '+name(lord)+' is a relevant indicator: in the birth chart it occupies '+
+   sign(d1.sign)+' ('+area(d1.house)+'), and in D'+division+' it occupies '+
+   sign(dn.sign)+' ('+area(dn.house)+'). '+interpretation(d1.house,dn.house,false);
   const contrast=n491Contrast(dignityFor(lord,dn.sign),dignityFor(lord,other.sign));
   const connection=(uk?
    'Зв’язок із D'+relatedDivision+': той самий '+name(lord)+
