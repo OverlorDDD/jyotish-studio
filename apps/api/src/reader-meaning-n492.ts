@@ -341,10 +341,13 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
    statement=uk?'Сьомим домом D1 керує '+name(main)+' (у '+p.house+
     '-му домі). У D9 ця планета стоїть у '+sign(d.sign)+
     ', а Венера — у '+sign(inD(9,'Venus').sign)+
-    '. Читаємо обидва показники разом: один описує зв’язок сфер життя, другий — символіку близькості.':
+    '. У D1 Венера в '+natal('Venus').house+'-му домі, а Місяць — у '+natal('Moon').house+
+    '-му: це додає різні умови для взаємності та відновлення, які потрібно читати разом.':
     'The D1 seventh lord '+main+' occupies house '+p.house+
     '. In D9 it is in '+sign(d.sign)+', while Venus is in '+sign(inD(9,'Venus').sign)+
-    '. The partnership ruler and Venus provide complementary evidence.';
+    '. Natal Venus occupies house '+natal('Venus').house+
+    ' and the Moon occupies house '+natal('Moon').house+
+    '; affection and emotional recovery thus have distinct contexts.';
   }else if(division===2){
    const other=lords[11];
    statement=uk?'Другий дім (особисті ресурси) контролює '+name(main)+
@@ -381,6 +384,10 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
    'D'+division+'.'+second+'.house='+dp.house]:[];
   if(division===2){
    extra.push('D1.house-lord.11='+lords[11],...d1Facts(lords[11]));
+  }
+  if(division===9){
+   extra.push(...d1Facts('Venus'),...d1Facts('Moon'),
+    'D9.Venus.sign='+inD(9,'Venus').sign);
   }
   if(division===12){
    extra.push('D1.house-lord.9='+lords[9],...d1Facts(lords[9]));
