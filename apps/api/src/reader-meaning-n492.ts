@@ -15,6 +15,7 @@ import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
 import {rankN493Patterns,type ChartPattern,N493_PATTERN_VERSION} from './reader-patterns-n493.ts';
 import {n493TopicDepth} from './reader-card-depth-n493.ts';
+import {synthesizeN493} from './reader-synthesis-n493.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -252,48 +253,12 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     notable(dnQuality)||isYoga?'notable':'contextual',proof,sourceIds:[]});
  }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
- // The conclusion is about the *relationship between the dominant themes*,
- // not a second list of planet coordinates or a repeat of five card paragraphs.
- const headline=topInsights[0],second=topInsights[1],third=topInsights[2];
- const primary=topInsights.find(p=>p.id==='vocation')||headline;
- const privateLife=topInsights.find(p=>p.id==='inner-life');
- const partnership=topInsights.find(p=>p.id==='partnership');
- const cautionInsight=topInsights.find(p=>p.id==='caution');
- const strength=uk?
-  'Найважливіший професійний або особистий ресурс цієї карти — «'+primary.title+'». '+
-    primary.implication:
-  'A key vocation or personal resource in this chart is "'+primary.title+'". '+
-    primary.implication;
- const attention=cautionInsight?(uk?
-  'Окрема перевірка потрібна для теми «'+cautionInsight.title+'». '+
-   cautionInsight.implication:
-  'One chart factor needs review: "'+cautionInsight.title+'". '+
-   cautionInsight.implication):
-  (uk?'Навіть виразний знак у D10 не оцінює автоматично особисті потреби й партнерство. '+
-     (privateLife?.implication||second.implication):
-   'Even a strong vocational indicator does not settle personal needs or partnership. '+
-     (privateLife?.implication||second.implication));
- const direction=uk?
-  'Разом три лінії карти дають практичний орієнтир: '+(privateLife?.implication||second.implication)+
-    ' '+(partnership?.implication||third.implication)+
-    ' '+(primary.implication||headline.implication):
-  'Read these themes together, without making one planet stand for your whole life. '+
-    (privateLife?.implication||second.implication)+' '+
-    (partnership?.implication||third.implication)+' '+
-    (primary.implication||headline.implication);
- const samePersonalCareerLord=lp[1]===lp[10];
- const groundedDirection=samePersonalCareerLord?
-  (uk?'У вашій карті '+pName(lp[1])+' одночасно керує 1-м і 10-м домами. '+
-    'Це спільна планетна роль, а не два незалежні підтвердження. '+
-    (privateLife?.implication||second.implication)+' '+
-    (partnership?.implication||third.implication):
-   'The same '+lp[1]+' rules the first and tenth houses; this is one shared role, not independent confirmation. '+
-    (privateLife?.implication||second.implication)+' '+
-    (partnership?.implication||third.implication)):direction;
- const summaryProof=[...new Set(topInsights.slice(0,3).flatMap(p=>p.evidence))];
+ // Compose a new, compact, chart-specific conclusion from verified facts.
+ // Never concatenate prior bullet points: it caused verbatim repetition.
+ const synthesis=synthesizeN493(chart,lang);
+ if(!synthesis)return null;
  return {version:N492_MEANING_VERSION,topInsights,patternVersion:N493_PATTERN_VERSION,cards,
-  summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
-   strength,attention,direction:groundedDirection,proof:summaryProof},
+  summary:synthesis,
   method:uk?'Традиційна інтерпретація: D1, функціональні управителі, знакові положення, тематичні варги. Знакова гідність — не повна Shadbala; D60 умовна.':
    'Traditional interpretation: D1, functional lords, sign dignity and thematic divisional charts. Sign dignity is not full Shadbala; D60 is provisional.'};
 }
