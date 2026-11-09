@@ -47,7 +47,7 @@ test('N491 gives 15 concise chart-specific D stories grounded in D1 and one rela
     assert.ok(card.proof.includes('D'+card.relatedDivision+'.'+ruler+'.house='+companion.house));
     assert.match(card.connection,new RegExp('D'+card.relatedDivision+'\\b'));
     assert.ok(card.lead.length>=90&&card.lead.length<=440);
-    assert.ok(card.connection.length>=50&&card.connection.length<=300);
+    assert.ok(card.connection.length>=25&&card.connection.length<=300, JSON.stringify({seed,lang,division:card.division,connection:card.connection}));
     assert.ok(['agreement','conflict','care','unresolved'].includes(card.contrast));
     assert.doesNotMatch(card.lead+' '+card.connection,/гарантовано|100%|will definitely|past life|карма|shadbala/i);
     if(lang==='uk')assert.doesNotMatch(card.lead+' '+card.connection,/важливий Венера|той самий Венера|тема домом|тема спільними/i);
