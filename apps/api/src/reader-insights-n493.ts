@@ -280,10 +280,33 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
  // Top three patterns are from independent areas, not necessarily unique
  // planets; every finding has ≥2 grounded natal/varga facts and a clear scope.
  if(selected.length<3)throw Error('N493_NOT_ENOUGH_DISTINCT_FINDINGS');
- const summary=uk?
-  'Головна лінія карти: '+selected.slice(0,3).map(x=>x.headline.toLowerCase()).join('; ')+
-  '. Ці астрологічні акценти варто читати разом, не перетворюючи їх на гарантовані події.':
-  'Main chart themes: '+selected.slice(0,3).map(x=>x.headline.toLowerCase()).join('; ')+
-  '. These are traditional chart indicators, not guaranteed life events.';
+ // Synthesize roles rather than repeat the discovery headlines.
+ const ascLord=lords[1],careerLord=lords[10],partnerLord=lords[7];
+ const asc=d1(ascLord),career=d1(careerLord),partner=d1(partnerLord);
+ const linked=ascLord===careerLord?(uk?'Одна планета керує і особистим напрямом, і кар’єрою. ':
+  'The same planet rules identity and career. '):
+  asc.house===career.house?(uk?'Управителі особистого напряму й кар’єри стоять в одному домі, але мають різні функції. ':
+   'The identity and career rulers occupy one house but serve different roles. '):'';
+ const workFocus=dignityFor(careerLord,dn(10,careerLord).sign);
+ const work=uk?'У професії головну роль відіграє '+name(careerLord,uk)+
+  ': D1 дім '+career.house+', D10 дім '+dn(10,careerLord).house+
+  (strong(work)?', знак '+quality(work,uk):'')+'. ':
+  'Career is led by '+careerLord+' (D1 house '+career.house+
+  ', D10 house '+dn(10,careerLord).house+
+  (strong(work)?', '+quality(work,uk):'')+'). ';
+ const recovery=uk?(asc.house===12?
+  'Управитель висхідного знака в 12-му домі додає виразну потребу в усамітненні й відновленні. ':
+  'Управитель висхідного знака перебуває у '+asc.house+'-му домі — це інший натальний акцент. '):
+  (asc.house===12?'The ascendant ruler in house 12 adds a need for privacy and recovery. ':
+   'The ascendant ruler in house '+asc.house+' adds a different natal priority. ');
+ const partnership=uk?'Партнерство уточнює '+name(partnerLord,uk)+' у '+partner.house+
+  '-му домі D1'+(partner.house===career.house?
+   ': ця сфера поділяє поле з професійним управителем, але не замінює його значення.':
+   ': її показники слід оцінювати окремо від кар’єрних.') :
+  'Partnership is represented by '+partnerLord+' in D1 house '+partner.house+
+  (partner.house===career.house?
+   ', sharing a life arena with career without sharing its meaning.':
+   ', a distinct theme from career.');
+ const summary=(linked+work+recovery+partnership).trim();
  return {version:N493_INSIGHTS_VERSION,insights:selected,summary};
 }
