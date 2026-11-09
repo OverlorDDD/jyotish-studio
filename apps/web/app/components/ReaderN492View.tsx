@@ -28,7 +28,7 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
    <ol>
     {discoveries!.insights.map(item=><li key={item.id} className={book.discovery}>
      <strong>{item.headline}</strong>
-     <p>{item.attention}</p>
+     <p>{item.teaser}</p>
      <a href={'#reader-n493-card-D'+item.division}>{uk?'Дивитися пояснення в D'+item.division:
       'Read D'+item.division+' interpretation'}</a>
     </li>)}
