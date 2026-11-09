@@ -71,7 +71,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    const data=res.ok?await res.json():null;
    if(!live)return;
    setJhoraReference(data?.referenceBenchmark?.version==='jhora8-same-profile-v2'?data.referenceBenchmark:null);
-   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.editorialEdition!=='n48-poetic-evidence-1.0.0'||data?.interpretationEdition!=='n49-unified-evidence-v1'||data?.presentationEdition!=='n491-compact-cross-varga-v1'||data?.verificationContract!=='jyotish-integrity-v3')
+   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.editorialEdition!=='n48-poetic-evidence-1.0.0'||data?.interpretationEdition!=='n49-unified-evidence-v1'||data?.presentationEdition!=='n492-meaning-first-16-v1'||data?.verificationContract!=='jyotish-integrity-v3')
     setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
    else setRuntimeMismatch('');
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
@@ -111,7 +111,8 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     saved?.readerV8?.version==='reader-v8.0.0-n44'&&
     saved?.readerV8?.editorialVersion==='n48-poetic-evidence-1.0.0'&&
     saved?.readerV8?.integrated?.version==='n49-unified-evidence-v1'&&
-    saved?.readerV8?.compactCards?.length===15&&
+    saved?.readerV8?.meaningReader?.version==='n492-meaning-first-16-v1'&&
+    saved?.readerV8?.meaningReader?.cards?.length===16&&
     (saved?.readerV8?.d60Preview?.status!=='conditional_signs'||saved?.readerV8?.d60Preview?.allPlanets?.length===9)?saved:null;
   setReport(compatibleSaved);
   setInterpretation(lang==='uk'?'Перевірену карту відкрито з кабінету.':'Verified saved chart loaded.');
@@ -152,7 +153,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    const data=await readApiJson<ReadingReport>(response);
    if(requestId!==readingRequestId.current)return;
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
-   if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n48-poetic-evidence-1.0.0'||data.readerV8.integrated?.version!=='n49-unified-evidence-v1'||data.readerV8.compactCards?.length!==15||(data.readerV8.d60Preview?.status==='conditional_signs'&&data.readerV8.d60Preview?.allPlanets?.length!==9))throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
+   if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n48-poetic-evidence-1.0.0'||data.readerV8.integrated?.version!=='n49-unified-evidence-v1'||data.readerV8.meaningReader?.version!=='n492-meaning-first-16-v1'||data.readerV8.meaningReader.cards?.length!==16||(data.readerV8.d60Preview?.status==='conditional_signs'&&data.readerV8.d60Preview?.allPlanets?.length!==9))throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
    if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==freshChart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    setReport(data);
