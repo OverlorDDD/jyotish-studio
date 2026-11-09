@@ -23,24 +23,6 @@ const SIGNS_EN_MEANING=[
  'creative expression','attention to detail','reciprocity and agreements','the ability to move through change',
  'seeking meaning and space','structure and the long view','independent thinking','imagination and compassion'
 ] as const;
-const PRACTICE_UK:Readonly<Record<string,string>>={
- Sun:'Особиста позиція може ставати сильнішою там, де сміливість поєднується з відповідальністю, а не з потребою довести перевагу.',
- Moon:'Емоційна чутливість може поглиблювати розуміння людей, але надмірна вразливість до настрою оточення стирає власний ритм.',
- Mars:'Сила волі проявляється найкраще, коли напір має напрям; без нього рішучість може ставати зайвим спротивом.',
- Mercury:'Гнучкий розум допомагає знайти несподіваний зв’язок, але справжня ясність вимагає відрізняти точне слово від швидкої відповіді.',
- Jupiter:'Пошук сенсу може вести до глибоких знань, проте красива ідея набуває ваги лише тоді, коли витримує живий досвід.',
- Venus:'Прагнення гармонії дарує тонке відчуття іншого, але спокій, куплений постійним замовчуванням, рідко буває справжнім.',
- Saturn:'Витривалість стає опорою, доки обов’язок має сенс; без цього навіть сильна дисципліна перетворюється на тягар.'
-};
-const PRACTICE_EN:Readonly<Record<string,string>>={
- Sun:'When taking responsibility, separate your own view from the need for approval.',
- Moon:'On a difficult day, check what makes you feel secure before absorbing another person’s mood.',
- Mars:'Before a difficult conversation, name the desired outcome and your boundary.',
- Mercury:'Clarify two concrete facts in an important agreement so both sides mean the same thing.',
- Jupiter:'Test a cherished piece of advice against a real example.',
- Venus:'Name one relationship need directly instead of hiding it to maintain harmony.',
- Saturn:'Check which responsibility is really yours and what can be done without exhaustion.'
-};
 const PLANETS=[
  {key:'Sun',uk:'Сонце',ukTheme:'відповідальності й особистій позиції',enTheme:'responsibility and self-direction'},
  {key:'Moon',uk:'Місяць',ukTheme:'емоційному ритмі й потребі в безпеці',enTheme:'emotional rhythms and feeling secure'},
