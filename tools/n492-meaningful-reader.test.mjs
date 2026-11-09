@@ -47,6 +47,8 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
     assert.ok(card.title.length>5);
     assert.ok(card.meaning.length>=110&&card.meaning.length<=970, 'meaning length '+seed+'/'+lang+'/'+card.division+'/'+card.meaning.length);
     assert.doesNotMatch(card.meaning,/Обидва ракурси повторюють|заслуговує на окрему увагу|один із показників|D1[^\n]*а в D1|мінімальний обсяг|one of the indicators/i);
+    if(lang==='uk')assert.doesNotMatch(card.meaning,/лагна у Овні|не рахуємо її двічі|важливий Венера|пов’язаний з Місяць/u,
+      'do not leak grammar errors or editorial implementation jargon');
     assert.doesNotMatch(card.meaning,/сповнена гарантій|guaranteed fate|scientifically proven personality/i);
     if(lang==='en')assert.doesNotMatch(card.meaning,/[А-Яа-яІіЇїЄєҐґ]/u);
     assert.equal(card.division===60,card.status==='provisional');
@@ -86,6 +88,8 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
    assert.doesNotMatch(result.summary.strength,/»\\.D\\d+|\\.D\\d+:/u,
     'must separate adjacent sentences and dignity evidence');
    assert.doesNotMatch(result.summary.direction,/Ваша карта не зводиться до|does not reduce to a concentration|не очікуючи від однієї з них відповіді/i);
+   if(lang==='uk')assert.doesNotMatch(result.summary.direction,/пов’язаний з (?:Місяць|Венера|Марс|Сатурн|Меркурій|Юпітер)|кар’єра — з (?:Марс|Венера|Місяць|Сатурн|Меркурій)/u,
+     'Ukrainian case must be correct in the final summary');
    if(lords[1]===lords[10]){
     assert.match(result.summary.direction,lang==='uk'?/одночасно керує/:/same /,
      'same natal lord should be synthesized, not listed twice without explanation');
