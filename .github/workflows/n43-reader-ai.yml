@@ -58,6 +58,10 @@ jobs:
           path: .qa-artifacts/
           if-no-files-found: warn
           retention-days: 10
+      - name: N4.9 deployment script syntax and safe rollback contract
+        run: |
+          bash -n tools/n49-aws-release.sh
+          node --test tools/n49-aws-release-contract.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
@@ -149,7 +153,7 @@ jobs:
           if [ "$ok" != 1 ]; then tail -80 /tmp/n49-api.log; tail -80 /tmp/n49-web.log; exit 1; fi
           echo N49_BROWSER_REAL_SWISS_READY
       - name: UA EN real Reader, interactive proofs, 7 widths, reduced-motion landing
-        run: npx playwright test e2e/n49-real-reader.spec.mjs e2e/natal-landing-seo.spec.mjs --config=playwright.config.mjs
+        run: npx playwright test e2e/n49-real-reader.spec.mjs e2e/natal-landing-seo.spec.mjs e2e/n4-d60-provisional.spec.mjs e2e/n4-rc-15.spec.mjs --config=playwright.config.mjs
       - name: Keep screenshot samples and Playwright traces for visual inspection
         if: always()
         uses: actions/upload-artifact@v4
