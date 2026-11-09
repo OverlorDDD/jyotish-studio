@@ -101,7 +101,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    v10.house===6?'Consider roles built around disciplined craft and solving demanding problems.':
    v10.house===9?'Teaching, study and mentoring are prominent vocational possibilities.':
    'Compare work roles by their actual responsibilities rather than a predetermined job title.',
-  score:60+(yoga?19:0)+(meaningful(status10)?11:0)+(careerAgree?6:careerTension?5:0),
+  score:40+(yoga?22:0)+(meaningful(status10)?12:0)+(careerAgree?8:careerTension?7:0),
   tier:yoga||meaningful(status10)?'prominent':'contextual',
   evidence:['D1.ascendant.sign='+chart.ascendant.sign,'D1.house-lord.10='+lord10,
    'D1.'+lord10+'.house='+p10.house,'D10.'+lord10+'.house='+v10.house,
@@ -130,7 +130,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
     (moon.house===12||pAsc.house===12?
      'Privacy and recovery are pronounced traditional themes; compare them with work demands.':
      'Distinguish decision-making from recovery needs without assuming they must conflict.'),
-  score:53+((moon.house===12||pAsc.house===12)?16:0)+((pAsc.house===moon.house&&ascLord!=='Moon')?5:0),
+  score:34+((moon.house===12||pAsc.house===12)?19:0)+((pAsc.house===moon.house&&ascLord!=='Moon')?8:0),
   tier:(moon.house===12||pAsc.house===12)?'prominent':'contextual',
   evidence:['D1.house-lord.1='+ascLord,'D1.'+ascLord+'.house='+pAsc.house,
    'D1.Moon.house='+moon.house,'D1.Sun.house='+sun.house],divisions:[1]});
@@ -151,7 +151,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
     ' A separate indicator is Venus in D9 in '+zodiac(venus.sign)+'.'),
   implication:uk?'Для оцінки близькості варто зіставити сталість домовленостей, особисті принципи й стан обох показників, а не обіцяти конкретного партнера.':
    'Consider commitments, shared values and both indicators rather than predicting a specific partner.',
-  score:49+(lords[8]===lord7?12:0)+(meaningful(relationDignity)?7:0)+((p7.house===9)?7:0),
+  score:32+(lords[8]===lord7?16:0)+(meaningful(relationDignity)?9:0)+((p7.house===9)?8:0),
   tier:(lords[8]===lord7||meaningful(relationDignity))?'prominent':'contextual',
   evidence:['D1.house-lord.7='+lord7,'D1.'+lord7+'.house='+p7.house,
     'D9.'+lord7+'.sign='+v9.sign,'D9.Venus.sign='+venus.sign,
@@ -169,7 +169,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
       q24==='debilitated'?', its debilitation sign, requiring other checks.':'.'),
   implication:uk?'Це окрема тема освіти й практики: відповідність D10 не слід автоматично вважати незалежним доказом кар’єрного успіху.':
    'This concerns learning and practice; an apparent match to D10 is not an independent promise of career success.',
-  score:44+(meaningful(q24)?12:0)+(lord5===lord10?9:0),
+  score:27+(meaningful(q24)?15:0)+(lord5===lord10?12:0),
   tier:meaningful(q24)?'prominent':'contextual',
   evidence:['D1.house-lord.5='+lord5,'D1.'+lord5+'.house='+p5.house,
    'D24.'+lord5+'.sign='+v24learning.sign,'D24.'+lord5+'.house='+v24learning.house],divisions:[1,24]});
@@ -185,7 +185,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    (lord2===lord11?'This is the same planet, not independent corroboration.':'These houses describe distinct resource considerations.'),
   implication:uk?'Відрізняйте джерела доходу від способу збереження ресурсів; з одного знака не можна вивести суму заробітку.':
    'Distinguish sources of gain from how resources are managed; one placement cannot quantify income.',
-  score:39+(meaningful(dignityFor(lord2,v2.sign))?9:0)+(p2.house===11||p11.house===2?9:0),
+  score:26+(meaningful(dignityFor(lord2,v2.sign))?13:0)+(p2.house===11||p11.house===2?12:0),
   tier:'contextual',
   evidence:['D1.house-lord.2='+lord2,'D1.'+lord2+'.house='+p2.house,'D1.house-lord.11='+lord11,
    'D1.'+lord11+'.house='+p11.house,'D2.'+lord2+'.sign='+v2.sign],divisions:[1,2]});
@@ -202,15 +202,20 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
      roles.join(' and ')+'. Sign dignity alone does not establish cancellation, aspects or full strength.',
    implication:uk?'Сприймайте це як питання для поглибленої перевірки, а не як невдачу чи особистий недолік.':
     'Treat this as a prompt for more complete interpretation, not a personal flaw or forecast.',
-   score:43+([lords[1],lords[7],lords[10],lords[5]].includes(p.name)?13:0),
+   score:32+([lords[1],lords[7],lords[10],lords[5]].includes(p.name)?18:0),
    tier:'requires-review',evidence:['D1.'+p.name+'.sign='+p.sign,...roles.map(h=>'D1.house-lord.'+h+'='+p.name)],
    divisions:[1]});
  }
  // Always keep broad life-area diversity; order by explicit interpretive priority,
  // NOT false statistical probabilities. The 6th candidate is omitted.
- const picked=[...candidate].sort((a,b)=>b.score-a.score||
+ const sorted=[...candidate].sort((a,b)=>b.score-a.score||
   ['vocation','inner-life','partnership','learning','money','caution'].indexOf(a.id)-
-  ['vocation','inner-life','partnership','learning','money','caution'].indexOf(b.id)).slice(0,5);
+  ['vocation','inner-life','partnership','learning','money','caution'].indexOf(b.id));
+ // Always present three; add a fourth/fifth only when it has actual measured
+ // rule evidence close to the third, not merely because it exists.
+ const cutoff=Math.max(37,sorted[2].score-4);
+ const eligible=sorted.filter(x=>x.score>=cutoff).slice(0,5);
+ const picked=eligible.length>=3?eligible:sorted.slice(0,3);
  if(picked.length<3||picked.length>5||new Set(picked.map(x=>x.id)).size!==picked.length)return null;
  // Never let a provisional D60 sign score a top insight.
  if(picked.some(p=>p.divisions.includes(60)))throw Error('N493_D60_PRIMARY_INSIGHT_FORBIDDEN');
