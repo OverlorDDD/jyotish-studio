@@ -4,6 +4,9 @@ export type ReaderV8UI={
  version:string;editorialVersion:string;ruleSetVersion:string;status:'available'|'unavailable';
  introduction:string;method:string;d60Notice:string;
  synthesis?:{version:string;title:string;opening:string;strength:string;challenge:string;direction:string;method:string};
+ integrated?:{version:string;title:string;opening:string;closing:string;method:string;
+  threads:readonly {id:string;title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];scope:string}[];
+  links:readonly {division:number;polarity:string;evidence:readonly string[]}[]};
  d60Preview?:{version:string;status:'conditional_signs'|'unavailable';title:string;intro:string;
   factors:readonly {planet:string;d1Sign:number;d60Sign:number;boundaryDistanceArcseconds:number;note:string}[];warning:string};
  highlights:readonly {id:string;division:number;title:string;text:string}[];
@@ -21,7 +24,33 @@ export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:Re
    <h2 id="reader-v8-heading">{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
    <p>{data.introduction}</p>
   </header>
-  {data.synthesis&&<article className={styles.synthesis} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
+  {data.integrated?.version==='n49-unified-evidence-v1'?<article className={styles.synthesis} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
+   <span className={styles.kicker}>{uk?'✦ N4.9 · ЄДИНА ЛІНІЯ КАРТИ':'✦ N4.9 · A SINGLE CHART NARRATIVE'}</span>
+   <h3 id="reader-v8-synthesis-title">{data.integrated.title}</h3>
+   <p>{data.integrated.opening}</p>
+   <div className={styles.synthesisParts}>
+    {data.integrated.threads.map(t=><div key={t.id} data-testid={'reader-n49-thread-'+t.id}>
+     <strong>{t.title}</strong>
+     <p>{t.text}</p>
+     <details className={styles.proof}>
+      <summary>{uk?'Що розраховано і які є джерела':'Calculated basis and source scope'}</summary>
+      <p>{t.scope==='d1_direct'?
+       (uk?'Прямі показники D1, без окремих життєвих прогнозів.':'Direct D1 placements, no inferred life events.'):
+       (uk?'Зв’язок D1 та тематичних варг — сучасне застосування; не дослівний висновок з книги.':
+        'D1-to-varga linkage is a modern application, not a literal historical verse.')}</p>
+      <code>{t.evidence.join(' · ')}</code>
+      <p>{t.sourceIds.length?
+       (uk?'Ідентифікатори зіставлених книжкових правил (статус кожного пояснено в тематичних картках): ':
+        'Mapped book-rule IDs (review status is shown in the detailed thematic cards): ')+t.sourceIds.join(', '):
+       (uk?'Для цієї ланки окреме книжкове правило не активувалося.':
+        'No additional book rule activated for this link.')}</p>
+     </details>
+    </div>)}
+   </div>
+   <div className={styles.synthesisDirection}><strong>{uk?'Спільний висновок':'How it fits together'}</strong><p>{data.integrated.closing}</p></div>
+   <small>{data.integrated.method}</small>
+  </article>:null}
+  {(!data.integrated||data.integrated.version!=='n49-unified-evidence-v1')&&data.synthesis&&<article className={styles.synthesis} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
    <span className={styles.kicker}>{uk?'✦ ЗАГАЛЬНИЙ СИНТЕЗ':'✦ INTEGRATED READING'}</span>
    <h3 id="reader-v8-synthesis-title">{data.synthesis.title}</h3>
    <p>{data.synthesis.opening}</p>
