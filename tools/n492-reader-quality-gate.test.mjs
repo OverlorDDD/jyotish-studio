@@ -87,7 +87,7 @@ test('N4.9.2 48 distinct invented horoscopes × 2 languages produce 16 evidence-
     console.log('N492_EDITORIAL_SAMPLE '+seed+' '+lang+' D10='+care.reading);
    }
    if(chart.ascendant.sign===4)
-    assert.ok(out.cards.find(c=>c.division===10).reading.includes(lang==='uk'?'йогакарака':'yogakaraka'),
+    assert.ok((lang==='uk'?/йогакарака/iu:/yogakaraka/i).test(out.cards.find(c=>c.division===10).reading),
      'Cancer ascendant must identify Mars yogakaraka');
   }
  }
