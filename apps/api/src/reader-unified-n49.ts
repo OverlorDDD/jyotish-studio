@@ -98,7 +98,7 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
   extensionSourceIds:[...new Set(links.flatMap(l=>l.extensionSourceIds))]
  });
  const r=byDivision(resourceDivision),t=byDivision(tensionDivision);
- if(!r||!t||r.division===t.division||r.division===10||t.division===10) return null;
+ if(!r||!t||r.division===t.division||[1,10,60].includes(r.division)||[1,10,60].includes(t.division))return null;
  const career=byDivision(10),relation=byDivision(9);
  const navCareer=chart.d9.find(p=>p.name===career.lord);
  if(!navCareer)return null;
