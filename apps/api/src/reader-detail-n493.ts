@@ -133,7 +133,7 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
   pname(secondary,uk)+' — інший тематичний показник («'+secondaryTopic+'»); він займає той самий дім D'+division+
   '. У цій сфері зустрічаються дві різні потреби, які варто узгоджувати. ':
   pname(secondary,uk)+' — інший тематичний показник («'+secondaryTopic+'»); він стоїть у '+d2.house+'-му домі D'+division+' ('+house(d2.house,uk)+
-  '). Це інша сторона теми, яку не слід губити за рішеннями управителя. '):
+  '). Ці потреби варто окремо враховувати під час конкретного рішення. '):
   (d1.house===d2.house?
    'A distinct indicator, '+secondary+', relates to '+secondaryTopic+
    ' and shares that D'+division+' house: two concerns in one arena, not two proofs of success. ':
