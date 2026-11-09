@@ -138,7 +138,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
   reading:uk?
    'Управитель п’ятого дому '+name(lord5)+' у D1 перебуває в '+p5.house+'-му домі ('+
     where(p5.house)+'). У D24 він займає знак «'+zodiac(v24.sign)+'»'+
-    (q24==='exalted?' — знак екзальтації.':q24==='own'?' — власний знак.':
+    (q24==='exalted'?' — знак екзальтації.':q24==='own'?' — власний знак.':
       q24==='debilitated'?' — знак традиційного падіння, що вимагає перевірки інших умов.':'.'):
    'The fifth-house ruler '+lord5+' occupies D1 house '+p5.house+' ('+where(p5.house)+
     '). In D24 it occupies '+zodiac(v24.sign)+
