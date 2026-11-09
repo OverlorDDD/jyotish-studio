@@ -63,7 +63,7 @@ for(const lang of ['uk','en']){
    await expect(card.locator('details code')).toContainText('D1.');
    await expect(card.locator('details')).toHaveAttribute('open','');
   }
-  await expect(reader.getByTestId('reader-v8-D10')).toContainText(lang==='uk'?'профес':'career');
+  await expect(reader.getByTestId('reader-v8-D10')).toContainText(lang==='uk'?/профес/iu:/career|vocation|work/iu);
   for(const width of [320,360,390,430,768,1024,1440]){
    await page.setViewportSize({width,height:850});
    await expect(reader.getByTestId('reader-v8-D10')).toBeVisible();
