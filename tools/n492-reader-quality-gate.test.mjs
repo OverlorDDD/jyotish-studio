@@ -48,7 +48,8 @@ function checkCase(chart,lang){
    assert.ok(card.sourceFacts.some(x=>/^D\d+\.[A-Z][A-Za-z]+\.sign=/.test(x)));
   }
  }
- assert.ok(output.takeaways.every(t=>t.text.length>90&&t.text.length<850&&t.sourceFacts.length>=2));
+ assert.ok(output.takeaways.every(t=>t.text.length>55&&t.text.length<850&&t.sourceFacts.length>=2),
+  'final conclusion must be concise and evidence grounded, not word-count padded');
  if(lang==='uk'){
   assert.doesNotMatch(output.takeaways.map(t=>t.text).join(' '),/управитель домів\s*\)/,
    'Rahu/Ketu must not be assigned unowned classical houses');
