@@ -81,7 +81,15 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
      'same D1 and D60 sign must not be called different');
    if(d60Selected&&d60Selected.d1Sign===d60Selected.d60Sign&&lang==='en')
     assert.doesNotMatch(result.cards[15].meaning,/these two placements differ|a different sign/i);
-   assert.doesNotMatch(result.summary.attention,/між грошей|та грошей|між праці|та праці|between .* and \\1/i);
+   assert.doesNotMatch(result.summary.attention,
+    /пов’язаний із (?:грошей|праці|професії)|між грошей|та грошей|між праці|та праці|between .* and \\1/i);
+   assert.doesNotMatch(result.summary.strength,/»\\.D\\d+|\\.D\\d+:/u,
+    'must separate adjacent sentences and dignity evidence');
+   assert.doesNotMatch(result.summary.direction,/Ваша карта не зводиться до|does not reduce to a concentration|не очікуючи від однієї з них відповіді/i);
+   if(lords[1]===lords[10]){
+    assert.match(result.summary.direction,lang==='uk'?/одночасно керує/:/same /,
+     'same natal lord should be synthesized, not listed twice without explanation');
+   }
    assert.doesNotMatch(result.summary.direction,/Ваша карта не зводиться до одного скупчення|one planetary concentration/i);
    const d9=result.cards.find(c=>c.division===9);
    if(lords[7]==='Venus')assert.doesNotMatch(d9.meaning,/а Венера —|Venus occupies .* and Venus occupies/i,
