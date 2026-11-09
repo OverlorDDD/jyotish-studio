@@ -100,25 +100,46 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
  // Two relevant, actually different grahas are checked, but a coincident
  // house number is not counted as independent strength. Say what the chart
  // contains; don't invent a life outcome from two raw placements.
- const natal=uk?'Для сфери «'+area[0]+'» ключова планета — '+pname(primary,uk)+
-  ', управитель '+focus.house+'-го дому. У D1 вона перебуває у '+p1.house+
-  '-му домі ('+house(p1.house,uk)+'), а в D'+division+' — у '+d1.house+
-  '-му ('+house(d1.house,uk)+'), у '+sign(d1.sign,uk)+'. ':
-  'For '+area[0]+', the ruler of natal house '+focus.house+', '+primary+
-  ', occupies D1 house '+p1.house+' ('+house(p1.house,uk)+
-  ') and D'+division+' house '+d1.house+' ('+house(d1.house,uk)+
-  ') in '+sign(d1.sign,uk)+'. ';
- const supplement=uk?'Другий тематичний показник — '+pname(secondary,uk)+
-  ': у D'+division+' він у '+d2.house+'-му домі ('+house(d2.house,uk)+'). ':
-  'A distinct thematic indicator, '+secondary+', occupies D'+division+
-  ' house '+d2.house+' ('+house(d2.house,uk)+'). ';
- const dignityNote=good(q1)?(uk?
-  'Управитель має сприятливе знакове положення; без оцінки інших умов це не гарантія результату. ':
-  'The ruler has supportive sign dignity, not a guarantee without additional factors. '):
+ // First identify the source of a theme in D1; then show where it is
+ // expressed in the thematic division, and what a distinct indicator adds.
+ // This avoids treating two chart positions as two independent predictions.
+ const natal=uk?'Для теми '+area[0]+' важливо, що '+pname(primary,uk)+
+  ' керує '+focus.house+'-м домом D1 і перебуває в '+p1.house+'-му ('+
+  house(p1.house,uk)+'). У D'+division+' ця планета стоїть у '+d1.house+
+  '-му домі ('+house(d1.house,uk)+'), у '+sign(d1.sign,uk)+'. ':
+  'For '+area[0]+', '+primary+' rules D1 house '+focus.house+' and occupies house '+
+  p1.house+' ('+house(p1.house,uk)+'). In D'+division+' it occupies house '+
+  d1.house+' ('+house(d1.house,uk)+') in '+sign(d1.sign,uk)+'. ';
+ const bridge=uk?(p1.house===d1.house?
+  'В обох ракурсах повторюється тема '+house(d1.house,uk)+
+  ': вона стає головним способом проявити цю сферу життя. ':
+  'Тут видно перехід від '+house(p1.house,uk)+' до '+house(d1.house,uk)+
+  '. Перший дім описує початковий мотив, другий — його вираження в цій варзі. '):
+  (p1.house===d1.house?
+   'Both lenses emphasize '+house(d1.house,uk)+' as the central arena for this theme. ':
+   'The emphasis shifts from '+house(p1.house,uk)+' to '+house(d1.house,uk)+
+   ': the first is the natal motive, the second its expression in this division. ');
+ const secondaryLine=uk?(d1.house===d2.house?
+  pname(secondary,uk)+' — інша планета, пов’язана із '+area[1]+
+  ' — займає той самий дім D'+division+
+  '. Отже, в одній сфері поєднано дві різні потреби, а не два докази успіху. ':
+  pname(secondary,uk)+' — інша планета, пов’язана із '+area[1]+
+  ' — стоїть у '+d2.house+'-му домі D'+division+' ('+house(d2.house,uk)+
+  '). Її потреби не варто автоматично прирівнювати до завдань управителя. '):
+  (d1.house===d2.house?
+   'A distinct indicator, '+secondary+', relates to '+area[1]+
+   ' and shares that D'+division+' house: two concerns in one arena, not two proofs of success. ':
+   'A separate indicator, '+secondary+' ('+area[1]+'), occupies D'+division+
+   ' house '+d2.house+' ('+house(d2.house,uk)+
+   '). Its concerns should not be confused with the ruler’s agenda. ');
+ const quality=good(q1)?(uk?
+  'Власний знак або екзальтація управителя додає традиційну знакову підтримку, але не визначає результат самостійно. ':
+  'Own-sign or exaltation dignity traditionally supports this motif, without settling the outcome. '):
   q1==='debilitated'?(uk?
-  'Управитель у знаку падіння; для оцінки потрібні інші умови, а не категоричний висновок. ':
-  'The ruler is in its debilitation sign; a conclusion needs other conditions. '):'';
- const meaning=natal+supplement+dignityNote;
+  'Знак падіння управителя вимагає перевірки інших умов, а не фатального висновку. ':
+  'Debilitation calls for checking the other conditions, not a verdict. '):'';
+ const meaning=natal+bridge+secondaryLine+quality+
+  (uk?'Практичний крок: ':'A practical next step: ')+PRACTICE[division][uk?0:1];
  const proof=['D1.house-lord.'+focus.house+'='+primary,
   'D1.'+primary+'.house='+p1.house,'D1.'+secondary+'.house='+p2.house,
   'D'+division+'.'+primary+'.house='+d1.house,'D'+division+'.'+primary+'.sign='+d1.sign,
