@@ -132,6 +132,55 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
   if(d==='debilitated')return uk?'у знаку падіння':'in its sign of debilitation';
   return '';
  };
+ // Meaningful, conditional subject-specific house combinations. These do NOT
+ // assert that a life event occurred. No generic filler when no rule matches.
+ const blend=(division:number,from:number,to:number):string=>{
+  const pair=from+'>'+to;
+  const ukCases:Record<number,Record<string,string>>={
+   2:{'9>12':'Освіта, світогляд і далекі плани тут поєднані з темою витрат і відокремленого ресурсу. Це привід розрізняти вкладення у розвиток і щоденний фінансовий запас.'},
+   3:{'9>9':'Сміливість і спілкування набувають форми через навчання, викладання або передачу досвіду; це напрям для практичного застосування навичок.'},
+   4:{'10>1':'Питання дому й майна торкаються самостійності та власного вибору, а не лише зовнішньої професійної ролі.'},
+   7:{'9>6':'Передавання знань або турбота про наступне покоління вимагають послідовної щоденної праці, не тільки ідей.'},
+   9:{'9>9':'Спільні переконання, навчання та цінності стають важливими темами домовленостей; це не опис характеру майбутнього партнера.'},
+   10:{'9>6':'Професійний потенціал спрямований від знань і світогляду до складних практичних задач, де вирішують результат і дисципліна.'},
+   12:{'10>3':'Родинна тема символічно переходить від публічної ролі до способу спілкування й передачі навичок; конкретних подій родини це не доводить.'},
+   16:{'10>7':'Комфорт і побут тут пов’язані з умінням узгоджувати потреби з іншими, особливо коли професійні обов’язки забирають час.'},
+   20:{'6>8':'Внутрішня практика читається як дисципліна, що допомагає адаптуватися до змін, а не як обіцянка містичного досвіду.'},
+   24:{'9>6':'Навчання особливо пов’язане з практичним розв’язанням задач: знання перевіряються регулярною роботою, а не тільки теорією.'},
+   27:{'12>10':'Є контраст між потребою у відновленні та вимогами помітної роботи. Для витривалості важливо підтримувати обидва ритми.'},
+   30:{'6>4':'Тема подолання труднощів поєднана зі стабільністю домашнього середовища та відновленням сил.'},
+   40:{'10>11':'Материнський родинний ракурс читається через тему підтримки, спільнот і результатів праці; це не встановлює факти про предків.'},
+   45:{'6>4':'Батьківський родинний ракурс символічно пов’язаний із працею, обов’язком і потребою у стабільній внутрішній опорі.'}
+  };
+  const enCases:Record<number,Record<string,string>>={
+   2:{'9>12':'Study and long-range plans meet private costs and the need to preserve resources; the distinction between investment in growth and available reserves matters.'},
+   3:{'9>9':'Courage and communication are expressed through study, teaching and making knowledge useful rather than remaining at the level of intentions.'},
+   4:{'10>1':'Home and property decisions reach into personal agency rather than being defined only by public career expectations.'},
+   7:{'9>6':'Passing knowledge onward or caring for the next generation calls for repeated practical effort, not just high ideals.'},
+   9:{'9>9':'Shared principles, education and worldview become relevant to partnerships, without predicting another person’s character.'},
+   10:{'9>6':'Professional purpose connects learning and guiding principles to difficult, practical work where discipline and finished results matter.'},
+   12:{'10>3':'Family roots symbolically move from public responsibilities to communication and skills handed onward; this is not a biographical assertion.'},
+   16:{'10>7':'Comfort depends partly on negotiating needs with others when career responsibilities compete for time.'},
+   20:{'6>8':'Spiritual practice is framed as discipline supporting adaptation to change, not a promise of mystical experiences.'},
+   24:{'9>6':'Learning needs repeated practice with demanding problems, not only theory or credentials.'},
+   27:{'12>10':'There is a contrast between recovery in private and demands in visible work. Resilience requires space for both.'},
+   30:{'6>4':'Navigating difficulties is connected with maintaining a stable home environment and room for recovery.'},
+   40:{'10>11':'The maternal-line symbolic lens concerns mutual support, community and results; it cannot establish ancestral facts.'},
+   45:{'6>4':'The paternal-line symbolic lens connects effort and responsibility to the search for a secure foundation.'}
+  };
+  const precise=(uk?ukCases:enCases)[division]?.[pair];
+  if(precise)return precise;
+  if(to===6&&[3,7,10,24,27].includes(division))
+   return uk?'Саме регулярні складні задачі, а не разові зусилля, є важливим способом прояву цього показника.':
+    'Repeated demanding tasks, rather than occasional bursts, are the visible emphasis of this indicator.';
+  if(to===9&&[3,7,9,10,20,24].includes(division))
+   return uk?'Тут особливого значення набувають навчання, передавання знань і вірність власним принципам.':
+    'Learning, communicating knowledge and testing one’s principles form the relevant emphasis.';
+  if(to===4&&[4,12,16,27,30,40,45].includes(division))
+   return uk?'Цей показник повертає увагу до дому, відновлення та надійного середовища.':
+    'This indication draws attention to home, recovery and a dependable environment.';
+  return '';
+ };
  const d1Facts=(planet:string)=>['D1.'+planet+'.sign='+natal(planet).sign,
   'D1.'+planet+'.house='+place(planet)];
  const cards:Card[]=[];
@@ -236,7 +285,8 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
   const supporting=second!==main&&altStatus&&(strong(dignityFor(second,dp.sign))||weak(dignityFor(second,dp.sign)))?
    (uk?' Додатково '+name(second)+' у D'+division+' '+altStatus+'.':
     ' The additional '+second+' in D'+division+' is '+altStatus+'.'):'';
-  const reading=(statement+dignityNote+bornDignity+supporting).trim();
+  const meaning=blend(division,p.house,d.house);
+  const reading=(statement+dignityNote+bornDignity+(meaning?' '+meaning:'')+supporting).trim();
   const extra=second!==main?['D'+division+'.'+second+'.sign='+dp.sign,
    'D'+division+'.'+second+'.house='+dp.house]:[];
   if(division===2){
