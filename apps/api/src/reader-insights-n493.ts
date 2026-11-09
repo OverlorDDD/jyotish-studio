@@ -69,7 +69,7 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const interpretation=uk?'Управитель професійного дому '+name(planet,uk)+' перебуває в D1 у '+
     a.house+'-му домі ('+desc(a.house,uk)+'), а в D10 — у '+b.house+'-му ('+
     desc(b.house,uk)+'), у '+sign(b.sign,uk)+'. '+role+
-    (strong(q)?'У D10 це положення '+quality(q,uk)+'. ':'')+
+    (strong(q)?(q==='exalted'?'У D10 ця планета в екзальтації. ':'У D10 вона у власному знаку. '):'')+
     (b.house===6?'Головний професійний мотив — системна робота зі складними практичними завданнями. ':
      b.house===9?'Важливий професійний мотив — навчання, наставництво або робота зі знаннями. ':'')+
     education:
@@ -136,9 +136,9 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const planet=lords[1],a=d1(planet),moon=d1('Moon'),sun=d1('Sun');
   const q=dignityFor(planet,a.sign);
   const shared=planet==='Moon';
-  const text=uk?'Вашим висхідним знаком керує '+name(planet,uk)+', розташований у '+
+  const text=uk?'Управитель вашого висхідного знака — '+name(planet,uk)+'. У D1 ця планета перебуває у '+
     a.house+'-му домі ('+desc(a.house,uk)+'). '+
-    (shared?'Це водночас Місяць, тому потреба у відновленні — частина основного натального сюжету. ':
+    (shared?'Це водночас Місяць: його '+a.house+'-й дім пов’язує особистий напрям зі сферою '+desc(a.house,uk)+'. ':
      'Місяць окремо перебуває у '+moon.house+'-му домі ('+desc(moon.house,uk)+'). ')+
     'Сонце у '+sun.house+'-му домі додає інший вимір — '+desc(sun.house,uk)+'.':
     'Your ascendant ruler '+planet+' is in house '+a.house+' ('+desc(a.house,uk)+'). '+
@@ -224,7 +224,7 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
    const p=fallen[0],nameP=p.name;
    const roles=Array.from({length:12},(_,i)=>i+1).filter(h=>lords[h]===nameP);
    add({id:'dignity-caution',division:1,relatedDivisions:[],planet:nameP,
-    teaser:uk?name(nameP,uk)+' у D1 в знаку падіння: оцінка його тем залежить від інших перевірок.':
+    teaser:uk?name(nameP,uk)+' у D1 в знаку падіння: оцінка ролей цієї планети потребує інших перевірок.':
       nameP+' occupies its debilitation sign in D1; other conditions must be checked.',
     headline:uk?'Показник, який потребує додаткової перевірки':
      'A placement requiring more context',
