@@ -301,6 +301,62 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
  // Top three patterns are from independent areas, not necessarily unique
  // planets; every finding has ≥2 grounded natal/varga facts and a clear scope.
  if(selected.length<3)throw Error('N493_NOT_ENOUGH_DISTINCT_FINDINGS');
+ // A second interpretive pass converts ranked facts into a personal
+ // question or action. Repetition of one graha never counts as new evidence.
+ for(const item of selected){
+  let next='';
+  if(item.id==='career'){
+   const a=d1(lords[10]),b=dn(10,lords[10]);
+   next=uk?(a.house===b.house?
+    'Обидва ракурси підкреслюють '+desc(b.house,uk)+'. Перевірте цю тему в одному реальному робочому проєкті.':
+    'Головний міст між D1 і D10 — від '+desc(a.house,uk)+' до '+desc(b.house,uk)+
+    '. Спробуйте конкретне завдання, де одна сфера допомагає іншій, перш ніж обирати професійну спеціалізацію.'):
+    (a.house===b.house?
+     'Both lenses emphasize '+desc(b.house,uk)+'. Test that theme in one real project.':
+     'The D1-to-D10 bridge runs from '+desc(a.house,uk)+' toward '+desc(b.house,uk)+
+     '. Test a project where one helps the other before choosing a specialization.');
+  }else if(item.id==='relationships'){
+   const p=lords[7],b=dn(9,p),v=dn(9,'Venus');
+   next=uk?(p==='Venus'?
+    'Венера вже є управителем сьомого дому: не рахуйте ту саму планету двічі. Поговоріть з партнером про реальні очікування та обов’язки.':
+    b.house===v.house?
+    'Венера й управитель партнерства займають один дім D9. Близькість і домовленості тут стосуються однієї сфери: перевірте це розмовою про взаємність.':
+    'Венера й управитель партнерства стоять у різних домах D9. Почуття і спільні обов’язки не завжди вирішуються однією розмовою.'):
+    (p==='Venus'?
+     'Venus already rules house seven: never count it twice. Discuss real expectations and responsibilities.':
+     b.house===v.house?
+     'Venus and the partnership ruler share a D9 house; affection and agreements meet in one arena. Discuss reciprocity.':
+     'Venus and the partnership ruler occupy different D9 houses; affection and shared duties may need separate conversations.');
+  }else if(item.id==='identity'){
+   const a=d1(lords[1]),m=d1('Moon');
+   next=uk?(a.house===m.house?
+    'Управитель лагни та Місяць зосереджені в одній сфері. Дослідіть, що одночасно дає вам напрям і відновлення.':
+    'Управитель лагни й Місяць у різних домах. Не вимагайте від одного заняття і самореалізації, і відпочинку.'):
+    (a.house===m.house?
+     'The rising-sign ruler and Moon share an arena. Find what supports both direction and recovery.':
+     'The rising-sign ruler and Moon occupy different houses. One activity need not supply both purpose and rest.');
+  }else if(item.id==='resources'){
+   const sameLord=lords[2]===lords[11];
+   next=uk?'Збережені ресурси (2-й дім) і здобутки (11-й) — не одне й те саме. '+
+    (sameLord?'Тут їх пов’язує одна планета. ':'Вони мають різних управителів. ')+
+    'Відокремте ці два питання у власному фінансовому плані.':
+    'Retained resources (house 2) differ from gains (house 11). '+
+    (sameLord?'The same planet rules both. ':'Their rulers differ. ')+
+    'Track these two questions separately.';
+  }else if(item.id==='education'){
+   const p=lords[5],b=dn(24,p),m=dn(24,'Mercury');
+   next=uk?(p==='Mercury'?
+    'Меркурій уже керує п’ятим домом: його роль не слід дублювати. Перевіряйте знання завершеною практичною роботою.':
+    'Меркурій у D24 займає '+m.house+'-й дім, а управитель п’ятого — '+b.house+
+    '-й. Розрізняйте засвоєння матеріалу й застосування майстерності.'):
+    (p==='Mercury'?
+     'Mercury already rules the fifth: do not double-count it. Test learning with a finished practical task.':
+     'Mercury occupies D24 house '+m.house+' while the fifth ruler is in '+b.house+
+     '. Distinguish absorbing knowledge from applying a skill.');
+   if(p!=='Mercury')item.proof=unique([...item.proof,'D24.Mercury.house='+m.house]);
+  }
+  if(next)item.interpretation=(item.interpretation+' '+next).trim();
+ }
  // Synthesize roles rather than repeat the discovery headlines.
  const ascLord=lords[1],careerLord=lords[10],partnerLord=lords[7];
  const asc=d1(ascLord),career=d1(careerLord),partner=d1(partnerLord);
