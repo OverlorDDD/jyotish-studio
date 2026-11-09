@@ -28,3 +28,15 @@ test('Google sees a stable PNG icon at root and a legitimate brand logo',()=>{
  assert.equal(png.readUInt32BE(20),64);
  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
 });
+
+test('Bing and Google receive concise branded EN/UK natal titles without repeated module names',()=>{
+ const natal=read('apps/web/app/[locale]/astrology/jyotish/page.tsx');
+ const en='Free Vedic Birth Chart (16 Charts) | Galaxiora';
+ const uk='Натальна карта Джйотіш — 16 карт | Galaxiora';
+ for(const title of [en,uk]){
+  assert.ok(natal.includes(title),'missing indexed title '+title);
+  assert.ok([...title].length<=55,'title should be concise');
+ }
+ assert.doesNotMatch(natal,/title:\([^\n]+moduleTitle\('jyotish'\)/);
+ assert.ok(natal.includes("canonical:'/'+locale+'/astrology/jyotish'"));
+});
