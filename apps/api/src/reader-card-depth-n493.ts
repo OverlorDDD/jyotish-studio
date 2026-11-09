@@ -16,19 +16,19 @@ const RELATION:Readonly<Record<number,readonly string[]>>={
  40:['Moon'],45:['Sun']
 };
 const THEMES:Readonly<Record<number,[string,string]>>={
- 3:['ініціативу та вміння діяти','initiative and follow-through'],
- 4:['емоційну потребу в опорі','emotional need for stability'],
- 7:['наставництво й передачу досвіду','mentoring and passing on knowledge'],
+ 3:['ініціатива та навички','initiative and follow-through'],
+ 4:['емоційна опора','emotional need for stability'],
+ 7:['наставництво та передавання досвіду','mentoring and passing on knowledge'],
  9:['взаємність у партнерстві','reciprocity in partnership'],
- 10:['репутацію й спосіб діяти професійно','visibility and professional conduct'],
- 12:['символічні батьківські впливи','symbolic parental themes'],
- 16:['умови побутового комфорту','everyday comfort'],
- 20:['послідовність внутрішньої практики','sustained inner practice'],
- 24:['методи навчання та засвоєння знань','learning methods and comprehension'],
- 27:['поєднання зусиль та витривалості','the balance between effort and endurance'],
- 30:['реакцію на труднощі й відновлення порядку','responses to setbacks and restoring structure'],
- 40:['материнські приклади та родинну опору','maternal examples and family roots'],
- 45:['принципи, передані батьківською лінією','values associated with paternal lineage']
+ 10:['професійна репутація','visibility and professional conduct'],
+ 12:['батьківські приклади','symbolic parental themes'],
+ 16:['побутовий комфорт','everyday comfort'],
+ 20:['послідовність практики','sustained inner practice'],
+ 24:['спосіб навчання','learning methods and comprehension'],
+ 27:['витривалість і навантаження','the balance between effort and endurance'],
+ 30:['реакція на труднощі','responses to setbacks and restoring structure'],
+ 40:['материнська лінія та родинна опора','maternal examples and family roots'],
+ 45:['батьківська лінія та принципи','values associated with paternal lineage']
 };
 const NAMES_UK:Readonly<Record<string,string>>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',
  Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн'};
@@ -56,11 +56,11 @@ export function n493TopicDepth(chart:CalculatedChart,lang:Lang,division:number,l
   secondary.dignity==='debilitated'?(uk?'у знаку традиційного падіння':'in a traditional debilitation sign'):
   (uk?'в одному домі варги з управителем теми':'in the same divisional house as the topical ruler');
  const note=uk?
-  'Додатковий показник для '+THEMES[division][0]+' — '+NAMES_UK[secondary.name]+
-  ': у D'+division+' знак «'+zodiac[secondary.place.sign-1]+'», '+quality+'. '+
+  'Для теми «'+THEMES[division][0]+'» ще один показник — '+NAMES_UK[secondary.name]+
+  '. У D'+division+' він перебуває у знаку «'+zodiac[secondary.place.sign-1]+'» ('+quality+'). '+
   (secondary.together?
    'Він і тематичний управитель перебувають в одному домі цієї варги; це спільна сфера, а не доказ точного з’єднання.':
-   'Це окрема роль другої планети, яку слід зіставити з D1, а не автоматично додавати як голос на користь успіху.'):
+   'Це уточнення тематичної карти; загальна оцінка залежить і від D1.'):
   'A distinct indicator for '+THEMES[division][1]+' is '+secondary.name+
   ' in D'+division+' '+zodiac[secondary.place.sign-1]+', '+quality+'. '+
   (secondary.together?
