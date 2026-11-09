@@ -77,7 +77,7 @@ test('N4.9 uncertain minutes: warnings never certify fine D60 and reading remain
  await expect(story).toBeVisible();
  // The birth details disclosure may collapse after the result; reopen it.
  const panel=page.locator('#birth-details');
- if(!(await panel.evaluate(el=>el.open)))await panel.locator('summary').click();
+ if(!(await panel.evaluate(el=>el.open)))await panel.locator(':scope > summary').click();
  await panel.locator('input[type="checkbox"]').check();
  await expect(story.getByRole('note')).toContainText('Birth time is approximate');
  const d60=page.getByTestId('reader-v8-d60');
