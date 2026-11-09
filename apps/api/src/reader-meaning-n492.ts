@@ -302,9 +302,9 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
     area(place(asc))+'). The Moon in '+sign(moon.sign)+' (house '+moon.house+
     ') adds '+area(moon.house)+'.');
  const d1Focus=yogakaraka?
-  (uk?'Особливо важливий '+name(yogakaraka)+': він керує одночасно домами '+
+  (uk?'Особливу роль відіграє йогакарака '+name(yogakaraka)+': поєднання управління домами '+
    context.functional.find(f=>f.graha===yogakaraka)!.houses.join(' і ')+
-   '. Це йогакарака, тому його положення необхідно врахувати при читанні праці та здібностей.':
+   '. Цей показник важливий для тем здібностей і професійної реалізації.':
    name(yogakaraka)+' is a yogakaraka, simultaneously ruling houses '+
    context.functional.find(f=>f.graha===yogakaraka)!.houses.join(' and ')+
    '. This functional role matters for vocational and creative readings.'):
@@ -329,9 +329,9 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
    '). In D'+division+', it occupies '+sign(d.sign)+' (house '+d.house+').';
   if(division===10&&yoga.includes(main)){
    statement=uk?
-    name(main)+' для вашого висхідного знака — йогакарака: він поєднує управління '+
+    'Йогакарака для вашого висхідного знака — '+name(main)+': управління '+
     context.functional.find(f=>f.graha===main)!.houses.join('-м і ')+'-м домами. '+
-    'У D1 він у '+p.house+'-му домі ('+area(p.house)+
+    'У D1 ця планета перебуває у '+p.house+'-му домі ('+area(p.house)+
     '), а в професійній D10 — у '+sign(d.sign)+' ('+d.house+'-й дім).':
     main+' is a yogakaraka for this ascendant, ruling houses '+
     context.functional.find(f=>f.graha===main)!.houses.join(' and ')+
