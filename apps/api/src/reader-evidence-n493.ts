@@ -16,7 +16,7 @@ import {composeN493Topic} from './reader-prose-n493.ts';
 export const N493_VERSION='n493-ranked-evidence-16-varga-v1' as const;
 type Lang='uk'|'en';
 type Status='support'|'tension'|'mixed'|'context'|'provisional';
-type Theme='identity'|'career'|'relationships'|'resources'|'learning'|'home'|'discipline'|'timing';
+type Theme='identity'|'career'|'relationships'|'resources'|'learning'|'home'|'discipline'|'timing'|'cross-varga';
 export type N493Pattern={id:string;theme:Theme;division:number;title:string;insight:string;
  context:string;status:Status;score:number;planetKeys:string[];
  evidence:string[];ruleIds:string[]};
@@ -261,6 +261,41 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
    planetKeys:[n],status:'support',score:73+(owned.includes(1)||owned.includes(9)?7:0),
    evidence:[...natalProof(n),...owned.map(h=>'D1.house-lord.'+h+'='+n)],
    ruleIds:['SEVEN_GRAHA_SIGN_DIGNITY','PARASHARI_FUNCTIONAL_LORDSHIP']});
+ }
+ // Vargottama here means verified D1/D9 SIGN identity only. It is not
+ // independent evidence of a later event or externally certified full strength.
+ const sameSign=unique([l[1],l[10],l[7],'Moon','Jupiter',...CLASSICAL_GRAHAS]).filter(n=>{
+  const a=get(n),b=v(9,n);return a&&b&&a.sign===b.sign;
+ });
+ if(sameSign.length){
+  const n=sameSign[0],p=get(n)!;
+  const owned=Array.from({length:12},(_,i)=>i+1).filter(h=>l[h]===n);
+  add({id:'vargottama-'+n.toLowerCase(),theme:'cross-varga',division:9,
+   title:uk?'Однаковий знак у D1 та D9':'Same sign in D1 and D9',
+   insight:uk?name(n)+' у D1 та D9 перебуває у знаку «'+signName(p.sign)+'». '+
+    'У головній карті він керує домами '+owned.join(' і ')+
+    '. Це варготтама за знаками, але не окрема гарантія подій.':
+    n+' occupies '+signName(p.sign)+' in both D1 and D9. It rules natal houses '+
+    owned.join(' and ')+'. This is sign-level vargottama, not guaranteed outcomes.',
+   context:uk?'Таке повторення потрібно читати разом з управліннями й іншими планетами, не додаючи його як друге незалежне підтвердження.':
+    'The repetition must be read with lordship and the rest of the chart, not as independent evidence of a predicted event.',
+   planetKeys:[n],status:'support',score:79+(n===l[1]||n===l[10]?7:0),
+   evidence:unique([...natalProof(n),...vProof(9,n),...owned.map(h=>'D1.house-lord.'+h+'='+n)]),
+   ruleIds:['N4_D1_D9_SAME_SIGN','PARASHARI_FUNCTIONAL_LORDSHIP']});
+ }
+ const yogas=ruleFindings(chart).yogas;
+ for(const y of yogas){
+  if(y.planet===l[10]&&yoga.has(l[10]))continue;
+  add({id:'mahapurusha-'+y.id,theme:'cross-varga',division:1,
+   title:uk?'Перевірена умова класичної йоги':'A verified classical yoga condition',
+   insight:uk?name(y.planet)+' у '+y.house+'-му домі D1 та у знаку «'+signName(y.sign)+
+    '» відповідає знаково-домовим умовам йоги '+y.name+'.':
+    y.planet+' occupies house '+y.house+' of D1 in '+signName(y.sign)+
+    ', meeting the documented sign-and-house conditions of '+y.name+'.',
+   context:uk?'Це ще не повна оцінка дії йоги: не перевірено силу за градусами, аспекти й умови скасування.':
+    'This verifies a sign/house condition only, not full strength, aspects or cancellation rules.',
+   planetKeys:[y.planet],status:'support',score:85,evidence:y.evidence,
+   ruleIds:['PANCHA_MAHAPURUSHA_LAGNA']});
  }
  // Never show two "findings" that are identical planetary evidence in different wrappers.
  const ranked=[...candidates].sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id));
