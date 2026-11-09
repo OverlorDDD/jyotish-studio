@@ -100,8 +100,8 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
  // Two relevant, actually different grahas are checked, but a coincident
  // house number is not counted as independent strength. Say what the chart
  // contains; don't invent a life outcome from two raw placements.
- const natal=uk?'Для сфери «'+area[0]+'» важливий '+pname(primary,uk)+
-  ' — управитель '+focus.house+'-го дому. У D1 він розташований у '+p1.house+
+ const natal=uk?'Для сфери «'+area[0]+'» ключова планета — '+pname(primary,uk)+
+  ', управитель '+focus.house+'-го дому. У D1 вона перебуває у '+p1.house+
   '-му домі ('+house(p1.house,uk)+'), а в D'+division+' — у '+d1.house+
   '-му ('+house(d1.house,uk)+'), у '+sign(d1.sign,uk)+'. ':
   'For '+area[0]+', the ruler of natal house '+focus.house+', '+primary+
