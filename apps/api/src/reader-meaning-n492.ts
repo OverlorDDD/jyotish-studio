@@ -385,11 +385,29 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
      'The tenth lord occupies D1 house '+a.house+' and D10 '+sign(work.sign)+
      (workHigh?' (favourable sign dignity)':'')+'. Connect learning with real professional practice.',
    sourceFacts:profession.sourceFacts},
-  {text:uk?'У стосунках ключовий управитель сьомого дому '+name(lords[7])+
+  // Do not always rank partnership as the third priority. The best caution
+  // should come from a meaningful verified factor in THIS person's chart.
+  (dignityFor('Mercury',natal('Mercury').sign)==='debilitated'?{
+   text:uk?'На що звернути увагу: Меркурій у D1 в '+sign(natal('Mercury').sign)+
+    ' — це знак його традиційного падіння. Він не означає слабкого інтелекту, але робить особливо важливими ясність висловлювання, навчання та перевірку ідей на практиці.':
+    'A point of attention: Mercury in D1 '+sign(natal('Mercury').sign)+
+    ' is traditionally debilitated by sign. This is not a judgment of intelligence; clarity in communication, learning and testing ideas deserve care.',
+   sourceFacts:[...d1Facts('Mercury'),...cards.find(x=>x.division===24)!.sourceFacts]
+  }:context.dasha?{
+   text:uk?'Поточний життєвий ритм: махадаша '+name(context.dasha.major)+
+    ' (управитель домів '+context.dasha.majorHouses.join(', ')+
+    '), її планета у D1 стоїть у '+place(context.dasha.major)+'-му домі. Це контекст для уваги зараз, а не гарантований прогноз.':
+    'Present timing lens: '+context.dasha.major+' mahadasha, ruling houses '+
+    context.dasha.majorHouses.join(', ')+' with its D1 planet in house '+
+    place(context.dasha.major)+'. This frames attention, not a promised outcome.',
+   sourceFacts:[...d1Facts(context.dasha.major),'dasha.major='+context.dasha.major]
+  }:{
+   text:uk?'У стосунках ключовий управитель сьомого дому '+name(lords[7])+
       ' у D1 займає '+place(lords[7])+'-й дім. Його потрібно читати разом із Венерою в D9, не підміняючи конкретну людину прогнозом.':
     'For relationships, the seventh lord '+lords[7]+' occupies D1 house '+
     place(lords[7])+'. Read it with Venus in D9, not as a claim about another person’s intentions.',
-   sourceFacts:relationships.sourceFacts}
+   sourceFacts:relationships.sourceFacts
+  })
  ];
  return {version:N492_MEANING_VERSION,cards,takeaways,
   limits:uk?'Трактування описує традиційні астрологічні показники, не факти про життя. D60 залежить від часу; сила планет і спеціальні йоги не вважаються повністю сертифікованими.':
