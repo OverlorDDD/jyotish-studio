@@ -15,7 +15,7 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
    <p>{uk?'Від основної карти D1 до тонших карт. Лише найважливіші показники кожної теми.':
     'From the main D1 chart to its finer divisions, focusing on what matters in each theme.'}</p>
   </header>
-  {read.topInsights?.length>=3?<section className={book.patterns} data-testid="reader-n493-patterns">
+  {(read.topInsights?.length??0)>=3?<section className={book.patterns} data-testid="reader-n493-patterns">
    <div className={book.patternsHeader}>
     <span className={styles.kicker}>{uk?'✦ ВАШІ ГОЛОВНІ АКЦЕНТИ':'✦ YOUR KEY PATTERNS'}</span>
     <h3>{uk?'Що вирізняє саме цю карту':'What stands out in your chart'}</h3>
