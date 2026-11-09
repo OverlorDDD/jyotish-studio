@@ -309,8 +309,8 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
    const a=d1(lords[10]),b=dn(10,lords[10]);
    next=uk?(a.house===b.house?
     'Обидва ракурси підкреслюють '+desc(b.house,uk)+'. Перевірте цю тему в одному реальному робочому проєкті.':
-    'Головний міст між D1 і D10 — від '+desc(a.house,uk)+' до '+desc(b.house,uk)+
-    '. Спробуйте конкретне завдання, де одна сфера допомагає іншій, перш ніж обирати професійну спеціалізацію.'):
+    'У D1 професійні рішення пов’язані з темою «'+desc(a.house,uk)+'», а D10 уточнює їх практичне вираження через «'+desc(b.house,uk)+
+    '». Спробуйте невеликий робочий проєкт, який поєднує обидві теми, перш ніж обирати спеціалізацію.'):
     (a.house===b.house?
      'Both lenses emphasize '+desc(b.house,uk)+'. Test that theme in one real project.':
      'The D1-to-D10 bridge runs from '+desc(a.house,uk)+' toward '+desc(b.house,uk)+
