@@ -112,7 +112,7 @@ export function buildN491Cards(chart:CalculatedChart,lang:Lang):readonly N491Car
   if(!d1||!dn||!other)throw Error('N491_MISSING_VERIFIED_VARGA_EVIDENCE_'+division);
   const topic=FOCUS[division][uk?0:1];
   const lead=uk?
-   'Для '+topic+' важливий '+name(lord)+': у головній карті він у '+sign(d1.sign)+
+   'Для '+topic+' один із показників — '+name(lord)+': у головній карті він у '+sign(d1.sign)+
    ' ('+area(d1.house)+'), а в D'+division+' — у '+sign(dn.sign)+
    ' ('+area(dn.house)+'). '+interpretation(d1.house,dn.house,true):
    'For '+topic+', '+name(lord)+' is a relevant indicator: in the birth chart it occupies '+
@@ -120,9 +120,9 @@ export function buildN491Cards(chart:CalculatedChart,lang:Lang):readonly N491Car
    sign(dn.sign)+' ('+area(dn.house)+'). '+interpretation(d1.house,dn.house,false);
   const contrast=n491Contrast(dignityFor(lord,dn.sign),dignityFor(lord,other.sign));
   const connection=(uk?
-   'Зв’язок із D'+relatedDivision+': той самий '+name(lord)+
-   ' перебуває у '+sign(other.sign)+' (тема '+area(other.house)+'). ':
-   'Connected to D'+relatedDivision+': the same '+name(lord)+
+   'У D'+relatedDivision+' планета '+name(lord)+
+   ' перебуває у '+sign(other.sign)+' і пов’язана із '+area(other.house)+'. ':
+   'In D'+relatedDivision+', '+name(lord)+
    ' occupies '+sign(other.sign)+' ('+area(other.house)+'). ')+statusSentence(contrast,uk);
   return {division,lead:lead.trim(),connection:connection.trim(),relatedDivision,contrast,
    proof:[
