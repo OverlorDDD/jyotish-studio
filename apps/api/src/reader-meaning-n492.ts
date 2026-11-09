@@ -14,6 +14,7 @@ import {authorConsultationV6} from './reader-narrative-v6.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
 import {buildN493Overview,type N493Overview} from './reader-insights-n493.ts';
+import {buildN493ThematicDetail} from './reader-detail-n493.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -249,6 +250,16 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
  // topic is one of the most characteristic for this specific chart.
  // Its claim is shown only once: the top overview is a short headline; the
  // expanded card carries the actual details and limitations.
+ // All other subject cards now require a distinct secondary graha
+ // comparison rather than a generic life-coaching tip.
+ for(const card of cards){
+  const detail=buildN493ThematicDetail(chart,lang,card.division);
+  if(detail){
+   card.meaning=detail.meaning;
+   card.proof=[...new Set([...card.proof,...detail.proof])];
+   card.sourceIds=[...new Set([...card.sourceIds,'N493-TWO-INDICATOR-COMPARISON'])];
+  }
+ }
  const leading=new Map(discoveries.insights.map(x=>[x.division,x]));
  for(const card of cards){
   const special=leading.get(card.division);
