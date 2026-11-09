@@ -465,6 +465,8 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
  if(cards.length!==16||cards.some((c,i)=>c.division!==N492_DIVISIONS[i]))throw Error('N492_MISSING_OR_DISORDERED_VARGAS');
  const key=lords[10],a=natal(key),work=inD(10,key);
  const workHigh=strong(dignityFor(key,work.sign));
+ const partnershipDignity=dignityFor(lords[7],inD(9,lords[7]).sign);
+ const partnershipStrong=strong(partnershipDignity);
  const d1Card=cards[0],profession=cards.find(c=>c.division===10)!;
  const relationships=cards.find(c=>c.division===9)!;
  const takeaways=[
@@ -495,16 +497,17 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
     'A point of attention: Mercury in D1 '+sign(natal('Mercury').sign)+
     ' is traditionally debilitated by sign. This is not a judgment of intelligence; clarity in communication, learning and testing ideas deserve care.',
    sourceFacts:[...d1Facts('Mercury'),...cards.find(x=>x.division===24)!.sourceFacts]
-  }:(strong(dignityFor(lords[7],inD(9,lords[7]).sign))||
-      weak(dignityFor(lords[7],inD(9,lords[7]).sign)))?{
+  }:(partnershipStrong||weak(partnershipDignity))?{
    text:uk?'Стосунки: управитель сьомого дому '+name(lords[7])+
     ' у D9 стоїть у '+sign(inD(9,lords[7]).sign)+' ('+
-    (strong(dignityFor(lords[7],inD(9,lords[7]).sign))?
-     'власний знак або екзальтація — традиційний ресурс':'знак падіння — традиційна точка уваги')+
+    (partnershipStrong?
+     (partnershipDignity==='own'?'власний знак — традиційний ресурс':'екзальтація — традиційний ресурс'):
+     'знак падіння — традиційна точка уваги')+
     '). Перевіряйте це разом із D1 та Венерою, не роблячи висновку про конкретну людину.':
     'Partnership: the seventh lord '+lords[7]+' in D9 '+sign(inD(9,lords[7]).sign)+
-    ' has '+(strong(dignityFor(lords[7],inD(9,lords[7]).sign))?
-     'a favourable traditional sign dignity':'a traditionally challenging sign dignity')+
+    ' has '+(partnershipStrong?
+     (partnershipDignity==='own'?'an own-sign placement':'an exalted placement'):
+     'a debilitated sign placement')+
     '. Read it with D1 and Venus, not as a verdict on another person.',
    sourceFacts:relationships.sourceFacts
   }:context.dasha?{
