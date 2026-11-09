@@ -12,6 +12,7 @@ type PlanetPosition={planet:string;label:string;d1Sign:number;d60Sign:number;
 export type D60Preview={version:typeof D60_PREVIEW_VERSION;status:'conditional_signs'|'unavailable';
  title:string;intro:string;factors:readonly Factor[];allPlanets:readonly PlanetPosition[];warning:string};
 const UK_SIGNS=['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козорозі','Водолії','Рибах'];
+const UK_SIGN_LABELS=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const EN_SIGNS=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGNS_UK_MEANING=[
  'пряме починання','терпіння й стабільність','гнучкий обмін думками','потребу в безпечній опорі',
@@ -64,8 +65,8 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
   allPlanets.push({
    planet:original.name,label:uk?nUk[original.name]||original.name:original.name,
    d1Sign:original.sign,d60Sign:fine.sign,
-   d1SignName:(uk?UK_SIGNS:EN_SIGNS)[original.sign-1],
-   d60SignName:(uk?UK_SIGNS:EN_SIGNS)[fine.sign-1],
+   d1SignName:(uk?UK_SIGN_LABELS:EN_SIGNS)[original.sign-1],
+   d60SignName:(uk?UK_SIGN_LABELS:EN_SIGNS)[fine.sign-1],
    boundaryDistanceArcseconds:fine.boundaryDistanceArcseconds,
    nearBoundary:fine.boundaryDistanceArcseconds<90
   });
