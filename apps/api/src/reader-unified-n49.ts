@@ -19,7 +19,8 @@ export type N49Link={
  evidence:readonly string[];directSourceIds:readonly string[];extensionSourceIds:readonly string[];
 };
 export type N49Thread={id:'foundation'|'career'|'partnership'|'resource'|'tension';
- title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];scope:Scope};
+ title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];
+ directSourceIds:readonly string[];extensionSourceIds:readonly string[];scope:Scope};
 export type N49Unified={
  version:typeof N49_UNIFIED_VERSION;title:string;opening:string;threads:readonly N49Thread[];
  closing:string;method:string;links:readonly N49Link[];
@@ -74,7 +75,7 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
   return {division,lord,d1House:original.house,d1Sign:original.sign,
    dnHouse:placement.house,dnSign:placement.sign,
    polarity:n49Polarity(dignityFor(lord,original.sign),dignityFor(lord,placement.sign)),
-   scope:'cross_varga_modern_extension' as const,
+   scope:(division===1?'d1_direct':'cross_varga_modern_extension') as Scope,
    evidence:['D1.house-lord.'+h+'='+lord,'D1.'+lord+'.house='+original.house,
     'D1.'+lord+'.sign='+original.sign,'D'+division+'.'+lord+'.house='+placement.house,
     'D'+division+'.'+lord+'.sign='+placement.sign],
@@ -92,7 +93,9 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
    extra:readonly string[]=[]):N49Thread=>({
   id,title,text,scope:id==='foundation'?'d1_direct':'cross_varga_modern_extension',
   evidence:[...new Set([...getEvidence(...links),...extra])],
-  sourceIds:[...new Set(links.flatMap(l=>[...l.directSourceIds,...l.extensionSourceIds]))]
+  sourceIds:[...new Set(links.flatMap(l=>[...l.directSourceIds,...l.extensionSourceIds]))],
+  directSourceIds:[...new Set(links.flatMap(l=>l.directSourceIds))],
+  extensionSourceIds:[...new Set(links.flatMap(l=>l.extensionSourceIds))]
  });
  const r=byDivision(resourceDivision),t=byDivision(tensionDivision);
  if(!r||!t||r.division===t.division||r.division===10||t.division===10) return null;
@@ -136,7 +139,7 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     (uk?'Обидва десяті доми без класичних планет: правило Brihat Jataka X.1 тоді звертається до управителів навамш від Лагни, Місяця і Сонця. ':
     'Both tenth houses lack classical planets, so Brihat Jataka X.1 turns to the navamsa dispositors from Lagna, Moon and Sun. '))+
     explanatoryTone(career.polarity,uk),
-   [career,relation],[ 'D9.'+career.lord+'.sign='+navCareer.sign,
+   [career],[ 'D9.'+career.lord+'.sign='+navCareer.sign,
     'D9.sign-ruler.'+navCareer.sign+'='+rulerOfNavamsa,
     'D1.Moon.tenth.sign='+fromMoon,'D1.Sun.tenth.sign='+fromSun]),
   thread('partnership',uk?'Стосунки: D1 не суперечить D9 автоматично':'Relationships: D9 refines rather than cancels D1',
