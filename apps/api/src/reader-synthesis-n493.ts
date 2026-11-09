@@ -57,7 +57,7 @@ export function synthesizeN493(chart:CalculatedChart,lang:Lang):N493Synthesis|nu
  }else if(dignity==='exalted'||dignity==='own'){
   strength=uk?
    'Управитель кар’єри — '+name(career)+' у D1 у '+c10.house+'-му домі. У професійній D10 він у '+v10.house+
-    '-му домі, у знаку «'+sign(v10.sign)+'»'+(dignity==='exalted?' — знаку екзальтації.':' — власному знаку.'):
+    '-му домі, у знаку «'+sign(v10.sign)+'»'+(dignity==='exalted'?' — знаку екзальтації.':' — власному знаку.'):
    'The career ruler '+career+' occupies D1 house '+c10.house+
     '. In D10 it occupies house '+v10.house+' in '+sign(v10.sign)+
     (dignity==='exalted'?', its exaltation sign.':', its own sign.');
