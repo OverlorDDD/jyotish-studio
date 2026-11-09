@@ -62,7 +62,7 @@ export default async function MoonSignGuide({params}:Props){
      'This describes the Moon-sign theme. To see the transiting Moon’s current house relative to this rashi, open the live horoscope below.'}</p>
    </section>
    <div className="as-actions" style={{display:'flex',gap:12,flexWrap:'wrap',marginTop:24}}>
-    <Link className="as-button as-button-primary" href={'/'+locale+'/horoscope?system=vedic&sign='+sign}>
+    <Link className="as-button as-button-primary" href={'/'+locale+'/horoscope#vedic-'+sign}>
      {uk?'Читати актуальний гороскоп '+name:'See today’s '+name+' horoscope'} ↗
     </Link>
     <Link className="as-button as-button-secondary" href={'/'+locale+'/astrology/jyotish'}>
@@ -78,7 +78,7 @@ export default async function MoonSignGuide({params}:Props){
    <section className="as-lesson-section">
     <h2>{uk?'Досліджуй більше':'Explore more'}</h2>
     <p><Link href={'/'+locale+'/panchanga'}>{uk?'Панчанга — поточна тітхі, накшатра й фази Місяця':'Panchanga — today’s tithi, nakshatra and Moon phases'}</Link></p>
-    <p><Link href={'/'+locale+'/learn'}>{uk?'Академія Джйотіш':'Jyotish Academy'}</Link></p>
+    <p><Link href={'/'+locale+'/pedia'}>{uk?'Академія Джйотіш':'Jyotish Academy'}</Link></p>
    </section>
   </article>
  </PortalShell>;
