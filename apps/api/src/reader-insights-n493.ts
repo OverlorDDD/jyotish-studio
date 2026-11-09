@@ -200,10 +200,12 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
     (overlaps?'Learning and vocation share a chart indicator':'Where learning becomes practiced skill'),
    interpretation:uk?'Управитель п’ятого дому '+name(planet,uk)+' у D1 перебуває в '+
     a.house+'-му домі ('+desc(a.house,uk)+'). У D24 він у '+b.house+'-му домі, у '+
-    sign(b.sign,uk)+'. '+(strong(q)?'Це '+quality(q,uk)+' — традиційний знак підтримки навчальної теми. ':'')+
+    sign(b.sign,uk)+'. У темі освіти це зіставляє '+desc(a.house,uk)+' із '+
+    desc(b.house,uk)+'. '+(strong(q)?'Це '+quality(q,uk)+' — традиційний знак підтримки навчальної теми. ':'')+
     (overlaps?'D10 повторює сприятливу знакову оцінку тієї ж планети, але це пов’язане, а не незалежне підтвердження.':''):
     'The fifth-house ruler '+planet+' is in D1 house '+a.house+' ('+desc(a.house,uk)+
-    '), and in D24 house '+b.house+', in '+sign(b.sign,uk)+'. '+
+    '), and in D24 house '+b.house+', in '+sign(b.sign,uk)+'. For education, this links '+
+    desc(a.house,uk)+' with '+desc(b.house,uk)+'. '+
     (strong(q)?'Its '+quality(q,uk)+' is a traditional educational sign strength. ':'')+
     (overlaps?'D10 has comparable dignity for the same planet, which is correlated evidence, not a separate guarantee.':''),
    attention:uk?'Це не оцінка інтелекту чи дипломів; Меркурій та інші чинники перевіряються окремо.':
