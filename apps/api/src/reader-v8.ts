@@ -8,6 +8,7 @@ import {buildSourceSynthesis,type ReaderSynthesis} from './reader-synthesis-n47.
 import {buildUnifiedN49,type N49Unified} from './reader-unified-n49.ts';
 import {buildN491Cards,type N491Card} from './reader-compact-n491.ts';
 import {buildMeaningfulN492,type MeaningfulReading} from './reader-meaning-n492.ts';
+import {buildEvidenceN493,type N493Reading} from './reader-evidence-n493.ts';
 import {buildD60Preview,compactD60PreviewForAi,type D60Preview} from './reader-d60-n47.ts';
 
 export const READER_V8_VERSION='reader-v8.0.0-n44' as const;
@@ -31,6 +32,7 @@ export type ClassicalReaderReport={
  integrated:N49Unified|null;
  compactCards:readonly N491Card[];
  meaningful:MeaningfulReading|null;
+ quality:N493Reading|null;
  d60Preview:D60Preview;
  highlights:readonly {id:'strength'|'challenge'|'career';division:number;title:string;text:string}[];
  insights:readonly ClassicalReaderInsight[];
@@ -50,7 +52,7 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
    'Детальне класичне прочитання можливе лише за перевіреною натальною картою.':
    'A classical reading requires a verified natal calculation.',
   method:uk?'Правила без перевірених даних не застосовуються.':'No classical rule is applied without verified data.',
-  synthesis:null,integrated:null,compactCards:[],meaningful:null,d60Preview:buildD60Preview(chart,lang),
+  synthesis:null,integrated:null,compactCards:[],meaningful:null,quality:null,d60Preview:buildD60Preview(chart,lang),
   highlights:[],insights:[],d60Notice:basic.d60Notice
  };
  if(!verifiedVargaSource(chart)||basic.status!=='available'||basic.insights.length!==15)return unavailable;
@@ -111,8 +113,9 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
  const integrated=buildUnifiedN49(chart,lang,asOf,n49Primary,n49Secondary);
  const compactCards=buildN491Cards(chart,lang);
  const meaningful=buildMeaningfulN492(chart,lang,asOf);
+ const quality=buildEvidenceN493(chart,lang,asOf);
  if(!integrated||integrated.links.length!==15||integrated.threads.length!==5||
-    !compactCards||compactCards.length!==15||!meaningful||meaningful.cards.length!==16)return unavailable;
+    !compactCards||compactCards.length!==15||!meaningful||meaningful.cards.length!==16||!quality||quality.cards.length!==16||quality.patterns.length<3)return unavailable;
  /* The three lead cards use verified facts, not generic reflective questions. */
  const highlights=synthesis.highlights as ClassicalReaderReport['highlights'];
  return {
@@ -125,7 +128,7 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   method:uk?
    'Джерела: Brihat Jataka (переклад 1905) і Laghu Parashari (1900). OCR-уривки прочитані, але не всі звірені зі сканами; дослівні прогнози не переносяться. Вищі карти залежать від точності часу народження.':
    'Sources: Brihat Jataka (1905 translation) and Laghu Parashari (1900). OCR excerpts were reviewed but not all scan-verified; literal predictions are not imported. Higher divisions depend on accurate birth time.',
-  synthesis,integrated,compactCards,meaningful,d60Preview:buildD60Preview(chart,lang),
+  synthesis,integrated,compactCards,meaningful,quality,d60Preview:buildD60Preview(chart,lang),
   highlights,insights,d60Notice:basic.d60Notice
  };
 }
@@ -136,10 +139,12 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
  const selected=[10,27,30,9,24,2];
  return ['Classical Reader 8 evidence: historical book metadata are OCR-reviewed, not independently scan-certified.',
   compactD60PreviewForAi(chart), // place BEFORE long thematic facts so it cannot be truncated
-  'N4.9.2 use only the prioritized 16-card source-bound narratives, including provisional D60:',
-  ...r.meaningful!.cards.filter(card=>selected.includes(card.division))
-   .map(card=>'D'+card.division+': '+card.meaning+(card.connection?' Cross-check: '+card.connection:'')),
-  'Final cross-chart synthesis: '+r.meaningful!.summary.strength+' '+r.meaningful!.summary.attention,
+  'N4.9.3 evidence-ranked key patterns, without personal identifiers:',
+  ...r.quality!.patterns.map(p=>p.id+': '+p.insight+'; context='+p.context+
+    '; evidence='+p.evidence.join(',')),
+  ...r.quality!.cards.filter(c=>selected.includes(c.division)).map(c=>
+    'D'+c.division+': '+c.meaning+' '+(c.context||'')+'; evidence='+c.proof.join(',')),
+  'Whole-chart reading: '+r.quality!.summary.portrait+' Focus: '+r.quality!.summary.focus,
   ...selected.map(d=>{
    const i=r.insights.find(x=>x.division===d)!;
    return 'D'+d+' evidence='+i.proof.join(',')+

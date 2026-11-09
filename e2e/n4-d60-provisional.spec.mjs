@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n492-evidence-prioritized-16-varga-v1',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n493-ranked-evidence-16-varga-v1',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -135,7 +135,29 @@ function mockV8(divisions){
     proof:['D1.ascendant.sign=1']},
    method:'Парашарі, знак, доми, часові обмеження'
   },
-  compactCards:divisions.map((division)=>({
+  quality:{
+   version:'n493-ranked-evidence-16-varga-v1',
+   patterns:['identity','career','relationships'].map((theme,i)=>({
+    id:theme,theme,division:[1,10,9][i],title:'Тематичний показник '+theme,
+    insight:'Два перевірені показники '+theme+' поєднують положення управителя у головній карті з додатковою планетою.',
+    context:'Ця традиційна тема потребує перевірки за іншими даними карти.',
+    score:80-i,status:'context',planetKeys:['Mercury','Venus'],ruleIds:['TEST_ONLY'],
+    evidence:['D1.Mercury.house=3','D9.Venus.house=3']
+   })),
+   cards:[...divisions,60].map(division=>({
+    division,title:'Сфера життя '+division,
+    meaning:'Тематична карта D'+division+' використовує два підтверджені положення з D1 та варги, без вигаданих подій.',
+    context:'Цей показник доповнює загальний напрям, але не гарантує конкретного результату.',
+    status:division===60?'provisional':'context',findingIds:[],
+    proof:['D1.Mercury.house=3','D'+division+'.Mercury.sign=5'],ruleIds:['TEST_ONLY']
+   })),
+   summary:{title:'Що головне у вашій карті',
+    portrait:'Управителі вказують на індивідуальні сфери діяльності та внутрішньої опори.',
+    focus:'Партнерство й професійний напрям потребують окремої уваги.',
+    proof:['D1.Mercury.house=3','D9.Venus.house=3']},
+   method:'Перевірені символічні інтерпретації тестових даних'
+  },
+    compactCards:divisions.map((division)=>({
    division,lead:'Для цієї сфери один із показників — Меркурій. У D1 він пов’язаний із навчанням і в D'+division+' — з практичними навичками.',
    relatedDivision:division===10?24:division===24?10:9,contrast:'unresolved',
    connection:'Зв’язок із D'+(division===10?24:division===24?10:9)+': цей самий Меркурій має перевірене тематичне положення.',
@@ -245,13 +267,13 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain).toBeVisible();
  await expect(plain.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
  await expect(plain.getByTestId('reader-v8-synthesis')).toHaveCount(0);
- await expect(plain.getByTestId('reader-v8-D27')).toContainText('Для цієї сфери');
+ await expect(plain.getByTestId('reader-v8-D27')).toContainText('Тематична карта');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await expect(plain.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
+ await expect(plain.getByTestId('reader-n493-d60-nine').locator(':scope > div')).toHaveCount(9);
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('Лев');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
  await plain.getByTestId('reader-v8-D10').getByText('Чому такий висновок').click();
- await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
+ await expect(plain.getByTestId('reader-v8-D10')).toContainText('D1.Mercury.house');
  await expect(page.getByTestId('reader-v7')).toHaveCount(0);
 
  await expect(page.getByTestId('n4-varga-reader')).toHaveCount(0);

@@ -9,6 +9,11 @@ export type ReaderV8UI={
  meaningful?:{version:string;cards:readonly {division:number;title:string;meaning:string;connection:string|null;
   status:string;proof:string[];sourceIds:string[]}[];
   summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};method:string};
+ quality?:{version:string;patterns:readonly {id:string;theme:string;division:number;title:string;
+  insight:string;context:string;status:string;score:number;planetKeys:string[];evidence:string[];ruleIds:string[]}[];
+ cards:readonly {division:number;title:string;meaning:string;context:string|null;findingIds:readonly string[];
+  status:string;proof:readonly string[];ruleIds:readonly string[]}[];
+ summary:{title:string;portrait:string;focus:string;proof:string[]};method:string};
  integrated?:{version:string;title:string;opening:string;closing:string;method:string;
   threads:readonly {id:string;title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];
    directSourceIds:readonly string[];extensionSourceIds:readonly string[];scope:string}[];

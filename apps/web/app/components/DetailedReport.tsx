@@ -4,6 +4,7 @@ import vargaStyles from './VargaInsights.module.css';
 import ReaderV7View,{type ReaderV7UI} from './ReaderV7View';
 import ReaderV8View,{type ReaderV8UI} from './ReaderV8View';
 import ReaderN492View from './ReaderN492View';
+import ReaderN493View from './ReaderN493View';
 
 export type ReadingSection={
  id:string;heading:string;eyebrow:string;lead:string;paragraphs:string[];
@@ -179,7 +180,7 @@ function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:Non
 export default function DetailedReport({report,lang,minutesUncertain=false}:{report:ReadingReport;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',ai=report.ai;
  const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text);
- const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.editorialVersion==='n48-poetic-evidence-1.0.0'&&report.readerV8.integrated?.version==='n49-unified-evidence-v1'&&report.readerV8.compactCards?.length===15&&report.readerV8.meaningful?.version==='n492-evidence-prioritized-16-varga-v1'&&report.readerV8.meaningful.cards.length===16&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
+ const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.editorialVersion==='n48-poetic-evidence-1.0.0'&&report.readerV8.integrated?.version==='n49-unified-evidence-v1'&&report.readerV8.compactCards?.length===15&&report.readerV8.meaningful?.version==='n492-evidence-prioritized-16-varga-v1'&&report.readerV8.meaningful.cards.length===16&&report.readerV8.quality?.version==='n493-ranked-evidence-16-varga-v1'&&report.readerV8.quality.cards.length===16&&report.readerV8.quality.patterns.length>=3&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
  const hasV7=report.readerV7?.version==='reader-v7.0.0-n43'&&report.readerV7.status==='available'&&report.readerV7.insights.length===15;
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
  const fullConsultation=aiChapters.size>0;
@@ -208,7 +209,7 @@ export default function DetailedReport({report,lang,minutesUncertain=false}:{rep
    <p className="jy-direct-source">{uk?'AI пояснює підтверджені розрахунки простою мовою. Це трактування традиції, не підтвердження фактів про ваше життя. D60 не використовується для персональних висновків.':'AI explains verified calculations in everyday language. This is a traditional interpretation, not a confirmed fact about your life. D60 is excluded from personal conclusions.'}</p>
    <DirectArticle text={ai.text} lang={lang}/>
   </article>:null}
-  {hasV8&&report.readerV8?<ReaderN492View data={report.readerV8} lang={lang} minutesUncertain={minutesUncertain}/>:null}
+  {hasV8&&report.readerV8?<ReaderN493View data={report.readerV8} lang={lang} minutesUncertain={minutesUncertain}/>:null}
   {!hasV8&&hasV7&&report.readerV7?<ReaderV7View data={report.readerV7} lang={lang}/>:null}
     {!hasV8&&report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?
      <details className={vargaStyles.deepDive} open={!hasV7&&!hasV8}>
