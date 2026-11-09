@@ -13,6 +13,7 @@ import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts'
 import {authorConsultationV6} from './reader-narrative-v6.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
+import {rankN493Patterns,type ChartPattern,N493_PATTERN_VERSION} from './reader-patterns-n493.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -20,6 +21,7 @@ type Lang='uk'|'en';
 type Card={division:number;title:string;meaning:string;connection:string|null;
  status:'notable'|'mixed'|'contextual'|'provisional';proof:string[];sourceIds:string[]};
 export type MeaningfulReading={version:typeof N492_MEANING_VERSION;
+ topInsights:readonly ChartPattern[];patternVersion:typeof N493_PATTERN_VERSION;
  cards:readonly Card[];summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
  method:string};
 const HEADS:Readonly<Record<number,[string,string,number]>>={
@@ -106,6 +108,8 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
  const same=(div:number,name:string)=>source.find(c=>c.division===div)?.planets.find(p=>p.name===name);
  const facts=ruleFindings(chart);
  const d60=buildD60Preview(chart,lang);
+ const topInsights=rankN493Patterns(chart,lang);
+ if(!topInsights||topInsights.length<3||topInsights.length>5)return null;
  const cards:Card[]=[];
  for(const div of N492_ORDER){
   const [titleUk,titleEn,topicHouse]=HEADS[div];
@@ -243,75 +247,39 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     notable(dnQuality)||isYoga?'notable':'contextual',proof,sourceIds:[]});
  }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
- const lagnaLord=lp[1],careerLord=lp[10],relationLord=lp[7];
- const asc=get(lagnaLord)!,career=get(careerLord)!,moon=get('Moon')!;
- const primaryYoga=[...yoga].find(g=>[careerLord,lagnaLord,lp[9],lp[5]].includes(g))||[...yoga][0];
- const d10Yoga=primaryYoga?same(10,primaryYoga):null;
- const chosenDignities=([10,9,2,24,27] as number[]).flatMap(div=>{
-  const graha=lp[HEADS[div][2]],p=same(div,graha);
-  return p&&notable(dignityFor(graha,p.sign))?[{div,graha,sign:p.sign,kind:dignityFor(graha,p.sign)}]:[];
- }).slice(0,2);
- const yogaPart=primaryYoga?(uk?
-  pName(primaryYoga)+' керує кутовим і тригональним домами (йогакарака).'+
-   (d10Yoga?' У D10 він перебуває у знаку «'+sign(d10Yoga.sign)+'»'+
-    (dignityFor(primaryYoga,d10Yoga.sign)==='exalted'?' — це знак його екзальтації.':'.'):''):
-  primaryYoga+' rules both an angular and a trinal house (yogakaraka).'+
-   (d10Yoga?' In D10 it occupies '+sign(d10Yoga.sign)+
-    (dignityFor(primaryYoga,d10Yoga.sign)==='exalted'?', its exaltation sign.':'.'):'')
- ):'';
- const dignityPart=chosenDignities.length?(uk?
-   chosenDignities.map(x=>'D'+x.div+': '+pName(x.graha)+' у знаку «'+sign(x.sign)+'» ('+
-     (x.kind==='exalted'?'екзальтація':'власний знак')+')').join('; ')+'.':
-   chosenDignities.map(x=>'D'+x.div+': '+x.graha+' in '+sign(x.sign)+' ('+
-     (x.kind==='exalted'?'exaltation':'own sign')+')').join('; ')+'.'):'';
- const strength=[yogaPart,dignityPart].filter(Boolean).join(' ').trim()||
-  (lagnaLord===careerLord?(uk?
-   pName(lagnaLord)+' керує одночасно першим і десятим домами й перебуває в '+asc.house+
-   '-му домі. Саме ця спільна роль пов’язує особистий напрям і професію.':
-   lagnaLord+' rules both the first and tenth houses from house '+asc.house+
-   ', connecting personal direction to vocation.'):
-   (uk?'Управитель висхідного знака '+pName(lagnaLord)+' у '+asc.house+'-му домі, а професії — '+
-     pName(careerLord)+' у '+career.house+'-му. Ці два положення визначають різні опори карти.':
-    'The ascendant ruler '+lagnaLord+' occupies house '+asc.house+', while career ruler '+
-     careerLord+' occupies house '+career.house+'. They provide distinct chart anchors.'));
- const weak=chart.d1.find(p=>dignityFor(p.name,p.sign)==='debilitated');
- const attention=weak?(uk?
-  pName(weak.name)+' у D1 перебуває у знаку «'+sign(weak.sign)+'» — знаку традиційного падіння. '+
-   'Перш ніж оцінювати його вплив, слід перевірити інші управління, аспекти та силу планети.':
-  weak.name+' in D1 occupies '+sign(weak.sign)+', its traditional debilitation sign. '+
-   'Interpretation requires checking lordship, aspects and fuller planetary strength.') :
-  moon.house===career.house?(uk?
-   'Місяць і управитель професії перебувають у '+career.house+'-му домі: потреба у відновленні '+
-   'та робочі завдання торкаються однієї сфери, хоча не означають одного й того самого.':
-   'The Moon and career ruler both occupy house '+career.house+
-   '. Emotional recovery and professional responsibilities meet in one arena, but are not identical.'):
-   (uk?'Місяць перебуває в '+moon.house+'-му домі, а управитель професії — в '+career.house+
-     '-му. Розрахунок розділяє потребу в особистому ритмі та професійні завдання.':
-    'The Moon is in house '+moon.house+' and the career ruler in house '+career.house+
-    '. The chart distinguishes the need for recovery from vocational responsibilities.');
- const relationship=get(relationLord)!;
- const direction=lagnaLord===careerLord?(uk?
-  'У вашій карті '+pName(lagnaLord)+' одночасно керує особистим напрямом і кар’єрою. '+
-  'Його положення в '+asc.house+'-му домі варто читати разом із D10; '+
-  'для партнерства окремим показником залишається '+pName(relationLord)+
-  ' у '+relationship.house+'-му домі.':
-  'The same '+lagnaLord+' rules identity and vocation. Read its house '+asc.house+
-  ' placement with D10; partnership retains its own indicator, '+relationLord+
-  ' in house '+relationship.house+'.'):
-  (uk?'Особистий напрям розкриває '+pName(lagnaLord)+' у '+asc.house+'-му домі ('+area(asc.house)+
-  '); професійний — '+pName(careerLord)+' у '+career.house+'-му ('+area(career.house)+
-  '); партнерство — '+pName(relationLord)+' у '+relationship.house+'-му ('+area(relationship.house)+
-  '). Кожна сфера має свою роль; одна сприятлива позиція не замінює перевірки решти карти.':
-  'Personal direction follows '+lagnaLord+' in house '+asc.house+
-  ', vocation '+careerLord+' in house '+career.house+
-  ', and partnership '+relationLord+' in house '+relationship.house+
-  '. Look for actual corroboration rather than assuming one chart factor decides every area.');
- return {version:N492_MEANING_VERSION,cards,
+ // The conclusion is about the *relationship between the dominant themes*,
+ // not a second list of planet coordinates or a repeat of five card paragraphs.
+ const headline=topInsights[0],second=topInsights[1],third=topInsights[2];
+ const primary=topInsights.find(p=>p.id==='vocation')||headline;
+ const privateLife=topInsights.find(p=>p.id==='inner-life');
+ const partnership=topInsights.find(p=>p.id==='partnership');
+ const cautionInsight=topInsights.find(p=>p.id==='caution');
+ const strength=uk?
+  'Найважливіший професійний або особистий ресурс цієї карти — «'+primary.title+'». '+
+    primary.implication:
+  'A key vocation or personal resource in this chart is "'+primary.title+'". '+
+    primary.implication;
+ const attention=cautionInsight?(uk?
+  'Окрема перевірка потрібна для теми «'+cautionInsight.title+'». '+
+   cautionInsight.implication:
+  'One chart factor needs review: "'+cautionInsight.title+'". '+
+   cautionInsight.implication):
+  (uk?'Навіть виразний знак у D10 не оцінює автоматично особисті потреби й партнерство. '+
+     (privateLife?.implication||second.implication):
+   'Even a strong vocational indicator does not settle personal needs or partnership. '+
+     (privateLife?.implication||second.implication));
+ const direction=uk?
+  'Разом три лінії карти дають практичний орієнтир: '+(privateLife?.implication||second.implication)+
+    ' '+(partnership?.implication||third.implication)+
+    ' '+(primary.implication||headline.implication):
+  'Read these themes together, without making one planet stand for your whole life. '+
+    (privateLife?.implication||second.implication)+' '+
+    (partnership?.implication||third.implication)+' '+
+    (primary.implication||headline.implication);
+ const summaryProof=uniq(topInsights.slice(0,3).flatMap(p=>p.evidence));
+ return {version:N492_MEANING_VERSION,topInsights,patternVersion:N493_PATTERN_VERSION,cards,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
-   strength,attention,direction,proof:[
-    'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+asc.house,
-    'D1.house-lord.10='+lp[10],'D1.'+lp[10]+'.house='+get(lp[10])!.house
-   ]},
+   strength,attention,direction,proof:summaryProof},
   method:uk?'Традиційна інтерпретація: D1, функціональні управителі, знакові положення, тематичні варги. Знакова гідність — не повна Shadbala; D60 умовна.':
    'Traditional interpretation: D1, functional lords, sign dignity and thematic divisional charts. Sign dignity is not full Shadbala; D60 is provisional.'};
 }
