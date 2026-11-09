@@ -29,6 +29,7 @@ const NAMES_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:
  Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
 const NAMES_GU:Record<string,string>={Sun:'Сонця',Moon:'Місяця',Mars:'Марса',Mercury:'Меркурія',
  Jupiter:'Юпітера',Venus:'Венери',Saturn:'Сатурна',Rahu:'Раху',Ketu:'Кету'};
+const SIGNS_UK_NOM=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGNS_UK=['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні',
  'Стрільці','Козорозі','Водолії','Рибах'];
 const SIGNS_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio',
@@ -109,6 +110,7 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
  const name=(n:string)=>uk?NAMES_UK[n]||n:n;
  const gen=(n:string)=>uk?NAMES_GU[n]||n:n;
  const sign=(n:number)=>(uk?SIGNS_UK:SIGNS_EN)[n-1];
+ const signName=(n:number)=>(uk?SIGNS_UK_NOM:SIGNS_EN)[n-1];
  const area=(h:number)=>(uk?LOC_UK:LOC_EN)[h-1];
  const get=(n:string)=>chart.d1.find(x=>x.name===n);
  const v=(d:number,n:string)=>source.charts.find(c=>c.division===d)?.planets.find(p=>p.name===n);
@@ -288,7 +290,7 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
   ]);
   let meaning='';
   if(division===1){
-   meaning=uk?'Ваш висхідний знак — '+sign(ascPos)+'. Його управитель '+name(lord)+
+   meaning=uk?'Ваш висхідний знак — '+signName(ascPos)+'. Його управитель '+name(lord)+
     ' у '+first.house+'-му домі ('+area(first.house)+'); '+name(second)+
     ' у '+other.house+'-му домі додає іншу сферу — '+area(other.house)+'.':
     'Your rising sign is '+sign(ascPos)+'. Its ruler '+lord+' occupies house '+
@@ -298,13 +300,15 @@ export function buildEvidenceN493(chart:CalculatedChart,lang:Lang,asOf:string):N
    meaning=uk?'Для теми «'+ukTitle+'» перший показник — управитель '+homeHouse+
     '-го дому '+name(lord)+' у D1 в '+first.house+'-му домі ('+area(first.house)+'). '+
     'У D'+division+' він у '+position.house+'-му домі ('+area(position.house)+'), '+
-    'знак «'+sign(position.sign)+'».':
+    'знак «'+signName(position.sign)+'».':
     'For '+enTitle.toLowerCase()+', natal house '+homeHouse+' is ruled by '+lord+
     ' in D1 house '+first.house+' ('+area(first.house)+'). In D'+division+
     ' it occupies house '+position.house+' ('+area(position.house)+'), '+sign(position.sign)+'.';
    meaning+=' '+interpretPair(division,first.house,position.house,uk);
   }
-  // SECOND, separate planet and separate sign evidence — not the same ruler counted twice.
+  // Prevent redundant double counting of a natural significator which is
+  // also the topical house ruler. The alternate indicator is always distinct.
+    // SECOND, separate planet and separate sign evidence — not the same ruler counted twice.
   meaning+=' '+(uk?'Другий незалежний показник — '+name(second)+
    ' у D'+division+' у '+otherV.house+'-му домі ('+area(otherV.house)+').':
    'A distinct second indicator, '+second+', occupies D'+division+
