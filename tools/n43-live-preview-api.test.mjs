@@ -16,6 +16,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
   assert.equal(meta.readerEdition,'reader-v8.0.0-n44');
   assert.equal(meta.editorialEdition,'n48-poetic-evidence-1.0.0');
   assert.equal(meta.interpretationEdition,'n49-unified-evidence-v1');
+  assert.equal(meta.presentationEdition,'n493-ranked-multifactor-v1');
   assert.equal(meta.previewOnly,true);
   assert.equal(meta.productionAuthorized,false);
   assert.equal(meta.verificationContract,'jyotish-integrity-v3');
@@ -41,6 +42,15 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(report.readerV8.editorialVersion,'n48-poetic-evidence-1.0.0');
    assert.equal(report.readerV8.status,'available');
    assert.equal(report.readerV8.insights.length,15);
+   assert.equal(report.readerV8.compactCards.length,15);
+   assert.equal(report.readerV8.meaningful?.cards.length,16);
+   assert.equal(report.readerV8.meaningful?.patternVersion,'n493-ranked-multifactor-v1');
+   assert.ok(report.readerV8.meaningful?.topInsights?.length>=3);
+   assert.ok(report.readerV8.meaningful?.topInsights?.length<=5);
+   assert.ok(report.readerV8.meaningful?.topInsights?.every(p=>p.evidence?.length>=3&&!p.divisions.includes(60)));
+   assert.equal(report.readerV8.meaningful?.cards[0].division,1);
+   assert.equal(report.readerV8.meaningful?.cards[15].division,60);
+   assert.ok(report.readerV8.meaningful?.summary.direction.length>=100);
    assert.equal(report.readerV8.synthesis?.version,'n48-evidence-poetic-v1');
    assert.equal(report.readerV8.integrated?.version,'n49-unified-evidence-v1');
    assert.equal(report.readerV8.integrated.links.length,15);
@@ -48,6 +58,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.ok(report.readerV8.synthesis.opening.length>120);
    assert.equal(report.readerV8.d60Preview?.version,'d60-conditional-signs-n47-v1');
    assert.equal(report.readerV8.d60Preview.status,'conditional_signs');
+   assert.equal(report.readerV8.d60Preview.allPlanets.length,9);
    assert.ok(report.readerV8.d60Preview.factors.length>0);
    assert.ok(report.readerV8.d60Preview.factors.every(x=>x.boundaryDistanceArcseconds>=90));
 
@@ -66,6 +77,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
   assert.equal(approximateReader.insights.length,15);
   assert.equal(approximateReader.d60Preview.status,'unavailable');
   assert.equal(approximateReader.d60Preview.factors.length,0);
+  assert.equal(approximateReader.d60Preview.allPlanets.length,0);
   const invalid=await send(base+'/api/v1/reports',{...birth,time:'12:XX',lang:'uk',preferred:'local'});
   assert.equal(invalid.status,400);
   const denied=await fetch(base+'/api/admin');

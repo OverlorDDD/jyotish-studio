@@ -5,12 +5,22 @@ export type ReaderV8UI={
  version:string;editorialVersion:string;ruleSetVersion:string;status:'available'|'unavailable';
  introduction:string;method:string;d60Notice:string;
  synthesis?:{version:string;title:string;opening:string;strength:string;challenge:string;direction:string;method:string};
+ compactCards?:readonly {division:number;lead:string;connection:string;relatedDivision:number;contrast:string;proof:readonly string[]}[];
+ meaningful?:{version:string;patternVersion?:string;topInsights?:readonly {
+  id:string;title:string;reading:string;implication:string;evidence:readonly string[];
+  divisions:readonly number[];score:number;tier:string}[];
+  cards:readonly {division:number;title:string;meaning:string;connection:string|null;
+  status:string;proof:string[];sourceIds:string[]}[];
+  summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};method:string};
  integrated?:{version:string;title:string;opening:string;closing:string;method:string;
   threads:readonly {id:string;title:string;text:string;evidence:readonly string[];sourceIds:readonly string[];
    directSourceIds:readonly string[];extensionSourceIds:readonly string[];scope:string}[];
   links:readonly {division:number;polarity:string;evidence:readonly string[]}[]};
  d60Preview?:{version:string;status:'conditional_signs'|'unavailable';title:string;intro:string;
-  factors:readonly {planet:string;d1Sign:number;d60Sign:number;boundaryDistanceArcseconds:number;note:string}[];warning:string};
+  factors:readonly {planet:string;d1Sign:number;d60Sign:number;boundaryDistanceArcseconds:number;note:string}[];
+  allPlanets?:readonly {planet:string;label:string;d1Sign:number;d60Sign:number;
+    d1SignName:string;d60SignName:string;boundaryDistanceArcseconds:number;nearBoundary:boolean}[];
+  warning:string};
  highlights:readonly {id:string;division:number;title:string;text:string}[];
  insights:readonly {division:number;title:string;headline:string;strength:string;challenge:string;context:string;step:string;
   proof:readonly string[];ruleIds:readonly string[];
@@ -22,119 +32,73 @@ export default function ReaderV8View({data,lang,minutesUncertain=false}:{data:Re
  const uk=lang==='uk';
  return <section className={styles.root} data-testid="reader-v8" aria-labelledby="reader-v8-heading">
   <header className={styles.top}>
-   <span className={styles.kicker}>{uk?'✦ CLASSICAL READER 8 · ПЕРСОНАЛЬНИЙ АНАЛІЗ':'✦ CLASSICAL READER 8 · PERSONAL READING'}</span>
-   <h2 id="reader-v8-heading">{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
+   <span className={styles.kicker}>{uk?'✦ ТЕМИ ВАШОЇ КАРТИ':'✦ YOUR CHART BY THEME'}</span>
+   <h2 id="reader-v8-heading">{uk?'15 сфер життя':'15 life areas'}</h2>
    <p>{data.introduction}</p>
   </header>
-  {data.integrated?.version==='n49-unified-evidence-v1'?<article className={styles.synthesis+' '+n49.n49Story} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
-   <span className={styles.kicker}>{uk?'✦ N4.9 · ЄДИНА ЛІНІЯ КАРТИ':'✦ N4.9 · A SINGLE CHART NARRATIVE'}</span>
-   <h3 id="reader-v8-synthesis-title">{data.integrated.title}</h3>
-   <p>{data.integrated.opening}</p>
-   {minutesUncertain?<p className={n49.n49Uncertain} role="note">{uk?'Час народження приблизний: окремі тонкі варги можуть змінитися. Трактування нижче — умовний огляд, а не підтверджений висновок для високих поділів.':'Birth time is approximate: high divisions can change. The following is a conditional reading, not a birth-time-certified high-varga interpretation.'}</p>:null}
-   <div className={n49.n49ThreadList}>
-    {data.integrated.threads.map(t=><div className={n49.n49Thread} key={t.id} data-testid={'reader-n49-thread-'+t.id}>
-     <strong>{t.title}</strong>
-     <p>{t.text}</p>
-     <details className={styles.proof}>
-      <summary>{uk?'Що розраховано і які є джерела':'Calculated basis and source scope'}</summary>
-      <p>{t.scope==='d1_direct'?
-       (uk?'Прямі показники D1, без окремих життєвих прогнозів.':'Direct D1 placements, no inferred life events.'):
-       (uk?'Зв’язок D1 та тематичних варг — сучасне застосування; не дослівний висновок з книги.':
-        'D1-to-varga linkage is a modern application, not a literal historical verse.')}</p>
-      <code>{t.evidence.join(' · ')}</code>
-      <p>{t.directSourceIds.length?
-       (uk?'Прямі класичні натальні методи (статус перекладу наведено нижче): ':
-        'Direct classical natal methods (translation status below): ')+t.directSourceIds.join(', '):
-       (uk?'Окремого прямого книжкового правила не активовано.':
-        'No distinct direct historical rule activated.')}</p>
-      {t.extensionSourceIds.length?<p>{(uk?'Сучасне застосування до тематичних карт: ':
-       'Modern extrapolation to divisional charts: ')+t.extensionSourceIds.join(', ')}</p>:null}
-     </details>
-    </div>)}
-   </div>
-   <div className={n49.n49Conclusion}><strong>{uk?'Спільний висновок':'How it fits together'}</strong><p>{data.integrated.closing}</p></div>
-   <small>{data.integrated.method}</small>
-  </article>:null}
-  {(!data.integrated||data.integrated.version!=='n49-unified-evidence-v1')&&data.synthesis&&<article className={styles.synthesis} data-testid="reader-v8-synthesis" aria-labelledby="reader-v8-synthesis-title">
-   <span className={styles.kicker}>{uk?'✦ ЗАГАЛЬНИЙ СИНТЕЗ':'✦ INTEGRATED READING'}</span>
-   <h3 id="reader-v8-synthesis-title">{data.synthesis.title}</h3>
-   <p>{data.synthesis.opening}</p>
-   <div className={styles.synthesisParts}>
-    <div><strong>{uk?'Де ваша опора':'Where you can lean in'}</strong><p>{data.synthesis.strength}</p></div>
-    <div><strong>{uk?'Де виникає напруга':'Where tension can arise'}</strong><p>{data.synthesis.challenge}</p></div>
-   </div>
-   <div className={styles.synthesisDirection}><strong>{uk?'Що об’єднує ці теми':'How these themes connect'}</strong><p>{data.synthesis.direction}</p></div>
-   <small>{data.synthesis.method}</small>
-  </article>}
-  <h3 className={styles.takeawayHeading}>{uk?'Три найпомітніші акценти':'Three defining threads'}</h3>
-  <div className={styles.highlights} aria-label={uk?'Головні висновки':'Main takeaways'}>
-   {data.highlights.map((h,i)=><article className={styles.highlight} key={h.id} data-testid={'reader-v8-highlight-'+h.id}>
-    <span className={styles.number}>{String(i+1).padStart(2,'0')}</span>
-    <h3>{h.title}</h3><p>{h.text}</p>
-    {/* Chart IDs and historical evidence appear only once, in the matching expanded thematic card. */}
-   </article>)}
-  </div>
-  <div className={styles.sectionTitle}>
-   <h3>{uk?'Сфери життя: від стосунків до роботи':'Your life themes: from relationships to work'}</h3>
-   <p>{uk?'Точні астрологічні підстави та книги можна розкрити під кожним висновком.':
-    'Expand any section to see the calculated evidence and the book references.'}</p>
-  </div>
+  {minutesUncertain?<p className={n49.timeNotice} role="note">{uk?
+   'Якщо час приблизний, положення в тонких картах можуть змінитися.':'An approximate birth time can change finer chart placements.'}</p>:null}
   <div className={styles.grid}>
-   {data.insights.map(item=><article key={item.division} className={styles.card} data-testid={'reader-v8-D'+item.division}>
-    <header className={styles.cardTitle}><span>D{item.division}</span><h4>{item.title}</h4></header>
-    <p className={styles.headline}>{item.headline}</p>
-    <p className={styles.storyText}>{item.strength}</p>
-    <p className={styles.storyText}>{item.context}</p>
-    <div className={styles.part}><strong>{uk?'Тінь цієї сили':'The other side of this strength'}</strong><p>{item.challenge}</p></div>
-    <div className={styles.next}><strong>{uk?'Як використати це на практиці':'What to do with this insight'}</strong><p>{item.step}</p></div>
-    {item.timeSensitivity==='higher'||item.timeSensitivity==='near_boundary'?
-     <small className={styles.warning}>{item.timeSensitivity==='near_boundary'?
-      (uk?'Поблизу межі сектора: потрібна додаткова перевірка точності часу народження.':
-       'Near a chart division boundary: verify the exact birth time.'):
-      (uk?'Ця детальна карта чутливіша до часу народження.':
-       'This fine division is more sensitive to birth-time precision.')}</small>:null}
-    <details className={styles.proof}>
-     <summary>{uk?'Розрахунки та класичні джерела':'Calculated evidence and historical sources'}</summary>
-     {item.sources.length?<ul>
-      {item.sources.map(ref=><li key={ref.id}>
-       {ref.work} — {uk?'розділ':'chapter'} {ref.chapter}, {uk?'строфа':'stanza'} {ref.stanza};
-       {' · '+(ref.application==='direct_natal'?(uk?'прямий натальний показник':'direct natal condition'):(uk?'тематичне розширення':'thematic extension'))}
-       <span> ({ref.id}, {ref.review==='ocr_excerpt_checked'?
-        (uk?'OCR перевірено за текстом, скан ще не звірено':'OCR excerpt reviewed, scan comparison pending'):
-        (uk?'Переклад потребує додаткового звіряння':'Translation needs review')})</span>
-      </li>)}
-     </ul>:<p>{uk?'Для саме цього поєднання не активувалося окреме звірене книжкове правило; застосовано сучасний тематичний синтез.':
-       'No additional reviewed historical rule was triggered; this is a modern thematic synthesis.'}</p>}
-     <p>{uk?'Нижче — розраховані положення, на яких ґрунтується трактування:':
-      'Calculated placements used by this interpretation:'}</p>
-     <code>{item.proof.join(' · ')}</code>
-    </details>
-   </article>)}
-   <article className={styles.card} data-testid="reader-v8-d60" aria-labelledby="reader-d60-title">
+   {data.insights.map(item=>{
+    const personal=data.compactCards?.find(card=>card.division===item.division);
+    return <article key={item.division} className={styles.card+' '+n49.compactCard} data-testid={'reader-v8-D'+item.division}>
+     <header className={styles.cardTitle}><span>D{item.division}</span><h4>{item.title}</h4></header>
+     {personal?<div className={n49.compactContent}>
+      <p className={n49.compactLead}>{personal.lead}</p>
+      <div className={n49.crossNote} data-testid={'reader-n491-link-D'+item.division}>
+       <span>{uk?'Зв’язок з іншою картою':'Connected chart'}</span>
+       <p>{personal.connection}</p>
+      </div>
+     </div>:<p className={styles.headline}>{item.headline}</p>}
+     {item.timeSensitivity!=='ordinary'?<small className={styles.warning}>{uk?
+      'Точність цього розділу залежить від часу народження.':
+      'This fine chart depends on birth-time accuracy.'}</small>:null}
+     <details className={styles.proof}>
+      <summary>{uk?'Планети, доми та джерела':'Planets, houses and sources'}</summary>
+      <code>{(personal?.proof||item.proof).join(' · ')}</code>
+      {item.sources.length?<ul>{item.sources.map(ref=><li key={ref.id}>
+       {ref.work} · {uk?'розділ':'chapter'} {ref.chapter}, {uk?'строфа':'stanza'} {ref.stanza}
+       {' · '+(ref.application==='direct_natal'?(uk?'натальна умова':'natal condition'):(uk?'сучасне зіставлення':'modern comparison'))}
+      </li>)}</ul>:null}
+      <p>{uk?'Книжкові фрагменти ще не всі звірено з оригінальними сканами.':
+       'Not all historical excerpts have been checked against original scans.'}</p>
+     </details>
+    </article>;
+   })}
+   <article className={styles.card+' '+n49.d60Card} data-testid="reader-v8-d60" aria-labelledby="reader-d60-title">
     <header className={styles.cardTitle}>
      <span>D60</span>
-     <h4 id="reader-d60-title">{data.d60Preview?.title||(uk?'D60 · Внутрішні відтінки':'D60 · Subtle inner patterns')}</h4>
+     <h4 id="reader-d60-title">{uk?'D60 · Тонкі положення планет':'D60 · Fine planetary positions'}</h4>
     </header>
     {!minutesUncertain&&data.d60Preview?.status==='conditional_signs'?<>
-     <p className={styles.headline}>{data.d60Preview.intro}</p>
-     {data.d60Preview.factors.map(factor=><p className={styles.storyText} key={factor.planet}>
-      {factor.note}
-     </p>)}
+     <p className={n49.compactLead}>{data.d60Preview.intro}</p>
+     <div className={n49.d60Positions} data-testid="reader-n491-d60-nine">
+      {(data.d60Preview.allPlanets||[]).map(p=><div key={p.planet} className={n49.d60Position}>
+       <strong>{p.label}</strong>
+       <span>{p.d1SignName} <span aria-hidden="true">→</span> <b>{p.d60SignName}</b></span>
+       {p.nearBoundary?<small>{uk?'Поблизу межі знака':'Near a sign boundary'}</small>:null}
+      </div>)}
+     </div>
+     {data.d60Preview.factors.length?<div className={n49.d60Interpretations}>
+      <strong>{uk?'Що це означає у зв’язку з D1':'How this relates to your birth chart'}</strong>
+      {data.d60Preview.factors.map(f=><p key={f.planet}>{f.note}</p>)}
+     </div>:null}
      <details className={styles.proof}>
-      <summary>{uk?'Розрахунок D60 і межі методу':'D60 calculation and method scope'}</summary>
+      <summary>{uk?'Точність і методика D60':'D60 precision and methodology'}</summary>
       <p>{data.d60Preview.warning}</p>
-      <code>{data.d60Preview.factors.map(f=>
-       f.planet+': D1 sign '+f.d1Sign+' → D60 sign '+f.d60Sign+
-       ' · boundary '+Math.round(f.boundaryDistanceArcseconds)+' arcsec').join(' · ')}</code>
+      <code>{(data.d60Preview.allPlanets||[]).map(p=>
+       p.planet+': D1='+p.d1Sign+', D60='+p.d60Sign+
+       ', edge='+Math.round(p.boundaryDistanceArcseconds)+'″').join(' · ')}</code>
      </details>
-    </>:<>
-     <p className={styles.storyText}>{minutesUncertain?
-      (uk?'Для цього тонкого зрізу необхідний достовірний час народження. Інші п’ятнадцять карт і загальний портрет доступні незалежно від D60.':
-       'This very fine division needs a reliable birth time. Your fifteen other charts and integrated portrait remain available.'):
-      (data.d60Preview?.warning||data.d60Notice)}</p>
-    </>}
+    </>:<p className={styles.storyText}>{minutesUncertain?
+      (uk?'Позначено приблизний час народження. Положення D60 за таким часом можуть змінитися — для персонального зіставлення потрібне уточнення хвилин.':
+       'Your birth time is marked approximate. D60 placements may change; verify your birth minutes for this comparison.'):
+      (data.d60Preview?.warning||data.d60Notice)}</p>}
    </article>
   </div>
-  <p className={styles.warning}>{data.method}</p>
+  <details className={n49.methodDetails}>
+   <summary>{uk?'Методика та межі точності':'Method and accuracy limits'}</summary>
+   <p>{data.method}</p>
+  </details>
  </section>;
 }
