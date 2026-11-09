@@ -93,6 +93,12 @@ test('N493 prioritizes 3-5 sourced discoveries, avoids false double votes, integ
      'real generated Ukrainian case and subject grammar must be natural');
 
    }
+   if(lang==='uk'){
+    const all=reading.cards.map(c=>c.meaning).join(' ');
+    assert.doesNotMatch(all,
+     /від дім і внутрішня опора|від щоденна практика|акцент на турбота|акцент на увага до деталей|через практики навички|через самостійно розпочатого завдання|пов’язана із ініціативою|поєднання [A-Za-z]+ — традиційно пов’язана/u,
+     'generated Ukrainian must not contain previously observed case/agreement defects');
+   }
    const sample=direct.insights.map(x=>x.id+' '+x.headline+'\n'+x.teaser+'\n'+x.interpretation+
     '\nAttention: '+x.attention+'\nEvidence: '+x.proof.join(' · ')).join('\n\n');
    full.push('\n## Seed '+seed+' · '+lang+' · Asc '+chart.ascendant.sign+'\n'+sample+
