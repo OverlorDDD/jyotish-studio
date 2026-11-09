@@ -47,6 +47,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    assert.equal(report.readerV8.meaningful?.patternVersion,'n493-ranked-multifactor-v1');
    assert.ok(report.readerV8.meaningful?.topInsights?.length>=3);
    assert.ok(report.readerV8.meaningful?.topInsights?.length<=5);
+   assert.ok(report.readerV8.meaningful?.topInsights?.every(p=>p.evidence?.length>=3&&!p.divisions.includes(60)));
    assert.equal(report.readerV8.meaningful?.cards[0].division,1);
    assert.equal(report.readerV8.meaningful?.cards[15].division,60);
    assert.ok(report.readerV8.meaningful?.summary.direction.length>=100);
