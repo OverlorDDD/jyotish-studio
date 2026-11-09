@@ -140,12 +140,24 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
    'A separate indicator, '+secondary+' ('+secondaryTopic+'), occupies D'+division+
    ' house '+d2.house+' ('+house(d2.house,uk)+
    '). It brings a different need into the same life topic. ');
- const quality=good(q1)?(uk?
-  'Власний знак або екзальтація дає управителю додаткову опору у традиційному прочитанні. ':
-  'Own-sign or exaltation dignity gives the ruler an additional traditional source of support. '):
-  q1==='debilitated'?(uk?
-  'Знак падіння вказує на необхідність точніше розібрати умови цієї сфери, перш ніж діяти. ':
-  'Debilitation invites a closer look at the conditions before acting. '):'';
+ // Distinct grahas may support or conflict with each other. A sign-level
+ // contrast is a reading priority, NOT an unverified promise of success.
+ const firstStrong=good(q1),secondStrong=good(q2);
+ const quality=firstStrong&&q2==='debilitated'?(uk?
+  'Важливий контраст: управитель має сильне знакове положення, але другий показник перебуває в падінні. Перевіряйте обидві потреби окремо. ':
+  'A real contrast: the ruler has supportive sign dignity, while the second indicator is debilitated. Examine the two needs separately. '):
+  q1==='debilitated'&&secondStrong?(uk?
+   'Положення неоднорідні: управитель у падінні, тоді як другий показник має знакову підтримку. Одна сильна планета не знімає всіх питань. ':
+   'Mixed indications: the ruler is debilitated while the second indicator has supportive sign dignity. One stronger planet does not settle the theme. '):
+  firstStrong&&secondStrong?(uk?
+   'Обидві різні планети мають традиційну знакову підтримку; це дві опори теми, але не обіцянка події. ':
+   'Both different planets have supportive sign dignity, giving two relevant factors, not a promise of an event. '):
+  firstStrong?(uk?'Управитель має сильне знакове положення; інший показник слід оцінювати окремо. ':
+   'The ruler has supportive sign dignity; evaluate the other indicator separately. '):
+  secondStrong?(uk?'Другий показник має сильне знакове положення, навіть якщо управитель цього не має. ':
+   'The second indicator has supportive sign dignity even though the ruler does not. '):
+  q1==='debilitated'?(uk?'Управитель у знаку падіння: перевіряйте умови цієї сфери уважніше. ':
+   'The ruler is debilitated; examine this theme more carefully. '):'';
  const meaning=natal+bridge+secondaryLine+quality+
   (uk?'Практичний крок: ':'A practical next step: ')+PRACTICE[division][uk?0:1];
  const proof=['D1.house-lord.'+focus.house+'='+primary,
