@@ -15,6 +15,26 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
    <p>{uk?'Від основної карти D1 до тонших карт. Лише найважливіші показники кожної теми.':
     'From the main D1 chart to its finer divisions, focusing on what matters in each theme.'}</p>
   </header>
+  {read.topInsights?.length>=3?<section className={book.patterns} data-testid="reader-n493-patterns">
+   <div className={book.patternsHeader}>
+    <span className={styles.kicker}>{uk?'✦ ВАШІ ГОЛОВНІ АКЦЕНТИ':'✦ YOUR KEY PATTERNS'}</span>
+    <h3>{uk?'Що вирізняє саме цю карту':'What stands out in your chart'}</h3>
+    <p>{uk?'Відібрано за реальними положеннями та ролями планет, а не за довжиною тексту.':
+      'Selected for actual natal roles and divisional conditions, not word count.'}</p>
+   </div>
+   <ol className={book.patternList}>
+    {read.topInsights.map(pattern=><li key={pattern.id} className={book.patternItem}>
+     <h4>{pattern.title}</h4>
+     <p>{pattern.reading}</p>
+     <p className={book.patternImplication}><strong>{uk?'Що це означає: ':'What it suggests: '}</strong>{pattern.implication}</p>
+     <details className={styles.proof}>
+      <summary>{uk?'На яких показниках ґрунтується':'Calculated evidence'}</summary>
+      <code>{pattern.evidence.join(' · ')}</code>
+      <p>{uk?'Сфери: ':'Chart divisions: '}{pattern.divisions.map(d=>'D'+d).join(', ')}</p>
+     </details>
+    </li>)}
+   </ol>
+  </section>:null}
   {minutesUncertain?<p className={book.notice} role="note">{uk?
    'Час народження позначено як приблизний: тонкі карти можуть змінитися; твердження щодо D60 умовні.':
    'Birth time is marked approximate: finer divisional positions may change; D60 statements are provisional.'}</p>:null}
