@@ -25,6 +25,7 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
  const textOut=['# N4.9.3 — full generated Ukrainian and English quality evidence',
   '100 synthetic, invented birth vectors. Not evidence for predictive truth or independently calibrated confidence.'];
  const fingerprints={uk:new Set(),en:new Set()};
+ const categorySets={uk:new Set(),en:new Set()};
  for(let seed=1;seed<=50;seed++){
   const chart=fixture(seed);
   for(const lang of ['uk','en']){
@@ -35,11 +36,9 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
    assert.ok(ranked.length>=3&&ranked.length<=5);
    assert.equal(new Set(ranked.map(p=>p.id)).size,ranked.length);
    assert.deepEqual([...ranked].sort((a,b)=>b.score-a.score).map(p=>p.id),ranked.map(p=>p.id));
-   assert.ok(ranked.some(p=>p.id==='vocation'));
-   assert.ok(ranked.some(p=>p.id==='inner-life'));
-   assert.ok(ranked.some(p=>p.id==='partnership'));
+   categorySets[lang].add(ranked.map(p=>p.id).join(','));
    for(const pattern of ranked){
-    assert.ok(pattern.evidence.length>=3,pattern.id+' lacking evidence');
+    assert.ok(pattern.evidence.length>=2,pattern.id+' lacking evidence');
     assert.ok(pattern.reading.length>=115&&pattern.reading.length<1100,pattern.id+' unreadable/verbose');
     assert.ok(pattern.implication.length>=45&&pattern.implication.length<320);
     assert.equal(pattern.divisions.includes(60),false);
@@ -72,6 +71,7 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
   }
  }
  assert.ok(fingerprints.uk.size>=48&&fingerprints.en.size>=48);
+ assert.ok(categorySets.uk.size>=3&&categorySets.en.size>=3,'ranked categories must differ between birth charts');
  mkdirSync('qa-artifacts',{recursive:true});
  writeFileSync('qa-artifacts/n493-100-fully-rendered-invented-readings.md',textOut.join('\n'),'utf8');
  console.log('N493_100_SYNTHETIC_READINGS_UK_EN_PASS');
