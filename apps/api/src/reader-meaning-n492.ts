@@ -312,7 +312,7 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):N4
     card.corroboration=uk?
      'Важлива різниця: у D'+related+' '+name(main)+' має протилежний знаковий статус. Не можна переносити висновок з однієї теми на всі інші.':
      'In D'+related+', '+main+' has the opposite sign status. One favourable result cannot be applied to every area.';
-   }else if(other.sign===d.sign&&division!==1&&related!==division){
+   }else if(other.sign===d.sign&&related!==division){
     card.corroboration=uk?
      'D'+related+' повторює положення '+gen(main)+' у '+sign(d.sign)+
      '. Це перевірений збіг знака, не окремий доказ події.':
