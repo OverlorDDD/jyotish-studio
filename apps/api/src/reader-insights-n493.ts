@@ -41,6 +41,19 @@ const quality=(q:string,uk:boolean)=>q==='exalted'?(uk?'екзальтації':
  q==='own'?(uk?'власному знаку':'own sign'):
  q==='debilitated'?(uk?'знаку падіння':'debilitation sign'):'';
 const unique=(values:string[])=>[...new Set(values)];
+const YOGA_THEMES:Readonly<Record<string,[string,string]>>={
+ Ruchaka:['традиційно пов’язана з ініціативою, відвагою та здатністю братися за складні справи',
+  'traditionally associated with initiative, courage and tackling demanding tasks'],
+ Bhadra:['традиційно пов’язана зі здібністю працювати зі знаннями, мовою та аналізом',
+  'traditionally associated with language, learning and analytical skill'],
+ Hamsa:['традиційно пов’язана з навчанням, наставництвом і пошуком принципів',
+  'traditionally associated with learning, mentoring and guiding principles'],
+ Malavya:['традиційно пов’язана зі сферою естетики, стосунків та прагненням до гармонії',
+  'traditionally associated with aesthetics, relationships and the pursuit of harmony'],
+ Shasha:['традиційно пов’язана з витривалістю, організацією та довготривалою відповідальністю',
+  'traditionally associated with endurance, organization and long-term responsibility']
+};
+
 export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|null{
  const source=verifiedVargaSource(chart);if(!source)return null;
  const uk=lang==='uk',lords=classicalLordshipTable(chart.ascendant.sign);
@@ -252,11 +265,11 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
    headline:uk?'Класична комбінація '+y.name+' у головній карті':
     'A '+y.name+' condition in the birth chart',
    interpretation:uk?name(y.planet,uk)+' перебуває у '+y.house+'-му домі D1, у '+
-    sign(y.sign,uk)+'. За перевіреними умовами знака та кутового дому активується '+
-    'умова йоги '+y.name+'. Це традиційний показник, а не повний висновок про силу планети.':
+    sign(y.sign,uk)+'. За умовами знакової гідності й кутового дому це поєднання '+y.name+
+    ' — '+YOGA_THEMES[y.name][0]+'. Це не повний висновок про силу планети чи гарантовану рису людини.':
     y.planet+' occupies D1 house '+y.house+' in '+sign(y.sign,uk)+
-    '. Sign dignity and angular placement meet the checked '+y.name+
-    ' yoga conditions; this is not full planetary strength.',
+    '. Its sign dignity and angular placement meet the '+y.name+' condition, '+
+    YOGA_THEMES[y.name][1]+'. This is not full planetary strength or a guaranteed trait.',
    attention:uk?'З’єднання, аспекти, градусна сила та скасування потребують окремого аналізу.':
     'Conjunctions, aspects, degree strength and cancellations need separate analysis.',
    prominence:8,kind:'support',
@@ -276,8 +289,11 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   if(used.has(topic))continue;
   // "dignity caution" can coexist with career if a different graha;
   // avoid repeating the same planet's primary assertion across top findings.
-  const already=selected.some(s=>s.planet===finding.planet&&
-   (s.id==='career'||s.id==='education')&&(finding.id==='education'||finding.id==='career'));
+  const already=selected.some(s=>s.planet===finding.planet&&(
+   ((s.id==='career'||s.id==='education')&&(finding.id==='education'||finding.id==='career'))||
+   ((s.id==='career'&&finding.id.startsWith('mahapurusha-'))||
+    (finding.id==='career'&&s.id.startsWith('mahapurusha-')))
+  ));
   if(already)continue;
   selected.push(finding);used.add(topic);
   if(selected.length===5)break;
