@@ -155,40 +155,118 @@ function ukText(x:TopicInputs):string{
  return first+' '+second;
 }
 function enText(x:TopicInputs):string{
- const a=GEN_EN[x.d1House-1],b=GEN_EN[x.vHouse-1],c=GEN_EN[x.v2House-1];
- const n=x.name,s=x.name2;
- const scope:Record<number,string>={
- 1:'personal direction',2:'money and resources',3:'communication and initiative',
- 4:'home and property',7:'children and creative care',9:'partnership',
- 10:'vocation',12:'family roots',16:'comfort and transport',20:'spiritual practice',
- 24:'learning',27:'resilience',30:'handling challenges',40:'maternal lineage',
- 45:'paternal principles'
- };
- const name=scope[x.div];if(!name)throw Error('N493_UNSUPPORTED_TOPIC_'+x.div);
- const intro=x.div===1?'Your ascendant ruler '+n+' links life direction to '+a+'.':
-  'In this chart, '+name+' links with '+a+' through its natal ruler '+n+'.';
- const primary=x.div===1?'':(' In D'+x.div+', '+n+' occupies house '+x.vHouse+
-  ', placing a second emphasis on '+b+'.');
- const companion=' '+s+' adds the distinct factor of '+SECOND_ROLE_EN[s]+' from house '+
-  x.v2House+' ('+c+') in D'+x.div+'.';
- const endings:Record<number,string>={
- 1:'These are different perspectives on identity, not documented facts about someone’s past.',
- 2:'This speaks to the management of resources, not guaranteed earnings.',
- 3:'This highlights a style of initiative rather than a single personality label.',
- 4:'The combination concerns what helps sustain a stable home base.',
- 7:'These are conditions for care and growth, not a prediction about children.',
- 9:'Reciprocity and responsibility require joint attention.',
- 10:'The combination points to work conditions and craft, not a promised job.',
- 12:'This separates inherited examples from personal decisions.',
- 16:'Practical comfort is read alongside other obligations.',
- 20:'This is a traditional view of sustained practice, not a promise of revelation.',
- 24:'Learning needs to be considered alongside applied skills.',
- 27:'Endurance is not synonymous with continuous pressure.',
- 30:'Difficulties are not automatically inevitable outcomes.',
- 40:'These are symbolic family themes, not biographical facts about a mother.',
- 45:'The chart invites distinction between inherited values and chosen principles.'
- };
- return intro+primary+companion+' '+endings[x.div];
+ const a=GEN_EN[x.d1House-1],b=GEN_EN[x.vHouse-1],other=GEN_EN[x.v2House-1];
+ const n=x.name,s=x.name2,role=SECOND_ROLE_EN[s];
+ const sign=SIGN_EN[x.vSign-1];
+ let first='',second='';
+ switch(x.div){
+  case 1:
+   first='Your rising sign is '+sign+' with '+n+' as its ruler in D1 house '+x.d1House+
+    ', connecting personal direction to '+a+'.';
+   second=s+' in house '+x.v2House+' adds the distinct context of '+other+
+    '. These two roles should be considered together, not collapsed into one personality label.';
+   break;
+  case 2:
+   first='The way resources are managed is linked through '+n+
+    ', ruler of the second house, to '+a+' in D1.';
+   second='In D2 its house '+x.vHouse+' connects resources with '+b+
+    ', while '+s+' in house '+x.v2House+' brings in '+other+
+    '. This concerns financial priorities, not a promise of income.';
+   break;
+  case 3:
+   first='Communication and initiative follow the D1 third-house ruler '+n+
+    ', linking this theme to '+a+'.';
+   second='Its D3 placement in house '+x.vHouse+' emphasizes '+b+
+    '; '+s+' in house '+x.v2House+' adds '+role+
+    '. Together they describe a style of effort, not a predetermined personality.';
+   break;
+  case 4:
+   first='The home and property theme meets '+a+' through its D1 ruler '+n+'.';
+   second='In D4 '+n+' occupies house '+x.vHouse+' ('+b+
+    '), while '+s+' in house '+x.v2House+' adds '+role+
+    '. The two strands show what may matter for a sense of stability.';
+   break;
+  case 7:
+   first='Children, teaching and creative legacy are linked to '+a+
+    ' through the D1 fifth-house ruler '+n+'.';
+   second='Its D7 house '+x.vHouse+' highlights '+b+', while '+s+
+    ' in house '+x.v2House+' adds '+role+
+    '. This is a framework for care and growth, not a prediction of children.';
+   break;
+  case 9:
+   first='Partnership is not just attraction: the D1 seventh-house ruler '+n+
+    ' connects it to '+a+'.';
+   second='In D9 the ruler moves to house '+x.vHouse+' ('+b+
+    '), while '+s+' in house '+x.v2House+' introduces '+role+
+    '. These dimensions need to be read together when considering commitment.';
+   break;
+  case 10:
+   first='Career develops through '+n+', the tenth-house ruler whose D1 position relates to '+a+'.';
+   second='D10 places '+n+' in house '+x.vHouse+', connecting vocation to '+b+
+    '. '+s+' in house '+x.v2House+' adds '+role+
+    '. This guides an examination of work conditions, not a guaranteed job title.';
+   break;
+  case 12:
+   first='Family roots and parental examples meet '+a+' through the D1 fourth-house ruler '+n+'.';
+   second='D12 places it in house '+x.vHouse+' ('+b+
+    ') and '+s+' in house '+x.v2House+' ('+other+
+    '). Distinguish inherited examples from your own present decisions.';
+   break;
+  case 16:
+   first='Comfort, conveniences and transport meet '+a+' through the D1 fourth-house ruler '+n+'.';
+   second='Its D16 house '+x.vHouse+' adds '+b+', while '+s+' in house '+
+    x.v2House+' adds '+role+
+    '. Practical comfort is meaningful in relation to wider responsibilities.';
+   break;
+  case 20:
+   first='The spiritual-practice theme follows the D1 ninth-house ruler '+n+
+    ' into the area of '+a+'.';
+   second='In D20 its house '+x.vHouse+' emphasizes '+b+
+    ', while '+s+' in house '+x.v2House+' brings in '+role+
+    '. This concerns sustaining practice, not promising revelation.';
+   break;
+  case 24:
+   first='Learning and mastery relate to '+a+' through the D1 fifth-house ruler '+n+'.';
+   second='Its D24 house '+x.vHouse+' connects study with '+b+
+    ', while '+s+' in house '+x.v2House+' adds '+role+
+    '. Study and the practical use of skills require joint attention.';
+   break;
+  case 27:
+   first='Resilience is read through the ascendant ruler '+n+
+    ', which brings the D1 area of '+a+' into focus.';
+   second='D27 places the ruler in house '+x.vHouse+' ('+b+
+    '), while '+s+' in house '+x.v2House+' adds '+role+
+    '. Endurance is not the same as unbroken pressure.';
+   break;
+  case 30:
+   first='Challenges are examined through the D1 sixth-house ruler '+n+
+    ' and its connection with '+a+'.';
+   second='In D30 its house '+x.vHouse+' highlights '+b+
+    ', while '+s+' in house '+x.v2House+' adds '+role+
+    '. This is a traditional view of how obstacles are faced, not an inevitable loss.';
+   break;
+  case 40:
+   first='The maternal-line theme looks at the D1 fourth-house ruler '+n+
+    ' and its connection with '+a+'.';
+   second='D40 places the ruler in house '+x.vHouse+' ('+b+
+    ') and '+s+' in house '+x.v2House+' contributes '+role+
+    '. These are symbolic family emphases, not facts about an individual mother.';
+   break;
+  case 45:
+   first='The paternal-line theme follows the D1 ninth-house ruler '+n+
+    ' and its connection with '+a+'.';
+   second='D45 places the ruler in house '+x.vHouse+' ('+b+
+    '), while '+s+' in house '+x.v2House+' adds '+role+
+    '. Inherited principles and chosen values should be distinguished.';
+   break;
+  default:throw Error('N493_UNSUPPORTED_TOPIC_'+x.div);
+ }
+ if(x.div!==1&&['exalted','own','debilitated'].includes(x.dignity)){
+  second+=' '+n+' occupies '+sign+' in D'+x.div+' ('+(
+   x.dignity==='exalted'?'exaltation':x.dignity==='own'?'own sign':'debilitation')+
+   '); this describes sign dignity, not full planetary strength.';
+ }
+ return first+' '+second;
 }
 export function composeN493Topic(x:TopicInputs,lang:Lang):string{
  if(x.div===60)throw Error('N493_D60_HAS_SEPARATE_PRECISION_GATE');
