@@ -71,8 +71,8 @@ test('12 diverse real Swiss synthetic-birth charts x UK/EN: claim traceability a
    for(const mc of meaning.cards){
     assert.ok(mc.reading.length>=55&&mc.reading.length<=1100,id+'/'+lang+'/D'+mc.division);
     assert.doesNotMatch(mc.reading,forbidden);
-    assert.doesNotMatch(mc.reading,/[.!?](?=[\\p{L}])/u);
-    if(mc.division===60)assert.ok(mc.sourceFacts.every(f=>!/^D60\\.[^.]+\\.house=/.test(f)));
+    assert.doesNotMatch(mc.reading,/[.!?](?=[\p{L}])/u);
+    if(mc.division===60)assert.ok(mc.sourceFacts.every(f=>!/^D60\.[^.]+\.house=/.test(f)));
    }
    if(lang==='uk')assert.doesNotMatch(meaning.cards.find(c=>c.division===10).reading,/Венера[^.!?]*йогакарака: він/u);
    meaningSamples.push('\n## '+id+' / '+lang+' — live Swiss calculation\n',
