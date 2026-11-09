@@ -40,9 +40,6 @@ const pname=(name:string,uk:boolean)=>uk?UK[name]||name:name;
 const sign=(n:number,uk:boolean)=>(uk?UK_CASE:EN_CASE)[n-1];
 const house=(n:number,uk:boolean)=>(uk?HOUSES_UK:HOUSES_EN)[n-1];
 const good=(v:string)=>v==='own'||v==='exalted';
-const badge=(d:string,uk:boolean)=>d==='exalted'?(uk?'екзальтації':'exaltation'):
- d==='own'?(uk?'власному знаку':'own sign'):
- d==='debilitated'?(uk?'знаку падіння':'debilitation sign'):'';
 export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division:number):
  {meaning:string;proof:string[];primary:string;secondary:string}|null{
  const focus=SUBJECT[division],source=verifiedVargaSource(chart);
@@ -59,20 +56,6 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
  const d2=v.planets.find(p=>p.name===secondary)!;
  const q1=dignityFor(primary,d1.sign),q2=dignityFor(secondary,d2.sign);
  const area=uk?focus.uk:focus.en;
- const different=d1.house!==d2.house;
- const duo=uk?
-  'У D'+division+' '+pname(primary,uk)+' перебуває у '+d1.house+'-му домі ('+
-   house(d1.house,uk)+'), а '+pname(secondary,uk)+' — у '+d2.house+'-му ('+
-   house(d2.house,uk)+').':
-  'In D'+division+', '+primary+' occupies house '+d1.house+' ('+house(d1.house,uk)+
-   '), while '+secondary+' occupies house '+d2.house+' ('+house(d2.house,uk)+').';
- const context=uk?
-  'У D1 управитель тематичного '+focus.house+'-го дому '+pname(primary,uk)+
-  ' стоїть у '+p1.house+'-му домі ('+house(p1.house,uk)+
-  '); додатковий показник '+pname(secondary,uk)+' — у '+p2.house+'-му.':
-  'In D1, natal house '+focus.house+' is ruled by '+primary+
-  ' in house '+p1.house+' ('+house(p1.house,uk)+
-  '); the secondary indicator '+secondary+' occupies house '+p2.house+'.';
  // The thematic story is evidence → interpretation → a grounded action,
  // not a list of two planetary positions and a generic disclaimer.
  const PRACTICE:Record<number,[string,string]>={
@@ -122,22 +105,22 @@ export function buildN493ThematicDetail(chart:CalculatedChart,lang:Lang,division
  const secondaryLine=uk?(d1.house===d2.house?
   pname(secondary,uk)+' — інша планета, пов’язана із '+area[1]+
   ' — займає той самий дім D'+division+
-  '. Отже, в одній сфері поєднано дві різні потреби, а не два докази успіху. ':
+  '. У цій сфері зустрічаються дві різні потреби, які варто узгоджувати. ':
   pname(secondary,uk)+' — інша планета, пов’язана із '+area[1]+
   ' — стоїть у '+d2.house+'-му домі D'+division+' ('+house(d2.house,uk)+
-  '). Її потреби не варто автоматично прирівнювати до завдань управителя. '):
+  '). Це інша сторона теми, яку не слід губити за рішеннями управителя. '):
   (d1.house===d2.house?
    'A distinct indicator, '+secondary+', relates to '+area[1]+
    ' and shares that D'+division+' house: two concerns in one arena, not two proofs of success. ':
    'A separate indicator, '+secondary+' ('+area[1]+'), occupies D'+division+
    ' house '+d2.house+' ('+house(d2.house,uk)+
-   '). Its concerns should not be confused with the ruler’s agenda. ');
+   '). It brings a different need into the same life topic. ');
  const quality=good(q1)?(uk?
-  'Власний знак або екзальтація управителя додає традиційну знакову підтримку, але не визначає результат самостійно. ':
-  'Own-sign or exaltation dignity traditionally supports this motif, without settling the outcome. '):
+  'Власний знак або екзальтація дає управителю додаткову опору у традиційному прочитанні. ':
+  'Own-sign or exaltation dignity gives the ruler an additional traditional source of support. '):
   q1==='debilitated'?(uk?
-  'Знак падіння управителя вимагає перевірки інших умов, а не фатального висновку. ':
-  'Debilitation calls for checking the other conditions, not a verdict. '):'';
+  'Знак падіння вказує на необхідність точніше розібрати умови цієї сфери, перш ніж діяти. ':
+  'Debilitation invites a closer look at the conditions before acting. '):'';
  const meaning=natal+bridge+secondaryLine+quality+
   (uk?'Практичний крок: ':'A practical next step: ')+PRACTICE[division][uk?0:1];
  const proof=['D1.house-lord.'+focus.house+'='+primary,
