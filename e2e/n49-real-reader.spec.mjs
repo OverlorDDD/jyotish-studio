@@ -37,7 +37,7 @@ for(const lang of ['uk','en']){
   await expect(reader.locator('[data-testid^="reader-n49-thread-"]')).toHaveCount(0);
   await expect(reader.locator('[data-testid^="reader-v8-highlight-"]')).toHaveCount(0);
   await expect(reader.locator('[data-testid^="reader-n491-link-D"]')).toHaveCount(15);
-  await expect(reader.getByTestId('reader-n491-d60-nine').locator('> div')).toHaveCount(9);
+  await expect(reader.getByTestId('reader-n491-d60-nine').locator(':scope > div')).toHaveCount(9);
   await expect(reader.getByTestId('reader-v8-d60')).toContainText(lang==='uk'?'Місяць':'Moon');
   await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
   await expect(page.getByTestId('reading-ai-provenance')).toContainText('Jyotish Reader');
