@@ -59,7 +59,7 @@ test('All 15 thematic charts link back to their D1 house lord; output includes n
    assert.ok(c.evidence.some(x=>x.startsWith('D9.')));
    assert.ok(r.evidence.some(x=>x.startsWith('D9.')));
    const serialized=JSON.stringify(n);
-   assert.doesNotMatch(serialized,/2000-01-01|50\.45|30\.52|Etc\/UTC|latitude|longitude|birthDate|birthTime|\\"place\\":/iu);
+   assert.doesNotMatch(serialized,/2000-01-01|50\.45|30\.52|Etc\/UTC|latitude|longitude|birthDate|birthTime|["]place["]:/iu);
    assert.doesNotMatch(n.threads.flatMap(t=>t.evidence).join(','),/D60\./);
    assert.ok(n.threads.every(t=>t.evidence.length>=4&&t.text.length>170));
    assert.ok(n.threads.every(t=>!t.sourceIds.includes('FAKE_BOOK_VERSE')));
