@@ -38,6 +38,32 @@ const SIGN_UK=['Овні','Тельці','Близнюках','Раку','Лев
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const PLANET_UK:Readonly<Record<string,string>>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',
  Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
+const FOCUS_UK:Readonly<Record<number,string>>={
+ 1:'життєвого напряму',2:'ставлення до ресурсів',3:'зусиль і спілкування',
+ 4:'домівки та опори',7:'турботи й творчої спадкоємності',9:'партнерства та довіри',
+ 10:'професійної ролі',12:'родинних коренів',16:'комфорту й відновлення',
+ 20:'духовної практики',24:'навчання та знань',27:'витривалості й особистої сили',
+ 30:'подолання труднощів',40:'родинних тенденцій',45:'успадкованих цінностей'
+};
+const FOCUS_EN:Readonly<Record<number,string>>={
+ 1:'personal direction',2:'resources and value',3:'initiative and communication',
+ 4:'home and stability',7:'care and creative legacy',9:'partnership and trust',
+ 10:'vocation',12:'family roots',16:'comfort and recovery',
+ 20:'spiritual practice',24:'learning and knowledge',27:'resilience',
+ 30:'navigating difficulties',40:'family patterns',45:'inherited values'
+};
+const QUALITY_UK:Readonly<Record<string,string>>={
+ Sun:'видиму відповідальність і власну позицію',Moon:'чутливість до потреб і змін настрою',
+ Mars:'прагнення діяти та захищати межі',Mercury:'уміння називати речі й помічати деталі',
+ Jupiter:'пошук смислу та бажання передавати знання',Venus:'потребу в гармонії й уважність до іншої людини',
+ Saturn:'витримку, послідовність і випробування часом'
+};
+const QUALITY_EN:Readonly<Record<string,string>>={
+ Sun:'visible responsibility and a personal position',Moon:'responsiveness to needs and changing moods',
+ Mars:'initiative and the need for clear boundaries',Mercury:'clarity in words and attention to detail',
+ Jupiter:'searching for meaning and sharing knowledge',Venus:'harmony and attentiveness to others',
+ Saturn:'endurance, structure and patience'
+};
 const dSupport=(d:string)=>d==='own'||d==='exalted';
 const dDifficulty=(d:string)=>d==='debilitated';
 export function n49Polarity(d1:string,dn:string):Polarity{
@@ -63,6 +89,8 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
  const pName=(s:string)=>uk?(PLANET_UK[s]||s):s;
  const sign=(n:number)=>(uk?SIGN_UK:SIGN_EN)[n-1];
  const area=(n:number)=>(uk?AREA_UK:AREA_EN)[n-1];
+ const focus=(n:number)=>(uk?FOCUS_UK:FOCUS_EN)[n]||('D'+n);
+ const quality=(n:string)=>(uk?QUALITY_UK:QUALITY_EN)[n]||n;
  const links:N49Link[]=ALL.map(division=>{
   const h=THEME_HOUSE[division],lord=lords[h];
   const original=chart.d1.find(p=>p.name===lord);
@@ -111,6 +139,18 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
  const occupants=[...new Set([...tenthOccupants(chart.ascendant.sign),...tenthOccupants(moon.sign)])];
  const venusD1=chart.d1.find(p=>p.name==='Venus')!;
  const venusD9=chart.d9.find(p=>p.name==='Venus')!;
+ const careerBookFacts=[...new Set(extractN44Evidence(chart,10,asOf)
+  .filter(rule=>rule.role==='context'&&rule.ruleId.startsWith('BJ-X-1-'))
+  .flatMap(rule=>rule.facts.filter(fact=>/^D1\.|^D9\./.test(fact))))];
+ const sharedDomain=career.lord===relation.lord?
+  (uk?'Тут є конкретний спільний управитель роботи й партнерства — '+pName(career.lord)+
+    '. У традиційній символіці ця сама планета поєднує рішення у двох сферах; прояв і наслідки залежать від усієї карти, а не від одного знака.':
+    'Work and partnership share a specific natal ruler, '+career.lord+
+    '. The same symbolic planetary theme touches both areas; outcomes still depend on the full chart, not a single sign.'):
+  (uk?'Професією та партнерством керують різні планети — '+pName(career.lord)+' і '+pName(relation.lord)+
+    '. Тому не варто автоматично переносити сильний робочий показник на близькі стосунки або навпаки.':
+    'Career and partnership have distinct natal rulers, '+career.lord+' and '+relation.lord+
+    '. A favourable indicator in one cannot automatically validate the other.');
  const threads:N49Thread[]=[
   thread('foundation',uk?'Вихідна нитка: характер і мотивація':'The starting thread: temperament and motive',
    uk?'Висхідний знак задає базовий ракурс, а його управитель '+pName(ascLord)+
@@ -138,10 +178,16 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     '); navamsa dispositors do not replace these primary indicators. '):
     (uk?'Обидва десяті доми без класичних планет: правило Brihat Jataka X.1 тоді звертається до управителів навамш від Лагни, Місяця і Сонця. ':
     'Both tenth houses lack classical planets, so Brihat Jataka X.1 turns to the navamsa dispositors from Lagna, Moon and Sun. '))+
-    explanatoryTone(career.polarity,uk),
+    explanatoryTone(career.polarity,uk)+
+    (uk?'Для реального вибору професійного шляху це дає конкретне запитання: як '+quality(career.lord)+
+     ' може проявитися у сфері '+area(career.dnHouse)+', не відриваючись від '+area(career.d1House)+
+     '? Таку відповідність варто шукати в досвіді, не в обіцянці посади.':
+     'The useful vocational question is how '+quality(career.lord)+' can work through '+
+     area(career.dnHouse)+' without losing the D1 context of '+area(career.d1House)+
+     '. Test that connection against lived experience, not a promised job title.'),
    [career],[ 'D9.'+career.lord+'.sign='+navCareer.sign,
     'D9.sign-ruler.'+navCareer.sign+'='+rulerOfNavamsa,
-    'D1.Moon.tenth.sign='+fromMoon,'D1.Sun.tenth.sign='+fromSun]),
+    'D1.Moon.tenth.sign='+fromMoon,'D1.Sun.tenth.sign='+fromSun,...careerBookFacts]),
   thread('partnership',uk?'Стосунки: D1 не суперечить D9 автоматично':'Relationships: D9 refines rather than cancels D1',
    (uk?'Управитель сьомого дому D1 — '+pName(relation.lord)+
     ' — перебуває в '+relation.d1House+'-му домі ('+area(relation.d1House)+
@@ -152,7 +198,7 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     ' ('+area(relation.d1House)+'), and in D9 house '+relation.dnHouse+
     ' ('+area(relation.dnHouse)+'). Venus occupies houses '+venusD1.house+
     ' and '+venusD9.house+' in D1 and D9. These are relationship lenses, not a marriage or partner prediction. ')+
-    explanatoryTone(relation.polarity,uk),
+    explanatoryTone(relation.polarity,uk)+' '+sharedDomain,
    [relation],['D1.Venus.house='+venusD1.house,'D9.Venus.house='+venusD9.house]),
   thread('resource',uk?(r.polarity==='reinforced'?'Підкріплений ресурс: від D1 до Dn':'Помітний потенціал: від D1 до Dn'):
    (r.polarity==='reinforced'?'Reinforced resource: from D1 to Dn':'An area to examine: from D1 to Dn'),
@@ -162,7 +208,11 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     'For D'+r.division+', the relevant D1 house ruler '+r.lord+' occupies D1 house '+
     r.d1House+' and D'+r.division+' house '+r.dnHouse+
     ' ('+area(r.dnHouse)+'). This is not a separate prediction: the varga refines the same natal planet. ')+
-    explanatoryTone(r.polarity,uk),
+    explanatoryTone(r.polarity,uk)+
+    (uk?'У темі '+focus(r.division)+' традиційна мова '+pName(r.lord)+' пов’язана з '+quality(r.lord)+
+     '. Це не опис факту з біографії: зверніть увагу, чи така якість допомагає вам саме там, де її показує обчислений дім.':
+     'In '+focus(r.division)+', the symbolic voice of '+r.lord+' concerns '+quality(r.lord)+
+     '. This is not a known biographical fact: look for whether that quality helps in the house indicated by the actual placement.'),
    [r]),
   thread('tension',uk?(['contradictory','cautious'].includes(t.polarity)?'Виявлена напруга: що врахувати':'Інший ракурс без підтвердженого конфлікту'):
    (['contradictory','cautious'].includes(t.polarity)?'A visible tension worth examining':'A second lens, not a proven conflict'),
@@ -173,7 +223,11 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     ' occupies house '+t.d1House+' in D1 and house '+t.dnHouse+
     ' ('+area(t.dnHouse)+') in D'+t.division+
     '. A positive indication elsewhere cannot automatically erase this theme. ')+
-    explanatoryTone(t.polarity,uk),
+    explanatoryTone(t.polarity,uk)+
+    (uk?'Для теми '+focus(t.division)+' основне питання — чи не перетворюється '+quality(t.lord)+
+     ' на надмірне навантаження саме в сфері '+area(t.dnHouse)+'. Це спосіб перевірити можливий контраст на практиці, а не твердження про вже здійснену подію.':
+     'For '+focus(t.division)+', ask whether '+quality(t.lord)+' becomes strained in '+
+     area(t.dnHouse)+'. That is a way to investigate a possible tension, not a statement that an event has occurred.'),
    [t])
  ];
  const opening=uk?
@@ -206,8 +260,12 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
       'No contradiction appears under this narrow check; that does not guarantee an absence of challenges. ');
  const closing=uk?
   reinforcedText+cautionText+
+  'Одна лінія з’єднує роботу (сфера '+area(career.dnHouse)+') і близькість (сфера '+area(relation.dnHouse)+
+  '): ці теми не замінюють одна одну, а показують різні умови, за яких людина робить вибір. '+
   'Ми переглянули всі 15 зв’язків D1→Dn, але не підсумовуємо їх голосуванням: D1 лишається основою, інші карти уточнюють її. Повна сила планет, аспекти, йоги та похибка часу ще потребують окремої перевірки.':
   reinforcedText+cautionText+
+  'The same life runs through work ('+area(career.dnHouse)+') and partnership ('+area(relation.dnHouse)+
+  '), but their symbols describe different choices and cannot simply cancel each other. '+
   'All 15 D1→Dn links were examined, not voted into a single score. D1 remains primary; other charts qualify it. Full strengths, aspects, yogas and birth-time uncertainty still need separately validated checks.';
  const method=uk?
   'Дані: лише підтверджені знаки й доми D1 та 15 пов’язаних варг. Оцінка показує статус планети у знаку, не Shadbala/Vimsopaka. Книжкові правила позначені окремо від сучасного перенесення на Dn. D60 не використовується для цього цілісного портрета.':
