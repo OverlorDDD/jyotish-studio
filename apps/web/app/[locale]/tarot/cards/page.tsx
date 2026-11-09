@@ -51,7 +51,7 @@ export default async function TarotGuideHub({params}:Props){
    <section className="as-lesson-section" style={{marginTop:32}}>
     <h2>{t.method}</h2>
     <p>{loc==='uk'?'Бібліотеку розпочато з восьми карт, для яких підготовлено окремі змістовні пояснення. Решта карт доступна в інтерактивному розкладі; ми додаватимемо гіди поступово після редакційної перевірки, а не створюватимемо шаблонні сторінки.':'This library begins with eight cards that have individually developed interpretations. All 78 cards are available in the interactive reading; additional guides will be published after editorial review instead of generating thin templates.'}</p>
-    <p><Link href={'/'+loc+'/learn/tarot-reversals'}>{t.learn}</Link></p>
+    <p><Link href={'/'+loc+'/pedia/tarot-reversals'}>{t.learn}</Link></p>
     <p><Link href={'/'+loc+'/tarot'}>{t.play}</Link></p>
    </section>
   </div>
