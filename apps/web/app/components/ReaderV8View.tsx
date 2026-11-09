@@ -6,7 +6,13 @@ export type ReaderV8UI={
  introduction:string;method:string;d60Notice:string;
  synthesis?:{version:string;title:string;opening:string;strength:string;challenge:string;direction:string;method:string};
  compactCards?:readonly {division:number;lead:string;connection:string;relatedDivision:number;contrast:string;proof:readonly string[]}[];
- meaningful?:{version:string;cards:readonly {division:number;title:string;meaning:string;connection:string|null;
+ meaningful?:{version:string;discoveries?:{
+  version:string;summary:string;insights:readonly {
+   id:string;division:number;relatedDivisions:number[];planet:string;headline:string;
+   interpretation:string;attention:string;prominence:number;
+   kind:'support'|'tension'|'context';proof:string[]
+  }[]};
+  cards:readonly {division:number;title:string;meaning:string;connection:string|null;
   status:string;proof:string[];sourceIds:string[]}[];
   summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};method:string};
  integrated?:{version:string;title:string;opening:string;closing:string;method:string;
