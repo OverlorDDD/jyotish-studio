@@ -7,8 +7,10 @@ import {N4_D60_VERSION,N4_D60_METHOD,type D60Candidate} from './n4-d60-candidate
 export const D60_PREVIEW_VERSION='d60-conditional-signs-n47-v1' as const;
 type Lang='uk'|'en';
 type Factor={planet:string;d1Sign:number;d60Sign:number;boundaryDistanceArcseconds:number;note:string};
+type PlanetPosition={planet:string;label:string;d1Sign:number;d60Sign:number;
+ d1SignName:string;d60SignName:string;boundaryDistanceArcseconds:number;nearBoundary:boolean};
 export type D60Preview={version:typeof D60_PREVIEW_VERSION;status:'conditional_signs'|'unavailable';
- title:string;intro:string;factors:readonly Factor[];warning:string};
+ title:string;intro:string;factors:readonly Factor[];allPlanets:readonly PlanetPosition[];warning:string};
 const UK_SIGNS=['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козорозі','Водолії','Рибах'];
 const EN_SIGNS=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGNS_UK_MEANING=[
@@ -53,7 +55,7 @@ function noData(lang:Lang):D60Preview{
  return {version:D60_PREVIEW_VERSION,status:'unavailable',
   title:uk?'D60 · Внутрішні відтінки':'D60 · Subtle inner patterns',
   intro:uk?'Перевіреної прив’язки D60 до цієї натальної карти немає.':'No verified D60-to-birth-chart binding is available.',
-  factors:[],warning:uk?'Особисті висновки за D60 не формуються без перевірених вихідних даних.':'No individual D60 notes without validated input.'};
+  factors:[],allPlanets:[],warning:uk?'Особисті висновки за D60 не формуються без перевірених вихідних даних.':'No individual D60 notes without validated input.'};
 }
 export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
  const uk=lang==='uk',source=chart as CalculatedChart&{
@@ -68,6 +70,25 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
     d.birthTimePrecision!=='NOT_INFERRED_FROM_HH_MM'||
     d.d60HouseInterpretationEligible!==false||d.continuousTimeStabilityCertified!==false||
     d.planets?.length!==9)return noData(lang);
+ // Always show all nine verified computed graha signs, including those near a
+ // D60 edge. A near-edge position is marked sensitive, never silently dropped.
+ const nUk:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',
+  Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
+ const allPlanets:PlanetPosition[]=[];
+ for(const original of chart.d1){
+  const fine=d.planets.find(p=>p.name===original.name);
+  if(!fine||![original.sign,fine.sign].every(sign=>Number.isInteger(sign)&&sign>=1&&sign<=12)||
+    !Number.isFinite(fine.boundaryDistanceArcseconds)||fine.boundaryDistanceArcseconds<0)return noData(lang);
+  allPlanets.push({
+   planet:original.name,label:uk?nUk[original.name]||original.name:original.name,
+   d1Sign:original.sign,d60Sign:fine.sign,
+   d1SignName:(uk?UK_SIGNS:EN_SIGNS)[original.sign-1],
+   d60SignName:(uk?UK_SIGNS:EN_SIGNS)[fine.sign-1],
+   boundaryDistanceArcseconds:fine.boundaryDistanceArcseconds,
+   nearBoundary:fine.boundaryDistanceArcseconds<90
+  });
+ }
+ if(allPlanets.length!==9||new Set(allPlanets.map(p=>p.planet)).size!==9)return noData(lang);
  const ordered=PLANETS.map((p):Factor|null=>{
   const original=chart.d1.find(x=>x.name===p.key);
   const fine=d.planets.find(x=>x.name===p.key);
@@ -78,26 +99,25 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
   const natalTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[original.sign-1];
   const fineTheme=(uk?SIGNS_UK_MEANING:SIGNS_EN_MEANING)[fine.sign-1];
   const note=uk?
-   'У D1 '+p.uk+' перебуває у '+from+', а в D60 — у '+to+
-   '. За традиційною символікою це зустріч двох способів прояву: '+natalTheme+' та '+fineTheme+
-   '. '+PRACTICE_UK[p.key]:
-   'In D1, '+p.key+' occupies '+from+', while in D60 it occupies '+to+
-   '. The traditional symbolism places '+natalTheme+' beside '+fineTheme+
-   '. '+PRACTICE_EN[p.key];
+   p.uk+': D1 у '+from+' ('+natalTheme+'), D60 у '+to+
+   ' ('+fineTheme+'). Для теми '+p.ukTheme+' це два різні символічні акценти однієї планети.':
+   p.key+': D1 in '+from+' ('+natalTheme+'), D60 in '+to+
+   ' ('+fineTheme+'). These are two symbolic shades of the same planet in '+p.enTheme+'.';
   return {planet:p.key,d1Sign:original.sign,d60Sign:fine.sign,
    boundaryDistanceArcseconds:fine.boundaryDistanceArcseconds,note};
  }).filter((x):x is Factor=>x!==null);
  // Do not cherry-pick "good" planets. Choose the widest boundaries first and
  // avoid factors within 90 arcseconds of a nominal D60 sector edge.
- const factors=[...ordered].sort((a,b)=>b.boundaryDistanceArcseconds-a.boundaryDistanceArcseconds).slice(0,3);
+ const priority=['Moon','Sun','Mars','Mercury','Jupiter','Venus','Saturn'];
+ const factors=[...ordered].sort((a,b)=>priority.indexOf(a.planet)-priority.indexOf(b.planet)).slice(0,3);
  const warning=uk?
-  'Методика: розраховано лише планетарні знаки D60 за введеним моментом. Лагна й доми D60 не сертифіковані для особистого часу народження і тут не трактуються. Це символічне читання, не доказ життєвих подій.':
-  'Method: D60 planetary signs for the entered instant only. Individual D60 houses and ascendant are not certified or interpreted. These symbolic themes are not evidence of specific life events.';
- return {version:D60_PREVIEW_VERSION,status:factors.length?'conditional_signs':'unavailable',
+  'D60 показує обчислені знаки планет, а не підтверджену точність часу народження. Позначені поблизу межі знаки можуть змінитися через похибку часу. Доми та асцендент D60 тут не трактуються.':
+  'D60 shows calculated planetary signs, not independently verified birth-time accuracy. Near-boundary signs may change if the time is off. D60 houses and ascendant are not interpreted.';
+ return {version:D60_PREVIEW_VERSION,status:allPlanets.length===9?'conditional_signs':'unavailable',
   title:uk?'D60 · Внутрішні відтінки':'D60 · Subtle inner patterns',
-  intro:uk?'Кожна планета має загальну роль у D1 та тонший відтінок у D60. Нижче — три найвиразніші зіставлення знаків, обчислені для введеного часу народження.':
-   'Each planet has a broad expression in D1 and a finer symbolic color in D60. These three sign comparisons are calculated for the entered birth time.',
-  factors,warning};
+  intro:uk?'Усі 9 планет мають розрахований знак D60 для введеного часу. Нижче — конкретні положення й три короткі зіставлення з основною картою.':
+   'All 9 planetary D60 signs are calculated for the entered time. Below are the actual placements and three concise comparisons with D1.',
+  factors,allPlanets,warning};
 }
 export function compactD60PreviewForAi(chart:CalculatedChart):string{
  const p=buildD60Preview(chart,'en');
