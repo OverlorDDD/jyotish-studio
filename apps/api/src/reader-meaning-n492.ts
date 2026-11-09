@@ -281,10 +281,19 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     (privateLife?.implication||second.implication)+' '+
     (partnership?.implication||third.implication)+' '+
     (primary.implication||headline.implication);
+ const samePersonalCareerLord=lp[1]===lp[10];
+ const groundedDirection=samePersonalCareerLord?
+  (uk?'У вашій карті '+pName(lp[1])+' одночасно керує 1-м і 10-м домами. '+
+    'Це спільна планетна роль, а не два незалежні підтвердження. '+
+    (privateLife?.implication||second.implication)+' '+
+    (partnership?.implication||third.implication):
+   'The same '+lp[1]+' rules the first and tenth houses; this is one shared role, not independent confirmation. '+
+    (privateLife?.implication||second.implication)+' '+
+    (partnership?.implication||third.implication)):direction;
  const summaryProof=[...new Set(topInsights.slice(0,3).flatMap(p=>p.evidence))];
  return {version:N492_MEANING_VERSION,topInsights,patternVersion:N493_PATTERN_VERSION,cards,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
-   strength,attention,direction,proof:summaryProof},
+   strength,attention,direction:groundedDirection,proof:summaryProof},
   method:uk?'Традиційна інтерпретація: D1, функціональні управителі, знакові положення, тематичні варги. Знакова гідність — не повна Shadbala; D60 умовна.':
    'Traditional interpretation: D1, functional lords, sign dignity and thematic divisional charts. Sign dignity is not full Shadbala; D60 is provisional.'};
 }
