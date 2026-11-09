@@ -104,7 +104,7 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const planet=lords[7],a=d1(planet),b=dn(9,planet),venus=dn(9,'Venus');
   const double=lords[8]===planet,q=dignityFor(planet,b.sign);
   const text=uk?'Сьомим домом керує '+name(planet,uk)+' у '+a.house+'-му домі D1 ('+
-    desc(a.house,uk)+'). У D9 він перебуває в '+b.house+'-му домі ('+desc(b.house,uk)+'), у '+sign(b.sign,uk)+'. '+
+    desc(a.house,uk)+'). У D9 '+name(planet,uk)+' перебуває в '+b.house+'-му домі ('+desc(b.house,uk)+'), у '+sign(b.sign,uk)+'. '+
     (double?'Ця сама планета керує і восьмим домом: до теми партнерства додається довіра та відповідальність за спільні рішення. ':'')+
     (planet!=='Venus'?'Венера як окремий показник близькості перебуває в D9 у '+sign(venus.sign,uk)+'. ':'')+
     (strong(q)?'Управитель має сприятливу знакову гідність у D9. ':''):
