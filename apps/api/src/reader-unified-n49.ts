@@ -154,7 +154,8 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     ' and '+venusD9.house+' in D1 and D9. These are relationship lenses, not a marriage or partner prediction. ')+
     explanatoryTone(relation.polarity,uk),
    [relation],['D1.Venus.house='+venusD1.house,'D9.Venus.house='+venusD9.house]),
-  thread('resource',uk?'Можливість: звідки вона походить':'Opportunity: where the theme comes from',
+  thread('resource',uk?(r.polarity==='reinforced'?'Підкріплений ресурс: від D1 до Dn':'Помітний потенціал: від D1 до Dn'):
+   (r.polarity==='reinforced'?'Reinforced resource: from D1 to Dn':'An area to examine: from D1 to Dn'),
    (uk?'Для тематичної карти D'+r.division+' управитель відповідного дому '+pName(r.lord)+
     ' стоїть у D1 в '+r.d1House+'-му домі, а в D'+r.division+' — у '+
     r.dnHouse+'-му ('+area(r.dnHouse)+'). Це не окреме передбачення: варга уточнює ту саму планету, яку вже видно в D1. ':
@@ -163,7 +164,8 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     ' ('+area(r.dnHouse)+'). This is not a separate prediction: the varga refines the same natal planet. ')+
     explanatoryTone(r.polarity,uk),
    [r]),
-  thread('tension',uk?'Суперечність: що не можна замовчувати':'Tension: what the synthesis cannot erase',
+  thread('tension',uk?(['contradictory','cautious'].includes(t.polarity)?'Виявлена напруга: що врахувати':'Інший ракурс без підтвердженого конфлікту'):
+   (['contradictory','cautious'].includes(t.polarity)?'A visible tension worth examining':'A second lens, not a proven conflict'),
    (uk?'Інший ракурс дає D'+t.division+': управитель '+pName(t.lord)+
     ' стоїть у D1 у '+t.d1House+'-му домі, а в D'+t.division+
     ' — у '+t.dnHouse+'-му ('+area(t.dnHouse)+'). Підсумкове читання не повинно оголошувати цю сферу благополучною лише через підтримку в іншій карті. ':
@@ -180,9 +182,33 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
   r.division+' і D'+t.division+'. Кожний наступний висновок нижче прив’язано до фактичного положення управителя, а не до загального опису знака.':
   'This chart begins with the rising ruler '+ascLord+' and the Moon. From D1 we trace the same planetary evidence into work (D10), partnership (D9), and the additional D'+
   r.division+' and D'+t.division+' lenses. Each conclusion below follows a specified placement, not a generic Sun-sign profile.';
+ // The closing checks all fifteen links, not merely the selected five stories.
+ // Select auditable examples; no percentage, weighted 'good chart' score or
+ // assumption that lack of a supportive rule implies a difficult chart.
+ const allReinforcements=links.filter(l=>l.division!==1&&l.polarity==='reinforced');
+ const allContrasts=links.filter(l=>l.division!==1&&l.polarity==='contradictory');
+ const allCautions=links.filter(l=>l.division!==1&&l.polarity==='cautious');
+ const example=(link:N49Link)=>'D'+link.division+' ('+pName(link.lord)+
+  (uk?', D1 дім '+link.d1House+' → D'+link.division+' дім '+link.dnHouse:
+      ', D1 house '+link.d1House+' → D'+link.division+' house '+link.dnHouse)+')';
+ const reinforcedText=allReinforcements.length?
+  (uk?'Узгоджені знакові свідчення є, зокрема, для '+allReinforcements.slice(0,2).map(example).join(' та ')+'. ':
+      'Some sign indications align, including '+allReinforcements.slice(0,2).map(example).join(' and ')+'. '):
+  (uk?'Серед перевірених знакових гідностей немає однозначно подвійного підкріплення; це не означає відсутності ресурсу. ':
+      'No double reinforcement emerged from this limited sign-dignity check; that does not mean there are no resources. ');
+ const opposite=allContrasts.length?allContrasts:allCautions;
+ const cautionText=opposite.length?
+  (uk?(allContrasts.length?'Суперечливі показники не замовчуються: ':'Обережного читання потребує, зокрема, ')+
+       opposite.slice(0,2).map(example).join(' та ')+'. ':
+      (allContrasts.length?'Contradictory indicators stay visible: ':'One area requiring care is ')+
+       opposite.slice(0,2).map(example).join(' and ')+'. '):
+  (uk?'За цією вузькою перевіркою суперечність не виявлена; це не гарантує відсутності труднощів. ':
+      'No contradiction appears under this narrow check; that does not guarantee an absence of challenges. ');
  const closing=uk?
-  'Синтез не підсумовує карти голосуванням: D1 задає основу, тематичні карти уточнюють її, а суперечливі ознаки залишаються відкритими. Для конкретних життєвих рішень потрібна перевірка повного набору чинників, включно з силою планет, аспектами і точністю часу; ця версія не видає їх за вже сертифіковані.':
-  'A synthesis is not a vote among charts. D1 stays primary; divisional lenses qualify it and contradictions remain visible. Full strength, aspects and birth-time sensitivity require further assessment and are not claimed as certified here.';
+  reinforcedText+cautionText+
+  'Ми переглянули всі 15 зв’язків D1→Dn, але не підсумовуємо їх голосуванням: D1 лишається основою, інші карти уточнюють її. Повна сила планет, аспекти, йоги та похибка часу ще потребують окремої перевірки.':
+  reinforcedText+cautionText+
+  'All 15 D1→Dn links were examined, not voted into a single score. D1 remains primary; other charts qualify it. Full strengths, aspects, yogas and birth-time uncertainty still need separately validated checks.';
  const method=uk?
   'Дані: лише підтверджені знаки й доми D1 та 15 пов’язаних варг. Оцінка показує статус планети у знаку, не Shadbala/Vimsopaka. Книжкові правила позначені окремо від сучасного перенесення на Dn. D60 не використовується для цього цілісного портрета.':
   'Inputs: internally verified D1 placements and 15 related vargas, no birth metadata. Sign dignity is not full Shadbala/Vimsopaka. Reviewed historical rules are distinguished from modern Dn extensions. D60 is excluded from this whole-life portrait.';
