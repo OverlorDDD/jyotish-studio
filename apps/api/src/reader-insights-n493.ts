@@ -42,15 +42,15 @@ const quality=(q:string,uk:boolean)=>q==='exalted'?(uk?'екзальтації':
  q==='debilitated'?(uk?'знаку падіння':'debilitation sign'):'';
 const unique=(values:string[])=>[...new Set(values)];
 const YOGA_THEMES:Readonly<Record<string,[string,string]>>={
- Ruchaka:['традиційно пов’язана з ініціативою, відвагою та здатністю братися за складні справи',
+ Ruchaka:['традиційно пов’язане з ініціативою, відвагою та здатністю братися за складні справи',
   'traditionally associated with initiative, courage and tackling demanding tasks'],
- Bhadra:['традиційно пов’язана зі здібністю працювати зі знаннями, мовою та аналізом',
+ Bhadra:['традиційно пов’язане зі здібністю працювати зі знаннями, мовою та аналізом',
   'traditionally associated with language, learning and analytical skill'],
- Hamsa:['традиційно пов’язана з навчанням, наставництвом і пошуком принципів',
+ Hamsa:['традиційно пов’язане з навчанням, наставництвом і пошуком принципів',
   'traditionally associated with learning, mentoring and guiding principles'],
- Malavya:['традиційно пов’язана зі сферою естетики, стосунків та прагненням до гармонії',
+ Malavya:['традиційно пов’язане зі сферою естетики, стосунків та прагненням до гармонії',
   'traditionally associated with aesthetics, relationships and the pursuit of harmony'],
- Shasha:['традиційно пов’язана з витривалістю, організацією та довготривалою відповідальністю',
+ Shasha:['традиційно пов’язане з витривалістю, організацією та довготривалою відповідальністю',
   'traditionally associated with endurance, organization and long-term responsibility']
 };
 
