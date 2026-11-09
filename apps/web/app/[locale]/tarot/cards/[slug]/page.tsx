@@ -65,7 +65,7 @@ export default async function TarotCardGuide({params}:Props){
     <h2>{uk?'Перевір значення на практиці':'Explore the card in practice'}</h2>
     <p>{uk?'У GalaxiTarot доступні розклади на одну, три або десять карт. Значення цього аркана залежить від запитання, позиції, прямого чи перевернутого положення та сусідніх карт. Одна карта не визначає долю й не підтверджує чужих намірів.':'GalaxiTarot offers one-card, three-card and ten-card readings. An Arcana meaning depends on the question, position, orientation and surrounding cards. A single card neither determines a future outcome nor proves what someone else intends.'}</p>
     <p><Link href={'/'+loc+'/tarot'}>{uk?'Спробувати розклад':'Try a Tarot reading'}</Link></p>
-    <p><Link href={'/'+loc+'/learn/tarot-reversals'}>{uk?'Урок про перевернуті карти':'Learn about reversals'}</Link></p>
+    <p><Link href={'/'+loc+'/pedia/tarot-reversals'}>{uk?'Урок про перевернуті карти':'Learn about reversals'}</Link></p>
    </section>
    <nav className="as-wellness-next" aria-label={uk?'Інші карти':'Other cards'}>
     <Link href={'/'+loc+'/tarot/cards/'+prev.slug}>← {prev.title[loc]}</Link>
