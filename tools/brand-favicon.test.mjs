@@ -32,6 +32,6 @@ test('All browser Google and Apple icon metadata names approved galaxy #6',()=>{
 test('The production favicon audit checks canonical EN natal URL, not obsolete title copy',()=>{
  const audit=read('tools/google-favicon-production-audit.mjs').toString();
  assert.ok(audit.includes('canonicalLinks.length===1'));
- assert.ok(audit.includes('galaxiora\\.com\\/en\\/astrology\\/jyotish'));
+ assert.ok(audit.includes("const expectedCanonical=configuredSite+'/en/astrology/jyotish'"));
  assert.doesNotMatch(audit,/root\.txt\.includes\('Free Vedic Birth Chart Calculator'\)/);
 });
