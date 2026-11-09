@@ -55,6 +55,14 @@ test('100 synthetic readings: rank 3–5 distinct, evidenced patterns; never int
      assert.equal(source.find(x=>x.name===p)?.[key],n,seed+'/'+lang+'/'+fact);
     }
    }
+   if(lang==='uk'){
+    const allCards=report.meaningful.cards.map(card=>card.meaning).join(' ');
+    assert.doesNotMatch(allCards,
+     /Додатковий показник для (?:емоційну|наставництво|поєднання|умови|материнські|принципи)/u,
+     'topic-card Ukrainian cases should not be mechanically joined');
+    assert.doesNotMatch(allCards,/голос на користь успіху/u,
+     'no technical scoring jargon in reader-facing text');
+   }
    assert.equal(report.meaningful.cards.length,16);
    assert.equal(report.meaningful.cards.at(-1).division,60);
    assert.ok(report.meaningful.summary.proof.length>=3);
