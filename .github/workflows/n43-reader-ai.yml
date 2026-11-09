@@ -1,7 +1,7 @@
 name: N4.4 Classical Reader 8 and AI — integration gate
 on:
   pull_request:
-    branches: [release/n4-natal-15-varga-rc-20261107, feat/n4-d60-certified-precision-20261107]
+    branches: [release/n4-natal-15-varga-rc-20261107, feat/n4-d60-certified-precision-20261107, feat/n49-evidence-linked-unified-natal-20261109]
   workflow_dispatch:
 permissions:
   contents: read
@@ -46,6 +46,8 @@ jobs:
         run: node --experimental-strip-types --test tools/n47-reader-synthesis-d60.test.mjs
       - name: N4.8 source-bound natural language and quiet illustrated orbits
         run: node --experimental-strip-types --test tools/n48-editorial-prose.test.mjs
+      - name: N4.9.1 concise cards and full D60 planetary evidence gate
+        run: node --experimental-strip-types --test tools/n491-concise-varga-reader.test.mjs
       - name: N4.9 unified natal chain, conditional Brihat Jataka X.1 and privacy regression
         run: node --experimental-strip-types --test tools/n49-unified-synthesis.test.mjs
       - name: N4.9 12 real Swiss invented birth QA in Ukrainian and English
@@ -62,6 +64,8 @@ jobs:
         run: |
           bash -n tools/n49-aws-release.sh
           node --test tools/n49-aws-release-contract.test.mjs
+          bash -n tools/n491-aws-release.sh
+          node --test tools/n491-aws-release-contract.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate

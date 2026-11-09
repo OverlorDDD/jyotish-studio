@@ -6,6 +6,7 @@ import {extractN44Evidence,N44_CLASSICAL_RULESET_VERSION,sourceForRule,
 import {renderN45Narrative,N45_EDITORIAL_VERSION} from './reader-editorial-n45.ts';
 import {buildSourceSynthesis,type ReaderSynthesis} from './reader-synthesis-n47.ts';
 import {buildUnifiedN49,type N49Unified} from './reader-unified-n49.ts';
+import {buildN491Cards,type N491Card} from './reader-compact-n491.ts';
 import {buildD60Preview,compactD60PreviewForAi,type D60Preview} from './reader-d60-n47.ts';
 
 export const READER_V8_VERSION='reader-v8.0.0-n44' as const;
@@ -27,6 +28,7 @@ export type ClassicalReaderReport={
  introduction:string;method:string;
  synthesis:ReaderSynthesis|null;
  integrated:N49Unified|null;
+ compactCards:readonly N491Card[];
  d60Preview:D60Preview;
  highlights:readonly {id:'strength'|'challenge'|'career';division:number;title:string;text:string}[];
  insights:readonly ClassicalReaderInsight[];
@@ -46,7 +48,7 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
    'Детальне класичне прочитання можливе лише за перевіреною натальною картою.':
    'A classical reading requires a verified natal calculation.',
   method:uk?'Правила без перевірених даних не застосовуються.':'No classical rule is applied without verified data.',
-  synthesis:null,integrated:null,d60Preview:buildD60Preview(chart,lang),
+  synthesis:null,integrated:null,compactCards:[],d60Preview:buildD60Preview(chart,lang),
   highlights:[],insights:[],d60Notice:basic.d60Notice
  };
  if(!verifiedVargaSource(chart)||basic.status!=='available'||basic.insights.length!==15)return unavailable;
@@ -105,7 +107,9 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   [...extraDivisions].filter(d=>d!==n49Primary)
    .sort((a,b)=>activated(b,'friction')-activated(a,'friction'))[0];
  const integrated=buildUnifiedN49(chart,lang,asOf,n49Primary,n49Secondary);
- if(!integrated||integrated.links.length!==15||integrated.threads.length!==5)return unavailable;
+ const compactCards=buildN491Cards(chart,lang);
+ if(!integrated||integrated.links.length!==15||integrated.threads.length!==5||
+    !compactCards||compactCards.length!==15)return unavailable;
  /* The three lead cards use verified facts, not generic reflective questions. */
  const highlights=synthesis.highlights as ClassicalReaderReport['highlights'];
  return {
@@ -113,12 +117,12 @@ export function buildClassicalReaderV8(chart:CalculatedChart,lang:Lang,asOf:stri
   ruleSetVersion:N44_CLASSICAL_RULESET_VERSION,
   status:'available',
   introduction:uk?
-   'Цей огляд читає основну карту разом із картою стосунків, професії, витривалості та викликів. Спочатку — ваші найвиразніші можливості й суперечності; далі — п’ятнадцять докладних життєвих тем.':
-   'This overview reads the main chart together with the relationship, vocational, resilience and challenge lenses. First comes your central pattern and its trade-offs; then the fifteen life themes.',
+   'Оберіть сферу життя: кожна картка поєднує головну натальну карту з іншою тематичною картою.':
+   'Choose a life area: each card connects your birth chart to a relevant divisional chart.',
   method:uk?
    'Джерела: Brihat Jataka (переклад 1905) і Laghu Parashari (1900). OCR-уривки прочитані, але не всі звірені зі сканами; дослівні прогнози не переносяться. Вищі карти залежать від точності часу народження.':
    'Sources: Brihat Jataka (1905 translation) and Laghu Parashari (1900). OCR excerpts were reviewed but not all scan-verified; literal predictions are not imported. Higher divisions depend on accurate birth time.',
-  synthesis,integrated,d60Preview:buildD60Preview(chart,lang),
+  synthesis,integrated,compactCards,d60Preview:buildD60Preview(chart,lang),
   highlights,insights,d60Notice:basic.d60Notice
  };
 }
@@ -128,18 +132,14 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
  if(r.status!=='available')return 'Classical Reader 8: source-bound synthesis unavailable. Use D1/D9/D10 only.';
  const selected=[10,27,30,9,24,2];
  return ['Classical Reader 8 evidence: historical book metadata are OCR-reviewed, not independently scan-certified.',
-  'Full synthesis: '+r.synthesis?.opening+' Opportunity: '+r.synthesis?.strength+
-   ' Challenge: '+r.synthesis?.challenge+' Direction: '+r.synthesis?.direction,
   compactD60PreviewForAi(chart), // place BEFORE long thematic facts so it cannot be truncated
-  ...(r.integrated?[
-   'N4.9 linked evidence (conditional modern Dn synthesis, NOT literal classic verse or Shadbala):',
-   ...r.integrated.threads.map(t=>t.title+': '+t.text+' Calculated proofs: '+t.evidence.join(', '))
-  ]:[]),
+  'N4.9.1 only use grounded short readings for the relevant 15 D cards, not the old five-part N4.9 essay:',
+  ...r.compactCards.filter(card=>selected.includes(card.division))
+   .map(card=>'D'+card.division+': '+card.lead+' Cross-check: '+card.connection),
   ...selected.map(d=>{
    const i=r.insights.find(x=>x.division===d)!;
-   return 'D'+d+' '+i.title+'; '+i.headline+' Resource: '+i.strength+
-    ' Concern: '+i.challenge+' Context: '+i.context+
-    ' Rules: '+(i.ruleIds.join(',')||'no additional directly verified rule');
+   return 'D'+d+' evidence='+i.proof.join(',')+
+    '; sourceRules='+(i.ruleIds.join(',')||'none');
   }),
   'Distinguish the literal natal rules from modern Dn generalization. Never invent planetary houses or repeat fatalistic old predictions.',
   'Do not treat provisional D60 as certainty or claim personal houses, lagna, karma or events as proven.'

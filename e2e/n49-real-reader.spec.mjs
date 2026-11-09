@@ -22,66 +22,58 @@ async function createInventedBirth(page,lang){
  expect(json.readerV8?.integrated?.version).toBe('n49-unified-evidence-v1');
  expect(json.readerV8?.integrated?.links).toHaveLength(15);
  expect(json.readerV8?.integrated?.threads).toHaveLength(5);
+ expect(json.readerV8?.compactCards).toHaveLength(15);
+ expect(json.readerV8?.d60Preview?.allPlanets).toHaveLength(9);
  expect(json.ai?.fallbackReason).toBe('reader_only');
  return json;
 }
 for(const lang of ['uk','en']){
- test('N4.9 real-Swiss '+lang+': one coherent reading, evidence disclosures, 7 widths and screenshots',async({page},testInfo)=>{
+ test('N4.9.1 '+lang+': just 15 focused interlinked cards, all D60 signs, real Swiss API, responsive layout',async({page},testInfo)=>{
   const report=await createInventedBirth(page,lang);
   const reader=page.getByTestId('reader-v8');
-  const story=page.getByTestId('reader-v8-synthesis');
   await expect(reader).toBeVisible();
-  await expect(story).toBeVisible();
-  await expect(story).toContainText(lang==='uk'?'Єдиний портрет':'One portrait');
-  await expect(story.locator('[data-testid^="reader-n49-thread-"]')).toHaveCount(5);
   await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
-  await expect(reader.getByTestId('reader-v8-d60')).toHaveCount(1);
-  await expect(reader.locator('[data-testid="reader-v8-synthesis"]')).toHaveCount(1);
+  await expect(reader.getByTestId('reader-v8-synthesis')).toHaveCount(0);
+  await expect(reader.locator('[data-testid^="reader-n49-thread-"]')).toHaveCount(0);
+  await expect(reader.locator('[data-testid^="reader-v8-highlight-"]')).toHaveCount(0);
+  await expect(reader.locator('[data-testid^="reader-n491-link-D"]')).toHaveCount(15);
+  await expect(reader.getByTestId('reader-n491-d60-nine').locator(':scope > div')).toHaveCount(9);
+  await expect(reader.getByTestId('reader-v8-d60')).toContainText(lang==='uk'?'Місяць':'Moon');
   await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
   await expect(page.getByTestId('reading-ai-provenance')).toContainText('Jyotish Reader');
-  const career=page.getByTestId('reader-n49-thread-career');
-  await expect(career).toContainText(lang==='uk'?'D10':'D10');
-  await career.locator('summary').click();
-  const careerCode=career.locator('code');
-  await expect(careerCode).toContainText('D9.');
-  await expect(careerCode).toContainText('D10.');
-  await expect(career.locator('details')).toHaveAttribute('open','');
-  const partnership=page.getByTestId('reader-n49-thread-partnership');
-  await partnership.locator('summary').click();
-  await expect(partnership.locator('code')).toContainText('D9.');
-  const threads=report.readerV8.integrated.threads;
-  const text=threads.map(t=>t.text).join(' ');
-  expect(text).not.toMatch(/guaranteed destiny|scientifically proven personality|гарантовано станеться/iu);
-  expect(new Set(threads.map(t=>t.text)).size).toBe(5);
+  for(const div of [1,9,10,24,27,30]){
+   const card=reader.getByTestId('reader-v8-D'+div);
+   const link=card.getByTestId('reader-n491-link-D'+div);
+   await expect(link).toContainText('D'+report.readerV8.compactCards.find(x=>x.division===div).relatedDivision);
+   await card.locator('details summary').click();
+   await expect(card.locator('details code')).toContainText('D1.');
+   await expect(card.locator('details code')).toContainText('D'+div+'.');
+  }
   for(const width of [320,360,390,430,768,1024,1440]){
    await page.setViewportSize({width,height:850});
-   await expect(story).toBeVisible();
-   const sizes=await page.evaluate(()=>{
-    const root=document.documentElement;
-    const story=document.querySelector('[data-testid="reader-v8-synthesis"]');
-    if(!story)return {overflow:999,storyWidth:0};
-    return {overflow:root.scrollWidth-root.clientWidth,
-      storyWidth:story.getBoundingClientRect().width};
-   });
-   expect(sizes.overflow,'document overflow at '+width).toBeLessThanOrEqual(2);
-   expect(sizes.storyWidth,'narrative visible at '+width).toBeGreaterThan(220);
+   await expect(reader.getByTestId('reader-v8-D10')).toBeVisible();
+   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+   expect(overflow,'Reader horizontal overflow '+width).toBeLessThanOrEqual(2);
    if([320,430,1440].includes(width)){
-    await story.screenshot({path:testInfo.outputPath('n49-real-'+lang+'-'+width+'.png'),animations:'disabled',
-     style:'.as-header{visibility:hidden!important}'});
+    await reader.getByTestId('reader-v8-D10').screenshot({
+     path:testInfo.outputPath('n491-career-'+lang+'-'+width+'.png'),
+     animations:'disabled',style:'.as-header{visibility:hidden!important}'
+    });
+    await reader.getByTestId('reader-v8-d60').screenshot({
+     path:testInfo.outputPath('n491-d60-'+lang+'-'+width+'.png'),
+     animations:'disabled',style:'.as-header{visibility:hidden!important}'
+    });
    }
   }
  });
 }
-test('N4.9 uncertain minutes: warnings never certify fine D60 and reading remains accessible',async({page})=>{
+test('N4.9.1 approximate birth minutes do not falsely certify D60 while preserving D cards',async({page})=>{
  await createInventedBirth(page,'en');
- const story=page.getByTestId('reader-v8-synthesis');
- await expect(story).toBeVisible();
- // The birth details disclosure may collapse after the result; reopen it.
+ const reader=page.getByTestId('reader-v8');
  const panel=page.locator('#birth-details');
  if(!(await panel.evaluate(el=>el.open)))await panel.locator(':scope > summary').click();
  await panel.locator('input[type="checkbox"]').check();
- await expect(story.getByRole('note')).toContainText('Birth time is approximate');
- const d60=page.getByTestId('reader-v8-d60');
- await expect(d60).toContainText('reliable birth time');
- await expect(page.getByTestId('reader-n49-thread-career')).toBeVisible();
+ await expect(reader.getByRole('note')).toContainText('An approximate birth time');
+ await expect(reader.getByTestId('reader-v8-d60')).toContainText('birth time is marked approximate');
+ await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
 });

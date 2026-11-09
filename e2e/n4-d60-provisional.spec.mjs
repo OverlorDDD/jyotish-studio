@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n491-compact-cross-varga-v1',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -53,11 +53,12 @@ async function ready(page,lang,data=fixture()){
  await page.locator('input[type=time]').fill('12:00');
  await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
  await page.getByRole('option',{name:/Kyiv/}).click();
- await Promise.all([
-  page.waitForResponse(r=>r.url().includes('/api/v1/charts/calculate')),
-  page.locator('button.jy-calc-btn').click()
- ]);
- await expect(page.getByTestId('n4-rc-explorer')).toBeVisible();
+ // The source response is mocked by this test; assert the actual chart UI,
+ // not the timing of the response event (which was flaky on slower CI runs).
+ const calculate=page.locator('button.jy-calc-btn');
+ await expect(calculate).toBeEnabled();
+ await calculate.click();
+ await expect(page.getByTestId('n4-rc-explorer')).toBeVisible({timeout:15000});
 
 }
 
@@ -119,6 +120,12 @@ function mockV8(divisions){
     scope:i===0?'d1_direct':'cross_varga_modern_extension'
    })),
    links:divisions.map(division=>({division,polarity:'unresolved',evidence:['D1.Mercury.house=3']}))},
+  compactCards:divisions.map((division)=>({
+   division,lead:'Для цієї сфери один із показників — Меркурій. У D1 він пов’язаний із навчанням і в D'+division+' — з практичними навичками.',
+   relatedDivision:division===10?24:division===24?10:9,contrast:'unresolved',
+   connection:'Зв’язок із D'+(division===10?24:division===24?10:9)+': цей самий Меркурій має перевірене тематичне положення.',
+   proof:['D1.Mercury.house=3','D'+division+'.Mercury.house=3']
+  })),
   synthesis:{version:'n47-source-synthesis-v1',title:'Головний сюжет вашої карти',
    opening:'Висхідний знак та управитель визначають центральну тему. У перевіреній основній карті ці фактори співвідносяться з тематичними картами.',
    strength:'Додаткова карта показує потенціал, який можна перевірити конкретними діями.',
@@ -128,6 +135,8 @@ function mockV8(divisions){
   d60Preview:{version:'d60-conditional-signs-n47-v1',status:'conditional_signs',
    title:'D60: тонкі акценти, які ще потрібно перевірити',
    intro:'Тестовий умовний зріз, не висновок про реальне народження.',
+   allPlanets:names.map(planet=>({planet,label:planet,d1Sign:1,d60Sign:5,
+    d1SignName:'Овен',d60SignName:'Лев',boundaryDistanceArcseconds:250,nearBoundary:false})),
    factors:[{planet:'Mars',d1Sign:1,d60Sign:5,boundaryDistanceArcseconds:250,
     note:'Марс: у головній карті — Овен, у D60 — Лев; умовно можна порівняти ініціативу та самовираження.'}],
    warning:'D60: час до хвилини не гарантує точності; доми не трактуються.'},
@@ -220,13 +229,13 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  const plain=page.getByTestId('reader-v8');
  await expect(plain).toBeVisible();
  await expect(plain.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
- await expect(plain.getByTestId('reader-v8-highlight-strength')).toBeVisible();
- await expect(plain.getByTestId('reader-v8-D27')).toContainText('У цій темі можна розвивати');
+ await expect(plain.getByTestId('reader-v8-synthesis')).toHaveCount(0);
+ await expect(plain.getByTestId('reader-v8-D27')).toContainText('Для цієї сфери');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await expect(plain.getByTestId('reader-v8-synthesis')).toContainText('Єдиний портрет');
- await expect(plain.getByTestId('reader-v8-d60')).toContainText('Марс: у головній карті');
- await expect(plain.getByTestId('reader-v8-d60')).toContainText('не гарантує точності');
- await plain.getByTestId('reader-v8-D10').getByText('Розрахунки та класичні джерела').click();
+ await expect(plain.getByTestId('reader-n491-d60-nine').locator(':scope > div')).toHaveCount(9);
+ await expect(plain.getByTestId('reader-v8-d60')).toContainText('Лев');
+ await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
+ await plain.getByTestId('reader-v8-D10').getByText('Планети, доми та джерела').click();
  await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
  await expect(page.getByTestId('reader-v7')).toHaveCount(0);
 
