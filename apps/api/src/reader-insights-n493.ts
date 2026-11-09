@@ -104,12 +104,12 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   const planet=lords[7],a=d1(planet),b=dn(9,planet),venus=dn(9,'Venus');
   const double=lords[8]===planet,q=dignityFor(planet,b.sign);
   const text=uk?'Сьомим домом керує '+name(planet,uk)+' у '+a.house+'-му домі D1 ('+
-    desc(a.house,uk)+'). У D9 він перебуває у '+sign(b.sign,uk)+'. '+
+    desc(a.house,uk)+'). У D9 він перебуває в '+b.house+'-му домі ('+desc(b.house,uk)+'), у '+sign(b.sign,uk)+'. '+
     (double?'Ця сама планета керує і восьмим домом: до теми партнерства додається довіра та відповідальність за спільні рішення. ':'')+
     (planet!=='Venus'?'Венера як окремий показник близькості перебуває в D9 у '+sign(venus.sign,uk)+'. ':'')+
     (strong(q)?'Управитель має сприятливу знакову гідність у D9. ':''):
     'The seventh-house ruler '+planet+' occupies D1 house '+a.house+' ('+desc(a.house,uk)+
-    ') and appears in D9 in '+sign(b.sign,uk)+'. '+
+    ') and occupies D9 house '+b.house+' ('+desc(b.house,uk)+') in '+sign(b.sign,uk)+'. '+
     (double?'The same ruler governs the eighth house, linking partnerships to trust and shared decisions. ':'')+
     (planet!=='Venus'?'Venus is a separate relationship indicator in D9 '+sign(venus.sign,uk)+'. ':'')+
     (strong(q)?'The seventh ruler has supportive sign dignity in D9. ':'');
@@ -127,7 +127,7 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
    prominence:4+(double?3:0)+(strong(q)?2:0)+(a.house===7?2:0),
    kind:strong(q)?'support':'context',
    proof:unique(['D1.house-lord.7='+planet,'D1.'+planet+'.house='+a.house,
-    'D9.'+planet+'.sign='+b.sign,...(double?['D1.house-lord.8='+planet]:[]),
+    'D9.'+planet+'.sign='+b.sign,'D9.'+planet+'.house='+b.house,...(double?['D1.house-lord.8='+planet]:[]),
     ...(planet!=='Venus'?['D9.Venus.sign='+venus.sign]:[])])});
  }
  // Identity and recovery: lagna lord must be interpreted as lagna lord,
