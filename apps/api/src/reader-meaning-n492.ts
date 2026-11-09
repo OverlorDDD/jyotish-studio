@@ -13,6 +13,7 @@ import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts'
 import {authorConsultationV6} from './reader-narrative-v6.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
+import {buildN493Overview,type N493Overview} from './reader-insights-n493.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -20,7 +21,7 @@ type Lang='uk'|'en';
 type Card={division:number;title:string;meaning:string;connection:string|null;
  status:'notable'|'mixed'|'contextual'|'provisional';proof:string[];sourceIds:string[]};
 export type MeaningfulReading={version:typeof N492_MEANING_VERSION;
- cards:readonly Card[];summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
+ cards:readonly Card[];discoveries:N493Overview;summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
  method:string};
 const HEADS:Readonly<Record<number,[string,string,number]>>={
  1:['Особистість і життєвий напрям','Identity and direction',1],
@@ -106,6 +107,8 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
  const same=(div:number,name:string)=>source.find(c=>c.division===div)?.planets.find(p=>p.name===name);
  const facts=ruleFindings(chart);
  const d60=buildD60Preview(chart,lang);
+ const discoveries=buildN493Overview(chart,lang);
+ if(!discoveries)return null;
  const cards:Card[]=[];
  for(const div of N492_ORDER){
   const [titleUk,titleEn,topicHouse]=HEADS[div];
@@ -242,6 +245,19 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    status:(dnQuality==='debilitated'&&notable(natalQuality))||(notable(dnQuality)&&natalQuality==='debilitated')?'mixed':
     notable(dnQuality)||isYoga?'notable':'contextual',proof,sourceIds:[]});
  }
+ // Use the evidence-ranked narrative as the card's source of meaning when a
+ // topic is one of the most characteristic for this specific chart.
+ // Its claim is shown only once: the top overview is a short headline; the
+ // expanded card carries the actual details and limitations.
+ const leading=new Map(discoveries.insights.map(x=>[x.division,x]));
+ for(const card of cards){
+  const special=leading.get(card.division);
+  if(special){
+   card.meaning=special.interpretation;
+   card.proof=[...new Set([...card.proof,...special.proof])];
+   card.sourceIds=[...new Set([...card.sourceIds,'N493-EVIDENCE-PRIORITY'])];
+  }
+ }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
  const lagnaLord=lp[1],careerLord=lp[10],relationLord=lp[7];
  const asc=get(lagnaLord)!,career=get(careerLord)!,moon=get('Moon')!;
@@ -306,7 +322,7 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
   ', vocation '+careerLord+' in house '+career.house+
   ', and partnership '+relationLord+' in house '+relationship.house+
   '. Look for actual corroboration rather than assuming one chart factor decides every area.');
- return {version:N492_MEANING_VERSION,cards,
+ return {version:N492_MEANING_VERSION,cards,discoveries,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
    strength,attention,direction,proof:[
     'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+asc.house,
