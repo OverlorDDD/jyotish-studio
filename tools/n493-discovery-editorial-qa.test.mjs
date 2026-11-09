@@ -83,6 +83,10 @@ test('N493 prioritizes 3-5 sourced discoveries, avoids false double votes, integ
     if(!direct.insights.some(x=>x.division===div))
      assert.equal(card.meaning,detail.meaning);
     assert.ok(detail.meaning.length>260&&detail.meaning.length<940);
+    if(lang==='uk')assert.doesNotMatch(detail.meaning,
+     /підтримка присутня у (?:Сонце|Місяць|Марс|Меркурій|Юпітер|Венера|Сатурн)|поєднує дім і внутрішня опора|важливий Венера/u,
+     'real generated Ukrainian case and subject grammar must be natural');
+
    }
    const sample=direct.insights.map(x=>x.id+' '+x.headline+'\n'+x.teaser+'\n'+x.interpretation+
     '\nAttention: '+x.attention+'\nEvidence: '+x.proof.join(' · ')).join('\n\n');
