@@ -146,28 +146,51 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
      'The Sun in house '+sun.house+' introduces the distinct theme of '+area(sun.house)+'.');
    }
   }else if(div===10){
-   // Core reason the v6 hidden chapter reads better: house-lord + yoga + role + real work lens.
-   meaning=truncateSentences(chapter('career')[0]||'',4);
-   meaning+=' '+(uk?'У D10 '+pName(lord)+' перебуває в '+t1+'-му домі, у знаку «'+sign(varga.sign)+'»':
-    'In D10 the planet occupies '+sign(varga.sign)+' in house '+t1);
-   const qualifier=statusMeaning(dnQuality,uk);
-   meaning+=(qualifier?', '+qualifier:'.');
+   const from=natal.house,to=varga.house;
+   meaning=uk?'У D1 професією керує '+pName(lord)+' у '+from+'-му домі (сфера '+area(from)+
+    '). У D10 ця планета в '+to+'-му домі (сфера '+area(to)+
+    '), у знаку «'+sign(varga.sign)+'».':
+    'The D1 tenth house is ruled by '+lord+' in house '+from+' ('+area(from)+
+    '). In D10 it occupies house '+to+' ('+area(to)+') in '+sign(varga.sign)+'.';
+   if(isYoga)meaning+=' '+(uk?'Для вашої лагни '+pName(lord)+
+    ' є йогакаракою: він керує і творчим/духовним потенціалом, і важливою сферою дії.':
+    'For this ascendant '+lord+' is a yogakaraka: its rulership joins a trinal and an angular life area.');
+   const degree=statusMeaning(dnQuality,uk);
+   if(degree)meaning+=' '+(uk?'Професійна варга: '+pName(lord)+' '+degree:
+    'Vocational division: '+lord+' is '+degree);
+   if(to===6)meaning+=' '+(uk?'Акцент професійної карти — щоденна майстерність, робота зі складними завданнями й системні процеси.':
+    'The vocational emphasis is disciplined problem-solving, regular craft and practical processes.');
+   else if(to===9)meaning+=' '+(uk?'Друга лінія професії — навчання, викладання або робота зі знаннями.':
+    'Education, teaching and the use of knowledge become another relevant vocational theme.');
   }else if(div===9){
-   meaning=truncateSentences(chapter('relationships')[0]||'',4);
-   const venus=same(9,'Venus');
-   meaning+=' '+(uk?'У D9 управитель партнерства '+pName(lord)+' перебуває у знаку «'+sign(varga.sign)+'». '+
-    (lord==='Venus'?'Венера і є цим управителем, тому це не другий незалежний показник.':
-      'Венера доповнює тему взаємності, перебуваючи в D9 у знаку «'+sign(venus!.sign)+'».'):
-   'In D9 the partnership ruler '+lord+' occupies '+sign(varga.sign)+'. '+
-    (lord==='Venus'?'Venus is itself the ruler here, not a second independent indicator.':
-      'Venus adds a second relationship indicator in '+sign(venus!.sign)+'.'));
-   proof.push('D9.Venus.sign='+venus!.sign);
+   const venus=same(9,'Venus')!;
+   meaning=uk?'У D1 сьомим домом керує '+pName(lord)+' у '+natal.house+'-му домі (сфера '+area(natal.house)+
+    '). У D9 '+pName(lord)+' перебуває в знаку «'+sign(varga.sign)+'».':
+    'In D1, the seventh-house ruler '+lord+' occupies house '+natal.house+' ('+area(natal.house)+
+    '). In D9 the same '+lord+' occupies '+sign(varga.sign)+'.';
+   if(lord===lp[8])meaning+=' '+(uk?'Сьомий і восьмий доми мають одного управителя: для традиційного прочитання союзу важливі і домовленості, і довіра.':
+    'The seventh and eighth share one ruler: trust and shared commitments belong in the same discussion.');
+   else if(natal.house===7)meaning+=' '+(uk?'Управитель партнерства в самому сьомому домі робить цю сферу окремим важливим акцентом.':
+    'The relationship ruler in the seventh house makes this an especially direct life theme.');
+   if(lord!=='Venus')meaning+=' '+(uk?'Венера додає незалежний показник взаємності: її D9 знак «'+sign(venus.sign)+'».':
+    'Venus adds an independent relationship indicator in the D9 sign '+sign(venus.sign)+'.');
+   else meaning+=' '+(uk?'Венера тут одночасно і управитель, і загальний показник близькості; не рахуємо її двічі.':
+    'Venus serves as both ruler and relationship significator here, so it is not counted twice.');
+   proof.push('D9.Venus.sign='+venus.sign);
   }else if(div===2){
-   meaning=truncateSentences(chapter('resources')[0]||'',4);
-   meaning+=' '+(uk?'У D2 управитель ресурсів '+pName(lord)+' у знаку «'+sign(varga.sign)+'».':
-    'In D2 the resources ruler '+lord+' occupies '+sign(varga.sign)+'.');
-   const gains=lp[11],g=get(gains);
-   if(g)proof.push('D1.house-lord.11='+gains,'D1.'+gains+'.house='+g.house);
+   const gains=lp[11],g=get(gains)!;
+   meaning=uk?'Другим домом ресурсів керує '+pName(lord)+' у '+natal.house+'-му домі (сфера '+area(natal.house)+
+    '), а одинадцятим домом здобутків — '+pName(gains)+' у '+g.house+'-му. '+
+    'У D2 '+pName(lord)+' перебуває у знаку «'+sign(varga.sign)+'».':
+    'The second-house resource ruler '+lord+' occupies natal house '+natal.house+
+    ' ('+area(natal.house)+'), while the eleventh-house gains ruler '+gains+
+    ' occupies house '+g.house+'. In D2 '+lord+' occupies '+sign(varga.sign)+'.';
+   const degree=statusMeaning(dnQuality,uk);
+   if(degree)meaning+=' '+(uk?'Знакова оцінка D2: '+pName(lord)+' '+degree:
+    'D2 sign assessment: '+lord+' is '+degree);
+   if(gains===lord)meaning+=' '+(uk?'Один управитель пов’язує збереження ресурсів і отримання результатів.':
+    'The same ruler links accumulating resources with securing gains.');
+   proof.push('D1.house-lord.11='+gains,'D1.'+gains+'.house='+g.house);
   }else{
    const focused=uk?'У D'+div+' '+pName(lord)+' перебуває в '+t1+'-му домі, у знаку «'+sign(varga.sign)+'».':
      'In D'+div+', '+lord+' occupies house '+t1+' in '+sign(varga.sign)+'.';
