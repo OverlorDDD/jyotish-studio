@@ -7,7 +7,7 @@
  * on recorded birth time and stays visibly provisional.
  */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {dignityFor,CLASSICAL_GRAHAS} from '../../../packages/jyotish-core/src/rules.ts';
+import {dignityFor} from '../../../packages/jyotish-core/src/rules.ts';
 import {readerClassicalContext} from './reader-classical.ts';
 import {authorConsultationV6} from './reader-narrative-v6.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
@@ -127,7 +127,7 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):Co
   const proof=[...d1Facts(main),...(division===1?[]:[
    'D'+division+'.'+main+'.sign='+inD(division,main).sign,
    'D'+division+'.'+main+'.house='+inD(division,main).house]),
-   ...secondary&&secondary!==main?d1Facts(secondary):[],...extras];
+   ...(secondary&&secondary!==main?d1Facts(secondary):[]),...extras];
   return {division,reading:reading.trim(),corroboration:null,attention,
    sourceFacts:uniq(proof),sourceMethod:division===1?['PARASHARI_FUNCTIONAL_LORDSHIP','NAKSHATRA_D1']:
     ['PARASHARI_HOUSE_LORDSHIP','BPHS_SHODASAVARGA_SCOPE'],
@@ -135,7 +135,7 @@ export function buildN492Meaning(chart:CalculatedChart,lang:Lang,asOf:string):Co
  };
  const asc=lords[1],moon=natal('Moon'),lagna=chart.ascendant.sign;
  const yogakaraka=yoga[0];
- const d1Portrait=chapter('portrait')[0];
+
  const d1Moon=chapter('portrait')[1];
  const d1Reading=uk?
   'Висхідний знак задає ваш особистий напрям. Його управитель — '+name(asc)+
