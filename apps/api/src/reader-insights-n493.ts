@@ -269,6 +269,9 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
  const selected:N493Insight[]=[];
  const used=new Set<string>();
  for(const finding of results){
+  // 3 insights are the useful minimum; 4th/5th must clear an evidence-quality
+  // threshold. Never include weaker filler merely to make a five-item list.
+  if(selected.length>=3&&finding.prominence<6)break;
   const topic=finding.id.startsWith('mahapurusha')?'special-yoga':finding.id;
   if(used.has(topic))continue;
   // "dignity caution" can coexist with career if a different graha;
