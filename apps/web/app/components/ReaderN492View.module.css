@@ -16,3 +16,17 @@
 .method summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media(max-width:620px){.signs{grid-template-columns:repeat(2,minmax(0,1fr))}.meaning{font-size:14px;line-height:1.75}.final{margin-top:24px}}
 @media(max-width:340px){.signs{grid-template-columns:1fr}.card{gap:10px!important}}
+
+/* N4.9.3: evidence-ranked themes; plain editorial layout, not "good luck" score badges. */
+.patterns{margin:20px 0 28px;display:flex;flex-direction:column;gap:16px;max-width:100%}
+.patternsHeader h3{font-size:clamp(21px,3vw,27px);font-family:Georgia,serif;color:#f3d5ac;margin:7px 0}
+.patternsHeader p{color:#bbc8db;font-size:13px;line-height:1.65;margin:5px 0 0}
+.patternList{list-style:none;counter-reset:pattern;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0}
+.patternItem{counter-increment:pattern;padding:17px 18px;border:1px solid rgba(188,168,139,.23);border-radius:12px;background:rgba(14,29,50,.39);display:flex;flex-direction:column;gap:9px;min-width:0;overflow-wrap:anywhere}
+.patternItem:before{content:counter(pattern,decimal-leading-zero);font-size:11px;letter-spacing:.08em;color:#d7b988;font-weight:700}
+.patternItem h4{color:#f0d1a4;margin:0;font-size:16px;line-height:1.35}
+.patternItem p{font-size:13px;line-height:1.72;margin:0;color:#e3eaf3}
+.patternItem .patternImplication{margin:3px 0;color:#d2e5e0}
+.patternImplication strong{color:#b2daca}
+.patternItem details{font-size:11px;margin-top:auto}
+@media(max-width:760px){.patternList{grid-template-columns:1fr}.patternItem{padding:15px}}
