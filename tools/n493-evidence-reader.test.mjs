@@ -50,8 +50,13 @@ test('N493 40 x two languages: prioritization, 2 distinct grahas, verified ledge
     patterns.push(pattern.title+' | '+pattern.insight+' '+pattern.context+
      ' | Evidence: '+pattern.evidence.join(' · '));
    }
+   const openings=new Set();
    const cards=[];
    for(const card of read.cards){
+    assert.doesNotMatch(card.meaning,
+     /Для цієї сфери суттєвий зв’язок двох різних контекстів|перший показник — управитель|Другий незалежний показник|A distinct second indicator|two different contexts/i,
+     'empty repetitive formula must not return');
+    openings.add(card.meaning.slice(0,54));
     assert.ok(card.meaning.length>=110&&card.meaning.length<=1600,
      'bad card length '+seed+' '+lang+' D'+card.division+' '+card.meaning.length);
     assert.ok(card.proof.length>=2);
@@ -71,6 +76,7 @@ test('N493 40 x two languages: prioritization, 2 distinct grahas, verified ledge
     cards.push('### D'+card.division+' '+card.title+'\n'+card.meaning+
      '\n'+(card.context||'')+'\nEvidence: '+card.proof.join(' · '));
    }
+   assert.ok(openings.size>=12,'15 divisions need distinct subject-specific language');
    const finale=read.summary.portrait+' '+read.summary.focus;
    assert.ok(finale.length>=280&&finale.length<=1900);
    assert.ok(read.summary.proof.length>=4);
