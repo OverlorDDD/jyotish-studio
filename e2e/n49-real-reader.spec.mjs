@@ -23,57 +23,63 @@ async function createInventedBirth(page,lang){
  expect(json.readerV8?.integrated?.links).toHaveLength(15);
  expect(json.readerV8?.integrated?.threads).toHaveLength(5);
  expect(json.readerV8?.compactCards).toHaveLength(15);
+ expect(json.readerV8?.meaningful?.cards).toHaveLength(16);
+ expect(json.readerV8?.meaningful?.cards[0]?.division).toBe(1);
+ expect(json.readerV8?.meaningful?.cards[15]?.division).toBe(60);
  expect(json.readerV8?.d60Preview?.allPlanets).toHaveLength(9);
  expect(json.ai?.fallbackReason).toBe('reader_only');
  return json;
 }
 for(const lang of ['uk','en']){
- test('N4.9.1 '+lang+': just 15 focused interlinked cards, all D60 signs, real Swiss API, responsive layout',async({page},testInfo)=>{
+ test('N4.9.2 '+lang+': 16 meaningful sequential cards, no hidden editorial essay, final synthesis, responsive browser',async({page},testInfo)=>{
   const report=await createInventedBirth(page,lang);
   const reader=page.getByTestId('reader-v8');
   await expect(reader).toBeVisible();
+  await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
   await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
+  await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
+  await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
+  await expect(reader.getByTestId('reader-n492-final')).toBeVisible();
   await expect(reader.getByTestId('reader-v8-synthesis')).toHaveCount(0);
   await expect(reader.locator('[data-testid^="reader-n49-thread-"]')).toHaveCount(0);
-  await expect(reader.locator('[data-testid^="reader-v8-highlight-"]')).toHaveCount(0);
-  await expect(reader.locator('[data-testid^="reader-n491-link-D"]')).toHaveCount(15);
-  await expect(reader.getByTestId('reader-n491-d60-nine').locator(':scope > div')).toHaveCount(9);
-  await expect(reader.getByTestId('reader-v8-d60')).toContainText(lang==='uk'?'Місяць':'Moon');
-  await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
+  await expect(page.getByText('Поглиблене астрологічне пояснення — за бажанням')).toHaveCount(0);
+  await expect(page.getByText('Optional detailed traditional interpretation')).toHaveCount(0);
   await expect(page.getByTestId('reading-ai-provenance')).toContainText('Jyotish Reader');
-  for(const div of [1,9,10,24,27,30]){
-   const card=reader.getByTestId('reader-v8-D'+div);
-   const link=card.getByTestId('reader-n491-link-D'+div);
-   await expect(link).toContainText('D'+report.readerV8.compactCards.find(x=>x.division===div).relatedDivision);
+  await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
+  const ordered=report.readerV8.meaningful.cards.map(c=>c.division);
+  expect(ordered).toEqual([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
+  for(const div of [1,2,9,10,24,60]){
+   const card=div===60?reader.getByTestId('reader-v8-d60'):reader.getByTestId('reader-v8-D'+div);
+   await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).title);
+   await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).meaning.slice(0,70));
    await card.locator('details summary').click();
    await expect(card.locator('details code')).toContainText('D1.');
-   await expect(card.locator('details code')).toContainText('D'+div+'.');
+   await expect(card.locator('details')).toHaveAttribute('open','');
   }
+  await expect(reader.getByTestId('reader-v8-D10')).toContainText(lang==='uk'?'профес':'career');
   for(const width of [320,360,390,430,768,1024,1440]){
    await page.setViewportSize({width,height:850});
    await expect(reader.getByTestId('reader-v8-D10')).toBeVisible();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
-   expect(overflow,'Reader horizontal overflow '+width).toBeLessThanOrEqual(2);
+   expect(overflow,'horizontal overflow at '+width).toBeLessThanOrEqual(2);
    if([320,430,1440].includes(width)){
-    await reader.getByTestId('reader-v8-D10').screenshot({
-     path:testInfo.outputPath('n491-career-'+lang+'-'+width+'.png'),
-     animations:'disabled',style:'.as-header{visibility:hidden!important}'
-    });
-    await reader.getByTestId('reader-v8-d60').screenshot({
-     path:testInfo.outputPath('n491-d60-'+lang+'-'+width+'.png'),
-     animations:'disabled',style:'.as-header{visibility:hidden!important}'
-    });
+    for(const id of ['reader-v8-D10','reader-v8-d60','reader-n492-final']){
+     await reader.getByTestId(id).screenshot({
+      path:testInfo.outputPath('n492-'+id+'-'+lang+'-'+width+'.png'),
+      animations:'disabled',style:'.as-header{visibility:hidden!important}'
+     });
+    }
    }
   }
  });
 }
-test('N4.9.1 approximate birth minutes do not falsely certify D60 while preserving D cards',async({page})=>{
+test('N4.9.2 time precision warning without removing 16 cards',async({page})=>{
  await createInventedBirth(page,'en');
  const reader=page.getByTestId('reader-v8');
- const panel=page.locator('#birth-details');
- if(!(await panel.evaluate(el=>el.open)))await panel.locator(':scope > summary').click();
- await panel.locator('input[type="checkbox"]').check();
- await expect(reader.getByRole('note')).toContainText('An approximate birth time');
- await expect(reader.getByTestId('reader-v8-d60')).toContainText('birth time is marked approximate');
- await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
+ const details=page.locator('#birth-details');
+ if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
+ await details.locator('input[type="checkbox"]').check();
+ await expect(reader.getByRole('note')).toContainText('Birth time is marked approximate');
+ await expect(reader.getByTestId('reader-v8-d60')).toContainText('entered instant');
+ await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
 });
