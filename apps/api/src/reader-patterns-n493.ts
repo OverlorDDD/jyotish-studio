@@ -5,7 +5,7 @@
  * D60 is intentionally excluded from the primary ranking.
  */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
+import {dignityFor,classicalSignRuler} from '../../../packages/jyotish-core/src/rules.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 export const N493_PATTERN_VERSION='n493-ranked-multifactor-v1' as const;
@@ -48,6 +48,26 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
  const add=(x:ChartPattern)=>candidate.push({...x,evidence:uniq(x.evidence)});
  const lord10=lords[10],p10=find(lord10),v10=varga(10,lord10),v24=varga(24,lord10);
  const status10=dignityFor(lord10,v10.sign),status24=dignityFor(lord10,v24.sign);
+ // Brihat Jataka X.1: compare the tenth from Lagna, Moon and Sun; the
+ // navamsa sign-lords of those rulers refine the vocational picture.
+ const moonNatal=find('Moon'),sunNatal=find('Sun');
+ const tenthFrom=(sign:number)=>((sign+8)%12)+1;
+ const moonTenthLord=classicalSignRuler(tenthFrom(moonNatal.sign));
+ const sunTenthLord=classicalSignRuler(tenthFrom(sunNatal.sign));
+ const moonNav=classicalSignRuler(varga(9,moonTenthLord).sign);
+ const sunNav=classicalSignRuler(varga(9,sunTenthLord).sign);
+ const bothSame=moonTenthLord===sunTenthLord;
+ const classicCrossCheck=uk?
+  'За додатковим класичним методом від Місяця десятою сферою керує '+name(moonTenthLord)+
+   (bothSame?' — та сама планета, що й від Сонця; не два незалежні підтвердження.':
+    ', а від Сонця — '+name(sunTenthLord)+'.')+
+   ' Управителі їхніх знаків у D9: '+name(moonNav)+' та '+name(sunNav)+
+   '. Це уточнює професійну символіку, але не визначає посаду.':
+  'The tenth-from-Moon ruler is '+moonTenthLord+
+   (bothSame?', the same ruler as from the Sun—not independent evidence.':
+    ', while the tenth-from-Sun ruler is '+sunTenthLord+'.')+
+   ' The rulers of their D9 signs are '+moonNav+' and '+sunNav+
+   '. This refines vocational symbolism without specifying a job title.';
  const yoga=yogas.has(lord10);
  const role=yoga?Array.from({length:12},(_,i)=>i+1).filter(h=>lords[h]===lord10):[];
  const sector10=where(v10.house),root10=where(p10.house);
@@ -73,7 +93,7 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
    careerTension?'D24 yields a contrasting sign assessment: career and learning do not carry identical indications.':
    'D24 concerns education and cannot independently guarantee vocational outcomes.');
  add({id:'vocation',title:uk?'Професійні здібності: де знання стають дією':'Vocation: knowledge and practice',
-  reading:profession,
+  reading:profession+' '+classicCrossCheck,
   implication:uk?(v10.house===6?
    'Варто перевіряти напрями, де цінують майстерність, дисципліну та вирішення складних задач.':
    v10.house===9?'Навчання, передавання знань і робота з наставниками заслуговують на особливу увагу.':
@@ -86,7 +106,10 @@ export function rankN493Patterns(chart:CalculatedChart,lang:Lang):readonly Chart
   evidence:['D1.ascendant.sign='+chart.ascendant.sign,'D1.house-lord.10='+lord10,
    'D1.'+lord10+'.house='+p10.house,'D10.'+lord10+'.house='+v10.house,
    'D10.'+lord10+'.sign='+v10.sign,'D24.'+lord10+'.sign='+v24.sign,
-   ...role.map(h=>'D1.house-lord.'+h+'='+lord10)],divisions:[1,10,24]});
+   'D1.Moon.sign='+moonNatal.sign,'D1.Sun.sign='+sunNatal.sign,
+   'D9.'+moonTenthLord+'.sign='+varga(9,moonTenthLord).sign,
+   'D9.'+sunTenthLord+'.sign='+varga(9,sunTenthLord).sign,
+   ...role.map(h=>'D1.house-lord.'+h+'='+lord10)],divisions:[1,9,10,24]});
  const ascLord=lords[1],pAsc=find(ascLord),moon=find('Moon'),sun=find('Sun');
  const self=uk?
   'Ваш висхідний знак має управителя '+name(ascLord)+' у '+pAsc.house+'-му домі ('+
