@@ -132,17 +132,14 @@ export function compactClassicalReaderV8ForAi(chart:CalculatedChart,asOf:string)
  if(r.status!=='available')return 'Classical Reader 8: source-bound synthesis unavailable. Use D1/D9/D10 only.';
  const selected=[10,27,30,9,24,2];
  return ['Classical Reader 8 evidence: historical book metadata are OCR-reviewed, not independently scan-certified.',
-  'Full synthesis: '+r.synthesis?.opening+' Opportunity: '+r.synthesis?.strength+
-   ' Challenge: '+r.synthesis?.challenge+' Direction: '+r.synthesis?.direction,
   compactD60PreviewForAi(chart), // place BEFORE long thematic facts so it cannot be truncated
   'N4.9.1 only use grounded short readings for the relevant 15 D cards, not the old five-part N4.9 essay:',
   ...r.compactCards.filter(card=>selected.includes(card.division))
    .map(card=>'D'+card.division+': '+card.lead+' Cross-check: '+card.connection),
   ...selected.map(d=>{
    const i=r.insights.find(x=>x.division===d)!;
-   return 'D'+d+' '+i.title+'; '+i.headline+' Resource: '+i.strength+
-    ' Concern: '+i.challenge+' Context: '+i.context+
-    ' Rules: '+(i.ruleIds.join(',')||'no additional directly verified rule');
+   return 'D'+d+' evidence='+i.proof.join(',')+
+    '; sourceRules='+(i.ruleIds.join(',')||'none');
   }),
   'Distinguish the literal natal rules from modern Dn generalization. Never invent planetary houses or repeat fatalistic old predictions.',
   'Do not treat provisional D60 as certainty or claim personal houses, lagna, karma or events as proven.'
