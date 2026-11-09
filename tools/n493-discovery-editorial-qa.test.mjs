@@ -5,6 +5,7 @@ import {calculateChart} from '../packages/jyotish-core/src/index.ts';
 import {makeN4RcPayload} from '../apps/api/src/n4-rc-contract.ts';
 import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 import {buildN493Overview} from '../apps/api/src/reader-insights-n493.ts';
+import {buildN493ThematicDetail,N493_THEMATIC_DIVISIONS} from '../apps/api/src/reader-detail-n493.ts';
 import {buildClassicalReaderV8} from '../apps/api/src/reader-v8.ts';
 import {yogakarakasForLagna,classicalLordshipTable} from '../apps/api/src/reader-classical.ts';
 import {dignityFor} from '../packages/jyotish-core/src/rules.ts';
@@ -71,6 +72,18 @@ test('N493 prioritizes 3-5 sourced discoveries, avoids false double votes, integ
    }
    assert.ok(direct.summary.length>120&&direct.summary.length<600);
    assert.ok(!reading.cards.slice(0,15).some(c=>c.meaning.includes('Обидва ракурси повторюють')));
+   for(const div of N493_THEMATIC_DIVISIONS){
+    const card=reading.cards.find(x=>x.division===div);
+    const detail=buildN493ThematicDetail(chart,lang,div);
+    assert.ok(detail);
+    assert.notEqual(detail.primary,detail.secondary,'one planet must not count as two');
+    assert.ok(detail.proof.some(x=>x.startsWith('D'+div+'.'+detail.primary+'.sign=')));
+    assert.ok(detail.proof.some(x=>x.startsWith('D'+div+'.'+detail.secondary+'.sign=')));
+    assert.ok(card.proof.some(x=>x.startsWith('D'+div+'.'+detail.secondary+'.sign=')));
+    if(!direct.insights.some(x=>x.division===div))
+     assert.equal(card.meaning,detail.meaning);
+    assert.ok(detail.meaning.length>260&&detail.meaning.length<940);
+   }
    const sample=direct.insights.map(x=>x.id+' '+x.headline+'\n'+x.teaser+'\n'+x.interpretation+
     '\nAttention: '+x.attention+'\nEvidence: '+x.proof.join(' · ')).join('\n\n');
    full.push('\n## Seed '+seed+' · '+lang+' · Asc '+chart.ascendant.sign+'\n'+sample+
