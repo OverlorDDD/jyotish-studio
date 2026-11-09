@@ -278,18 +278,18 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    const otherName=lord==='Mercury'?'Jupiter':'Mercury';
    const other=same(24,otherName)!;
    const d24Focus:Record<number,[string,string]>={
-    1:['самостійно розпочатого завдання','a self-directed task'],
+    1:['самостійно розпочате завдання','a self-directed task'],
     2:['пояснення і відтворення знань','explaining and retaining knowledge'],
-    3:['практики навички та спілкування','practicing skills and communicating'],
-    4:['міцної основи й регулярних занять','building a strong learning foundation'],
-    5:['творчого проєкту','a creative project'],
-    6:['повторень і розв’язання помилок','repetition and solving real mistakes'],
+    3:['практику навичок і спілкування','practicing skills and communicating'],
+    4:['створення міцної основи й регулярні заняття','building a strong learning foundation'],
+    5:['творчий проєкт','a creative project'],
+    6:['повторення й розв’язання помилок','repetition and solving real mistakes'],
     7:['навчання разом із партнером','learning with a partner'],
-    8:['розбору складної проблеми','investigating a complex problem'],
+    8:['розбір складної проблеми','investigating a complex problem'],
     9:['навчання від наставника','learning from a mentor'],
-    10:['професійного застосування знань','professional application of knowledge'],
-    11:['взаємного обміну в спільноті','knowledge exchange in a community'],
-    12:['самостійного дослідження','independent research']
+    10:['професійне застосування знань','professional application of knowledge'],
+    11:['взаємний обмін у спільноті','knowledge exchange in a community'],
+    12:['самостійне дослідження','independent research']
    };
    meaning=uk?'У D1 управитель 5-го дому '+pName(lord)+' стоїть у '+natal.house+
     '-му домі (тема «'+area(natal.house)+'»). У D24 він у '+varga.house+
