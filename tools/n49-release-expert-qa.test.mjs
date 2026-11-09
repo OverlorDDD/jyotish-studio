@@ -82,6 +82,12 @@ test('12 diverse real Swiss synthetic-birth charts x UK/EN: claim traceability a
     assert.ok(thread.text.length>=160,'short thematic prose: '+id+'/'+lang+'/'+thread.id);
     assert.match(thread.text.trim(),/[.!?]$/,'unfinished prose: '+id+'/'+lang+'/'+thread.id);
     assert.doesNotMatch(thread.text,forbidden);
+    assert.doesNotMatch(thread.text,/[.!?](?=[\p{L}])/u,
+     'sentences must not run together without whitespace: '+id+'/'+lang+'/'+thread.id);
+    if(lang==='uk')assert.doesNotMatch(thread.text,/потрапляє в (?:Овні|Терезах|Стрільці)/u,
+     'avoid incorrect Ukrainian sign case after motion verbs');
+    if(lang==='en')assert.doesNotMatch(thread.text,/[А-Яа-яІіЇїЄєҐґ]/u,
+     'English reading must not leak Ukrainian phrases');
     assert.ok(thread.evidence.every(e=>/^D\d+\.|^D1\./.test(e)),'unstructured evidence token');
    }
    const all=normalize([n.opening,...n.threads.map(t=>t.text),n.closing].join(' '));
