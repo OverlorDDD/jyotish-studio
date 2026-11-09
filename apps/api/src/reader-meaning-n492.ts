@@ -174,8 +174,8 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     'The relationship ruler in the seventh house makes this an especially direct life theme.');
    if(lord!=='Venus')meaning+=' '+(uk?'Венера додає незалежний показник взаємності: її D9 знак «'+sign(venus.sign)+'».':
     'Venus adds an independent relationship indicator in the D9 sign '+sign(venus.sign)+'.');
-   else meaning+=' '+(uk?'Венера тут одночасно і управитель, і загальний показник близькості; не рахуємо її двічі.':
-    'Venus serves as both ruler and relationship significator here, so it is not counted twice.');
+   else meaning+=' '+(uk?'У цій карті Венера має особливу вагу для партнерства, але оцінювати її слід разом з іншими показниками D1 і D9.':
+    'Venus is especially relevant for partnership here, but needs context from the other D1 and D9 factors.');
    proof.push('D9.Venus.sign='+venus.sign);
   }else if(div===2){
    const gains=lp[11],g=get(gains)!;
@@ -290,10 +290,10 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
   'The same '+lagnaLord+' rules identity and vocation. Read its house '+asc.house+
   ' placement with D10; partnership retains its own indicator, '+relationLord+
   ' in house '+relationship.house+'.'):
-  (uk?'Особистий напрям пов’язаний з '+pName(lagnaLord)+' у '+asc.house+'-му домі, '+
-  'кар’єра — з '+pName(careerLord)+' у '+career.house+'-му, '+
-  'партнерство — з '+pName(relationLord)+' у '+relationship.house+'-му. '+
-  'Зважайте, де ці показники підсилюють одне одного, а де потребують окремих рішень.':
+  (uk?'Особистий напрям розкриває '+pName(lagnaLord)+' у '+asc.house+'-му домі ('+area(asc.house)+
+  '); професійний — '+pName(careerLord)+' у '+career.house+'-му ('+area(career.house)+
+  '); партнерство — '+pName(relationLord)+' у '+relationship.house+'-му ('+area(relationship.house)+
+  '). Кожна сфера має свою роль; одна сприятлива позиція не замінює перевірки решти карти.':
   'Personal direction follows '+lagnaLord+' in house '+asc.house+
   ', vocation '+careerLord+' in house '+career.house+
   ', and partnership '+relationLord+' in house '+relationship.house+
