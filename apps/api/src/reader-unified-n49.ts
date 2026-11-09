@@ -34,7 +34,7 @@ const AREA_UK=['особистого вибору','ресурсів і цінн
 const AREA_EN=['personal direction','resources and values','communication and effort','home and belonging',
  'creativity and learning','daily work','partnership','change and shared resources',
  'learning and meaning','career and public contribution','networks and long-term results','solitude and recovery'];
-const SIGN_UK=['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козорозі','Водолії','Рибах'];
+const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const PLANET_UK:Readonly<Record<string,string>>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',
  Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету'};
@@ -162,14 +162,14 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
      ' ('+area(moon.house)+'). Read direction and emotional priorities together; a divisional chart cannot replace D1.',
    [byDivision(1)],['D1.ascendant.sign='+chart.ascendant.sign,'D1.Moon.sign='+moon.sign,
     'D1.Moon.house='+moon.house,'D1.'+ascLord+'.house='+ascPlanet.house]),
-  thread('career',uk?'Професія: D1, D9 і D10 в одному реченні':'Vocation: D1, D9 and D10 in one argument',
+  thread('career',uk?'Професія: як взаємодіють D1, D9 і D10':'Vocation: connecting D1, D9 and D10',
    (uk?'Управитель десятого дому D1 — '+pName(career.lord)+
     ': у головній карті він у '+career.d1House+'-му домі, а в D10 — у '+career.dnHouse+
-    '-му ('+area(career.dnHouse)+'). У D9 той самий управитель потрапляє в '+sign(navCareer.sign)+
-    ', управитель цієї навамші — '+pName(rulerOfNavamsa)+'. Десятий знак від Місяця — '+
-    sign(fromMoon)+', від Сонця — '+sign(fromSun)+'. ':
+    '-му ('+area(career.dnHouse)+'). У D9 той самий управитель перебуває у знаку «'+sign(navCareer.sign)+'»'+
+    ', управитель цієї навамші — '+pName(rulerOfNavamsa)+'. Десятий знак від Місяця — «'+
+    sign(fromMoon)+'», від Сонця — «'+sign(fromSun)+'». ':
     'The D1 tenth-house ruler is '+career.lord+': in house '+career.d1House+' of the main chart and house '+
-    career.dnHouse+' ('+area(career.dnHouse)+') of D10. In D9 it occupies '+sign(navCareer.sign)+
+    career.dnHouse+' ('+area(career.dnHouse)+') of D10. In D9 it occupies the sign '+sign(navCareer.sign)+
     ', ruled by '+rulerOfNavamsa+'. The tenth sign from the Moon is '+sign(fromMoon)+
     ', and from the Sun '+sign(fromSun)+'. ')+
    (occupants.length?(uk?'У десятому домі від Лагни або Місяця є класичні планети ('+
@@ -178,7 +178,7 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     '); navamsa dispositors do not replace these primary indicators. '):
     (uk?'Обидва десяті доми без класичних планет: за коментарем до Brihat Jataka X.1 тут використано управителів навамш від Лагни, Місяця і Сонця. ':
     'Both tenth houses lack classical planets. Following one commentary on Brihat Jataka X.1, we examine navamsa dispositors from Lagna, Moon and Sun. '))+
-    explanatoryTone(career.polarity,uk)+
+    explanatoryTone(career.polarity,uk)+' '+
     (uk?'Для реального вибору професійного шляху це дає конкретне запитання: як '+quality(career.lord)+
      ' може проявитися у сфері '+area(career.dnHouse)+', не відриваючись від '+area(career.d1House)+
      '? Таку відповідність варто шукати в досвіді, не в обіцянці посади.':
@@ -188,7 +188,7 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
    [career],[ 'D9.'+career.lord+'.sign='+navCareer.sign,
     'D9.sign-ruler.'+navCareer.sign+'='+rulerOfNavamsa,
     'D1.Moon.tenth.sign='+fromMoon,'D1.Sun.tenth.sign='+fromSun,...careerBookFacts]),
-  thread('partnership',uk?'Стосунки: D1 не суперечить D9 автоматично':'Relationships: D9 refines rather than cancels D1',
+  thread('partnership',uk?'Стосунки: як D1 і D9 уточнюють одна одну':'Relationships: D1 and D9 in dialogue',
    (uk?'Управитель сьомого дому D1 — '+pName(relation.lord)+
     ' — перебуває в '+relation.d1House+'-му домі ('+area(relation.d1House)+
     '). У D9 він переходить у '+relation.dnHouse+'-й дім ('+area(relation.dnHouse)+
@@ -208,8 +208,8 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     'For D'+r.division+', the relevant D1 house ruler '+r.lord+' occupies D1 house '+
     r.d1House+' and D'+r.division+' house '+r.dnHouse+
     ' ('+area(r.dnHouse)+'). This is not a separate prediction: the varga refines the same natal planet. ')+
-    explanatoryTone(r.polarity,uk)+
-    (uk?'У темі '+focus(r.division)+' традиційна мова '+pName(r.lord)+' пов’язана з '+quality(r.lord)+
+    explanatoryTone(r.polarity,uk)+' '+
+    (uk?'Для теми '+focus(r.division)+' планета '+pName(r.lord)+' у цьому символічному прочитанні уособлює '+quality(r.lord)+
      '. Це не опис факту з біографії: зверніть увагу, чи така якість допомагає вам саме там, де її показує обчислений дім.':
      'In '+focus(r.division)+', the symbolic voice of '+r.lord+' concerns '+quality(r.lord)+
      '. This is not a known biographical fact: look for whether that quality helps in the house indicated by the actual placement.'),
@@ -223,16 +223,17 @@ export function buildUnifiedN49(chart:CalculatedChart,lang:Lang,asOf:string,
     ' occupies house '+t.d1House+' in D1 and house '+t.dnHouse+
     ' ('+area(t.dnHouse)+') in D'+t.division+
     '. A positive indication elsewhere cannot automatically erase this theme. ')+
-    explanatoryTone(t.polarity,uk)+
-    (uk?'Для теми '+focus(t.division)+' основне питання — чи не перетворюється '+quality(t.lord)+
-     ' на надмірне навантаження саме в сфері '+area(t.dnHouse)+'. Це спосіб перевірити можливий контраст на практиці, а не твердження про вже здійснену подію.':
+    explanatoryTone(t.polarity,uk)+' '+
+    (uk?'Для теми '+focus(t.division)+' варто перевіряти міру якостей, які тут символізує планета '+pName(t.lord)+
+     ': '+quality(t.lord)+'. У сфері '+area(t.dnHouse)+
+     ' вони можуть вимагати іншого підходу, але це не твердження про вже здійснену подію.':
      'For '+focus(t.division)+', ask whether '+quality(t.lord)+' becomes strained in '+
      area(t.dnHouse)+'. That is a way to investigate a possible tension, not a statement that an event has occurred.'),
    [t])
  ];
  const opening=uk?
-  'У цій карті головний сюжет починається з управителя Лагни '+pName(ascLord)+
-  ' і Місяця: саме від D1 ми переходимо до професії (D10), стосунків (D9) та двох інших тематичних зрізів D'+
+  'У цій карті головний сюжет починається з управителя Лагни — '+pName(ascLord)+
+  ' — та Місяця: саме від D1 ми переходимо до професії (D10), стосунків (D9) та двох інших тематичних зрізів D'+
   r.division+' і D'+t.division+'. Кожний наступний висновок нижче прив’язано до фактичного положення управителя, а не до загального опису знака.':
   'This chart begins with the rising ruler '+ascLord+' and the Moon. From D1 we trace the same planetary evidence into work (D10), partnership (D9), and the additional D'+
   r.division+' and D'+t.division+' lenses. Each conclusion below follows a specified placement, not a generic Sun-sign profile.';
