@@ -34,6 +34,34 @@ const THEME:readonly Copy[]=[
  ['спільних результатів і кола однодумців','shared achievements and a community of peers'],
  ['власного простору, тиші та відновлення','privacy, quiet and recovery']
 ];
+// A recognizable everyday situation grounded in the natal ruler's *actual*
+// house. A soft possibility, not a psychological fact about the visitor.
+const LIVED:readonly Copy[]=[
+ ['Вам легше зберігати мотивацію, коли головні рішення залишаються за вами.',
+  'You may feel more motivated when key decisions remain yours to make.'],
+ ['Впевненість може зростати, коли ви бачите конкретну віддачу від своїх зусиль.',
+  'Confidence may grow when you see a tangible return on your effort.'],
+ ['Розмова, нова навичка чи самостійна ініціатива можуть давати вам відчуття руху.',
+  'A conversation, new skill or initiative may give you a sense of progress.'],
+ ['Надійний побут і своє місце можуть давати вам більше сил, ніж зовнішнє схвалення.',
+  'A dependable home base may strengthen you more than outside approval.'],
+ ['Творчість, навчання або можливість підтримати розвиток іншого можуть додавати радості.',
+  'Creative work, learning or helping someone grow may bring you satisfaction.'],
+ ['Складні щоденні завдання можуть радувати, коли ви помічаєте власну майстерність.',
+  'Daily challenges can be satisfying when you notice growing mastery.'],
+ ['Чіткі домовленості й взаємна повага можуть бути важливішими за красиві обіцянки.',
+  'Mutual respect and clear agreements may matter more than grand promises.'],
+ ['Вам може бути важливо знати, кому довіряти спільну відповідальність і як проходити зміни.',
+  'You may care deeply about who shares responsibility when circumstances change.'],
+ ['Навчання та зрозумілі життєві принципи можуть допомагати зберігати напрям.',
+  'Learning and clear guiding principles may help you find direction.'],
+ ['Вам може бути важливо бачити результат, за який хочеться взяти відповідальність.',
+  'You may value work that produces a result you are proud to stand behind.'],
+ ['Спільна мета й коло однодумців можуть підтримувати вашу мотивацію.',
+  'A shared goal and supportive peers may help sustain your motivation.'],
+ ['Час без зайвого шуму може бути потрібен вам, щоб повертати ясність і сили.',
+  'Quiet time away from demands may help you restore clarity and energy.']
+];
 const STYLE:readonly Copy[]=[
  ['діяти сміливо, не нехтуючи перевіркою деталей','act decisively while checking the details'],
  ['будувати стабільний ритм і доводити розпочате до кінця','build a steady rhythm and follow through'],
@@ -129,6 +157,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const style=choose(STYLE[placement.sign-1],lang);
  const q=dignityFor(lord,placement.sign);
  let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
+ if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
  const topic=theme(placement.house);
  const bridgeUk:Record<number,string>={
   1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
