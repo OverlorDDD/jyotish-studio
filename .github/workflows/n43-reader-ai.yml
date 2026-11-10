@@ -52,6 +52,8 @@ jobs:
         run: node --experimental-strip-types --test tools/n492-meaningful-reader.test.mjs
       - name: N4.9.6 beginner-first five life themes and no raw proof leakage
         run: node --experimental-strip-types --test tools/n496-human-ux.test.mjs
+      - name: N4.9.6 24 invented charts UA/EN anti-boilerplate editorial QA
+        run: node --experimental-strip-types --test tools/n496-life-editorial-qa.test.mjs
 
       - name: N4.9.1 concise cards and full D60 planetary evidence gate
         run: node --experimental-strip-types --test tools/n491-concise-varga-reader.test.mjs
