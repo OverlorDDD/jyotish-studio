@@ -25,6 +25,7 @@ jobs:
           node --experimental-strip-types --test tools/n4-reader-ai-16.test.mjs
           node --experimental-strip-types --test tools/n502-reader-runtime-compat.test.mjs
           node --experimental-strip-types --test tools/n503-city-saved.test.mjs
+          node --check tools/n503-public-city-smoke.mjs
           node --test tools/ai-production-status.test.mjs
           bash -n tools/n499-ai-aws-recover.sh
           node --check tools/n500-ai-provider-probe.mjs
