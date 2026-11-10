@@ -79,7 +79,7 @@ test('both web interfaces wrap the Ukrainian brand tag and constrain chart text'
  }
  assert.match(appPage,/<N4RcExplorer\s+chart=\{chart\}\s+lang=\{lang\}\s+minutesUncertain=\{minutesUncertain\}\s*\/>/);
  assert.match(n4Explorer,/NorthIndianChart division="d1"/);
- assert.match(n4Explorer,/selected!==1&&<article/); // D1 not drawn twice.
+ assert.match(n4Explorer,/selected===1\?<article className=\{styles\.comparePrompt\}/); // D1 stays left; empty comparison only for selected D1.
  assert.ok(n4Explorer.includes("NorthIndianChart division={'d'+selected}"));
  assert.doesNotMatch(appPage,/function Wheel\(/);
  assert.match(geometricChart,/className="jy-south-chart"/);
