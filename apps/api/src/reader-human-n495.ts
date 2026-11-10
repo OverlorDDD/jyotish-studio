@@ -193,10 +193,10 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
  const style=(sign:number)=>choose(STYLE[sign-1],lang);
  const significant=first.planet===lords[1];
  const opening=uk?
-  'Умовне зіставлення D1 та D60 звертає увагу на символічний мотив '+role(first.planet)+'. '+
+  'Зіставлення D1 та D60 допомагає помітити символічний мотив '+role(first.planet)+'. '+
   (significant?'Вона також пов’язана з тим, як ви визначаєте власний життєвий напрям. ':
    'Особливо помітною вона може ставати у важливих особистих рішеннях. '):
-  'A provisional D1 and D60 comparison highlights the symbolic pattern of '+role(first.planet)+'. '+
+  'Comparing D1 and D60 may highlight the symbolic pattern of '+role(first.planet)+'. '+
   (significant?'This also connects with the direction you choose for yourself. ':
    'It may become especially relevant during important personal decisions. ');
  const contrast=first.d1Sign===first.d60Sign?
