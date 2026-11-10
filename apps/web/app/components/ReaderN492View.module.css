@@ -1,6 +1,7 @@
 .root{max-width:100%;min-width:0}
 .card{display:flex;flex-direction:column;align-items:stretch;min-width:0;gap:14px!important;overflow-wrap:anywhere}
 .meaning{font-size:14px;line-height:1.82;max-width:68ch;color:#e7edf6;margin:0}
+.basis{font-size:12px;line-height:1.65;color:#a9b8cb;max-width:76ch;margin:0;overflow-wrap:anywhere}
 .connection{font-size:13px;line-height:1.7;color:#dbe6f5;background:rgba(193,160,100,.08);border-left:2px solid #caa77b;padding:10px 12px;border-radius:0 8px 8px 0;margin:0}
 .connection strong{color:#f2d4a4;font-weight:650}
 .caution{font-size:11px;line-height:1.45;color:#e5c59b}
