@@ -33,8 +33,8 @@ test('24 invented charts × two languages deliver five distinct readable life ar
    for(const theme of themes){
     assert.ok(theme.reading.narrative.length>=65,'empty life-area story '+lang+'/'+seed+'/'+theme.id);
     assert.ok(theme.reading.action.length>=15,'missing personal action '+lang+'/'+seed+'/'+theme.id);
-    assert.doesNotMatch(theme.reading.narrative,/D1\\.|D60\\.|house-lord|(?:Laghu Parashari|Brihat Jataka)|(?:Астрологічна основа|Astrological basis):/iu);
-    assert.doesNotMatch(theme.reading.action,/D1\\.|D60\\.|house-lord/u);
+    assert.doesNotMatch(theme.reading.narrative,/D1\.|D60\.|house-lord|(?:Laghu Parashari|Brihat Jataka)|(?:Астрологічна основа|Astrological basis):/iu);
+    assert.doesNotMatch(theme.reading.action,/D1\.|D60\.|house-lord/u);
    }
    fingerprints[lang].add(output);
   }
