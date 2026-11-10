@@ -203,7 +203,7 @@ export async function generateDirectJyotish(
     const concise=attempt===1;
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
-     body:JSON.stringify({model,max_tokens:provider==='groq'?3000:3800,temperature:concise?0.45:0.7,
+     body:JSON.stringify({model,max_tokens:concise?1800:provider==='groq'?2200:2600,temperature:concise?0.45:0.7,
       ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
       messages:[{role:'system',content:concise?
        DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, D1/D9/D10, verified N4 thematic facts when provided and major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
