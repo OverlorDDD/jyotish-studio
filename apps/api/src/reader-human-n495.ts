@@ -77,6 +77,22 @@ const STYLE:readonly Copy[]=[
  ['шукати нестандартні рішення разом з іншими','seek unconventional answers with others'],
  ['поєднувати уяву зі співчуттям і конкретною допомогою','pair imagination and compassion with tangible help']
 ];
+// Actual varga house -> a complete everyday situation. This avoids
+// inserting a genitive house label into an ungrammatical "theme of" slot.
+const ARENA:readonly Copy[]=[
+ ['коли рішення залежать від вас','when a decision is yours to make'],
+ ['коли плануєте витрати й заощадження','when planning spending and savings'],
+ ['у важливій розмові або спільному завданні','in a difficult conversation or shared task'],
+ ['коли дбаєте про свій дім і близьких','when caring for your home and loved ones'],
+ ['коли створюєте або навчаєте інших','when creating or teaching someone'],
+ ['коли маєте справу зі складною щоденною задачею','when dealing with a demanding everyday task'],
+ ['коли домовляєтеся з партнером','when making agreements with a partner'],
+ ['коли потрібні довіра й спільна відповідальність','when trust and shared responsibility matter'],
+ ['коли вчитеся або ділитеся досвідом','when learning or sharing what you know'],
+ ['коли відповідаєте за професійний результат','when taking responsibility for a result at work'],
+ ['коли працюєте з однодумцями','when working with a community'],
+ ['коли потрібні тиша й відновлення','when you need quiet and recovery']
+];
 const LEAD:Readonly<Record<number,Copy>>={
  1:['Ваше відчуття себе тісно пов’язане з темою','Your sense of self is closely linked with'],
  2:['У ставленні до грошей і того, що справді цінне, помітна тема','In your approach to money and what matters, a central theme is'],
@@ -281,39 +297,40 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   choose(LIVED[natal.house-1],lang);
  const sameSphere=natal.house===placement.house;
  const topic=theme(placement.house);
+ const arena=choose(ARENA[placement.house-1],lang);
  const bridgeUk:Record<number,string>={
   1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
   2:'Порівняйте свої реальні зобов’язання з тим, на що хочеться витратити гроші цього місяця. У рішеннях може допомогти звичка '+style+'.',
-  3:'Сміливість працює краще, коли її чують інші. У сфері '+topic+' вам стане в пригоді вміння '+style+'.',
+  3:'Слова й дії можуть підтримувати одне одного '+arena+'. Тут знадобиться вміння '+style+'.',
   4:'Облаштовуйте побут так, щоб у ньому залишався простір для звички '+style+'.',
-  7:'Творчість має значення не лише для автора, а й для тих, хто отримує від неї користь. Тут важлива тема '+topic+'; спробуйте '+style+'.',
+  7:'Турбота й творчість часто стають помітними '+arena+'. Зверніть увагу, наскільки вам вдається '+style+'.',
   9:'Додаткова карта пропонує уважніше подивитися на '+topic+'. У спілкуванні корисно '+style+'.',
   10:'Професійний шлях зачіпає тему '+topic+'. Спробуйте '+style+'.',
-  12:'Не всі успадковані правила потрібно приймати автоматично. У темі '+topic+' корисно '+style+'.',
-  16:'Зручність має підтримувати ваші звички, а не керувати ними. Зверніть увагу на тему '+topic+' і спробуйте '+style+'.',
-  20:'Глибока практика починається не з обіцянок, а з послідовності. У темі '+topic+' корисно '+style+'.',
+  12:'Не всі успадковані правила потрібно приймати автоматично. Перевіряйте власний вибір '+arena+' й пробуйте '+style+'.',
+  16:'Зручність має підтримувати вас, а не керувати звичками. Помічайте це '+arena+' й спробуйте '+style+'.',
+  20:'Зосередженість краще перевіряти щоденною практикою '+arena+'. Тут може бути корисно '+style+'.',
   24:'Знання стають майстерністю, коли проходять перевірку справою. Зверніть увагу на тему '+topic+' і спробуйте '+style+'.',
-  27:'Справжня витривалість — це також вміння вчасно змінити темп. У сфері '+topic+' допомагає здатність '+style+'.',
-  30:'Труднощі не обов’язково означають неправильний напрям. У темі '+topic+' варто '+style+'.',
-  40:'Те, як у вашій родині проявляли турботу, не зобов’язує вас повторювати все без змін. Особливо важлива тема '+topic+'; спробуйте '+style+'.',
-  45:'Між успадкованими правилами та власними переконаннями є простір для вибору. Тема '+topic+' допоможе його побачити; варто '+style+'.'
+  27:'Витривалість включає вміння змінити темп '+arena+'. Спробуйте '+style+'.',
+  30:'Труднощі не означають, що напрям обрано неправильно. Перевірте свої звички '+arena+' та спробуйте '+style+'.',
+  40:'Родинні зразки турботи можна переосмислювати '+arena+'. Корисно спробувати '+style+'.',
+  45:'Між родинними правилами й вашим вибором завжди є простір для рішення '+arena+'. Спробуйте '+style+'.'
  };
  const bridgeEn:Record<number,string>={
   1:'The area of '+topic+' deserves special attention. Try to '+style+'.',
   2:'Compare your real commitments with what you want to spend this month. It may help to '+style+'.',
-  3:'Courage works best when others can hear you. With '+topic+', practice how to '+style+'.',
+  3:'Words and action can support each other '+arena+'. Practice how to '+style+'.',
   4:'Shape daily routines so there is room to '+style+'.',
-  7:'Creativity matters to the people it helps, not just its creator. Consider '+topic+' and try to '+style+'.',
+  7:'Care and creativity often show their value '+arena+'. Notice what happens when you '+style+'.',
   9:'The supplementary chart brings '+topic+' into view when expectations are discussed. It helps to '+style+'.',
   10:'Working life brings the area of '+topic+' into focus. Try to '+style+'.',
-  12:'Not every inherited rule has to become your own. In '+topic+', try to '+style+'.',
-  16:'Comfort should support your habits rather than control them. Consider '+topic+' and try to '+style+'.',
-  20:'A meaningful practice is built through consistency rather than big promises. In '+topic+', try to '+style+'.',
+  12:'Not every inherited rule has to become your own. Test your choices '+arena+' and try to '+style+'.',
+  16:'Comfort should support you rather than dictate habits. Notice this '+arena+' and try to '+style+'.',
+  20:'Consistency grows through small repeated practices '+arena+'. Try to '+style+'.',
   24:'Knowledge becomes mastery when it survives a practical test. In '+topic+', try to '+style+'.',
-  27:'Resilience includes knowing when to change your pace. In '+topic+', practice how to '+style+'.',
-  30:'Difficulty does not automatically mean you are on the wrong path. In '+topic+', try to '+style+'.',
-  40:'Inherited styles of care need not be repeated unchanged. Consider '+topic+' and try to '+style+'.',
-  45:'There is room for choice between inherited rules and your own beliefs. In '+topic+', try to '+style+'.'
+  27:'Resilience includes adjusting your pace '+arena+'. Try to '+style+'.',
+  30:'Difficulty does not mean you chose the wrong path. Check your habits '+arena+' and try to '+style+'.',
+  40:'Family patterns of care can be reconsidered '+arena+'. Try to '+style+'.',
+  45:'There is room to choose between inherited rules and your beliefs '+arena+'. Try to '+style+'.'
  };
  let bridge=uk?bridgeUk[division]:bridgeEn[division];
  // Mention a life area once. When both independent chart views point to
@@ -344,13 +361,13 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
    (lord==='Venus'?'Бажання близькості й готовність до зобов’язань мають спільну основу. ':
     venus.house===placement.house?'Почуття й обов’язки частіше зустрічаються в одній сфері. ':
     'Почуття та побутові обов’язки можуть вимагати різних розмов. ')+
-   'Особливу увагу звертайте на тему '+theme(placement.house)+'.':
+   'Перевірте, як ви домовляєтеся '+arena+'.':
    (trust?'Trust and shared responsibility are central parts of intimacy. ':
     'Mature relationships need both affection and clear agreements. ')+
    (lord==='Venus'?'Affection and commitment share one symbolic anchor. ':
     venus.house===placement.house?'Feelings and commitments meet in a shared arena. ':
     'Emotional closeness and practical duties may require different conversations. ')+
-   'Give particular attention to '+theme(placement.house)+'.';
+   'Notice how agreements work '+arena+'.';
  }
  if(division===10){
   bridge=uk?
