@@ -176,7 +176,7 @@ test('Cloud AI refuses a confident D60 claim and retains deterministic Reader fa
 });
 
 test('N499 Gemini is always first; old or malformed order never disables free backup providers',()=>{
- assert.deepEqual(productionDirectAiOrder(undefined),['gemini','groq','openrouter']);
+ assert.deepEqual(productionDirectAiOrder(''),['gemini','groq','openrouter']);
  assert.deepEqual(productionDirectAiOrder('openrouter,gemini,groq'),['gemini','openrouter','groq']);
  assert.deepEqual(productionDirectAiOrder('OLLAMA,wrong-value'),['gemini','groq','openrouter']);
  assert.deepEqual(productionDirectAiOrder('groq,groq,openrouter'),['gemini','groq','openrouter']);
