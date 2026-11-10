@@ -60,6 +60,6 @@ test('N497 switches supplementary charts from repeated house-theme leads to dist
  assert.ok(openings.length>=9);
  assert.match(human,/const HUMAN_OPENING:/);
  assert.match(human,/let lead=HUMAN_OPENING\[division\]/);
- assert.match(human,/Умовне зіставлення D1 та D60/);
+ assert.match(human,/Зіставлення D1 та D60/);
  assert.doesNotMatch(human,/У ваших глибинних мотивах може виразно звучати тема/);
 });
