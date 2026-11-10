@@ -234,30 +234,35 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const q=dignityFor(lord,placement.sign);
  let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
  if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
- // The five front-page chapters begin with a situation a newcomer recognizes,
- // not the repeated formula "the theme of X is connected with Y".
- if(division===1)lead=uk?
-  'Ваші рішення та відчуття власного шляху можуть міцнішати через '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
-  'Your decisions and sense of direction may grow stronger through '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
- if(division===2)lead=uk?
-  'Фінансовий спокій — це не лише сума на рахунку. У вашій карті він пов’язаний із '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
-  'Feeling secure with money is not only about the balance in your account. Your chart connects it to '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
- if(division===4)lead=uk?
-  'Внутрішня опора складається не лише з житла чи звичного побуту. У вашій карті до неї додається потреба в '+theme(natal.house)+'.':
-  'Feeling at home is about more than a place to live. Your chart also connects stability with '+theme(natal.house)+'.';
- if(division===9)lead=uk?
-  'У близькості важливі не тільки почуття, а й те, як ви разом вирішуєте щоденні питання. Тут карта виділяє '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
-  'Intimacy is not only about feelings but also about how two people navigate daily life together. Your chart highlights '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
- if(division===10)lead=uk?
-  'Робота приносить більше сенсу, коли ваші зусилля мають зрозумілий результат. У вашій карті професійний напрям пов’язаний із '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
-  'Work can feel more meaningful when your efforts produce something tangible. Your chart connects your vocational direction with '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
+ // Lead with a lived situation, not mechanically inflected genitive house
+ // topics ("із довіри", "через дому"). LIVED entries are complete sentences,
+ // so Ukrainian grammar is sound regardless of the calculated house.
+ if(division===1)lead=(uk?
+  'Що допомагає вам обирати власний шлях? ':'What helps you choose your own direction? ')+
+  choose(LIVED[natal.house-1],lang);
+ if(division===2)lead=(uk?
+  'Гроші легше впорядкувати, коли ви знаєте, що для вас означає достаток. ':
+  'Managing money becomes easier when you know what security means to you. ')+
+  choose(LIVED[natal.house-1],lang);
+ if(division===4)lead=(uk?
+  'Дім має бути місцем, де можна відновити сили, а не ще одним джерелом напруги. ':
+  'Home should be somewhere you can recover, not another source of pressure. ')+
+  choose(LIVED[natal.house-1],lang);
+ if(division===9)lead=(uk?
+  'Близькість тримається не лише на почуттях, а й на тому, як ви домовляєтеся в повсякденні. ':
+  'Intimacy rests not just on feelings but on how you negotiate everyday life together. ')+
+  choose(LIVED[natal.house-1],lang);
+ if(division===10)lead=(uk?
+  'У роботі важливо бачити результат своїх зусиль і розуміти, за що ви відповідаєте. ':
+  'At work, seeing a clear result and knowing your responsibilities can matter. ')+
+  choose(LIVED[natal.house-1],lang);
  const sameSphere=natal.house===placement.house;
  const topic=theme(placement.house);
  const bridgeUk:Record<number,string>={
   1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
-  2:'Фінансова впевненість виростає не лише з доходу, а й з повсякденних звичок. Зверніть увагу на тему '+topic+'; корисно '+style+'.',
+  2:'Порівняйте свої реальні зобов’язання з тим, на що хочеться витратити гроші цього місяця. У рішеннях може допомогти звичка '+style+'.',
   3:'Сміливість працює краще, коли її чують інші. У сфері '+topic+' вам стане в пригоді вміння '+style+'.',
-  4:'Внутрішня опора не завжди тотожна зовнішньому комфорту. У сфері '+topic+' допомагає вміння '+style+'.',
+  4:'Облаштовуйте побут так, щоб у ньому залишався простір для звички '+style+'.',
   7:'Творчість має значення не лише для автора, а й для тих, хто отримує від неї користь. Тут важлива тема '+topic+'; спробуйте '+style+'.',
   9:'Тема '+topic+' може уточнювати ваші очікування від близькості. Особливо корисно '+style+'.',
   10:'Професійний шлях зачіпає тему '+topic+'. Спробуйте '+style+'.',
@@ -272,9 +277,9 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  };
  const bridgeEn:Record<number,string>={
   1:'The area of '+topic+' deserves special attention. Try to '+style+'.',
-  2:'Financial confidence depends on daily habits, not just income. Look at '+topic+' and try to '+style+'.',
+  2:'Compare your real commitments with what you want to spend this month. It may help to '+style+'.',
   3:'Courage works best when others can hear you. With '+topic+', practice how to '+style+'.',
-  4:'Inner security is not always the same as outward comfort. In '+topic+', it helps to '+style+'.',
+  4:'Shape daily routines so there is room to '+style+'.',
   7:'Creativity matters to the people it helps, not just its creator. Consider '+topic+' and try to '+style+'.',
   9:'The area of '+topic+' may clarify expectations in closeness. It helps to '+style+'.',
   10:'Working life brings the area of '+topic+' into focus. Try to '+style+'.',
@@ -326,10 +331,8 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  }
  if(division===10){
   bridge=uk?
-   'Ваші професійні здібності можуть особливо проявлятися там, де потрібно працювати з темою '+
-   theme(placement.house)+'. У роботі вам може допомагати вміння '+style+'.':
-   'Your professional strengths may be especially relevant where work involves '+
-   theme(placement.house)+'. Try to '+style+'.';
+   'Перевірте свій спосіб працювати на реальному невеликому завданні: корисно '+style+'. Результат покаже, де ви найефективніші.':
+   'Test your working style on one manageable real task: try to '+style+'. Use the result to see where your strengths actually help.';
  }
  if(division===24){
   bridge=uk?
