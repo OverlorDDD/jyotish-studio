@@ -30,3 +30,29 @@
 .discovery a:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .cardAnchor{position:relative;top:-110px;visibility:hidden}
 @media(max-width:700px){.discoveries ol{grid-template-columns:1fr}.discoveries{padding:15px 12px}}
+
+/* N4.9.6: five readable life areas are the primary experience.
+   The sixteen divisional cards are optional exploration, never a wall of text. */
+.areas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:22px 0 26px}
+.area{min-width:0;padding:23px 22px 21px;border:1px solid rgba(214,180,126,.27);border-radius:16px;background:linear-gradient(153deg,rgba(31,43,67,.7),rgba(15,25,44,.84));box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.area:first-child{grid-column:1/-1;background:linear-gradient(132deg,rgba(44,52,76,.75),rgba(19,29,50,.9))}
+.areaHead{display:flex;align-items:center;gap:12px;margin-bottom:13px}
+.areaHead h3{font:600 clamp(18px,2.4vw,23px)/1.35 Georgia,serif;color:#f6dfbb;margin:0}
+.areaNumber{font-size:12px;letter-spacing:.09em;color:#d5b683;white-space:nowrap}
+.story{font-size:15px;line-height:1.78;color:#edf3fb;margin:0 0 12px;max-width:74ch}
+.nuance{font-size:14px;line-height:1.72;color:#cfd9e8;margin:0 0 15px;max-width:74ch}
+.action{padding:14px 16px;background:rgba(220,180,117,.075);border-left:2px solid rgba(230,185,110,.74);border-radius:0 10px 10px 0}
+.action strong{font-size:12px;letter-spacing:.025em;color:#efd29f}
+.action p{margin:5px 0 0;color:#f2f0e9;font-size:14px;line-height:1.7}
+.divisions{margin:26px 0 8px;border:1px solid rgba(187,199,217,.21);border-radius:14px;padding:14px 17px;background:rgba(13,23,41,.4)}
+.divisions>summary{cursor:pointer;color:#f5ddb8;font-size:15px;font-weight:650;line-height:1.5}
+.divisions>summary span{display:block;color:#b6c6db;font-size:12px;font-weight:400;margin:4px 0 0 18px}
+.divisions[open]>summary{margin-bottom:12px}
+.divisionsIntro{max-width:70ch;color:#cbd7e4;font-size:13px;line-height:1.7;margin:0 0 18px}
+.basisDetails,.signsDetails{font-size:12px;color:#c9d5e6}
+.basisDetails summary,.signsDetails summary{cursor:pointer;color:#eac790;font-size:12px}
+.basisDetails p{margin:9px 0 0}
+.signsDetails[open] .signs{margin:12px 0 0}
+.area :focus-visible,.divisions summary:focus-visible,.basisDetails summary:focus-visible,.signsDetails summary:focus-visible{outline:2px solid #fff;outline-offset:4px}
+@media(max-width:760px){.areas{grid-template-columns:minmax(0,1fr);gap:12px}.area:first-child{grid-column:auto}.area{padding:18px 16px}.story{font-size:14px}.nuance{font-size:13px}.divisions{padding:12px}}
+@media(max-width:360px){.areaHead{gap:7px}.area{padding:15px 12px}.action{padding:11px 12px}.divisions>summary span{margin-left:0}}
