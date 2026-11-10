@@ -87,6 +87,8 @@ test('N4.9.2 time precision warning without removing 16 cards',async({page})=>{
  if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
  await details.locator('input[type="checkbox"]').check();
  await expect(reader.getByRole('note')).toContainText('Birth time is marked approximate');
- await expect(reader.getByTestId('reader-v8-d60')).toContainText('entered instant');
+ await expect(reader.getByTestId('reader-v8-d60').getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
+ await expect(reader.getByTestId('reader-v8-d60')).toContainText('Astrological basis:');
+ await expect(reader.getByTestId('reader-v8-d60')).not.toContainText('entered instant');
  await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
 });
