@@ -45,5 +45,6 @@ test('public UI hides sources and all sixteen cards in native details, keeps use
  assert.match(view,/<code>\{card\.proof\.join/);
  assert.match(view,/data-testid="reader-n496-method-details"/);
  assert.match(view,/reader-v8-d60/);
- assert.doesNotMatch(view,/data-testid="reader-n496-life-themes"[^]*?<code>/u.test('')?/$^/:/$^/);
+ assert.ok(view.indexOf('data-testid="reader-n496-life-themes"')<view.indexOf('data-testid="reader-n496-expert-details"'),
+  'life themes precede hidden proof data');
 });
