@@ -169,11 +169,11 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   bridge=uk?
    (lord==='Moon'?
     'Ваш особистий ритм і потреба у відновленні тут пов’язані особливо тісно. ':
-    'Внутрішній ритм також потребує власного простору: тема '+theme(moon.house)+'. ')+
+    'Ваш спосіб відновлювати сили пов’язаний із темою '+theme(moon.house)+'. ')+
    'Водночас рішення, за які ви готові відповідати, можуть розкриватися через тему '+theme(sun.house)+'.':
    (lord==='Moon'?
     'Your sense of direction and your need to recharge are closely connected. ':
-    'Your inner rhythm also needs attention through '+theme(moon.house)+'. ')+
+    'Your need for recovery also relates to '+theme(moon.house)+'. ')+
    'The choices you take responsibility for can emerge through '+theme(sun.house)+'.';
  }
  if(division===9){
@@ -196,7 +196,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  if(division===10){
   bridge=uk?
    'Ваші професійні здібності можуть особливо проявлятися там, де потрібно працювати з темою '+
-   theme(placement.house)+'. Спробуйте підхід — '+style+'.':
+   theme(placement.house)+'. У роботі вам може допомагати вміння '+style+'.':
    'Your professional strengths may be especially relevant where work involves '+
    theme(placement.house)+'. Try to '+style+'.';
  }
@@ -233,9 +233,9 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
    division===9?'Relationships: closeness, trust and agreements':
    division===1?'Your direction and what grounds you':
    'How '+theme(natal.house)+' shapes this area');
- const teaser=lead+' '+(uk?'Важливе практичне питання — '+theme(placement.house)+'.':
-  'A practical focus is '+theme(placement.house)+'.');
- const meaning=[lead,bridge,difficulty,uk?'Що спробувати: '+practice:'What to try: '+practice,basis]
+ const teaser=lead+' '+(uk?'У практичному житті це торкається сфери '+theme(placement.house)+'.':
+  'In practice this touches '+theme(placement.house)+'.');
+ const meaning=[lead,bridge,difficulty,uk?'Практичний крок: '+practice:'Practical step: '+practice,basis]
   .filter(Boolean).join(' ');
  return {headline,teaser,meaning,basis};
 }
