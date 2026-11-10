@@ -16,6 +16,7 @@ import {buildMeaningfulN492} from '../apps/api/src/reader-meaning-n492.ts';
 const planets=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const subject={identity:1,money:2,career:10,relationships:7,roots:4};
 const division={identity:1,money:2,career:10,relationships:9,roots:4};
+const followUp={identity:[27,1],money:[16,4],career:[24,5],relationships:[7,5],roots:[12,4]};
 const expected=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60];
 function fixture(seed){
  const input={date:'2000-01-01',time:'12:00',timeZone:'Etc/UTC',latitude:50.45,longitude:30.52};
@@ -45,7 +46,7 @@ test('five non-overlapping human life themes cover all 16 divisions without code
    for(const area of portrait.areas){
     assert.ok(area.title.length>9&&area.title.length<70);
     assert.ok(area.story.length>130&&area.story.length<490,area.id+' story length: '+area.story.length);
-    assert.ok(area.nuance.length>40&&area.nuance.length<220);
+    assert.ok(area.nuance.length>85&&area.nuance.length<420);
     assert.ok(area.action.length>45&&area.action.length<210);
     assert.doesNotMatch(area.story+' '+area.nuance+' '+area.action,
      /\bD(?:1|2|3|4|7|9|10|12|16|20|24|27|30|40|45|60)\b|D1\.|house-lord|[a-z-]+=\d|Brihat Jataka|Laghu Parashari|в практичному житті це торкається|тема знань і наставництва/iu);
@@ -59,6 +60,12 @@ test('five non-overlapping human life themes cover all 16 divisions without code
     assert.ok(area.proof.includes('D1.'+actualLord+'.house='+natal.house));
     assert.ok(area.proof.includes('D'+division[area.id]+'.'+actualLord+'.sign='+varga.sign));
     assert.ok(area.proof.includes('D'+division[area.id]+'.'+actualLord+'.house='+varga.house));
+    const [relatedDivision,relatedHouse]=followUp[area.id];
+    const relatedLord=lords[relatedHouse];
+    const related=chart.n4.charts.find(c=>c.division===relatedDivision).planets.find(p=>p.name===relatedLord);
+    assert.ok(area.proof.includes('D1.house-lord.'+relatedHouse+'='+relatedLord));
+    assert.ok(area.proof.includes('D'+relatedDivision+'.'+relatedLord+'.sign='+related.sign));
+    assert.ok(area.proof.includes('D'+relatedDivision+'.'+relatedLord+'.house='+related.house));
    }
    assert.equal(openings.size,5,'five subjects must not share an identical narrative opening');
    unique[lang].add(portrait.areas.map(a=>a.story).join('|'));
