@@ -195,7 +195,7 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
    ', with a repeated inclination to '+style(second.d60Sign)+'. '):
   (uk?'У сфері '+role(second.planet)+' може знадобитися поєднати звичку '+
    style(second.d1Sign)+' з умінням '+style(second.d60Sign)+'. ':
-   'With '+role(second.planet)+', you may need to combine the habit of '+
+   'With '+role(second.planet)+', you may need to combine the familiar wish to '+
    style(second.d1Sign)+' with the ability to '+style(second.d60Sign)+'. ');
  const practice=uk?
   'Практичний крок: згадайте один недавній непростий вибір. Що допомогло вам діяти впевнено, '+
