@@ -39,16 +39,17 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(data.editorial?.version).toBe('6.0.0');
  expect(data.editorial?.chapters?.length).toBe(8);
  expect(data.ai?.fallbackReason).toBe('reader_only');
- await page.getByRole('button',{name:'Читати без AI — Reader v6'}).click();
- const document=page.locator('.reading-editorial');
- await expect(document).toBeVisible();
- await expect(document.locator('.reading-editorial-chapter')).toHaveCount(8);
- await expect(page.getByTestId('reading-ai-provenance')).toContainText('Reader v6');
+ // The modern product generates verified Reader 8 automatically when the chart is ready.
+ const reading=page.getByTestId('reader-n492-16-cards');
+ await expect(reading).toBeVisible({timeout:30000});
+ await expect(reading.locator(':scope > article')).toHaveCount(16);
+ await expect(page.getByTestId('reader-v8-d60')).toBeVisible();
+ await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Практичний крок:');
+ await expect(page.getByTestId('reader-n492-final')).toBeVisible();
+ await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
  expect(await page.locator('.reading-root').innerText()).not.toContain('Reader v5');
- // In CI AI_MODE=local, so AI is deliberately unavailable but Reader remains fully usable.
- await page.getByRole('button',{name:'Створити AI-трактування'}).click();
- await expect(page.locator('.reading-editorial')).toBeVisible();
- await expect(page.getByTestId('reading-ai-provenance')).toContainText('Reader v6');
+ // The no-LLM local path is a real complete reading, not an empty fallback.
+ await expect(page.locator('.reading-root')).toBeVisible();
 });
 test('real EN route → full Reader English and matching runtime handshake',async({page,request})=>{
  const runtime=await request.get('/api/v1/jyotish/runtime');
@@ -58,7 +59,10 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Calculate birth chart'}).click();
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
- await page.getByRole('button',{name:'Read without AI — Reader v6'}).click();
- await expect(page.locator('.reading-editorial-chapter')).toHaveCount(8);
- await expect(page.getByTestId('reading-ai-provenance')).toContainText('Reader v6');
+ const reading=page.getByTestId('reader-n492-16-cards');
+ await expect(reading).toBeVisible({timeout:30000});
+ await expect(reading.locator(':scope > article')).toHaveCount(16);
+ await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
+ await expect(page.getByTestId('reader-v8-d60')).toContainText('Astrological basis:');
+ await expect(page.getByTestId('reader-n492-final')).toBeVisible();
 });
