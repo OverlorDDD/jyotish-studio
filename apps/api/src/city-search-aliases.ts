@@ -35,3 +35,9 @@ export function mergeAliasResults(
  }
  return output.slice(0,limit);
 }
+
+/** The English GeoNames index can return [] for otherwise-valid Cyrillic city
+ * input. Retry exactly once in Ukrainian, keeping source-provided lat/lon/TZ. */
+export function shouldRetryUkrainianCityIndex(term:string,lang:string,found:number):boolean{
+ return lang==='en'&&found===0&&/[\u0400-\u04ff]/u.test(term);
+}
