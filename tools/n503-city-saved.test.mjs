@@ -76,6 +76,8 @@ test('N503 real persistence and calculation code require original coordinates',(
  assert.match(ephemeris,/input:\s*JSON\.stringify\(\{utc,latitude:input\.latitude,longitude:input\.longitude\}\)/);
  assert.match(client,/data-testid="n503-birthplace-coordinates"/);
  assert.match(client,/data-testid="n503-birthplace-name"/);
+ assert.match(client,/if\(manual\)setManualMode\(true\)/);
+ assert.match(client,/const manual=\['latitude','longitude','timeZone'\]\.includes\(key\)/);
  assert.match(client,/setForm\(\{\.\.\.incoming\.input,latitude:String\(incoming\.input\.latitude\),longitude:String\(incoming\.input\.longitude\)\}\)/);
  assert.match(controller,/Promise\.allSettled/);
  assert.match(controller,/mergeAliasResults\(original,canonical,alias\)/);
