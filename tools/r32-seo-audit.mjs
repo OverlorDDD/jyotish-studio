@@ -21,7 +21,7 @@ async function get(url){
   headers:{'User-Agent':'Galaxiora-R32-readonly-audit/1.0'}});
  return {res,body:await res.text()};
 }
-async function inspect(url){
+async function inspect(url,expectedCanonical=url){
  const item={url,status:null,canonical:null,title:null,h1:false,language:null};
  try{
   const {res,body}=await get(url);item.status=res.status;
@@ -32,7 +32,7 @@ async function inspect(url){
   const meta=robotsMeta(body).map(t=>attr(t,'content')||'').join(',');
   if(/noindex/i.test(meta))issue(errors,'META_NOINDEX',url,meta);
   const canon=canonical(body);item.canonical=canon?attr(canon,'href'):null;
-  if(item.canonical!==url)issue(errors,'CANONICAL',url,'Found '+(item.canonical||'none')+'; expected '+url);
+  if(item.canonical!==expectedCanonical)issue(errors,'CANONICAL',url,'Found '+(item.canonical||'none')+'; expected '+expectedCanonical);
   const lang=body.match(/<html\b[^>]*\blang=(["'])([^"']+)\1/i);
   item.language=lang?.[2]||null;
   const pathname=new URL(url).pathname;
@@ -41,6 +41,11 @@ async function inspect(url){
   const languageLinks=tags(body,'link').filter(t=>attr(t,'rel')?.toLowerCase()==='alternate'&&attr(t,'hreflang'));
   // Avoid regex escaping pitfalls: sitemap paths are /{locale} or /{locale}/...
   const pathWithoutLocale=pathname==='/'?'astrology/jyotish':pathname.split('/').slice(2).join('/');
+  if(pathname==='/'){
+   const fallback=languageLinks.find(t=>attr(t,'hreflang')==='x-default');
+   if(attr(fallback||'','href')!==origin+'/en/astrology/jyotish')
+    issue(errors,'ROOT_X_DEFAULT',url,'x-default must use the EN canonical natal tool');
+  }
   for(const loc of ['uk','en']){
    const href=languageLinks.find(t=>attr(t,'hreflang')===loc);
    const expected=origin+'/'+loc+(pathWithoutLocale?'/'+pathWithoutLocale:'');
@@ -104,7 +109,9 @@ for(const loc of ['uk','en']){
   if(!urls.includes(url))issue(errors,'MISSING_CORE_URL',url,'Not listed in sitemap');
  }
 }
-if(!urls.includes(origin+'/'))issue(errors,'MISSING_CORE_URL',origin+'/','Domain-level natal homepage is missing');
+if(urls.includes(origin+'/'))issue(errors,'DUPLICATE_ROOT_IN_SITEMAP',origin+'/','Root is a duplicate alias: keep only the EN canonical tool in the sitemap');
+// Check the 200 root alias separately; it must consolidate into /en/astrology/jyotish.
+results.push(await inspect(origin+'/',origin+'/en/astrology/jyotish'));
 const summary={origin,checked:results.length,sitemapUrls:urls.length,errors:errors.length,
  warnings:warnings.length,passed:results.filter(x=>x.status===200).length};
 if(process.argv.includes('--json'))console.log(JSON.stringify({summary,errors,warnings,results},null,2));

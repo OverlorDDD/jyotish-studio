@@ -21,7 +21,7 @@ const jyotish:Record<PortalLocale,Copy>={
   method:'Методологія обчислень Galaxiora',
   learn:'Урок: сидеричний і тропічний зодіаки',
   secondary:'Урок: періоди Вімшоттарі',
-  secondaryHref:'learn/vimshottari-life-cycle'
+  secondaryHref:'pedia/vimshottari-life-cycle'
  },
  en:{
   eyebrow:'GALAXIORA · JYOTISH',
@@ -37,7 +37,7 @@ const jyotish:Record<PortalLocale,Copy>={
   method:'Our calculation methodology',
   learn:'Lesson: sidereal and tropical zodiacs',
   secondary:'Lesson: Vimshottari life periods',
-  secondaryHref:'learn/vimshottari-life-cycle'
+  secondaryHref:'pedia/vimshottari-life-cycle'
  }
 };
 const panchanga:Record<PortalLocale,Copy>={
@@ -55,7 +55,7 @@ const panchanga:Record<PortalLocale,Copy>={
   method:'Як ми розраховуємо календар',
   learn:'Урок: накшатри та місячний шлях',
   secondary:'Урок: сидеричний і тропічний зодіаки',
-  secondaryHref:'learn/sidereal-and-tropical'
+  secondaryHref:'pedia/sidereal-and-tropical'
  },
  en:{
   eyebrow:'GALAXIORA · PANCHANGA',
@@ -71,12 +71,12 @@ const panchanga:Record<PortalLocale,Copy>={
   method:'How our calendar is calculated',
   learn:'Lesson: Nakshatras and the lunar path',
   secondary:'Lesson: sidereal and tropical zodiacs',
-  secondaryHref:'learn/sidereal-and-tropical'
+  secondaryHref:'pedia/sidereal-and-tropical'
  }
 };
 function Guide({locale,copy,subject}:{locale:PortalLocale;copy:Record<PortalLocale,Copy>;subject:'jyotish'|'panchanga'}){
  const c=copy[locale],prefix='/'+locale+'/';
- const lesson=subject==='jyotish'?'learn/sidereal-and-tropical':'learn/nakshatras';
+ const lesson=subject==='jyotish'?'pedia/sidereal-and-tropical':'pedia/nakshatras';
  return <section className="as-wellness as-academy-detail" aria-label={c.heading} data-testid={'r33-'+subject+'-guide'}>
   <header className="as-wellness-section-header">
    <span className="as-overline">{c.eyebrow}</span>

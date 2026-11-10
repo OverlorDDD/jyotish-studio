@@ -5,7 +5,7 @@ import PortalShell from '../../../components/PortalShell';
 import GalaxiComModuleLink from '../../../components/GalaxiComModuleLink';
 import {JyotishSearchGuide} from '../../../components/SearchGuides';
 import OrganicIntentBridge from '../../../components/OrganicIntentBridge';
-import {BRAND,moduleTitle,isPortalLocale} from '../../../../lib/brand';
+import {BRAND,isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
 
 export const dynamicParams=false;
@@ -14,7 +14,7 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  const {locale}=await params;
  if(!isPortalLocale(locale))return {};
  return {
-  title:(locale==='uk'?'Натальна карта онлайн безкоштовно — Джйотіш і 16 карт':'Free Vedic Birth Chart & Kundli Calculator — 16 Charts')+' — '+moduleTitle('jyotish'),
+  title:locale==='uk'?'Натальна карта Джйотіш — 16 карт | Galaxiora':'Free Vedic Birth Chart (16 Charts) | Galaxiora',
   description:locale==='uk'?'Безкоштовна ведична натальна карта: 16 карт життя для дослідження сильних сторін, викликів, стосунків і кар’єри. Розрахунок за датою, часом і містом народження.':'Create your free Vedic birth chart (Kundli). Explore strengths, challenges, relationships and career through 16 life charts.',
   robots:indexRobots(),
   openGraph:{type:'website',title:locale==='uk'?'Натальна карта онлайн — 16 ведичних карт | Galaxiora':'Free Vedic Birth Chart — Explore 16 Charts | Galaxiora',

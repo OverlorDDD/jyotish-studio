@@ -25,14 +25,16 @@ test('Production forces crawlable canonical metadata into initial document head'
  assert.ok(config.includes('htmlLimitedBots: /.*/'));
 });
 
-test('GP1 sitemap excludes redirected locale homepage aliases and keeps self-canonical root',()=>{
+test('GSC canonicals consolidate the duplicate root into the EN natal URL',()=>{
  const sitemap=read('apps/web/app/sitemap.ts');
  const home=read('apps/web/app/page.tsx');
  const alias=read('apps/web/app/[locale]/page.tsx');
- assert.ok(home.includes("canonical:'/'"));
+ assert.ok(home.includes("canonical:'/en/astrology/jyotish'"));
+ assert.ok(home.includes("'x-default':'/en/astrology/jyotish'"));
  assert.ok(alias.includes("permanentRedirect(portalPath(locale,'astrology/jyotish'))"));
  assert.ok(sitemap.includes("allPages.filter(suffix=>suffix!=='').flatMap"));
- assert.ok(sitemap.includes("url:base+'/'"));
+ assert.ok(sitemap.includes('return localized;'));
+ assert.ok(!sitemap.includes("url:base+'/'"),'200 root alias must never compete with the canonical EN URL in sitemap');
 });
 
 test('R3.2 Galaxiora has a consistent official brand entity and an indexable About page',()=>{

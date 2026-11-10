@@ -38,11 +38,14 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
  const [synthesisOpen,setSynthesisOpen]=useState(false);
  const [publicWeek,setPublicWeek]=useState<PublicWeek|null>(null),[weekBusy,setWeekBusy]=useState(false),[weekError,setWeekError]=useState(false);
  useEffect(()=>{
-  // Shareable canonical public sign deep links, with validation against
-  // exactly twelve signs. Private natal selection remains independent.
+  // Shareable fragment links keep the URL path canonical (no duplicate query
+  // pages); old ?system=...&sign=... links remain compatible for bookmarks.
+  // Only known tradition names and twelve valid sign slugs affect public UI.
   const params=new URLSearchParams(window.location.search);
-  if(params.get('system')==='vedic')setTradition('vedic');
-  const slug=params.get('sign')||'';
+  const fragment=/^(vedic|western)-([a-z]+)$/.exec(window.location.hash.slice(1).toLowerCase());
+  const system=fragment?.[1]||params.get('system');
+  if(system==='vedic'||system==='western')setTradition(system);
+  const slug=fragment?.[2]||params.get('sign')||'';
   const index=SIGN_SLUGS.indexOf(slug.toLowerCase() as typeof SIGN_SLUGS[number]);
   if(index>=0){signManuallyChosen.current=true;setSelected(index+1);}
  },[]);

@@ -173,7 +173,7 @@ export default async function MoonAndSunSignGuide({params}:Props){
     <h2>{t.more}</h2>
     <p>{t.ctaSub}</p>
     <p><Link className="as-button as-button-primary" href={'/'+loc+'/astrology/jyotish'}>{t.cta}</Link></p>
-    <p><Link href={'/'+loc+'/learn/sidereal-and-tropical'}>{t.lesson}</Link></p>
+    <p><Link href={'/'+loc+'/pedia/sidereal-and-tropical'}>{t.lesson}</Link></p>
     <p><Link href={'/'+loc+'/methodology'}>{t.methodology}</Link></p>
     <p><Link href={'/'+loc+'/panchanga'}>{t.panchanga}</Link></p>
    </section>

@@ -51,6 +51,6 @@ export default async function YogaPracticePage({params}:Params){
    <PersonalJournal locale={locale} kind="PRACTICE"/>
    <GalaxiComBridge kind="YOGA" slug={slug} title={say(practice.title,locale)} locale={locale}/>
    <aside className="as-wellness-note"><ShieldCheck size={22} aria-hidden="true"/><div><strong>{uk?'Важливо':'Safety first'}</strong><p><GlossaryText text={say(practice.safety,locale)} locale={locale}/></p></div></aside>
-   <div className="as-wellness-next"><Link href={'/'+locale+'/learn/yoga-roots-and-safety'}>{uk?'Більше про йогу в Академії':'Explore yoga in Academy'} <ArrowUpRight size={16}/></Link></div>
+   <div className="as-wellness-next"><Link href={'/'+locale+'/pedia/yoga-roots-and-safety'}>{uk?'Більше про йогу в Академії':'Explore yoga in Academy'} <ArrowUpRight size={16}/></Link></div>
   </div></PortalShell>;
 }
