@@ -10,6 +10,7 @@ import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts'
 import {dignityFor} from '../../../packages/jyotish-core/src/rules.ts';
 import {classicalLordshipTable} from './reader-classical.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
+import {buildD60Preview} from './reader-d60-n47.ts';
 
 type Lang='uk'|'en';
 type Copy=[string,string];
@@ -142,7 +143,82 @@ const HOUSE_TASK:readonly Copy[]=[
 const choose=(copy:Copy,lang:Lang)=>copy[lang==='uk'?0:1];
 const isStrong=(quality:string)=>quality==='own'||quality==='exalted';
 
+/**
+ * D60 is a full editorial card, not the old raw-position dump. It uses only
+ * sign-level factors accepted by the existing time/boundary evidence filter.
+ * D60 houses, lagna, past lives and certified birth-time claims are excluded.
+ */
+export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReading|null{
+ const evidence=buildD60Preview(chart,lang);
+ if(evidence.status!=='conditional_signs'||evidence.factors.length===0)return null;
+ const uk=lang==='uk',lords=classicalLordshipTable(chart.ascendant.sign);
+ const first=evidence.factors[0],second=evidence.factors.find(p=>p.planet!==first.planet);
+ const roleUk:Record<string,string>={Sun:'особистої відповідальності та вибору',
+  Moon:'емоційного ритму й відчуття безпеки',
+  Mars:'рішучості та захисту власних меж',
+  Mercury:'мислення, навчання й спілкування',
+  Jupiter:'принципів, знань і наставництва',
+  Venus:'близькості, гармонії та почуття міри',
+  Saturn:'витримки, обов’язків і довгострокових рішень'};
+ const roleEn:Record<string,string>={Sun:'responsibility and personal choices',
+  Moon:'emotional rhythms and feeling secure',
+  Mars:'courage and personal boundaries',
+  Mercury:'thinking, learning and communication',
+  Jupiter:'principles, learning and mentorship',
+  Venus:'affection, harmony and finding balance',
+  Saturn:'endurance, commitments and long-term decisions'};
+ const role=(p:string)=>uk?roleUk[p]:roleEn[p];
+ const style=(sign:number)=>choose(STYLE[sign-1],lang);
+ const significant=first.planet===lords[1];
+ const opening=uk?
+  'У ваших глибинних мотивах може виразно звучати тема '+role(first.planet)+'. '+
+  (significant?'Вона також пов’язана з тим, як ви визначаєте власний життєвий напрям. ':
+   'Особливо помітною вона може ставати у важливих особистих рішеннях. '):
+  'Your deeper motivations may involve '+role(first.planet)+'. '+
+  (significant?'This also connects with the direction you choose for yourself. ':
+   'It may become especially relevant during important personal decisions. ');
+ const contrast=first.d1Sign===first.d60Sign?
+  (uk?'У звичному житті й у складніших ситуаціях повторюється той самий мотив: прагнення '+
+   style(first.d60Sign)+'. Послідовність тут може бути вашою опорою. ':
+   'In everyday life and more difficult moments, a similar theme repeats: the wish to '+
+   style(first.d60Sign)+'. That consistency may be a useful anchor. '):
+  (uk?'У повсякденному житті ви можете прагнути '+style(first.d1Sign)+
+   ', а у складних виборах стає важливим уміння '+style(first.d60Sign)+
+   '. Ці два підходи не суперечать один одному: вони можуть доповнюватися. ':
+   'In everyday life you may prefer to '+style(first.d1Sign)+
+   ', while difficult decisions can call for learning to '+style(first.d60Sign)+
+   '. These approaches can complement one another. ');
+ const secondSentence=!second?'':second.d1Sign===second.d60Sign?
+  (uk?'Інша важлива тема — '+role(second.planet)+
+   ': тут також повторюється прагнення '+style(second.d60Sign)+'. ':
+   'Another theme is '+role(second.planet)+
+   ', with a repeated inclination to '+style(second.d60Sign)+'. '):
+  (uk?'У сфері '+role(second.planet)+' може знадобитися поєднати звичку '+
+   style(second.d1Sign)+' з умінням '+style(second.d60Sign)+'. ':
+   'With '+role(second.planet)+', you may need to combine the habit of '+
+   style(second.d1Sign)+' with the ability to '+style(second.d60Sign)+'. ');
+ const practice=uk?
+  'Практичний крок: згадайте один недавній непростий вибір. Що допомогло вам діяти впевнено, '+
+  'а яку навичку хотілося б розвинути перед наступним таким рішенням?':
+  'Practical step: reflect on one recent difficult choice. What helped you act confidently, '+
+  'and which skill would you like to develop before the next one?';
+ const name=(p:string)=>uk?PLANET[p]||p:p;
+ const signName=(x:number)=>uk?SIGN_UK[x-1]:SIGN_EN[x-1];
+ const clause=(p:typeof first)=>name(p.planet)+
+  (uk?' — D1: '+signName(p.d1Sign)+', D60: '+signName(p.d60Sign):
+   ' — D1 '+signName(p.d1Sign)+', D60 '+signName(p.d60Sign));
+ const basis=(uk?'Астрологічна основа: ':'Astrological basis: ')+clause(first)+
+  (second?'; '+clause(second):'')+'.';
+ const meaning=opening+contrast+secondSentence+practice+' '+basis;
+ const headline=uk?'D60 — Глибинні мотиви й життєві уроки':
+  'D60 — Deeper motivations and life lessons';
+ const teaser=uk?'Як ви поєднуєте звичні способи дії з тим, чого навчають непрості рішення.':
+  'How familiar ways of acting relate to what difficult choices can teach you.';
+ return {headline,teaser,meaning,basis};
+}
+
 export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:number):HumanReading|null{
+ if(division===60)return buildHumanReaderD60(chart,lang);
  if(!LEAD[division])return null;
  const source=verifiedVargaSource(chart);if(!source)return null;
  const uk=lang==='uk',lords=classicalLordshipTable(chart.ascendant.sign);
