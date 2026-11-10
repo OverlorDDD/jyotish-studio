@@ -2,6 +2,7 @@
 import {useState,useEffect,useRef} from 'react';
 import dynamic from 'next/dynamic';
 import {readApiJson} from '../../../lib/api-response';
+import {isJyotishRuntimeCompatible} from '../../../lib/jyotish-runtime-contract';
 import {reportGrowthEvent,reportPublicToolEvent} from '../../../lib/growth-metrics';
 import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
@@ -71,8 +72,9 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    const data=res.ok?await res.json():null;
    if(!live)return;
    setJhoraReference(data?.referenceBenchmark?.version==='jhora8-same-profile-v2'?data.referenceBenchmark:null);
-   if(data?.readerVersion!=='6.0.0'||data?.pipeline!=='direct-v2'||data?.readerEdition!=='reader-v8.0.0-n44'||data?.editorialEdition!=='n48-poetic-evidence-1.0.0'||data?.interpretationEdition!=='n49-unified-evidence-v1'||data?.presentationEdition!=='n493-ranked-patterns-1.0.0'||data?.verificationContract!=='jyotish-integrity-v3')
-    setRuntimeMismatch(lang==='uk'?'Сайт і API запущені з різних версій. Перезапустіть обидва сервери з цієї гілки.':'Web and API versions differ. Restart both servers from this branch.');
+   // AI writer pipeline versions (direct-v2, direct-v3, ...) are NOT a Reader ABI.
+   if(!isJyotishRuntimeCompatible(data))
+    setRuntimeMismatch(lang==='uk'?'API повернуло несумісний формат Reader. Оновіть вебсайт і API до сумісних версій.':'The API returned an incompatible Reader contract. Update web and API to compatible versions.');
    else setRuntimeMismatch('');
   }).catch(()=>{if(live)setRuntimeMismatch(lang==='uk'?'API недоступне або працює стара версія.':'API unavailable or outdated.');});
   return ()=>{live=false;};
