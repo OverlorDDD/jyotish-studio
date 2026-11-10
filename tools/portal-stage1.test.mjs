@@ -28,7 +28,7 @@ test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-
   assert.ok(old.includes(token),token);
  }
  assert.ok(explorer.includes('<NorthIndianChart'),'Explorer must actually draw Jyotish D1 and vargas');
- assert.ok(explorer.includes('selected!==1&&<article'),'D1 must not be duplicated in Explorer');
+ assert.match(explorer,/selected===1\?<article className=\{styles\.comparePrompt\}/,'D1 must remain the sole left-hand chart while the right side is a prompt');
  assert.match(renderer,/SOUTH_SIGN_GRID\.map/);
  assert.match(renderer,/chartHouseForSign/);
  assert.match(renderer,/occupants\.map/);
@@ -36,7 +36,7 @@ test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-
  assert.match(wrapper,/PortalShell/);
  assert.match(layout,/CHART_HOUSES/);
  assert.match(wrapper,/JyotishCalculator initialLang/);
- assert.match(old,/jy-section-nav/);
+ assert.doesNotMatch(old,/jy-section-nav/,'removed duplicate section navigation must not reappear');
  assert.doesNotMatch(old,/as-back-link|className="topbar"|className="lang-button"/);
  assert.match(wrapper,/PortalShell/);
 });
