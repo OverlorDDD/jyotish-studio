@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {resolveCityAlias,mergeAliasResults} from '../apps/api/src/city-search-aliases.ts';
+import {resolveCityAlias,mergeAliasResults,shouldRetryUkrainianCityIndex} from '../apps/api/src/city-search-aliases.ts';
 import {SavedChartUseCases} from '../apps/api/src/chart-application.ts';
 
 const uk={id:'703845',name:'Kryvyi Rih',country:'Ukraine',region:'Dnipropetrovsk Oblast',
@@ -32,6 +32,17 @@ test('N503 no fabricated coordinates or incorrect canonical result when upstream
  assert.deepEqual(mergeAliasResults([uk,ru],[uk],alias),[uk,ru]);
  const input=[uk,ru];
  assert.deepEqual(mergeAliasResults(input,[],null),input,'all other city search unaffected');
+});
+
+test('N503 English searches recover Ukrainian Cyrillic names without extra English/Latin requests',()=>{
+ for(const q of ['Кривий Ріг','Харків','Львів','Одеса','Київ']){
+  assert.equal(shouldRetryUkrainianCityIndex(q,'en',0),true,q);
+  assert.equal(shouldRetryUkrainianCityIndex(q,'uk',0),false,q);
+  assert.equal(shouldRetryUkrainianCityIndex(q,'en',3),false,q);
+ }
+ for(const q of ['Tokyo','Kyiv','Kryvyi Rih','Paris','London']){
+  assert.equal(shouldRetryUkrainianCityIndex(q,'en',0),false,q);
+ }
 });
 
 test('N503 saved-chart input is passed without dropping latitude/longitude/timeZone',async()=>{
@@ -68,4 +79,5 @@ test('N503 real persistence and calculation code require original coordinates',(
  assert.match(client,/setForm\(\{\.\.\.incoming\.input,latitude:String\(incoming\.input\.latitude\),longitude:String\(incoming\.input\.longitude\)\}\)/);
  assert.match(controller,/Promise\.allSettled/);
  assert.match(controller,/mergeAliasResults\(original,canonical,alias\)/);
+ assert.match(controller,/shouldRetryUkrainianCityIndex\(term,lang,rows\.length\)/);
 });
