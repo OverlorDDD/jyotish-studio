@@ -17,7 +17,7 @@ test('Root and localized home open the real chart, with About Me as first naviga
  await page.goto('/');
  await expect(page.locator('.jy-workbench')).toBeVisible();
  await expect(page.locator('header.as-header')).toHaveCount(1);
- await expect(page.getByRole('heading',{name:'Your cosmic blueprint'})).toBeVisible();
+ await expect(page.getByRole('heading',{level:1,name:'16 life charts. Explore your strengths and blind spots.'})).toBeVisible();
  const first=page.locator('.as-main-nav a').first();
  await expect(first).toHaveText('About Me');
  await expect(first).toHaveAttribute('href','/en/about-me');
@@ -30,7 +30,7 @@ test('Main navigation reaches practical content without splash redirect loops',a
  await page.goto('/uk');
  await page.locator('.as-main-nav').getByRole('link',{name:'Астрологія'}).click();
  await expect(page).toHaveURL(/\/uk\/astrology\/jyotish$/);
- await expect(page.getByRole('heading',{name:/Натальна карта/})).toBeVisible();
+ await expect(page.getByRole('heading',{level:1,name:/16 карт життя/u})).toBeVisible();
  await page.locator('.as-main-nav').getByRole('link',{name:'Таро'}).click();
  await expect(page.getByRole('button',{name:'Розкласти карти'})).toBeVisible();
  await expect(page.locator('.as-tarot-live-link')).toHaveAttribute('href','#human-readings');
