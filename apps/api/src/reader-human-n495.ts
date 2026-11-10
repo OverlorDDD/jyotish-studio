@@ -234,6 +234,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const q=dignityFor(lord,placement.sign);
  let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
  if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
+ const sameSphere=natal.house===placement.house;
  const topic=theme(placement.house);
  const bridgeUk:Record<number,string>={
   1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
@@ -270,6 +271,14 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   45:'There is room for choice between inherited rules and your own beliefs. In '+topic+', try to '+style+'.'
  };
  let bridge=uk?bridgeUk[division]:bridgeEn[division];
+ // Mention a life area once. When both independent chart views point to
+ // the same house topic, add a concrete working habit instead of repeating
+ // that same noun phrase in two consecutive sentences.
+ if(sameSphere&&![1,9,10,24].includes(division)){
+  bridge=uk?
+   'Цей акцент повторюється і в додатковій карті. Замість ще одного опису сфери спробуйте '+style+'.':
+   'The supplementary chart returns to the same area. Rather than repeating its label, try to '+style+'.';
+ }
  if(division===1){
   bridge=uk?
    (lord==='Moon'?
@@ -345,8 +354,9 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
    division===9?'Relationships: closeness, trust and agreements':
    division===1?'Your direction and what grounds you':
    'How '+theme(natal.house)+' shapes this area');
- const teaser=choose(LEAD[division],lang)+' '+theme(natal.house)+'. '+(uk?'У практичному житті це торкається сфери '+theme(placement.house)+'.':
-  'In practice this touches '+theme(placement.house)+'.');
+ const teaser=choose(LEAD[division],lang)+' '+theme(natal.house)+'. '+(sameSphere?
+  (uk?'Цей самий акцент повторюється в додатковій карті.':'The same focus is repeated in the supplementary chart.'):
+  (uk?'Другий акцент — '+theme(placement.house)+'.':'A second focus is '+theme(placement.house)+'.'));
  const meaning=[lead,bridge,difficulty,uk?'Практичний крок: '+practice:'Practical step: '+practice,basis]
   .filter(Boolean).join(' ');
  return {headline,teaser,meaning,basis};
