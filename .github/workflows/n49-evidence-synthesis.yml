@@ -1,0 +1,44 @@
+name: N4.9 — Unified natal synthesis and source provenance (no deployment)
+on:
+  push:
+    branches:
+      - release/n495-human-reader-16-cards-20261110
+  pull_request:
+    branches:
+      - main
+      - feat/n4-d60-certified-precision-20261107
+      - release/n4-natal-15-varga-rc-20261107
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  n49-interpretation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5433/n49_read_only
+      NEXT_PUBLIC_SITE_URL: https://galaxiora.example
+      SITE_NOINDEX: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install reproducible workspaces (no Docker, do not rewrite lock)
+        run: npm install --no-audit --no-fund --no-package-lock
+      - name: N4.9 cross-varga, source conditional and privacy unit gate
+        run: node --experimental-strip-types --test tools/n49-unified-synthesis.test.mjs
+      - name: 'N4.4–N4.8 regression: books, source facts, voice, D60 safety'
+        run: |
+          node --experimental-strip-types --test tools/n44-classical-reader.test.mjs
+          node --experimental-strip-types --test tools/n47-reader-synthesis-d60.test.mjs
+          node --experimental-strip-types --test tools/n48-editorial-prose.test.mjs
+      - name: Real Swiss HTTP path (synthetic inputs only)
+        run: node --experimental-strip-types --test tools/n43-live-preview-api.test.mjs
+      - name: Preserve D1 D9 D10 and provisional D60 contracts
+        run: |
+          node --experimental-strip-types --test tools/n4-rc-contract.test.mjs tools/n4-d60-contract.test.mjs
+      - name: Core + API + Next production build (never deploy)
+        run: |
+          npm run db:generate
+          npm run build

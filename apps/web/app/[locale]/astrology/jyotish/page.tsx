@@ -15,8 +15,10 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  if(!isPortalLocale(locale))return {};
  return {
   title:locale==='uk'?'Натальна карта Джйотіш — 16 карт | Galaxiora':'Free Vedic Birth Chart (16 Charts) | Galaxiora',
-  description:locale==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш із Swiss Ephemeris, накшатрами та періодами Даша.':'Calculate a free Vedic birth chart (Kundli) using Swiss Ephemeris. Explore D1, D9, D10, your Moon sign, Nakshatra and Vimshottari Dasha.',
+  description:locale==='uk'?'Безкоштовна ведична натальна карта: 16 карт життя для дослідження сильних сторін, викликів, стосунків і кар’єри. Розрахунок за датою, часом і містом народження.':'Create your free Vedic birth chart (Kundli). Explore strengths, challenges, relationships and career through 16 life charts.',
   robots:indexRobots(),
+  openGraph:{type:'website',title:locale==='uk'?'Натальна карта онлайн — 16 ведичних карт | Galaxiora':'Free Vedic Birth Chart — Explore 16 Charts | Galaxiora',
+   description:locale==='uk'?'16 карт життя: досліджуй сильні сторони, виклики, стосунки та кар’єру через ведичну натальну карту.':'Explore strengths, challenges, relationships and career with 16 traditional Vedic life charts.',url:'/'+locale+'/astrology/jyotish'},
   alternates:{canonical:'/'+locale+'/astrology/jyotish',languages:{en:'/en/astrology/jyotish',uk:'/uk/astrology/jyotish','x-default':'/en/astrology/jyotish'}}
  };
 }

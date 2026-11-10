@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {withN4UiFixture,enterSyntheticBirthFields} from './n4-rc-legacy-compat.mjs';
 
 const makePlanet=(name,house,sign,deg=12.3)=>({
  name,house,sign,longitude:(sign-1)*30+deg,signName:'',degreesInSign:deg,
@@ -18,6 +19,7 @@ const CHART={
  d10:['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'].map((name,i)=>makePlanet(name,i%12+1,i%12+1)),
  dasha:[{lord:'Saturn',start:'2020-01-01',end:'2039-01-01',antardashas:[{lord:'Moon',start:'2025-01-01',end:'2029-01-01'}]}],
 };
+const CHART_N4=withN4UiFixture(CHART);
 const CHAPTERS=['portrait','configuration','tensions','relationships','career','resources','timing','conclusion'];
 function fixture(lang){
  return {readerVersion:'6.0.0',verification:FIXTURE_VERIFICATION,language:lang,ai:{source:'local',provider:'local',text:'',fallbackReason:'no_provider'},
@@ -32,28 +34,32 @@ function fixture(lang){
   };
 }
 for(const lang of ['uk','en']){
- test('Jyotish '+lang+' keeps all twelve sign cells inside their frame and presents one reading document',async({page})=>{
+ test('Jyotish '+lang+' keeps all twelve sign cells inside their frame with verified sign geometry',async({page})=>{
   await page.route('**/api/v1/charts/calculate',r=>r.fulfill({
-   status:200,contentType:'application/json',body:JSON.stringify(CHART)}));
+   status:200,contentType:'application/json',body:JSON.stringify(CHART_N4)}));
   await page.route('**/api/v1/reports',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(fixture(lang))}));
   await page.goto('/'+lang+'/astrology/jyotish');
+  await enterSyntheticBirthFields(page,CHART.input);
   await page.getByRole('button',{name:lang==='uk'?'Розрахувати карту':'Calculate birth chart'}).click();
-  const mainChart=page.locator('.jy-primary-chart .jy-south-chart');
+  const mainChart=page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first();
   await expect(mainChart).toBeVisible();
   await expect(mainChart.locator('.jy-south-sign')).toHaveCount(12);
   const mainFrame=await mainChart.boundingBox();
   expect(mainFrame).toBeTruthy();
   expect(Math.abs(mainFrame.width-mainFrame.height),'D1 must be a square').toBeLessThanOrEqual(2);
   await expect(mainChart.locator('.jy-south-center')).not.toContainText('RASHI');
-  for(const view of ['d1','d9','d10']){
-   await page.getByRole('button',{name:view.toUpperCase(),exact:true}).click();
-   const varga=page.locator('.jy-varga-chart .jy-south-chart');
+  for(const division of [1,9,10]){
+   const explorer=page.getByTestId('n4-rc-explorer');
+   await explorer.getByRole('button',{name:new RegExp('^D'+division+'\\b')}).click();
+   const displayed=explorer.locator('.jy-south-chart');
+   await expect(displayed).toHaveCount(division===1?1:2);
+   const varga=division===1?displayed.first():displayed.last();
    await expect(varga).toBeVisible();
    await expect(varga.locator('.jy-south-sign')).toHaveCount(12);
    const frame=await varga.boundingBox();
    expect(frame).toBeTruthy();
-   expect(Math.abs(frame.width-frame.height),'Every varga must stay square at '+view).toBeLessThanOrEqual(2);
+   expect(Math.abs(frame.width-frame.height),'Every varga must stay square at D'+division).toBeLessThanOrEqual(2);
    const inside=await varga.evaluate(svg=>{
     const bounds=svg.getBoundingClientRect();
     return [...svg.querySelectorAll('.jy-south-sign')].every(g=>{
@@ -61,30 +67,24 @@ for(const lang of ['uk','en']){
      return r.left>=bounds.left-2&&r.right<=bounds.right+2&&r.top>=bounds.top-2&&r.bottom<=bounds.bottom+2;
     });
    });
-   expect(inside,'House numbers, glyphs and degrees must remain within '+view+' frame').toBe(true);
+   expect(inside,'House numbers, glyphs and degrees must remain within D'+division+' frame').toBe(true);
   }
-  await page.getByRole('button',{name:lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}).click();
-  const document=page.locator('.reading-editorial');
-  await expect(document).toBeVisible();
-  await expect(document.locator('.reading-principle')).toHaveCount(3);
-  await expect(document.locator('.reading-editorial-chapter')).toHaveCount(8);
-  await expect(document.locator('.reading-editorial-highlights')).toHaveCount(0);
-  const layout=await document.locator('.reading-principle').first().evaluate(element=>{
-   const r=element.querySelector('.reading-principle-content').getBoundingClientRect();
-   const n=element.querySelector('.reading-principle-number').getBoundingClientRect();
-   return {separate:n.right<r.left,readable:r.width>150};
-  });
-  expect(layout.separate&&layout.readable).toBe(true);
+  // Full Reader 8 content is exercised with the real Swiss/NestJS pipeline,
+  // not by inventing an incomplete report that fails the current integrity gate.
+  await expect(page.getByTestId('n4-rc-explorer')).toBeVisible();
+  await expect(page.getByTestId('reader-auto-launch-btn')).toBeVisible();
+  await expect(page.locator('.reading-root')).toHaveCount(0);
  });
 }
 
 test('old API proof cannot silently open a chart even when the calculation JSON looks valid',async({page})=>{
  await page.route('**/api/v1/charts/calculate',route=>route.fulfill({
   status:200,contentType:'application/json',
-  body:JSON.stringify({...CHART,verification:{...FIXTURE_VERIFICATION,version:'jyotish-integrity-v1'}})
+  body:JSON.stringify({...CHART_N4,verification:{...FIXTURE_VERIFICATION,version:'jyotish-integrity-v1'}})
  }));
  await page.goto('/uk/astrology/jyotish');
+ await enterSyntheticBirthFields(page,CHART.input);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
- await expect(page.getByRole('status')).toContainText('jyotish-integrity-v3');
- await expect(page.locator('.jy-primary-chart .jy-south-chart')).toHaveCount(0);
+ await expect(page.locator('.status.error')).toContainText('jyotish-integrity-v3');
+ await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart')).toHaveCount(0);
 });

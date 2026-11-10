@@ -1,0 +1,24 @@
+/* N4.9.1: focused readings in existing thematic cards; no duplicate book-like essay. */
+.compactCard{gap:10px!important;min-width:0;overflow-wrap:anywhere}
+.compactContent{display:flex;flex-direction:column;gap:12px}
+.compactLead{font-size:14px;line-height:1.7;color:#ecf1fa;margin:0;max-width:65ch}
+.crossNote{padding:11px 13px;border:1px solid rgba(221,187,132,.22);background:rgba(221,187,132,.07);border-radius:9px}
+.crossNote span{display:block;color:#eac790;font-weight:700;font-size:11px;letter-spacing:.015em;margin-bottom:5px}
+.crossNote p{font-size:13px;line-height:1.65;color:#d9e2f0;margin:0;overflow-wrap:anywhere}
+.timeNotice{font-size:12px;line-height:1.6;border-left:2px solid #ddb67d;background:rgba(214,168,103,.08);padding:11px 13px;color:#f4d6b7;margin:14px 0}
+.d60Card{grid-column:1/-1;min-width:0}
+.d60Positions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.d60Position{display:flex;flex-direction:column;gap:5px;border:1px solid rgba(174,196,222,.2);border-radius:10px;background:rgba(10,25,44,.5);padding:11px 12px;min-width:0}
+.d60Position strong{font-size:13px;color:#f0d1a5}
+.d60Position span{font-size:12px;line-height:1.55;color:#dce6f2;overflow-wrap:anywhere}
+.d60Position b{color:#fff}
+.d60Position small{font-size:11px;line-height:1.35;color:#f0c28a}
+.d60Interpretations{border-top:1px solid rgba(207,178,135,.24);padding-top:12px;margin-top:5px;max-width:82ch}
+.d60Interpretations>strong{display:block;font-size:12px;color:#efcf9f;margin-bottom:5px}
+.d60Interpretations p{font-size:13px;line-height:1.7;color:#dce5f2;margin:7px 0}
+.methodDetails{padding:10px 2px;margin-top:14px;max-width:90ch;color:#bdcbda;font-size:12px}
+.methodDetails summary{cursor:pointer;color:#eac790}
+.methodDetails p{line-height:1.7}
+.methodDetails summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:720px){.d60Positions{grid-template-columns:repeat(2,minmax(0,1fr))}.d60Card{grid-column:1}.compactLead{font-size:14px}}
+@media(max-width:359px){.d60Positions{grid-template-columns:1fr}.crossNote{padding:10px}}

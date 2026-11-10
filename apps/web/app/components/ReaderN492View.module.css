@@ -1,0 +1,32 @@
+.root{max-width:100%;min-width:0}
+.card{display:flex;flex-direction:column;align-items:stretch;min-width:0;gap:14px!important;overflow-wrap:anywhere}
+.meaning{font-size:14px;line-height:1.82;max-width:68ch;color:#e7edf6;margin:0}
+.basis{font-size:12px;line-height:1.65;color:#a9b8cb;max-width:76ch;margin:0;overflow-wrap:anywhere}
+.connection{font-size:13px;line-height:1.7;color:#dbe6f5;background:rgba(193,160,100,.08);border-left:2px solid #caa77b;padding:10px 12px;border-radius:0 8px 8px 0;margin:0}
+.connection strong{color:#f2d4a4;font-weight:650}
+.caution{font-size:11px;line-height:1.45;color:#e5c59b}
+.signs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.sign{min-width:0;padding:8px 9px;border-radius:8px;background:rgba(9,25,45,.45);border:1px solid rgba(173,193,217,.17);display:flex;gap:4px;flex-direction:column}
+.sign strong{font-size:12px;color:#e9c99c}.sign span{font-size:12px;color:#f3f6fc;overflow-wrap:anywhere}.sign small{font-size:10px;color:#f3c28a}
+.notice{border-left:2px solid #d7ac73;background:rgba(213,166,101,.09);border-radius:0 6px 6px 0;padding:9px 12px;margin:0;font-size:12px;line-height:1.65;color:#e9d5bb}
+.final{border-top:1px solid rgba(211,172,110,.32);margin-top:30px;padding:22px 0 4px;max-width:88ch}
+.final h3{font-family:Georgia,serif;font-size:clamp(20px,3vw,26px);color:#f4d4ab;margin:8px 0 14px}
+.final p{font-size:14px;line-height:1.8;margin:8px 0;color:#e6eaf1}.final strong{color:#f0d6b5}
+.method{max-width:88ch;margin:22px 0 5px;font-size:12px;color:#c2cede}
+.method summary{cursor:pointer;color:#eac790}.method p{line-height:1.65}
+.method summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:620px){.signs{grid-template-columns:repeat(2,minmax(0,1fr))}.meaning{font-size:14px;line-height:1.75}.final{margin-top:24px}}
+@media(max-width:340px){.signs{grid-template-columns:1fr}.card{gap:10px!important}}
+
+/* N4.9.3: concise chart-specific discovery shortlist, not a second essay. */
+.discoveries{margin:18px 0 28px;padding:18px 19px;border:1px solid rgba(217,184,127,.29);border-radius:14px;background:linear-gradient(145deg,rgba(31,43,68,.55),rgba(16,24,43,.65))}
+.discoveries h3{font-size:clamp(18px,2.7vw,23px);font-family:Georgia,serif;color:#f3d7ad;margin:10px 0 6px}
+.discoveriesIntro{font-size:13px;line-height:1.65;color:#d2dbeb;max-width:75ch;margin:0 0 14px}
+.discoveries ol{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.discovery{padding:12px 14px;border-radius:10px;background:rgba(11,22,40,.5);border:1px solid rgba(183,192,213,.13);min-width:0;overflow-wrap:anywhere}
+.discovery strong{color:#f4e0c0;font-size:14px;line-height:1.5;display:block}
+.discovery p{font-size:12px;line-height:1.6;color:#bfcddd;margin:8px 0}
+.discovery a{color:#f0c98d;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.discovery a:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.cardAnchor{position:relative;top:-110px;visibility:hidden}
+@media(max-width:700px){.discoveries ol{grid-template-columns:1fr}.discoveries{padding:15px 12px}}

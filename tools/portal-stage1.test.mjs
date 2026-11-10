@@ -22,10 +22,13 @@ test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-
  const old=code('apps/web/app/astrology/jyotish/page.tsx');
  const wrapper=code('apps/web/app/[locale]/astrology/jyotish/page.tsx');
  const renderer=code('apps/web/app/components/NorthIndianChart.tsx');
+ const explorer=code('apps/web/app/components/N4RcExplorer.tsx');
  const layout=code('apps/web/lib/north-indian-layout.ts');
- for(const token of ['<NorthIndianChart','<AccountPortal','<DetailedReport','calculate','interpret']){
+ for(const token of ['<N4RcExplorer','<AccountPortal','<DetailedReport','calculate','interpret']){
   assert.ok(old.includes(token),token);
  }
+ assert.ok(explorer.includes('<NorthIndianChart'),'Explorer must actually draw Jyotish D1 and vargas');
+ assert.match(explorer,/selected===1\?<article className=\{styles\.comparePrompt\}/,'D1 must remain the sole left-hand chart while the right side is a prompt');
  assert.match(renderer,/SOUTH_SIGN_GRID\.map/);
  assert.match(renderer,/chartHouseForSign/);
  assert.match(renderer,/occupants\.map/);
@@ -33,7 +36,7 @@ test('Jyotish calculator keeps bilingual routes, data flows and complete twelve-
  assert.match(wrapper,/PortalShell/);
  assert.match(layout,/CHART_HOUSES/);
  assert.match(wrapper,/JyotishCalculator initialLang/);
- assert.match(old,/jy-section-nav/);
+ assert.doesNotMatch(old,/jy-section-nav/,'removed duplicate section navigation must not reappear');
  assert.doesNotMatch(old,/as-back-link|className="topbar"|className="lang-button"/);
  assert.match(wrapper,/PortalShell/);
 });

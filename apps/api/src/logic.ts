@@ -3,7 +3,9 @@ import {calculateChart,validateBirth} from '../../../packages/jyotish-core/src/i
 import {getEphemeris,getVerifiedSiderealSolarSunAt} from './ephemeris.ts';
 import {vimshottariTrueSiderealSolar,VIMSHOTTARI_SOLAR_METHOD} from '../../../packages/jyotish-core/src/solar-dasha.ts';
 import {verifyCalculatedChart,type ChartVerification} from './jyotish-integrity.ts';
-export async function runCalculation(body:unknown):Promise<CalculatedChart&{verification:ChartVerification}>{
+import {makeN4RcPayload,type N4RcPayload} from './n4-rc-contract.ts';
+import {makeN4D60Candidate,type D60Candidate} from './n4-d60-candidate.ts';
+export async function runCalculation(body:unknown):Promise<CalculatedChart&{verification:ChartVerification;n4:N4RcPayload;n4D60:D60Candidate}>{
  if(!body||typeof body!=='object')throw new Error('Invalid request body');
  const b=body as Record<string,unknown>;
  for(const k of ['date','time','timeZone'])if(typeof b[k]!=='string')throw new Error(`Invalid ${k}`);
@@ -20,7 +22,11 @@ export async function runCalculation(body:unknown):Promise<CalculatedChart&{veri
  chart.config.dashaYearMode=VIMSHOTTARI_SOLAR_METHOD;
  // FAIL CLOSED before any chart, table, cached report, saved snapshot or LLM can use this chart.
  const verification=verifyCalculatedChart(input,eph,chart,birthUtc,solarSunAt);
- return {...chart,verification};
+ // Already-verified D1 drives ALL additional N4 chart projections.
+ // This is method-scoped internal source binding, NOT external JHora certification.
+ const n4=makeN4RcPayload(chart,verification);
+ const n4D60=makeN4D60Candidate(chart,verification);
+ return {...chart,verification,n4,n4D60};
 }
 const SIGN_NAMES_UK=["Овен","Телець","Близнюки","Рак","Лев","Діва","Терези","Скорпіон","Стрілець","Козоріг","Водолій","Риби"];
 const NAKSHATRA_NAMES_UK:Record<string,string>={"Ashwini":"Ашвіні","Bharani":"Бхарані","Krittika":"Кріттіка","Rohini":"Рохіні","Mrigashira":"Мрігашіра","Ardra":"Ардра","Punarvasu":"Пунарвасу","Pushya":"Пушʼя","Ashlesha":"Ашлеша","Magha":"Магха","Purva Phalguni":"Пурва Пхалгуні","Uttara Phalguni":"Уттара Пхалгуні","Hasta":"Хаста","Chitra":"Чітра","Swati":"Сваті","Vishakha":"Вішакха","Anuradha":"Анурадха","Jyeshtha":"Джʼєштха","Mula":"Мула","Purva Ashadha":"Пурва Ашадха","Uttara Ashadha":"Уттара Ашадха","Shravana":"Шравана","Dhanishta":"Дханіштха","Shatabhisha":"Шатабхіша","Purva Bhadrapada":"Пурва Бхадрапада","Uttara Bhadrapada":"Уттара Бхадрапада","Revati":"Реваті"};
