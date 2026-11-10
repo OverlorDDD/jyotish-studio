@@ -63,9 +63,10 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
    </div>
   </details>
   <details className={book.method}>
-   <summary>{uk?'Як формується трактування':'How this reading is made'}</summary>
-   <p>{read.method}</p>
-   {data.d60Preview?.warning?<p>{data.d60Preview.warning}</p>:null}
+   <summary>{uk?'Як читати цей портрет':'How to read this portrait'}</summary>
+   <p>{uk?
+    'Пояснення спираються на обчислені положення планет і традиційні правила їх тлумачення. Це теми для роздумів і практичної перевірки, а не твердження про ваш характер або майбутні події. Точність детальних карт залежить від часу народження.':
+    'This reading draws on calculated planetary placements and traditional interpretive rules. It offers themes to explore, not established facts about your personality or future events. The finer chart details depend on an accurate birth time.'}</p>
   </details>
  </section>;
 }
