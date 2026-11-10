@@ -42,7 +42,6 @@ for(const lang of ['uk','en']){
    await expect(section).toBeVisible();
    await expect(section.locator(':scope > h3')).not.toBeEmpty();
    await expect(section.locator('article').first().locator('p').first()).not.toBeEmpty();
-   await expect(section.locator('.'+ 'nonexistent-code')).toHaveCount(0);
   }
   await expect(reader.getByTestId('reader-n496-topic-money')).toContainText(lang==='uk'?'Гроші й ресурси':'Money and resources');
   await expect(reader.getByTestId('reader-n496-topic-career')).toContainText(lang==='uk'?'Робота й покликання':'Career and purpose');
@@ -55,13 +54,12 @@ for(const lang of ['uk','en']){
   expect(report.readerV8.meaningful.cards.map(c=>c.division)).toEqual([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
   // The eleven supplementary readings stay accessible but do not overwhelm a newcomer.
   for(const section of await topics.locator(':scope > section').all()){
-   const more=section.locator('details').filter({has:page.locator('summary')}).first();
    const expand=section.locator('details').filter({has:page.getByText(lang==='uk'?'Детальніше про цю сферу':'Explore this area')});
    if(await expand.count())await expand.locator(':scope > summary').click();
   }
   await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
   await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
-  await expect(reader.getByTestId('reader-v8-d60')).toContainText(lang==='uk'?'Практичний крок':'Practical step');
+  await expect(reader.getByTestId('reader-v8-d60')).toContainText(lang==='uk'?'Що можна спробувати':'A practical step');
   await reader.getByTestId('reader-v8-d60').locator('details > summary').first().click();
   await reader.getByTestId('reader-v8-d60').locator('details details > summary').click();
   await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
