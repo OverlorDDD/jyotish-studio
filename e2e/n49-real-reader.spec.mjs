@@ -38,7 +38,7 @@ for(const lang of ['uk','en']){
   const life=reader.getByTestId('reader-n496-life-themes');
   await expect(life).toBeVisible();
   await expect(life.locator(':scope > article')).toHaveCount(5);
-  await expect(life).not.toContainText(/D1\\.ascendant|house-lord|Laghu Parashari|Brihat Jataka/u);
+  await expect(life).not.toContainText(/D1\.ascendant|house-lord|Laghu Parashari|Brihat Jataka/u);
   await reader.getByTestId('reader-n496-expert-details').locator(':scope > summary').click();
   await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
   await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
