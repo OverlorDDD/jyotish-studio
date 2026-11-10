@@ -138,6 +138,7 @@ node --experimental-strip-types --test \
   tools/n493-discovery-editorial-qa.test.mjs \
   tools/n44-classical-reader.test.mjs
 node --test tools/n496-human-first-reading.test.mjs
+node --experimental-strip-types --test tools/n496-ukrainian-editorial-qa.test.mjs
 echo '=== N495 STAGE 5: compile Next + Nest + core ==='
 npm run build
 echo '=== N495 STAGE 6: restart services, check existing site ==='
