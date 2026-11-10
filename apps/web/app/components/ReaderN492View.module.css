@@ -56,3 +56,14 @@
 .technical .signs{margin-top:12px}
 .lifeTopic summary:focus-visible{outline:2px solid #f7d5a1;outline-offset:4px}
 @media(max-width:600px){.lifeTopics{gap:12px}.lifeTopic{padding:16px}.supportingCard{padding:12px}.story{font-size:15px}}
+
+/* N4.9.7: complete, visible map of the 16 traditional subdivisions. */
+.primarySource{display:block;color:#b9c7dc;font-size:11px;line-height:1.5;letter-spacing:.01em}
+.vargaGuide{margin:18px 0 12px;padding:clamp(16px,2.8vw,24px);border:1px solid rgba(180,186,216,.23);background:rgba(10,22,42,.58);border-radius:14px;min-width:0}
+.vargaGuide h3{font:500 clamp(19px,2.8vw,24px)/1.35 Georgia,serif;color:#e9d3b2;margin:0 0 8px}
+.vargaGuide>p{color:#ccd7e5;line-height:1.7;font-size:13px;max-width:75ch;margin:0 0 15px}
+.vargaGrid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.vargaGrid li{min-width:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:11px 12px;border-radius:9px;border:1px solid rgba(169,183,201,.15);background:rgba(12,24,43,.58);color:#e2e9f2;line-height:1.55;font-size:12px;overflow-wrap:anywhere}
+.vargaGrid li small{width:100%;padding-left:39px;font-size:11px;color:#d9bd91}
+.vargaCode{flex:none;min-width:27px;color:#edc78c;font-weight:700}
+@media(max-width:690px){.vargaGrid{grid-template-columns:1fr}.vargaGuide{padding:14px}.vargaGrid li{padding:9px 11px}}

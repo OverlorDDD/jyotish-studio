@@ -14,6 +14,25 @@ const TOPICS:readonly LifeTopic[]=[
  {id:'roots',uk:'Родина й внутрішня опора',en:'Family and inner foundations',lead:4,divisions:[4,12,40,45]}
 ];
 
+const VARGA_GUIDE:ReadonlyArray<{division:number;uk:string;en:string}>=[
+ {division:1,uk:'Особистість і загальний життєвий напрям',en:'Identity and overall direction'},
+ {division:2,uk:'Гроші, заробіток і збереження ресурсів',en:'Income, money and preserving resources'},
+ {division:3,uk:'Сміливість, спілкування і зв’язок із братами та сестрами',en:'Courage, communication and siblings'},
+ {division:4,uk:'Дім, нерухомість і відчуття опори',en:'Home, property and feeling secure'},
+ {division:7,uk:'Діти, виховання і творча спадщина',en:'Children, nurturing and creative legacy'},
+ {division:9,uk:'Партнерство, шлюб і особисті цінності',en:'Partnership, marriage and personal values'},
+ {division:10,uk:'Робота, покликання і суспільна роль',en:'Career, vocation and public responsibilities'},
+ {division:12,uk:'Батьки й родинне коріння',en:'Parents and family roots'},
+ {division:16,uk:'Комфорт, транспорт і побутові зручності',en:'Comfort, vehicles and everyday conveniences'},
+ {division:20,uk:'Духовна практика й внутрішня дисципліна',en:'Spiritual practice and inner discipline'},
+ {division:24,uk:'Навчання, освіта і майстерність',en:'Education, learning and mastery'},
+ {division:27,uk:'Сильні сторони, витривалість і вразливості',en:'Capabilities, stamina and vulnerabilities'},
+ {division:30,uk:'Складні обставини та способи їх долати',en:'Difficulties and how to navigate them'},
+ {division:40,uk:'Родинні впливи з материнського боку',en:'Maternal-line family influences'},
+ {division:45,uk:'Родинні впливи з батьківського боку',en:'Paternal-line family influences'},
+ {division:60,uk:'Тонкі символічні акценти — лише з обмеженнями точності',en:'Subtle symbolic patterns — time-accuracy limits apply'}
+];
+
 /** Keep the full, verified sixteen-card source; the first screen is not a list of D-codes. */
 export const READER_LIFE_TOPIC_ORDER=TOPICS.map(topic=>topic.id);
 const LABELS={uk:{step:'Що можна спробувати',extra:'Детальніше про цю сферу',source:'Як ми дійшли цього висновку',charts:'Додаткові трактування',basis:'Астрологічні показники',method:'Методика та точність',found:'Основні закономірності',summary:'Головний висновок',positions:'Положення планет'},
@@ -76,6 +95,7 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
     return <section className={book.lifeTopic} key={topic.id} data-testid={'reader-n496-topic-'+topic.id}>
      <h3>{uk?topic.uk:topic.en}</h3>
      <article className={book.primary} data-testid={'reader-v8-D'+topic.lead}>
+      <small className={book.primarySource}>{uk?'Астрологічна основа розділу':'Main chart for this section'}: D{topic.lead} · {uk?VARGA_GUIDE.find(v=>v.division===topic.lead)!.uk:VARGA_GUIDE.find(v=>v.division===topic.lead)!.en}</small>
       <p className={book.story} data-testid={'reader-n492-meaning-D'+topic.lead}>{primary.story}</p>
       {primary.action?<p className={book.action}><strong>{copy.step}:</strong> {primary.action}</p>:null}
       {detailsFor(main)}
@@ -100,6 +120,19 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
     </section>;
    })}
   </div>
+  <section className={book.vargaGuide} aria-labelledby="n497-all-heading" data-testid="reader-n497-varga-map">
+   <h3 id="n497-all-heading">{uk?'Усі 16 карт: що саме вони пояснюють':'All 16 charts: what each one explores'}</h3>
+   <p>{uk?
+    'П’ять основних розділів — короткий портрет. Нижче — повна карта тем, щоб жодна варга не загубилася. Основні трактування вже наведені вище; решту відкрийте через «Детальніше про цю сферу».':
+    'The five main chapters give you a quick portrait. This is the complete guide to every varga: the main readings appear above and the rest can be opened under “Explore this area”.'}</p>
+   <ol className={book.vargaGrid}>
+    {VARGA_GUIDE.map(v=><li key={v.division} data-testid={'reader-n497-varga-D'+v.division}>
+     <span className={book.vargaCode}>D{v.division}</span>
+     <span>{uk?v.uk:v.en}</span>
+     {v.division===60?<small>{uk?'D60 не є підтвердженим індивідуальним прогнозом':'D60 is not a certified individual prediction'}</small>:null}
+    </li>)}
+   </ol>
+  </section>
   <section className={book.final} data-testid="reader-n492-final">
    <span className={styles.kicker}>{uk?'✦ ПІДСУМОК':'✦ THE BIG PICTURE'}</span>
    <h3>{copy.summary}</h3>

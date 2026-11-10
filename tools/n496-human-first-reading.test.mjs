@@ -40,3 +40,26 @@ test('same-area prose no longer parrots the identical theme twice',()=>{
  assert.doesNotMatch(human,/У практичному житті це торкається сфери /);
  assert.doesNotMatch(human,/In practice this touches /);
 });
+
+test('N497 displays a complete bilingual sixteen-varga guide and identifies the five lead charts',()=>{
+ const guides=[...view.matchAll(/\{division:(\d+),uk:'([^']+)',en:'([^']+)'\}/g)];
+ assert.deepEqual(guides.map(m=>Number(m[1])),[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
+ for(const [,division,uk,en] of guides){
+  assert.ok(uk.length>16&&en.length>16,'Empty or unhelpful guide D'+division);
+ }
+ assert.match(view,/data-testid="reader-n497-varga-map"/);
+ assert.match(view,/data-testid=\{'reader-n497-varga-D'\+v\.division\}/);
+ assert.match(view,/className=\{book\.primarySource\}/);
+ assert.match(view,/className=\{book\.vargaGrid\}/);
+ assert.match(css,/\.vargaGrid\{list-style:none/);
+ assert.match(css,/@media\(max-width:690px\)/);
+ assert.match(view,/v\.division===60\?/);
+});
+test('N497 switches supplementary charts from repeated house-theme leads to distinct real-life situations',()=>{
+ const openings=[...human.matchAll(/^\s*(\d+):\['([^']+)',/gm)].filter(m=>[3,7,12,16,20,27,30,40,45].includes(Number(m[1])));
+ assert.ok(openings.length>=9);
+ assert.match(human,/const HUMAN_OPENING:/);
+ assert.match(human,/let lead=HUMAN_OPENING\[division\]/);
+ assert.match(human,/Зіставлення D1 та D60/);
+ assert.doesNotMatch(human,/У ваших глибинних мотивах може виразно звучати тема/);
+});
