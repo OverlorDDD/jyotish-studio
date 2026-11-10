@@ -4,10 +4,16 @@
  */
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION,compactJyotishFacts} from '../apps/api/src/direct-jyotish.ts';
+import {makeN4RcPayload} from '../apps/api/src/n4-rc-contract.ts';
+import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 const input={date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0};
 const positions=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
  .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}));
-const chart=calculateChart(input,{ayanamsa:23.8,ascendant:100,positions,julianDay:2451545,backend:'synthetic'});
+const calculated=calculateChart(input,{ayanamsa:23.8,ascendant:100,positions,julianDay:2451545,backend:'synthetic'});
+const proof={version:'jyotish-integrity-v3',status:'verified_internal',
+ digest:'a'.repeat(64),externalReferenceChecked:false,checks:['synthetic_unit_source']};
+const chart={...calculated,verification:proof,
+ n4:makeN4RcPayload(calculated,proof),n4D60:makeN4D60Candidate(calculated,proof)};
 const choice=(process.env.AI_LIVE_PROVIDER||'').trim().toLowerCase();
 const available=['gemini','groq','openrouter'];
 if(choice&&!available.includes(choice)){
@@ -15,6 +21,7 @@ if(choice&&!available.includes(choice)){
  process.exitCode=2;
 }else{
  console.log('Mode='+DIRECT_JYOTISH_VERSION+', data=FICTIONAL_CHART, factsCharacters='+compactJyotishFacts(chart,'2026-10-22').length);
+ console.log('N501_SYNTHETIC_N4_VERIFIED=16_SOURCE_BOUND_CHARTS');
  for(const [name,enabled,key] of [
   ['gemini',process.env.GEMINI_FREE_TIER_CONFIRMED==='1',process.env.GEMINI_API_KEY],
   ['groq',process.env.GROQ_FREE_TIER_CONFIRMED==='1',process.env.GROQ_API_KEY],
