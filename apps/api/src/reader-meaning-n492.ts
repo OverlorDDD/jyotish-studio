@@ -16,6 +16,7 @@ import {buildD60Preview} from './reader-d60-n47.ts';
 import {buildN493Overview,type N493Overview} from './reader-insights-n493.ts';
 import {buildN493ThematicDetail} from './reader-detail-n493.ts';
 import {buildHumanReaderCard,buildHumanReaderSummary} from './reader-human-n495.ts';
+import {buildLifePortraitN496,type LifePortrait} from './reader-portrait-n496.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -23,7 +24,7 @@ type Lang='uk'|'en';
 type Card={division:number;title:string;meaning:string;connection:string|null;
  status:'notable'|'mixed'|'contextual'|'provisional';proof:string[];sourceIds:string[]};
 export type MeaningfulReading={version:typeof N492_MEANING_VERSION;
- cards:readonly Card[];discoveries:N493Overview;summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
+ cards:readonly Card[];discoveries:N493Overview;portrait:LifePortrait;summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
  method:string};
 const HEADS:Readonly<Record<number,[string,string,number]>>={
  1:['Особистість і життєвий напрям','Identity and direction',1],
@@ -387,7 +388,9 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
  }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
  const readable=buildHumanReaderSummary(chart,lang);
- return {version:N492_MEANING_VERSION,cards,discoveries,
+ const portrait=buildLifePortraitN496(chart,lang);
+ if(!portrait||portrait.areas.length!==5)return null;
+ return {version:N492_MEANING_VERSION,cards,discoveries,portrait,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
    strength:readable.strength,attention:readable.attention,direction:readable.direction,proof:[
     'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+get(lp[1])!.house,
