@@ -7,6 +7,7 @@ type Meaningful=NonNullable<ReaderV8UI['meaningful']>;
 export default function ReaderN492View({data,lang,minutesUncertain=false}:
  {data:ReaderV8UI;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',read=data.meaningful as Meaningful|null|undefined;
+ const discoveries=read?.discoveries;
  if(!read||read.cards.length!==16)return null;
  return <section className={styles.root+' '+book.root} data-testid="reader-v8" aria-labelledby="n492-heading">
   <header className={styles.top}>
@@ -16,19 +17,40 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
     'From the main D1 chart to its finer divisions, focusing on what matters in each theme.'}</p>
   </header>
   {minutesUncertain?<p className={book.notice} role="note">{uk?
-   'Час народження позначено як приблизний: тонкі карти можуть змінитися; твердження щодо D60 умовні.':
-   'Birth time is marked approximate: finer divisional positions may change; D60 statements are provisional.'}</p>:null}
+   'Час народження позначено як приблизний. Для тонких карт важлива точність введених даних; подробиці — у методиці нижче.':
+   'Birth time is marked approximate. Finer charts depend on accurate input; details are in the methodology below.'}</p>:null}
+  {(discoveries?.insights?.length ?? 0)>=3?<section className={book.discoveries} aria-labelledby="reader-n493-heading" data-testid="reader-n493-top-insights">
+   <span className={styles.kicker}>{uk?'✦ 3–5 ГОЛОВНИХ ЗАКОНОМІРНОСТЕЙ':'✦ MAIN CHART PATTERNS'}</span>
+   <h3 id="reader-n493-heading">{uk?'Що вирізняє саме вашу карту':'What stands out in your chart'}</h3>
+   <p className={book.discoveriesIntro}>{uk?
+    'Відібрано з перевірених положень та управлінь. Нижче кожний висновок пояснено у відповідній D-картці.':
+    'Ranked from verified placements and rulerships. Each topic is explained in its divisional card below.'}</p>
+   <ol>
+    {discoveries!.insights.map(item=><li key={item.id} className={book.discovery}>
+     <strong>{item.headline}</strong>
+     <p>{item.teaser}</p>
+     <a href={'#reader-n493-card-D'+item.division}>{uk?'Дивитися пояснення в D'+item.division:
+      'Read D'+item.division+' interpretation'}</a>
+    </li>)}
+   </ol>
+  </section>:null}
   <div className={styles.grid} data-testid="reader-n492-16-cards">
    {read.cards.map(card=>{
     const isD60=card.division===60;
     const legacy=data.insights.find(i=>i.division===card.division);
     const d60=data.d60Preview;
+    const basisLabel=uk?'Астрологічна основа: ':'Astrological basis: ';
+    const basisIndex=card.meaning.lastIndexOf(basisLabel);
+    const humanMeaning=basisIndex<0?card.meaning:card.meaning.slice(0,basisIndex).trim();
+    const evidenceLine=basisIndex<0?'':card.meaning.slice(basisIndex);
     return <article key={card.division} className={styles.card+' '+book.card}
       data-testid={isD60?'reader-v8-d60':'reader-v8-D'+card.division}>
+     <div id={'reader-n493-card-D'+card.division} className={book.cardAnchor}/>
      <header className={styles.cardTitle}>
       <span>D{card.division}</span><h4>{card.title}</h4>
      </header>
-     <p className={book.meaning} data-testid={'reader-n492-meaning-D'+card.division}>{card.meaning}</p>
+     <p className={book.meaning} data-testid={'reader-n492-meaning-D'+card.division}>{humanMeaning}</p>
+     {evidenceLine?<p className={book.basis}>{evidenceLine}</p>:null}
      {card.connection?<p className={book.connection} data-testid={'reader-n492-link-D'+card.division}>
       <strong>{uk?'Що ще підтверджує карта':'Cross-chart evidence'}:</strong> {card.connection}
      </p>:null}
@@ -36,15 +58,8 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
       <div className={book.signs} data-testid="reader-n492-d60-nine">
        {d60.allPlanets.map(p=><div key={p.planet} className={book.sign}>
         <strong>{p.label}</strong><span>{p.d60SignName}</span>
-        {p.nearBoundary?<small>{uk?'Чутливо до часу':'Time-sensitive'}</small>:null}
        </div>)}
       </div>:null}
-     {isD60&&minutesUncertain?<p className={book.notice}>{uk?
-       'Знаки D60 наведено для введеного моменту, але без підтвердження точності часу вони не стають надійним описом людини.':
-       'D60 signs refer to the entered instant, not an independently verified birth-time reading.'}</p>:null}
-     {!isD60&&legacy?.timeSensitivity!=='ordinary'?
-      <small className={book.caution}>{uk?'Точність цієї варги залежить від часу народження.':
-       'This varga is sensitive to birth-time accuracy.'}</small>:null}
      <details className={styles.proof}>
       <summary>{uk?'Чому такий висновок':'Why this interpretation'}</summary>
       <code>{card.proof.join(' · ')}</code>
@@ -60,9 +75,11 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
   <section className={book.final} data-testid="reader-n492-final">
    <span className={styles.kicker}>{uk?'✦ ГОЛОВНЕ':'✦ THE ESSENTIALS'}</span>
    <h3>{read.summary.title}</h3>
-   <p><strong>{uk?'Ваша опора: ':'Your strengths: '}</strong>{read.summary.strength}</p>
-   <p><strong>{uk?'На що звернути увагу: ':'Watch for: '}</strong>{read.summary.attention}</p>
-   <p><strong>{uk?'Загальний напрям: ':'Your direction: '}</strong>{read.summary.direction}</p>
+   {discoveries?.summary?<p data-testid="reader-n493-synthesis">{discoveries.summary}</p>:<>
+    <p><strong>{uk?'Ваша опора: ':'Your strengths: '}</strong>{read.summary.strength}</p>
+    <p><strong>{uk?'На що звернути увагу: ':'Watch for: '}</strong>{read.summary.attention}</p>
+    <p><strong>{uk?'Загальний напрям: ':'Your direction: '}</strong>{read.summary.direction}</p>
+   </>}
   </section>
   <details className={book.method}>
    <summary>{uk?'Методика та межі точності':'Method and limits'}</summary>

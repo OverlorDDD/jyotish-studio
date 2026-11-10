@@ -94,7 +94,7 @@ export function buildD60Preview(chart:CalculatedChart,lang:Lang):D60Preview{
    role(p.key)+' — '+p.uk+'. '+(sameSign?
     'У D1 та D60 повторюється знак «'+UK_SIGN_LABELS[fine.sign-1]+'»'+
      ' ('+fineTheme+'). Це підтверджує збіг знаків, але не доводить точність часу народження.':
-    'У D1 планета перебуває у '+from+' ('+natalTheme+'), а в D60 — у '+to+
+    'У D1 планета перебуває '+(from==='Овні'?'в ':'у ')+from+' ('+natalTheme+'), а в D60 — '+(to==='Овні'?'в ':'у ')+to+
      ' ('+fineTheme+'). Це два символічні ракурси однієї планети, а не прогноз події.'):
    role(p.key)+' — '+p.key+'. '+(sameSign?
     'Both D1 and D60 place it in '+EN_SIGNS[fine.sign-1]+

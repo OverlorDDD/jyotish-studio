@@ -1,6 +1,7 @@
 .root{max-width:100%;min-width:0}
 .card{display:flex;flex-direction:column;align-items:stretch;min-width:0;gap:14px!important;overflow-wrap:anywhere}
 .meaning{font-size:14px;line-height:1.82;max-width:68ch;color:#e7edf6;margin:0}
+.basis{font-size:12px;line-height:1.65;color:#a9b8cb;max-width:76ch;margin:0;overflow-wrap:anywhere}
 .connection{font-size:13px;line-height:1.7;color:#dbe6f5;background:rgba(193,160,100,.08);border-left:2px solid #caa77b;padding:10px 12px;border-radius:0 8px 8px 0;margin:0}
 .connection strong{color:#f2d4a4;font-weight:650}
 .caution{font-size:11px;line-height:1.45;color:#e5c59b}
@@ -16,3 +17,16 @@
 .method summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media(max-width:620px){.signs{grid-template-columns:repeat(2,minmax(0,1fr))}.meaning{font-size:14px;line-height:1.75}.final{margin-top:24px}}
 @media(max-width:340px){.signs{grid-template-columns:1fr}.card{gap:10px!important}}
+
+/* N4.9.3: concise chart-specific discovery shortlist, not a second essay. */
+.discoveries{margin:18px 0 28px;padding:18px 19px;border:1px solid rgba(217,184,127,.29);border-radius:14px;background:linear-gradient(145deg,rgba(31,43,68,.55),rgba(16,24,43,.65))}
+.discoveries h3{font-size:clamp(18px,2.7vw,23px);font-family:Georgia,serif;color:#f3d7ad;margin:10px 0 6px}
+.discoveriesIntro{font-size:13px;line-height:1.65;color:#d2dbeb;max-width:75ch;margin:0 0 14px}
+.discoveries ol{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.discovery{padding:12px 14px;border-radius:10px;background:rgba(11,22,40,.5);border:1px solid rgba(183,192,213,.13);min-width:0;overflow-wrap:anywhere}
+.discovery strong{color:#f4e0c0;font-size:14px;line-height:1.5;display:block}
+.discovery p{font-size:12px;line-height:1.6;color:#bfcddd;margin:8px 0}
+.discovery a{color:#f0c98d;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.discovery a:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.cardAnchor{position:relative;top:-110px;visibility:hidden}
+@media(max-width:700px){.discoveries ol{grid-template-columns:1fr}.discoveries{padding:15px 12px}}

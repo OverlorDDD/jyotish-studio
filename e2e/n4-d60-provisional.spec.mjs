@@ -39,7 +39,7 @@ function fixture(){
 async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
-   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n492-evidence-prioritized-16-varga-v1',verificationContract:'jyotish-integrity-v3'
+   readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n493-ranked-patterns-1.0.0',verificationContract:'jyotish-integrity-v3'
   })}));
  await page.route('**/api/v1/panchanga/cities?*',r=>r.fulfill({
   status:200,contentType:'application/json',
@@ -122,6 +122,10 @@ function mockV8(divisions){
    links:divisions.map(division=>({division,polarity:'unresolved',evidence:['D1.Mercury.house=3']}))},
   meaningful:{
    version:'n492-evidence-prioritized-16-varga-v1',
+   discoveries:{version:'n493-ranked-patterns-1.0.0',summary:'Три головні закономірності випливають із обчислених положень планет і тематичних карт.',
+    insights:[1,9,10].map((division,i)=>({id:'mock-'+i,division,relatedDivisions:[],planet:'Mercury',
+     headline:'Особиста тема '+division,teaser:'Ця тема поєднує перевірені положення двох карт без вигаданих висновків.',
+     interpretation:'Тема розрахована за головною та тематичною картами.',attention:'Точність обмежена введеним часом.',prominence:8-i,kind:'context',proof:['D1.Mercury.house=3','D'+division+'.Mercury.sign=5']}))},
    cards:[...divisions,60].map(division=>({
     division,title:'Життєва сфера D'+division,
     meaning:'Для цієї сфери розраховано конкретні положення; головний управитель D1 задає її значення, а тематична карта показує другий рівень.',

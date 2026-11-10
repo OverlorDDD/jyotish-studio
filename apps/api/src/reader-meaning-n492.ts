@@ -13,6 +13,9 @@ import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts'
 import {authorConsultationV6} from './reader-narrative-v6.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
+import {buildN493Overview,type N493Overview} from './reader-insights-n493.ts';
+import {buildN493ThematicDetail} from './reader-detail-n493.ts';
+import {buildHumanReaderCard,buildHumanReaderSummary} from './reader-human-n495.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -20,7 +23,7 @@ type Lang='uk'|'en';
 type Card={division:number;title:string;meaning:string;connection:string|null;
  status:'notable'|'mixed'|'contextual'|'provisional';proof:string[];sourceIds:string[]};
 export type MeaningfulReading={version:typeof N492_MEANING_VERSION;
- cards:readonly Card[];summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
+ cards:readonly Card[];discoveries:N493Overview;summary:{title:string;strength:string;attention:string;direction:string;proof:string[]};
  method:string};
 const HEADS:Readonly<Record<number,[string,string,number]>>={
  1:['Особистість і життєвий напрям','Identity and direction',1],
@@ -38,7 +41,7 @@ const HEADS:Readonly<Record<number,[string,string,number]>>={
  30:['Труднощі й стратегії подолання','Difficulties and how to face them',6],
  40:['Материнська лінія','Maternal lineage',4],
  45:['Батьківська лінія та принципи','Paternal lineage and values',9],
- 60:['Тонкі положення планет','Fine planetary positions',1]
+ 60:['Глибинні мотиви й життєві уроки','Deeper motivations and life lessons',1]
 };
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
@@ -106,18 +109,24 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
  const same=(div:number,name:string)=>source.find(c=>c.division===div)?.planets.find(p=>p.name===name);
  const facts=ruleFindings(chart);
  const d60=buildD60Preview(chart,lang);
+ const discoveries=buildN493Overview(chart,lang);
+ if(!discoveries)return null;
  const cards:Card[]=[];
  for(const div of N492_ORDER){
   const [titleUk,titleEn,topicHouse]=HEADS[div];
   const title=uk?titleUk:titleEn;
   if(div===60){
    const usable=d60.status==='conditional_signs'&&d60.allPlanets.length===9;
-   const main=d60.factors[0];
+   const main=d60.factors[0],second=d60.factors[1];
    const meaning=usable?
-    (uk?'За введеним часом обчислено дев’ять планетарних знаків D60. '+
-      (main?main.note:'Частина положень чутлива до меж поділу; точний висновок поки не робимо.'):
-     'Nine D60 planetary signs are calculated for the entered time. '+
-      (main?main.note:'Some placements are near divisional boundaries, so no precise conclusion is drawn.')):
+    (uk?'D60 — не ще один життєвий прогноз: це чутливий до точності часу зріз дев’яти розрахованих знаків. '+
+     (main?main.note+' ':'Немає достатньо віддалених від межі положень для персонального зіставлення. ')+
+     (second?second.note+' ':'')+
+     'Ці зіставлення допомагають побачити, як змінюється символічний акцент між D1 та D60, але самі не підтверджують точність записаного часу.':
+     'D60 is not another life forecast; it is a birth-time-sensitive view of nine calculated signs. '+
+     (main?main.note+' ':'No placements are sufficiently far from divisional boundaries for a closer personal comparison. ')+
+     (second?second.note+' ':'')+
+     'These comparisons show changes in symbolic emphasis between D1 and D60, not a certification of the recorded birth time.'):
     (uk?'Немає надійно прив’язаних до D1 даних D60 для індивідуального висновку.':
       'D60 evidence cannot currently be reliably bound to the birth chart.');
    cards.push({division:60,title,meaning,connection:null,status:'provisional',
@@ -166,10 +175,35 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    const degree=statusMeaning(dnQuality,uk);
    if(degree)meaning+=' '+(uk?'Професійна варга: '+pName(lord)+' '+degree:
     'Vocational division: '+lord+' is '+degree);
-   if(to===6)meaning+=' '+(uk?'Акцент професійної карти — щоденна майстерність, робота зі складними завданнями й системні процеси.':
-    'The vocational emphasis is disciplined problem-solving, regular craft and practical processes.');
-   else if(to===9)meaning+=' '+(uk?'Друга лінія професії — навчання, викладання або робота зі знаннями.':
-    'Education, teaching and the use of knowledge become another relevant vocational theme.');
+   // A concrete task based on the actual D10 house, not a guessed job title.
+   // This survives as the fallback when no higher-ranked discovery owns D10.
+   const vocationalTask:Record<number,[string,string]>={
+    1:['Самостійна відповідальність: перевірте цей мотив на невеликому проєкті, де вам належить головне рішення.',
+       'Own the decision on a small project and observe how independent responsibility feels.'],
+    2:['Ресурси й мовлення: спробуйте завдання з бюджетування, пояснення вартості або прозорих домовленостей.',
+       'Test work involving resource planning, explaining value or clear commercial agreements.'],
+    3:['Навички та комунікація: створіть коротку інструкцію, доповідь або прототип, який інші зможуть перевірити.',
+       'Build a short explanation, presentation or prototype others can test.'],
+    4:['Основа й стабільність: оцініть свою роботу над процесом, який робить систему або команду надійнішою.',
+       'Test a task that improves the reliability of a system, routine or team.'],
+    5:['Творчість та наставництво: перевірте тему через власний прототип або навчання іншої людини.',
+       'Test the creative or mentoring theme through a prototype or by teaching someone.'],
+    6:['Щоденна майстерність і складні задачі: оберіть процес, який можете реально полагодити й виміряти результат.',
+       'Pick a recurring complex problem you can solve and measure in practice.'],
+    7:['Спільна робота: випробуйте роль, де важливі переговори, чіткі обов’язки й взаємний результат.',
+       'Try a collaborative role that requires negotiation, clear duties and a shared result.'],
+    8:['Зміни та спільна відповідальність: проведіть аудит складної задачі й складіть план безпечного вдосконалення.',
+       'Audit a complex process and propose a careful improvement plan with shared ownership.'],
+    9:['Знання й наставництво: створіть навчальний матеріал або поясніть складну тему тому, хто лише починає.',
+       'Develop a lesson or explain a complex concept to a beginner.'],
+    10:['Відповідальність і публічний результат: візьміть невеликий проєкт від плану до завершення.',
+        'Lead a small visible project from planning to delivery.'],
+    11:['Здобутки й спільноти: оберіть роботу, де користь можна оцінити за результатом для інших.',
+        'Test a task with a measurable benefit for a group or community.'],
+    12:['Закулісна робота: дослідіть складну проблему самостійно й зафіксуйте висновок у документі.',
+        'Explore a complex problem independently and document a useful conclusion.']
+   };
+   meaning+=' '+(uk?'Практична перевірка професійного мотиву: ':'Test this vocational theme: ')+vocationalTask[to][idx];
   }else if(div===9){
    const venus=same(9,'Venus')!;
    meaning=uk?'У D1 сьомим домом керує '+pName(lord)+' у '+natal.house+'-му домі (сфера '+area(natal.house)+
@@ -184,7 +218,33 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     'Venus adds an independent relationship indicator in the D9 sign '+sign(venus.sign)+'.');
    else meaning+=' '+(uk?'У цій карті Венера має особливу вагу для партнерства, але оцінювати її слід разом з іншими показниками D1 і D9.':
     'Venus is especially relevant for partnership here, but needs context from the other D1 and D9 factors.');
-   proof.push('D9.Venus.sign='+venus.sign);
+   // A second relationship indicator is separate only if it is a different
+   // graha; when Venus is already the seventh ruler, use Moon for needs.
+   const secondaryName=lord==='Venus'?'Moon':'Venus';
+   const relational=same(9,secondaryName)!;
+   const d9Focus:Record<number,[string,string]>={
+    1:['автономність поряд із союзом','independence within partnership'],
+    2:['цінності, розмови й сімейні ресурси','values, conversations and family resources'],
+    3:['спілкування і здатність відкрито просити','communication and speaking up'],
+    4:['відчуття дому та безпеки','home and security'],
+    5:['спільні творчі справи та підтримку розвитку','shared creativity and learning'],
+    6:['поділ щоденних обов’язків','sharing everyday responsibilities'],
+    7:['домовленості про взаємність','reciprocity and agreements'],
+    8:['довіру та спільну відповідальність','trust and shared duties'],
+    9:['цінності, світогляд та навчання разом','values, worldview and learning together'],
+    10:['баланс роботи й обов’язків','balance between work and commitment'],
+    11:['друзів, спільноти й взаємні цілі','friendships, communities and shared goals'],
+    12:['особисті межі й потребу в тиші','privacy, boundaries and quiet']
+   };
+   meaning+=' '+(uk?'D9 розміщує управителя союзу в '+varga.house+'-му домі: '+
+    'для розвитку стосунків традиційно важлива тема «'+d9Focus[varga.house][0]+'». '+
+    (secondaryName==='Moon'?'Місяць ':'Венера ')+
+    'як окремий показник у D9 знаходиться в '+relational.house+'-му домі. '+
+    'Практично: проговоріть цю тему з іншою людиною, не припускаючи її відповіді наперед.':
+    'D9 puts the partnership ruler in house '+varga.house+', bringing a traditional focus on '+
+    d9Focus[varga.house][1]+'. '+secondaryName+' is a distinct indicator in D9 house '+
+    relational.house+'. Discuss the practical issue with the other person rather than assuming their response.');
+   proof.push('D9.Venus.sign='+venus.sign,'D9.'+secondaryName+'.house='+relational.house);
   }else if(div===2){
    const gains=lp[11],g=get(gains)!;
    meaning=uk?'Другим домом ресурсів керує '+pName(lord)+' у '+natal.house+'-му домі (сфера '+area(natal.house)+
@@ -198,7 +258,55 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
     'D2 sign assessment: '+lord+' is '+degree);
    if(gains===lord)meaning+=' '+(uk?'Один управитель пов’язує збереження ресурсів і отримання результатів.':
     'The same ruler links accumulating resources with securing gains.');
+   const moneyFocus:Record<number,[string,string]>={
+    1:['особистої ініціативи','independent initiative'],2:['накопичення та сімейних цінностей','savings and family values'],
+    3:['навичок і комунікації','skills and communication'],4:['дому та довготривалої опори','home and lasting security'],
+    5:['творчих проєктів','creative projects'],6:['праці та щоденної дисципліни','work and daily discipline'],
+    7:['домовленостей і партнерства','partnership and agreements'],8:['спільних зобов’язань і змін','shared duties and change'],
+    9:['навчання та наставництва','learning and mentorship'],10:['професійної роботи','career and public work'],
+    11:['спільноти та здобутків','community and gains'],12:['витрат і потреби у відновленні','expenses and recovery']
+   };
+   meaning+=' '+(uk?'Тема збереження ресурсів у D1 пов’язана зі сферою «'+moneyFocus[natal.house][0]+'». '+
+    (natal.house===g.house?'Управителі 2-го й 11-го домів займають один дім, тож питання доходу й того, що залишається, зустрічаються в одній сфері. ':
+     'Здобутки через 11-й дім мають іншу опору: «'+moneyFocus[g.house][0]+'». ')+
+    'Практично розділяйте надходження, зобов’язання і те, що вдається зберегти.':
+    'The natal resources theme involves '+moneyFocus[natal.house][1]+'. '+
+    (natal.house===g.house?'The second and eleventh rulers share a house, linking two different money questions in one arena. ':
+     'Gains point to a different arena: '+moneyFocus[g.house][1]+'. ')+
+    'In practice separate incoming resources, obligations and what you retain.');
    proof.push('D1.house-lord.11='+gains,'D1.'+gains+'.house='+g.house);
+  }else if(div===24){
+   const otherName=lord==='Mercury'?'Jupiter':'Mercury';
+   const other=same(24,otherName)!;
+   const d24Focus:Record<number,[string,string]>={
+    1:['самостійно розпочате завдання','a self-directed task'],
+    2:['пояснення і відтворення знань','explaining and retaining knowledge'],
+    3:['практику навичок і спілкування','practicing skills and communicating'],
+    4:['створення міцної основи й регулярні заняття','building a strong learning foundation'],
+    5:['творчий проєкт','a creative project'],
+    6:['повторення й розв’язання помилок','repetition and solving real mistakes'],
+    7:['навчання разом із партнером','learning with a partner'],
+    8:['розбір складної проблеми','investigating a complex problem'],
+    9:['навчання від наставника','learning from a mentor'],
+    10:['професійне застосування знань','professional application of knowledge'],
+    11:['взаємний обмін у спільноті','knowledge exchange in a community'],
+    12:['самостійне дослідження','independent research']
+   };
+   meaning=uk?'У D1 управитель 5-го дому '+pName(lord)+' стоїть у '+natal.house+
+    '-му домі (тема «'+area(natal.house)+'»). У D24 він у '+varga.house+
+    '-му домі, у знаку «'+sign(varga.sign)+'». '+
+    'Тому перевіряйте засвоєні знання через '+d24Focus[varga.house][0]+'. '+
+    'Другий показник навчання, '+pName(otherName)+', у D24 займає '+other.house+
+    '-й дім; його не можна прирівнювати до самого управителя п’ятого.':
+    'In D1 the fifth-house ruler '+lord+' occupies house '+natal.house+
+    ' ('+area(natal.house)+'); in D24 it occupies house '+varga.house+
+    ' in '+sign(varga.sign)+'. Test learning through '+d24Focus[varga.house][1]+
+    '. The separate learning indicator '+otherName+' is in D24 house '+other.house+
+    ', a distinct influence from the fifth ruler.';
+   const degree=statusMeaning(dnQuality,uk);
+   if(degree)meaning+=' '+(uk?'Знакова оцінка D24: '+pName(lord)+' '+degree:
+    'D24 sign dignity: '+lord+' is '+degree);
+   proof.push('D24.'+otherName+'.sign='+other.sign,'D24.'+otherName+'.house='+other.house);
   }else{
    const focused=uk?'У D'+div+' '+pName(lord)+' перебуває в '+t1+'-му домі, у знаку «'+sign(varga.sign)+'».':
      'In D'+div+', '+lord+' occupies house '+t1+' in '+sign(varga.sign)+'.';
@@ -242,74 +350,47 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    status:(dnQuality==='debilitated'&&notable(natalQuality))||(notable(dnQuality)&&natalQuality==='debilitated')?'mixed':
     notable(dnQuality)||isYoga?'notable':'contextual',proof,sourceIds:[]});
  }
+ // Use the evidence-ranked narrative as the card's source of meaning when a
+ // topic is one of the most characteristic for this specific chart.
+ // Its claim is shown only once: the top overview is a short headline; the
+ // expanded card carries the actual details and limitations.
+ // All other subject cards now require a distinct secondary graha
+ // comparison rather than a generic life-coaching tip.
+ for(const card of cards){
+  const detail=buildN493ThematicDetail(chart,lang,card.division);
+  if(detail){
+   card.meaning=detail.meaning;
+   card.proof=[...new Set([...card.proof,...detail.proof])];
+   card.sourceIds=[...new Set([...card.sourceIds,'N493-TWO-INDICATOR-COMPARISON'])];
+  }
+ }
+ const leading=new Map<number,N493Overview['insights']>();
+ for(const insight of discoveries.insights){
+  leading.set(insight.division,[...(leading.get(insight.division)||[]),insight]);
+ }
+ for(const card of cards){
+  const specials=leading.get(card.division)||[];
+  if(specials.length){
+   // Several distinct evidence patterns may belong to the same D1 card.
+   // Keep each surfaced claim verifiable at its linked destination.
+   card.meaning=specials.map(x=>x.interpretation).join(' ');
+   card.proof=[...new Set([...card.proof,...specials.flatMap(x=>x.proof)])];
+   card.sourceIds=[...new Set([...card.sourceIds,'N493-EVIDENCE-PRIORITY'])];
+  }
+ }
+ // The external reader sees human meaning first, not the computational trace.
+ // Keep proof/sourceIds untouched for audits. The single chart basis sentence
+ // is part of the reading; no extra technical connection paragraph is needed.
+ for(const card of cards){
+  const human=buildHumanReaderCard(chart,lang,card.division);
+  if(human){card.meaning=human.meaning;card.connection=null;}
+ }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
- const lagnaLord=lp[1],careerLord=lp[10],relationLord=lp[7];
- const asc=get(lagnaLord)!,career=get(careerLord)!,moon=get('Moon')!;
- const primaryYoga=[...yoga].find(g=>[careerLord,lagnaLord,lp[9],lp[5]].includes(g))||[...yoga][0];
- const d10Yoga=primaryYoga?same(10,primaryYoga):null;
- const chosenDignities=([10,9,2,24,27] as number[]).flatMap(div=>{
-  const graha=lp[HEADS[div][2]],p=same(div,graha);
-  return p&&notable(dignityFor(graha,p.sign))?[{div,graha,sign:p.sign,kind:dignityFor(graha,p.sign)}]:[];
- }).slice(0,2);
- const yogaPart=primaryYoga?(uk?
-  pName(primaryYoga)+' керує кутовим і тригональним домами (йогакарака).'+
-   (d10Yoga?' У D10 він перебуває у знаку «'+sign(d10Yoga.sign)+'»'+
-    (dignityFor(primaryYoga,d10Yoga.sign)==='exalted'?' — це знак його екзальтації.':'.'):''):
-  primaryYoga+' rules both an angular and a trinal house (yogakaraka).'+
-   (d10Yoga?' In D10 it occupies '+sign(d10Yoga.sign)+
-    (dignityFor(primaryYoga,d10Yoga.sign)==='exalted'?', its exaltation sign.':'.'):'')
- ):'';
- const dignityPart=chosenDignities.length?(uk?
-   chosenDignities.map(x=>'D'+x.div+': '+pName(x.graha)+' у знаку «'+sign(x.sign)+'» ('+
-     (x.kind==='exalted'?'екзальтація':'власний знак')+')').join('; ')+'.':
-   chosenDignities.map(x=>'D'+x.div+': '+x.graha+' in '+sign(x.sign)+' ('+
-     (x.kind==='exalted'?'exaltation':'own sign')+')').join('; ')+'.'):'';
- const strength=[yogaPart,dignityPart].filter(Boolean).join(' ').trim()||
-  (lagnaLord===careerLord?(uk?
-   pName(lagnaLord)+' керує одночасно першим і десятим домами й перебуває в '+asc.house+
-   '-му домі. Саме ця спільна роль пов’язує особистий напрям і професію.':
-   lagnaLord+' rules both the first and tenth houses from house '+asc.house+
-   ', connecting personal direction to vocation.'):
-   (uk?'Управитель висхідного знака '+pName(lagnaLord)+' у '+asc.house+'-му домі, а професії — '+
-     pName(careerLord)+' у '+career.house+'-му. Ці два положення визначають різні опори карти.':
-    'The ascendant ruler '+lagnaLord+' occupies house '+asc.house+', while career ruler '+
-     careerLord+' occupies house '+career.house+'. They provide distinct chart anchors.'));
- const weak=chart.d1.find(p=>dignityFor(p.name,p.sign)==='debilitated');
- const attention=weak?(uk?
-  pName(weak.name)+' у D1 перебуває у знаку «'+sign(weak.sign)+'» — знаку традиційного падіння. '+
-   'Перш ніж оцінювати його вплив, слід перевірити інші управління, аспекти та силу планети.':
-  weak.name+' in D1 occupies '+sign(weak.sign)+', its traditional debilitation sign. '+
-   'Interpretation requires checking lordship, aspects and fuller planetary strength.') :
-  moon.house===career.house?(uk?
-   'Місяць і управитель професії перебувають у '+career.house+'-му домі: потреба у відновленні '+
-   'та робочі завдання торкаються однієї сфери, хоча не означають одного й того самого.':
-   'The Moon and career ruler both occupy house '+career.house+
-   '. Emotional recovery and professional responsibilities meet in one arena, but are not identical.'):
-   (uk?'Місяць перебуває в '+moon.house+'-му домі, а управитель професії — в '+career.house+
-     '-му. Розрахунок розділяє потребу в особистому ритмі та професійні завдання.':
-    'The Moon is in house '+moon.house+' and the career ruler in house '+career.house+
-    '. The chart distinguishes the need for recovery from vocational responsibilities.');
- const relationship=get(relationLord)!;
- const direction=lagnaLord===careerLord?(uk?
-  'У вашій карті '+pName(lagnaLord)+' одночасно керує особистим напрямом і кар’єрою. '+
-  'Його положення в '+asc.house+'-му домі варто читати разом із D10; '+
-  'для партнерства окремим показником залишається '+pName(relationLord)+
-  ' у '+relationship.house+'-му домі.':
-  'The same '+lagnaLord+' rules identity and vocation. Read its house '+asc.house+
-  ' placement with D10; partnership retains its own indicator, '+relationLord+
-  ' in house '+relationship.house+'.'):
-  (uk?'Особистий напрям розкриває '+pName(lagnaLord)+' у '+asc.house+'-му домі ('+area(asc.house)+
-  '); професійний — '+pName(careerLord)+' у '+career.house+'-му ('+area(career.house)+
-  '); партнерство — '+pName(relationLord)+' у '+relationship.house+'-му ('+area(relationship.house)+
-  '). Кожна сфера має свою роль; одна сприятлива позиція не замінює перевірки решти карти.':
-  'Personal direction follows '+lagnaLord+' in house '+asc.house+
-  ', vocation '+careerLord+' in house '+career.house+
-  ', and partnership '+relationLord+' in house '+relationship.house+
-  '. Look for actual corroboration rather than assuming one chart factor decides every area.');
- return {version:N492_MEANING_VERSION,cards,
+ const readable=buildHumanReaderSummary(chart,lang);
+ return {version:N492_MEANING_VERSION,cards,discoveries,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
-   strength,attention,direction,proof:[
-    'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+asc.house,
+   strength:readable.strength,attention:readable.attention,direction:readable.direction,proof:[
+    'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+get(lp[1])!.house,
     'D1.house-lord.10='+lp[10],'D1.'+lp[10]+'.house='+get(lp[10])!.house
    ]},
   method:uk?'Традиційна інтерпретація: D1, функціональні управителі, знакові положення, тематичні варги. Знакова гідність — не повна Shadbala; D60 умовна.':

@@ -13,6 +13,7 @@ import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from '../apps/api/src/reader-classical.ts';
 import {buildMeaningfulN492,N492_ORDER} from '../apps/api/src/reader-meaning-n492.ts';
 import {buildClassicalReaderV8} from '../apps/api/src/reader-v8.ts';
+import {buildHumanReaderD60} from '../apps/api/src/reader-human-n495.ts';
 import {dignityFor} from '../packages/jyotish-core/src/rules.ts';
 
 const planets=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
@@ -46,7 +47,7 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
    for(const card of result.cards){
     assert.ok(card.title.length>5);
     assert.ok(card.meaning.length>=110&&card.meaning.length<=970, 'meaning length '+seed+'/'+lang+'/'+card.division+'/'+card.meaning.length);
-    assert.doesNotMatch(card.meaning,/Обидва ракурси повторюють|заслуговує на окрему увагу|один із показників|D1[^\n]*а в D1|мінімальний обсяг|one of the indicators/i);
+    assert.doesNotMatch(card.meaning,/Обидва ракурси повторюють|заслуговує на окрему увагу|один із показників|D1[^\n]*а в D1(?![0-9])|мінімальний обсяг|one of the indicators/i);
     if(lang==='uk')assert.doesNotMatch(card.meaning,/лагна у Овні|не рахуємо її двічі|важливий Венера|пов’язаний з Місяць/u,
       'do not leak grammar errors or editorial implementation jargon');
     assert.doesNotMatch(card.meaning,/сповнена гарантій|guaranteed fate|scientifically proven personality/i);
@@ -62,14 +63,30 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
      assert.ok(card.proof.includes('D'+card.division+'.'+name+'.sign='+dn.sign));
      if(card.division===1)assert.doesNotMatch(card.meaning,/а в D1 —|and in D1/iu);
      if(card.division===10&&yoga.includes(name)){
-      assert.match(card.meaning,lang==='uk'?/йогакаракою/:/yogakaraka/);
+      assert.ok(card.proof.includes('D1.house-lord.10='+name), 'career role retained in audit proof');
       notable.push({seed,lang,asc:chart.ascendant.sign,planet:name});
      }
      if(card.division===10&&dignityFor(name,dn.sign)==='exalted')
-      assert.match(card.meaning,lang==='uk'?/екзальтації/:/exaltation/);
+      assert.ok(card.proof.includes('D10.'+name+'.sign='+dn.sign),
+       'strong dignity must be traceable through the recorded D10 sign');
     }else{
      assert.equal(card.proof.filter(p=>p.startsWith('D60.')).length,9);
      assert.doesNotMatch(card.meaning,/D60\..*\.house|D60 .*асцендент|D60 lagna/i);
+     const human=buildHumanReaderD60(chart,lang);
+     const d60=report.d60Preview;
+     if(d60.status==='conditional_signs'&&d60.factors.length){
+      assert.ok(human,'all 16 cards must provide a real narrative when supported D60 facts exist');
+      assert.equal(card.meaning,human.meaning);
+      assert.match(card.meaning,lang==='uk'?/Практичний крок:/u:/Practical step:/);
+      assert.match(card.meaning,lang==='uk'?/Астрологічна основа:/u:/Astrological basis:/);
+      assert.equal(card.meaning.split(lang==='uk'?'Астрологічна основа:':'Astrological basis:').length,2);
+      assert.doesNotMatch(card.meaning,/приблизн|неточн|не підтвердж|provision|approximate|uncertain|not certified|past life|минулого життя|карм/u);
+      const evidence=card.meaning.slice(card.meaning.indexOf(lang==='uk'?'Астрологічна основа:':'Astrological basis:'));
+      for(const item of d60.factors.slice(0,2)){
+       assert.ok(item.boundaryDistanceArcseconds>=90,'do not narrate a D60 sign at the unstable boundary');
+       assert.ok(evidence.includes(lang==='uk'?({Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн'}[item.planet]):item.planet));
+      }
+     }
     }
     assert.ok(!card.connection||card.connection.length>=60);
     texts.push('### D'+card.division+' — '+card.title+'\n'+card.meaning+
@@ -91,7 +108,7 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
    if(lang==='uk')assert.doesNotMatch(result.summary.direction,/пов’язаний з (?:Місяць|Венера|Марс|Сатурн|Меркурій|Юпітер)|кар’єра — з (?:Марс|Венера|Місяць|Сатурн|Меркурій)/u,
      'Ukrainian case must be correct in the final summary');
    if(lords[1]===lords[10]){
-    assert.match(result.summary.direction,lang==='uk'?/одночасно керує/:/same /,
+    assert.match(result.summary.direction,lang==='uk'?/спільну основу/:/common foundation/,
      'same natal lord should be synthesized, not listed twice without explanation');
    }
    assert.doesNotMatch(result.summary.direction,/Ваша карта не зводиться до одного скупчення|one planetary concentration/i);
