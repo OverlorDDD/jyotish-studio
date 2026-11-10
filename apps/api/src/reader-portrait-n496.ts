@@ -176,20 +176,54 @@ export function buildLifePortraitN496(chart:CalculatedChart,lang:Lang):LifePortr
  };
  const one=evidence(1,1),money=evidence(2,2),career=evidence(10,10),
   relation=evidence(9,7),roots=evidence(4,4);
- if(!one||!money||!career||!relation||!roots)return null;
+ // A second independently calculated varga must influence each human story.
+ // These are related topics, not five new claims from D1 alone.
+ const secondary={
+  identity:{item:evidence(27,1),div:27,subject:1},
+  money:{item:evidence(16,4),div:16,subject:4},
+  career:{item:evidence(24,5),div:24,subject:5},
+  relationships:{item:evidence(7,5),div:7,subject:5},
+  roots:{item:evidence(12,4),div:12,subject:4}
+ };
+ if(!one||!money||!career||!relation||!roots||
+  Object.values(secondary).some(x=>!x.item))return null;
  const uk=lang==='uk',idx=(id:Area,house:number,quality:string)=>
   // Action varies with a real varga placement and dignity (never with random text).
   (house+qIndex(quality))%ACTIONS[id].length;
  const build=(id:Area,story:string,nuance:string,subject:number,div:number,
   observed:NonNullable<typeof one>):LifeArea=>{
-  const groups=N496_AREAS.find(a=>a.id===id)!;
-  return {id,title:pick(TITLES[id],lang),story,nuance,
-   action:pick(ACTIONS[id][idx(id,observed.varga.house,observed.quality)],lang),
-   divisions:groups.divisions,
+  const group=N496_AREAS.find(a=>a.id===id)!;
+  const follow=secondary[id],also=follow.item!;
+  const exampleUk:Record<Area,string>={
+   identity:'Коли навантаження зростає, важливо помічати, чи ви ',
+   money:'Побутовий комфорт теж пов’язаний з тим, як ви ',
+   career:'Окремо перевіряйте, як навчання допомагає, коли ви ',
+   relationships:'У спільних творчих або сімейних справах важливо, щоб ви ',
+   roots:'Родинні приклади можуть підтримувати, коли '
+  };
+  const exampleEn:Record<Area,string>={
+   identity:'When pressure rises, notice whether you ',
+   money:'Everyday comfort is also affected by how you ',
+   career:'Notice whether learning helps when you ',
+   relationships:'In shared creative or family responsibilities, it matters that you ',
+   roots:'Family examples may help when '
+  };
+  const vocabulary:Record<Area,readonly Copy[]>={
+   identity:SELF,money:MONEY,career:WORK,relationships:PARTNER,roots:HOME
+  };
+  const secondSentence=(uk?exampleUk[id]:exampleEn[id])+
+   domain(vocabulary[id],also.varga.house,lang)+'.';
+  return {id,title:pick(TITLES[id],lang),story,
+   nuance:nuance+' '+secondSentence,
+   action:pick(ACTIONS[id][idx(id,observed.varga.house,also.quality)],lang),
+   divisions:group.divisions,
    proof:['D1.house-lord.'+subject+'='+observed.lord,
     'D1.'+observed.lord+'.house='+observed.natal.house,
     'D'+div+'.'+observed.lord+'.sign='+observed.varga.sign,
-    'D'+div+'.'+observed.lord+'.house='+observed.varga.house]};
+    'D'+div+'.'+observed.lord+'.house='+observed.varga.house,
+    'D1.house-lord.'+follow.subject+'='+also.lord,
+    'D'+follow.div+'.'+also.lord+'.sign='+also.varga.sign,
+    'D'+follow.div+'.'+also.lord+'.house='+also.varga.house]};
  };
  const areas:LifeArea[]=[
   build('identity',uk?
