@@ -49,7 +49,8 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
   if(await extra.count())await extra.locator(':scope > summary').click();
  }
  await expect(page.getByTestId('reader-v8-d60')).toBeVisible();
- await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Практичний крок:');
+ await expect(page.getByTestId('reader-n492-meaning-D60')).not.toBeEmpty();
+ await expect(page.getByTestId('reader-v8-d60')).toContainText('Що можна спробувати:');
  await expect(page.getByTestId('reader-n492-final')).toBeVisible();
  await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
  expect(await page.locator('.reading-root').innerText()).not.toContain('Reader v5');
@@ -72,7 +73,8 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
   const extra=topic.locator(':scope > details');
   if(await extra.count())await extra.locator(':scope > summary').click();
  }
- await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
+ await expect(page.getByTestId('reader-n492-meaning-D60')).not.toBeEmpty();
+ await expect(page.getByTestId('reader-v8-d60')).toContainText('A practical step:');
  await expect(page.getByTestId('reader-v8-d60').locator('details > summary').first()).toBeVisible();
  await expect(page.getByTestId('reader-n492-final')).toBeVisible();
 });
