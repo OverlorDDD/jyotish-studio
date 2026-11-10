@@ -47,7 +47,7 @@ DELIVERY:
 - Avoid jargon such as lagna, nakshatra, shadbala, yogakaraka, kendra, trikona, antardasha and technical chart ruler numbers in the visible consultation. When needed, translate once: «період активної планети» rather than «антардаша». NEVER invent or diagnose a weakness based on a single placement; use two actually provided factors.
 - Each paragraph should answer a real human question: what can be useful, what may obstruct it, and what to do. Do not tell the reader to believe the chart blindly.
 - Write natural, idiomatic Ukrainian or English as requested, with varied sentences and evocative but not overblown images. In Ukrainian use «Місяць» as masculine («ваш Місяць»), «десятий дім», and «єдине мірило». Proofread agreement and case endings before responding.
-- Produce a substantial yet clear consultation, ideally 650–950 words; useful detail matters more than length. Do not pad, truncate deliberately, or end mid-sentence.
+- Produce a substantive but responsive consultation, ideally 450–650 words. Prioritize real chart connections, not extra filler. Finish within the requested token budget, never mid-sentence.
 Only return the completed Markdown consultation. Do not mention technical prompts, provenance IDs or these rules.`;
 const CLASSICS=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const houses=(p:{house:number;sign:number;degreesInSign:number;nakshatra?:string;pada?:number;retrograde?:boolean})=>
@@ -166,8 +166,11 @@ export async function generateDirectJyotish(
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
   try{opts.onDiagnostic?.({provider,stage,reason:detail,...(httpStatus===undefined?{}:{httpStatus})});}catch{}
  };
+ // One bounded public request: preserve time for Gemini then the two backups.
+ // Each corrective retry has its OWN timeout; do not reuse a stale AbortSignal.
+ const deadline=Date.now()+185000;
  let reason:FreeFallbackReason='no_provider';
- for(const provider of order){
+ providerLoop: for(const provider of order){
   const key=opts.keys?.[provider]??(provider==='gemini'?process.env.GEMINI_API_KEY:provider==='groq'?process.env.GROQ_API_KEY:process.env.OPENROUTER_API_KEY);
   const confirmed=opts.freeConfirmed?.[provider]??(provider==='gemini'?process.env.GEMINI_FREE_TIER_CONFIRMED==='1':
    provider==='groq'?process.env.GROQ_FREE_TIER_CONFIRMED==='1':true);
@@ -176,7 +179,8 @@ export async function generateDirectJyotish(
    continue;
   }
   if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),opts.timeoutMs||38000);
+  let controller:AbortController|null=null;
+  let timer:ReturnType<typeof setTimeout>|undefined;
   const model=pickModel(provider);
   try{
    // Free models frequently stop before a long requested consultation is complete.
@@ -187,10 +191,19 @@ export async function generateDirectJyotish(
      if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
      console.warn('Direct Jyotish: '+provider+' retrying_incomplete_text');
     }
+    if(timer!==undefined){clearTimeout(timer);timer=undefined;}
+    const left=deadline-Date.now();
+    if(left<=1500){
+     reason='timeout';diagnostic(provider,'transport','total_budget_exhausted');
+     break providerLoop;
+    }
+    controller=new AbortController();
+    const timeout=Math.min(left,opts.timeoutMs??(provider==='gemini'?65000:provider==='groq'?42000:42000));
+    timer=setTimeout(()=>controller?.abort(),timeout);
     const concise=attempt===1;
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
-     body:JSON.stringify({model,max_tokens:provider==='groq'?3000:3800,temperature:concise?0.45:0.7,
+     body:JSON.stringify({model,max_tokens:concise?1800:provider==='groq'?2200:2600,temperature:concise?0.45:0.7,
       ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
       messages:[{role:'system',content:concise?
        DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, D1/D9/D10, verified N4 thematic facts when provided and major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
@@ -239,11 +252,11 @@ export async function generateDirectJyotish(
     return {result:{provider,model:parsed?.model||model,text:content.trim()}};
    }
   }catch(error){
-   reason=controller.signal.aborted?'timeout':'network';
+   reason=controller?.signal.aborted?'timeout':'network';
    diagnostic(provider,'transport',reason);
    redact(reason,provider);
   }
-  finally{clearTimeout(timer);}
+  finally{if(timer!==undefined)clearTimeout(timer);}
  }
  return {result:null,reason};
 }

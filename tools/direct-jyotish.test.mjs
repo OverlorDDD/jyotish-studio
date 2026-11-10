@@ -154,3 +154,54 @@ test('single-provider live mode cannot contact the two other free providers',asy
  assert.ok(calls[0].includes('generativelanguage.googleapis.com'));
  assert.equal(output.result?.provider,'gemini');
 });
+
+test('N500 corrective retry receives fresh timeout; does not inherit expired first-request clock',async()=>{
+ let hits=0;
+ const seen=[];
+ const result=await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['gemini'],keys:{gemini:'test'},freeConfirmed:{gemini:true},limit:()=>true,
+  timeoutMs:180,
+  onDiagnostic:event=>seen.push(event),
+  fetcher:async(_url,init)=>{
+   hits++;
+   const n=hits;
+   return new Promise((resolve,reject)=>{
+    const finish=setTimeout(()=>resolve(success(n===1?'Short reply.':prose)),110);
+    init.signal.addEventListener('abort',()=>{clearTimeout(finish);reject(new Error('aborted'))},{once:true});
+   });
+  }
+ });
+ assert.equal(hits,2);
+ assert.equal(result.result?.provider,'gemini');
+ assert.equal(seen.some(x=>x.reason==='timeout'),false);
+});
+
+test('N500 Gemini timeout transparently tries next free provider with a fresh clock',async()=>{
+ const calls=[];
+ const result=await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['gemini','groq'],
+  keys:{gemini:'test',groq:'test'},freeConfirmed:{gemini:true,groq:true},
+  limit:()=>true,timeoutMs:18,
+  fetcher:async(url,init)=>{
+   calls.push(url);
+   if(url.includes('googleapis'))return new Promise((_,reject)=>{
+    init.signal.addEventListener('abort',()=>reject(new Error('aborted')),{once:true});
+   });
+   return success();
+  }
+ });
+ assert.equal(calls.length,2);
+ assert.equal(result.result?.provider,'groq');
+});
+
+test('N500 free consultation does not request the old excessive completion budget',async()=>{
+ let maxTokens=0;
+ await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['gemini'],keys:{gemini:'test'},freeConfirmed:{gemini:true},limit:()=>true,
+  fetcher:async(_url,init)=>{
+   maxTokens=JSON.parse(init.body).max_tokens;
+   return success();
+  }
+ });
+ assert.ok(maxTokens<=2600&&maxTokens>=1600);
+});
