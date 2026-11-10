@@ -8,8 +8,8 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(runtime.status()).toBe(200);
  const version=await runtime.json();
  expect(version.readerVersion).toBe('6.0.0');
- // Cloud generation contract N5.0.1; Reader 6.0.0 is unchanged.
- expect(version.pipeline).toBe('direct-v3');
+ // Optional cloud AI writer version may increment without changing Reader's ABI.
+ expect(version.pipeline).toMatch(/^direct-v\\d+$/);
  expect(version.verificationContract).toBe('jyotish-integrity-v3');
  expect(version.referenceBenchmark?.version).toBe('jhora8-same-profile-v2');
  expect(version.referenceBenchmark?.cases).toBe(20);
