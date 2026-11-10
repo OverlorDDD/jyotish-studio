@@ -76,12 +76,14 @@ test('A8.6 short generic LLM prose falls back, and unrelated ninth-house list is
  const intrusion=first+'\n\n'+second+' Концентрація Сонця, Марса, Меркурія і Сатурна є основною темою всіх стосунків.';
  assert.equal(parseAiConsultation('[[relationships]]\n'+intrusion,specs).length,0);
 });
-test('A8.6 evidence rendering no longer uses empty-bullet list and UI identifies Reader v5',()=>{
+test('A8.6 evidence rendering stays readable and the primary 16-chart Reader 8 is mounted',()=>{
  const ui=readFileSync(new URL('../apps/web/app/components/DetailedReport.tsx',import.meta.url),'utf8');
  const a=ui.indexOf('function ChapterEvidence('),b=ui.indexOf('export default function DetailedReport(',a);
  assert.ok(a>=0&&b>a);
  const section=ui.slice(a,b);
  assert.ok(section.includes('reading-evidence-entry'));
  assert.doesNotMatch(section,/<ul>|<li[\s>]/);
- assert.match(ui,/Jyotish Reader v6/);
+ assert.match(ui,/import ReaderN492View from '\.\/ReaderN492View';/);
+ assert.match(ui,/hasV8&&report\.readerV8\?<ReaderN492View/);
+ assert.match(ui,/data-testid="reading-ai-provenance"/);
 });
