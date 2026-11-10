@@ -94,6 +94,28 @@ const LEAD:Readonly<Record<number,Copy>>={
  40:['Успадковані способи турботи та материнські приклади зачіпають тему','Inherited patterns of care and maternal examples touch on'],
  45:['У переданих родиною принципах і батьківських прикладах важлива тема','In inherited principles and paternal examples, an important theme is']
 };
+// Situation-first openings for supplementary vargas. The following sentences
+// are selected by chart placements; no naked "theme of X" template reaches the reader.
+const HUMAN_OPENING:Readonly<Record<number,Copy>>={
+ 3:['Коли потрібно захистити свою думку, розпочати розмову або підтримати близьку людину, сміливість має йти поруч з умінням слухати.',
+    'Whether you are speaking up, starting a conversation or standing by someone close, courage works best alongside listening.'],
+ 7:['Те, що ви створюєте або передаєте іншим, може бути цінним навіть без гучного визнання.',
+    'What you create or pass on to others can have value even without public recognition.'],
+ 12:['Батьківський досвід може бути опорою, але не повинен автоматично визначати кожне ваше рішення.',
+     'Parental examples may provide support without deciding every choice you make.'],
+ 16:['Комфорт — це не обов’язково дорожчі речі: важливіше, чи допомагає повсякденне середовище жити й відновлюватися.',
+     'Comfort is not always about buying more: what matters is whether everyday surroundings help you live and recharge.'],
+ 20:['Духовна практика стає змістовнішою, коли є місце для регулярності та особистого досвіду.',
+     'Spiritual practice can gain meaning through consistency and lived experience.'],
+ 27:['Сила проявляється не тільки в наполегливості, а й у здатності вчасно змінити темп.',
+     'Strength includes not only persistence but also knowing when to change your pace.'],
+ 30:['Коли обставини тиснуть, важливо бачити конкретні можливості, а не сприймати труднощі як вирок.',
+     'When circumstances are difficult, look for workable choices rather than treating setbacks as fate.'],
+ 40:['Родинні способи піклуватися можуть впливати на звички, але ви можете обрати власний спосіб підтримки.',
+     'Family examples of care may shape habits, but you can choose what support means to you.'],
+ 45:['Успадковані принципи можуть допомагати, коли ви свідомо перевіряєте, які з них ваші.',
+     'Inherited principles can help when you consciously decide which ones are truly yours.']
+};
 const ADVICE:Readonly<Record<number,Copy>>={
  1:['Виділіть окремо те, що дає вам відчуття мети, і те, що реально повертає сили.',
     'Distinguish what gives you purpose from what actually restores your energy.'],
@@ -171,10 +193,10 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
  const style=(sign:number)=>choose(STYLE[sign-1],lang);
  const significant=first.planet===lords[1];
  const opening=uk?
-  'У ваших глибинних мотивах може виразно звучати тема '+role(first.planet)+'. '+
+  'Умовне зіставлення D1 та D60 звертає увагу на символічний мотив '+role(first.planet)+'. '+
   (significant?'Вона також пов’язана з тим, як ви визначаєте власний життєвий напрям. ':
    'Особливо помітною вона може ставати у важливих особистих рішеннях. '):
-  'Your deeper motivations may involve '+role(first.planet)+'. '+
+  'A provisional D1 and D60 comparison highlights the symbolic pattern of '+role(first.planet)+'. '+
   (significant?'This also connects with the direction you choose for yourself. ':
    'It may become especially relevant during important personal decisions. ');
  const contrast=first.d1Sign===first.d60Sign?
@@ -232,7 +254,8 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const theme=(house:number)=>choose(THEME[house-1],lang);
  const style=choose(STYLE[placement.sign-1],lang);
  const q=dignityFor(lord,placement.sign);
- let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
+ let lead=HUMAN_OPENING[division]?
+  choose(HUMAN_OPENING[division],lang):choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
  if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
  // Lead with a lived situation, not mechanically inflected genitive house
  // topics ("із довіри", "через дому"). LIVED entries are complete sentences,
@@ -264,7 +287,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   3:'Сміливість працює краще, коли її чують інші. У сфері '+topic+' вам стане в пригоді вміння '+style+'.',
   4:'Облаштовуйте побут так, щоб у ньому залишався простір для звички '+style+'.',
   7:'Творчість має значення не лише для автора, а й для тих, хто отримує від неї користь. Тут важлива тема '+topic+'; спробуйте '+style+'.',
-  9:'Тема '+topic+' може уточнювати ваші очікування від близькості. Особливо корисно '+style+'.',
+  9:'Додаткова карта пропонує уважніше подивитися на '+topic+'. У спілкуванні корисно '+style+'.',
   10:'Професійний шлях зачіпає тему '+topic+'. Спробуйте '+style+'.',
   12:'Не всі успадковані правила потрібно приймати автоматично. У темі '+topic+' корисно '+style+'.',
   16:'Зручність має підтримувати ваші звички, а не керувати ними. Зверніть увагу на тему '+topic+' і спробуйте '+style+'.',
@@ -281,7 +304,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   3:'Courage works best when others can hear you. With '+topic+', practice how to '+style+'.',
   4:'Shape daily routines so there is room to '+style+'.',
   7:'Creativity matters to the people it helps, not just its creator. Consider '+topic+' and try to '+style+'.',
-  9:'The area of '+topic+' may clarify expectations in closeness. It helps to '+style+'.',
+  9:'The supplementary chart brings '+topic+' into view when expectations are discussed. It helps to '+style+'.',
   10:'Working life brings the area of '+topic+' into focus. Try to '+style+'.',
   12:'Not every inherited rule has to become your own. In '+topic+', try to '+style+'.',
   16:'Comfort should support your habits rather than control them. Consider '+topic+' and try to '+style+'.',
