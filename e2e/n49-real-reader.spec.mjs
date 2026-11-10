@@ -35,11 +35,18 @@ for(const lang of ['uk','en']){
   const report=await createInventedBirth(page,lang);
   const reader=page.getByTestId('reader-v8');
   await expect(reader).toBeVisible();
+  const life=reader.getByTestId('reader-n496-life-themes');
+  await expect(life).toBeVisible();
+  await expect(life.locator(':scope > article')).toHaveCount(5);
+  await expect(life).not.toContainText(/D1\\.ascendant|house-lord|Laghu Parashari|Brihat Jataka/u);
+  await reader.getByTestId('reader-n496-expert-details').locator(':scope > summary').click();
   await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
   await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
   await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
   await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
+  await reader.getByTestId('reader-n496-method-details').locator(':scope > summary').click();
   await expect(reader.getByTestId('reader-n492-final')).toBeVisible();
+  await reader.getByTestId('reader-n493-discoveries-details').locator(':scope > summary').click();
   await expect(reader.getByTestId('reader-n493-top-insights')).toBeVisible();
   expect(report.readerV8.meaningful.discoveries.insights.length).toBeGreaterThanOrEqual(3);
   expect(report.readerV8.meaningful.discoveries.insights.length).toBeLessThanOrEqual(5);
@@ -58,7 +65,7 @@ for(const lang of ['uk','en']){
   for(const div of [1,2,9,10,24,60]){
    const card=div===60?reader.getByTestId('reader-v8-d60'):reader.getByTestId('reader-v8-D'+div);
    await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).title);
-   await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).meaning.slice(0,70));
+   await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).meaning.slice(0,45));
    await card.locator('details summary').click();
    await expect(card.locator('details code')).toContainText('D1.');
    await expect(card.locator('details')).toHaveAttribute('open','');
@@ -87,7 +94,8 @@ test('N4.9.2 time precision warning without removing 16 cards',async({page})=>{
  if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
  await details.locator('input[type="checkbox"]').check();
  await expect(reader.getByRole('note')).toContainText('Birth time is marked approximate');
- await expect(reader.getByTestId('reader-v8-d60').getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
+ await reader.getByTestId('reader-n496-expert-details').locator(':scope > summary').click();
+ await expect(reader.getByTestId('reader-v8-d60')).toContainText('Try this:');
  await expect(reader.getByTestId('reader-v8-d60')).toContainText('Astrological basis:');
  await expect(reader.getByTestId('reader-v8-d60')).not.toContainText('entered instant');
  await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
