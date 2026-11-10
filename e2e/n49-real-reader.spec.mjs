@@ -80,7 +80,7 @@ test('N4.9.6 approximate birth time keeps five life themes without repeated warn
  const details=page.locator('#birth-details');
  if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
  await details.locator('input[type="checkbox"]').check();
- await expect(reader.getByRole('note')).toContainText('Birth time is marked approximate');
+ await expect(reader.getByRole('note')).toContainText('Your birth time is marked approximate');
  await expect(reader.getByTestId('reader-n496-life-topics').locator(':scope > section')).toHaveCount(5);
  await expect(reader.locator('code')).toHaveCount(0);
 });
