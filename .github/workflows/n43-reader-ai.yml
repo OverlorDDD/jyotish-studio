@@ -100,7 +100,7 @@ jobs:
       - name: Parse Windows PowerShell files and verify non-destructive fetch contract
         shell: pwsh
         run: |
-          foreach ($file in @('tools/n43-preview.ps1','tools/n44-preview.ps1')) {
+          foreach ($file in @('tools/n43-preview.ps1','tools/n44-preview.ps1','tools/n496-aws-release.ps1')) {
             $tokens = $null
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $file), [ref]$tokens, [ref]$errors) | Out-Null
