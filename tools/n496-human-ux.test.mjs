@@ -7,8 +7,8 @@ const order=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60];
 const cards=lang=>order.map(division=>({
  division,title:'Chart '+division,
  meaning:(lang==='uk'?
-  'У реальному житті ваші здібності проявляються через спілкування та довіру. Практичний крок: Обговоріть одну важливу домовленість. Астрологічна основа: Сонце — 3-й дім D1.':
-  'In everyday life, your strengths may grow through trust and clear communication. Practical step: Discuss one important agreement. Astrological basis: Sun in house 3, D1.'),
+  'У реальному житті ваші здібності проявляються через спілкування та довіру. Окрема сфера життя '+division+' додає власний спосіб приймати рішення. Практичний крок: Обговоріть одну важливу домовленість. Астрологічна основа: Сонце — 3-й дім D1.':
+  'In everyday life, your strengths may grow through trust and clear communication. Life area '+division+' adds its own way to make decisions. Practical step: Discuss one important agreement. Astrological basis: Sun in house 3, D1.'),
  proof:['D1.ascendant.sign=4','D1.house-lord.1=Moon']
 }));
 test('beginner sees five readable themes, while all sixteen chart sources are preserved',()=>{
@@ -28,6 +28,13 @@ test('beginner sees five readable themes, while all sixteen chart sources are pr
   }
   assert.equal(input.length,16,'expert data stays intact');
  }
+});
+test('identical narrative sentences are not repeated across life themes',()=>{
+ const themes=makeLifeThemes(cards('en'),'en');
+ const joined=themes.map(t=>t.reading.narrative).join(' ');
+ const sentence='In everyday life, your strengths may grow through trust and clear communication.';
+ assert.equal(joined.split(sentence).length-1,1,'say a shared experience only once');
+ assert.equal(themes.filter(t=>t.reading.narrative.length>45).length,5);
 });
 test('malformed raw evidence never becomes visible prose',()=>{
  const raw='D1.ascendant.sign=4 · D1.house-lord.1=Moon. Your capacity grows through consistent habits. Practical step: Write one concrete plan. Astrological basis: Moon in house 12.';
