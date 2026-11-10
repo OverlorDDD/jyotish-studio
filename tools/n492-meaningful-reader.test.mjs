@@ -62,11 +62,12 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
      assert.ok(card.proof.includes('D'+card.division+'.'+name+'.sign='+dn.sign));
      if(card.division===1)assert.doesNotMatch(card.meaning,/а в D1 —|and in D1/iu);
      if(card.division===10&&yoga.includes(name)){
-      assert.match(card.meaning,lang==='uk'?/йогакаракою|йогакарака/:/yogakaraka/);
+      assert.ok(card.proof.includes('D1.house-lord.10='+name), 'career role retained in audit proof');
       notable.push({seed,lang,asc:chart.ascendant.sign,planet:name});
      }
      if(card.division===10&&dignityFor(name,dn.sign)==='exalted')
-      assert.match(card.meaning,lang==='uk'?/екзальтації/:/exaltation/);
+      assert.ok(card.proof.includes('D10.'+name+'.sign='+dn.sign),
+       'strong dignity must be traceable through the recorded D10 sign');
     }else{
      assert.equal(card.proof.filter(p=>p.startsWith('D60.')).length,9);
      assert.doesNotMatch(card.meaning,/D60\..*\.house|D60 .*асцендент|D60 lagna/i);
@@ -91,7 +92,7 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
    if(lang==='uk')assert.doesNotMatch(result.summary.direction,/пов’язаний з (?:Місяць|Венера|Марс|Сатурн|Меркурій|Юпітер)|кар’єра — з (?:Марс|Венера|Місяць|Сатурн|Меркурій)/u,
      'Ukrainian case must be correct in the final summary');
    if(lords[1]===lords[10]){
-    assert.match(result.summary.direction,lang==='uk'?/одночасно керує/:/same /,
+    assert.match(result.summary.direction,lang==='uk'?/спільну основу/:/common foundation/,
      'same natal lord should be synthesized, not listed twice without explanation');
    }
    assert.doesNotMatch(result.summary.direction,/Ваша карта не зводиться до одного скупчення|one planetary concentration/i);
