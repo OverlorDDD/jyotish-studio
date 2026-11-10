@@ -234,6 +234,23 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const q=dignityFor(lord,placement.sign);
  let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
  if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
+ // The five front-page chapters begin with a situation a newcomer recognizes,
+ // not the repeated formula "the theme of X is connected with Y".
+ if(division===1)lead=uk?
+  'Ваші рішення та відчуття власного шляху можуть міцнішати через '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
+  'Your decisions and sense of direction may grow stronger through '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
+ if(division===2)lead=uk?
+  'Фінансовий спокій — це не лише сума на рахунку. У вашій карті він пов’язаний із '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
+  'Feeling secure with money is not only about the balance in your account. Your chart connects it to '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
+ if(division===4)lead=uk?
+  'Внутрішня опора складається не лише з житла чи звичного побуту. У вашій карті до неї додається потреба в '+theme(natal.house)+'.':
+  'Feeling at home is about more than a place to live. Your chart also connects stability with '+theme(natal.house)+'.';
+ if(division===9)lead=uk?
+  'У близькості важливі не тільки почуття, а й те, як ви разом вирішуєте щоденні питання. Тут карта виділяє '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
+  'Intimacy is not only about feelings but also about how two people navigate daily life together. Your chart highlights '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
+ if(division===10)lead=uk?
+  'Робота приносить більше сенсу, коли ваші зусилля мають зрозумілий результат. У вашій карті професійний напрям пов’язаний із '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang):
+  'Work can feel more meaningful when your efforts produce something tangible. Your chart connects your vocational direction with '+theme(natal.house)+'. '+choose(LIVED[natal.house-1],lang);
  const sameSphere=natal.house===placement.house;
  const topic=theme(placement.house);
  const bridgeUk:Record<number,string>={
