@@ -42,8 +42,8 @@ test('SSR streaming Jyotish loading fallback has no duplicate H1 for Bing raw-HT
  const fallback=source('apps/web/app/[locale]/astrology/jyotish/loading.tsx');
  const styles=source('apps/web/app/globals.css');
  const natal=source('apps/web/app/[locale]/astrology/jyotish/page.tsx');
- assert.doesNotMatch(fallback,/<h1(?:\\s|>)/i,'loading fallback cannot introduce an extra H1 into streamed HTML');
+ assert.doesNotMatch(fallback,/<h1(?:\s|>)/i,'loading fallback cannot introduce an extra H1 into streamed HTML');
  assert.match(fallback,/className="as-jyotish-loading-title"/);
- assert.match(styles,/\\.as-jyotish-loading\\s+\\.as-jyotish-loading-title\\{/);
+ assert.match(styles,/\.as-jyotish-loading\s+\.as-jyotish-loading-title\{/);
  assert.match(natal,/JyotishCalculator/,'main natal heading remains in the actual calculator');
 });
