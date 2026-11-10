@@ -125,8 +125,12 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  useEffect(()=>{if(report)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});},[report]);
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>{
-  setForm(old=>({...old,[key]:value,...(['latitude','longitude','timeZone'].includes(key)?{place:undefined}:{})}));
-  if(['latitude','longitude','timeZone'].includes(key))setCityReset(count=>count+1);
+  const manual=['latitude','longitude','timeZone'].includes(key);
+  // An explicit coordinate edit is sufficient to enable manual birthplace
+  // entry, even when the browser has not delivered the details toggle event.
+  if(manual)setManualMode(true);
+  setForm(old=>({...old,[key]:value,...(manual?{place:undefined}:{})}));
+  if(manual)setCityReset(count=>count+1);
  };
  const chooseCity=(city:{name:string;region:string;country:string;latitude:number;longitude:number;timeZone:string})=>{
   setManualMode(false);
