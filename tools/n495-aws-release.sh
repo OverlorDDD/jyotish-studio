@@ -55,7 +55,7 @@ git cat-file -e "$TARGET:apps/api/src/reader-compact-n491.ts"
 git cat-file -e "$TARGET:tools/n491-concise-varga-reader.test.mjs"
 git cat-file -e "$TARGET:apps/api/src/reader-meaning-n492.ts"
 git cat-file -e "$TARGET:tools/n492-meaningful-reader.test.mjs"
-git cat-file -e "$TARGET:apps/api/src/reader-insights-n495.ts"
+git cat-file -e "$TARGET:apps/api/src/reader-insights-n493.ts"
 git cat-file -e "$TARGET:tools/n493-discovery-editorial-qa.test.mjs"
 git cat-file -e "$TARGET:apps/api/src/reader-human-n495.ts"
 git cat-file -e "$TARGET:apps/web/app/components/ReaderN492View.tsx"
@@ -70,7 +70,7 @@ fi
 
 backupBase="$HOME/.galaxiora-release-backups"
 mkdir -p -m 700 "$backupBase"
-backup="$(mktemp -d "$backupBase/n492-$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
+backup="$(mktemp -d "$backupBase/n495-$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
 chmod 700 "$backup"
 printf '%s\n' "$OLD" > "$backup/previous-commit.txt"
 printf '%s\n' "$TARGET" > "$backup/target-commit.txt"
@@ -139,7 +139,7 @@ curl -fsSL --max-time 30 https://galaxiora.com/api/v1/jyotish/runtime |
     ["editorialEdition","n48-poetic-evidence-1.0.0"],
     ["interpretationEdition","n49-unified-evidence-v1"],
     ["verificationContract","jyotish-integrity-v3"],
-    ["presentationEdition","n495-ranked-patterns-1.0.0"]
+    ["presentationEdition","n493-ranked-patterns-1.0.0"]
   ]){if(j[key]!==expected)throw Error("N495_RUNTIME_MISMATCH:"+key);}
   console.log("N495_PUBLIC_API_READER_EDITION_VERIFIED");
  });'
@@ -159,7 +159,7 @@ for lang in uk en; do
        n?.version!=="n49-unified-evidence-v1"||n?.links?.length!==15||
        n?.threads?.length!==5||reader?.compactCards?.length!==15||reader?.d60Preview?.allPlanets?.length!==9||
        reader?.meaningful?.version!=="n492-evidence-prioritized-16-varga-v1"||
-       reader?.meaningful?.discoveries?.version!=="n495-ranked-patterns-1.0.0"||
+       reader?.meaningful?.discoveries?.version!=="n493-ranked-patterns-1.0.0"||
        reader?.meaningful?.discoveries?.insights?.length<3||
        reader?.meaningful?.discoveries?.insights?.length>5||
        !reader?.meaningful?.discoveries?.insights?.every(i=>i.teaser?.length>40&&i.proof?.length>=3)||
