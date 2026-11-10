@@ -34,7 +34,7 @@ function fixture(lang){
   };
 }
 for(const lang of ['uk','en']){
- test('Jyotish '+lang+' keeps all twelve sign cells inside their frame and presents one reading document',async({page})=>{
+ test('Jyotish '+lang+' keeps all twelve sign cells inside their frame with verified sign geometry',async({page})=>{
   await page.route('**/api/v1/charts/calculate',r=>r.fulfill({
    status:200,contentType:'application/json',body:JSON.stringify(CHART_N4)}));
   await page.route('**/api/v1/reports',r=>r.fulfill({
@@ -69,18 +69,11 @@ for(const lang of ['uk','en']){
    });
    expect(inside,'House numbers, glyphs and degrees must remain within D'+division+' frame').toBe(true);
   }
-  await page.getByRole('button',{name:lang==='uk'?'Читати без AI — Reader v6':'Read without AI — Reader v6'}).click();
-  const document=page.locator('.reading-editorial');
-  await expect(document).toBeVisible();
-  await expect(document.locator('.reading-principle')).toHaveCount(3);
-  await expect(document.locator('.reading-editorial-chapter')).toHaveCount(8);
-  await expect(document.locator('.reading-editorial-highlights')).toHaveCount(0);
-  const layout=await document.locator('.reading-principle').first().evaluate(element=>{
-   const r=element.querySelector('.reading-principle-content').getBoundingClientRect();
-   const n=element.querySelector('.reading-principle-number').getBoundingClientRect();
-   return {separate:n.right<r.left,readable:r.width>150};
-  });
-  expect(layout.separate&&layout.readable).toBe(true);
+  // Full Reader 8 content is exercised with the real Swiss/NestJS pipeline,
+  // not by inventing an incomplete report that fails the current integrity gate.
+  await expect(page.getByTestId('n4-rc-explorer')).toBeVisible();
+  await expect(page.getByTestId('reader-auto-launch-btn')).toBeVisible();
+  await expect(page.locator('.reading-root')).toHaveCount(0);
  });
 }
 
