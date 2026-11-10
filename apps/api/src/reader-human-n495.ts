@@ -80,18 +80,18 @@ const STYLE:readonly Copy[]=[
 // Actual varga house -> a complete everyday situation. This avoids
 // inserting a genitive house label into an ungrammatical "theme of" slot.
 const ARENA:readonly Copy[]=[
- ['коли рішення залежать від вас','when a decision is yours to make'],
- ['коли плануєте витрати й заощадження','when planning spending and savings'],
+ ['у ситуації, де рішення залежать від вас','when a decision is yours to make'],
+ ['у плануванні витрат і заощаджень','when planning spending and savings'],
  ['у важливій розмові або спільному завданні','in a difficult conversation or shared task'],
- ['коли дбаєте про свій дім і близьких','when caring for your home and loved ones'],
- ['коли створюєте або навчаєте інших','when creating or teaching someone'],
- ['коли маєте справу зі складною щоденною задачею','when dealing with a demanding everyday task'],
- ['коли домовляєтеся з партнером','when making agreements with a partner'],
- ['коли потрібні довіра й спільна відповідальність','when trust and shared responsibility matter'],
- ['коли вчитеся або ділитеся досвідом','when learning or sharing what you know'],
- ['коли відповідаєте за професійний результат','when taking responsibility for a result at work'],
- ['коли працюєте з однодумцями','when working with a community'],
- ['коли потрібні тиша й відновлення','when you need quiet and recovery']
+ ['у турботі про свій дім і близьких','when caring for your home and loved ones'],
+ ['у творчих завданнях або навчанні інших','when creating or teaching someone'],
+ ['у розв’язанні складної щоденної задачі','when dealing with a demanding everyday task'],
+ ['у домовленостях із партнером','when making agreements with a partner'],
+ ['у спільній відповідальності й відновленні довіри','when trust and shared responsibility matter'],
+ ['у навчанні або передачі досвіду','when learning or sharing what you know'],
+ ['у виконанні професійного завдання','when taking responsibility for a result at work'],
+ ['у роботі з однодумцями','when working with a community'],
+ ['у хвилини тиші й відновлення','when you need quiet and recovery']
 ];
 const LEAD:Readonly<Record<number,Copy>>={
  1:['Ваше відчуття себе тісно пов’язане з темою','Your sense of self is closely linked with'],
@@ -376,10 +376,10 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  }
  if(division===24){
   bridge=uk?
-   'Щоб знання стали навичкою, вам може допомагати робота з темою '+theme(placement.house)+
-   '. Найкраще перевіряти навчання практикою, а не лише кількістю прочитаного.':
-   'Turning knowledge into skill may benefit from work on '+theme(placement.house)+
-   '. Test learning through practice, not just the amount you read.';
+   'Щоб знання стали навичкою, застосовуйте їх у справі — особливо '+arena+
+   '. Результат важливіший за кількість прочитаного.':
+   'Put knowledge into action, especially '+arena+
+   '. The result matters more than the amount you read.';
  }
  const difficulty=q==='debilitated'?
   (uk?'Тут особливо важливо не поспішати з висновками: складне краще розбити на посильні кроки.':
