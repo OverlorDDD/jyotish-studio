@@ -30,9 +30,18 @@ export function splitLifeReading(meaning:string,lang:ReaderLang){
 export function makeLifeThemes(cards:readonly LifeCard[],lang:ReaderLang){
  const byDivision=new Map(cards.map(c=>[c.division,c]));
  if(cards.length!==16||!LIFE_GROUPS.every(g=>byDivision.has(g.main)))return [];
+ const said=new Set<string>();
  return LIFE_GROUPS.map(g=>{
   const primary=byDivision.get(g.main)!;
   const reading=splitLifeReading(primary.meaning,lang);
+  // A shared lord may generate the same lived-experience sentence in several
+  // chart sections. Say it once; don't make the visitor read it five times.
+  const sentences=reading.narrative.match(/[^.!?]+[.!?]+|[^.!?]+$/gu)||[];
+  reading.narrative=sentences.filter(sentence=>{
+   const key=sentence.toLocaleLowerCase().replace(/\\s+/gu,' ').trim();
+   if(!key||said.has(key))return false;
+   said.add(key);return true;
+  }).join(' ').replace(/\\s+/gu,' ').trim();
   return {id:g.id,title:lang==='uk'?g.uk:g.en,primary,reading,
    related:g.related.map(d=>byDivision.get(d)).filter((c):c is LifeCard=>Boolean(c))};
  });
