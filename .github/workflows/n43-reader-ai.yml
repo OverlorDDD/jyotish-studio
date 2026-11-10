@@ -77,6 +77,7 @@ jobs:
           bash -n tools/n495-aws-release.sh
           node --test tools/n495-aws-release-contract.test.mjs
           node --test tools/n496-human-first-reading.test.mjs
+          node --experimental-strip-types --test tools/n496-ukrainian-editorial-qa.test.mjs
           bash -n tools/n496-aws-release.sh
           node --test tools/n496-aws-release-contract.test.mjs
       - name: Full Core + API + Next production build
