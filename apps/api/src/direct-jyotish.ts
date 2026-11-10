@@ -62,7 +62,7 @@ const CLASSICS=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu',
 const houses=(p:{house:number;sign:number;degreesInSign:number;nakshatra?:string;pada?:number;retrograde?:boolean})=>
   'sign='+p.sign+',house='+p.house+',deg='+p.degreesInSign.toFixed(2)+
   (p.nakshatra?',nakshatra='+p.nakshatra+',pada='+p.pada:'')+(p.retrograde?',retrograde':'');
-export function compactJyotishFacts(chart:CalculatedChart,asOf:string):string{
+export function compactJyotishFacts(chart:CalculatedChart,asOf:string,includeClassical=true):string{
  const lords=classicalLordshipTable(chart.ascendant.sign),instant=Date.parse(asOf+'T12:00:00Z');
  const major=chart.dasha.find(p=>Date.parse(p.start)<=instant&&instant<Date.parse(p.end));
  const minor=major?.antardashas?.find(p=>Date.parse(p.start)<=instant&&instant<Date.parse(p.end));
@@ -85,7 +85,7 @@ export function compactJyotishFacts(chart:CalculatedChart,asOf:string):string{
   'D9 lagna sign='+chart.lagnaD9.sign+'; '+fmt('d9'),
   'D10 lagna sign='+chart.lagnaD10.sign+'; '+fmt('d10'),
   compactN4VargaFacts(chart),
-  compactClassicalReaderV8ForAi(chart,asOf),
+  ...(includeClassical?[compactClassicalReaderV8ForAi(chart,asOf)]:[]),
   'As of '+asOf+': '+(major?'Mahadasha '+major.lord+' '+major.start.slice(0,10)+' to '+major.end.slice(0,10):'no active mahadasha')+
     (minor?'; antardasha '+minor.lord+' '+minor.start.slice(0,10)+' to '+minor.end.slice(0,10):'')
  ].join('\n');
@@ -169,7 +169,11 @@ export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??productionDirectAiOrder();
- const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf));
+ const priority=planConsultationQuality(chart,asOf);
+ const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority);
+ // The short free backup needs exact D1/D9/D10 and N4 evidence, not the 6.5 KB
+ // Reader-8 literary exemplars already included in the deterministic report.
+ const backupFacts=compactJyotishFacts(chart,asOf,false)+'\n\n'+compactQualityBrief(priority,3600);
  const permit=opts.limit||consumeFreeAiRequest;
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
@@ -225,7 +229,7 @@ export async function generateDirectJyotish(
       temperature:concise?0.45:0.6,
       messages:[{role:'system',content:instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+facts} ]})
+        '. Here are ONLY verified calculation facts:\n'+(backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
