@@ -1,7 +1,11 @@
 name: N4.9 — Unified natal synthesis and source provenance (no deployment)
 on:
+  push:
+    branches:
+      - release/n495-human-reader-16-cards-20261110
   pull_request:
     branches:
+      - main
       - feat/n4-d60-certified-precision-20261107
       - release/n4-natal-15-varga-rc-20261107
   workflow_dispatch:
