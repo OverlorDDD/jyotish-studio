@@ -13,6 +13,7 @@ import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from '../apps/api/src/reader-classical.ts';
 import {buildMeaningfulN492,N492_ORDER} from '../apps/api/src/reader-meaning-n492.ts';
 import {buildClassicalReaderV8} from '../apps/api/src/reader-v8.ts';
+import {buildHumanReaderD60} from '../apps/api/src/reader-human-n495.ts';
 import {dignityFor} from '../packages/jyotish-core/src/rules.ts';
 
 const planets=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
@@ -71,6 +72,21 @@ test('N492 16 valid cards and chart-specific closing x 30 invented birth vectors
     }else{
      assert.equal(card.proof.filter(p=>p.startsWith('D60.')).length,9);
      assert.doesNotMatch(card.meaning,/D60\..*\.house|D60 .*асцендент|D60 lagna/i);
+     const human=buildHumanReaderD60(chart,lang);
+     const d60=report.d60Preview;
+     if(d60.status==='conditional_signs'&&d60.factors.length){
+      assert.ok(human,'all 16 cards must provide a real narrative when supported D60 facts exist');
+      assert.equal(card.meaning,human.meaning);
+      assert.match(card.meaning,lang==='uk'?/Практичний крок:/u:/Practical step:/);
+      assert.match(card.meaning,lang==='uk'?/Астрологічна основа:/u:/Astrological basis:/);
+      assert.equal(card.meaning.split(lang==='uk'?'Астрологічна основа:':'Astrological basis:').length,2);
+      assert.doesNotMatch(card.meaning,/приблизн|неточн|не підтвердж|provision|approximate|uncertain|not certified|past life|минулого життя|карм/u);
+      const evidence=card.meaning.slice(card.meaning.indexOf(lang==='uk'?'Астрологічна основа:':'Astrological basis:'));
+      for(const item of d60.factors.slice(0,2)){
+       assert.ok(item.boundaryDistanceArcseconds>=90,'do not narrate a D60 sign at the unstable boundary');
+       assert.ok(evidence.includes(lang==='uk'?({Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн'}[item.planet]):item.planet));
+      }
+     }
     }
     assert.ok(!card.connection||card.connection.length>=60);
     texts.push('### D'+card.division+' — '+card.title+'\n'+card.meaning+
