@@ -164,6 +164,37 @@ const ADVICE:Readonly<Record<number,Copy>>={
  45:['Сформулюйте власними словами один успадкований принцип, який ви справді хочете зберегти.',
     'Put one inherited principle you genuinely want to keep into your own words.']
 };
+// These situations belong to their own varga's subject, not a generic
+// "life topic" spliced into advice. Index = verified divisional house - 1.
+const RELATIONSHIP_SCENE:readonly Copy[]=[
+ ['Для партнерства це може означати домовленість про особистий простір і право кожного на власне рішення.','In a relationship, this can mean agreeing on personal space and each person\'s right to make their own choices.'],
+ ['Обговоріть, що для вас обох означають спільні витрати, заощадження й сімейні цінності.','Talk about what shared expenses, savings and family values mean to each of you.'],
+ ['Перевірте, чи вдається говорити про бажання відкрито й чути відповідь без поспіху.','Notice whether both people can express a wish openly and hear the answer without rushing.'],
+ ['Поговоріть про те, який побут і відчуття дому роблять ваш союз спокійнішим.','Talk about the kind of home life that makes your relationship feel secure.'],
+ ['Знайдіть заняття, у якому є місце і для спільної радості, і для творчості кожного.','Make room for shared enjoyment and each person\'s creativity.'],
+ ['Узгодьте повсякденні справи: що кожен готовий робити регулярно, а де потрібна допомога.','Agree on everyday responsibilities, including what each person can sustain and where help is needed.'],
+ ['Обговоріть взаємність: чи однаково ви розумієте підтримку, відданість і спільні рішення.','Discuss reciprocity: do you mean the same thing by support, commitment and shared decisions?'],
+ ['З\'ясуйте, як ви говорите про довіру, спільні ризики та складні зміни.','Explore how you speak about trust, shared risks and difficult changes.'],
+ ['Порівняйте життєві переконання: як кожен ставиться до навчання, духовних пошуків і порад інших.','Compare guiding beliefs, including how each person sees learning, spirituality and advice from others.'],
+ ['Обговоріть, як робота й амбіції впливають на час, який ви залишаєте одне одному.','Discuss how work and ambitions affect the time you can give each other.'],
+ ['Запитайте, які спільні плани й дружні зв\'язки підтримують ваш союз.','Ask which shared plans and friendships help the relationship thrive.'],
+ ['Домовтеся, скільки часу на усамітнення потрібно кожному, щоб близькість не ставала тиском.','Agree on how much private time each person needs so closeness does not become pressure.']
+];
+const CHILDREN_CREATIVE_SCENE:readonly Copy[]=[
+ ['У творчості або вихованні дайте іншій людині простір для власної ініціативи.','In creative work or caregiving, leave room for the other person\'s initiative.'],
+ ['Якщо передаєте досвід, почніть із простих навичок і бережного ставлення до спільних ресурсів.','When passing on knowledge, start with practical skills and care for shared resources.'],
+ ['Покажіть ідею на прикладі й дайте поставити запитання, замість вимагати повторення.','Demonstrate an idea and invite questions instead of demanding imitation.'],
+ ['Для творчості та турботи важливий безпечний простір, у якому не страшно помилятися.','Creativity and care benefit from a safe environment where mistakes are allowed.'],
+ ['Підтримуйте гру й творчі спроби без очікування негайного ідеального результату.','Encourage play and creative attempts without demanding an ideal result.'],
+ ['У навчанні дітей або спільному проєкті краще працюють невеликі регулярні кроки.','When teaching children or building something together, small consistent steps can help.'],
+ ['У вихованні та співавторстві заздалегідь узгоджуйте ролі й очікування.','In caregiving or creative collaboration, agree on roles and expectations.'],
+ ['Під час складних змін у сім\'ї або творчій справі важливо пояснювати рішення доступно.','During difficult changes in a family or creative project, explain decisions clearly.'],
+ ['Передавайте знання як запрошення до пошуку, а не як вимогу погоджуватися.','Offer knowledge as an invitation to explore, not a demand to agree.'],
+ ['Помічайте, коли творчі чи виховні зусилля перетворюються на надмірну гонитву за успіхом.','Notice when creative or caregiving efforts become a stressful race for achievement.'],
+ ['Спільна творча справа може зміцнити підтримку між поколіннями або друзями.','A shared creative effort can strengthen support between generations or friends.'],
+ ['Після інтенсивного навчання або турботи залишайте час для відпочинку й тиші.','After intensive teaching or caring, make space for rest and quiet.']
+];
+
 const HOUSE_TASK:readonly Copy[]=[
  ['взяти на себе головне рішення в невеликому проєкті','own one important decision in a small project'],
  ['пояснити цінність роботи чи скласти прозорий бюджет','explain the value of work or build a clear budget'],
@@ -361,13 +392,18 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
    (lord==='Venus'?'Бажання близькості й готовність до зобов’язань мають спільну основу. ':
     venus.house===placement.house?'Почуття й обов’язки частіше зустрічаються в одній сфері. ':
     'Почуття та побутові обов’язки можуть вимагати різних розмов. ')+
-   'Перевірте, як ви домовляєтеся '+arena+'.':
+   choose(RELATIONSHIP_SCENE[placement.house-1],lang):
    (trust?'Trust and shared responsibility are central parts of intimacy. ':
     'Mature relationships need both affection and clear agreements. ')+
    (lord==='Venus'?'Affection and commitment share one symbolic anchor. ':
     venus.house===placement.house?'Feelings and commitments meet in a shared arena. ':
     'Emotional closeness and practical duties may require different conversations. ')+
-   'Notice how agreements work '+arena+'.';
+   choose(RELATIONSHIP_SCENE[placement.house-1],lang);
+ }
+ if(division===7){
+  // A D7 house colors parenting/creative legacy; it does not convert this
+  // reading into a generic relationship or career instruction.
+  bridge=choose(CHILDREN_CREATIVE_SCENE[placement.house-1],lang);
  }
  if(division===10){
   bridge=uk?

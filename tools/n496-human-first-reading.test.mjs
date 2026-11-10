@@ -53,7 +53,8 @@ test('N497 displays a complete bilingual sixteen-varga guide and identifies the 
  assert.match(view,/className=\{book\.vargaGrid\}/);
  assert.match(css,/\.vargaGrid\{list-style:none/);
  assert.match(css,/@media\(max-width:690px\)/);
- assert.match(view,/v\.division===60\?/);
+ assert.doesNotMatch(view,/D60 не є підтвердженим індивідуальним прогнозом|D60 is not a certified individual prediction/);
+ assert.match(view,/Глибинні символічні акценти/);
 });
 test('N497 switches supplementary charts from repeated house-theme leads to distinct real-life situations',()=>{
  const openings=[...human.matchAll(/^\s*(\d+):\['([^']+)',/gm)].filter(m=>[3,7,12,16,20,27,30,40,45].includes(Number(m[1])));
@@ -62,4 +63,18 @@ test('N497 switches supplementary charts from repeated house-theme leads to dist
  assert.match(human,/let lead=HUMAN_OPENING\[division\]/);
  assert.match(human,/Зіставлення D1 та D60/);
  assert.doesNotMatch(human,/У ваших глибинних мотивах може виразно звучати тема/);
+});
+
+test('N498 D9 relationship and D7 care have twelve distinct subject-bound scenes',()=>{
+ const relationship=human.match(/const RELATIONSHIP_SCENE:readonly Copy\[\]=\[([\s\S]*?)\];/);
+ const children=human.match(/const CHILDREN_CREATIVE_SCENE:readonly Copy\[\]=\[([\s\S]*?)\];/);
+ assert.ok(relationship&&children);
+ for(const [name,match] of [['D9',relationship],['D7',children]]){
+  const count=[...match[1].matchAll(/^\s*\['/gm)].length;
+  assert.equal(count,12,name+' has a complete scenario for each divisional house');
+ }
+ assert.match(human,/choose\(RELATIONSHIP_SCENE\[placement\.house-1\],lang\)/);
+ assert.match(human,/choose\(CHILDREN_CREATIVE_SCENE\[placement\.house-1\],lang\)/);
+ assert.doesNotMatch(human,/Перевірте, як ви домовляєтеся '\+arena/);
+ assert.doesNotMatch(human,/Notice how agreements work '\+arena/);
 });

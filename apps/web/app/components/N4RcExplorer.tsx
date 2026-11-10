@@ -81,7 +81,10 @@ export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:
     !passed?<p role="alert" className={styles.warning}>{uk?'Сервер не підтвердив метод і зв’язок додаткових карт із D1. Нові карти приховано.':'Server proof is missing or mismatched. Additional charts are hidden.'}</p>:null}
   <div className={styles.grid}>
    <article className={styles.chart}>
-    <h3>D1 · {uk?'Основна карта':'Foundation chart'}</h3>
+    <div className={styles.chartHeading}>
+     <h3>D1 · {uk?'Основна карта':'Foundation chart'}</h3>
+     <p>{uk?INFO[0].detailUk:INFO[0].detailEn}</p>
+    </div>
     {chart&&passed&&chart.d1&&chart.ascendant?
       <NorthIndianChart division="d1" lang={lang} planets={[...chart.d1]} lagna={chart.ascendant}/>:
       <div className={styles.placeholder}>{uk?'Очікуємо розрахунок':'Awaiting chart'}</div>}
@@ -90,7 +93,10 @@ export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:
       <strong>{uk?'Обери будь-яку з решти 15 карт вище':'Choose one of the other 15 charts above'}</strong>
       <p>{uk?'Основна D1 залишиться зліва, а обрана карта з’явиться справа в тому самому квадратному форматі.':'D1 stays left and the selected divisional chart appears right in the same square format.'}</p>
      </article>:<article className={styles.chart}>
-    <h3>{l(info)}</h3><p>{uk?info.detailUk:info.detailEn}</p>
+    <div className={styles.chartHeading}>
+     <h3>{l(info)}</h3>
+     <p>{uk?info.detailUk:info.detailEn}</p>
+    </div>
     {selectedReady&&positions&&lagna?
       <NorthIndianChart division={'d'+selected} lang={lang} chartLabel={info.name}
        showDegrees={isCore} planets={[...positions]} lagna={lagna}/>:

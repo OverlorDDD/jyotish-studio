@@ -74,6 +74,15 @@ for(const lang of ['uk','en']){
   await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
   for(const width of [320,360,390,430,768,1024,1440]){
    await page.setViewportSize({width,height:850});
+   if(width>=768){
+    // D1 and the selected D9 must start at the same physical Y coordinate.
+    const chartPair=page.getByTestId('n4-rc-explorer').locator('.jy-south-chart');
+    await expect(chartPair).toHaveCount(2);
+    const left=await chartPair.nth(0).boundingBox();
+    const right=await chartPair.nth(1).boundingBox();
+    expect(left&&right,'both charts have bounding boxes').toBeTruthy();
+    expect(Math.abs(left.y-right.y),'D1/D9 chart top alignment at '+width).toBeLessThanOrEqual(2);
+   }
    await expect(reader.getByTestId('reader-n496-topic-career')).toBeVisible();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
    expect(overflow,'horizontal overflow at '+width).toBeLessThanOrEqual(2);

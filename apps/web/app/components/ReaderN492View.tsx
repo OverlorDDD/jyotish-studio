@@ -30,7 +30,7 @@ const VARGA_GUIDE:ReadonlyArray<{division:number;uk:string;en:string}>=[
  {division:30,uk:'Складні обставини та способи їх долати',en:'Difficulties and how to navigate them'},
  {division:40,uk:'Родинні впливи з материнського боку',en:'Maternal-line family influences'},
  {division:45,uk:'Родинні впливи з батьківського боку',en:'Paternal-line family influences'},
- {division:60,uk:'Тонкі символічні акценти — лише з обмеженнями точності',en:'Subtle symbolic patterns — time-accuracy limits apply'}
+ {division:60,uk:'Глибинні символічні акценти',en:'Deeper symbolic patterns'}
 ];
 
 /** Keep the full, verified sixteen-card source; the first screen is not a list of D-codes. */
@@ -129,7 +129,6 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
     {VARGA_GUIDE.map(v=><li key={v.division} data-testid={'reader-n497-varga-D'+v.division}>
      <span className={book.vargaCode}>D{v.division}</span>
      <span>{uk?v.uk:v.en}</span>
-     {v.division===60?<small>{uk?'D60 не є підтвердженим індивідуальним прогнозом':'D60 is not a certified individual prediction'}</small>:null}
     </li>)}
    </ol>
   </section>
