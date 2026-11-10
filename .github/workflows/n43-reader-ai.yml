@@ -1,7 +1,7 @@
 name: N4.4 Classical Reader 8 and AI — integration gate
 on:
   pull_request:
-    branches: [release/n4-natal-15-varga-rc-20261107, feat/n4-d60-certified-precision-20261107, feat/n49-evidence-linked-unified-natal-20261109, fix/n491-concise-varga-reader-d60-20261109, feat/n492-meaningful-16-varga-reader-20261109]
+    branches: [release/n4-natal-15-varga-rc-20261107, feat/n4-d60-certified-precision-20261107, feat/n49-evidence-linked-unified-natal-20261109, fix/n491-concise-varga-reader-d60-20261109, feat/n492-meaningful-16-varga-reader-20261109, main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -74,6 +74,7 @@ jobs:
           node --test tools/n492-aws-release-contract.test.mjs
           bash -n tools/n493-aws-release.sh
           node --test tools/n493-aws-release-contract.test.mjs
+          bash -n tools/n495-aws-release.sh
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate
