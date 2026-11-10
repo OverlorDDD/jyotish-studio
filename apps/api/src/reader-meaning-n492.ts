@@ -15,6 +15,7 @@ import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
 import {buildN493Overview,type N493Overview} from './reader-insights-n493.ts';
 import {buildN493ThematicDetail} from './reader-detail-n493.ts';
+import {buildHumanReaderCard,buildHumanReaderSummary} from './reader-human-n495.ts';
 
 export const N492_MEANING_VERSION='n492-evidence-prioritized-16-varga-v1' as const;
 export const N492_ORDER=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60] as const;
@@ -377,6 +378,13 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
    card.sourceIds=[...new Set([...card.sourceIds,'N493-EVIDENCE-PRIORITY'])];
   }
  }
+ // The external reader sees human meaning first, not the computational trace.
+ // Keep proof/sourceIds untouched for audits. The single chart basis sentence
+ // is part of the reading; no extra technical connection paragraph is needed.
+ for(const card of cards){
+  const human=buildHumanReaderCard(chart,lang,card.division);
+  if(human){card.meaning=human.meaning;card.connection=null;}
+ }
  if(cards.length!==16||new Set(cards.map(c=>c.division)).size!==16)return null;
  const lagnaLord=lp[1],careerLord=lp[10],relationLord=lp[7];
  const asc=get(lagnaLord)!,career=get(careerLord)!,moon=get('Moon')!;
@@ -441,9 +449,10 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
   ', vocation '+careerLord+' in house '+career.house+
   ', and partnership '+relationLord+' in house '+relationship.house+
   '. Look for actual corroboration rather than assuming one chart factor decides every area.');
+ const readable=buildHumanReaderSummary(chart,lang);
  return {version:N492_MEANING_VERSION,cards,discoveries,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
-   strength,attention,direction,proof:[
+   strength:readable.strength,attention:readable.attention,direction:readable.direction,proof:[
     'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+asc.house,
     'D1.house-lord.10='+lp[10],'D1.'+lp[10]+'.house='+get(lp[10])!.house
    ]},
