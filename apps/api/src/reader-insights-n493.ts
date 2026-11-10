@@ -10,6 +10,7 @@ import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts'
 import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
+import {buildHumanReaderCard,buildHumanReaderSummary} from './reader-human-n495.ts';
 export const N493_INSIGHTS_VERSION='n493-ranked-patterns-1.0.0' as const;
 export type N493Insight={
  id:string;division:number;relatedDivisions:number[];planet:string;
@@ -452,6 +453,55 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   (partner.house===career.house?
    ', an arena it shares with the career ruler but not a guaranteed shared result.':
    ', with its own concerns distinct from work.');
- const summary=(linked+work+recovery+partnership).trim();
+ // Final, user-facing editorial pass: the evidence is retained in proof,
+ // but only ONE sentence per finding exposes the chart mechanics.
+ for(const item of selected){
+  const personal=buildHumanReaderCard(chart,lang,item.division);
+  if(['career','relationships','identity','resources','education'].includes(item.id)&&personal){
+   item.headline=personal.headline;
+   item.teaser=personal.teaser;
+   item.interpretation=personal.meaning;
+   item.attention=uk?'Це символічна підказка для вибору, а не встановлений факт про вашу особистість чи майбутнє.':
+    'This is a symbolic lens for reflection, not a verified fact about your personality or future.';
+  }else if(item.id==='dignity-caution'){
+   const p=d1(item.planet);
+   const area=desc(p.house,uk);
+   item.headline=uk?'Де варто діяти уважніше й не поспішати':'Where patience and extra care may help';
+   item.teaser=uk?'Тема «'+area+'» потребує терпіння та перевірки реальним досвідом.':
+    'The area of '+area+' invites care and real-world testing.';
+   item.interpretation=uk?
+    'У темі «'+area+'» варто залишати собі час на перевірку рішень, а не вимагати миттєвої впевненості. '+
+    'Складність не означає відсутності здібностей: важливі контекст, практика й підтримка. '+
+    'Спробуйте розбити одну велику задачу на три посильні кроки. '+
+    'Астрологічна основа: '+name(item.planet,uk)+' у D1, '+p.house+'-й дім, '+sign(p.sign,uk)+' (традиційний знак падіння).':
+    'In the area of '+area+', allow time to test decisions instead of demanding instant certainty. '+
+    'Difficulty does not mean a lack of ability: context, practice and support matter. '+
+    'Break one large task into three manageable steps. '+
+    'Astrological basis: '+item.planet+' in D1 house '+p.house+', '+sign(p.sign,uk)+' (traditional debilitation).';
+   item.attention=uk?'Важливі інші чинники карти: один показник не визначає ваші можливості.':
+    'Other chart factors matter: one indicator does not determine your abilities.';
+  }else if(item.id.startsWith('mahapurusha-')){
+   const yoga=ruleFindings(chart).yogas.find(y=>y.planet===item.planet&&
+    'mahapurusha-'+y.name.toLowerCase()===item.id);
+   if(yoga){
+    const focus=YOGA_THEMES[yoga.name][uk?0:1];
+    item.headline=uk?'Потенційний ресурс характеру: '+yoga.name:'A potential personal strength: '+yoga.name;
+    item.teaser=uk?'Традиційна комбінація звертає увагу на особистий ресурс, який варто розвивати на практиці.':
+     'A classical configuration highlights a personal strength worth exploring in practice.';
+    item.interpretation=uk?
+     'Для вас може бути корисним напрям, який '+focus+'. '+
+     'Щоб побачити, чи це справді ваш ресурс, оберіть одну відповідну задачу й доведіть її до результату. '+
+     'Астрологічна основа: '+name(yoga.planet,uk)+', '+yoga.house+'-й дім D1, '+sign(yoga.sign,uk)+
+     '; класична комбінація '+yoga.name+'.':
+     'A worthwhile strength to explore is one '+focus+'. '+
+     'Test it by finishing one relevant real-world task. '+
+     'Astrological basis: '+yoga.planet+' in D1 house '+yoga.house+', '+sign(yoga.sign,uk)+
+     '; classical '+yoga.name+' configuration.';
+    item.attention=uk?'Традиційна комбінація описує можливість, а не гарантію таланту чи події.':
+     'A classical combination suggests a possibility, not a guaranteed talent or event.';
+   }
+  }
+ }
+ const summary=buildHumanReaderSummary(chart,lang).overview;
  return {version:N493_INSIGHTS_VERSION,insights:selected,summary};
 }
