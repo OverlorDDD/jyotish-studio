@@ -47,7 +47,7 @@ for(const lang of ['uk','en']){
   await expect(reader.getByTestId('reader-n493-top-insights')).toHaveCount(0);
   await expect(reader.getByTestId('reader-n492-final')).toHaveCount(0);
   const visibleText=await areas.innerText();
-  expect(visibleText).not.toMatch(/D1\\.|house-lord|Brihat Jataka|Laghu Parashari|Астрологічна основа:|Astrological basis:/i);
+  expect(visibleText).not.toMatch(/D1\.|house-lord|Brihat Jataka|Laghu Parashari|Астрологічна основа:|Astrological basis:/i);
   const deep=reader.getByTestId('reader-n492-all-16-details');
   await expect(deep).not.toHaveAttribute('open','');
   await expect(reader.getByTestId('reader-v8-d60')).not.toBeVisible();
@@ -62,7 +62,7 @@ for(const lang of ['uk','en']){
   await d60.getByText(lang==='uk'?'Дев’ять положень планет':'Nine planetary placements').click();
   await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
   await expect(reader.locator('code')).toHaveCount(0);
-  expect(await reader.innerText()).not.toMatch(/D1\\.house-lord/);
+  expect(await reader.innerText()).not.toMatch(/D1\.house-lord/);
   await expect(page.getByTestId('reading-ai-provenance')).toContainText('Jyotish Reader');
   const ordered=report.readerV8.meaningful.cards.map(c=>c.division);
   expect(ordered).toEqual([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
