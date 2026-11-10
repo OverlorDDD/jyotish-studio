@@ -224,7 +224,7 @@ export function buildLifePortraitN496(chart:CalculatedChart,lang:Lang):LifePortr
    pick(NUDGE.roots[qIndex(roots.quality)],lang),4,4,roots)
  ];
  return {version:N496_VERSION,title:uk?'Ваш портрет у п’яти сферах життя':'Your life in five connected areas',
-  intro:uk?'П’ять життєвих історій замість шістнадцяти технічних звітів. Висновки залежать від обчисленої карти; усі 16 її частин можна переглянути окремо.':
-   'Five life stories instead of sixteen technical reports. The reading follows your calculated chart; all sixteen divisions remain available separately.',
+  intro:uk?'Розгляньте, як різні сторони життя поєднуються саме у вашій карті. Кожне пояснення має практичний крок; детальні карти можна відкрити окремо.':
+   'Explore how different parts of life connect in your chart. Each area includes something practical to try; the detailed charts are available separately.',
   areas};
 }
