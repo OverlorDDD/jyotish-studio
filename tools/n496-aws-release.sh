@@ -38,7 +38,7 @@ git -c gc.auto=0 -c maintenance.auto=false fetch --no-auto-gc origin \
 remote="$(git rev-parse "refs/remotes/origin/$BRANCH")"
 [[ "$remote" == "$TARGET" ]] || fail "Branch moved; target=$TARGET remote=$remote"
 git cat-file -e "$TARGET^{commit}" || fail 'Commit object missing'
-git merge-base --is-ancestor "$RELEASE_ANCESTOR" "$TARGET" || fail 'N4.9.6 integrated release commit is not included in main; merge PR #157 first'
+git merge-base --is-ancestor "$RELEASE_ANCESTOR" "$TARGET" || fail 'N4.9.6 integrated release commit is not included in main; merge PR #158 first'
 # A previous production branch may have a divergent commit graph. Checkout of
 # an exact verified commit does NOT require fast-forward ancestry; safe switch
 # plus a durable ref to the old HEAD preserves unpublished production history.
@@ -64,7 +64,7 @@ git cat-file -e "$TARGET:apps/api/src/reader-meaning-n492.ts"
 git cat-file -e "$TARGET:tools/n492-meaningful-reader.test.mjs"
 git cat-file -e "$TARGET:apps/api/src/reader-insights-n493.ts"
 git cat-file -e "$TARGET:tools/n493-discovery-editorial-qa.test.mjs"
-git cat-file -e "$TARGET:apps/api/src/reader-human-n496.ts"
+git cat-file -e "$TARGET:apps/api/src/reader-human-n495.ts"
 git cat-file -e "$TARGET:apps/web/app/components/ReaderN492View.tsx"
 git cat-file -e "$TARGET:tools/n496-aws-release.sh"
 git cat-file -e "$TARGET:apps/api/src/reader-portrait-n496.ts"
