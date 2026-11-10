@@ -49,7 +49,7 @@ test('all 12 ascendants produce verified evidence, bounded chart-specific plans'
  assert.equal(fingerprints.size,12);
 });
 test('one direct prompt remains the fixed only-writer contract without eight strict chapters',()=>{
- assert.equal(DIRECT_JYOTISH_VERSION,'direct-v2');
+ assert.equal(DIRECT_JYOTISH_VERSION,'direct-v3');
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/SHADOW\/FRICTION/);
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/PLAUSIBLE RISK/);
  assert.match(DIRECT_JYOTISH_INSTRUCTION,/shared ruling planet joining 1st and 10th/);

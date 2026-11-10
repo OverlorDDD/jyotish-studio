@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
-import {compactJyotishFacts,generateDirectJyotish,acceptDirectJyotishText,DIRECT_JYOTISH_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
+import {compactJyotishFacts,generateDirectJyotish,acceptDirectJyotishText,DIRECT_JYOTISH_INSTRUCTION,DIRECT_JYOTISH_BACKUP_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
 const input={date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0};
 const positions=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
  .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}));
@@ -81,17 +81,28 @@ test('short but otherwise usable free reply triggers exactly one evidence-ground
  assert.equal(output.result?.provider,'groq');
  assert.equal(output.result?.text,prose);
 });
-test('token-limit output is retried once even if its last sentence ends with punctuation',async()=>{
- let attempts=0;
+test('N501 truncated finish_reason switches providers without consuming same-provider free quota',async()=>{
+ const hits=[];
  const output=await generateDirectJyotish(chart,'en','2026-10-22',{
-  order:['gemini'],keys:{gemini:'test'},freeConfirmed:{gemini:true},limit:()=>true,
-  fetcher:async()=>{
-   attempts++;
-   return new Response(JSON.stringify({choices:[{finish_reason:attempts===1?'length':'stop',message:{content:prose}}]}),{status:200});
+  order:['groq','openrouter'],keys:{groq:'test',openrouter:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async(url,init)=>{
+   hits.push(url);
+   const body=JSON.parse(init.body);
+   if(hits.length===1){
+    assert.equal(body.max_completion_tokens,3600);
+    assert.equal(body.reasoning_effort,'low');
+    assert.equal(body.include_reasoning,false);
+    assert.equal(body.max_tokens,undefined);
+    assert.equal(body.messages[0].content,DIRECT_JYOTISH_BACKUP_INSTRUCTION);
+    return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:prose}}]}),{status:200});
+   }
+   assert.equal(body.max_tokens,3400);
+   assert.equal(body.messages[0].content,DIRECT_JYOTISH_BACKUP_INSTRUCTION);
+   return success();
   }
  });
- assert.equal(attempts,2);
- assert.equal(output.result?.text,prose);
+ assert.equal(hits.length,2,'Groq truncated response should not cause an immediate 429 retry');
+ assert.equal(output.result?.provider,'openrouter');
 });
 test('an explicit 429 never retries the same provider and falls back to the next free provider',async()=>{
  const calls=[];
@@ -194,7 +205,7 @@ test('N500 Gemini timeout transparently tries next free provider with a fresh cl
  assert.equal(result.result?.provider,'groq');
 });
 
-test('N500 free consultation does not request the old excessive completion budget',async()=>{
+test('N501 Gemini full consultation reserves a reasonable token budget',async()=>{
  let maxTokens=0;
  await generateDirectJyotish(chart,'en','2026-10-22',{
   order:['gemini'],keys:{gemini:'test'},freeConfirmed:{gemini:true},limit:()=>true,
@@ -203,5 +214,25 @@ test('N500 free consultation does not request the old excessive completion budge
    return success();
   }
  });
- assert.ok(maxTokens<=2600&&maxTokens>=1600);
+ assert.equal(maxTokens,3400);
+});
+
+test('N501 backup policy still requires real D1/D9/D10 connections and two additional verified divisions',()=>{
+ assert.ok(DIRECT_JYOTISH_BACKUP_INSTRUCTION.length<2400);
+ for(const match of ['D1','D9','D10','TWO','D60','280-380'])assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,new RegExp(match));
+ assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/low-risk actions/);
+ assert.doesNotMatch(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/guaranteed life outcomes/);
+});
+test('N501 a single provider reporting token_limit is never immediately retried',async()=>{
+ let calls=0;
+ const result=await generateDirectJyotish(chart,'en','2026-10-22',{
+  order:['openrouter'],keys:{openrouter:'test'},limit:()=>true,
+  fetcher:async()=>{
+   calls++;
+   return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:prose}}]}),{status:200});
+  }
+ });
+ assert.equal(calls,1);
+ assert.equal(result.result,null);
+ assert.equal(result.reason,'invalid_response');
 });

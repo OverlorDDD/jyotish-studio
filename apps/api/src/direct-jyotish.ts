@@ -14,7 +14,7 @@ import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
  * The user message is only a compact, verified chart summary, never free-form user text.
  * No chapter delimiters, multi-step editor, JSON schema or all-or-nothing 8 chapter gate.
  */
-export const DIRECT_JYOTISH_VERSION='direct-v2';
+export const DIRECT_JYOTISH_VERSION='direct-v3';
 export const DIRECT_JYOTISH_INSTRUCTION=`You are an expert practitioner of traditional Parashari Jyotish and a gifted writer of substantial PERSONAL consultations.
 You will receive verified sidereal D1/D9/D10 placements, whole-sign house lords, sign dignity, and Vimshottari periods, followed by an optional VERIFIED N4 VARGA FACT LIST and a machine-derived PRIORITY BRIEF with evidence IDs.
 You will also receive source-anchored Classical Reader 8 interpretation prompts distinguishing historical rules from modern extensions. They are hypotheses to communicate understandably, never facts observed about the person's life.
@@ -49,11 +49,20 @@ DELIVERY:
 - Write natural, idiomatic Ukrainian or English as requested, with varied sentences and evocative but not overblown images. In Ukrainian use «Місяць» as masculine («ваш Місяць»), «десятий дім», and «єдине мірило». Proofread agreement and case endings before responding.
 - Produce a substantive but responsive consultation, ideally 450–650 words. Prioritize real chart connections, not extra filler. Finish within the requested token budget, never mid-sentence.
 Only return the completed Markdown consultation. Do not mention technical prompts, provenance IDs or these rules.`;
+/** Concise, verified-chart free-tier fallback: the local Reader still provides all 16 cards. */
+export const DIRECT_JYOTISH_BACKUP_INSTRUCTION=`You are a careful traditional Parashari Jyotish interpreter writing naturally in the requested language.
+Use ONLY the supplied verified natal placements and priority brief. Explain possibilities in the tradition, not observed life events.
+FORMAT: FIVE short Markdown ## sections: overall pattern; close relationships; work and skills; resources; current period and next steps. Aim for 280-380 words TOTAL. End after TWO specific, low-risk actions and a complete final sentence.
+FACTS: D1 is primary, cite the actual ascendant ruler and Moon. Analyze an actual D9 placement for partnership and D10 for career. Describe the actual computed major/minor dasha. If verified N4 facts appear, connect TWO different additional source-bound divisions (for example D24 learning and D27 resilience) to real-world themes; mention the true chart codes (D24, D27 etc) once each in parentheses, not as a list.
+Do not invent graha positions, varga placements, house lords, aspects, yogas, future dates, health conclusions or finances. Do not conflate D1 and Dn lords. D60 can appear only with explicit provisional sign-only facts; no D60 houses, karmic certainties or past lives.
+Avoid Western-only planets, doom, guaranteed outcomes, empty praise and repetition. Present one credible strength and one possible tension where supported by evidence.
+Return ONLY the finished Markdown narrative, no JSON, prompt explanation, raw fact inventory or disclaimer block.`;
+
 const CLASSICS=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const houses=(p:{house:number;sign:number;degreesInSign:number;nakshatra?:string;pada?:number;retrograde?:boolean})=>
   'sign='+p.sign+',house='+p.house+',deg='+p.degreesInSign.toFixed(2)+
   (p.nakshatra?',nakshatra='+p.nakshatra+',pada='+p.pada:'')+(p.retrograde?',retrograde':'');
-export function compactJyotishFacts(chart:CalculatedChart,asOf:string):string{
+export function compactJyotishFacts(chart:CalculatedChart,asOf:string,includeClassical=true):string{
  const lords=classicalLordshipTable(chart.ascendant.sign),instant=Date.parse(asOf+'T12:00:00Z');
  const major=chart.dasha.find(p=>Date.parse(p.start)<=instant&&instant<Date.parse(p.end));
  const minor=major?.antardashas?.find(p=>Date.parse(p.start)<=instant&&instant<Date.parse(p.end));
@@ -76,7 +85,7 @@ export function compactJyotishFacts(chart:CalculatedChart,asOf:string):string{
   'D9 lagna sign='+chart.lagnaD9.sign+'; '+fmt('d9'),
   'D10 lagna sign='+chart.lagnaD10.sign+'; '+fmt('d10'),
   compactN4VargaFacts(chart),
-  compactClassicalReaderV8ForAi(chart,asOf),
+  ...(includeClassical?[compactClassicalReaderV8ForAi(chart,asOf)]:[]),
   'As of '+asOf+': '+(major?'Mahadasha '+major.lord+' '+major.start.slice(0,10)+' to '+major.end.slice(0,10):'no active mahadasha')+
     (minor?'; antardasha '+minor.lord+' '+minor.start.slice(0,10)+' to '+minor.end.slice(0,10):'')
  ].join('\n');
@@ -160,7 +169,11 @@ export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??productionDirectAiOrder();
- const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf));
+ const priority=planConsultationQuality(chart,asOf);
+ const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority);
+ // The short free backup needs exact D1/D9/D10 and N4 evidence, not the 6.5 KB
+ // Reader-8 literary exemplars already included in the deterministic report.
+ const backupFacts=compactJyotishFacts(chart,asOf,false)+'\n\n'+compactQualityBrief(priority,3600);
  const permit=opts.limit||consumeFreeAiRequest;
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
@@ -201,15 +214,22 @@ export async function generateDirectJyotish(
     const timeout=Math.min(left,opts.timeoutMs??(provider==='gemini'?65000:provider==='groq'?42000:42000));
     timer=setTimeout(()=>controller?.abort(),timeout);
     const concise=attempt===1;
+    const backup=provider!=='gemini';
+    // Groq's reasoning budget is included in the completion token allocation.
+    // Keep reserve tokens for an actual response instead of ordering 650 words.
+    const maxCompletion=provider==='groq'?(concise?2800:3600):
+      provider==='openrouter'?(concise?2800:3400):(concise?2400:3400);
+    const instructions=concise?
+      DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
+      backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION;
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
-     body:JSON.stringify({model,max_tokens:concise?1800:provider==='groq'?2200:2600,temperature:concise?0.45:0.7,
-      ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
-      messages:[{role:'system',content:concise?
-       DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, D1/D9/D10, verified N4 thematic facts when provided and major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
-       DIRECT_JYOTISH_INSTRUCTION},
+     body:JSON.stringify({model,
+      ...(provider==='groq'?{max_completion_tokens:maxCompletion,reasoning_effort:'low',include_reasoning:false}:{max_tokens:maxCompletion}),
+      temperature:concise?0.45:0.6,
+      messages:[{role:'system',content:instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+facts} ]})
+        '. Here are ONLY verified calculation facts:\n'+(backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
@@ -235,7 +255,9 @@ export async function generateDirectJyotish(
      const code=choice?.finish_reason==='length'?'token_limit':check.reason;
      diagnostic(provider,'validation',code);
      console.warn('Direct Jyotish: '+provider+' rejected='+code);
-     if(attempt===0&&(code==='too_short'||code==='unfinished'||code==='token_limit'))continue;
+     // token_limit means a provider exhausted its output allowance.
+     // Do not immediately repeat a costly request and hit the free-tier 429.
+     if(attempt===0&&(code==='too_short'||code==='unfinished'))continue;
      break;
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
