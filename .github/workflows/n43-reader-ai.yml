@@ -23,6 +23,8 @@ jobs:
       - name: Reader 7, old Reader v6 and mock Gemini/Groq tests
         run: |
           node --experimental-strip-types --test tools/n4-reader-ai-16.test.mjs
+          node --test tools/ai-production-status.test.mjs
+          bash -n tools/n499-ai-aws-recover.sh
           node --experimental-strip-types --test tools/a8-reader-v6-editorial.test.mjs tools/direct-jyotish.test.mjs
       - name: Three different synthetic charts in Ukrainian and English
         run: |
