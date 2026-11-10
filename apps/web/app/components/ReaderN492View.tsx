@@ -7,11 +7,11 @@ type Meaningful=NonNullable<ReaderV8UI['meaningful']>;
 type Card=Meaningful['cards'][number];
 type LifeTopic={id:string;uk:string;en:string;divisions:readonly number[];lead:number};
 const TOPICS:readonly LifeTopic[]=[
- {id:'identity',uk:'Характер і сильні сторони',en:'Personality and strengths',lead:1,divisions:[1,3,20,27,30]},
+ {id:'identity',uk:'Характер і сильні сторони',en:'Personality and strengths',lead:1,divisions:[1,3,20,27,30,60]},
  {id:'money',uk:'Гроші й ресурси',en:'Money and resources',lead:2,divisions:[2,16]},
  {id:'career',uk:'Робота й покликання',en:'Career and purpose',lead:10,divisions:[10,24]},
  {id:'relationships',uk:'Стосунки й близькість',en:'Relationships and intimacy',lead:9,divisions:[9,7]},
- {id:'roots',uk:'Родина й внутрішня опора',en:'Family and inner foundations',lead:4,divisions:[4,12,40,45,60]}
+ {id:'roots',uk:'Родина й внутрішня опора',en:'Family and inner foundations',lead:4,divisions:[4,12,40,45]}
 ];
 
 /** Keep the full, verified sixteen-card source; the first screen is not a list of D-codes. */
