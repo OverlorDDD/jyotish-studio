@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {enterSyntheticBirthFields} from './n4-rc-legacy-compat.mjs';
 /** UI synthetic transport only; numerical D60 is checked separately using real external PyJHora. */
 const names=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const divisions=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
@@ -49,10 +50,13 @@ async function ready(page,lang,data=fixture()){
   status:200,contentType:'application/json',body:JSON.stringify(data)
  }));
  await page.goto('/'+lang+'/astrology/jyotish');
- await page.locator('input[type=date]').fill('2000-01-01');
- await page.locator('input[type=time]').fill('12:00');
- await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
- await page.getByRole('option',{name:/Kyiv/}).click();
+ // This suite checks D60 and responsive rendering, not city discovery.
+ // Supply the fixture's exact coordinates via the independent manual path
+ // so debounced mobile geocoding cannot accidentally disable calculation.
+ await enterSyntheticBirthFields(page,data.input);
+ await expect(page.locator('details.jy-n4-advanced')).toHaveAttribute('open','');
+ await expect(page.locator('details.jy-n4-advanced input[type=number]').nth(0)).toHaveValue(String(data.input.latitude));
+ await expect(page.locator('details.jy-n4-advanced input[type=number]').nth(1)).toHaveValue(String(data.input.longitude));
  // The source response is mocked by this test; assert the actual chart UI,
  // not the timing of the response event (which was flaky on slower CI runs).
  const calculate=page.locator('button.jy-calc-btn');
