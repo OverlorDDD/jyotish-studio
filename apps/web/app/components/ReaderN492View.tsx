@@ -7,83 +7,65 @@ type Meaningful=NonNullable<ReaderV8UI['meaningful']>;
 export default function ReaderN492View({data,lang,minutesUncertain=false}:
  {data:ReaderV8UI;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',read=data.meaningful as Meaningful|null|undefined;
- const discoveries=read?.discoveries;
- if(!read||read.cards.length!==16)return null;
- return <section className={styles.root+' '+book.root} data-testid="reader-v8" aria-labelledby="n492-heading">
+ const portrait=read?.portrait;
+ if(!read||read.cards.length!==16||portrait?.areas.length!==5)return null;
+ return <section className={styles.root+' '+book.root} data-testid="reader-v8" aria-labelledby="n496-heading">
   <header className={styles.top}>
-   <span className={styles.kicker}>{uk?'✦ ВАША НАТАЛЬНА КАРТА':'✦ YOUR NATAL CHART'}</span>
-   <h2 id="n492-heading">{uk?'Трактування за сферами життя':'Your chart, area by area'}</h2>
-   <p>{uk?'Від основної карти D1 до тонших карт. Лише найважливіші показники кожної теми.':
-    'From the main D1 chart to its finer divisions, focusing on what matters in each theme.'}</p>
+   <span className={styles.kicker}>{uk?'✦ ВАШ АСТРОЛОГІЧНИЙ ПОРТРЕТ':'✦ YOUR ASTROLOGICAL PORTRAIT'}</span>
+   <h2 id="n496-heading">{portrait.title}</h2>
+   <p>{portrait.intro}</p>
   </header>
   {minutesUncertain?<p className={book.notice} role="note">{uk?
-   'Час народження позначено як приблизний. Для тонких карт важлива точність введених даних; подробиці — у методиці нижче.':
-   'Birth time is marked approximate. Finer charts depend on accurate input; details are in the methodology below.'}</p>:null}
-  {(discoveries?.insights?.length ?? 0)>=3?<section className={book.discoveries} aria-labelledby="reader-n493-heading" data-testid="reader-n493-top-insights">
-   <span className={styles.kicker}>{uk?'✦ 3–5 ГОЛОВНИХ ЗАКОНОМІРНОСТЕЙ':'✦ MAIN CHART PATTERNS'}</span>
-   <h3 id="reader-n493-heading">{uk?'Що вирізняє саме вашу карту':'What stands out in your chart'}</h3>
-   <p className={book.discoveriesIntro}>{uk?
-    'Відібрано з перевірених положень та управлінь. Нижче кожний висновок пояснено у відповідній D-картці.':
-    'Ranked from verified placements and rulerships. Each topic is explained in its divisional card below.'}</p>
-   <ol>
-    {discoveries!.insights.map(item=><li key={item.id} className={book.discovery}>
-     <strong>{item.headline}</strong>
-     <p>{item.teaser}</p>
-     <a href={'#reader-n493-card-D'+item.division}>{uk?'Дивитися пояснення в D'+item.division:
-      'Read D'+item.division+' interpretation'}</a>
-    </li>)}
-   </ol>
-  </section>:null}
-  <div className={styles.grid} data-testid="reader-n492-16-cards">
-   {read.cards.map(card=>{
-    const isD60=card.division===60;
-    const legacy=data.insights.find(i=>i.division===card.division);
-    const d60=data.d60Preview;
-    const basisLabel=uk?'Астрологічна основа: ':'Astrological basis: ';
-    const basisIndex=card.meaning.lastIndexOf(basisLabel);
-    const humanMeaning=basisIndex<0?card.meaning:card.meaning.slice(0,basisIndex).trim();
-    const evidenceLine=basisIndex<0?'':card.meaning.slice(basisIndex);
-    return <article key={card.division} className={styles.card+' '+book.card}
-      data-testid={isD60?'reader-v8-d60':'reader-v8-D'+card.division}>
-     <div id={'reader-n493-card-D'+card.division} className={book.cardAnchor}/>
-     <header className={styles.cardTitle}>
-      <span>D{card.division}</span><h4>{card.title}</h4>
-     </header>
-     <p className={book.meaning} data-testid={'reader-n492-meaning-D'+card.division}>{humanMeaning}</p>
-     {evidenceLine?<p className={book.basis}>{evidenceLine}</p>:null}
-     {card.connection?<p className={book.connection} data-testid={'reader-n492-link-D'+card.division}>
-      <strong>{uk?'Що ще підтверджує карта':'Cross-chart evidence'}:</strong> {card.connection}
-     </p>:null}
-     {isD60&&d60?.status==='conditional_signs'&&d60.allPlanets?.length===9?
-      <div className={book.signs} data-testid="reader-n492-d60-nine">
-       {d60.allPlanets.map(p=><div key={p.planet} className={book.sign}>
-        <strong>{p.label}</strong><span>{p.d60SignName}</span>
-       </div>)}
-      </div>:null}
-     <details className={styles.proof}>
-      <summary>{uk?'Чому такий висновок':'Why this interpretation'}</summary>
-      <code>{card.proof.join(' · ')}</code>
-      {isD60?<p>{d60?.warning}</p>:null}
-      {!isD60&&legacy?.sources.length?<ul>{legacy.sources.map(s=><li key={s.id}>
-       {s.work}, {uk?'розділ':'chapter'} {s.chapter}, {uk?'строфа':'stanza'} {s.stanza}
-       {s.application!=='direct_natal'?(uk?' · сучасна інтерпретація':' · modern interpretation'):''}
-      </li>)}</ul>:null}
-     </details>
-    </article>;
-   })}
+   'Час народження позначено як приблизний. Детальні положення тонших карт залежать від точності часу.':
+   'Birth time is marked approximate. Fine-chart details depend on the accuracy of that time.'}</p>:null}
+  <div className={book.areas} data-testid="reader-n496-five-themes">
+   {portrait.areas.map((area,index)=><article key={area.id} className={book.area}
+     data-testid={'reader-n496-area-'+area.id}>
+    <header className={book.areaHead}><span className={book.areaNumber}>{String(index+1).padStart(2,'0')}</span>
+     <h3>{area.title}</h3></header>
+    <p className={book.story} data-testid={'reader-n496-story-'+area.id}>{area.story}</p>
+    <p className={book.nuance}>{area.nuance}</p>
+    <div className={book.action}><strong>{uk?'Що можна спробувати':'A useful next step'}</strong>
+     <p>{area.action}</p></div>
+   </article>)}
   </div>
-  <section className={book.final} data-testid="reader-n492-final">
-   <span className={styles.kicker}>{uk?'✦ ГОЛОВНЕ':'✦ THE ESSENTIALS'}</span>
-   <h3>{read.summary.title}</h3>
-   {discoveries?.summary?<p data-testid="reader-n493-synthesis">{discoveries.summary}</p>:<>
-    <p><strong>{uk?'Ваша опора: ':'Your strengths: '}</strong>{read.summary.strength}</p>
-    <p><strong>{uk?'На що звернути увагу: ':'Watch for: '}</strong>{read.summary.attention}</p>
-    <p><strong>{uk?'Загальний напрям: ':'Your direction: '}</strong>{read.summary.direction}</p>
-   </>}
-  </section>
+  <details className={book.divisions} data-testid="reader-n492-all-16-details">
+   <summary>{uk?'Дослідити всі 16 астрологічних карт':'Explore all 16 astrological charts'}
+    <span>{uk?'Додаткові пояснення та положення планет':'Extra context and planetary placements'}</span></summary>
+   <p className={book.divisionsIntro}>{uk?
+    'Кожна з 16 карт висвітлює окремий аспект. Їх не потрібно читати по черзі, щоб зрозуміти основний портрет вище.':
+    'Each of the sixteen charts offers a different angle. You do not need to read them in sequence to understand your portrait above.'}</p>
+   <div className={styles.grid} data-testid="reader-n492-16-cards">
+    {read.cards.map(card=>{
+     const isD60=card.division===60,d60=data.d60Preview;
+     const prefix=uk?'Астрологічна основа: ':'Astrological basis: ';
+     const start=card.meaning.lastIndexOf(prefix);
+     const human=start<0?card.meaning:card.meaning.slice(0,start).trim();
+     const basis=start<0?'':card.meaning.slice(start);
+     return <article key={card.division} className={styles.card+' '+book.card}
+       id={'reader-n493-card-D'+card.division}
+       data-testid={isD60?'reader-v8-d60':'reader-v8-D'+card.division}>
+      <header className={styles.cardTitle}><span>D{card.division}</span><h4>{card.title}</h4></header>
+      <p className={book.meaning} data-testid={'reader-n492-meaning-D'+card.division}>{human}</p>
+      {basis?<details className={book.basisDetails}><summary>{uk?'Які положення враховано':'What positions were considered'}</summary>
+        <p className={book.basis}>{basis}</p></details>:null}
+      {isD60&&d60?.status==='conditional_signs'&&d60.allPlanets?.length===9?
+       <details className={book.signsDetails}>
+        <summary>{uk?'Дев’ять положень планет':'Nine planetary placements'}</summary>
+        <div className={book.signs} data-testid="reader-n492-d60-nine">
+         {d60.allPlanets.map(p=><div key={p.planet} className={book.sign}>
+          <strong>{p.label}</strong><span>{p.d60SignName}</span>
+         </div>)}
+        </div>
+       </details>:null}
+     </article>;
+    })}
+   </div>
+  </details>
   <details className={book.method}>
-   <summary>{uk?'Методика та межі точності':'Method and limits'}</summary>
+   <summary>{uk?'Як формується трактування':'How this reading is made'}</summary>
    <p>{read.method}</p>
+   {data.d60Preview?.warning?<p>{data.d60Preview.warning}</p>:null}
   </details>
  </section>;
 }
