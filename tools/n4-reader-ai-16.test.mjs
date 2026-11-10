@@ -181,3 +181,28 @@ test('N499 Gemini is always first; old or malformed order never disables free ba
  assert.deepEqual(productionDirectAiOrder('OLLAMA,wrong-value'),['gemini','groq','openrouter']);
  assert.deepEqual(productionDirectAiOrder('groq,groq,openrouter'),['gemini','groq','openrouter']);
 });
+
+test('N501 real N4 fallback prompt stays grounded while omitting redundant 6.5 KB Reader8 excerpts',async()=>{
+ const chart=fixture();
+ const prose='## Grounded overview\n\n'+
+  'D24 learning is compared with actual D1 responsibilities, while D27 resilience clarifies conditions for steady practice. '+
+  Array.from({length:14},(_,i)=>'Practical insight '+(i+1)+': compare a specific recent challenge in relationships and work with the verified house roles, and choose an achievable way to respond. ').join('')+
+  'In the current planetary period, a practical response is to practise one skill and discuss expectations before making commitments.';
+ let payload;
+ const result=await generateDirectJyotish(chart,'en','2026-11-07',{
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async(_url,request)=>{
+   payload=JSON.parse(request.body);
+   return new Response(JSON.stringify({model:'groq-fixture',choices:[{finish_reason:'stop',message:{content:prose}}]}),{status:200});
+  }
+ });
+ assert.equal(payload.max_completion_tokens,3600);
+ assert.ok(payload.messages[1].content.includes('D24 focus='));
+ assert.ok(payload.messages[1].content.includes('D27 focus='));
+ assert.ok(payload.messages[1].content.includes('D9 lagna sign='));
+ assert.ok(payload.messages[1].content.includes('D10 lagna sign='));
+ assert.ok(!payload.messages[1].content.includes('Classical Reader 8 evidence:'));
+ assert.ok(!payload.messages[1].content.includes('2000-01-01'));
+ assert.ok(result.result,'N4 verified synthetic fallback must return an accepted response');
+ assert.equal(result.result.provider,'groq');
+});
