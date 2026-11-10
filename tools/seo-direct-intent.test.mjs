@@ -37,3 +37,13 @@ test('No behavioral search-engine-referrer keyword redirect or private data enri
  assert.doesNotMatch(section,/document\.referrer|google\.com\/search|utm_term|search_query/);
  assert.doesNotMatch(natal,/document\.referrer|google\.com\/search|utm_term|search_query/);
 });
+
+test('SSR streaming Jyotish loading fallback has no duplicate H1 for Bing raw-HTML analyzer',()=>{
+ const fallback=source('apps/web/app/[locale]/astrology/jyotish/loading.tsx');
+ const styles=source('apps/web/app/globals.css');
+ const natal=source('apps/web/app/[locale]/astrology/jyotish/page.tsx');
+ assert.doesNotMatch(fallback,/<h1(?:\s|>)/i,'loading fallback cannot introduce an extra H1 into streamed HTML');
+ assert.match(fallback,/className="as-jyotish-loading-title"/);
+ assert.match(styles,/\.as-jyotish-loading\s+\.as-jyotish-loading-title\{/);
+ assert.match(natal,/JyotishCalculator/,'main natal heading remains in the actual calculator');
+});
