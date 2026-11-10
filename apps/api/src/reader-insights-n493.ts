@@ -423,36 +423,6 @@ export function buildN493Overview(chart:CalculatedChart,lang:Lang):N493Overview|
   }
   if(next)item.interpretation=(item.interpretation+' '+next).trim();
  }
- // Synthesize roles rather than repeat the discovery headlines.
- const ascLord=lords[1],careerLord=lords[10],partnerLord=lords[7];
- const asc=d1(ascLord),career=d1(careerLord),partner=d1(partnerLord);
- const linked=ascLord===careerLord?(uk?'Одна планета керує і особистим напрямом, і кар’єрою. ':
-  'The same planet rules identity and career. '):
-  asc.house===career.house?(uk?'Управителі особистого напряму й кар’єри стоять в одному домі, але мають різні функції. ':
-   'The identity and career rulers occupy one house but serve different roles. '):'';
- const workD10=dn(10,careerLord);
- const workFocus=dignityFor(careerLord,workD10.sign);
- const strengthText=strong(workFocus)?(uk?
-   ' В D10 ця планета '+(workFocus==='exalted'?'в екзальтації.':'у власному знаку.'):
-   ' D10 places it in '+(workFocus==='exalted'?'exaltation.':'its own sign.')):'';
- const work=uk?'Кар’єрний управитель '+name(careerLord,uk)+
-   ' поєднує тему «'+desc(career.house,uk)+'» в основній карті з темою «'+
-   desc(workD10.house,uk)+'» у D10.'+strengthText+' ':
-   'The career ruler '+careerLord+' connects '+desc(career.house,uk)+
-   ' in the natal chart with '+desc(workD10.house,uk)+' in D10.'+strengthText+' ';
- const recovery=uk?(asc.house===12?
-  'Управитель висхідного знака в 12-му домі додає помітну потребу в тиші та відновленні. ':
-  'Особистий напрям через '+name(ascLord,uk)+' пов’язаний із темою «'+desc(asc.house,uk)+'». '):
-  (asc.house===12?'The rising-sign ruler in house 12 adds the theme of privacy and recovery. ':
-   'Personal direction through '+ascLord+' connects with '+desc(asc.house,uk)+'. ');
- const partnership=uk?'Партнерство через '+name(partnerLord,uk)+' пов’язане з темою «'+desc(partner.house,uk)+'»'+
-  (partner.house===career.house?
-   ' — це спільна сфера з професійним управителем, але не тотожний результат.':
-   '; воно має власні умови, відмінні від роботи.') :
-  'Partnership through '+partnerLord+' relates to '+desc(partner.house,uk)+
-  (partner.house===career.house?
-   ', an arena it shares with the career ruler but not a guaranteed shared result.':
-   ', with its own concerns distinct from work.');
  // Final, user-facing editorial pass: the evidence is retained in proof,
  // but only ONE sentence per finding exposes the chart mechanics.
  for(const item of selected){
