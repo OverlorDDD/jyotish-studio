@@ -103,7 +103,7 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
   <section className={book.final} data-testid="reader-n492-final">
    <span className={styles.kicker}>{uk?'✦ ПІДСУМОК':'✦ THE BIG PICTURE'}</span>
    <h3>{copy.summary}</h3>
-   <p data-testid="reader-n493-synthesis">{read.discoveries?.summary||read.summary.direction}</p>
+   <p data-testid="reader-n493-synthesis">{read.summary.direction}</p>
   </section>
   {read.discoveries?.insights?.length?<details className={book.method} data-testid="reader-n493-top-insights">
    <summary>{copy.found}</summary>
