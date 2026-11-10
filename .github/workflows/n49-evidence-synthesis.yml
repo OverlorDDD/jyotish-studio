@@ -28,7 +28,7 @@ jobs:
         run: npm install --no-audit --no-fund --no-package-lock
       - name: N4.9 cross-varga, source conditional and privacy unit gate
         run: node --experimental-strip-types --test tools/n49-unified-synthesis.test.mjs
-      - name: N4.4–N4.8 regression: books, source facts, voice, D60 safety
+      - name: 'N4.4–N4.8 regression: books, source facts, voice, D60 safety'
         run: |
           node --experimental-strip-types --test tools/n44-classical-reader.test.mjs
           node --experimental-strip-types --test tools/n47-reader-synthesis-d60.test.mjs
