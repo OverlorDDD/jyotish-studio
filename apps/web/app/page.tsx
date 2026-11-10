@@ -8,7 +8,7 @@ import {indexRobots} from '../lib/site-indexing';
 
 /** The domain root remains HTTP 200, with canonical English natal page for search. */
 export const metadata:Metadata={
- title:'Free Vedic Birth Chart & Kundli Calculator | Galaxiora',
+ title:'Free Vedic Birth Chart Calculator (Kundli, 16 Charts) | Galaxiora',
  description:'Create your free Vedic birth chart (Kundli) with 16 divisional charts, Moon sign, rising sign and nakshatra. Discover Jyotish astrology with Galaxiora.',
  robots:indexRobots(),
  alternates:{canonical:'/en/astrology/jyotish',languages:{en:'/en/astrology/jyotish',uk:'/uk/astrology/jyotish','x-default':'/en/astrology/jyotish'}},
