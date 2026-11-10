@@ -198,7 +198,7 @@ export function buildLifePortraitN496(chart:CalculatedChart,lang:Lang):LifePortr
    identity:'Коли навантаження зростає, важливо помічати, чи ви ',
    money:'Побутовий комфорт теж пов’язаний з тим, як ви ',
    career:'Окремо перевіряйте, як навчання допомагає, коли ви ',
-   relationships:'У спільних творчих або сімейних справах важливо, щоб ви ',
+   relationships:'У спільних творчих або сімейних справах зверніть увагу, чи ви ',
    roots:'Родинні приклади можуть підтримувати, коли '
   };
   const exampleEn:Record<Area,string>={
@@ -245,7 +245,7 @@ export function buildLifePortraitN496(chart:CalculatedChart,lang:Lang):LifePortr
     domain(WORK,career.natal.house,lang)+'. Treat this as a guide to choosing tasks, not a label for one destined career.',
    pick(NUDGE.career[qIndex(career.quality)],lang),10,10,career),
   build('relationships',uk?
-   'У стосунках важливо, щоб ви '+
+   'У стосунках для вас може бути важливим, коли ви '+
     domain(PARTNER,relation.natal.house,lang)+'. Уміння говорити про це прямо може бути кориснішим за спробу передбачити поведінку партнера.':
    'In a relationship, it may matter that you '+
     domain(PARTNER,relation.natal.house,lang)+'. Naming this openly can be more helpful than trying to predict a partner’s behavior.',
