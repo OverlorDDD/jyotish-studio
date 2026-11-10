@@ -14,11 +14,18 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(version.referenceBenchmark?.version).toBe('jhora8-same-profile-v2');
  expect(version.referenceBenchmark?.cases).toBe(20);
  expect(version.referenceBenchmark?.perUserJhoraVerified).toBe(false);
+ // Observe the real client-side runtime handshake, not the empty pre-fetch DOM.
+ const runtimeHandshake=page.waitForResponse(res=>res.url().includes('/api/v1/jyotish/runtime'),{timeout:20000});
  await page.goto('/uk/astrology/jyotish');
- await expect(page.locator('.jy-version-warning')).toHaveCount(0);
+ const liveHandshake=await runtimeHandshake;
+ expect(liveHandshake.ok()).toBe(true);
  await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
+ // Without this assertion, the old direct-v2 / direct-v3 mismatch could be
+ // reported after the earlier toHaveCount(0) and escape browser CI.
+ await expect(page.locator('.jy-version-warning')).toHaveCount(0);
+ await expect(page.locator('.jy-ai-launch-btn')).toBeEnabled();
  await expect(page.locator('.jy-reference-details')).toBeVisible();
  await page.locator('.jy-reference-details summary').click();
  await expect(page.locator('.jy-reference-details')).toContainText('JHora 8.0');
