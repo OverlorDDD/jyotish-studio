@@ -5,7 +5,7 @@ import {makeN4RcPayload,N4_RC_DIVISIONS} from '../apps/api/src/n4-rc-contract.ts
 import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 import {buildN4VargaReadings,compactN4VargaFacts,verifiedVargaSource,N4_VARGA_READER_VERSION} from '../apps/api/src/reader-varga-n4.ts';
 import {buildDetailedReport} from '../apps/api/src/report.ts';
-import {compactJyotishFacts,generateDirectJyotish,validateN4ConsultationReferences,DIRECT_JYOTISH_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
+import {compactJyotishFacts,generateDirectJyotish,validateN4ConsultationReferences,DIRECT_JYOTISH_INSTRUCTION,productionDirectAiOrder} from '../apps/api/src/direct-jyotish.ts';
 import {astrologicalFacts} from '../apps/api/src/ai.ts';
 import {buildReaderV7,compactReaderV7ForAi,READER_V7_VERSION} from '../apps/api/src/reader-v7.ts';
 
@@ -173,4 +173,11 @@ test('Cloud AI refuses a confident D60 claim and retains deterministic Reader fa
  });
  assert.equal(result.result,null);
  assert.equal(result.reason,'invalid_response');
+});
+
+test('N499 Gemini is always first; old or malformed order never disables free backup providers',()=>{
+ assert.deepEqual(productionDirectAiOrder(undefined),['gemini','groq','openrouter']);
+ assert.deepEqual(productionDirectAiOrder('openrouter,gemini,groq'),['gemini','openrouter','groq']);
+ assert.deepEqual(productionDirectAiOrder('OLLAMA,wrong-value'),['gemini','groq','openrouter']);
+ assert.deepEqual(productionDirectAiOrder('groq,groq,openrouter'),['gemini','groq','openrouter']);
 });
