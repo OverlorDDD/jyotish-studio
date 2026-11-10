@@ -41,7 +41,7 @@ const HEADS:Readonly<Record<number,[string,string,number]>>={
  30:['Труднощі й стратегії подолання','Difficulties and how to face them',6],
  40:['Материнська лінія','Maternal lineage',4],
  45:['Батьківська лінія та принципи','Paternal lineage and values',9],
- 60:['Тонкі положення планет','Fine planetary positions',1]
+ 60:['Глибинні мотиви й життєві уроки','Deeper motivations and life lessons',1]
 };
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
