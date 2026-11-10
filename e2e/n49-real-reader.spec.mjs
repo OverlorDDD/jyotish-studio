@@ -35,6 +35,15 @@ for(const lang of ['uk','en']){
   const report=await createInventedBirth(page,lang);
   const reader=page.getByTestId('reader-v8');
   await expect(reader).toBeVisible();
+  const guide=reader.getByTestId('reader-n497-varga-map');
+  await expect(guide).toBeVisible();
+  await expect(guide.locator(':scope > ol > li')).toHaveCount(16);
+  for(const div of [1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]){
+   await expect(guide.getByTestId('reader-n497-varga-D'+div)).toContainText('D'+div);
+  }
+  for(const [topic,div] of [['money',2],['relationships',9],['career',10]]){
+   await expect(reader.getByTestId('reader-n496-topic-'+topic).getByTestId('reader-v8-D'+div)).toContainText('D'+div);
+  }
   const topics=reader.getByTestId('reader-n496-life-topics');
   await expect(topics.locator(':scope > section')).toHaveCount(5);
   for(const id of ['identity','money','career','relationships','roots']){
