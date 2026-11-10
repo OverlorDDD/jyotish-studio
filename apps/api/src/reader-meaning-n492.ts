@@ -390,7 +390,7 @@ export function buildMeaningfulN492(chart:CalculatedChart,lang:Lang,asOf:string)
  return {version:N492_MEANING_VERSION,cards,discoveries,
   summary:{title:uk?'Що головне у вашій карті':'Your key chart takeaway',
    strength:readable.strength,attention:readable.attention,direction:readable.direction,proof:[
-    'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+asc.house,
+    'D1.ascendant.sign='+chart.ascendant.sign,'D1.'+lp[1]+'.house='+get(lp[1])!.house,
     'D1.house-lord.10='+lp[10],'D1.'+lp[10]+'.house='+get(lp[10])!.house
    ]},
   method:uk?'Традиційна інтерпретація: D1, функціональні управителі, знакові положення, тематичні варги. Знакова гідність — не повна Shadbala; D60 умовна.':
