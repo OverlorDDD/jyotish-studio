@@ -28,20 +28,20 @@ export type MeaningfulReading={version:typeof N492_MEANING_VERSION;
 const HEADS:Readonly<Record<number,[string,string,number]>>={
  1:['Особистість і життєвий напрям','Identity and direction',1],
  2:['Гроші й ресурси','Money and resources',2],
- 3:['Сміливість, спілкування, рідні брати й сестри','Courage, communication and siblings',3],
+ 3:['Як ви спілкуєтеся й відстоюєте свої ідеї','How you speak up and stand by your ideas',3],
  4:['Дім, нерухомість і опора','Home, property and security',4],
- 7:['Діти й творча спадщина','Children and creative legacy',5],
+ 7:['Діти, турбота й те, що ви передаєте іншим','Children, care and what you pass on',5],
  9:['Партнерство і зрілість союзу','Partnership and mature commitment',7],
  10:['Кар’єра та професійні здібності','Career and vocation',10],
- 12:['Батьки та родинні корені','Parents and ancestry',4],
- 16:['Комфорт і транспорт','Comfort and vehicles',4],
- 20:['Духовна практика','Spiritual practice',9],
- 24:['Навчання і майстерність','Education and mastery',5],
- 27:['Витривалість і внутрішні ресурси','Resilience and capabilities',1],
- 30:['Труднощі й стратегії подолання','Difficulties and how to face them',6],
- 40:['Материнська лінія','Maternal lineage',4],
- 45:['Батьківська лінія та принципи','Paternal lineage and values',9],
- 60:['Глибинні мотиви й життєві уроки','Deeper motivations and life lessons',1]
+ 12:['Батьківські приклади та власні правила','Parental examples and your own choices',4],
+ 16:['Побутовий комфорт і свобода пересування','Everyday comfort and getting around',4],
+ 20:['Щоденна духовна практика','Everyday spiritual practice',9],
+ 24:['Знання, які стають навичкою','Putting knowledge into practice',5],
+ 27:['Коли наполегливість допомагає, а коли потрібна пауза','When persistence helps and when to rest',1],
+ 30:['Як діяти у складних обставинах','How to respond when life gets difficult',6],
+ 40:['Родинні звички турботи з материнського боку','Patterns of care on the maternal side',4],
+ 45:['Успадковані принципи й ваш власний вибір','Inherited principles and your own choices',9],
+ 60:['Умовні символічні акценти D60','Provisional symbolic patterns in D60',1]
 };
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
