@@ -235,6 +235,20 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
  if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
  const topic=theme(placement.house);
+ // Keep the traditional chart link while writing about lived experiences,
+ // not repeating the same "theme of..." twice in every public life section.
+ if(division===2)lead=uk?
+  'У фінансових рішеннях вам корисно поєднувати конкретні цифри з тим, що ви вважаєте цінним. '+choose(LIVED[natal.house-1],lang):
+  'In financial decisions, combine clear numbers with what you genuinely value. '+choose(LIVED[natal.house-1],lang);
+ if(division===4)lead=uk?
+  'Відчуття дому починається з повсякденних речей: кому ви довіряєте, де відпочиваєте і які обов’язки берете на себе.':
+  'A sense of home grows out of everyday things: whom you trust, where you recharge and which responsibilities you carry.';
+ if(division===9)lead=uk?
+  'У близькості важливо розрізняти почуття, довіру і конкретні домовленості. '+choose(LIVED[natal.house-1],lang):
+  'In intimacy, separate affection, trust and the agreements that make a relationship work. '+choose(LIVED[natal.house-1],lang);
+ if(division===10)lead=uk?
+  'У професії вам важливо бачити, за що саме ви відповідаєте і яку користь дає ваша праця. '+choose(LIVED[natal.house-1],lang):
+  'At work, you may need to see what you are responsible for and how your effort helps others. '+choose(LIVED[natal.house-1],lang);
  const bridgeUk:Record<number,string>={
   1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
   2:'Фінансова впевненість виростає не лише з доходу, а й з повсякденних звичок. Зверніть увагу на тему '+topic+'; корисно '+style+'.',
@@ -270,6 +284,13 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   45:'There is room for choice between inherited rules and your own beliefs. In '+topic+', try to '+style+'.'
  };
  let bridge=uk?bridgeUk[division]:bridgeEn[division];
+ // When the lord's house and varga house point to the same life area, do not
+ // repeat the identical house theme in two consecutive sentences.
+ if(natal.house===placement.house && [2,4,16,20,27,30,40,45].includes(division)){
+  bridge=uk?
+   'Це підсилює одну й ту саму життєву лінію: корисно '+style+', але не вимагати від себе миттєвого результату.':
+   'Both placements emphasize the same area of life: try to '+style+', without demanding immediate results.';
+ }
  if(division===1){
   bridge=uk?
    (lord==='Moon'?
