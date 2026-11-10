@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const s=readFileSync(new URL('./n496-aws-release.sh',import.meta.url),'utf8');
+test('N496 release is pinned to merged life-themes change and uses durable rollback ref',()=>{
+ assert.match(s,/^set -Eeuo pipefail/m);
+ assert.match(s,/RELEASE_ANCESTOR=96343396add73987901507df1ae7ae54ebe76d97/);
+ assert.match(s,/BRANCH=main/);
+ assert.match(s,/git merge-base --is-ancestor "\$RELEASE_ANCESTOR" "\$TARGET"/);
+ assert.match(s,/git update-ref "\$backupRef" "\$OLD"/);
+ assert.match(s,/N496_PRODUCTION_ROLLBACK_REF_SAVED/);
+ assert.match(s,/N496_AWS_PREFLIGHT_PASS/);
+ assert.match(s,/N496_PUBLIC_REPORT_BINDING_VERIFIED/);
+ assert.match(s,/N496_PRODUCTION_RELEASE_VERIFIED/);
+ assert.match(s,/git -c advice\.detachedHead=false switch --detach "\$TARGET"\nCHANGED=1/);
+ assert.match(s,/switch --detach "\$OLD"/);
+ assert.match(s,/tools\/n496-human-first-reading\.test\.mjs/);
+ assert.match(s,/Dirty tracked production files/);
+ assert.doesNotMatch(s,/(?:git reset --hard|git clean -f|git checkout -f|docker\s+)/);
+});

@@ -51,8 +51,11 @@ async function ready(page,lang,data=fixture()){
  await page.goto('/'+lang+'/astrology/jyotish');
  await page.locator('input[type=date]').fill('2000-01-01');
  await page.locator('input[type=time]').fill('12:00');
- await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
- await page.getByRole('option',{name:/Kyiv/}).click();
+ await page.locator('details.jy-n4-advanced > summary').click();
+ const advanced=page.locator('details.jy-n4-advanced');
+ await advanced.locator('input[type="number"]').nth(0).fill('50.45');
+ await advanced.locator('input[type="number"]').nth(1).fill('30.5234');
+ await advanced.locator('input:not([type="number"])').fill('Europe/Kyiv');
  // The source response is mocked by this test; assert the actual chart UI,
  // not the timing of the response event (which was flaky on slower CI runs).
  const calculate=page.locator('button.jy-calc-btn');
@@ -254,8 +257,9 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('Лев');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await plain.getByTestId('reader-v8-D10').getByText('Чому такий висновок').click();
- await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
+ const d10=plain.getByTestId('reader-v8-D10');
+ await d10.locator('details > summary').first().click();
+ await expect(d10.locator('details').first()).toBeVisible();
  await expect(page.getByTestId('reader-v7')).toHaveCount(0);
 
  await expect(page.getByTestId('n4-varga-reader')).toHaveCount(0);

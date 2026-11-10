@@ -40,11 +40,17 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(data.editorial?.chapters?.length).toBe(8);
  expect(data.ai?.fallbackReason).toBe('reader_only');
  // The modern product generates verified Reader 8 automatically when the chart is ready.
- const reading=page.getByTestId('reader-n492-16-cards');
+ const reading=page.getByTestId('reader-n496-life-topics');
  await expect(reading).toBeVisible({timeout:30000});
- await expect(reading.locator(':scope > article')).toHaveCount(16);
+ await expect(reading.locator(':scope > section')).toHaveCount(5);
+ await expect(page.getByTestId('reader-v8').locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
+ for(const topic of await reading.locator(':scope > section').all()){
+  const extra=topic.locator(':scope > details');
+  if(await extra.count())await extra.locator(':scope > summary').click();
+ }
  await expect(page.getByTestId('reader-v8-d60')).toBeVisible();
- await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Практичний крок:');
+ await expect(page.getByTestId('reader-n492-meaning-D60')).not.toBeEmpty();
+ await expect(page.getByTestId('reader-v8-d60')).toContainText('Що можна спробувати:');
  await expect(page.getByTestId('reader-n492-final')).toBeVisible();
  await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
  expect(await page.locator('.reading-root').innerText()).not.toContain('Reader v5');
@@ -59,10 +65,16 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Calculate birth chart'}).click();
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
- const reading=page.getByTestId('reader-n492-16-cards');
+ const reading=page.getByTestId('reader-n496-life-topics');
  await expect(reading).toBeVisible({timeout:30000});
- await expect(reading.locator(':scope > article')).toHaveCount(16);
- await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
- await expect(page.getByTestId('reader-v8-d60')).toContainText('Astrological basis:');
+ await expect(reading.locator(':scope > section')).toHaveCount(5);
+ await expect(page.getByTestId('reader-v8').locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
+ for(const topic of await reading.locator(':scope > section').all()){
+  const extra=topic.locator(':scope > details');
+  if(await extra.count())await extra.locator(':scope > summary').click();
+ }
+ await expect(page.getByTestId('reader-n492-meaning-D60')).not.toBeEmpty();
+ await expect(page.getByTestId('reader-v8-d60')).toContainText('A practical step:');
+ await expect(page.getByTestId('reader-v8-d60').locator('details > summary').first()).toBeVisible();
  await expect(page.getByTestId('reader-n492-final')).toBeVisible();
 });

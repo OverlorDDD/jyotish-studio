@@ -30,3 +30,29 @@
 .discovery a:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .cardAnchor{position:relative;top:-110px;visibility:hidden}
 @media(max-width:700px){.discoveries ol{grid-template-columns:1fr}.discoveries{padding:15px 12px}}
+
+/* N4.9.6: one calm, human-first reading, with technical depth on demand. */
+.lifeTopics{display:grid;grid-template-columns:minmax(0,1fr);gap:17px;margin:22px 0}
+.lifeTopic{border:1px solid rgba(206,180,134,.28);border-radius:16px;padding:clamp(16px,3vw,27px);background:linear-gradient(155deg,rgba(25,34,55,.82),rgba(11,22,39,.82));min-width:0}
+.lifeTopic h3{font:500 clamp(21px,3vw,27px)/1.3 Georgia,serif;color:#f2d4aa;margin:0 0 14px}
+.primary{display:grid;gap:12px;min-width:0}
+.story{font-size:clamp(15px,1.8vw,17px);line-height:1.8;color:#e9eff7;max-width:76ch;margin:0;overflow-wrap:break-word}
+.action{margin:0;padding:12px 15px;background:rgba(206,164,102,.08);border-left:3px solid #d5ad73;border-radius:0 9px 9px 0;font-size:14px;line-height:1.75;color:#e8ebf4}
+.action strong{color:#f8d9ad;font-weight:650}
+.more{border-top:1px solid rgba(196,183,159,.19);margin-top:16px;padding-top:12px}
+.more>summary,.evidence>summary{cursor:pointer;color:#e7c796;line-height:1.6}
+.more>summary{font-weight:550;font-size:14px}
+.evidence{font-size:12px;color:#bac8d9;margin-top:4px}
+.evidence>summary{font-size:12px;color:#c7cedb}
+.evidence p{color:#b9c7d8;line-height:1.7;max-width:76ch}
+.moreIntro{font-size:13px;line-height:1.65;color:#b5c6da}
+.supporting{display:grid;gap:12px;margin-top:14px}
+.supportingCard{border:1px solid rgba(174,187,206,.16);background:rgba(9,22,40,.38);border-radius:10px;padding:16px;display:grid;gap:11px;min-width:0}
+.supportingCard h4{color:#f0d6b4;font-size:16px;line-height:1.4;margin:0}
+.supportingCard h4 small{font-size:11px;color:#aab9cb;font-weight:400;margin-inline-start:8px}
+.supportingCard>p{margin:0;color:#dde8f2;line-height:1.75;font-size:14px;max-width:76ch}
+.technical{padding:6px 0}
+.technical summary{cursor:pointer}
+.technical .signs{margin-top:12px}
+.lifeTopic summary:focus-visible{outline:2px solid #f7d5a1;outline-offset:4px}
+@media(max-width:600px){.lifeTopics{gap:12px}.lifeTopic{padding:16px}.supportingCard{padding:12px}.story{font-size:15px}}
