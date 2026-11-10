@@ -30,10 +30,10 @@ export class PanchangaPlacesController{
   const base=new URL(endpoint);
   if(base.protocol!=='https:'||base.hostname!=='geocoding-api.open-meteo.com')
    throw new ServiceUnavailableException('Geocoding provider not configured');
-  const lookup=async(name:string)=>{
+  const lookup=async(name:string,language: 'uk'|'en'=lang as 'uk'|'en')=>{
    const u=new URL(endpoint);
    u.searchParams.set('name',name);u.searchParams.set('count','10');
-   u.searchParams.set('language',lang);u.searchParams.set('format','json');
+   u.searchParams.set('language',language);u.searchParams.set('format','json');
    const response=await fetch(u,{signal:AbortSignal.timeout(6500),headers:{Accept:'application/json'}});
    if(!response.ok)throw Error('Geocoding HTTP '+response.status);
    return selectCities(await response.json());
@@ -46,7 +46,13 @@ export class PanchangaPlacesController{
    const original=results[0].status==='fulfilled'?results[0].value:[];
    const canonical=results[1]?.status==='fulfilled'?results[1].value:[];
    if(!results.some(x=>x.status==='fulfilled'))throw Error('Both geocoders failed');
-   const rows=mergeAliasResults(original,canonical,alias);
+   let rows=mergeAliasResults(original,canonical,alias);
+   // Open-Meteo often indexes Ukrainian Cyrillic spellings only with
+   // language=uk. The EN page must not hide Kharkiv, Lviv, Odesa or Kyiv
+   // merely because a visitor typed their native Ukrainian name.
+   if(lang==='en'&&!rows.length&&/[\u0400-\u04ff]/u.test(term)){
+    rows=await lookup(term,'uk').catch(()=>[]);
+   }
    if(cache.size>180)cache.delete(cache.keys().next().value!);
    cache.set(key,{at:now,rows});
    return {items:rows,source:'Open-Meteo Geocoding'};
