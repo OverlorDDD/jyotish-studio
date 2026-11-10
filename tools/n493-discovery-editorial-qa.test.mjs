@@ -6,6 +6,7 @@ import {makeN4RcPayload} from '../apps/api/src/n4-rc-contract.ts';
 import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 import {buildN493Overview} from '../apps/api/src/reader-insights-n493.ts';
 import {buildN493ThematicDetail,N493_THEMATIC_DIVISIONS} from '../apps/api/src/reader-detail-n493.ts';
+import {buildHumanReaderCard,buildHumanReaderSummary} from '../apps/api/src/reader-human-n495.ts';
 import {buildClassicalReaderV8} from '../apps/api/src/reader-v8.ts';
 import {yogakarakasForLagna,classicalLordshipTable} from '../apps/api/src/reader-classical.ts';
 import {dignityFor} from '../packages/jyotish-core/src/rules.ts';
@@ -59,18 +60,36 @@ test('N493 prioritizes 3-5 sourced discoveries, avoids false double votes, integ
      assert.equal(item.planet,planet);
      assert.ok(item.proof.includes('D10.'+planet+'.sign='+b.sign));
      if(yogakarakasForLagna(chart.ascendant.sign).includes(planet)){
-      assert.match(item.interpretation,lang==='uk'?/5-м і 10-м домами|йогакарака/:/houses 5 and 10|yogakaraka/i);
+      assert.ok(item.proof.includes('D1.house-lord.5='+planet), 'functional yogakaraka must remain in proof');
       if(chart.ascendant.sign===4)observedCancer.push({seed,lang,planet});
      }
      if(item.relatedDivisions.includes(24)){
       const other=chart.n4.charts.find(x=>x.division===24).planets.find(x=>x.name===planet);
       assert.ok(['exalted','own'].includes(dignityFor(planet,other.sign)));
       assert.ok(['exalted','own'].includes(dignityFor(planet,b.sign)));
-      assert.match(item.interpretation,lang==='uk'?/не друге незалежне підтвердження/:/not a second independent guarantee/);
+      assert.ok(item.proof.includes('D24.'+planet+'.sign='+other.sign), 'linked varga must be traceable without repetition');
      }
     }
    }
    assert.ok(direct.summary.length>120&&direct.summary.length<600);
+   assert.equal(direct.summary,buildHumanReaderSummary(chart,lang).overview);
+   const prefix=lang==='uk'?'Астрологічна основа:':'Astrological basis:';
+   for(const finding of direct.insights){
+    assert.ok(finding.interpretation.includes(prefix),
+     'every discovery needs just one compact evidence line');
+    assert.equal(finding.interpretation.split(prefix).length,2);
+    const readable=buildHumanReaderCard(chart,lang,finding.division);
+    if(['career','relationships','identity','resources','education'].includes(finding.id)){
+     assert.equal(finding.interpretation,readable.meaning);
+     assert.equal(finding.teaser,readable.teaser);
+    }
+   }
+   for(const div of [1,2,9,10,24]){
+    const card=reading.cards.find(x=>x.division===div);
+    const readable=buildHumanReaderCard(chart,lang,div);
+    assert.equal(card.meaning,readable.meaning);
+    assert.equal(card.connection,null);
+   }
    assert.ok(!reading.cards.slice(0,15).some(c=>c.meaning.includes('Обидва ракурси повторюють')));
    for(const div of N493_THEMATIC_DIVISIONS){
     const card=reading.cards.find(x=>x.division===div);
@@ -80,8 +99,14 @@ test('N493 prioritizes 3-5 sourced discoveries, avoids false double votes, integ
     assert.ok(detail.proof.some(x=>x.startsWith('D'+div+'.'+detail.primary+'.sign=')));
     assert.ok(detail.proof.some(x=>x.startsWith('D'+div+'.'+detail.secondary+'.sign=')));
     assert.ok(card.proof.some(x=>x.startsWith('D'+div+'.'+detail.secondary+'.sign=')));
-    if(!direct.insights.some(x=>x.division===div))
-     assert.equal(card.meaning,detail.meaning);
+    const readable=buildHumanReaderCard(chart,lang,div);
+    assert.ok(readable);
+    assert.equal(card.meaning,readable.meaning,'client-facing card must be person-first');
+    assert.match(card.meaning,lang==='uk'?/Астрологічна основа:/u:/Astrological basis:/);
+    assert.equal((card.meaning.match(lang==='uk'?/D\d+/gu:/D\d+/g)||[]).length,2,
+     'one D1/Dn evidence sentence, not repeated calculation prose');
+    assert.ok(card.meaning.indexOf(lang==='uk'?'Астрологічна основа:':'Astrological basis:')>200,
+     'person-first narrative must precede technical source line');
     assert.ok(detail.meaning.length>=260&&detail.meaning.length<940,
      JSON.stringify({seed,lang,division:div,len:detail.meaning.length}));
     assert.match(detail.meaning,lang==='uk'?/Практичний крок:/u:/A practical next step:/,
