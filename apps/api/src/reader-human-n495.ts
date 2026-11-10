@@ -262,8 +262,10 @@ export function buildHumanReaderSummary(chart:CalculatedChart,lang:Lang){
    (shared?'Personal goals and work may compete for attention; make room for recovery.':
     'Work, relationships and rest need not provide the same kind of fulfillment.'),
   direction:uk?
+   (lords[1]===lords[10]?'Особистий напрям і професійні прагнення мають спільну основу; важливо, щоб робота не забирала весь простір для себе. ':'')+
    'У стосунках особливу роль може відігравати тема '+theme(h(lords[7]))+
    '. Для початку перевірте один професійний задум невеликим проєктом і обговоріть одну важливу домовленість із близькою людиною.':
+   (lords[1]===lords[10]?'Personal direction and professional ambitions share a common foundation; leave room for life beyond work. ':'')+
    'Relationships may call attention to '+theme(h(lords[7]))+
    '. Start by testing one vocational idea with a small project and discussing one important agreement with someone close.',
   overview:uk?
