@@ -38,10 +38,10 @@ export function makeLifeThemes(cards:readonly LifeCard[],lang:ReaderLang){
   // chart sections. Say it once; don't make the visitor read it five times.
   const sentences=reading.narrative.match(/[^.!?]+[.!?]+|[^.!?]+$/gu)||[];
   reading.narrative=sentences.filter(sentence=>{
-   const key=sentence.toLocaleLowerCase().replace(/\\s+/gu,' ').trim();
+   const key=sentence.toLocaleLowerCase().replace(/\s+/gu,' ').trim();
    if(!key||said.has(key))return false;
    said.add(key);return true;
-  }).join(' ').replace(/\\s+/gu,' ').trim();
+  }).join(' ').replace(/\s+/gu,' ').trim();
   return {id:g.id,title:lang==='uk'?g.uk:g.en,primary,reading,
    related:g.related.map(d=>byDivision.get(d)).filter((c):c is LifeCard=>Boolean(c))};
  });
