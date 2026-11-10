@@ -5,7 +5,7 @@
 import {Controller,Get,Query,BadRequestException,ServiceUnavailableException,Header} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {validTimeZone} from './personal-transits.ts';
-import {resolveCityAlias,mergeAliasResults} from './city-search-aliases.ts';
+import {resolveCityAlias,mergeAliasResults,shouldRetryUkrainianCityIndex} from './city-search-aliases.ts';
 type Row={id:number;name:string;country?:string;admin1?:string;latitude:number;longitude:number;timezone?:string;country_code?:string};
 const cache=new Map<string,{at:number;rows:ReturnType<typeof selectCities>}>();
 const selectCities=(input:unknown)=>{const data=(input as {results?:Row[]})?.results;
@@ -50,7 +50,7 @@ export class PanchangaPlacesController{
    // Open-Meteo often indexes Ukrainian Cyrillic spellings only with
    // language=uk. The EN page must not hide Kharkiv, Lviv, Odesa or Kyiv
    // merely because a visitor typed their native Ukrainian name.
-   if(lang==='en'&&!rows.length&&/[\u0400-\u04ff]/u.test(term)){
+   if(shouldRetryUkrainianCityIndex(term,lang,rows.length)){
     rows=await lookup(term,'uk').catch(()=>[]);
    }
    if(cache.size>180)cache.delete(cache.keys().next().value!);
