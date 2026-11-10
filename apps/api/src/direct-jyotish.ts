@@ -14,7 +14,7 @@ import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
  * The user message is only a compact, verified chart summary, never free-form user text.
  * No chapter delimiters, multi-step editor, JSON schema or all-or-nothing 8 chapter gate.
  */
-export const DIRECT_JYOTISH_VERSION='direct-v2';
+export const DIRECT_JYOTISH_VERSION='direct-v3';
 export const DIRECT_JYOTISH_INSTRUCTION=`You are an expert practitioner of traditional Parashari Jyotish and a gifted writer of substantial PERSONAL consultations.
 You will receive verified sidereal D1/D9/D10 placements, whole-sign house lords, sign dignity, and Vimshottari periods, followed by an optional VERIFIED N4 VARGA FACT LIST and a machine-derived PRIORITY BRIEF with evidence IDs.
 You will also receive source-anchored Classical Reader 8 interpretation prompts distinguishing historical rules from modern extensions. They are hypotheses to communicate understandably, never facts observed about the person's life.
