@@ -9,7 +9,7 @@ const aliases=new Set([
  'krivoy rog','krivoi rog','kriviy rog','krivyi rog',
  'krivy rog','krivoy roh','krivoi roh',
  'kryviy rih','kryvyj rih','kryvyy rih','kryvyi rig','kryviy rig',
- 'кривой рог','кривий рiг'
+ 'кривий ріг','кривой рог','кривий рiг'
 ]);
 export function resolveCityAlias(input:string):CityAlias|null{
  const normalized=input.normalize('NFKC').toLocaleLowerCase('en')
