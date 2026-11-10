@@ -210,13 +210,20 @@ export async function generateDirectJyotish(
     const timeout=Math.min(left,opts.timeoutMs??(provider==='gemini'?65000:provider==='groq'?42000:42000));
     timer=setTimeout(()=>controller?.abort(),timeout);
     const concise=attempt===1;
+    const backup=provider!=='gemini';
+    // Groq's reasoning budget is included in the completion token allocation.
+    // Keep reserve tokens for an actual response instead of ordering 650 words.
+    const maxCompletion=provider==='groq'?(concise?2800:3600):
+      provider==='openrouter'?(concise?2800:3400):(concise?2400:3400);
+    const instructions=concise?
+      DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nCorrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
+      backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION;
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
-     body:JSON.stringify({model,max_tokens:concise?1800:provider==='groq'?2200:2600,temperature:concise?0.45:0.7,
-      ...(provider==='groq'?{reasoning_effort:'low',include_reasoning:false}:{}),
-      messages:[{role:'system',content:concise?
-       DIRECT_JYOTISH_INSTRUCTION+'\nFor this corrective attempt: produce a COMPLETE, well-ended 450–700 word consultation within the token budget. Prioritize accuracy, D1/D9/D10, verified N4 thematic facts when provided and major/minor dashas over length. Finish your final sentence; do not produce a fragment.':
-       DIRECT_JYOTISH_INSTRUCTION},
+     body:JSON.stringify({model,
+      ...(provider==='groq'?{max_completion_tokens:maxCompletion,reasoning_effort:'low',include_reasoning:false}:{max_tokens:maxCompletion}),
+      temperature:concise?0.45:0.6,
+      messages:[{role:'system',content:instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+facts} ]})
     });
@@ -244,7 +251,9 @@ export async function generateDirectJyotish(
      const code=choice?.finish_reason==='length'?'token_limit':check.reason;
      diagnostic(provider,'validation',code);
      console.warn('Direct Jyotish: '+provider+' rejected='+code);
-     if(attempt===0&&(code==='too_short'||code==='unfinished'||code==='token_limit'))continue;
+     // token_limit means a provider exhausted its output allowance.
+     // Do not immediately repeat a costly request and hit the free-tier 429.
+     if(attempt===0&&(code==='too_short'||code==='unfinished'))continue;
      break;
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
