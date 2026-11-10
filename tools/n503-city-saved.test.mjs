@@ -12,7 +12,7 @@ const east={id:'11269924',name:'Krivoy Rog East',country:'Ukraine',region:'Dnipr
  latitude:47.88861,longitude:33.5375,timeZone:'Europe/Kyiv'};
 
 test('N503 legacy aliases recover verified Ukrainian Kryvyi Rih, not a false Russian match',()=>{
- for(const name of ['Krivoy Rog','KRIVOY ROG',' Krivoi   Rog ','kriviy rog','Kryvyi Rig','Кривой Рог']){
+ for(const name of ['Krivoy Rog','KRIVOY ROG',' Krivoi   Rog ','kriviy rog','Kryvyi Rig','Кривой Рог','Кривий Ріг']){
   assert.deepEqual(resolveCityAlias(name),{canonical:'Kryvyi Rih',geoNamesId:'703845'},name);
  }
  for(const name of ['London','Mumbai','Kyiv','Kremenchuk','Krivoy Rog East','Kryvyi Rih']){
