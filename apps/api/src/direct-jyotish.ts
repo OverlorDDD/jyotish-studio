@@ -216,7 +216,7 @@ export async function generateDirectJyotish(
     const maxCompletion=provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?(concise?2800:3400):(concise?2400:3400);
     const instructions=concise?
-      DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nCorrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
+      DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
       backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION;
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
