@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # N4.9.5 sixteen-card Reader production release from merged main. Run ONLY after exact-head CI is green.
 # Called remotely by Windows PowerShell over SSH, never by Actions.
-# Verifies integrated SEO+Reader ancestor and production fast-forward before switching.
+# Verifies merged SEO+Reader target; safely handles divergent production history via backup refs.
 # Does not use Docker, mutate schemas, wipe tracked files or reset --hard.
 set -Eeuo pipefail
 umask 077
@@ -39,8 +39,15 @@ remote="$(git rev-parse "refs/remotes/origin/$BRANCH")"
 [[ "$remote" == "$TARGET" ]] || fail "Branch moved; target=$TARGET remote=$remote"
 git cat-file -e "$TARGET^{commit}" || fail 'Commit object missing'
 git merge-base --is-ancestor "$RELEASE_ANCESTOR" "$TARGET" || fail 'N4.9.5 integrated release commit is not included in main; merge PR #157 first'
-if [[ "$OLD" != "$TARGET" ]]; then
-  git merge-base --is-ancestor "$OLD" "$TARGET" || fail 'Production HEAD is not ancestor; stop and reconcile manually'
+# A previous production branch may have a divergent commit graph. Checkout of
+# an exact verified commit does NOT require fast-forward ancestry; safe switch
+# plus a durable ref to the old HEAD preserves unpublished production history.
+DIVERGED=0
+if [[ "$OLD" != "$TARGET" ]] && ! git merge-base --is-ancestor "$OLD" "$TARGET"; then
+  DIVERGED=1
+  echo "N495_PRODUCTION_HISTORY_DIVERGED old=$OLD new=$TARGET"
+  echo '=== Production-only commits (diagnostic; retained in Git backup ref) ==='
+  git log --oneline --max-count=12 "$TARGET..$OLD" || true
 fi
 echo "OLD=$OLD"
 echo "NEW=$TARGET"
@@ -74,6 +81,18 @@ backup="$(mktemp -d "$backupBase/n495-$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
 chmod 700 "$backup"
 printf '%s\n' "$OLD" > "$backup/previous-commit.txt"
 printf '%s\n' "$TARGET" > "$backup/target-commit.txt"
+# Preserve even divergent/unpublished production commits across Git GC.
+# This ref is created BEFORE touching HEAD, and rollback uses exact OLD.
+backupRef="refs/galaxiora/n495-rollbacks/$(basename "$backup")"
+git update-ref "$backupRef" "$OLD" || fail 'Could not preserve the old production commit'
+[[ "$(git rev-parse "$backupRef")" == "$OLD" ]] || fail 'Production rollback reference was not saved'
+printf '%s\n' "$backupRef" > "$backup/rollback-ref.txt"
+git status --porcelain --untracked-files=normal > "$backup/previous-worktree-status.txt"
+if [[ "$DIVERGED" == 1 ]]; then
+  git log --format='%H %s' "$TARGET..$OLD" > "$backup/old-only-commits.txt" || true
+  git diff --name-status "$TARGET" "$OLD" > "$backup/tracked-difference-summary.txt"
+fi
+echo "N495_PRODUCTION_ROLLBACK_REF_SAVED=$backupRef"
 if [[ -f .env ]]; then cp -p .env "$backup/production.env"; chmod 600 "$backup/production.env"; fi
 printf 'Release rollback evidence stored privately in %s\n' "$backup"
 rollback(){
@@ -103,8 +122,10 @@ if [[ -n "$(git status --porcelain -- apps/web/next-env.d.ts)" ]]; then
   # Only the known, GENERATED file is restored; all other changes already stop.
   git restore --worktree -- apps/web/next-env.d.ts
 fi
-CHANGED=1
+# Git refuses to overwrite conflicting tracked edits or untracked files.
+# Never force checkout; only mark the release changed after successful switch.
 git -c advice.detachedHead=false switch --detach "$TARGET"
+CHANGED=1
 echo '=== N495 STAGE 4: install, schema client, deterministic critical QA ==='
 npm install --no-audit --no-fund --no-package-lock
 npm run db:generate
