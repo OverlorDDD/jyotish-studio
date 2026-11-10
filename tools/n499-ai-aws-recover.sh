@@ -85,8 +85,30 @@ print('N499_CONFIG_RECOVERY_APPLIED; recovered_keys='+str(sum(k in changes for k
 PY
 chmod 600 .env
 node tools/ai-production-status.mjs
+rollback_if_service_down(){
+ if ! sudo -n systemctl is-active --quiet galaxiora-api; then
+  echo 'N499_STOP: API failed to restart, restoring previous .env' >&2
+  cp -p "$backup/previous.env" .env && chmod 600 .env
+  sudo -n systemctl restart galaxiora-api || true
+  exit 2
+ fi
+}
 sudo -n systemctl restart galaxiora-api
-sudo -n systemctl is-active --quiet galaxiora-api
+# A systemd active state may precede NestJS binding its HTTP socket.
+ready=0
+for attempt in $(seq 1 20); do
+ if curl --silent --fail --max-time 5 http://127.0.0.1:4000/api/v1/jyotish/runtime >/dev/null; then
+  ready=1;break
+ fi
+ rollback_if_service_down
+ sleep 2
+done
+if [[ "$ready" != 1 ]]; then
+ echo 'N499_STOP: API did not become HTTP-ready; restoring previous .env' >&2
+ cp -p "$backup/previous.env" .env && chmod 600 .env
+ sudo -n systemctl restart galaxiora-api || true
+ exit 2
+fi
 # Local-only, no personal chart data. Check effective mode, not just .env text.
 curl --fail --silent --show-error --max-time 30 http://127.0.0.1:4000/api/v1/jyotish/runtime |
  node -e 'let s="";process.stdin.on("data",x=>s+=x);process.stdin.on("end",()=>{const j=JSON.parse(s);if(j.mode!=="free")process.exit(2);console.log("N499_RUNTIME_MODE_FREE")})'
