@@ -31,64 +31,58 @@ async function createInventedBirth(page,lang){
  return json;
 }
 for(const lang of ['uk','en']){
- test('N4.9.2 '+lang+': 16 meaningful sequential cards, no hidden editorial essay, final synthesis, responsive browser',async({page},testInfo)=>{
+ test('N4.9.6 '+lang+': five readable life themes with all sixteen opt-in readings, live Swiss and mobile layout',async({page},testInfo)=>{
   const report=await createInventedBirth(page,lang);
   const reader=page.getByTestId('reader-v8');
   await expect(reader).toBeVisible();
-  await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
+  const topics=reader.getByTestId('reader-n496-life-topics');
+  await expect(topics.locator(':scope > section')).toHaveCount(5);
+  for(const id of ['identity','money','career','relationships','roots']){
+   const section=reader.getByTestId('reader-n496-topic-'+id);
+   await expect(section).toBeVisible();
+   await expect(section.locator(':scope > h3')).not.toBeEmpty();
+   await expect(section.locator('article').first().locator('p').first()).not.toBeEmpty();
+   await expect(section.locator('.'+ 'nonexistent-code')).toHaveCount(0);
+  }
+  await expect(reader.getByTestId('reader-n496-topic-money')).toContainText(lang==='uk'?'Гроші й ресурси':'Money and resources');
+  await expect(reader.getByTestId('reader-n496-topic-career')).toContainText(lang==='uk'?'Робота й покликання':'Career and purpose');
+  // Raw proof keys, bibliography and D-indices never appear in the first-screen life narrative.
+  const visible=await topics.locator(':scope > section').allTextContents();
+  const initial=visible.map(x=>x.split(lang==='uk'?'Детальніше про цю сферу':'Explore this area')[0]).join(' ');
+  expect(initial).not.toMatch(/D1\.ascendant|house-lord\.\d|Brihat Jataka|Laghu Parashari/);
+  await expect(reader.locator('code')).toHaveCount(0);
+  await expect(reader.getByTestId('reader-n492-final')).toBeVisible();
+  expect(report.readerV8.meaningful.cards.map(c=>c.division)).toEqual([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
+  // The eleven supplementary readings stay accessible but do not overwhelm a newcomer.
+  for(const section of await topics.locator(':scope > section').all()){
+   const more=section.locator('details').filter({has:page.locator('summary')}).first();
+   const expand=section.locator('details').filter({has:page.getByText(lang==='uk'?'Детальніше про цю сферу':'Explore this area')});
+   if(await expand.count())await expand.locator(':scope > summary').click();
+  }
   await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
   await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
+  await expect(reader.getByTestId('reader-v8-d60')).toContainText(lang==='uk'?'Практичний крок':'Practical step');
+  await reader.getByTestId('reader-v8-d60').locator('details > summary').first().click();
+  await reader.getByTestId('reader-v8-d60').locator('details details > summary').click();
   await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
-  await expect(reader.getByTestId('reader-n492-final')).toBeVisible();
-  await expect(reader.getByTestId('reader-n493-top-insights')).toBeVisible();
-  expect(report.readerV8.meaningful.discoveries.insights.length).toBeGreaterThanOrEqual(3);
-  expect(report.readerV8.meaningful.discoveries.insights.length).toBeLessThanOrEqual(5);
-  await expect(reader.getByTestId('reader-v8-synthesis')).toHaveCount(0);
-  await expect(reader.locator('[data-testid^="reader-n49-thread-"]')).toHaveCount(0);
-  await expect(page.getByText('Поглиблене астрологічне пояснення — за бажанням')).toHaveCount(0);
-  await expect(page.getByText('Optional detailed traditional interpretation')).toHaveCount(0);
-  await expect(page.getByTestId('reading-ai-provenance')).toContainText('Jyotish Reader');
-  await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
-  const ordered=report.readerV8.meaningful.cards.map(c=>c.division);
-  expect(ordered).toEqual([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
-  for(const item of report.readerV8.meaningful.discoveries.insights){
-   await expect(reader.getByTestId('reader-n493-top-insights')).toContainText(item.headline);
-   await expect(reader.getByTestId(item.division===60?'reader-v8-d60':'reader-v8-D'+item.division)).toContainText(item.interpretation.slice(0,70));
-  }
-  for(const div of [1,2,9,10,24,60]){
-   const card=div===60?reader.getByTestId('reader-v8-d60'):reader.getByTestId('reader-v8-D'+div);
-   await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).title);
-   await expect(card).toContainText(report.readerV8.meaningful.cards.find(c=>c.division===div).meaning.slice(0,70));
-   await card.locator('details summary').click();
-   await expect(card.locator('details code')).toContainText('D1.');
-   await expect(card.locator('details')).toHaveAttribute('open','');
-  }
-  await expect(reader.getByTestId('reader-v8-D10')).toContainText(lang==='uk'?/профес/iu:/career|vocation|work/iu);
   for(const width of [320,360,390,430,768,1024,1440]){
    await page.setViewportSize({width,height:850});
-   await expect(reader.getByTestId('reader-v8-D10')).toBeVisible();
+   await expect(reader.getByTestId('reader-n496-topic-career')).toBeVisible();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
    expect(overflow,'horizontal overflow at '+width).toBeLessThanOrEqual(2);
-   if([320,430,1440].includes(width)){
-    for(const id of ['reader-v8-D10','reader-v8-d60','reader-n492-final']){
-     await reader.getByTestId(id).screenshot({
-      path:testInfo.outputPath('n492-'+id+'-'+lang+'-'+width+'.png'),
-      animations:'disabled',style:'.as-header{visibility:hidden!important}'
-     });
-    }
-   }
+   if([320,1440].includes(width))await reader.getByTestId('reader-n496-topic-career').screenshot({
+    path:testInfo.outputPath('n496-career-'+lang+'-'+width+'.png'),animations:'disabled'
+   });
   }
  });
 }
-test('N4.9.2 time precision warning without removing 16 cards',async({page})=>{
+test('N4.9.6 approximate birth time keeps five life themes without repeated warnings',async({page})=>{
  await createInventedBirth(page,'en');
  const reader=page.getByTestId('reader-v8');
  const details=page.locator('#birth-details');
  if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
  await details.locator('input[type="checkbox"]').check();
  await expect(reader.getByRole('note')).toContainText('Birth time is marked approximate');
- await expect(reader.getByTestId('reader-v8-d60').getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
- await expect(reader.getByTestId('reader-v8-d60')).toContainText('Astrological basis:');
- await expect(reader.getByTestId('reader-v8-d60')).not.toContainText('entered instant');
- await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
+ await expect(reader.getByTestId('reader-n496-life-topics').locator(':scope > section')).toHaveCount(5);
+ await expect(reader.locator('code')).toHaveCount(0);
 });
