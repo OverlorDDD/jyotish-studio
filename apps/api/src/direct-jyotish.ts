@@ -97,6 +97,15 @@ export type DirectOptions={
 };
 type Result={provider:FreeProvider;model:string;text:string};
 const PROVIDERS=new Set<FreeProvider>(['gemini','groq','openrouter']);
+/** Production order is intentionally Gemini-first. A stale FREE_AI_ORDER must
+ * never accidentally omit another already-configured free fallback; credential
+ * and explicit free-tier eligibility checks still gate every actual request.
+ * Tests may override order with DirectOptions.order to isolate a provider. */
+export function productionDirectAiOrder(configured=process.env.FREE_AI_ORDER):FreeProvider[]{
+ const requested=(configured||'').split(',').map(s=>s.trim().toLowerCase())
+  .filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
+ return [...new Set<FreeProvider>(['gemini',...requested.filter(p=>p!=='gemini'),'groq','openrouter'])];
+}
 const pickModel=(provider:FreeProvider)=>{
  if(provider==='gemini')return 'gemini-3.1-flash-lite';
  if(provider==='groq'){const allowed=new Set(['openai/gpt-oss-20b','openai/gpt-oss-120b']);const m=process.env.GROQ_MODEL||'openai/gpt-oss-20b';return allowed.has(m)?m:'openai/gpt-oss-20b';}
@@ -150,7 +159,7 @@ export function validateN4ConsultationReferences(text:string,chart:CalculatedCha
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
- const order=opts.order??(process.env.FREE_AI_ORDER||'gemini,groq,openrouter').split(',').map(x=>x.trim()).filter((s):s is FreeProvider=>PROVIDERS.has(s as FreeProvider));
+ const order=opts.order??productionDirectAiOrder();
  const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(planConsultationQuality(chart,asOf));
  const permit=opts.limit||consumeFreeAiRequest;
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
