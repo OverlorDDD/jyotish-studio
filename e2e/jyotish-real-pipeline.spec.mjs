@@ -40,12 +40,14 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(data.editorial?.chapters?.length).toBe(8);
  expect(data.ai?.fallbackReason).toBe('reader_only');
  // The modern product generates verified Reader 8 automatically when the chart is ready.
- const reading=page.getByTestId('reader-n492-16-cards');
- await expect(reading).toBeVisible({timeout:30000});
- await expect(reading.locator(':scope > article')).toHaveCount(16);
- await expect(page.getByTestId('reader-v8-d60')).toBeVisible();
- await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Практичний крок:');
- await expect(page.getByTestId('reader-n492-final')).toBeVisible();
+ const areas=page.getByTestId('reader-n496-five-themes');
+ await expect(areas).toBeVisible({timeout:30000});
+ await expect(areas.locator(':scope > article')).toHaveCount(5);
+ const reader=page.getByTestId('reader-v8');
+ await reader.getByTestId('reader-n492-all-16-details').locator(':scope > summary').click();
+ await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
+ await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
+ await expect(reader.getByTestId('reader-n492-meaning-D60')).toContainText('Практичний крок:');
  await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
  expect(await page.locator('.reading-root').innerText()).not.toContain('Reader v5');
  // The no-LLM local path is a real complete reading, not an empty fallback.
@@ -59,10 +61,13 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Calculate birth chart'}).click();
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
- const reading=page.getByTestId('reader-n492-16-cards');
- await expect(reading).toBeVisible({timeout:30000});
- await expect(reading.locator(':scope > article')).toHaveCount(16);
- await expect(page.getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
- await expect(page.getByTestId('reader-v8-d60')).toContainText('Astrological basis:');
- await expect(page.getByTestId('reader-n492-final')).toBeVisible();
+ const areas=page.getByTestId('reader-n496-five-themes');
+ await expect(areas).toBeVisible({timeout:30000});
+ await expect(areas.locator(':scope > article')).toHaveCount(5);
+ const reader=page.getByTestId('reader-v8');
+ await reader.getByTestId('reader-n492-all-16-details').locator(':scope > summary').click();
+ await expect(reader.getByTestId('reader-n492-16-cards').locator(':scope > article')).toHaveCount(16);
+ await expect(reader.getByTestId('reader-n492-meaning-D60')).toContainText('Practical step:');
+ await reader.getByTestId('reader-v8-d60').getByText('What positions were considered').click();
+ await expect(reader.getByTestId('reader-v8-d60')).toContainText('Astrological basis:');
 });

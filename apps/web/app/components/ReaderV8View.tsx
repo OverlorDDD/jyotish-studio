@@ -6,7 +6,10 @@ export type ReaderV8UI={
  introduction:string;method:string;d60Notice:string;
  synthesis?:{version:string;title:string;opening:string;strength:string;challenge:string;direction:string;method:string};
  compactCards?:readonly {division:number;lead:string;connection:string;relatedDivision:number;contrast:string;proof:readonly string[]}[];
- meaningful?:{version:string;discoveries?:{
+ meaningful?:{version:string;portrait?:{version:string;title:string;intro:string;areas:readonly {
+  id:'identity'|'money'|'career'|'relationships'|'roots';title:string;story:string;nuance:string;action:string;
+  divisions:readonly number[];proof:readonly string[]
+ }[]};discoveries?:{
   version:string;summary:string;insights:readonly {
    id:string;division:number;relatedDivisions:number[];planet:string;headline:string;teaser:string;
    interpretation:string;attention:string;prominence:number;

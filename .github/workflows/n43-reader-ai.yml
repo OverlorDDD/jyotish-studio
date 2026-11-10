@@ -48,6 +48,8 @@ jobs:
         run: node --experimental-strip-types --test tools/n48-editorial-prose.test.mjs
       - name: N4.9.3 ranked evidence discoveries x 120 complete reader outputs
         run: node --experimental-strip-types --test tools/n493-discovery-editorial-qa.test.mjs
+      - name: N4.9.6 human life-area prose, five themes and retained sixteen-source contract
+        run: node --experimental-strip-types --test tools/n496-human-portrait.test.mjs
       - name: N4.9.2 all sixteen meaningful cards and editorial output gates
         run: node --experimental-strip-types --test tools/n492-meaningful-reader.test.mjs
       - name: N4.9.1 concise cards and full D60 planetary evidence gate
@@ -76,6 +78,8 @@ jobs:
           node --test tools/n493-aws-release-contract.test.mjs
           bash -n tools/n495-aws-release.sh
           node --test tools/n495-aws-release-contract.test.mjs
+          bash -n tools/n496-aws-release.sh
+          node --test tools/n496-aws-release-contract.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate

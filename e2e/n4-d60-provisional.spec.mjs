@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {enterSyntheticBirthFields} from './n4-rc-legacy-compat.mjs';
 /** UI synthetic transport only; numerical D60 is checked separately using real external PyJHora. */
 const names=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 const divisions=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
@@ -49,10 +50,13 @@ async function ready(page,lang,data=fixture()){
   status:200,contentType:'application/json',body:JSON.stringify(data)
  }));
  await page.goto('/'+lang+'/astrology/jyotish');
- await page.locator('input[type=date]').fill('2000-01-01');
- await page.locator('input[type=time]').fill('12:00');
- await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
- await page.getByRole('option',{name:/Kyiv/}).click();
+ // This suite checks D60 and responsive rendering, not city discovery.
+ // Supply the fixture's exact coordinates via the independent manual path
+ // so debounced mobile geocoding cannot accidentally disable calculation.
+ await enterSyntheticBirthFields(page,data.input);
+ await expect(page.locator('details.jy-n4-advanced')).toHaveAttribute('open','');
+ await expect(page.locator('details.jy-n4-advanced input[type=number]').nth(0)).toHaveValue(String(data.input.latitude));
+ await expect(page.locator('details.jy-n4-advanced input[type=number]').nth(1)).toHaveValue(String(data.input.longitude));
  // The source response is mocked by this test; assert the actual chart UI,
  // not the timing of the response event (which was flaky on slower CI runs).
  const calculate=page.locator('button.jy-calc-btn');
@@ -122,6 +126,17 @@ function mockV8(divisions){
    links:divisions.map(division=>({division,polarity:'unresolved',evidence:['D1.Mercury.house=3']}))},
   meaningful:{
    version:'n492-evidence-prioritized-16-varga-v1',
+   portrait:{version:'n496-human-portrait-1.0.0',title:'Ваш портрет у п’яти сферах життя',
+    intro:'П’ять життєвих сфер з конкретними ситуаціями та діями.',
+    areas:['identity','money','career','relationships','roots'].map((id,i)=>({
+     id,title:['Особистість','Гроші та стабільність','Робота та здібності','Стосунки','Дім та рід'][i],
+     story:'Для вас важливі конкретні рішення та реальні домовленості у сфері '+id+
+      '. Тестова карта показує символічний напрям, а не факт про людину.',
+     nuance:'Тут корисно перевіряти власні припущення послідовними діями.',
+     action:'Спробуйте зробити один маленький конкретний крок протягом тижня.',
+     divisions:[[1,3,27,30,60],[2,16],[10,24],[7,9],[4,12,20,40,45]][i],
+     proof:['D1.house-lord.1=Mars']
+    }))},
    discoveries:{version:'n493-ranked-patterns-1.0.0',summary:'Три головні закономірності випливають із обчислених положень планет і тематичних карт.',
     insights:[1,9,10].map((division,i)=>({id:'mock-'+i,division,relatedDivisions:[],planet:'Mercury',
      headline:'Особиста тема '+division,teaser:'Ця тема поєднує перевірені положення двох карт без вигаданих висновків.',
@@ -249,13 +264,15 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await expect(plain).toBeVisible();
  await expect(plain.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
  await expect(plain.getByTestId('reader-v8-synthesis')).toHaveCount(0);
+ await expect(plain.getByTestId('reader-n496-five-themes').locator(':scope > article')).toHaveCount(5);
+ await plain.getByTestId('reader-n492-all-16-details').locator(':scope > summary').click();
  await expect(plain.getByTestId('reader-v8-D27')).toContainText('Для цієї сфери');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
  await expect(plain.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('Лев');
  await expect(plain.getByTestId('reader-v8-d60')).toContainText('D60');
- await plain.getByTestId('reader-v8-D10').getByText('Чому такий висновок').click();
- await expect(plain.getByTestId('reader-v8-D10')).toContainText('Brihat Jataka');
+ await expect(plain.locator('code')).toHaveCount(0);
+ await expect(plain.getByTestId('reader-n496-five-themes')).not.toContainText('Brihat Jataka');
  await expect(page.getByTestId('reader-v7')).toHaveCount(0);
 
  await expect(page.getByTestId('n4-varga-reader')).toHaveCount(0);
