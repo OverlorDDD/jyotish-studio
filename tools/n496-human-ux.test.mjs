@@ -8,7 +8,7 @@ const cards=lang=>order.map(division=>({
  division,title:'Chart '+division,
  meaning:(lang==='uk'?
   'У реальному житті ваші здібності проявляються через спілкування та довіру. Окрема сфера життя '+division+' додає власний спосіб приймати рішення. Практичний крок: Обговоріть одну важливу домовленість. Астрологічна основа: Сонце — 3-й дім D1.':
-  'In everyday life, your strengths may grow through trust and clear communication. Life area '+division+' adds its own way to make decisions. Practical step: Discuss one important agreement. Astrological basis: Sun in house 3, D1.'),
+  'In everyday life, your strengths may grow through trust and clear communication. Life area '+division+' adds its own way to make decisions and build confidence in everyday situations. Practical step: Discuss one important agreement. Astrological basis: Sun in house 3, D1.'),
  proof:['D1.ascendant.sign=4','D1.house-lord.1=Moon']
 }));
 test('beginner sees five readable themes, while all sixteen chart sources are preserved',()=>{
