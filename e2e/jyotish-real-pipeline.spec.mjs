@@ -22,6 +22,8 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Розрахувати карту'}).click();
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
+ await expect(page.getByTestId('n503-birthplace-coordinates')).toContainText('28.61390° N');
+ await expect(page.getByTestId('n503-birthplace-coordinates')).toContainText('77.20900° E');
  // Without this assertion, the old direct-v2 / direct-v3 mismatch could be
  // reported after the earlier toHaveCount(0) and escape browser CI.
  await expect(page.locator('.jy-version-warning')).toHaveCount(0);

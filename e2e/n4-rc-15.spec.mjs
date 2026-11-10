@@ -35,7 +35,9 @@ async function load(page,lang='uk',data=sample()){
    latitude:50.45,longitude:30.5234,timeZone:'Europe/Kyiv'}]})}));
  await page.route('**/api/v1/charts/calculate',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify(data)}));
+ const hydration=page.waitForResponse(r=>r.url().includes('/api/v1/jyotish/runtime'),{timeout:20000});
  await page.goto('/'+lang+'/astrology/jyotish');
+ await hydration;
  await expect(page.locator('input[type=date]')).toHaveValue('');
  await expect(page.locator('input[type=time]')).toHaveValue('');
  await page.locator('input[type=date]').fill('2000-01-01');
@@ -43,6 +45,11 @@ async function load(page,lang='uk',data=sample()){
  await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
  await page.getByRole('option',{name:/Kyiv/}).click();
  await expect(page.locator('.jy-selected-city')).toContainText('Kyiv');
+ // The chosen city must transfer coordinates and its IANA time zone atomically.
+ const advanced=page.locator('details.jy-n4-advanced');
+ await expect(advanced.locator('input[type=number]').nth(0)).toHaveValue('50.45');
+ await expect(advanced.locator('input[type=number]').nth(1)).toHaveValue('30.5234');
+ await expect(advanced.locator('input:not([type=number])')).toHaveValue('Europe/Kyiv');
  await expect(page.locator('button.jy-calc-btn')).toBeEnabled();
  await Promise.all([
   page.waitForResponse(r=>r.url().includes('/api/v1/charts/calculate')),

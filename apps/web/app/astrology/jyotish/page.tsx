@@ -125,8 +125,12 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  useEffect(()=>{if(report)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});},[report]);
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>{
-  setForm(old=>({...old,[key]:value,...(['latitude','longitude','timeZone'].includes(key)?{place:undefined}:{})}));
-  if(['latitude','longitude','timeZone'].includes(key))setCityReset(count=>count+1);
+  const manual=['latitude','longitude','timeZone'].includes(key);
+  // An explicit coordinate edit is sufficient to enable manual birthplace
+  // entry, even when the browser has not delivered the details toggle event.
+  if(manual)setManualMode(true);
+  setForm(old=>({...old,[key]:value,...(manual?{place:undefined}:{})}));
+  if(manual)setCityReset(count=>count+1);
  };
  const chooseCity=(city:{name:string;region:string;country:string;latitude:number;longitude:number;timeZone:string})=>{
   setManualMode(false);
@@ -271,12 +275,17 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
        <div><span>{lang==='uk'?'Аянамша':'Ayanamsha'}</span><strong>{chart?chart.ayanamsa.toFixed(3)+'° · Lahiri':'—'}</strong></div>
        <div><span>UTC</span><strong>{chart?chart.utc.replace('T',' ').slice(0,19):'—'}</strong></div>
        <div><span>{lang==='uk'?'Часовий пояс':'Time zone'}</span><strong>{chart?.input.timeZone||'—'}</strong></div>
+       <div data-testid="n503-birthplace-name"><span>{lang==='uk'?'Місце народження':'Birthplace'}</span><strong>{chart?(chart.input.place||(lang==='uk'?'Ручні координати':'Manual coordinates')):'—'}</strong></div>
+       <div data-testid="n503-birthplace-coordinates"><span>{lang==='uk'?'Координати народження':'Birth coordinates'}</span><strong>{chart?
+        Math.abs(chart.input.latitude).toFixed(5)+'° '+(chart.input.latitude<0?'S':'N')+' · '+
+        Math.abs(chart.input.longitude).toFixed(5)+'° '+(chart.input.longitude<0?'W':'E'):'—'}</strong></div>
        <div><span>{lang==='uk'?'Ефемериди':'Ephemeris'}</span><strong>{chart?.ephemeris?.includes('pyswisseph')?'PySwissEph':chart?'Swiss Ephemeris':'—'}</strong></div>
       </div>
       <div className="jy-mini-legend"><span><b>☉</b>{lang==='uk'?'Сонце':'Sun'}</span><span><b>☽</b>{lang==='uk'?'Місяць':'Moon'}</span><span><b>♂</b>{lang==='uk'?'Марс':'Mars'}</span><span><b>♃</b>{lang==='uk'?'Юпітер':'Jupiter'}</span><span><b>☊</b>{lang==='uk'?'Раху':'Rahu'}</span></div>
       {chart?.verification?.status==='verified_internal'&&<details className="jy-reference-details">
        <summary>{lang==='uk'?'Перевірка розрахунків':'Calculation verification'}</summary>
        <p>{lang==='uk'?'Внутрішні перевірки D1, D9, D10, управителів і даш пройдено.':'Internal D1, D9, D10, house-lord and dasha consistency checks passed.'}</p>
+       <p>{lang==='uk'?'Широта й довгота визначають асцендент (лагну), а від нього — доми та висхідні знаки дробових карт. Часовий пояс переводить час народження в UTC для положень планет і даш. Назва міста — лише підпис.':'Birth latitude/longitude determine the ascendant, which anchors whole-sign houses and divisional ascendants. The time zone converts birth time into UTC for planetary positions and dashas. The city name is only a label.'}</p>
        {jhoraReference&&<p>{lang==='uk'?'Незалежний корпус JHora 8.0:':'Independent JHora 8.0 corpus:'} {jhoraReference.cases} {lang==='uk'?'карт з однаковою методикою':'same-method charts'}. D1 {jhoraReference.d1SignMatches}/{jhoraReference.d1Total}, D9 {jhoraReference.d9SignMatches}/{jhoraReference.d9Total}, D10 {jhoraReference.d10SignMatches}/{jhoraReference.d10Total}. {lang==='uk'?'Збіг знаків підтверджено. Точність довгот до 1″ та календарні дати Vimshottari перевіряються окремо.':'Sign parity is certified. One-arcsecond longitude precision and Vimshottari calendar dates have separate pending checks.'}</p>}
        <p>{lang==='uk'?'Це незалежна звірка еталонних карт за узгодженим профілем, а не індивідуальна перевірка вашої карти в JHora.':'This is an independent same-profile reference check, not direct JHora verification of your individual chart.'}</p>
       </details>}

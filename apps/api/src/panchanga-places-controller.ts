@@ -5,6 +5,7 @@
 import {Controller,Get,Query,BadRequestException,ServiceUnavailableException,Header} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {validTimeZone} from './personal-transits.ts';
+import {resolveCityAlias,mergeAliasResults,shouldRetryUkrainianCityIndex} from './city-search-aliases.ts';
 type Row={id:number;name:string;country?:string;admin1?:string;latitude:number;longitude:number;timezone?:string;country_code?:string};
 const cache=new Map<string,{at:number;rows:ReturnType<typeof selectCities>}>();
 const selectCities=(input:unknown)=>{const data=(input as {results?:Row[]})?.results;
@@ -25,15 +26,33 @@ export class PanchangaPlacesController{
     !['uk','en'].includes(lang))throw new BadRequestException('Enter 2–85 city characters and uk/en language');
   const key=lang+':'+term.toLocaleLowerCase(),now=Date.now(),old=cache.get(key);
   if(old&&now-old.at<24*60*60*1000)return {items:old.rows,source:'Open-Meteo Geocoding'};
-  const u=new URL(process.env.GALAXIORA_GEOCODING_ORIGIN||'https://geocoding-api.open-meteo.com/v1/search');
-  if(u.protocol!=='https:'||!['geocoding-api.open-meteo.com'].includes(u.hostname))
+  const endpoint=process.env.GALAXIORA_GEOCODING_ORIGIN||'https://geocoding-api.open-meteo.com/v1/search';
+  const base=new URL(endpoint);
+  if(base.protocol!=='https:'||base.hostname!=='geocoding-api.open-meteo.com')
    throw new ServiceUnavailableException('Geocoding provider not configured');
-  u.searchParams.set('name',term);u.searchParams.set('count','10');
-  u.searchParams.set('language',lang);u.searchParams.set('format','json');
+  const lookup=async(name:string,language: 'uk'|'en'=lang as 'uk'|'en')=>{
+   const u=new URL(endpoint);
+   u.searchParams.set('name',name);u.searchParams.set('count','10');
+   u.searchParams.set('language',language);u.searchParams.set('format','json');
+   const response=await fetch(u,{signal:AbortSignal.timeout(6500),headers:{Accept:'application/json'}});
+   if(!response.ok)throw Error('Geocoding HTTP '+response.status);
+   return selectCities(await response.json());
+  };
+  const alias=resolveCityAlias(term);
   try{
-   const res=await fetch(u,{signal:AbortSignal.timeout(6500),headers:{Accept:'application/json'}});
-   if(!res.ok)throw Error('Geocoding HTTP '+res.status);
-   const rows=selectCities(await res.json());
+   // For an exact historic alias, also retrieve the canonical city record.
+   // Keep original candidates: "Krivoy Rog" is also a place name in Russia.
+   const results=await Promise.allSettled(alias?[lookup(term),lookup(alias.canonical)]:[lookup(term)]);
+   const original=results[0].status==='fulfilled'?results[0].value:[];
+   const canonical=results[1]?.status==='fulfilled'?results[1].value:[];
+   if(!results.some(x=>x.status==='fulfilled'))throw Error('Both geocoders failed');
+   let rows=mergeAliasResults(original,canonical,alias);
+   // Open-Meteo often indexes Ukrainian Cyrillic spellings only with
+   // language=uk. The EN page must not hide Kharkiv, Lviv, Odesa or Kyiv
+   // merely because a visitor typed their native Ukrainian name.
+   if(shouldRetryUkrainianCityIndex(term,lang,rows.length)){
+    rows=await lookup(term,'uk').catch(()=>[]);
+   }
    if(cache.size>180)cache.delete(cache.keys().next().value!);
    cache.set(key,{at:now,rows});
    return {items:rows,source:'Open-Meteo Geocoding'};

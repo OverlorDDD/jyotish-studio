@@ -48,7 +48,11 @@ async function ready(page,lang,data=fixture()){
  await page.route('**/api/v1/charts/calculate',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify(data)
  }));
+ // Wait for the client to hydrate (runtime fetch is dispatched from useEffect).
+ // Filling fields before hydration can lose the React onChange updates.
+ const hydration=page.waitForResponse(r=>r.url().includes('/api/v1/jyotish/runtime'),{timeout:20000});
  await page.goto('/'+lang+'/astrology/jyotish');
+ await hydration;
  await page.locator('input[type=date]').fill('2000-01-01');
  await page.locator('input[type=time]').fill('12:00');
  await page.locator('details.jy-n4-advanced > summary').click();
@@ -56,6 +60,11 @@ async function ready(page,lang,data=fixture()){
  await advanced.locator('input[type="number"]').nth(0).fill('50.45');
  await advanced.locator('input[type="number"]').nth(1).fill('30.5234');
  await advanced.locator('input:not([type="number"])').fill('Europe/Kyiv');
+ // This fixture uses manual coordinates rather than the city search; ensure
+ // the user-entered location survives the client state transition.
+ await expect(advanced.locator('input[type="number"]').nth(0)).toHaveValue('50.45');
+ await expect(advanced.locator('input[type="number"]').nth(1)).toHaveValue('30.5234');
+ await expect(advanced.locator('input:not([type="number"])')).toHaveValue('Europe/Kyiv');
  // The source response is mocked by this test; assert the actual chart UI,
  // not the timing of the response event (which was flaky on slower CI runs).
  const calculate=page.locator('button.jy-calc-btn');
