@@ -129,11 +129,42 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const style=choose(STYLE[placement.sign-1],lang);
  const q=dignityFor(lord,placement.sign);
  let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
- let bridge=uk?
-  'У практичному житті ця потреба може проявлятися через тему '+theme(placement.house)+
-  '. У цій сфері корисний підхід — '+style+'.':
-  'In everyday life this need may surface through '+theme(placement.house)+
-  '. A useful approach here is to '+style+'.';
+ const topic=theme(placement.house);
+ const bridgeUk:Record<number,string>={
+  1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
+  2:'Фінансова впевненість виростає не лише з доходу, а й з повсякденних звичок. Зверніть увагу на тему '+topic+'; корисно '+style+'.',
+  3:'Сміливість працює краще, коли її чують інші. У сфері '+topic+' вам стане в пригоді вміння '+style+'.',
+  4:'Внутрішня опора не завжди тотожна зовнішньому комфорту. У сфері '+topic+' допомагає вміння '+style+'.',
+  7:'Творчість має значення не лише для автора, а й для тих, хто отримує від неї користь. Тут важлива тема '+topic+'; спробуйте '+style+'.',
+  9:'Тема '+topic+' може уточнювати ваші очікування від близькості. Особливо корисно '+style+'.',
+  10:'Професійний шлях зачіпає тему '+topic+'. Спробуйте '+style+'.',
+  12:'Не всі успадковані правила потрібно приймати автоматично. У темі '+topic+' корисно '+style+'.',
+  16:'Зручність має підтримувати ваші звички, а не керувати ними. Зверніть увагу на тему '+topic+' і спробуйте '+style+'.',
+  20:'Глибока практика починається не з обіцянок, а з послідовності. У темі '+topic+' корисно '+style+'.',
+  24:'Знання стають майстерністю, коли проходять перевірку справою. Зверніть увагу на тему '+topic+' і спробуйте '+style+'.',
+  27:'Справжня витривалість — це також вміння вчасно змінити темп. У сфері '+topic+' допомагає здатність '+style+'.',
+  30:'Труднощі не обов’язково означають неправильний напрям. У темі '+topic+' варто '+style+'.',
+  40:'Те, як у вашій родині проявляли турботу, не зобов’язує вас повторювати все без змін. Особливо важлива тема '+topic+'; спробуйте '+style+'.',
+  45:'Між успадкованими правилами та власними переконаннями є простір для вибору. Тема '+topic+' допоможе його побачити; варто '+style+'.'
+ };
+ const bridgeEn:Record<number,string>={
+  1:'The area of '+topic+' deserves special attention. Try to '+style+'.',
+  2:'Financial confidence depends on daily habits, not just income. Look at '+topic+' and try to '+style+'.',
+  3:'Courage works best when others can hear you. With '+topic+', practice how to '+style+'.',
+  4:'Inner security is not always the same as outward comfort. In '+topic+', it helps to '+style+'.',
+  7:'Creativity matters to the people it helps, not just its creator. Consider '+topic+' and try to '+style+'.',
+  9:'The area of '+topic+' may clarify expectations in closeness. It helps to '+style+'.',
+  10:'Working life brings the area of '+topic+' into focus. Try to '+style+'.',
+  12:'Not every inherited rule has to become your own. In '+topic+', try to '+style+'.',
+  16:'Comfort should support your habits rather than control them. Consider '+topic+' and try to '+style+'.',
+  20:'A meaningful practice is built through consistency rather than big promises. In '+topic+', try to '+style+'.',
+  24:'Knowledge becomes mastery when it survives a practical test. In '+topic+', try to '+style+'.',
+  27:'Resilience includes knowing when to change your pace. In '+topic+', practice how to '+style+'.',
+  30:'Difficulty does not automatically mean you are on the wrong path. In '+topic+', try to '+style+'.',
+  40:'Inherited styles of care need not be repeated unchanged. Consider '+topic+' and try to '+style+'.',
+  45:'There is room for choice between inherited rules and your own beliefs. In '+topic+', try to '+style+'.'
+ };
+ let bridge=uk?bridgeUk[division]:bridgeEn[division];
  if(division===1){
   bridge=uk?
    (lord==='Moon'?
