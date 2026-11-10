@@ -1,3 +1,17 @@
+/* N4.9.6: the public reading is five life themes, not an exposed evidence dump. */
+.lifeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:20px 0 26px}
+.lifeTheme{min-width:0;border:1px solid rgba(215,182,124,.25);border-radius:14px;background:rgba(14,27,48,.65);padding:20px;overflow-wrap:break-word}
+.lifeTheme:first-child{grid-column:1 / -1}
+.lifeTheme h3{font:500 clamp(18px,2.1vw,23px)/1.35 Georgia,serif;color:#f0d5ad;margin:0 0 13px}
+.lifeNarrative{font-size:15px;line-height:1.85;color:#e9eef6;margin:0}
+.lifeAction{font-size:14px;line-height:1.7;color:#e8e8eb;margin:14px 0 0;padding:11px 13px;border-left:3px solid #c7ab7c;background:rgba(205,177,131,.07);border-radius:0 8px 8px 0}
+.lifeAction strong{color:#f5d5a3}
+.expert{margin:22px 0;padding:14px 18px;border:1px solid rgba(180,195,219,.2);border-radius:12px;background:rgba(16,26,43,.38)}
+.expert>summary{color:#f4d7af;font-size:15px;cursor:pointer;font-weight:600}
+.expert>p{color:#b9c9dc;font-size:13px;line-height:1.6}
+.expert[open]>summary{margin-bottom:10px}
+.expert summary:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media(max-width:680px){.lifeGrid{grid-template-columns:1fr}.lifeTheme:first-child{grid-column:auto}.lifeTheme{padding:16px}}
 .root{max-width:100%;min-width:0}
 .card{display:flex;flex-direction:column;align-items:stretch;min-width:0;gap:14px!important;overflow-wrap:anywhere}
 .meaning{font-size:14px;line-height:1.82;max-width:68ch;color:#e7edf6;margin:0}

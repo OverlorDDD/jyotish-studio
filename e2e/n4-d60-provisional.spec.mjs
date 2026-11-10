@@ -51,8 +51,14 @@ async function ready(page,lang,data=fixture()){
  await page.goto('/'+lang+'/astrology/jyotish');
  await page.locator('input[type=date]').fill('2000-01-01');
  await page.locator('input[type=time]').fill('12:00');
- await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
- await page.getByRole('option',{name:/Kyiv/}).click();
+ // The D60 fixture tests numerical-source provenance, not the network-backed
+ // location widget (covered separately). Use deterministic manual coordinates
+ // so unrelated geocoding response races cannot disable the calculate button.
+ await page.locator('details.jy-n4-advanced > summary').click();
+ const manual=page.locator('details.jy-n4-advanced');
+ await manual.locator('input[type="number"]').nth(0).fill('50.45');
+ await manual.locator('input[type="number"]').nth(1).fill('30.5234');
+ await manual.locator('input:not([type="number"])').fill('Europe/Kyiv');
  // The source response is mocked by this test; assert the actual chart UI,
  // not the timing of the response event (which was flaky on slower CI runs).
  const calculate=page.locator('button.jy-calc-btn');
@@ -247,6 +253,8 @@ test('N4 Reader shows all source-bound varga insights and the D60 precision boun
  await page.getByRole('button',{name:/Читати без AI/}).click();
  const plain=page.getByTestId('reader-v8');
  await expect(plain).toBeVisible();
+ await expect(plain.getByTestId('reader-n496-life-themes').locator(':scope > article')).toHaveCount(5);
+ await plain.getByTestId('reader-n496-expert-details').locator(':scope > summary').click();
  await expect(plain.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
  await expect(plain.getByTestId('reader-v8-synthesis')).toHaveCount(0);
  await expect(plain.getByTestId('reader-v8-D27')).toContainText('Для цієї сфери');

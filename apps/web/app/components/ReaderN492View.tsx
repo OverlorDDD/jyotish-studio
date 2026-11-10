@@ -2,24 +2,33 @@
 import styles from './ReaderV7View.module.css';
 import book from './ReaderN492View.module.css';
 import type {ReaderV8UI} from './ReaderV8View';
+import {makeLifeThemes,splitLifeReading} from './ReaderLifeThemes';
 
 type Meaningful=NonNullable<ReaderV8UI['meaningful']>;
 export default function ReaderN492View({data,lang,minutesUncertain=false}:
  {data:ReaderV8UI;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',read=data.meaningful as Meaningful|null|undefined;
  const discoveries=read?.discoveries;
+ const themes=read?makeLifeThemes(read.cards,lang):[];
  if(!read||read.cards.length!==16)return null;
  return <section className={styles.root+' '+book.root} data-testid="reader-v8" aria-labelledby="n492-heading">
   <header className={styles.top}>
-   <span className={styles.kicker}>{uk?'✦ ВАША НАТАЛЬНА КАРТА':'✦ YOUR NATAL CHART'}</span>
-   <h2 id="n492-heading">{uk?'Трактування за сферами життя':'Your chart, area by area'}</h2>
-   <p>{uk?'Від основної карти D1 до тонших карт. Лише найважливіші показники кожної теми.':
-    'From the main D1 chart to its finer divisions, focusing on what matters in each theme.'}</p>
+   <span className={styles.kicker}>{uk?'✦ ВАША ІСТОРІЯ':'✦ YOUR PERSONAL STORY'}</span>
+   <h2 id="n492-heading">{uk?'Про вас — п’ять важливих сфер життя':'Your life in five meaningful themes'}</h2>
+   <p>{uk?'Спершу — зрозумілий портрет і конкретні кроки. Усі 16 астрологічних карт та джерела можна розкрити нижче.':
+    'Start with a clear portrait and practical next steps. All 16 astrology charts and sources are available below.'}</p>
   </header>
+  <div className={book.lifeGrid} data-testid="reader-n496-life-themes">
+   {themes.map(theme=><article className={book.lifeTheme} key={theme.id} data-testid={'reader-n496-theme-'+theme.id}>
+    <h3>{theme.title}</h3>
+    {theme.reading.narrative?<p className={book.lifeNarrative}>{theme.reading.narrative}</p>:null}
+    {theme.reading.action?<p className={book.lifeAction}><strong>{uk?'Що спробувати':'Try this'}:</strong> {theme.reading.action}</p>:null}
+   </article>)}
+  </div>
   {minutesUncertain?<p className={book.notice} role="note">{uk?
    'Час народження позначено як приблизний. Для тонких карт важлива точність введених даних; подробиці — у методиці нижче.':
    'Birth time is marked approximate. Finer charts depend on accurate input; details are in the methodology below.'}</p>:null}
-  {(discoveries?.insights?.length ?? 0)>=3?<section className={book.discoveries} aria-labelledby="reader-n493-heading" data-testid="reader-n493-top-insights">
+  {(discoveries?.insights?.length ?? 0)>=3?<details className={book.discoveries} data-testid="reader-n493-discoveries-details"><summary>{uk?'Що ще виділяє астрологічний аналіз':'Additional chart patterns'}</summary><section aria-labelledby="reader-n493-heading" data-testid="reader-n493-top-insights">
    <span className={styles.kicker}>{uk?'✦ 3–5 ГОЛОВНИХ ЗАКОНОМІРНОСТЕЙ':'✦ MAIN CHART PATTERNS'}</span>
    <h3 id="reader-n493-heading">{uk?'Що вирізняє саме вашу карту':'What stands out in your chart'}</h3>
    <p className={book.discoveriesIntro}>{uk?
@@ -33,16 +42,17 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
       'Read D'+item.division+' interpretation'}</a>
     </li>)}
    </ol>
-  </section>:null}
+  </section></details>:null}
+  <details className={book.expert} data-testid="reader-n496-expert-details">
+   <summary>{uk?'Усі 16 карт і астрологічні пояснення':'All 16 charts and astrological details'}</summary>
+   <p>{uk?'Детальний перегляд для тих, хто хоче дослідити методику. П’ять основних життєвих тем залишаються вище.':
+    'A detailed reference for anyone who wants to inspect the method. Your five life themes remain above.'}</p>
   <div className={styles.grid} data-testid="reader-n492-16-cards">
    {read.cards.map(card=>{
     const isD60=card.division===60;
     const legacy=data.insights.find(i=>i.division===card.division);
     const d60=data.d60Preview;
-    const basisLabel=uk?'Астрологічна основа: ':'Astrological basis: ';
-    const basisIndex=card.meaning.lastIndexOf(basisLabel);
-    const humanMeaning=basisIndex<0?card.meaning:card.meaning.slice(0,basisIndex).trim();
-    const evidenceLine=basisIndex<0?'':card.meaning.slice(basisIndex);
+    const {narrative:humanMeaning,action,basis:evidenceLine}=splitLifeReading(card.meaning,lang);
     return <article key={card.division} className={styles.card+' '+book.card}
       data-testid={isD60?'reader-v8-d60':'reader-v8-D'+card.division}>
      <div id={'reader-n493-card-D'+card.division} className={book.cardAnchor}/>
@@ -50,6 +60,7 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
       <span>D{card.division}</span><h4>{card.title}</h4>
      </header>
      <p className={book.meaning} data-testid={'reader-n492-meaning-D'+card.division}>{humanMeaning}</p>
+     {action?<p className={book.lifeAction}><strong>{uk?'Що спробувати':'Try this'}:</strong> {action}</p>:null}
      {evidenceLine?<p className={book.basis}>{evidenceLine}</p>:null}
      {card.connection?<p className={book.connection} data-testid={'reader-n492-link-D'+card.division}>
       <strong>{uk?'Що ще підтверджує карта':'Cross-chart evidence'}:</strong> {card.connection}
@@ -72,6 +83,8 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
     </article>;
    })}
   </div>
+  </details>
+  <details className={book.method} data-testid="reader-n496-method-details"><summary>{uk?'Методика й висновки для астрологів':'Technical conclusions for astrologers'}</summary>
   <section className={book.final} data-testid="reader-n492-final">
    <span className={styles.kicker}>{uk?'✦ ГОЛОВНЕ':'✦ THE ESSENTIALS'}</span>
    <h3>{read.summary.title}</h3>
@@ -81,8 +94,9 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
     <p><strong>{uk?'Загальний напрям: ':'Your direction: '}</strong>{read.summary.direction}</p>
    </>}
   </section>
+  </details>
   <details className={book.method}>
-   <summary>{uk?'Методика та межі точності':'Method and limits'}</summary>
+   <summary>{uk?'Точність розрахунків':'Calculation accuracy'}</summary>
    <p>{read.method}</p>
   </details>
  </section>;
