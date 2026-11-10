@@ -235,6 +235,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  let lead=choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
  if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
  const topic=theme(placement.house);
+ if(division===1)lead=choose(LIVED[natal.house-1],lang);
  // Keep the traditional chart link while writing about lived experiences,
  // not repeating the same "theme of..." twice in every public life section.
  if(division===2)lead=uk?
