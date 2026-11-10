@@ -219,11 +219,18 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   choose(ADVICE[division],lang);
  const sign=uk?SIGN_UK[placement.sign-1]:SIGN_EN[placement.sign-1];
  const planet=uk?PLANET[lord]:lord;
- const basis=uk?'Астрологічна основа: '+planet+' — управитель '+subjectHouse[division]+
-  '-го дому; D1: '+natal.house+'-й дім; D'+division+': '+placement.house+
-  '-й дім, '+sign+'.':
-  'Astrological basis: '+lord+' rules house '+subjectHouse[division]+
-  '; D1 house '+natal.house+'; D'+division+' house '+placement.house+', '+sign+'.';
+ const basis=division===1?
+  (uk?'Астрологічна основа: '+planet+' — управитель висхідного знака, '+natal.house+
+    '-й дім D1; '+(lord==='Moon'?'':'Місяць — '+moon.house+'-й дім; ')+
+    'Сонце — '+sun.house+'-й дім.':
+   'Astrological basis: '+lord+' rules the ascendant, house '+natal.house+
+    ' in D1; '+(lord==='Moon'?'':'Moon in house '+moon.house+'; ')+
+    'Sun in house '+sun.house+'.'):
+  (uk?'Астрологічна основа: '+planet+' — управитель '+subjectHouse[division]+
+   '-го дому; D1: '+natal.house+'-й дім; D'+division+': '+placement.house+
+   '-й дім, '+sign+'.':
+   'Astrological basis: '+lord+' rules house '+subjectHouse[division]+
+   '; D1 house '+natal.house+'; D'+division+' house '+placement.house+', '+sign+'.');
  const headline=uk?
   (division===10?'Робота: від '+theme(natal.house)+' до '+theme(placement.house):
    division===9?'Стосунки: близькість, довіра й реальні домовленості':
