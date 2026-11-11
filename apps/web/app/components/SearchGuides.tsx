@@ -89,6 +89,7 @@ function Guide({locale,copy,subject}:{locale:PortalLocale;copy:Record<PortalLoca
    {subject==='jyotish'&&<p><Link href={prefix+'astrology/moon-sign-vs-sun-sign'}>{locale==='uk'?'Чому ведичний знак Місяця відрізняється від західного знака Сонця?':'Why your Vedic Moon sign differs from your Western Sun sign'}</Link></p>}
    <p><Link href={prefix+lesson}>{c.learn}</Link></p>
    <p><Link href={prefix+c.secondaryHref}>{c.secondary}</Link></p>
+   {subject==='jyotish'&&<p><Link href={prefix+'astrology/divisional-charts'}>{locale==='uk'?'Усі 16 дробових карт Джйотіш — від D1 до D60':'All 16 Vedic divisional charts — D1 to D60'}</Link></p>}
    <p><Link href={prefix+'methodology'}>{c.method}</Link></p>
    <p><Link href={prefix+'horoscope'}>{c.related}</Link></p>
   </nav>
