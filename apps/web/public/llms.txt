@@ -1,0 +1,29 @@
+# Galaxiora
+
+> Galaxiora is an English/Ukrainian website offering Vedic astrology (Jyotish) tools, lunar calendars (Panchanga), Tarot, yoga, and original explanatory articles. Computed astronomical positions and traditional astrological interpretations are distinct: astrology is not a scientifically validated method of prediction.
+
+Canonical home for the English birth-chart tool: https://galaxiora.com/en/astrology/jyotish
+Preferred site origin: https://galaxiora.com
+Sitemap (all public canonical URLs): https://galaxiora.com/sitemap.xml
+Crawler policy: https://galaxiora.com/robots.txt
+
+## Public tools
+- [Vedic birth chart calculator (English)](https://galaxiora.com/en/astrology/jyotish): Charts and interpretations in the Jyotish tradition.
+- [Натальна карта Джйотіш (українською)](https://galaxiora.com/uk/astrology/jyotish): Ukrainian version of the same tool.
+- [Panchanga calendar (English)](https://galaxiora.com/en/panchanga): Date- and location-sensitive lunar-calendar information.
+- [Панчанга (українською)](https://galaxiora.com/uk/panchanga): Ukrainian lunar calendar.
+- [Horoscopes](https://galaxiora.com/en/horoscope): Public sign-based horoscope pages.
+- [Tarot](https://galaxiora.com/en/tarot): Public descriptions of Tarot and readings.
+- [Yoga](https://galaxiora.com/en/yoga): Mindfulness and breathing exercises.
+
+## Reference and methodology
+- [GalaxiPedia (English)](https://galaxiora.com/en/pedia): Original educational articles and reference materials.
+- [GalaxiPedia (українською)](https://galaxiora.com/uk/pedia): Ukrainian knowledge library.
+- [Methodology](https://galaxiora.com/en/methodology): Calculation and editorial methodology.
+- [About Galaxiora](https://galaxiora.com/en/about): Public information about the project.
+- [Eclipses in 2027](https://galaxiora.com/en/eclipses/2027): Public astronomical eclipse information.
+
+## Language and access guidance
+- Both `/en/` and `/uk/` contain public pages; use the page's canonical URL for attribution and citations.
+- Search engines and AI search agents can fetch public pages per robots.txt. Account, administrator, personal chart history, and private API routes are not intended for public discovery.
+- This file is an optional human- and machine-readable index. It is not an API, a permission grant to access private data, or a guarantee of inclusion in any AI search system.
