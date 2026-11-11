@@ -2,7 +2,7 @@
 
 **Live product:** https://galaxiora.com · **Developer portfolio and CV:** https://galaxiora.com/en/about-me
 
-Galaxiora is a **live bilingual web platform built by a small startup team**, not an individual educational or interview project. **Denys Avramenko is the primary Full-Stack Developer**, responsible for the platform's core technical architecture, frontend and backend implementation, integrations, automated verification, and production delivery.
+Galaxiora is a **live bilingual production platform developed by a small startup team**. **Denys Avramenko is the primary Full-Stack Developer**, responsible for the platform's core technical architecture, frontend and backend implementation, integrations, automated verification, and production delivery.
 
 **Core stack:** TypeScript, React 19, Next.js 15, Node.js, NestJS 10, PostgreSQL, Prisma, AWS EC2, Ubuntu, Caddy, GitHub Actions and Playwright.
 
