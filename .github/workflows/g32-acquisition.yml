@@ -1,0 +1,34 @@
+name: GROWTH-3.2 Campaign Safety and Launch Kit
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/lib/growth-metrics.ts'
+      - 'apps/web/app/components/PanchangaHub.tsx'
+      - 'apps/web/app/components/PanchangaHub.module.css'
+      - 'tools/r4-growth.test.mjs'
+      - 'tools/g32-campaigns*'
+      - 'docs/seo/g32-*'
+      - 'package.json'
+      - '.github/workflows/g32-acquisition.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g32-campaign-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Strict campaign manifest URL and privacy policy tests
+        run: |
+          npm run test:g32:campaigns
+          npm run test:r4:growth
+          npm run test:r42:growth
+          npm run test:g3:funnel
+      - name: Generate and inspect approved links, no calls to external networks
+        run: npm run g32:links
