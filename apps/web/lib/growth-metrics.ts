@@ -2,7 +2,7 @@
  * horoscope inputs, profile IDs or paths of user-generated content to analytics.
  */
 export const GROWTH_PUBLIC_SECTIONS=new Set([
- '','about','astrology','astrology/jyotish','tarot','tarot/cards',
+ '','about','astrology','astrology/jyotish','astrology/divisional-charts','tarot','tarot/cards',
  'panchanga','eclipses/2027','horoscope','yoga','learn','pedia','news','community','methodology'
 ]);
 export type PublicTool='jyotish'|'panchanga'|'tarot';
