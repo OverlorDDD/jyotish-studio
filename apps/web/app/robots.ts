@@ -6,7 +6,7 @@ import {publicIndexingEnabled,publicSiteOrigin} from '../lib/site-indexing';
 // Search indexing is distinct from using a page for foundation-model training:
 // Google-Extended, Applebot-Extended, GPTBot and ClaudeBot have separate purposes.
 // We do not change any existing training opt-in/opt-out policy here.
-export const PUBLIC_SEARCH_USER_AGENTS=[
+const PUBLIC_SEARCH_USER_AGENTS=[
  'Googlebot',           // Google Search / Search AI Overviews and AI Mode
  'bingbot',             // Bing Search / Microsoft Copilot grounding
  'DuckDuckBot',         // DuckDuckGo
