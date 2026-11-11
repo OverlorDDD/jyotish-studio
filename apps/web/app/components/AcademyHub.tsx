@@ -72,6 +72,7 @@ export default async function AcademyHub({locale}:{locale:ContentLocale}){
      <p>{uk?'Матеріали відділяють астрономічні розрахунки від традиційних інтерпретацій. Уроки й редакційні публікації відкриті без реєстрації.':
       'Our guides distinguish astronomical calculations from traditional interpretations. Lessons and editorial publications remain open without an account.'}</p>
      <Link href={'/'+locale+'/methodology'}>{uk?'Як ми перевіряємо розрахунки':'How we verify calculations'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
+     <Link href={'/'+locale+'/astrology/divisional-charts'}>{uk?'Усі 16 дробових карт Шодашаварги':'All 16 Shodashavarga divisional charts'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     </div>
    </aside>
   </div>

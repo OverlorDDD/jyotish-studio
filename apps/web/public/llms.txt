@@ -8,7 +8,9 @@ Sitemap (all public canonical URLs): https://galaxiora.com/sitemap.xml
 Crawler policy: https://galaxiora.com/robots.txt
 
 ## Public tools
-- [Vedic birth chart calculator (English)](https://galaxiora.com/en/astrology/jyotish): Charts and interpretations in the Jyotish tradition.
+- [Vedic birth chart calculator (English)](https://galaxiora.com/en/astrology/jyotish): All 16 Shodashavarga charts, with provisional D60 birth-time caveat.
+- [All 16 Vedic divisional charts explained (English)](https://galaxiora.com/en/astrology/divisional-charts): A complete D1, D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40, D45, D60 reference with method scope.
+- [Усі 16 дробових карт Джйотіш (українською)](https://galaxiora.com/uk/astrology/divisional-charts): Двомовний довідник Шодашаварги та застереження щодо D60.
 - [Натальна карта Джйотіш (українською)](https://galaxiora.com/uk/astrology/jyotish): Ukrainian version of the same tool.
 - [Panchanga calendar (English)](https://galaxiora.com/en/panchanga): Date- and location-sensitive lunar-calendar information.
 - [Панчанга (українською)](https://galaxiora.com/uk/panchanga): Ukrainian lunar calendar.

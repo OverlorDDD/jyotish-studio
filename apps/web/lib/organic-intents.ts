@@ -15,10 +15,10 @@ export const ORGANIC_INTENTS:readonly OrganicIntent[]=[
   id:'jyotish',toolPath:'astrology/jyotish',
   keywords:['vedic birth chart','birth chart','kundli','lagna','ascendant','navamsha','dasha','jyotish','джйотіш','натальна карта','лагна','накшатра'],
   heading:{en:'Read your Vedic chart, not just your zodiac label',uk:'Як читати натальну карту, а не лише назву знака'},
-  intro:{en:'Start with an accurate birth time and place. Compare the Moon and Ascendant in D1 before exploring the narrower D9 and D10 divisional views. A changed time zone or location can change the rising degree.',uk:'Почни з точних часу й місця народження. Спершу розглянь Місяць та Лагну в D1, а потім деталізацію D9 і D10. Помилка часового поясу чи міста може змінити градус асцендента.'},
+  intro:{en:'Start with an accurate birth time and place. Begin with the Moon and Ascendant in D1, then explore any of the 15 other Shodashavarga divisions according to your question; D60 natal houses remain provisional. A changed time zone or location can change the rising degree.',uk:'Почни з точних часу й місця народження. Почни з Місяця й Лагни у D1, а потім досліджуй будь-яку з решти 15 варг відповідно до свого запитання; доми D60 залишаються попередніми. Помилка часового поясу чи міста може змінити градус асцендента.'},
   steps:[
    {en:'Enter the correct local birth time and birthplace; check the historical time zone.',uk:'Введи місцевий час і місце народження, перевір історичний часовий пояс.'},
-   {en:'Review the D1 Moon sign, Lagna and Nakshatra before moving to D9 or D10.',uk:'Перевір місячний знак, Лагну й накшатру в D1, перш ніж перейти до D9 або D10.'},
+   {en:'Review the D1 Moon sign, Lagna and Nakshatra, then choose the relevant chart from all 16 divisions.',uk:'Перевір місячний знак, Лагну й накшатру в D1, а потім обери потрібну з 16 варг.'},
    {en:'Use the calculated positions and stated method when comparing two websites.',uk:'Порівнюючи два сайти, зістав вихідні дані, розраховані положення та методику.'}
   ],
   guides:[

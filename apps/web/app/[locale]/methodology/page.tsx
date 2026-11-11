@@ -8,14 +8,15 @@ import {indexRobots,publicIndexingEnabled,publicSiteOrigin} from '../../../lib/s
 const COPY={
  uk:{
   title:'Як Galaxiora розраховує натальні карти — методологія та перевірка точності',
-  description:'Дізнайся, як ми розраховуємо Джйотіш за Swiss Ephemeris, перевіряємо лагну, Місяць, D1/D9/D10 і даші за JHora та відокремлюємо факти від тлумачень.',
+  description:'Дізнайся про Swiss Ephemeris, усі 16 карт Шодашаварги D1–D60, межі внутрішніх перевірок N4 і окремий статус D60.',
   heading:'Методологія розрахунків і джерела Galaxiora',
   intro:'Пояснюємо, звідки беруться астрономічні дані, як саме перевіряємо натальні карти й у яких межах підтверджена точність.',
-  headings:['Як створюється натальна карта','Що саме підтвердив JQA-3','Що означає сертифікат і чого він не охоплює','Чим розрахунок відрізняється від тлумачення','Як перевірити результат самостійно'],
+  headings:['Як створюється натальна карта','Що саме підтвердив JQA-3','Що означає сертифікат і чого він не охоплює','Що підтверджено для 16 карт, а що залишається попереднім','Чим розрахунок відрізняється від тлумачення','Як перевірити результат самостійно'],
   paragraphs:[
-   'Основа обчислень — Swiss Ephemeris із сидеричним зодіаком і визначеною аянамшою Лагірі. Дата, точний час, часовий пояс і географічні координати впливають на лагну та положення планет. D1 відображає основну карту, D9 і D10 — традиційні дробові карти.',
+   'Основа обчислень — Swiss Ephemeris із сидеричним зодіаком і визначеною аянамшою Лагірі. Дата, точний час, часовий пояс і географічні координати впливають на лагну та положення планет. D1 — основна карта; Galaxiora також будує всі 16 класичних варг Шодашаварги: D1, D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40, D45 і D60.',
    'Наш тестовий корпус містить 20 оригінальних профілів Jagannatha Hora 8.0. Сертифікатор JQA-3 зіставив 200 із 200 довгот планет і лагни з відхиленням не більш як одна кутова секунда; окремо лагна 20/20 і Місяць 20/20. Дати 180 махадаш і 1620 антардаш збіглися з незалежно збереженими календарними записами.',
    'Цей сертифікат стосується узгодженого історичного профілю JHora, координат і надрукованих дат. Він не підтверджує кожний можливий історичний часовий пояс або точні моменти меж даш у UTC до секунди. Якщо введений час народження неточний, математична точність не усуває похибку вихідних даних.',
+   'Із 16 карт п’ятнадцять (D1–D45 у наборі N4) проходять внутрішні перевірки зв’язку із серверною D1 та правилами Парашарі. Ці перевірки — не зовнішній сертифікат JHora для кожного народження. D60 є окремою попередньою символічною картою: незалежні звірки її формули для фіксованих довгот не підтверджують стабільності Лагни та домів за округленого часу народження.',
    'Положення планет, фаза Місяця, накшатра та даша — результати розрахунку. Висновки про характер, стосунки чи події — традиційні інтерпретації Джйотіш, а не вимірювані астрономічні факти. Ми прагнемо пояснювати, на яких положеннях карти ґрунтується кожне трактування.',
    'Збережи ті самі дату, час, часовий пояс, місце й налаштування сидеричного зодіаку. Порівнюй їх із незалежною програмою та враховуй параметри аянамші й календарного року для даш. Для відтворення нашої перевірки доступний публічний журнал GitHub Actions.'
   ],
@@ -27,14 +28,15 @@ const COPY={
  },
  en:{
   title:'How Galaxiora calculates birth charts — methodology and accuracy',
-  description:'Explore our Swiss Ephemeris Jyotish calculations and independent JHora checks for Ascendant, Moon, D1/D9/D10 and dasha dates.',
+  description:'Swiss Ephemeris, all 16 Shodashavarga charts D1–D60, what N4 verifies internally, what JHora checks cover and why D60 remains provisional.',
   heading:'Galaxiora calculation methods and source evidence',
   intro:'Where the astronomical data comes from, how birth charts are verified, and which precision claims have actually been tested.',
-  headings:['How a birth chart is calculated','What JQA-3 actually certified','Scope and limitations of certification','Astronomical calculations versus interpretation','How to reproduce the comparison'],
+  headings:['How a birth chart is calculated','What JQA-3 actually certified','Scope and limitations of certification','What the 16-chart evidence covers (and does not)','Astronomical calculations versus interpretation','How to reproduce the comparison'],
   paragraphs:[
-   'We use Swiss Ephemeris in a sidereal zodiac with an explicitly selected Lahiri ayanamsha. Birth date, exact civil time, time zone and location affect the rising sign and planetary coordinates. D1 is the main chart; D9 and D10 are traditional divisional charts.',
+   'We use Swiss Ephemeris in a sidereal zodiac with an explicitly selected Lahiri ayanamsha. Birth date, exact civil time, time zone and location affect the rising sign and planetary coordinates. D1 is the foundation; Galaxiora exposes all 16 traditional Shodashavarga divisions: D1, D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40, D45 and D60.',
    'The independent corpus contains 20 original Jagannatha Hora 8.0 profiles. JQA-3 matched all 200 of 200 planetary and Ascendant longitudes to within one arcsecond, including Ascendant 20/20 and Moon 20/20. It also matched 180 mahadasha and 1,620 antardasha printed civil dates.',
    'The certificate covers the source-matched historical JHora configuration, angular coordinates and printed dates. It does not separately attest every historic time-zone scenario or the exact UTC instant of each dasha boundary to the second. Inaccurate birth-time input remains a significant limitation.',
+   'Of the sixteen charts, fifteen (the N4 D1–D45 set) pass internal consistency checks against the server-derived D1 and pinned Parashari rules. These are not per-birth independent JHora certificates. D60 is a separate provisional symbolic reference: external comparisons of its formula for pinned longitudes do not certify a stable natal Ascendant or houses when the birth time is rounded.',
    'Planetary positions, Moon phases, nakshatras and dashas are calculated. Statements about relationships, personality or future events are traditional Jyotish interpretations rather than measured astronomical observations. We aim to make the source of each interpretation understandable.',
    'Use identical birth date, civil time, time-zone rules, coordinates, sidereal settings and ayanamsha in another program. For dasha comparisons, align the year definition and calendar settings. The public GitHub Actions log contains reproducible certification output.'
   ],
@@ -83,7 +85,8 @@ export default async function Methodology({params}:Props){
    </section>
    <div className="as-actions" style={{display:'flex',gap:14,flexWrap:'wrap'}}>
     <Link className="as-button as-button-primary" href={'/'+locale+'/astrology/jyotish'}>{c.next}</Link>
-    <Link className="as-button as-button-secondary" href={'/'+locale+'/learn'}>{c.academy}</Link>
+    <Link className="as-button as-button-secondary" href={'/'+locale+'/pedia'}>{c.academy}</Link>
+    <Link className="as-button as-button-secondary" href={'/'+locale+'/astrology/divisional-charts'}>{uk?'Усі 16 карт Шодашаварги':'All 16 Shodashavarga charts'}</Link>
    </div>
   </article>
  </PortalShell>;

@@ -2,7 +2,7 @@
  * horoscope inputs, profile IDs or paths of user-generated content to analytics.
  */
 export const GROWTH_PUBLIC_SECTIONS=new Set([
- '','about','astrology','astrology/jyotish','tarot','tarot/cards',
+ '','about','astrology','astrology/jyotish','astrology/divisional-charts','tarot','tarot/cards',
  'panchanga','eclipses/2027','horoscope','yoga','learn','pedia','news','community','methodology'
 ]);
 export type PublicTool='jyotish'|'panchanga'|'tarot';
@@ -70,4 +70,28 @@ export function safeGrowthCampaign(query:string):{campaign_source:string;campaig
  const approvedCampaigns=new Set(['launch','astro_basics','tarot_cards','panchanga_today','eclipses_2027']);
  if(!source||!approvedSources.has(source)||medium!=='social'||!campaign||!approvedCampaigns.has(campaign))return null;
  return {campaign_source:source,campaign_medium:'social',campaign_name:campaign};
+}
+
+
+/** G4 AI Search entry attribution. Only four named providers; never forward raw
+ * query strings, prompts, referrer paths or birth details to analytics.
+ * A supplied UTM is an attribution hint, not proof of a genuine bot visit.
+ */
+export type AiSearchSource='chatgpt'|'perplexity'|'claude'|'copilot';
+export function safeAiSearchSource(search:string,referrer:string):AiSearchSource|null{
+ const approved:Record<string,AiSearchSource>={
+  'chatgpt.com':'chatgpt','perplexity.ai':'perplexity','www.perplexity.ai':'perplexity','claude.ai':'claude',
+  'copilot.microsoft.com':'copilot'
+ };
+ if(typeof search==='string'&&search.length<=2048){
+  const source=new URLSearchParams(search).get('utm_source')?.trim().toLowerCase();
+  if(source&&Object.prototype.hasOwnProperty.call(approved,source))return approved[source];
+ }
+ if(typeof referrer!=='string'||referrer.length>2048)return null;
+ try{
+  const url=new URL(referrer);
+  if(url.protocol!=='https:')return null;
+  const host=url.hostname.toLowerCase();
+  return approved[host]||null;
+ }catch{return null;}
 }
