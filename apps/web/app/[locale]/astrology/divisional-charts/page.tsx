@@ -141,7 +141,7 @@ export default async function DivisionalCharts({params}:Props){
        <p>{v.detail[lang]}</p>
        <p className={styles.question}><b>{c.question}:</b> {v.question[lang]}</p>
        <small className={v.division===60?styles.provisional:styles.status}>{v.division===60?c.warning:c.stable}</small>
-       <Link href={'/'+lang+'/astrology/jyotish#birth-details'}>{c.use}</Link>
+       <Link href={'/'+lang+'/astrology/jyotish#varga-d'+v.division}>{c.use}</Link>
       </section>)}
     </div>
    </section>
