@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {usePathname} from 'next/navigation';
-import {safeGrowthCampaign,safeGrowthEvent,safeGrowthPath,safeGrowthToolForPath,safePublicToolEvent,safePublicTool} from '../../lib/growth-metrics';
+import {safeGrowthCampaign,safeGrowthEvent,safeGrowthPath,safeGrowthToolForPath,safePublicToolEvent,safePublicTool,safeAiSearchSource} from '../../lib/growth-metrics';
 
 const CONSENT_KEY='galaxiora-analytics-choice-v1';
 const measurementId=process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim()||'';
@@ -119,6 +119,12 @@ export default function GrowthConsent(){
   const debug=new URLSearchParams(window.location.search).get('ga4_debug')==='1';
   window.gtag?.('event','page_view',{page_path:safe,page_location:'https://galaxiora.com'+safe,
    page_title:'Galaxiora',page_referrer:'',send_to:measurementId,...(debug?{debug_mode:true}:{})});
+  // G4: only after existing affirmative consent. One coarse allowlisted event
+  // per public landing; NEVER include raw referrer, UTM query, URL or birth data.
+  const aiSource=safeAiSearchSource(window.location.search,document.referrer);
+  if(aiSource)window.gtag?.('event','ai_search_landing',{
+   ai_source:aiSource,locale:pathname?.startsWith('/uk/')?'uk':'en',send_to:measurementId
+  });
   // Count only public calculator landings; never send form state or URL queries.
   const viewedTool=safeGrowthToolForPath(pathname||'');
   if(viewedTool)window.gtag?.('event','public_tool_viewed',{tool:viewedTool,
