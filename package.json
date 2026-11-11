@@ -92,7 +92,7 @@
     "test:architecture:a3": "node --experimental-strip-types --test tools/a3-application.test.mjs",
     "test:e2e": "playwright test --config=playwright.config.mjs",
     "test:seo": "node --experimental-strip-types --test tools/a4-seo.test.mjs",
-    "test:r32:seo": "node --test tools/r32-seo.test.mjs tools/gsc-coverage-recovery.test.mjs tools/psi-critical-path.test.mjs tools/ai-search-discovery.test.mjs",
+    "test:r32:seo": "node --experimental-strip-types --test tools/r32-seo.test.mjs tools/gsc-coverage-recovery.test.mjs tools/psi-critical-path.test.mjs tools/ai-search-discovery.test.mjs tools/g4-ai-authority.test.mjs",
     "test:g4:authority": "node --experimental-strip-types --test tools/g4-ai-authority.test.mjs",
     "test:r33:authority": "node --experimental-strip-types --test tools/r33-authority.test.mjs",
     "test:r4:growth": "node --test tools/r4-growth.test.mjs",
