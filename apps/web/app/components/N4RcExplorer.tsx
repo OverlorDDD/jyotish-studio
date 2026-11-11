@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import NorthIndianChart from './NorthIndianChart';
 import type {PlanetPosition} from '../../lib/north-indian-layout';
 import {hasN4RcView,type N4RcView,type VerifiedNatalSource} from '../../lib/n4-rc-view';
@@ -43,6 +43,22 @@ function onN4Only(v:N4RcView,n:number):{planets:PlanetPosition[];lagna:{sign:num
 }
 export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:Natal|null;lang:'uk'|'en';minutesUncertain?:boolean}){
  const [selected,setSelected]=useState(9);
+ // Public G4 guide deep-links identify a division by a URL fragment, never
+ // query parameters; no personal data is serialized into the address.
+ useEffect(()=>{
+  const sync=()=>{
+   const match=window.location.hash.match(/^#varga-d(\d{1,2})$/);
+   const wanted=match?Number(match[1]):null;
+   if(wanted!==null&&INFO.some(entry=>entry.n===wanted)){
+    setSelected(wanted);
+    document.getElementById('birth-details')?.scrollIntoView({block:'start'});
+   }
+  };
+  sync();
+  window.addEventListener('hashchange',sync);
+  return()=>window.removeEventListener('hashchange',sync);
+ },[]);
+
  const d60Valid=chart!==null&&hasD60Provisional(chart);
  const d60=d60Valid?chart?.n4D60:undefined;
  const d60BoundaryWarning=d60&&Math.min(d60.lagna.boundaryDistanceArcseconds,
