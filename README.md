@@ -1,3 +1,19 @@
+# Galaxiora — Full-Stack Startup Platform
+
+**Live product:** https://galaxiora.com · **Developer portfolio and CV:** https://galaxiora.com/en/about-me
+
+Galaxiora is a **live bilingual web platform built by a small startup team**, not an individual educational or interview project. **Denys Avramenko is the primary Full-Stack Developer**, responsible for the platform's core technical architecture, frontend and backend implementation, integrations, automated verification, and production delivery.
+
+**Core stack:** TypeScript, React 19, Next.js 15, Node.js, NestJS 10, PostgreSQL, Prisma, AWS EC2, Ubuntu, Caddy, GitHub Actions and Playwright.
+
+**Product capabilities:** Vedic and Western astrology calculations, natal charts, Panchanga and time guidance, personalized dashboards, multilingual news and learning content, accounts, Tarot, yoga practices and community features.
+
+**Engineering approach:** deterministic calculations and reference-based tests, API and database design, bilingual SEO, guarded content processing, CI/CD and independently verified production releases.
+
+> **Documentation note:** The sections below also preserve technical and setup notes from earlier development stages. Mentions of temporary demos, local-only prototypes and superseded limitations in those historical sections should not be read as the current production status.
+
+---
+
 ## Jyotish Engine 2.0 — rule-based and traceable readings
 
 Rule calculations now precede LLM inference: 12 classical house lords; sign-level dignity of the seven classical grahas; five possible Pancha Mahapurusha yogas from Lagna; deterministic interpretation templates; and a validated, versioned SHA-256 rules digest. The website includes separate chapters for these rules and an expandable evidence audit. The free language model cannot alter the calculated facts; its unverified numeric assertions are rejected. Identical chart + language + asOf yields identical canonical report content. In-process LLM results are replayed for 30 minutes; text across server restarts is not guaranteed identical.
@@ -12,9 +28,9 @@ Galaxiora is now ONE site. Visitors can calculate D1/D9/D10 and generate complet
 Set AUTH_SECRET in the root local .env, run Prisma client generation and migrations, then start the app. See [Stage 8 Windows instructions and permission tests](docs/guest-accounts-history.md). Use npm run site:check (older demo:check remains an alias). PUBLIC_DEMO and Basic access credentials are no longer used.
 
 ---
-# Galaxiora — Astrology, Tarot & Cosmic Wisdom
+## Platform architecture and calculation engine
 
-**Interview demo / навчальний Full Stack проєкт**: Vedic astrology engine with real Swiss Ephemeris, Lahiri sidereal coordinates, 9 grahas, whole-sign D1, Navamsa D9, Dashamsa D10, Vimshottari Mahadasha/Antardasha, React/Next.js UI, NestJS REST API, Prisma/PostgreSQL, optional OpenAI explanations.
+The Galaxiora platform uses Swiss Ephemeris with Lahiri sidereal coordinates, classical Jyotish calculations (including D1, D9, D10 and Vimshottari periods), a React/Next.js frontend, NestJS REST APIs, and PostgreSQL/Prisma persistence. Optional AI-assisted interpretations are built around verified calculation facts.
 
 ## Fastest launch — standalone preview, with no npm install
 
@@ -90,7 +106,7 @@ See [October 12 calculation and UX audit](docs/audit-2026-10-12.md) for the defe
 
 ## Privacy and correctness
 
-Never upload real birth profiles to a public repository. Saved DB contains potentially sensitive birth details; **do not expose this unauthenticated MVP to the public internet**. Swiss Ephemeris is AGPL-3.0; check licensing before commercial use. See [calculation conventions](docs/calculation-rules.md) and [architecture](docs/architecture.md).
+Never upload real birth profiles to a public repository. Stored profiles contain potentially sensitive birth details. Protect production access with authentication, authorization, secure session handling, rate limiting and retention controls; do not expose an unreviewed local development service to the public internet. Swiss Ephemeris is AGPL-3.0; check licensing before commercial use. See [calculation conventions](docs/calculation-rules.md) and [architecture](docs/architecture.md).
 
 ## Project layout
 
@@ -184,10 +200,11 @@ Actual paid OpenAI API calls, native Windows bindings and full Next.js/NestJS
 build must be checked on your machine; they have not been confirmed in this
 offline test environment.
 
-**Security:** local-only prototype. Birth details and stored charts are
-private personal information; the database endpoints currently have no login.
-Do not expose full-stack port 4000 to the public internet until authentication,
-authorization, retention controls and rate limits are implemented.
+**Historical Stage 3 security note (October 2026; superseded):** At this
+early milestone the local prototype did not yet include production-grade
+authentication or authorization. Do not expose an old development instance
+or its backend port directly to the internet. Refer to current release
+verification and security configuration for today's production service.
 
 
 ## Stage 5 — guarded OpenAI & temporary private demo
