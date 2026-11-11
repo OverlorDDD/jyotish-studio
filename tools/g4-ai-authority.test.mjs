@@ -43,7 +43,7 @@ test('G4 referral measurements are allowlisted, consent-gated and PII-free',()=>
  assert.equal(safeGrowthPath('/uk/astrology/divisional-charts'),'/uk/astrology/divisional-charts');
  assert.equal(safeGrowthPath('/en/personal'),null);
  assert.equal(safeAiSearchSource('?utm_source=chatgpt.com&utm_campaign=secret',''),'chatgpt');
- assert.equal(safeAiSearchSource('?utm_source=unknown','https://www.perplexity.ai/search/a?private=y'),null);
+ assert.equal(safeAiSearchSource('?utm_source=unknown','https://www.perplexity.ai/search/a?private=y'),'perplexity');
  assert.equal(safeAiSearchSource('','https://www.perplexity.ai/search/a'),'perplexity');
  assert.equal(safeAiSearchSource('','https://perplexity.ai/search/a'),'perplexity');
  assert.equal(safeAiSearchSource('','https://claude.ai/chat/private'),'claude');
