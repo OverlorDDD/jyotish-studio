@@ -80,7 +80,7 @@ export function safeGrowthCampaign(query:string):{campaign_source:string;campaig
 export type AiSearchSource='chatgpt'|'perplexity'|'claude'|'copilot';
 export function safeAiSearchSource(search:string,referrer:string):AiSearchSource|null{
  const approved:Record<string,AiSearchSource>={
-  'chatgpt.com':'chatgpt','perplexity.ai':'perplexity','claude.ai':'claude',
+  'chatgpt.com':'chatgpt','perplexity.ai':'perplexity','www.perplexity.ai':'perplexity','claude.ai':'claude',
   'copilot.microsoft.com':'copilot'
  };
  if(typeof search==='string'&&search.length<=2048){
