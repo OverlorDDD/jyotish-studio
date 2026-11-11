@@ -71,3 +71,27 @@ export function safeGrowthCampaign(query:string):{campaign_source:string;campaig
  if(!source||!approvedSources.has(source)||medium!=='social'||!campaign||!approvedCampaigns.has(campaign))return null;
  return {campaign_source:source,campaign_medium:'social',campaign_name:campaign};
 }
+
+
+/** G4 AI Search entry attribution. Only four named providers; never forward raw
+ * query strings, prompts, referrer paths or birth details to analytics.
+ * A supplied UTM is an attribution hint, not proof of a genuine bot visit.
+ */
+export type AiSearchSource='chatgpt'|'perplexity'|'claude'|'copilot';
+export function safeAiSearchSource(search:string,referrer:string):AiSearchSource|null{
+ const approved:Record<string,AiSearchSource>={
+  'chatgpt.com':'chatgpt','perplexity.ai':'perplexity','claude.ai':'claude',
+  'copilot.microsoft.com':'copilot'
+ };
+ if(typeof search==='string'&&search.length<=2048){
+  const source=new URLSearchParams(search).get('utm_source')?.trim().toLowerCase();
+  if(source&&Object.prototype.hasOwnProperty.call(approved,source))return approved[source];
+ }
+ if(typeof referrer!=='string'||referrer.length>2048)return null;
+ try{
+  const url=new URL(referrer);
+  if(url.protocol!=='https:')return null;
+  const host=url.hostname.toLowerCase();
+  return approved[host]||null;
+ }catch{return null;}
+}
