@@ -132,6 +132,101 @@ const HUMAN_OPENING:Readonly<Record<number,Copy>>={
  45:['Успадковані принципи можуть допомагати, коли ви свідомо перевіряєте, які з них ваші.',
      'Inherited principles can help when you consciously decide which ones are truly yours.']
 };
+// Reader 9: the D1 house may be the same in several chapters, but it must not
+// yield the same sentence about "learning", "recovery", etc. in unrelated
+// subjects. Each of these sentences names the subject first, then interprets
+// the same verified natal house through that subject's traditional lens.
+const DOMAIN_LIVED:Readonly<Record<number,readonly Copy[]>>={
+ 2:[
+  ["Фінансові рішення можуть вимагати власних правил, а не постійного порівняння з чужими витратами.","Money decisions may call for personal rules rather than constant comparisons with other people's spending."],
+  ["Звички щодо заощаджень і сімейні уявлення про достаток можуть впливати на ваш бюджет.","Savings habits and family ideas of security may shape your budget."],
+  ["Навички спілкування й уміння домовлятися можуть бути практичним ресурсом у питаннях заробітку.","Communication skills and negotiation can be useful resources when earning a living."],
+  ["Витрати на житло та підтримку домашнього побуту можуть визначати ваші фінансові пріоритети.","Housing costs and maintaining your home may shape financial priorities."],
+  ["Коли гроші пов’язані з творчістю, корисно розрізняти захоплення й оплату за конкретну роботу.","When creativity and money meet, it helps to distinguish enjoyment from payment for work."],
+  ["Повсякденні витрати й регулярні зобов’язання можуть потребувати більшої уваги, ніж разові покупки.","Routine costs and recurring obligations may deserve more attention than occasional purchases."],
+  ["Спільні витрати з партнером варто обговорювати так само чітко, як і особисті цілі.","Shared spending with a partner deserves the same clarity as individual goals."],
+  ["У питаннях спільного майна й боргів корисні прозорі умови та запас на непередбачені зміни.","Shared assets and debts benefit from clear terms and a buffer for unexpected changes."],
+  ["Навчання й далекі плани можуть конкурувати з поточними витратами — визначте пріоритети заздалегідь.","Education and long-range plans may compete with current expenses; set priorities early."],
+  ["Дохід і професійна відповідальність можуть бути пов’язані, тому важливо розуміти цінність своєї праці.","Earnings and professional responsibility may be connected; understanding the value of your work helps."],
+  ["Співпраця й коло знайомств можуть створювати можливості, але дружбу і фінансові домовленості краще розділяти.","Networks and collaboration can create opportunities, but friendships and money agreements need clear boundaries."],
+  ["Витрати на відновлення та особистий простір можуть бути частиною бюджету, а не випадковим залишком.","Spending on rest and personal space may need a place in the budget rather than being an afterthought."]
+ ],
+ 9:[
+  ["У партнерстві особисту самостійність варто поєднувати з повагою до спільних рішень.","In partnership, personal independence may need to coexist with decisions made together."],
+  ["Розмови про сімейні цінності та ставлення до грошей можуть бути частиною близькості.","Conversations about family values and money can be part of emotional closeness."],
+  ["Взаєморозуміння може починатися з простих розмов, у яких обидва мають право бути почутими.","Understanding may begin with ordinary conversations where both people are heard."],
+  ["Відчуття дому, спокою та особистих звичок може бути важливим для спільного життя.","A shared sense of home, calm and everyday routines may matter in living together."],
+  ["Спільні захоплення можуть зближувати, якщо залишається місце й для творчості кожного.","Shared interests can bring people closer when each person still has room for creativity."],
+  ["Турбота в стосунках може проявлятися через звичайні справи, а не лише через красиві слова.","Care in a relationship may show itself through daily tasks, not only affectionate words."],
+  ["Взаємність і готовність домовлятися можуть стати для вас окремою темою партнерства.","Reciprocity and the willingness to negotiate may be central themes in partnership."],
+  ["Довіра може особливо перевірятися там, де є спільні зобов’язання або непрості зміни.","Trust may be tested most clearly where responsibilities are shared or circumstances change."],
+  ["Різні погляди на навчання, віру чи життєві принципи варто обговорювати без потреби переконати одне одного.","Different views on learning, faith or guiding values are worth discussing without trying to win."],
+  ["Робочі амбіції можуть впливати на близькість; домовленості про час тут не дрібниця.","Work ambitions may shape intimacy, so agreements about time together are not a small detail."],
+  ["Дружба, спільні плани та оточення можуть підтримувати союз, якщо не підміняють розмови вдвох.","Friendships, shared plans and community can support a relationship without replacing private conversations."],
+  ["Право на тишу й особистий простір може допомагати зберігати близькість без тиску.","Space for quiet and privacy may help preserve closeness without pressure."]
+ ],
+ 10:[
+  ["У професії може бути важливо мати право на власні рішення й відповідати за їхній результат.","At work, having room to decide and take responsibility for the result may matter."],
+  ["Матеріальна стабільність і практична віддача можуть впливати на вибір робочого напряму.","Material stability and tangible returns may influence career choices."],
+  ["Робочі можливості можуть відкриватися через спілкування, нові навички й особисту ініціативу.","Work opportunities may emerge through communication, new skills and personal initiative."],
+  ["Потреба в надійному домашньому ритмі може впливати на те, який формат роботи підходить вам краще.","The need for a stable home routine may shape which working arrangements suit you."],
+  ["Творчість, навчання або підтримка розвитку інших можуть бути важливою складовою професійної мотивації.","Creativity, learning or helping others develop may be meaningful parts of work."],
+  ["Складні практичні завдання можуть давати відчуття професійного поступу, якщо є час довести їх до результату.","Demanding practical tasks may feel rewarding when there is time to finish them well."],
+  ["Партнерства й чіткі робочі домовленості можуть бути важливішими за одиночну гонитву за результатом.","Partnerships and clear working agreements may matter more than pursuing every result alone."],
+  ["Робота в умовах змін може вимагати навички брати відповідальність, не приховуючи ризиків.","Working through change may call for responsibility and clear discussion of risks."],
+  ["Професійний розвиток може бути пов’язаний із навчанням, наставниками та власними принципами.","Professional growth may connect with study, mentors and your guiding principles."],
+  ["Видимий результат і визначені обов’язки можуть бути важливими критеріями оцінки роботи.","Visible outcomes and clear responsibilities may be important measures of work."],
+  ["Командна праця й коло однодумців можуть допомагати доводити спільні проєкти до результату.","Teamwork and a community of peers may help bring shared projects to completion."],
+  ["Для якісної роботи може бути потрібен час без зайвих відволікань і можливість відновитися.","Doing good work may require uninterrupted time and a chance to recover."]
+ ]
+};
+// Reader 9: a divisional house is evidence, not permission to splice a work,
+// relationship or household phrase into an unrelated life chapter.
+const DOMAIN_SCENE:Readonly<Record<number,readonly Copy[]>>={
+ 2:[
+  ["Перегляньте, які витрати ви контролюєте самі, і відокремте їх від чужих очікувань.","Review the spending you control and separate it from others' expectations."],
+  ["Розрізняйте гроші на поточний побут і кошти, які хочете зберегти надовго.","Separate everyday money from funds you mean to preserve for the long term."],
+  ["За фінансових переговорів записуйте умови, а не покладайтеся лише на усну обіцянку.","Record the terms of money negotiations instead of relying only on spoken promises."],
+  ["Врахуйте у бюджеті витрати на житло й підтримку домашньої стабільності.","Include housing and household stability in your budget."],
+  ["Для творчих витрат заздалегідь визначайте суму, яку можете собі дозволити.","Set a clear limit for creative spending before making purchases."],
+  ["Почніть із регулярних витрат: саме там найпростіше помітити повторювані втрати.","Start with recurring costs; they make repeated leaks easiest to spot."],
+  ["У спільному бюджеті погодьте не лише цілі, а й право кожного на власні витрати.","In a shared budget, agree on goals and each person's discretionary spending."],
+  ["Ведіть окремий перелік спільних зобов’язань і строків їх виконання.","Keep a separate record of shared obligations and their due dates."],
+  ["Плануйте витрати на навчання так, щоб вони не забирали необхідний резерв.","Plan education expenses without consuming the reserve you need."],
+  ["Перевіряйте, чи співвідносяться робочі витрати з реальними надходженнями.","Check whether work-related costs are proportionate to actual earnings."],
+  ["Розділяйте спільні проєкти, допомогу друзям і особисті фінансові рішення.","Separate group projects, favors for friends and personal financial decisions."],
+  ["Відведіть бюджет на відпочинок та непередбачені потреби без почуття провини.","Make room in your budget for rest and unexpected needs."]
+ ],
+ 10:[
+  ["Окресліть власну ділянку відповідальності, перш ніж братися за нове завдання.","Define your own area of responsibility before taking on a new task."],
+  ["Оцініть робочий результат не лише за зусиллям, а й за реальною цінністю.","Assess work by its practical value, not effort alone."],
+  ["Важливу професійну ідею спершу поясніть простою мовою іншій людині.","Explain an important work idea to someone else in plain language first."],
+  ["Перевірте, чи ваш робочий режим залишає достатньо часу для життя вдома.","Check whether your work routine leaves enough time for home life."],
+  ["Знайдіть місце для творчої ініціативи, не втрачаючи критеріїв якості.","Make room for creative initiative without losing quality standards."],
+  ["Обирайте завдання, де можна побачити конкретну проблему й виміряти поліпшення.","Choose tasks where you can identify a real problem and measure improvement."],
+  ["Перед співпрацею узгодьте результат, ролі та межі відповідальності.","Before collaborating, agree on deliverables, roles and responsibility."],
+  ["Для складного робочого рішення складіть перелік ризиків і можливих альтернатив.","For a difficult work decision, list risks and realistic alternatives."],
+  ["Перевіряйте нові знання в роботі, а не лише в теоретичному обговоренні.","Test new knowledge in actual work rather than discussion alone."],
+  ["Зафіксуйте, який завершений результат вважатиметься успіхом.","Define what finished outcome would count as success."],
+  ["Розділіть колективну мету на зрозумілі завдання для кожного учасника.","Divide a shared goal into clear tasks for everyone involved."],
+  ["Залишайте в графіку час без зустрічей, щоб завершувати складні завдання.","Keep meeting-free time in your schedule to finish demanding work."]
+ ],
+ 24:[
+  ["Обирайте тему навчання самостійно й формулюйте, чого саме хочете навчитися.","Choose a learning topic yourself and state the skill you want to gain."],
+  ["Закріплюйте нове знання на невеликому практичному прикладі.","Reinforce new knowledge with one small practical example."],
+  ["Переказуйте складну ідею своїми словами, щоб перевірити розуміння.","Explain a difficult idea in your own words to test understanding."],
+  ["Створіть спокійне місце для навчання, у якому легко повертатися до матеріалу.","Make a calm study space you can reliably return to."],
+  ["У творчому навчанні залишайте час для спроб і помилок.","Allow time for experiments and mistakes when learning creatively."],
+  ["Практикуйте складну навичку короткими регулярними підходами.","Practice a difficult skill in short, regular sessions."],
+  ["Обговоріть вивчене з партнером по навчанню та порівняйте різні підходи.","Discuss what you learned with a study partner and compare approaches."],
+  ["Розбирайте незрозуміле по частинах, не пропускаючи слабкі місця.","Break down confusing material rather than skipping weak points."],
+  ["Зіставте нову ідею з перевіреним джерелом та власним досвідом.","Compare a new idea with a reliable source and your own experience."],
+  ["Завершіть один невеликий проєкт, щоб перевірити засвоєні навички.","Finish one small project to test what you have learned."],
+  ["Вчіться разом із групою, але залишайте місце для власних висновків.","Learn with a group while keeping room for your own conclusions."],
+  ["Після інтенсивного навчання виділіть час на відпочинок та повторення.","After intensive study, leave time for rest and review."]
+ ]
+};
+
 const ADVICE:Readonly<Record<number,Copy>>={
  1:['Виділіть окремо те, що дає вам відчуття мети, і те, що реально повертає сили.',
     'Distinguish what gives you purpose from what actually restores your energy.'],
