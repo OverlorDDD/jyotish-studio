@@ -78,20 +78,6 @@ const STYLE:readonly Copy[]=[
 ];
 // Actual varga house -> a complete everyday situation. This avoids
 // inserting a genitive house label into an ungrammatical "theme of" slot.
-const ARENA:readonly Copy[]=[
- ['у ситуації, де рішення залежать від вас','when a decision is yours to make'],
- ['у плануванні витрат і заощаджень','when planning spending and savings'],
- ['у важливій розмові або спільному завданні','in a difficult conversation or shared task'],
- ['у турботі про свій дім і близьких','when caring for your home and loved ones'],
- ['у творчих завданнях або навчанні інших','when creating or teaching someone'],
- ['у розв’язанні складної щоденної задачі','when dealing with a demanding everyday task'],
- ['у домовленостях із партнером','when making agreements with a partner'],
- ['у спільній відповідальності й відновленні довіри','when trust and shared responsibility matter'],
- ['у навчанні або передачі досвіду','when learning or sharing what you know'],
- ['у виконанні професійного завдання','when taking responsibility for a result at work'],
- ['у роботі з однодумцями','when working with a community'],
- ['у хвилини тиші й відновлення','when you need quiet and recovery']
-];
 const LEAD:Readonly<Record<number,Copy>>={
  1:['Ваше відчуття себе тісно пов’язане з темою','Your sense of self is closely linked with'],
  2:['У ставленні до грошей і того, що справді цінне, помітна тема','In your approach to money and what matters, a central theme is'],
@@ -304,7 +290,6 @@ const HOUSE_TASK:readonly Copy[]=[
  ['самостійно дослідити проблему й описати висновки','investigate a problem independently and document findings']
 ];
 const choose=(copy:Copy,lang:Lang)=>copy[lang==='uk'?0:1];
-const isStrong=(quality:string)=>quality==='own'||quality==='exalted';
 
 /**
  * D60 is a full editorial card, not the old raw-position dump. It uses only
@@ -530,7 +515,16 @@ export function buildHumanReaderSummary(chart:CalculatedChart,lang:Lang){
  const lords=classicalLordshipTable(chart.ascendant.sign);
  const h=(p:string)=>chart.d1.find(x=>x.name===p)!.house;
  const theme=(house:number)=>choose(THEME[house-1],lang);
- const shared=h(lords[1])===h(lords[10]);
+ const identityHouse=h(lords[1]),careerHouse=h(lords[10]),partnerHouse=h(lords[7]);
+ const shared=identityHouse===careerHouse;
+ const careerPartnerOverlap=careerHouse===partnerHouse;
+ // Unlike the old one-size-fits-all "try a work project and discuss an
+ // agreement" ending, the takeaway uses the actual chart's three subjects.
+ const nextStep=careerPartnerOverlap?
+  (uk?'Домовтеся, який час залишиться для близьких після робочих зобов’язань.':
+   'Agree on what time remains for your relationship after work commitments.'):
+  (uk?'Спробуйте '+choose(HOUSE_TASK[careerHouse-1],lang)+'.':
+   'Try to '+choose(HOUSE_TASK[careerHouse-1],lang)+'.');
  return {
   strength:uk?
    'Ваш особистий напрям тісно пов’язаний із темою '+theme(h(lords[1]))+
@@ -543,12 +537,16 @@ export function buildHumanReaderSummary(chart:CalculatedChart,lang:Lang){
    (shared?'Personal goals and work may compete for attention; make room for recovery.':
     'Work, relationships and rest need not provide the same kind of fulfillment.'),
   direction:uk?
-   (lords[1]===lords[10]?'Особистий напрям і професійні прагнення мають спільну основу; важливо, щоб робота не забирала весь простір для себе. ':'')+
-   'У стосунках особливу роль може відігравати тема '+theme(h(lords[7]))+
-   '. Для початку перевірте один професійний задум невеликим проєктом і обговоріть одну важливу домовленість із близькою людиною.':
-   (lords[1]===lords[10]?'Personal direction and professional ambitions share a common foundation; leave room for life beyond work. ':'')+
-   'Relationships may call attention to '+theme(h(lords[7]))+
-   '. Start by testing one vocational idea with a small project and discussing one important agreement with someone close.',
+   (shared?'Особистий напрям і робота спираються на одну життєву сферу — '+theme(identityHouse)+'. ':
+    'Особиста опора пов’язана зі сферою '+theme(identityHouse)+', а професійні рішення — зі сферою '+theme(careerHouse)+'. ')+
+   (careerPartnerOverlap?'Робота й близькість також зачіпають спільну сферу; тут особливо важливо не забувати про домовленості щодо часу та відповідальності. ':
+    'Партнерство звертає увагу на '+theme(partnerHouse)+'. Не варто очікувати, що одне робоче рішення автоматично розв’яже й питання близькості. ')+
+   nextStep:
+   (shared?'Your personal direction and work draw on the same life area: '+theme(identityHouse)+'. ':
+    'Your sense of direction connects with '+theme(identityHouse)+', while work draws on '+theme(careerHouse)+'. ')+
+   (careerPartnerOverlap?'Work and closeness also touch the same area, making agreements about time and responsibilities particularly important. ':
+    'Partnership brings attention to '+theme(partnerHouse)+'. One professional decision need not settle a relationship question. ')+
+   nextStep,
   overview:uk?
    'Ваша внутрішня опора пов’язана з темою '+theme(h(lords[1]))+
    ', робочі прагнення — з темою '+theme(h(lords[10]))+
