@@ -234,6 +234,7 @@ jobs:
             e2e/panchanga-p388.spec.mjs \
             e2e/panchanga-p389.spec.mjs \
             e2e/panchanga-city.spec.mjs \
+            e2e/nakshatra.spec.mjs \
             e2e/personal.spec.mjs \
             e2e/r32-seo.spec.mjs \
             e2e/r33-authority-library.spec.mjs \

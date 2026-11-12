@@ -17,5 +17,6 @@ export default function PanchangaCityIndex({locale,current}:{locale:PortalLocale
     {city.slug===current?<span aria-current="page">{city.name[locale]}</span>
      :<Link href={'/'+locale+'/panchanga/'+city.slug}>{city.name[locale]}</Link>}</li>)}</ul>
   </div>)}
+  <p className={styles.more}><Link href={'/'+locale+'/nakshatra'}>{uk?'Довідник 27 накшатр: значення, управителі, пади':'Guide to the 27 nakshatras: meanings, rulers, padas'}</Link></p>
  </section>;
 }

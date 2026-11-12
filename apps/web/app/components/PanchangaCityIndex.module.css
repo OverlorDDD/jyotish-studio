@@ -7,3 +7,5 @@
 .region a,.region span{display:inline-block;padding:7px 12px;border:1px solid rgba(214,185,127,.24);border-radius:999px;font-size:14px;color:#e4eaf4;text-decoration:none}
 .region a:hover,.region a:focus-visible{border-color:rgba(214,185,127,.75);background:rgba(255,255,255,.06)}
 .region span{border-color:#d6b97f;color:#f1dfb6;font-weight:700}
+.more{margin:22px 0 0;font-size:15px}
+.more a{color:#d6b97f}

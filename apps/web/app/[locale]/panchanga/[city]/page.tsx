@@ -8,6 +8,7 @@ import {indexRobots,publicSiteOrigin} from '../../../../lib/site-indexing';
 import {panchangaCityBySlug,type PanchangaCity} from '../../../../lib/panchanga-cities';
 import {cityChanges,cityCivilDate,cityClock,cityDayMatches,cityLongDate,cityMoment,citySunriseRows,
  nakshatraLabel,nextCivilDate,tithiLabel,varaLabel,type CityDay} from '../../../../lib/panchanga-city-day';
+import {nakshatraByNumber} from '../../../../lib/nakshatra-guides';
 import styles from './PanchangaCity.module.css';
 
 type Params={params:Promise<{locale:string;city:string}>};
@@ -60,6 +61,7 @@ export default async function PanchangaCityPage({params}:Params){
  ]}).replace(/</g,'\\u003c'):null;
  const rows=day?citySunriseRows(day,locale):[],changes=day?cityChanges(day,locale):[];
  const kalas=day?.daytimeKalas;
+ const star=day?nakshatraByNumber(day.sunrise.nakshatra.number):null;
  return <PortalShell locale={locale} active="panchanga" languagePath={'panchanga/'+city.slug}>
   {breadcrumbs&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:breadcrumbs}}/>}
   <article className={styles.page} data-testid="panchanga-city-page" data-city={city.slug} data-date={today}>
@@ -78,7 +80,7 @@ export default async function PanchangaCityPage({params}:Params){
      <table className={styles.table}>
       <thead><tr><th scope="col">{uk?'Складник':'Limb'}</th><th scope="col">{uk?'На схід Сонця':'At sunrise'}</th><th scope="col">{uk?'Триває до':'Lasts until'}</th></tr></thead>
       <tbody>{rows.map(row=><tr key={row.kind} data-anga={row.kind}>
-       <th scope="row">{row.name}</th><td>{row.value}</td>
+       <th scope="row">{row.name}</th><td>{row.kind==='nakshatra'&&star?<Link href={prefix+'nakshatra/'+star.slug}>{row.value}</Link>:row.value}</td>
        <td>{row.until||(uk?'до наступного сходу':'until the next sunrise')}</td></tr>)}</tbody>
      </table>
     </section>
@@ -125,6 +127,7 @@ export default async function PanchangaCityPage({params}:Params){
      <li><Link href={prefix+'pedia/nakshatra-today-location-guide'}>{uk?'Накшатра сьогодні: чому важливе місце':'Nakshatra today: why location matters'}</Link></li>
      <li><Link href={prefix+'pedia/rahu-kalam-calculation'}>{uk?'Як розраховується Раху-кала':'How Rahu Kalam is calculated'}</Link></li>
      <li><Link href={prefix+'pedia/panchanga-sunrise-day-rule'}>{uk?'Чому ведичний день починається зі сходу Сонця':'Why the Vedic day starts at sunrise'}</Link></li>
+     <li><Link href={prefix+'nakshatra'}>{uk?'Довідник 27 накшатр':'Guide to the 27 nakshatras'}</Link></li>
      <li><Link href={prefix+'methodology'}>{uk?'Методи розрахунків Galaxiora':'Galaxiora calculation methods'}</Link></li>
     </ul>
    </section>

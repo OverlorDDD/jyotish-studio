@@ -6,6 +6,7 @@ import {PEDIA_ARTICLES,PEDIA_CATEGORIES} from '../lib/pedia-content';
 import {MOON_SIGN_GUIDES} from '../lib/moon-sign-guides';
 import {TAROT_GUIDES} from '../lib/tarot-guides';
 import {PANCHANGA_CITIES} from '../lib/panchanga-cities';
+import {NAKSHATRA_GUIDES} from '../lib/nakshatra-guides';
 import {publishedList} from '../lib/editorial-public';
 const paths=(locale:'en'|'uk',suffix:string)=>'/'+locale+(suffix?'/'+suffix:'');
 export default async function sitemap():Promise<MetadataRoute.Sitemap>{
@@ -18,6 +19,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
   ...PEDIA_CATEGORIES.map(c=>'pedia/topic/'+c.id),
   ...TAROT_GUIDES.map(card=>'tarot/cards/'+card.slug),
   ...PANCHANGA_CITIES.map(city=>'panchanga/'+city.slug),
+  'nakshatra',...NAKSHATRA_GUIDES.map(item=>'nakshatra/'+item.slug),
   ...yoga.map(p=>'yoga/'+p.slug),...academy.map(p=>'pedia/'+p.slug)])];
  // /en and /uk redirect, and / is a 200 alias with canonical /en/astrology/jyotish.
  // Sitemap must list only final indexable URLs; never announce redirect aliases.
