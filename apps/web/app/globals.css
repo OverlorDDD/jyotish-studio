@@ -1301,3 +1301,11 @@
 .as-social-logo{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;
  background:#f1eee9;color:#23314b;font-size:14px;font-weight:800;border-radius:50%}
 .as-social-connections small{color:#bed4bb;text-align:center}
+
+/* Stage 0 result-page cleanup: readable key facts and one quiet technical block. */
+.jy-portal-workbench .jy-key-facts{margin:0 0 18px}
+.jy-portal-workbench .jy-key-facts small{font-size:11px;letter-spacing:.06em;color:#aab6c9}
+.jy-portal-workbench .jy-key-facts strong{font-size:15px;color:#f4ead6}
+.jy-data-workspace .jy-reference-details{margin-top:22px}
+.jy-data-workspace .jy-reference-details .jy-data-list{margin:12px 0}
+.reading-provider-quiet{margin:26px 0 10px;font-size:12px;opacity:.75}

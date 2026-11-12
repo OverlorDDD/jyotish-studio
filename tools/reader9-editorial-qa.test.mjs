@@ -32,8 +32,8 @@ test('Reader 9 keeps the approved five-theme, sixteen-varga UI and keeps proof o
  const human=repoFile('apps/api/src/reader-human-n495.ts');
  assert.match(view,/data-reader-edition="9"/);
  assert.match(view,/READER 9 · ПЕРСОНАЛЬНЕ ТРАКТУВАННЯ/);
- assert.match(page,/Читати без AI — Reader 9/);
- assert.match(page,/Read without AI — Reader 9/);
+ assert.match(page,/Читати без AI — класичне трактування/);
+ assert.match(page,/Read without AI — classic reading/);
  assert.match(report,/Reader 9 · цілісне традиційне прочитання/);
  assert.match(view,/data-testid="reader-n497-varga-map"/);
  assert.match(view,/<ol className=\{book\.vargaGrid\}>/);
