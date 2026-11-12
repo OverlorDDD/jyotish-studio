@@ -330,3 +330,5 @@
 .classicPanchanga .timeline,.classicPanchanga .method{margin:12px 0;padding:16px}
 .classicPanchanga .timeline h2{font-size:20px}
 @media(max-width:560px){.classicPanchanga{padding:12px}.classicPanchanga .timeline>div{grid-template-columns:1fr;gap:5px}}
+
+.angaGuide{font-size:12px;font-weight:700;color:#e6c58e;text-decoration:underline;text-underline-offset:3px}

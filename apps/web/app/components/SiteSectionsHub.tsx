@@ -3,7 +3,7 @@ import type {PortalLocale} from '../../lib/brand';
 import styles from './SiteSectionsHub.module.css';
 
 type Text=Record<PortalLocale,string>;
-type Section={path:string;title:Text;text:Text};
+type Section={path:string;hash?:string;title:Text;text:Text};
 
 /** Crawlable brand overview shown below the natal calculator and its results.
  * Every path is an existing canonical public page listed in SEO_PATHS. */
@@ -12,6 +12,10 @@ export const SITE_SECTIONS:readonly Section[]=[
   text:{uk:'Ведичні гороскопи за знаком Місяця та західні за знаком Сонця — для кожного з 12 знаків.',en:'Vedic horoscopes by Moon sign and Western ones by Sun sign, for each of the 12 signs.'}},
  {path:'panchanga',title:{uk:'Панчанга',en:'Panchanga'},
   text:{uk:'Ведичний календар для твого міста: тітхі, накшатра, йога, карана і місцевий схід Сонця.',en:'The Vedic calendar for your city: tithi, nakshatra, yoga, karana and local sunrise.'}},
+ {path:'panchanga',hash:'cities',title:{uk:'Панчанга по містах',en:'Panchanga by city'},
+  text:{uk:'Готові сторінки на сьогодні для Києва, Львова, Делі, Лондона, Нью-Йорка та ще близько ста міст.',en:'Ready-made pages for today in Delhi, Mumbai, London, New York, Kyiv and about a hundred more cities.'}},
+ {path:'nakshatra',title:{uk:'27 накшатр',en:'27 nakshatras'},
+  text:{uk:'Довідник місячних стоянок: значення, управителі, пади — і де Місяць просто зараз.',en:'A guide to the lunar mansions: meanings, rulers, padas — and where the Moon is right now.'}},
  {path:'tarot',title:{uk:'Таро',en:'Tarot'},
   text:{uk:'Розклади на одну, три та десять карт класичної колоди з 78 арканів.',en:'One-, three- and ten-card spreads with the classic 78-card deck.'}},
  {path:'tarot/cards',title:{uk:'Значення карт Таро',en:'Tarot card meanings'},
@@ -43,7 +47,7 @@ export default function SiteSectionsHub({locale}:{locale:PortalLocale}){
    :'Galaxiora is a bilingual home for Jyotish, Panchanga, Tarot and mindful practice. The birth chart above is the foundation that horoscopes, your personal calendar and readings grow from.'}</p>
   <nav aria-label={locale==='uk'?'Розділи Galaxiora':'Galaxiora sections'}>
    <ul className={styles.grid}>{SITE_SECTIONS.map(item=>
-    <li key={item.path}><Link className={styles.card} href={'/'+locale+'/'+item.path}>
+    <li key={item.path+(item.hash||'')}><Link className={styles.card} href={'/'+locale+'/'+item.path+(item.hash?'#'+item.hash:'')}>
      <strong className={styles.cardTitle}>{item.title[locale]}</strong>
      <span className={styles.cardText}>{item.text[locale]}</span>
     </Link></li>)}

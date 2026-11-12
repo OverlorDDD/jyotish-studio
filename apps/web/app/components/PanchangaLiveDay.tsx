@@ -4,6 +4,8 @@ import type {PortalLocale} from '../../lib/brand';
 import GlossaryText from './GlossaryText';
 import PanchangaInfoTip from './PanchangaInfoTip';
 import styles from './PanchangaHub.module.css';
+import Link from 'next/link';
+import {nakshatraSlugByNumber} from '../../lib/nakshatra-slugs';
 import {
  CHANGING_ANGAS,calendarDateAt,needsPriorVedicDay,previousCivilDate,
  positionInDay,slicesFor,stateAt,withinVedicDay,
@@ -137,6 +139,10 @@ export default function PanchangaLiveDay({day,locale}:{day:LivePanchangaDay;loca
       </div>
       <strong>{label(item.kind,item.value,locale)}</strong>
       <p>{descriptions[locale][item.kind]}</p>
+      {item.kind==='nakshatra'&&nakshatraSlugByNumber((item.value as unknown as {number?:number}).number)&&
+       <Link className={styles.angaGuide} data-testid="panchanga-nakshatra-guide"
+        href={'/'+locale+'/nakshatra/'+nakshatraSlugByNumber((item.value as unknown as {number?:number}).number)}>
+        {uk?'Що означає ця накшатра →':'What this nakshatra means →'}</Link>}
       <div className={styles.liveTimes}>
        <span>{uk?'Від':'From'}: {dateMarker(item.startUtc)}</span>
        <span>{uk?'До':'Until'}: {dateMarker(item.endUtc)}</span>
