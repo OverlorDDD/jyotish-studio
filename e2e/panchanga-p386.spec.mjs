@@ -48,7 +48,7 @@ test('P3.8.6 active saved/natal observer city is inside autocomplete, never a se
   }else await route.continue();
  });
  await page.goto('/uk/panchanga?date=2026-11-03');
- const search=page.getByTestId('global-city-search').getByRole('searchbox');
+ const search=page.getByTestId('global-city-search').getByRole('combobox');
  await expect(search).toHaveValue(/Кривий Ріг/,{timeout:20000});
  await expect(page.getByTestId('panchanga-hub')).not.toContainText('Місто: Кривий Ріг');
  await search.click();await search.fill('Кременчук');

@@ -11,7 +11,7 @@ for(const locale of ['uk','en']){
   await page.goto('/'+locale+'/panchanga');
   const box=page.getByTestId('global-city-search');
   await expect(box).toBeVisible();
-  await box.getByRole('searchbox').fill('Kremenchuk');
+  await box.getByRole('combobox').fill('Kremenchuk');
   await box.getByRole('option',{name:/Kremenchuk/}).click();
   await expect(page.getByLabel(locale==='uk'?'Широта':'Latitude')).toHaveValue('49.0665');
   await expect(page.getByLabel(locale==='uk'?'Довгота':'Longitude')).toHaveValue('33.4139');
