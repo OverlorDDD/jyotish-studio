@@ -190,9 +190,9 @@ export default function DetailedReport({report,lang,minutesUncertain=false}:{rep
   <h2>{uk?'Ваш астрологічний портрет':'Your astrological portrait'}</h2>
   
   <p className="reading-provider" role="status" data-testid="reading-ai-provenance">{readerOnly?
-   (uk?'Jyotish Reader · цілісне традиційне прочитання на основі обчисленої карти.':'Jyotish Reader · complete chart-grounded traditional reading.'):
+   (uk?(hasV8?'Reader 9 · цілісне традиційне прочитання на основі обчисленої карти.':'Jyotish Reader · цілісне традиційне прочитання на основі обчисленої карти.'):(hasV8?'Reader 9 · complete chart-grounded traditional reading.':'Jyotish Reader · complete chart-grounded traditional reading.')):
    hasLlm?
-   (unified?(uk?'Єдина AI-консультація · ':'Unified AI consultation · '):(uk?'Основне трактування: Jyotish Reader. Додаткова LLM-інтерпретація: ':'Primary reading: Jyotish Reader. Additional LLM interpretation: '))+
+   (unified?(uk?'Єдина AI-консультація · ':'Unified AI consultation · '):(uk?'Основне трактування: Reader 9. Додаткова LLM-інтерпретація: ':'Primary reading: Reader 9. Additional LLM interpretation: '))+
    (ai.provider==='openrouter'?'OpenRouter':ai.provider==='gemini'?'Google Gemini':ai.provider==='groq'?'GroqCloud':'Ollama')+' · '+(ai.model||'—')+
    (ai.cached?(uk?' · повторне використання перевіреної відповіді':' · cached verified response'):'')+
    (!unified&&fullConsultation?(uk?' · розділів AI: ':' · AI chapters: ')+aiChapters.size+'/8':''):
