@@ -51,21 +51,24 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   if(qs.get('view')==='personal')setView('week'); // retired duplicate 7/30 view
   else if(qs.get('view')==='week'||qs.get('view')==='month')setView(qs.get('view') as 'week'|'month');
   let live=true;const ctl=new AbortController();
-  fetch('/api/v1/personal/panchanga/location',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
+  // A link from a city landing page preselects that allowlisted city; it is never saved to the profile.
+  const slug=qs.get('city');
+  const preset=slug&&/^[a-z][a-z-]{1,39}$/.test(slug)
+   ?import('../../lib/panchanga-cities').then(m=>m.panchangaCityBySlug(slug)).catch(()=>null):Promise.resolve(null);
+  const profileRequest=fetch('/api/v1/personal/panchanga/location',{credentials:'same-origin',cache:'no-store',signal:ctl.signal})
    .then(async r=>r.status===401?null:r.ok?await r.json() as {
     source:'saved'|'natal'|'none';location:{place:string;timeZone:string;latitude:number;longitude:number}|null
    }:Promise.reject(Error('location unavailable')))
-   .then(profile=>{
+   .catch(()=>null);
+  Promise.all([profileRequest,preset]).then(([profile,city])=>{
     if(!live)return;
     const p=profile?.location;
-    const base=p?{place:p.place||'—',timeZone:p.timeZone,
+    const base=city?{place:city.name[locale],timeZone:city.timeZone,
+     latitude:String(city.latitude),longitude:String(city.longitude)}
+     :p?{place:p.place||'—',timeZone:p.timeZone,
      latitude:String(p.latitude),longitude:String(p.longitude)}:defaultCity;
     const selected={...base,date:chooseInitialDay(qs.get('date'),base.timeZone)};
     setSource(profile?.source||'guest');setForm(selected);setRequested(selected);
-   }).catch(()=>{
-    if(!live)return;
-    const selected={...defaultCity,date:chooseInitialDay(qs.get('date'),DEFAULT_CITY.timeZone)};
-    setSource('guest');setForm(selected);setRequested(selected);
    });
   return()=>{live=false;ctl.abort()};
  },[]);
