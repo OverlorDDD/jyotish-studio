@@ -4,6 +4,7 @@ import PortalShell from '../../components/PortalShell';
 import PanchangaHub from '../../components/PanchangaHub';
 import {PanchangaSearchGuide} from '../../components/SearchGuides';
 import OrganicIntentBridge from '../../components/OrganicIntentBridge';
+import PanchangaCityIndex from '../../components/PanchangaCityIndex';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
 import {indexRobots} from '../../../lib/site-indexing';
 const SEO_COPY={"uk":{"title":"Панчанга сьогодні — Тітхі та Накшатра","description":"Панчанга сьогодні для вашого міста: місцевий час тітхі, накшатри, сходу Сонця, йоги та карани. Обирайте дату й місто для ведичного календаря."},"en":{"title":"Panchang Today by City — Tithi & Nakshatra","description":"Check today's Panchanga for your city: exact local tithi, nakshatra, sunrise, yoga, karana and traditional Vedic timing. Select your location and date."}} as const;
@@ -29,5 +30,6 @@ export default async function PanchangaPage({params}:{params:Promise<{locale:str
    <PanchangaSearchGuide locale={locale as PortalLocale}/>
   </details>
 
+  <PanchangaCityIndex locale={locale as PortalLocale}/>
  </PortalShell>;
 }
