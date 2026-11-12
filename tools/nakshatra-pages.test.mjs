@@ -80,7 +80,7 @@ test('nakshatra pages are reachable: footer, Panchanga strip, live day card, cal
  assert.match(read('apps/web/app/[locale]/panchanga/page.tsx'),/<PanchangaQuickLinks locale=[^>]+>\s*<PanchangaHub/);
  assert.match(read('apps/web/app/components/PanchangaLiveDay.tsx'),/panchanga-nakshatra-guide/);
  const calc=read('apps/web/app/astrology/jyotish/page.tsx');
- assert.equal((calc.match(/nakshatraGuideLink\(/g)||[]).length,3);assert.match(calc,/target="_blank" rel="noopener"/);
+ assert.equal((calc.match(/nakshatraGuideLink\(/g)||[]).length,2);assert.match(calc,/target="_blank" rel="noopener"/);
  // The heavy guide texts must not be pulled into client bundles.
  for(const file of ['apps/web/app/components/PanchangaLiveDay.tsx','apps/web/app/astrology/jyotish/page.tsx'])
   assert.doesNotMatch(read(file),/nakshatra-guides/);
