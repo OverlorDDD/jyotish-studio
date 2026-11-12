@@ -37,3 +37,16 @@ test('Unknown nakshatra is a real 404; city Panchanga links its nakshatra to the
  await expect(page.getByTestId('panchanga-city-page').locator('tr[data-anga="nakshatra"] a'))
   .toHaveAttribute('href',/^\/en\/nakshatra\/[a-z-]+$/);
 });
+
+test('Nakshatra guide and city pages are reachable from the Panchanga page, footer and live day card',async({page})=>{
+ test.setTimeout(120000);
+ await page.goto('/uk/panchanga');
+ const strip=page.getByTestId('panchanga-quick-links');
+ await expect(strip.getByRole('link',{name:'Київ',exact:true})).toHaveAttribute('href','/uk/panchanga/kyiv');
+ await expect(strip.getByRole('link',{name:/27 накшатр/})).toHaveAttribute('href','/uk/nakshatra');
+ await expect(page.locator('footer').getByRole('link',{name:'27 накшатр'})).toHaveAttribute('href','/uk/nakshatra');
+ await expect(page.locator('footer').getByRole('link',{name:'Панчанга по містах'})).toHaveAttribute('href','/uk/panchanga#cities');
+ await expect(page.getByTestId('panchanga-nakshatra-guide')).toHaveAttribute('href',/^\/uk\/nakshatra\/[a-z-]+$/,{timeout:90000});
+ const width=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+ expect(width).toBeLessThanOrEqual(1);
+});

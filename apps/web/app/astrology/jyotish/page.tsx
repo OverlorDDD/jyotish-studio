@@ -16,6 +16,7 @@ import {hasD60Provisional,type N4D60UI} from '../../../lib/n4-d60-view';
 import CitySearch from '../../components/CitySearch';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
+import {nakshatraSlugByName} from '../../../lib/nakshatra-slugs';
 type Graha={name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 type Period={lord:string;start:string;end:string;antardashas:{lord:string;start:string;end:string}[]};
 type Chart={n4?:N4RcView;n4D60?:N4D60UI;config?:{dashaYearDays:number;dashaYearMode?:string};verification?:{version:string;status:'verified_internal';digest:string;checks:string[];externalReferenceChecked:false};id?:string;input:{date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;ephemeris:string;d1:Graha[];d9:Graha[];d10:Graha[];dasha:Period[]};
@@ -58,6 +59,13 @@ const NAKSHATRA_UK:Record<string,string>={
  'Purva Bhadrapada':'Пурва Бхадрапада','Uttara Bhadrapada':'Уттара Бхадрапада',Revati:'Реваті'
 };
 const nakshatraName=(name:string,lang:'en'|'uk')=>lang==='uk'?(NAKSHATRA_UK[name]||name):name;
+// Opens the guide in a new tab so a calculated chart is never lost by following the link.
+const nakshatraGuideLink=(name:string,lang:'en'|'uk',text:string)=>{
+ const slug=nakshatraSlugByName(name);
+ return slug?<a href={'/'+lang+'/nakshatra/'+slug} target="_blank" rel="noopener" data-testid="jy-nakshatra-guide"
+  title={lang==='uk'?'Відкрити довідник про цю накшатру':'Open the guide to this nakshatra'}
+  style={{color:'inherit',textDecoration:'underline dotted',textUnderlineOffset:'3px'}}>{text}</a>:text;
+};
 const grahaFull=(name:string,lang:'en'|'uk')=>lang==='uk'?(GRAHA_UK[name]||name):name;
 const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-1];
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
@@ -271,7 +279,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       <div className="jy-data-list">
        <div><span>{lang==='uk'?'Лагна':'Lagna'}</span><strong>{chart?<>{SIGN_SYMBOL[chart.ascendant.sign-1]} {signFull(chart.ascendant.sign,lang)} · {degreeLabel(chart.ascendant.degreesInSign)}</>:'—'}</strong></div>
        <div><span>{lang==='uk'?'Місяць':'Moon'}</span><strong>{moon?<>{GRAHA_SYMBOL.Moon} {signFull(moon.sign,lang)} · {degreeLabel(moon.degreesInSign)}</>:'—'}</strong></div>
-       <div><span>{lang==='uk'?'Накшатра Місяця':'Moon nakshatra'}</span><strong>{moon?nakshatraName(moon.nakshatra,lang)+' · '+(lang==='uk'?'пада ':'pada ')+moon.pada:'—'}</strong></div>
+       <div><span>{lang==='uk'?'Накшатра Місяця':'Moon nakshatra'}</span><strong>{moon?nakshatraGuideLink(moon.nakshatra,lang,nakshatraName(moon.nakshatra,lang)+' · '+(lang==='uk'?'пада ':'pada ')+moon.pada):'—'}</strong></div>
        <div><span>{lang==='uk'?'Аянамша':'Ayanamsha'}</span><strong>{chart?chart.ayanamsa.toFixed(3)+'° · Lahiri':'—'}</strong></div>
        <div><span>UTC</span><strong>{chart?chart.utc.replace('T',' ').slice(0,19):'—'}</strong></div>
        <div><span>{lang==='uk'?'Часовий пояс':'Time zone'}</span><strong>{chart?.input.timeZone||'—'}</strong></div>
@@ -294,10 +302,10 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
 
      <div className="jy-key-facts">
       <div><span className="jy-fact-icon">Lg</span><small>{lang==='uk'?'Лагна':'Lagna'}</small><strong>{chart?signFull(chart.ascendant.sign,lang):'—'}</strong></div>
-      <div><span className="jy-fact-icon">★</span><small>{lang==='uk'?'Накшатра лагни':'Lagna nakshatra'}</small><strong>{chart?nakshatraName(chart.ascendant.nakshatra,lang):'—'}</strong></div>
+      <div><span className="jy-fact-icon">★</span><small>{lang==='uk'?'Накшатра лагни':'Lagna nakshatra'}</small><strong>{chart?nakshatraGuideLink(chart.ascendant.nakshatra,lang,nakshatraName(chart.ascendant.nakshatra,lang)):'—'}</strong></div>
       <div><span className="jy-fact-icon">☉</span><small>{lang==='uk'?'Сонце':'Sun'}</small><strong>{chart?signFull(chart.d1.find(g=>g.name==='Sun')?.sign||1,lang):'—'}</strong></div>
       <div><span className="jy-fact-icon">☽</span><small>{lang==='uk'?'Місяць':'Moon'}</small><strong>{moon?signFull(moon.sign,lang):'—'}</strong></div>
-      <div><span className="jy-fact-icon">✦</span><small>{lang==='uk'?'Накшатра Місяця':'Moon nakshatra'}</small><strong>{moon?nakshatraName(moon.nakshatra,lang):'—'}</strong></div>
+      <div><span className="jy-fact-icon">✦</span><small>{lang==='uk'?'Накшатра Місяця':'Moon nakshatra'}</small><strong>{moon?nakshatraGuideLink(moon.nakshatra,lang,nakshatraName(moon.nakshatra,lang)):'—'}</strong></div>
       <div><span className="jy-fact-icon">◴</span><small>{lang==='uk'?'Поточна даша':'Current dasha'}</small><strong>{activeDasha?(lang==='uk'?GRAHA_UK[activeDasha.lord]||activeDasha.lord:activeDasha.lord):'—'}</strong></div>
      </div>
 

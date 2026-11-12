@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {NAKSHATRA_GUIDES,NAKSHATRA_CLASS_MEMBERS,nakshatraBySlug,nakshatraByNumber,nakshatraSpan,
  nakshatraPadas,nakshatraRuler,nakshatraClass,nakshatraGana} from '../apps/web/lib/nakshatra-guides.ts';
 import {NAKSHATRAS,DASHA_LORDS} from '../packages/jyotish-core/src/index.ts';
+import {NAKSHATRA_SLUGS,nakshatraSlugByName,nakshatraSlugByNumber} from '../apps/web/lib/nakshatra-slugs.ts';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 
 test('27 guides follow the calculation core order, names and Vimshottari rulers',()=>{
@@ -66,4 +67,21 @@ test('route contract: live Moon only from the verified API, canonical/hreflang, 
  assert.doesNotMatch(moon,/Math\.(round|floor)\([^)]*27\.3/); // no mean-motion estimates
  assert.match(read('apps/web/app/sitemap.ts'),/'nakshatra',\.\.\.NAKSHATRA_GUIDES\.map\(item=>'nakshatra\/'\+item\.slug\)/);
  assert.match(read('apps/web/app/[locale]/panchanga/[city]/page.tsx'),/prefix\+'nakshatra\/'\+star\.slug/);
+});
+
+test('nakshatra pages are reachable: footer, Panchanga strip, live day card, calculator and home hub',()=>{
+ assert.deepEqual([...NAKSHATRA_SLUGS],NAKSHATRA_GUIDES.map(g=>g.slug));
+ NAKSHATRAS.forEach((name,i)=>{assert.equal(nakshatraSlugByName(name),NAKSHATRA_SLUGS[i]);assert.equal(nakshatraSlugByNumber(i+1),NAKSHATRA_SLUGS[i]);});
+ assert.equal(nakshatraSlugByName('Nope'),null);assert.equal(nakshatraSlugByNumber(0),null);assert.equal(nakshatraSlugByNumber('4'),null);
+ const shell=read('apps/web/app/components/PortalShell.tsx');
+ assert.match(shell,/'\/'\+locale\+'\/nakshatra'/);assert.match(shell,/panchanga#cities/);
+ const strip=read('apps/web/app/components/PanchangaQuickLinks.tsx');
+ assert.match(strip,/prefix\+'nakshatra'/);assert.match(strip,/href="#cities"/);
+ assert.match(read('apps/web/app/[locale]/panchanga/page.tsx'),/<PanchangaQuickLinks locale=[^>]+>\s*<PanchangaHub/);
+ assert.match(read('apps/web/app/components/PanchangaLiveDay.tsx'),/panchanga-nakshatra-guide/);
+ const calc=read('apps/web/app/astrology/jyotish/page.tsx');
+ assert.equal((calc.match(/nakshatraGuideLink\(/g)||[]).length,3);assert.match(calc,/target="_blank" rel="noopener"/);
+ // The heavy guide texts must not be pulled into client bundles.
+ for(const file of ['apps/web/app/components/PanchangaLiveDay.tsx','apps/web/app/astrology/jyotish/page.tsx'])
+  assert.doesNotMatch(read(file),/nakshatra-guides/);
 });
