@@ -7,7 +7,6 @@
  * One compact "basis" sentence is the only chart jargon in each card.
  */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {dignityFor} from '../../../packages/jyotish-core/src/rules.ts';
 import {classicalLordshipTable} from './reader-classical.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
@@ -352,15 +351,8 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
    'In everyday life you may prefer to '+style(first.d1Sign)+
    ', while difficult decisions can call for learning to '+style(first.d60Sign)+
    '. These approaches can complement one another. ');
- const secondSentence=!second?'':second.d1Sign===second.d60Sign?
-  (uk?'Інша важлива тема — '+role(second.planet)+
-   ': тут також повторюється прагнення '+style(second.d60Sign)+'. ':
-   'Another theme is '+role(second.planet)+
-   ', with a repeated inclination to '+style(second.d60Sign)+'. '):
-  (uk?'У сфері '+role(second.planet)+' може знадобитися поєднати звичку '+
-   style(second.d1Sign)+' з умінням '+style(second.d60Sign)+'. ':
-   'With '+role(second.planet)+', you may need to combine the familiar wish to '+
-   style(second.d1Sign)+' with the ability to '+style(second.d60Sign)+'. ');
+ // Additional D60 factors remain available in the evidence, not a second
+ // mechanically joined personality claim in the reader-facing paragraph.
  const practice=uk?
   'Практичний крок: згадайте один недавній непростий вибір. Що допомогло вам діяти впевнено, '+
   'а яку навичку хотілося б розвинути перед наступним таким рішенням?':
@@ -373,7 +365,7 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
    ' — D1 '+signName(p.d1Sign)+', D60 '+signName(p.d60Sign));
  const basis=(uk?'Астрологічна основа: ':'Astrological basis: ')+clause(first)+
   (second?'; '+clause(second):'')+'.';
- const meaning=opening+contrast+secondSentence+practice+' '+basis;
+ const meaning=opening+contrast+practice+' '+basis;
  const headline=uk?'D60 — Глибинні мотиви й життєві уроки':
   'D60 — Deeper motivations and life lessons';
  const teaser=uk?'Як ви поєднуєте звичні способи дії з тим, чого навчають непрості рішення.':
@@ -395,10 +387,9 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const sun=chart.d1.find(p=>p.name==='Sun')!;
  const theme=(house:number)=>choose(THEME[house-1],lang);
  const style=choose(STYLE[placement.sign-1],lang);
- const q=dignityFor(lord,placement.sign);
  let lead=HUMAN_OPENING[division]?
   choose(HUMAN_OPENING[division],lang):choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
- if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
+ // D1 keeps the general portrait; other chapters have their own subject-specific scenes.
  // Lead with a lived situation, not mechanically inflected genitive house
  // topics ("із довіри", "через дому"). LIVED entries are complete sentences,
  // so Ukrainian grammar is sound regardless of the calculated house.
@@ -408,7 +399,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  if(division===2)lead=(uk?
   'Гроші легше впорядкувати, коли ви знаєте, що для вас означає достаток. ':
   'Managing money becomes easier when you know what security means to you. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[2][natal.house-1],lang);
  if(division===4)lead=(uk?
   'Дім має бути місцем, де можна відновити сили, а не ще одним джерелом напруги. ':
   'Home should be somewhere you can recover, not another source of pressure. ')+
@@ -416,57 +407,49 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  if(division===9)lead=(uk?
   'Близькість тримається не лише на почуттях, а й на тому, як ви домовляєтеся в повсякденні. ':
   'Intimacy rests not just on feelings but on how you negotiate everyday life together. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[9][natal.house-1],lang);
  if(division===10)lead=(uk?
   'У роботі важливо бачити результат своїх зусиль і розуміти, за що ви відповідаєте. ':
   'At work, seeing a clear result and knowing your responsibilities can matter. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[10][natal.house-1],lang);
  const sameSphere=natal.house===placement.house;
  const topic=theme(placement.house);
- const arena=choose(ARENA[placement.house-1],lang);
+ // Evidence still records the varga house; use a scene written for this subject.
  const bridgeUk:Record<number,string>={
-  1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
-  2:'Порівняйте свої реальні зобов’язання з тим, на що хочеться витратити гроші цього місяця. У рішеннях може допомогти звичка '+style+'.',
-  3:'Слова й дії можуть підтримувати одне одного '+arena+'. Тут знадобиться вміння '+style+'.',
-  4:'Облаштовуйте побут так, щоб у ньому залишався простір для звички '+style+'.',
-  7:'Турбота й творчість часто стають помітними '+arena+'. Зверніть увагу, наскільки вам вдається '+style+'.',
-  9:'Додаткова карта пропонує уважніше подивитися на '+topic+'. У спілкуванні корисно '+style+'.',
-  10:'Професійний шлях зачіпає тему '+topic+'. Спробуйте '+style+'.',
-  12:'Не всі успадковані правила потрібно приймати автоматично. Перевіряйте власний вибір '+arena+' й пробуйте '+style+'.',
-  16:'Зручність має підтримувати вас, а не керувати звичками. Помічайте це '+arena+' й спробуйте '+style+'.',
-  20:'Зосередженість краще перевіряти щоденною практикою '+arena+'. Тут може бути корисно '+style+'.',
-  24:'Знання стають майстерністю, коли проходять перевірку справою. Зверніть увагу на тему '+topic+' і спробуйте '+style+'.',
-  27:'Витривалість включає вміння змінити темп '+arena+'. Спробуйте '+style+'.',
-  30:'Труднощі не означають, що напрям обрано неправильно. Перевірте свої звички '+arena+' та спробуйте '+style+'.',
-  40:'Родинні зразки турботи можна переосмислювати '+arena+'. Корисно спробувати '+style+'.',
-  45:'Між родинними правилами й вашим вибором завжди є простір для рішення '+arena+'. Спробуйте '+style+'.'
+  1:'Положення додаткової карти підкреслює тему '+topic+'.',
+  2:choose(DOMAIN_SCENE[2][placement.house-1],lang),
+  3:'У розмовах і спільних завданнях може допомагати вміння '+style+'.',
+  4:'У домашніх рішеннях корисно '+style+'.',
+  7:'Турбота та творчість потребують уваги до людини, якій ви передаєте досвід.',
+  9:'У близькості важливо чути не тільки слова, а й реальні очікування.',
+  10:choose(DOMAIN_SCENE[10][placement.house-1],lang),
+  12:'Не всі успадковані правила потрібно приймати автоматично. Коли формуєте власні, спробуйте '+style+'.',
+  16:'Обираючи побутові зручності, оцініть, чи допомагають вони вам '+style+'.',
+  20:'Регулярна духовна практика може стати нагодою '+style+'.',
+  24:choose(DOMAIN_SCENE[24][placement.house-1],lang),
+  27:'Витривалість включає здатність змінити темп. У напружені моменти може допомогти вміння '+style+'.',
+  30:'У непростих обставинах перевіряйте конкретні можливості й пробуйте '+style+'.',
+  40:'При турботі про рідних ви можете самі обирати, як '+style+'.',
+  45:'Успадковані принципи можна не просто повторювати, а переосмислювати — і вчитися '+style+'.'
  };
  const bridgeEn:Record<number,string>={
-  1:'The area of '+topic+' deserves special attention. Try to '+style+'.',
-  2:'Compare your real commitments with what you want to spend this month. It may help to '+style+'.',
-  3:'Words and action can support each other '+arena+'. Practice how to '+style+'.',
-  4:'Shape daily routines so there is room to '+style+'.',
-  7:'Care and creativity often show their value '+arena+'. Notice what happens when you '+style+'.',
-  9:'The supplementary chart brings '+topic+' into view when expectations are discussed. It helps to '+style+'.',
-  10:'Working life brings the area of '+topic+' into focus. Try to '+style+'.',
-  12:'Not every inherited rule has to become your own. Test your choices '+arena+' and try to '+style+'.',
-  16:'Comfort should support you rather than dictate habits. Notice this '+arena+' and try to '+style+'.',
-  20:'Consistency grows through small repeated practices '+arena+'. Try to '+style+'.',
-  24:'Knowledge becomes mastery when it survives a practical test. In '+topic+', try to '+style+'.',
-  27:'Resilience includes adjusting your pace '+arena+'. Try to '+style+'.',
-  30:'Difficulty does not mean you chose the wrong path. Check your habits '+arena+' and try to '+style+'.',
-  40:'Family patterns of care can be reconsidered '+arena+'. Try to '+style+'.',
-  45:'There is room to choose between inherited rules and your beliefs '+arena+'. Try to '+style+'.'
+  1:'The supplementary chart highlights '+topic+'.',
+  2:choose(DOMAIN_SCENE[2][placement.house-1],lang),
+  3:'In conversations and shared tasks, it may help to '+style+'.',
+  4:'In decisions about home, it can help to '+style+'.',
+  7:'Care and creative work benefit from attention to the person you are teaching or supporting.',
+  9:'In close relationships, listen to actual expectations as well as words.',
+  10:choose(DOMAIN_SCENE[10][placement.house-1],lang),
+  12:'Not every inherited rule needs to become your own. As you develop your principles, try to '+style+'.',
+  16:'When choosing everyday conveniences, ask whether they help you '+style+'.',
+  20:'A regular spiritual practice can be a chance to '+style+'.',
+  24:choose(DOMAIN_SCENE[24][placement.house-1],lang),
+  27:'Resilience includes adjusting your pace. Under pressure it may help to '+style+'.',
+  30:'In difficult circumstances, check your practical options and try to '+style+'.',
+  40:'When caring for loved ones, you can decide for yourself how to '+style+'.',
+  45:'Inherited principles need not simply be repeated; you can rethink them and learn to '+style+'.'
  };
  let bridge=uk?bridgeUk[division]:bridgeEn[division];
- // Mention a life area once. When both independent chart views point to
- // the same house topic, add a concrete working habit instead of repeating
- // that same noun phrase in two consecutive sentences.
- if(sameSphere&&![1,9,10,24].includes(division)){
-  bridge=uk?
-   'Цей акцент повторюється і в додатковій карті. Замість ще одного опису сфери спробуйте '+style+'.':
-   'The supplementary chart returns to the same area. Rather than repeating its label, try to '+style+'.';
- }
  if(division===1){
   bridge=uk?
    (lord==='Moon'?
@@ -500,24 +483,9 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   // reading into a generic relationship or career instruction.
   bridge=choose(CHILDREN_CREATIVE_SCENE[placement.house-1],lang);
  }
- if(division===10){
-  bridge=uk?
-   'Перевірте свій спосіб працювати на реальному невеликому завданні: корисно '+style+'. Результат покаже, де ви найефективніші.':
-   'Test your working style on one manageable real task: try to '+style+'. Use the result to see where your strengths actually help.';
- }
- if(division===24){
-  bridge=uk?
-   'Щоб знання стали навичкою, застосовуйте їх у справі — особливо '+arena+
-   '. Результат важливіший за кількість прочитаного.':
-   'Put knowledge into action, especially '+arena+
-   '. The result matters more than the amount you read.';
- }
- const difficulty=q==='debilitated'?
-  (uk?'Тут особливо важливо не поспішати з висновками: складне краще розбити на посильні кроки.':
-   'Avoid rushing conclusions here: break difficult tasks into manageable steps.'):
-  isStrong(q)?
-  (uk?'Традиційне прочитання підкреслює цю тему як потенційну опору, яку варто перевірити на практиці.':
-   'The traditional reading treats this as a potential strength worth testing in practice.'):'';
+ if(division===10)bridge=choose(DOMAIN_SCENE[10][placement.house-1],lang);
+ if(division===24)bridge=choose(DOMAIN_SCENE[24][placement.house-1],lang);
+ // Dignity is evidence, not a universal motivational or negative sentence.
  const practice=division===10?
   (uk?'Спробуйте '+HOUSE_TASK[placement.house-1][0]+'.':
    'Try to '+HOUSE_TASK[placement.house-1][1]+'.'):
@@ -548,7 +516,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const teaser=choose(LEAD[division],lang)+' '+theme(natal.house)+'. '+(sameSphere?
   (uk?'Цей самий акцент повторюється в додатковій карті.':'The same focus is repeated in the supplementary chart.'):
   (uk?'Другий акцент — '+theme(placement.house)+'.':'A second focus is '+theme(placement.house)+'.'));
- const meaning=[lead,bridge,difficulty,uk?'Практичний крок: '+practice:'Practical step: '+practice,basis]
+ const meaning=[lead,bridge,uk?'Практичний крок: '+practice:'Practical step: '+practice,basis]
   .filter(Boolean).join(' ');
  return {headline,teaser,meaning,basis};
 }
