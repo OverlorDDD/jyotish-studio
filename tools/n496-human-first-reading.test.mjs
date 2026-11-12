@@ -35,7 +35,9 @@ test('reader hides machine evidence and methodology; full proof stays intact in 
 });
 test('same-area prose no longer parrots the identical theme twice',()=>{
  assert.match(human,/const sameSphere=natal\.house===placement\.house/);
- assert.match(human,/if\(sameSphere&&!\[1,9,10,24\]\.includes\(division\)\)/);
+ assert.match(human,/const DOMAIN_LIVED:Readonly<Record<number,readonly Copy\[\]>>=/);
+ assert.match(human,/const DOMAIN_SCENE:Readonly<Record<number,readonly Copy\[\]>>=/);
+ assert.doesNotMatch(human,/Замість ще одного опису сфери|Rather than repeating its label/);
  assert.match(human,/const teaser=choose\(LEAD\[division\],lang\).*sameSphere/s);
  assert.doesNotMatch(human,/У практичному житті це торкається сфери /);
  assert.doesNotMatch(human,/In practice this touches /);

@@ -35,6 +35,8 @@ for(const lang of ['uk','en']){
   const report=await createInventedBirth(page,lang);
   const reader=page.getByTestId('reader-v8');
   await expect(reader).toBeVisible();
+  await expect(reader).toHaveAttribute('data-reader-edition','9');
+  await expect(reader).toContainText('READER 9');
   const guide=reader.getByTestId('reader-n497-varga-map');
   await expect(guide).toBeVisible();
   await expect(guide.locator(':scope > ol > li')).toHaveCount(16);

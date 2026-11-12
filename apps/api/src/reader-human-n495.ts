@@ -7,7 +7,6 @@
  * One compact "basis" sentence is the only chart jargon in each card.
  */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
-import {dignityFor} from '../../../packages/jyotish-core/src/rules.ts';
 import {classicalLordshipTable} from './reader-classical.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildD60Preview} from './reader-d60-n47.ts';
@@ -79,20 +78,6 @@ const STYLE:readonly Copy[]=[
 ];
 // Actual varga house -> a complete everyday situation. This avoids
 // inserting a genitive house label into an ungrammatical "theme of" slot.
-const ARENA:readonly Copy[]=[
- ['у ситуації, де рішення залежать від вас','when a decision is yours to make'],
- ['у плануванні витрат і заощаджень','when planning spending and savings'],
- ['у важливій розмові або спільному завданні','in a difficult conversation or shared task'],
- ['у турботі про свій дім і близьких','when caring for your home and loved ones'],
- ['у творчих завданнях або навчанні інших','when creating or teaching someone'],
- ['у розв’язанні складної щоденної задачі','when dealing with a demanding everyday task'],
- ['у домовленостях із партнером','when making agreements with a partner'],
- ['у спільній відповідальності й відновленні довіри','when trust and shared responsibility matter'],
- ['у навчанні або передачі досвіду','when learning or sharing what you know'],
- ['у виконанні професійного завдання','when taking responsibility for a result at work'],
- ['у роботі з однодумцями','when working with a community'],
- ['у хвилини тиші й відновлення','when you need quiet and recovery']
-];
 const LEAD:Readonly<Record<number,Copy>>={
  1:['Ваше відчуття себе тісно пов’язане з темою','Your sense of self is closely linked with'],
  2:['У ставленні до грошей і того, що справді цінне, помітна тема','In your approach to money and what matters, a central theme is'],
@@ -132,6 +117,115 @@ const HUMAN_OPENING:Readonly<Record<number,Copy>>={
  45:['Успадковані принципи можуть допомагати, коли ви свідомо перевіряєте, які з них ваші.',
      'Inherited principles can help when you consciously decide which ones are truly yours.']
 };
+// Reader 9: the D1 house may be the same in several chapters, but it must not
+// yield the same sentence about "learning", "recovery", etc. in unrelated
+// subjects. Each of these sentences names the subject first, then interprets
+// the same verified natal house through that subject's traditional lens.
+const DOMAIN_LIVED:Readonly<Record<number,readonly Copy[]>>={
+ 2:[
+  ["Фінансові рішення можуть вимагати власних правил, а не постійного порівняння з чужими витратами.","Money decisions may call for personal rules rather than constant comparisons with other people's spending."],
+  ["Звички щодо заощаджень і сімейні уявлення про достаток можуть впливати на ваш бюджет.","Savings habits and family ideas of security may shape your budget."],
+  ["Навички спілкування й уміння домовлятися можуть бути практичним ресурсом у питаннях заробітку.","Communication skills and negotiation can be useful resources when earning a living."],
+  ["Витрати на житло та підтримку домашнього побуту можуть визначати ваші фінансові пріоритети.","Housing costs and maintaining your home may shape financial priorities."],
+  ["Коли гроші пов’язані з творчістю, корисно розрізняти захоплення й оплату за конкретну роботу.","When creativity and money meet, it helps to distinguish enjoyment from payment for work."],
+  ["Повсякденні витрати й регулярні зобов’язання можуть потребувати більшої уваги, ніж разові покупки.","Routine costs and recurring obligations may deserve more attention than occasional purchases."],
+  ["Спільні витрати з партнером варто обговорювати так само чітко, як і особисті цілі.","Shared spending with a partner deserves the same clarity as individual goals."],
+  ["У питаннях спільного майна й боргів корисні прозорі умови та запас на непередбачені зміни.","Shared assets and debts benefit from clear terms and a buffer for unexpected changes."],
+  ["Навчання й далекі плани можуть конкурувати з поточними витратами — визначте пріоритети заздалегідь.","Education and long-range plans may compete with current expenses; set priorities early."],
+  ["Дохід і професійна відповідальність можуть бути пов’язані, тому важливо розуміти цінність своєї праці.","Earnings and professional responsibility may be connected; understanding the value of your work helps."],
+  ["Співпраця й коло знайомств можуть створювати можливості, але дружбу і фінансові домовленості краще розділяти.","Networks and collaboration can create opportunities, but friendships and money agreements need clear boundaries."],
+  ["Витрати на відновлення та особистий простір можуть бути частиною бюджету, а не випадковим залишком.","Spending on rest and personal space may need a place in the budget rather than being an afterthought."]
+ ],
+ 4:[
+  ["Відчуття дому може залежати від того, чи є у вас простір для власних рішень.","Feeling at home may depend on having room to make your own decisions."],
+  ["Стабільний побут може будуватися на простих домовленостях щодо речей і сімейних витрат.","A stable home may grow from clear agreements about belongings and family expenses."],
+  ["Розмови з рідними та вміння обговорювати дрібні незручності можуть берегти домашній спокій.","Talking through small irritations with family may protect peace at home."],
+  ["Власні домашні звички та відчуття безпеки можуть бути для вас особливо важливими.","Your own household routines and sense of safety may matter especially strongly."],
+  ["Дім може ставати місцем творчості, навчання або спільних занять із близькими.","Home may become a place for creativity, learning or shared activities with loved ones."],
+  ["Побут легше витримувати, коли регулярні справи не накопичуються до виснаження.","Daily life may feel steadier when recurring chores do not pile up into exhaustion."],
+  ["Домашній комфорт може залежати від уміння домовлятися про простір і обов’язки.","Comfort at home may depend on negotiating space and shared responsibilities."],
+  ["Під час життєвих змін важливо знати, що у вашому домі лишається стабільним.","During major changes, it may help to know which parts of home life stay stable."],
+  ["Родинні традиції та власні переконання можуть впливати на те, яке житло здається вам своїм.","Family traditions and personal beliefs may shape what makes a place feel like home."],
+  ["Робочий режим може впливати на домашній спокій; межі між ними варто визначати свідомо.","Your work routine may affect peace at home; it can help to set those boundaries consciously."],
+  ["Близьке коло та взаємна допомога можуть створювати відчуття дому не менше за стіни.","Mutual support and trusted people may make a place feel like home as much as its walls."],
+  ["Особистий простір і можливість усамітнитися можуть бути потрібні для відновлення вдома.","Privacy and solitude may be necessary for recovering your energy at home."]
+ ],
+ 9:[
+  ["У партнерстві особисту самостійність варто поєднувати з повагою до спільних рішень.","In partnership, personal independence may need to coexist with decisions made together."],
+  ["Розмови про сімейні цінності та ставлення до грошей можуть бути частиною близькості.","Conversations about family values and money can be part of emotional closeness."],
+  ["Взаєморозуміння може починатися з простих розмов, у яких обидва мають право бути почутими.","Understanding may begin with ordinary conversations where both people are heard."],
+  ["Відчуття дому, спокою та особистих звичок може бути важливим для спільного життя.","A shared sense of home, calm and everyday routines may matter in living together."],
+  ["Спільні захоплення можуть зближувати, якщо залишається місце й для творчості кожного.","Shared interests can bring people closer when each person still has room for creativity."],
+  ["Турбота в стосунках може проявлятися через звичайні справи, а не лише через красиві слова.","Care in a relationship may show itself through daily tasks, not only affectionate words."],
+  ["Взаємність і готовність домовлятися можуть стати для вас окремою темою партнерства.","Reciprocity and the willingness to negotiate may be central themes in partnership."],
+  ["Довіра може особливо перевірятися там, де є спільні зобов’язання або непрості зміни.","Trust may be tested most clearly where responsibilities are shared or circumstances change."],
+  ["Різні погляди на навчання, віру чи життєві принципи варто обговорювати без потреби переконати одне одного.","Different views on learning, faith or guiding values are worth discussing without trying to win."],
+  ["Робочі амбіції можуть впливати на близькість; домовленості про час тут не дрібниця.","Work ambitions may shape intimacy, so agreements about time together are not a small detail."],
+  ["Дружба, спільні плани та оточення можуть підтримувати союз, якщо не підміняють розмови вдвох.","Friendships, shared plans and community can support a relationship without replacing private conversations."],
+  ["Право на тишу й особистий простір може допомагати зберігати близькість без тиску.","Space for quiet and privacy may help preserve closeness without pressure."]
+ ],
+ 10:[
+  ["У професії може бути важливо мати право на власні рішення й відповідати за їхній результат.","At work, having room to decide and take responsibility for the result may matter."],
+  ["Матеріальна стабільність і практична віддача можуть впливати на вибір робочого напряму.","Material stability and tangible returns may influence career choices."],
+  ["Робочі можливості можуть відкриватися через спілкування, нові навички й особисту ініціативу.","Work opportunities may emerge through communication, new skills and personal initiative."],
+  ["Потреба в надійному домашньому ритмі може впливати на те, який формат роботи підходить вам краще.","The need for a stable home routine may shape which working arrangements suit you."],
+  ["Творчість, навчання або підтримка розвитку інших можуть бути важливою складовою професійної мотивації.","Creativity, learning or helping others develop may be meaningful parts of work."],
+  ["Складні практичні завдання можуть давати відчуття професійного поступу, якщо є час довести їх до результату.","Demanding practical tasks may feel rewarding when there is time to finish them well."],
+  ["Партнерства й чіткі робочі домовленості можуть бути важливішими за одиночну гонитву за результатом.","Partnerships and clear working agreements may matter more than pursuing every result alone."],
+  ["Робота в умовах змін може вимагати навички брати відповідальність, не приховуючи ризиків.","Working through change may call for responsibility and clear discussion of risks."],
+  ["Професійний розвиток може бути пов’язаний із навчанням, наставниками та власними принципами.","Professional growth may connect with study, mentors and your guiding principles."],
+  ["Видимий результат і визначені обов’язки можуть бути важливими критеріями оцінки роботи.","Visible outcomes and clear responsibilities may be important measures of work."],
+  ["Командна праця й коло однодумців можуть допомагати доводити спільні проєкти до результату.","Teamwork and a community of peers may help bring shared projects to completion."],
+  ["Для якісної роботи може бути потрібен час без зайвих відволікань і можливість відновитися.","Doing good work may require uninterrupted time and a chance to recover."]
+ ]
+};
+// Reader 9: a divisional house is evidence, not permission to splice a work,
+// relationship or household phrase into an unrelated life chapter.
+const DOMAIN_SCENE:Readonly<Record<number,readonly Copy[]>>={
+ 2:[
+  ["Перегляньте, які витрати ви контролюєте самі, і відокремте їх від чужих очікувань.","Review the spending you control and separate it from others' expectations."],
+  ["Розрізняйте гроші на поточний побут і кошти, які хочете зберегти надовго.","Separate everyday money from funds you mean to preserve for the long term."],
+  ["За фінансових переговорів записуйте умови, а не покладайтеся лише на усну обіцянку.","Record the terms of money negotiations instead of relying only on spoken promises."],
+  ["Врахуйте у бюджеті витрати на житло й підтримку домашньої стабільності.","Include housing and household stability in your budget."],
+  ["Для творчих витрат заздалегідь визначайте суму, яку можете собі дозволити.","Set a clear limit for creative spending before making purchases."],
+  ["Почніть із регулярних витрат: саме там найпростіше помітити повторювані втрати.","Start with recurring costs; they make repeated leaks easiest to spot."],
+  ["У спільному бюджеті погодьте не лише цілі, а й право кожного на власні витрати.","In a shared budget, agree on goals and each person's discretionary spending."],
+  ["Ведіть окремий перелік спільних зобов’язань і строків їх виконання.","Keep a separate record of shared obligations and their due dates."],
+  ["Плануйте витрати на навчання так, щоб вони не забирали необхідний резерв.","Plan education expenses without consuming the reserve you need."],
+  ["Перевіряйте, чи співвідносяться робочі витрати з реальними надходженнями.","Check whether work-related costs are proportionate to actual earnings."],
+  ["Розділяйте спільні проєкти, допомогу друзям і особисті фінансові рішення.","Separate group projects, favors for friends and personal financial decisions."],
+  ["Відведіть бюджет на відпочинок та непередбачені потреби без почуття провини.","Make room in your budget for rest and unexpected needs."]
+ ],
+ 10:[
+  ["Окресліть власну ділянку відповідальності, перш ніж братися за нове завдання.","Define your own area of responsibility before taking on a new task."],
+  ["Оцініть робочий результат не лише за зусиллям, а й за реальною цінністю.","Assess work by its practical value, not effort alone."],
+  ["Важливу професійну ідею спершу поясніть простою мовою іншій людині.","Explain an important work idea to someone else in plain language first."],
+  ["Перевірте, чи ваш робочий режим залишає достатньо часу для життя вдома.","Check whether your work routine leaves enough time for home life."],
+  ["Знайдіть місце для творчої ініціативи, не втрачаючи критеріїв якості.","Make room for creative initiative without losing quality standards."],
+  ["Обирайте завдання, де можна побачити конкретну проблему й виміряти поліпшення.","Choose tasks where you can identify a real problem and measure improvement."],
+  ["Перед співпрацею узгодьте результат, ролі та межі відповідальності.","Before collaborating, agree on deliverables, roles and responsibility."],
+  ["Для складного робочого рішення складіть перелік ризиків і можливих альтернатив.","For a difficult work decision, list risks and realistic alternatives."],
+  ["Перевіряйте нові знання в роботі, а не лише в теоретичному обговоренні.","Test new knowledge in actual work rather than discussion alone."],
+  ["Зафіксуйте, який завершений результат вважатиметься успіхом.","Define what finished outcome would count as success."],
+  ["Розділіть колективну мету на зрозумілі завдання для кожного учасника.","Divide a shared goal into clear tasks for everyone involved."],
+  ["Залишайте в графіку час без зустрічей, щоб завершувати складні завдання.","Keep meeting-free time in your schedule to finish demanding work."]
+ ],
+ 24:[
+  ["Обирайте тему навчання самостійно й формулюйте, чого саме хочете навчитися.","Choose a learning topic yourself and state the skill you want to gain."],
+  ["Закріплюйте нове знання на невеликому практичному прикладі.","Reinforce new knowledge with one small practical example."],
+  ["Переказуйте складну ідею своїми словами, щоб перевірити розуміння.","Explain a difficult idea in your own words to test understanding."],
+  ["Створіть спокійне місце для навчання, у якому легко повертатися до матеріалу.","Make a calm study space you can reliably return to."],
+  ["У творчому навчанні залишайте час для спроб і помилок.","Allow time for experiments and mistakes when learning creatively."],
+  ["Практикуйте складну навичку короткими регулярними підходами.","Practice a difficult skill in short, regular sessions."],
+  ["Обговоріть вивчене з партнером по навчанню та порівняйте різні підходи.","Discuss what you learned with a study partner and compare approaches."],
+  ["Розбирайте незрозуміле по частинах, не пропускаючи слабкі місця.","Break down confusing material rather than skipping weak points."],
+  ["Зіставте нову ідею з перевіреним джерелом та власним досвідом.","Compare a new idea with a reliable source and your own experience."],
+  ["Завершіть один невеликий проєкт, щоб перевірити засвоєні навички.","Finish one small project to test what you have learned."],
+  ["Вчіться разом із групою, але залишайте місце для власних висновків.","Learn with a group while keeping room for your own conclusions."],
+  ["Після інтенсивного навчання виділіть час на відпочинок та повторення.","After intensive study, leave time for rest and review."]
+ ]
+};
+
 const ADVICE:Readonly<Record<number,Copy>>={
  1:['Виділіть окремо те, що дає вам відчуття мети, і те, що реально повертає сили.',
     'Distinguish what gives you purpose from what actually restores your energy.'],
@@ -210,7 +304,6 @@ const HOUSE_TASK:readonly Copy[]=[
  ['самостійно дослідити проблему й описати висновки','investigate a problem independently and document findings']
 ];
 const choose=(copy:Copy,lang:Lang)=>copy[lang==='uk'?0:1];
-const isStrong=(quality:string)=>quality==='own'||quality==='exalted';
 
 /**
  * D60 is a full editorial card, not the old raw-position dump. It uses only
@@ -241,8 +334,8 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
  const significant=first.planet===lords[1];
  const opening=uk?
   'Зіставлення D1 та D60 допомагає помітити символічний мотив '+role(first.planet)+'. '+
-  (significant?'Вона також пов’язана з тим, як ви визначаєте власний життєвий напрям. ':
-   'Особливо помітною вона може ставати у важливих особистих рішеннях. '):
+  (significant?'Цей мотив також пов’язаний із тим, як ви визначаєте власний життєвий напрям. ':
+   'Особливо помітним він може ставати у важливих особистих рішеннях. '):
   'Comparing D1 and D60 may highlight the symbolic pattern of '+role(first.planet)+'. '+
   (significant?'This also connects with the direction you choose for yourself. ':
    'It may become especially relevant during important personal decisions. ');
@@ -257,15 +350,8 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
    'In everyday life you may prefer to '+style(first.d1Sign)+
    ', while difficult decisions can call for learning to '+style(first.d60Sign)+
    '. These approaches can complement one another. ');
- const secondSentence=!second?'':second.d1Sign===second.d60Sign?
-  (uk?'Інша важлива тема — '+role(second.planet)+
-   ': тут також повторюється прагнення '+style(second.d60Sign)+'. ':
-   'Another theme is '+role(second.planet)+
-   ', with a repeated inclination to '+style(second.d60Sign)+'. '):
-  (uk?'У сфері '+role(second.planet)+' може знадобитися поєднати звичку '+
-   style(second.d1Sign)+' з умінням '+style(second.d60Sign)+'. ':
-   'With '+role(second.planet)+', you may need to combine the familiar wish to '+
-   style(second.d1Sign)+' with the ability to '+style(second.d60Sign)+'. ');
+ // Additional D60 factors remain available in the evidence, not a second
+ // mechanically joined personality claim in the reader-facing paragraph.
  const practice=uk?
   'Практичний крок: згадайте один недавній непростий вибір. Що допомогло вам діяти впевнено, '+
   'а яку навичку хотілося б розвинути перед наступним таким рішенням?':
@@ -278,7 +364,7 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
    ' — D1 '+signName(p.d1Sign)+', D60 '+signName(p.d60Sign));
  const basis=(uk?'Астрологічна основа: ':'Astrological basis: ')+clause(first)+
   (second?'; '+clause(second):'')+'.';
- const meaning=opening+contrast+secondSentence+practice+' '+basis;
+ const meaning=opening+contrast+practice+' '+basis;
  const headline=uk?'D60 — Глибинні мотиви й життєві уроки':
   'D60 — Deeper motivations and life lessons';
  const teaser=uk?'Як ви поєднуєте звичні способи дії з тим, чого навчають непрості рішення.':
@@ -300,10 +386,9 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const sun=chart.d1.find(p=>p.name==='Sun')!;
  const theme=(house:number)=>choose(THEME[house-1],lang);
  const style=choose(STYLE[placement.sign-1],lang);
- const q=dignityFor(lord,placement.sign);
  let lead=HUMAN_OPENING[division]?
   choose(HUMAN_OPENING[division],lang):choose(LEAD[division],lang)+' '+theme(natal.house)+'.';
- if([1,2,9,10,24].includes(division))lead+=' '+choose(LIVED[natal.house-1],lang);
+ // D1 keeps the general portrait; other chapters have their own subject-specific scenes.
  // Lead with a lived situation, not mechanically inflected genitive house
  // topics ("із довіри", "через дому"). LIVED entries are complete sentences,
  // so Ukrainian grammar is sound regardless of the calculated house.
@@ -313,65 +398,57 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  if(division===2)lead=(uk?
   'Гроші легше впорядкувати, коли ви знаєте, що для вас означає достаток. ':
   'Managing money becomes easier when you know what security means to you. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[2][natal.house-1],lang);
  if(division===4)lead=(uk?
   'Дім має бути місцем, де можна відновити сили, а не ще одним джерелом напруги. ':
   'Home should be somewhere you can recover, not another source of pressure. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[4][natal.house-1],lang);
  if(division===9)lead=(uk?
   'Близькість тримається не лише на почуттях, а й на тому, як ви домовляєтеся в повсякденні. ':
   'Intimacy rests not just on feelings but on how you negotiate everyday life together. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[9][natal.house-1],lang);
  if(division===10)lead=(uk?
   'У роботі важливо бачити результат своїх зусиль і розуміти, за що ви відповідаєте. ':
   'At work, seeing a clear result and knowing your responsibilities can matter. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[10][natal.house-1],lang);
  const sameSphere=natal.house===placement.house;
  const topic=theme(placement.house);
- const arena=choose(ARENA[placement.house-1],lang);
+ // Evidence still records the varga house; use a scene written for this subject.
  const bridgeUk:Record<number,string>={
-  1:'Тут особливої ваги набуває тема '+topic+'. Варто '+style+'.',
-  2:'Порівняйте свої реальні зобов’язання з тим, на що хочеться витратити гроші цього місяця. У рішеннях може допомогти звичка '+style+'.',
-  3:'Слова й дії можуть підтримувати одне одного '+arena+'. Тут знадобиться вміння '+style+'.',
-  4:'Облаштовуйте побут так, щоб у ньому залишався простір для звички '+style+'.',
-  7:'Турбота й творчість часто стають помітними '+arena+'. Зверніть увагу, наскільки вам вдається '+style+'.',
-  9:'Додаткова карта пропонує уважніше подивитися на '+topic+'. У спілкуванні корисно '+style+'.',
-  10:'Професійний шлях зачіпає тему '+topic+'. Спробуйте '+style+'.',
-  12:'Не всі успадковані правила потрібно приймати автоматично. Перевіряйте власний вибір '+arena+' й пробуйте '+style+'.',
-  16:'Зручність має підтримувати вас, а не керувати звичками. Помічайте це '+arena+' й спробуйте '+style+'.',
-  20:'Зосередженість краще перевіряти щоденною практикою '+arena+'. Тут може бути корисно '+style+'.',
-  24:'Знання стають майстерністю, коли проходять перевірку справою. Зверніть увагу на тему '+topic+' і спробуйте '+style+'.',
-  27:'Витривалість включає вміння змінити темп '+arena+'. Спробуйте '+style+'.',
-  30:'Труднощі не означають, що напрям обрано неправильно. Перевірте свої звички '+arena+' та спробуйте '+style+'.',
-  40:'Родинні зразки турботи можна переосмислювати '+arena+'. Корисно спробувати '+style+'.',
-  45:'Між родинними правилами й вашим вибором завжди є простір для рішення '+arena+'. Спробуйте '+style+'.'
+  1:'Положення додаткової карти підкреслює тему '+topic+'.',
+  2:choose(DOMAIN_SCENE[2][placement.house-1],lang),
+  3:'У розмовах і спільних завданнях може допомагати вміння '+style+'.',
+  4:'У домашніх рішеннях корисно '+style+'.',
+  7:'Турбота та творчість потребують уваги до людини, якій ви передаєте досвід.',
+  9:'У близькості важливо чути не тільки слова, а й реальні очікування.',
+  10:choose(DOMAIN_SCENE[10][placement.house-1],lang),
+  12:'Не всі успадковані правила потрібно приймати автоматично. Коли формуєте власні, спробуйте '+style+'.',
+  16:'Обираючи побутові зручності, оцініть, чи допомагають вони вам '+style+'.',
+  20:'Регулярна духовна практика може стати нагодою '+style+'.',
+  24:choose(DOMAIN_SCENE[24][placement.house-1],lang),
+  27:'Витривалість включає здатність змінити темп. У напружені моменти може допомогти вміння '+style+'.',
+  30:'У непростих обставинах перевіряйте конкретні можливості й пробуйте '+style+'.',
+  40:'При турботі про рідних ви можете самі обирати, як '+style+'.',
+  45:'Успадковані принципи можна не просто повторювати, а переосмислювати — і вчитися '+style+'.'
  };
  const bridgeEn:Record<number,string>={
-  1:'The area of '+topic+' deserves special attention. Try to '+style+'.',
-  2:'Compare your real commitments with what you want to spend this month. It may help to '+style+'.',
-  3:'Words and action can support each other '+arena+'. Practice how to '+style+'.',
-  4:'Shape daily routines so there is room to '+style+'.',
-  7:'Care and creativity often show their value '+arena+'. Notice what happens when you '+style+'.',
-  9:'The supplementary chart brings '+topic+' into view when expectations are discussed. It helps to '+style+'.',
-  10:'Working life brings the area of '+topic+' into focus. Try to '+style+'.',
-  12:'Not every inherited rule has to become your own. Test your choices '+arena+' and try to '+style+'.',
-  16:'Comfort should support you rather than dictate habits. Notice this '+arena+' and try to '+style+'.',
-  20:'Consistency grows through small repeated practices '+arena+'. Try to '+style+'.',
-  24:'Knowledge becomes mastery when it survives a practical test. In '+topic+', try to '+style+'.',
-  27:'Resilience includes adjusting your pace '+arena+'. Try to '+style+'.',
-  30:'Difficulty does not mean you chose the wrong path. Check your habits '+arena+' and try to '+style+'.',
-  40:'Family patterns of care can be reconsidered '+arena+'. Try to '+style+'.',
-  45:'There is room to choose between inherited rules and your beliefs '+arena+'. Try to '+style+'.'
+  1:'The supplementary chart highlights '+topic+'.',
+  2:choose(DOMAIN_SCENE[2][placement.house-1],lang),
+  3:'In conversations and shared tasks, it may help to '+style+'.',
+  4:'In decisions about home, it can help to '+style+'.',
+  7:'Care and creative work benefit from attention to the person you are teaching or supporting.',
+  9:'In close relationships, listen to actual expectations as well as words.',
+  10:choose(DOMAIN_SCENE[10][placement.house-1],lang),
+  12:'Not every inherited rule needs to become your own. As you develop your principles, try to '+style+'.',
+  16:'When choosing everyday conveniences, ask whether they help you '+style+'.',
+  20:'A regular spiritual practice can be a chance to '+style+'.',
+  24:choose(DOMAIN_SCENE[24][placement.house-1],lang),
+  27:'Resilience includes adjusting your pace. Under pressure it may help to '+style+'.',
+  30:'In difficult circumstances, check your practical options and try to '+style+'.',
+  40:'When caring for loved ones, you can decide for yourself how to '+style+'.',
+  45:'Inherited principles need not simply be repeated; you can rethink them and learn to '+style+'.'
  };
  let bridge=uk?bridgeUk[division]:bridgeEn[division];
- // Mention a life area once. When both independent chart views point to
- // the same house topic, add a concrete working habit instead of repeating
- // that same noun phrase in two consecutive sentences.
- if(sameSphere&&![1,9,10,24].includes(division)){
-  bridge=uk?
-   'Цей акцент повторюється і в додатковій карті. Замість ще одного опису сфери спробуйте '+style+'.':
-   'The supplementary chart returns to the same area. Rather than repeating its label, try to '+style+'.';
- }
  if(division===1){
   bridge=uk?
    (lord==='Moon'?
@@ -405,24 +482,9 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
   // reading into a generic relationship or career instruction.
   bridge=choose(CHILDREN_CREATIVE_SCENE[placement.house-1],lang);
  }
- if(division===10){
-  bridge=uk?
-   'Перевірте свій спосіб працювати на реальному невеликому завданні: корисно '+style+'. Результат покаже, де ви найефективніші.':
-   'Test your working style on one manageable real task: try to '+style+'. Use the result to see where your strengths actually help.';
- }
- if(division===24){
-  bridge=uk?
-   'Щоб знання стали навичкою, застосовуйте їх у справі — особливо '+arena+
-   '. Результат важливіший за кількість прочитаного.':
-   'Put knowledge into action, especially '+arena+
-   '. The result matters more than the amount you read.';
- }
- const difficulty=q==='debilitated'?
-  (uk?'Тут особливо важливо не поспішати з висновками: складне краще розбити на посильні кроки.':
-   'Avoid rushing conclusions here: break difficult tasks into manageable steps.'):
-  isStrong(q)?
-  (uk?'Традиційне прочитання підкреслює цю тему як потенційну опору, яку варто перевірити на практиці.':
-   'The traditional reading treats this as a potential strength worth testing in practice.'):'';
+ if(division===10)bridge=choose(DOMAIN_SCENE[10][placement.house-1],lang);
+ if(division===24)bridge=choose(DOMAIN_SCENE[24][placement.house-1],lang);
+ // Dignity is evidence, not a universal motivational or negative sentence.
  const practice=division===10?
   (uk?'Спробуйте '+HOUSE_TASK[placement.house-1][0]+'.':
    'Try to '+HOUSE_TASK[placement.house-1][1]+'.'):
@@ -453,7 +515,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  const teaser=choose(LEAD[division],lang)+' '+theme(natal.house)+'. '+(sameSphere?
   (uk?'Цей самий акцент повторюється в додатковій карті.':'The same focus is repeated in the supplementary chart.'):
   (uk?'Другий акцент — '+theme(placement.house)+'.':'A second focus is '+theme(placement.house)+'.'));
- const meaning=[lead,bridge,difficulty,uk?'Практичний крок: '+practice:'Practical step: '+practice,basis]
+ const meaning=[lead,bridge,uk?'Практичний крок: '+practice:'Practical step: '+practice,basis]
   .filter(Boolean).join(' ');
  return {headline,teaser,meaning,basis};
 }
@@ -467,7 +529,16 @@ export function buildHumanReaderSummary(chart:CalculatedChart,lang:Lang){
  const lords=classicalLordshipTable(chart.ascendant.sign);
  const h=(p:string)=>chart.d1.find(x=>x.name===p)!.house;
  const theme=(house:number)=>choose(THEME[house-1],lang);
- const shared=h(lords[1])===h(lords[10]);
+ const identityHouse=h(lords[1]),careerHouse=h(lords[10]),partnerHouse=h(lords[7]);
+ const shared=identityHouse===careerHouse;
+ const careerPartnerOverlap=careerHouse===partnerHouse;
+ // Unlike the old one-size-fits-all "try a work project and discuss an
+ // agreement" ending, the takeaway uses the actual chart's three subjects.
+ const nextStep=careerPartnerOverlap?
+  (uk?'Домовтеся, який час залишиться для близьких після робочих зобов’язань.':
+   'Agree on what time remains for your relationship after work commitments.'):
+  (uk?'Спробуйте '+choose(HOUSE_TASK[careerHouse-1],lang)+'.':
+   'Try to '+choose(HOUSE_TASK[careerHouse-1],lang)+'.');
  return {
   strength:uk?
    'Ваш особистий напрям тісно пов’язаний із темою '+theme(h(lords[1]))+
@@ -480,12 +551,20 @@ export function buildHumanReaderSummary(chart:CalculatedChart,lang:Lang){
    (shared?'Personal goals and work may compete for attention; make room for recovery.':
     'Work, relationships and rest need not provide the same kind of fulfillment.'),
   direction:uk?
-   (lords[1]===lords[10]?'Особистий напрям і професійні прагнення мають спільну основу; важливо, щоб робота не забирала весь простір для себе. ':'')+
-   'У стосунках особливу роль може відігравати тема '+theme(h(lords[7]))+
-   '. Для початку перевірте один професійний задум невеликим проєктом і обговоріть одну важливу домовленість із близькою людиною.':
-   (lords[1]===lords[10]?'Personal direction and professional ambitions share a common foundation; leave room for life beyond work. ':'')+
-   'Relationships may call attention to '+theme(h(lords[7]))+
-   '. Start by testing one vocational idea with a small project and discussing one important agreement with someone close.',
+   (lords[1]===lords[10]?
+    'Особистий напрям і робота мають спільну основу у сфері '+theme(identityHouse)+'. ':
+    shared?'Особисті цілі й робота сходяться у сфері '+theme(identityHouse)+'. ':
+    'Особиста опора пов’язана зі сферою '+theme(identityHouse)+', а професійні рішення — зі сферою '+theme(careerHouse)+'. ')+
+   (careerPartnerOverlap?'Робота й близькість також зачіпають ту саму сферу; тут важливо домовлятися про час та відповідальність. ':
+    'Для партнерства окремо важлива сфера '+theme(partnerHouse)+'. Одне робоче рішення не розв’яже автоматично питання близькості. ')+
+   nextStep:
+   (lords[1]===lords[10]?
+    'Your personal direction and work share a common foundation in '+theme(identityHouse)+'. ':
+    shared?'Your personal goals and work meet in the same area: '+theme(identityHouse)+'. ':
+    'Your sense of direction connects with '+theme(identityHouse)+', while work draws on '+theme(careerHouse)+'. ')+
+   (careerPartnerOverlap?'Work and closeness also touch the same area, making agreements about time and responsibilities especially important. ':
+    'For partnership, '+theme(partnerHouse)+' matters separately. One professional decision does not automatically settle a relationship question. ')+
+   nextStep,
   overview:uk?
    'Ваша внутрішня опора пов’язана з темою '+theme(h(lords[1]))+
    ', робочі прагнення — з темою '+theme(h(lords[10]))+

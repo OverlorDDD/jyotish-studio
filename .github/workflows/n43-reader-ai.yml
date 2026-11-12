@@ -86,6 +86,8 @@ jobs:
           node --experimental-strip-types --test tools/n496-ukrainian-editorial-qa.test.mjs
           bash -n tools/n496-aws-release.sh
           node --test tools/n496-aws-release-contract.test.mjs
+      - name: Reader 9 bilingual sixty-chart editorial, D60 and proof gate
+        run: node --experimental-strip-types --test tools/reader9-editorial-qa.test.mjs
       - name: Full Core + API + Next production build
         run: |
           npm run db:generate

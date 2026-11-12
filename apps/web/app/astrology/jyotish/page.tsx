@@ -256,7 +256,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <button className="jy-reader-launch-btn" data-testid="reader-auto-launch-btn"
        aria-pressed={report?.ai?.fallbackReason==='reader_only'}
        style={report?.ai?.fallbackReason==='reader_only'?{borderColor:'#dbb77c',boxShadow:'0 0 0 1px rgba(219,183,124,.27)'}:undefined}
-       disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader 8':'Read without AI — Reader 8'}</button>
+       disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — Reader 9':'Read without AI — Reader 9'}</button>
      {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
      {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
     </section>
