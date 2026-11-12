@@ -76,9 +76,9 @@ export default function ReaderN492View({data,lang,minutesUncertain=false}:
     </details>:null}
   </details>;
  };
- return <section className={styles.root+' '+book.root} data-testid="reader-v8" aria-labelledby="n492-heading">
+ return <section className={styles.root+' '+book.root} data-testid="reader-v8" data-reader-edition="9" aria-labelledby="n492-heading">
   <header className={styles.top}>
-   <span className={styles.kicker}>{uk?'✦ ПЕРСОНАЛЬНЕ ТРАКТУВАННЯ':'✦ YOUR PERSONAL READING'}</span>
+   <span className={styles.kicker}>{uk?'✦ READER 9 · ПЕРСОНАЛЬНЕ ТРАКТУВАННЯ':'✦ READER 9 · YOUR PERSONAL READING'}</span>
    <h2 id="n492-heading">{uk?'Що ваша карта розповідає про вас':'What your chart says about you'}</h2>
    <p>{uk?
     'Почнімо з п’яти знайомих сфер життя. Ви отримаєте зрозуміле пояснення й одну дію для кожної. Усі 16 астрологічних карт залишаються доступними для поглибленого читання.':
