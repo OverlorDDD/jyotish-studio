@@ -136,6 +136,20 @@ const DOMAIN_LIVED:Readonly<Record<number,readonly Copy[]>>={
   ["Співпраця й коло знайомств можуть створювати можливості, але дружбу і фінансові домовленості краще розділяти.","Networks and collaboration can create opportunities, but friendships and money agreements need clear boundaries."],
   ["Витрати на відновлення та особистий простір можуть бути частиною бюджету, а не випадковим залишком.","Spending on rest and personal space may need a place in the budget rather than being an afterthought."]
  ],
+ 4:[
+  ["Відчуття дому може залежати від того, чи є у вас простір для власних рішень.","Feeling at home may depend on having room to make your own decisions."],
+  ["Стабільний побут може будуватися на простих домовленостях щодо речей і сімейних витрат.","A stable home may grow from clear agreements about belongings and family expenses."],
+  ["Розмови з рідними та вміння обговорювати дрібні незручності можуть берегти домашній спокій.","Talking through small irritations with family may protect peace at home."],
+  ["Власні домашні звички та відчуття безпеки можуть бути для вас особливо важливими.","Your own household routines and sense of safety may matter especially strongly."],
+  ["Дім може ставати місцем творчості, навчання або спільних занять із близькими.","Home may become a place for creativity, learning or shared activities with loved ones."],
+  ["Побут легше витримувати, коли регулярні справи не накопичуються до виснаження.","Daily life may feel steadier when recurring chores do not pile up into exhaustion."],
+  ["Домашній комфорт може залежати від уміння домовлятися про простір і обов’язки.","Comfort at home may depend on negotiating space and shared responsibilities."],
+  ["Під час життєвих змін важливо знати, що у вашому домі лишається стабільним.","During major changes, it may help to know which parts of home life stay stable."],
+  ["Родинні традиції та власні переконання можуть впливати на те, яке житло здається вам своїм.","Family traditions and personal beliefs may shape what makes a place feel like home."],
+  ["Робочий режим може впливати на домашній спокій; межі між ними варто визначати свідомо.","Your work routine may affect peace at home; it can help to set those boundaries consciously."],
+  ["Близьке коло та взаємна допомога можуть створювати відчуття дому не менше за стіни.","Mutual support and trusted people may make a place feel like home as much as its walls."],
+  ["Особистий простір і можливість усамітнитися можуть бути потрібні для відновлення вдома.","Privacy and solitude may be necessary for recovering your energy at home."]
+ ],
  9:[
   ["У партнерстві особисту самостійність варто поєднувати з повагою до спільних рішень.","In partnership, personal independence may need to coexist with decisions made together."],
   ["Розмови про сімейні цінності та ставлення до грошей можуть бути частиною близькості.","Conversations about family values and money can be part of emotional closeness."],
@@ -320,8 +334,8 @@ export function buildHumanReaderD60(chart:CalculatedChart,lang:Lang):HumanReadin
  const significant=first.planet===lords[1];
  const opening=uk?
   'Зіставлення D1 та D60 допомагає помітити символічний мотив '+role(first.planet)+'. '+
-  (significant?'Вона також пов’язана з тим, як ви визначаєте власний життєвий напрям. ':
-   'Особливо помітною вона може ставати у важливих особистих рішеннях. '):
+  (significant?'Цей мотив також пов’язаний із тим, як ви визначаєте власний життєвий напрям. ':
+   'Особливо помітним він може ставати у важливих особистих рішеннях. '):
   'Comparing D1 and D60 may highlight the symbolic pattern of '+role(first.planet)+'. '+
   (significant?'This also connects with the direction you choose for yourself. ':
    'It may become especially relevant during important personal decisions. ');
@@ -388,7 +402,7 @@ export function buildHumanReaderCard(chart:CalculatedChart,lang:Lang,division:nu
  if(division===4)lead=(uk?
   'Дім має бути місцем, де можна відновити сили, а не ще одним джерелом напруги. ':
   'Home should be somewhere you can recover, not another source of pressure. ')+
-  choose(LIVED[natal.house-1],lang);
+  choose(DOMAIN_LIVED[4][natal.house-1],lang);
  if(division===9)lead=(uk?
   'Близькість тримається не лише на почуттях, а й на тому, як ви домовляєтеся в повсякденні. ':
   'Intimacy rests not just on feelings but on how you negotiate everyday life together. ')+
