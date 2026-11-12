@@ -4,6 +4,7 @@ import PortalShell from './components/PortalShell';
 import GalaxiComModuleLink from './components/GalaxiComModuleLink';
 import {JyotishSearchGuide} from './components/SearchGuides';
 import OrganicIntentBridge from './components/OrganicIntentBridge';
+import SiteSectionsHub from './components/SiteSectionsHub';
 import {indexRobots} from '../lib/site-indexing';
 
 /** The domain root remains HTTP 200, with canonical English natal page for search. */
@@ -19,6 +20,7 @@ export const metadata:Metadata={
 export default function Home(){
  return <PortalShell locale="en" active="astrology" languagePath="astrology/jyotish">
   <JyotishCalculator initialLang="en"/>
+  <SiteSectionsHub locale="en"/>
   <JyotishSearchGuide locale="en"/>
   <OrganicIntentBridge kind="jyotish" locale="en"/>
   <GalaxiComModuleLink locale="en" kind="jyotish"/>

@@ -6,6 +6,7 @@ import GalaxiComModuleLink from '../../../components/GalaxiComModuleLink';
 import {JyotishSearchGuide} from '../../../components/SearchGuides';
 import Link from 'next/link';
 import OrganicIntentBridge from '../../../components/OrganicIntentBridge';
+import SiteSectionsHub from '../../../components/SiteSectionsHub';
 import {BRAND,isPortalLocale} from '../../../../lib/brand';
 import {indexRobots} from '../../../../lib/site-indexing';
 
@@ -26,5 +27,5 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
 export default async function JyotishPage({params}:{params:Promise<{locale:string}>}){
  const {locale}=await params;
  if(!isPortalLocale(locale))notFound();
- return <PortalShell locale={locale as 'en'|'uk'} active="astrology" languagePath="astrology/jyotish"><JyotishCalculator initialLang={locale as 'en'|'uk'}/><JyotishSearchGuide locale={locale as 'en'|'uk'}/><div className="as-wellness" style={{margin:'14px auto',padding:'16px 22px',maxWidth:1050}}><Link href={'/'+locale+'/astrology/divisional-charts'}>{locale==='uk'?'Докладний довідник усіх 16 карт Шодашаварги (D1–D60)':'Explore all 16 Shodashavarga charts (D1–D60) and their methods'}</Link></div><OrganicIntentBridge kind="jyotish" locale={locale as 'en'|'uk'}/><GalaxiComModuleLink locale={locale as 'en'|'uk'} kind="jyotish"/></PortalShell>;
+ return <PortalShell locale={locale as 'en'|'uk'} active="astrology" languagePath="astrology/jyotish"><JyotishCalculator initialLang={locale as 'en'|'uk'}/><SiteSectionsHub locale={locale as 'en'|'uk'}/><JyotishSearchGuide locale={locale as 'en'|'uk'}/><div className="as-wellness" style={{margin:'14px auto',padding:'16px 22px',maxWidth:1050}}><Link href={'/'+locale+'/astrology/divisional-charts'}>{locale==='uk'?'Докладний довідник усіх 16 карт Шодашаварги (D1–D60)':'Explore all 16 Shodashavarga charts (D1–D60) and their methods'}</Link></div><OrganicIntentBridge kind="jyotish" locale={locale as 'en'|'uk'}/><GalaxiComModuleLink locale={locale as 'en'|'uk'} kind="jyotish"/></PortalShell>;
 }
