@@ -551,15 +551,19 @@ export function buildHumanReaderSummary(chart:CalculatedChart,lang:Lang){
    (shared?'Personal goals and work may compete for attention; make room for recovery.':
     'Work, relationships and rest need not provide the same kind of fulfillment.'),
   direction:uk?
-   (shared?'Особистий напрям і робота спираються на одну життєву сферу — '+theme(identityHouse)+'. ':
+   (lords[1]===lords[10]?
+    'Особистий напрям і робота мають спільну основу у сфері '+theme(identityHouse)+'. ':
+    shared?'Особисті цілі й робота сходяться у сфері '+theme(identityHouse)+'. ':
     'Особиста опора пов’язана зі сферою '+theme(identityHouse)+', а професійні рішення — зі сферою '+theme(careerHouse)+'. ')+
-   (careerPartnerOverlap?'Робота й близькість також зачіпають спільну сферу; тут особливо важливо не забувати про домовленості щодо часу та відповідальності. ':
-    'Партнерство звертає увагу на '+theme(partnerHouse)+'. Не варто очікувати, що одне робоче рішення автоматично розв’яже й питання близькості. ')+
+   (careerPartnerOverlap?'Робота й близькість також зачіпають ту саму сферу; тут важливо домовлятися про час та відповідальність. ':
+    'Для партнерства окремо важлива сфера '+theme(partnerHouse)+'. Одне робоче рішення не розв’яже автоматично питання близькості. ')+
    nextStep:
-   (shared?'Your personal direction and work draw on the same life area: '+theme(identityHouse)+'. ':
+   (lords[1]===lords[10]?
+    'Your personal direction and work share a common foundation in '+theme(identityHouse)+'. ':
+    shared?'Your personal goals and work meet in the same area: '+theme(identityHouse)+'. ':
     'Your sense of direction connects with '+theme(identityHouse)+', while work draws on '+theme(careerHouse)+'. ')+
-   (careerPartnerOverlap?'Work and closeness also touch the same area, making agreements about time and responsibilities particularly important. ':
-    'Partnership brings attention to '+theme(partnerHouse)+'. One professional decision need not settle a relationship question. ')+
+   (careerPartnerOverlap?'Work and closeness also touch the same area, making agreements about time and responsibilities especially important. ':
+    'For partnership, '+theme(partnerHouse)+' matters separately. One professional decision does not automatically settle a relationship question. ')+
    nextStep,
   overview:uk?
    'Ваша внутрішня опора пов’язана з темою '+theme(h(lords[1]))+
