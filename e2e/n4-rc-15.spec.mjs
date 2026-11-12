@@ -42,7 +42,7 @@ async function load(page,lang='uk',data=sample()){
  await expect(page.locator('input[type=time]')).toHaveValue('');
  await page.locator('input[type=date]').fill('2000-01-01');
  await page.locator('input[type=time]').fill('12:00');
- await page.getByTestId('global-city-search').getByRole('searchbox').fill('Kyiv');
+ await page.getByTestId('global-city-search').getByRole('combobox').fill('Kyiv');
  await page.getByRole('option',{name:/Kyiv/}).click();
  await expect(page.locator('.jy-selected-city')).toContainText('Kyiv');
  // The chosen city must transfer coordinates and its IANA time zone atomically.
