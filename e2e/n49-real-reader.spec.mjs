@@ -30,50 +30,30 @@ async function createInventedBirth(page,lang){
  expect(json.ai?.fallbackReason).toBe('reader_only');
  return json;
 }
+const CHAPTERS=['core','self','money','work','love','home','path','summary'];
 for(const lang of ['uk','en']){
- test('N4.9.6 '+lang+': five readable life themes with all sixteen opt-in readings, live Swiss and mobile layout',async({page},testInfo)=>{
+ test('Reader 10 '+lang+': one reading block, eight chapters, every divisional chart used, mobile layout',async({page},testInfo)=>{
   const report=await createInventedBirth(page,lang);
-  const reader=page.getByTestId('reader-v8');
+  expect(report.reader10?.version).toBe('reader10-full-1');
+  expect(report.reader10.chapters.map(c=>c.id)).toEqual(CHAPTERS);
+  const reader=page.getByTestId('reader10');
   await expect(reader).toBeVisible();
-  await expect(reader).toHaveAttribute('data-reader-edition','9');
-  await expect(reader).toContainText('READER 9');
-  const guide=reader.getByTestId('reader-n497-varga-map');
-  await expect(guide).toBeVisible();
-  await expect(guide.locator(':scope > ol > li')).toHaveCount(16);
-  for(const div of [1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]){
-   await expect(guide.getByTestId('reader-n497-varga-D'+div)).toContainText('D'+div);
+  await expect(reader.locator(':scope > h2')).toHaveText(lang==='uk'?'Трактування вашої карти':'Your chart reading');
+  await expect(reader.locator(':scope > article')).toHaveCount(8);
+  // The previous Reader view is no longer rendered next to the complete reading.
+  await expect(page.getByTestId('reader-v8')).toHaveCount(0);
+  for(const id of CHAPTERS){
+   const chapter=reader.getByTestId('reader10-'+id);
+   await expect(chapter.locator(':scope > h3')).not.toBeEmpty();
+   expect(await chapter.locator(':scope > p').count()).toBeGreaterThanOrEqual(4);
   }
-  for(const [topic,div] of [['money',2],['relationships',9],['career',10]]){
-   await expect(reader.getByTestId('reader-n496-topic-'+topic).getByTestId('reader-v8-D'+div)).toContainText('D'+div);
-  }
-  const topics=reader.getByTestId('reader-n496-life-topics');
-  await expect(topics.locator(':scope > section')).toHaveCount(5);
-  for(const id of ['identity','money','career','relationships','roots']){
-   const section=reader.getByTestId('reader-n496-topic-'+id);
-   await expect(section).toBeVisible();
-   await expect(section.locator(':scope > h3')).not.toBeEmpty();
-   await expect(section.locator('article').first().locator('p').first()).not.toBeEmpty();
-  }
-  await expect(reader.getByTestId('reader-n496-topic-money')).toContainText(lang==='uk'?'Гроші й ресурси':'Money and resources');
-  await expect(reader.getByTestId('reader-n496-topic-career')).toContainText(lang==='uk'?'Робота й покликання':'Career and purpose');
-  // Raw proof keys, bibliography and D-indices never appear in the first-screen life narrative.
-  const visible=await topics.locator(':scope > section').allTextContents();
-  const initial=visible.map(x=>x.split(lang==='uk'?'Детальніше про цю сферу':'Explore this area')[0]).join(' ');
-  expect(initial).not.toMatch(/D1\.ascendant|house-lord\.\d|Brihat Jataka|Laghu Parashari/);
+  await expect(reader.getByTestId('reader10-core').locator('h3')).toHaveText(lang==='uk'?'Центральна тема вашої карти':'The central theme of your chart');
+  await expect(reader.getByTestId('reader10-self').locator('p').first()).toContainText(lang==='uk'?'Ваша лагна —':'Your lagna is');
+  // Every supporting divisional chart is named somewhere in the single reading block.
+  const text=await reader.innerText();
+  for(const div of [2,3,4,7,9,10,12,16,20,24,27,30,40,45])expect(text,'D'+div+' is used').toContain('D'+div+' (');
+  expect(text).not.toMatch(/undefined|NaN|D1\.ascendant|house-lord\.\d/);
   await expect(reader.locator('code')).toHaveCount(0);
-  await expect(reader.getByTestId('reader-n492-final')).toBeVisible();
-  expect(report.readerV8.meaningful.cards.map(c=>c.division)).toEqual([1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]);
-  // The eleven supplementary readings stay accessible but do not overwhelm a newcomer.
-  for(const section of await topics.locator(':scope > section').all()){
-   const expand=section.locator('details').filter({has:page.getByText(lang==='uk'?'Детальніше про цю сферу':'Explore this area')});
-   if(await expand.count())await expand.locator(':scope > summary').click();
-  }
-  await expect(reader.locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
-  await expect(reader.getByTestId('reader-v8-d60')).toBeVisible();
-  await expect(reader.getByTestId('reader-v8-d60')).toContainText(lang==='uk'?'Що можна спробувати':'A practical step');
-  await reader.getByTestId('reader-v8-d60').locator('details > summary').first().click();
-  await reader.getByTestId('reader-v8-d60').locator('details details > summary').click();
-  await expect(reader.getByTestId('reader-n492-d60-nine').locator(':scope > div')).toHaveCount(9);
   for(const width of [320,360,390,430,768,1024,1440]){
    await page.setViewportSize({width,height:850});
    if(width>=768){
@@ -85,37 +65,22 @@ for(const lang of ['uk','en']){
     expect(left&&right,'both charts have bounding boxes').toBeTruthy();
     expect(Math.abs(left.y-right.y),'D1/D9 chart top alignment at '+width).toBeLessThanOrEqual(2);
    }
-   await expect(reader.getByTestId('reader-n496-topic-career')).toBeVisible();
+   await expect(reader.getByTestId('reader10-work')).toBeVisible();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
    expect(overflow,'horizontal overflow at '+width).toBeLessThanOrEqual(2);
-   if([320,1440].includes(width))await reader.getByTestId('reader-n496-topic-career').screenshot({
-    path:testInfo.outputPath('n496-career-'+lang+'-'+width+'.png'),animations:'disabled'
+   if([320,1440].includes(width))await reader.getByTestId('reader10-work').screenshot({
+    path:testInfo.outputPath('reader10-work-'+lang+'-'+width+'.png'),animations:'disabled'
    });
   }
  });
 }
-test('N4.9.6 approximate birth time keeps five life themes without repeated warnings',async({page})=>{
+test('Reader 10 approximate birth time shows one note and keeps the full reading',async({page})=>{
  await createInventedBirth(page,'en');
- const reader=page.getByTestId('reader-v8');
+ const reader=page.getByTestId('reader10');
  const details=page.locator('#birth-details');
  if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
  await details.locator('input[type="checkbox"]').check();
  await expect(reader.getByRole('note')).toContainText('Your birth time is marked approximate');
- await expect(reader.getByTestId('reader-n496-life-topics').locator(':scope > section')).toHaveCount(5);
- await expect(reader.locator('code')).toHaveCount(0);
-});
-
-test('Reader 10 opens the reading with chart-specific core and self chapters from the real pipeline',async({page})=>{
- const report=await createInventedBirth(page,'uk');
- expect(report.reader10?.version).toBe('reader10-core-self-1');
- const reader=page.getByTestId('reader10');
- await expect(reader).toBeVisible();
- await expect(reader.getByTestId('reader10-core').locator('h3')).toHaveText('Стрижень вашої карти');
- await expect(reader.getByTestId('reader10-core').locator('p').first()).toContainText('управитель лагни');
- await expect(reader.getByTestId('reader10-self').locator('p').first()).toContainText('Ваша лагна —');
- await expect(reader.getByTestId('reader10-self')).toContainText('Накшатра');
- // The new chapters come before the previous Reader view.
- const order=await page.evaluate(()=>{const a=document.querySelector('[data-testid=reader10]'),b=document.querySelector('[data-testid=reader-v8]');
-  return a&&b?Boolean(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING):false;});
- expect(order).toBe(true);
+ await expect(reader.getByRole('note')).toHaveCount(1);
+ await expect(reader.locator(':scope > article')).toHaveCount(8);
 });
