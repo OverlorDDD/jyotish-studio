@@ -144,3 +144,11 @@ test('rule tables are complete and bilingual; no reading without a verified char
  assert.match(ui,/!isReader10\(report\.reader10\)&&hasV8&&report\.readerV8\?<ReaderN492View/);assert.doesNotMatch(view,/dangerouslySetInnerHTML/);
  assert.doesNotMatch(read('apps/api/src/reader10.ts')+read('apps/api/src/reader10-texts.ts')+read('apps/api/src/reader10-areas.ts')+read('apps/api/src/reader10-plain.ts'),/Chiron|Хірон|T-square|тау-квадрат|Placidus/i);
 });
+
+test('Ukrainian sign names follow the site convention (Близнюки, Козоріг)',()=>{
+ for(const file of ['apps/api/src/reader10-texts.ts','apps/api/src/reader10-areas.ts','apps/api/src/reader10-plain.ts','apps/web/lib/nakshatra-guides.ts']){
+  assert.doesNotMatch(read(file),/Близнят|Козер[іо]г|Козероз/,file);
+ }
+ assert.equal(SIGN_NAME[2].uk,'Близнюки');assert.equal(SIGN_IN[2].uk,'у Близнюках');
+ assert.equal(SIGN_NAME[9].uk,'Козоріг');assert.equal(SIGN_IN[9].uk,'у Козорозі');
+});

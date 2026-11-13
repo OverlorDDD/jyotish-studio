@@ -6,13 +6,13 @@ export type R10Locale='uk'|'en';
 type T={uk:string;en:string};
 const t=(uk:string,en:string):T=>({uk,en});
 
-export const SIGN_NAME:readonly T[]=[t('Овен','Aries'),t('Телець','Taurus'),t('Близнята','Gemini'),t('Рак','Cancer'),t('Лев','Leo'),
- t('Діва','Virgo'),t('Терези','Libra'),t('Скорпіон','Scorpio'),t('Стрілець','Sagittarius'),t('Козеріг','Capricorn'),
+export const SIGN_NAME:readonly T[]=[t('Овен','Aries'),t('Телець','Taurus'),t('Близнюки','Gemini'),t('Рак','Cancer'),t('Лев','Leo'),
+ t('Діва','Virgo'),t('Терези','Libra'),t('Скорпіон','Scorpio'),t('Стрілець','Sagittarius'),t('Козоріг','Capricorn'),
  t('Водолій','Aquarius'),t('Риби','Pisces')];
 /** Ukrainian locative ("у Діві"); English uses the plain name. */
-export const SIGN_IN:readonly T[]=[t('в Овні','in Aries'),t('у Тельці','in Taurus'),t('у Близнятах','in Gemini'),t('у Раку','in Cancer'),
+export const SIGN_IN:readonly T[]=[t('в Овні','in Aries'),t('у Тельці','in Taurus'),t('у Близнюках','in Gemini'),t('у Раку','in Cancer'),
  t('у Леві','in Leo'),t('у Діві','in Virgo'),t('у Терезах','in Libra'),t('у Скорпіоні','in Scorpio'),t('у Стрільці','in Sagittarius'),
- t('у Козерозі','in Capricorn'),t('у Водолії','in Aquarius'),t('у Рибах','in Pisces')];
+ t('у Козорозі','in Capricorn'),t('у Водолії','in Aquarius'),t('у Рибах','in Pisces')];
 export const PLANET_NAME:Record<Planet,T>={Sun:t('Сонце','Sun'),Moon:t('Місяць','Moon'),Mars:t('Марс','Mars'),
  Mercury:t('Меркурій','Mercury'),Jupiter:t('Юпітер','Jupiter'),Venus:t('Венера','Venus'),Saturn:t('Сатурн','Saturn'),
  Rahu:t('Раху','Rahu'),Ketu:t('Кету','Ketu')};
@@ -32,7 +32,7 @@ export const LAGNA:readonly {text:T;short:T}[]=[
  {text:t('Телець на сході дає витривалість і любов до надійного: ви повільно розганяєтесь, зате доводите справу до кінця. Вам важливі достаток, смак і спокій, і різких змін ви не любите.',
    'Taurus rising gives endurance and a love of what is solid: you are slow to start but you finish. Comfort, taste and calm matter to you, and you dislike abrupt change.'),
   short:t('витривалі й ґрунтовні','enduring and thorough')},
- {text:t('Близнята на сході дають швидкий розум і потребу в обміні: ви вчитеся на льоту й нудьгуєте без нових людей і новин. Говорити й домовлятися вам легко, довго тримати одну лінію важче.',
+ {text:t('Близнюки на сході дають швидкий розум і потребу в обміні: ви вчитеся на льоту й нудьгуєте без нових людей і новин. Говорити й домовлятися вам легко, довго тримати одну лінію важче.',
    'Gemini rising gives a quick mind and a need for exchange: you learn on the fly and grow bored without new people and news. Talking and negotiating come easily; holding one line for long is harder.'),
   short:t('швидкі розумом і товариські','quick-minded and sociable')},
  {text:t('Рак на сході робить людину чутливою до настрою інших і прив’язаною до свого кола: ви спершу захищаєте своїх, а вже потім думаєте про себе. Настрій у вас мінливий, як Місяць, зате пам’ять на добро і на кривду довга.',
@@ -53,7 +53,7 @@ export const LAGNA:readonly {text:T;short:T}[]=[
  {text:t('Стрілець на сході дає широту й віру у власний шлях: вам потрібні сенс, простір і чесна розмова. Ви говорите прямо, вчитеся все життя й погано терпите дріб’язковість.',
    'Sagittarius rising gives breadth and faith in your own road: you need meaning, space and honest conversation. You speak plainly, keep learning all your life and have little patience for pettiness.'),
   short:t('прямі й волелюбні','direct and freedom-loving')},
- {text:t('Козеріг на сході дає терпіння й практичний розум: ви рано дорослішаєте, плануєте надовго й піднімаєтеся крок за кроком. Зовні ви стримані, а визнання приходить до вас із віком.',
+ {text:t('Козоріг на сході дає терпіння й практичний розум: ви рано дорослішаєте, плануєте надовго й піднімаєтеся крок за кроком. Зовні ви стримані, а визнання приходить до вас із віком.',
    'Capricorn rising gives patience and a practical mind: you grow up early, plan far ahead and climb one step at a time. You are reserved on the outside, and recognition comes to you with age.'),
   short:t('терплячі й практичні','patient and practical')},
  {text:t('Водолій на сході дає незалежний розум і власний погляд на все: ви думаєте про загальне благо й не йдете за натовпом. З людьми ви приязні, але близько підпускаєте небагатьох.',
@@ -121,7 +121,7 @@ export const MOON_SIGN:readonly T[]=[
   'The Moon in Aries gives hot, fast feelings: you flare up and cool down just as quickly. You need action and cannot hold things in for long.'),
  t('Місяць у Тельці стоїть у знаку екзальтації: це рівний, теплий і стійкий розум. Вам потрібні затишок, добра їжа й надійні люди, і вивести вас із рівноваги важко.',
   'The Moon in Taurus is exalted: an even, warm and steady mind. You need comfort, good food and dependable people, and it is hard to throw you off balance.'),
- t('Місяць у Близнятах дає рухливий, цікавий до всього розум. Ви думаєте словами, заспокоюєтесь у розмові й нудьгуєте від одноманітності.',
+ t('Місяць у Близнюках дає рухливий, цікавий до всього розум. Ви думаєте словами, заспокоюєтесь у розмові й нудьгуєте від одноманітності.',
   'The Moon in Gemini gives a mobile mind curious about everything. You think in words, calm down in conversation and grow bored with sameness.'),
  t('Місяць у Раку стоїть у власному знаку: почуття глибокі, пам’ять довга, прив’язаність до дому сильна. Ви дбаєте про інших так само природно, як дихаєте.',
   'The Moon in Cancer is in its own sign: feelings run deep, memory is long, attachment to home is strong. You care for others as naturally as you breathe.'),
@@ -135,7 +135,7 @@ export const MOON_SIGN:readonly T[]=[
   'The Moon in Scorpio is debilitated: feelings are strong, hidden and uncompromising. You live everything more deeply than you show and trust no one halfway.'),
  t('Місяць у Стрільці дає оптимізм і потребу в сенсі. Вам легшає в дорозі, у навчанні й у чесній розмові про головне.',
   'The Moon in Sagittarius gives optimism and a need for meaning. You feel better on the road, in study and in an honest talk about what matters.'),
- t('Місяць у Козерозі дає стримані, дисципліновані почуття. Ви рано навчилися покладатися на себе й спокійні тоді, коли є план і справа.',
+ t('Місяць у Козорозі дає стримані, дисципліновані почуття. Ви рано навчилися покладатися на себе й спокійні тоді, коли є план і справа.',
   'The Moon in Capricorn gives restrained, disciplined feelings. You learned early to rely on yourself and are calm when there is a plan and a task.'),
  t('Місяць у Водолії дає розум спостерігача: ви дивитеся на почуття трохи збоку. Свобода й коло однодумців потрібні вам більше, ніж тісна близькість.',
   'The Moon in Aquarius gives an observer’s mind: you look at feelings slightly from the side. You need freedom and a circle of like-minded people more than close intimacy.'),
