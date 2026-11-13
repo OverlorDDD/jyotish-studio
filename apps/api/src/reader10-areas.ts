@@ -26,7 +26,7 @@ export const AREAS:readonly AreaRule[]=[
    t('Кету в другому домі: до накопичення ви байдужі, а говорите мало й по суті.','Ketu in the second house: you are indifferent to accumulation and speak little and to the point.')),
   lord:[
    t('Ви заробляєте власною особистістю: ім’я, вміння й ініціатива і є вашим капіталом.','You earn by your own person: your name, skill and initiative are your capital.'),
-   t('Управитель у власному домі дає стабільний дохід і вміння накопичувати: гроші у вас тримаються.','The lord in its own house gives a stable income and the ability to save: money stays with you.'),
+   t('Дохід у вас стабільний, і ви вмієте відкладати.','Your income is stable and you know how to save.'),
    t('Гроші приходять через власні зусилля: слово, продажі, письмо, поїздки. Без вашої ініціативи дохід стоїть.','Money comes through your own effort: words, sales, writing, travel. Without your initiative income stands still.'),
    t('Достаток пов’язаний із домом: нерухомість, земля, родинна справа, підтримка матері.','Wealth is tied to home: property, land, a family business, a mother’s support.'),
    t('Ви заробляєте розумом: навчання, поради, творчість, вдалі вкладення. Це сильне положення для доходу.','You earn by intellect: teaching, advice, creativity, good investments. A strong placement for income.'),
@@ -35,7 +35,7 @@ export const AREAS:readonly AreaRule[]=[
    t('Гроші приходять нерівно й часто через чужі ресурси: спільні кошти, спадок, страхування, дослідження. Запас на чорний день вам потрібен більше, ніж іншим.','Money arrives unevenly and often through other people’s resources: shared funds, inheritance, insurance, research. You need a reserve more than most.'),
    t('Вам щастить у грошах: достаток приходить через учителів, батька, знання й далекі зв’язки.','You are lucky with money: wealth comes through teachers, a father, knowledge and distant connections.'),
    t('Гроші дає професія: що вищі становище й відповідальність, то більший дохід.','Your profession gives the money: the higher the standing and responsibility, the larger the income.'),
-   t('Класична дхана-йога, комбінація багатства: прибуток зростає з роками, а зв’язки приносять гроші.','A classical dhana yoga, a combination for wealth: gains grow with the years and connections bring money.'),
+   t('Прибуток зростає з роками, а знайомства приносять гроші.','Gains grow with the years and your connections bring money.'),
    t('Гроші у вас не затримуються: витрати, поїздки й допомога іншим забирають зароблене. Найкраще ви заробляєте далеко від місця народження.','Money does not stay with you: expenses, travel and helping others take what you earn. You earn best far from your place of birth.')],
   verdict:{strong:t('Гроші — сильна сфера вашої карти: тут ви можете розраховувати на стабільність і зростання.','Money is a strong area of your chart: you can count on stability and growth here.'),
    mixed:t('Гроші — сфера середньої сили: дохід є, але він прямо залежить від того, скільки ви вкладаєте.','Money is an area of middling strength: income is there, but it depends directly on what you put in.'),
@@ -62,8 +62,8 @@ export const AREAS:readonly AreaRule[]=[
    t('Ваше місце — служба й змагання: медицина, право, армія, сервіс, усе, де розв’язують чужі проблеми.','Your place is service and contest: medicine, law, the forces, service work, anything that solves other people’s problems.'),
    t('Ви розкриваєтесь у бізнесі й роботі з клієнтами; партнер помітно впливає на вашу кар’єру.','You unfold in business and work with clients; a partner noticeably shapes your career.'),
    t('Кар’єра йде з поворотами: професію ви змінюєте докорінно, а сильні в дослідженнях і роботі з чужими ресурсами.','Your career runs through turns: you change profession at the root and are strong in research and work with other people’s resources.'),
-   t('Раджа-йога покликання: кар’єрі сприяє удача, а ваші сфери — викладання, право, наука, робота за кордоном.','A raja yoga of calling: fortune favours your career, and your fields are teaching, law, science, work abroad.'),
-   t('Управитель у власному домі дає сильну кар’єру: ви на своєму місці й тримаєте його міцно.','The lord in its own house gives a strong career: you are in your right place and hold it firmly.'),
+   t('Кар’єрі сприяє удача. Ваші сфери: викладання, право, наука, робота за кордоном.','Fortune favours your career. Your fields are teaching, law, science and work abroad.'),
+   t('Ви на своєму місці й тримаєте його міцно.','You are in your right place and hold it firmly.'),
    t('Кар’єра приносить прибуток і впливових друзів; що далі, то вищий дохід.','Your career brings gains and influential friends; the further you go, the higher the income.'),
    t('Ви працюєте далеко від дому або за лаштунками: за кордоном, в установах, у дослідженнях, без оплесків.','You work far from home or behind the scenes: abroad, in institutions, in research, without applause.')],
   verdict:{strong:t('Робота — сильна сфера вашої карти: тут ви здатні піднятися високо.','Work is a strong area of your chart: you are able to rise high here.'),
@@ -89,7 +89,7 @@ export const AREAS:readonly AreaRule[]=[
    t('Партнер дає вам дім і затишок: шлюб для вас — це передусім домашнє щастя.','A partner gives you home and comfort: for you marriage is above all happiness at home.'),
    t('Шлюб із кохання: романтика, спільна творчість і діти об’єднують вашу пару.','A marriage of love: romance, shared creativity and children unite your couple.'),
    t('Стосунки даються через працю й тертя: ви притираєтесь довго, а партнер часто приходить через роботу.','Relationships are won through work and friction: you take long to fit together, and a partner often comes through work.'),
-   t('Управитель у власному домі дає міцний шлюб і вірного партнера.','The lord in its own house gives a firm marriage and a loyal partner.'),
+   t('Шлюб у вас міцний, а партнер вірний.','Your marriage is firm and your partner loyal.'),
    t('Зв’язок глибокий і непростий: шлюб змінює вас докорінно, а спільні гроші стають окремою темою.','The bond is deep and not simple: marriage changes you at the root, and shared money becomes a subject of its own.'),
    t('Шлюб щасливий: партнер приносить удачу, часто він з іншого міста, країни чи культури.','The marriage is fortunate: a partner brings luck and is often from another city, country or culture.'),
    t('Партнер пов’язаний із вашою роботою, і шлюб підносить ваше становище.','Your partner is tied to your work, and marriage raises your standing.'),
@@ -109,13 +109,13 @@ export const AREAS:readonly AreaRule[]=[
    t('Юпітер у четвертому домі: щасливий, просторий і гостинний дім.','Jupiter in the fourth house: a happy, spacious and hospitable home.'),
    t('Венера в четвертому домі: гарний дім, комфорт, добрий транспорт і любов до затишку.','Venus in the fourth house: a beautiful home, comfort, good vehicles and a love of cosiness.'),
    t('Сатурн у четвертому домі: у дитинстві вдома було стримано й суворо; власне майно приходить пізно, зате надовго.','Saturn in the fourth house: home in childhood was restrained and strict; property of your own comes late but lasts.'),
-   t('Раху в четвертому домі: ви живете далеко від свого коріння або в незвичному домі, і внутрішній спокій дається важко.','Rahu in the fourth house: you live far from your roots or in an unusual home, and inner peace comes hard.'),
+   t('Раху в четвертому домі: ви живете далеко від свого коріння або в незвичному житлі, і внутрішній спокій дається важко.','Rahu in the fourth house: you live far from your roots or in an unusual home, and inner peace comes hard.'),
    t('Кету в четвертому домі: ви рано відриваєтесь від місця народження й шукаєте спокою на самоті.','Ketu in the fourth house: you leave your birthplace early and look for peace in solitude.')),
   lord:[
    t('Дім і освіта супроводжують вас усе життя: де ви, там і ваш дім.','Home and education go with you all your life: where you are, there your home is.'),
-   t('Родинне майно й достаток у домі: сім’я дає вам матеріальну опору.','Family property and plenty at home: your family gives you material support.'),
+   t('Родинне майно й достаток удома: сім’я дає вам матеріальну опору.','Family property and plenty at home: your family gives you material support.'),
    t('Ви часто переїжджаєте й будуєте дім власними зусиллями; близькі стосунки з братами й сестрами.','You move often and build your home by your own effort; close ties with brothers and sisters.'),
-   t('Управитель у власному домі дає міцний дім, власну нерухомість і душевний спокій.','The lord in its own house gives a firm home, property of your own and peace of mind.'),
+   t('У вас міцний дім, власне житло й душевний спокій.','You have a firm home, a place of your own and peace of mind.'),
    t('Щаслива родина й добра освіта; дім оживає завдяки дітям і творчості.','A happy family and a good education; the home comes alive through children and creativity.'),
    t('Із житлом багато клопоту: ремонти, суперечки, робота замість відпочинку. Спокій удома вам доводиться відвойовувати.','Housing brings much trouble: repairs, disputes, work in place of rest. You have to win peace at home.'),
    t('Власний дім з’являється після шлюбу: затишок вам дає партнер.','A home of your own appears after marriage: your partner gives you comfort.'),
@@ -149,8 +149,8 @@ export const AREAS:readonly AreaRule[]=[
    t('Удача приходить через працю й подолання, а віра ваша не раз проходить випробування.','Fortune comes through work and overcoming, and your faith is tested more than once.'),
    t('Удача приходить після шлюбу, через партнерів і далекі країни.','Fortune comes after marriage, through partners and distant countries.'),
    t('Удача приходить через кризи й перервами; вас тягне до таємних знань.','Fortune comes through crises and with interruptions; you are drawn to hidden knowledge.'),
-   t('Управитель у власному домі дає сильну дхарму: удачу, добрих учителів і ясний життєвий шлях.','The lord in its own house gives a strong dharma: fortune, good teachers and a clear road in life.'),
-   t('Дхарма-карма раджа-йога: покликання й становище у вас збігаються, і це одна з найкращих комбінацій карти.','A dharma-karma raja yoga: calling and standing coincide for you, one of the best combinations in a chart.'),
+   t('Вам щастить на добрих учителів, і своє життєве призначення ви бачите ясно.','You are lucky with good teachers and see your purpose in life clearly.'),
+   t('Покликання й робота у вас збігаються: ви здобуваєте ім’я тим, у що вірите.','Calling and work coincide for you: you earn your name by what you believe in.'),
    t('Удача дає прибуток і впливових друзів.','Fortune gives gains and influential friends.'),
    t('Ваш шлях духовний: паломництва, далекі країни, щедрість на добрі справи.','Your road is spiritual: pilgrimages, distant countries, generosity toward good causes.')],
   verdict:{strong:t('Удача — сильна сфера вашої карти: у вирішальні моменти обставини складаються на вашу користь.','Fortune is a strong area of your chart: at decisive moments circumstances turn in your favour.'),
@@ -207,3 +207,28 @@ export const VARGA_NAME:Record<number,T>={2:t('D2 (Хора)','D2 (Hora)'),3:t('
  12:t('D12 (Двадашамша)','D12 (Dvadashamsha)'),16:t('D16 (Шодашамша)','D16 (Shodashamsha)'),20:t('D20 (Вімшамша)','D20 (Vimshamsha)'),
  24:t('D24 (Чатурвімшамша)','D24 (Chaturvimshamsha)'),27:t('D27 (Бхамша)','D27 (Bhamsha)'),30:t('D30 (Трімшамша)','D30 (Trimshamsha)'),
  40:t('D40 (Кхаведамша)','D40 (Khavedamsha)'),45:t('D45 (Акшаведамша)','D45 (Akshavedamsha)'),60:t('D60 (Шаштіамша)','D60 (Shashtiamsha)')};
+
+/** Term notes shown only in the "how this shows in your chart" part, keyed by area and lord's house. */
+export const YOGA_NOTE:Partial<Record<AreaId,Partial<Record<number,T>>>>={
+ money:{11:t('Це класична дхана-йога, комбінація багатства.','This is a classical dhana yoga, a combination for wealth.')},
+ work:{9:t('Це раджа-йога покликання: управитель десятого дому в домі удачі.','This is a raja yoga of calling: the tenth lord in the house of fortune.')},
+ path:{10:t('Це дхарма-карма раджа-йога, одна з найкращих комбінацій карти.','This is a dharma-karma raja yoga, one of the best combinations in a chart.')}
+};
+/** Plain opening line of each life area, by its weighed strength. */
+export const AREA_LEAD:Record<AreaId,Record<Tier,T>>={
+ money:{strong:t('З грошима у вас усе складається: дохід тримається й з роками росте.','Money works out for you: income holds and grows with the years.'),
+  mixed:t('Грошей у вас буде рівно стільки, скільки сил ви вкладете.','You will have as much money as the effort you put in.'),
+  hard:t('Гроші даються вам нелегко, тому звичку рахувати варто мати змолоду.','Money does not come easily to you, so the habit of counting it is worth having early.')},
+ work:{strong:t('У роботі ви здатні піднятися високо.','In work you are able to rise high.'),
+  mixed:t('Кар’єра у вас росте поступово, разом із досвідом.','Your career grows gradually, together with experience.'),
+  hard:t('Своє місце в роботі ви знаходите не з першої спроби, зате знаходите.','You do not find your place in work at the first attempt, but you do find it.')},
+ love:{strong:t('Стосунки стають для вас опорою.','Relationships become a support for you.'),
+  mixed:t('Гармонію в парі ви будуєте вдвох, і вона того варта.','You build harmony in a couple together, and it is worth it.'),
+  hard:t('Саме в стосунках на вас чекають головні життєві уроки.','Your main life lessons wait for you in relationships.')},
+ home:{strong:t('Дім і родина дають вам опору.','Home and family hold you up.'),
+  mixed:t('Затишок удома у вас є, але його треба плекати.','You have comfort at home, but it needs tending.'),
+  hard:t('Душевний спокій ви будуєте самі, часто далеко від місця, де виросли.','You build your own peace of mind, often far from where you grew up.')},
+ path:{strong:t('У вирішальні моменти обставини складаються на вашу користь.','At decisive moments circumstances turn in your favour.'),
+  mixed:t('Удача приходить до вас тоді, коли свою частину роботи ви вже зробили.','Luck comes to you once you have already done your part.'),
+  hard:t('На везіння ви не розраховуєте: усе в житті берете працею й досвідом.','You do not count on luck: you take everything in life by work and experience.')}
+};
