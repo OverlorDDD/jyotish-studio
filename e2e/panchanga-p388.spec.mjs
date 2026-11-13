@@ -8,42 +8,28 @@ async function rejectAnalyticsIfPrompted(page){
  await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
  await expect(dialog).toHaveCount(0);
 }
+const noOverflow=async page=>{
+ const d=await page.evaluate(()=>({w:window.innerWidth,s:document.documentElement.scrollWidth}));
+ expect(d.s).toBeLessThanOrEqual(d.w+2);
+};
 
 for(const locale of ['uk','en']){
- test('P388 '+locale+' bilingual unified calendar, local sunrise provenance, exact no-personal-leak and 320px layout',async({page})=>{
+ test('P388 '+locale+' Panchanga Today at 320px: day, month, festivals and classical details without leaks',async({page})=>{
   test.setTimeout(180000);
   await page.setViewportSize({width:320,height:740});
   await page.goto('/'+locale+'/panchanga?date=2026-11-03');
- await rejectAnalyticsIfPrompted(page);
+  await rejectAnalyticsIfPrompted(page);
   const hub=page.getByTestId('panchanga-hub');
-  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
-  await expect(hub.getByTestId('p410-advanced')).toHaveCount(0);
-  await expect(hub.getByTestId('panchanga-five-angas')).toBeVisible({timeout:90000});
-  await expect(hub.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5);
-  const nav=page.getByRole('navigation',{name:locale==='uk'?'Період календаря':'Calendar period'});
-  await expect(nav.getByRole('button')).toHaveCount(3);
-  await nav.getByRole('button',{name:locale==='uk'?'7 днів':'7 days'}).click();
-  const week=hub.getByTestId('panchanga-calendar-range');
-  await expect(week.getByTestId('panchanga-day-cell')).toHaveCount(7,{timeout:90000});
-  await expect(week.getByTestId('p387-activity-select')).toBeVisible();
-  await expect(week.getByTestId('p387-sunrise')).toHaveCount(0);
-  await expect(week.getByTestId('p387-exact-windows')).toHaveCount(0);
-  await nav.getByRole('button',{name:locale==='uk'?'Місяць':'Month'}).click();
-  const month=hub.getByTestId('panchanga-calendar-range');
-  await expect(month.getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});
-  await month.getByTestId('p387-activity-select').selectOption('wedding');
-  await expect(month.getByTestId('p387-exact-windows')).toHaveCount(0);
-  // Wedding eligibility cannot silently turn into complete ceremonial certification.
-  await expect(month.getByTestId('p387-window-scope')).toHaveCount(0);
-  const dims=await page.evaluate(()=>({
-   viewport:window.innerWidth,scroll:document.documentElement.scrollWidth
-  }));
-  expect(dims.scroll).toBeLessThanOrEqual(dims.viewport+2);
+  await expect(hub.locator('#pt-verdict')).toBeVisible({timeout:90000});
+  await expect(hub.getByTestId('panchanga-month-day')).toHaveCount(30,{timeout:90000});
+  await expect(hub.getByTestId('panchanga-upcoming')).toBeVisible();
+  await hub.getByTestId('p31-details').locator(':scope > summary').click();
+  await expect(hub.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5,{timeout:90000});
+  await expect(hub.getByTestId('p387-sunrise')).toHaveCount(0);
+  await expect(hub.getByTestId('p387-exact-windows')).toHaveCount(0);
+  await noOverflow(page);
   await page.setViewportSize({width:390,height:844});
-  const large=await page.evaluate(()=>({
-   viewport:window.innerWidth,scroll:document.documentElement.scrollWidth
-  }));
-  expect(large.scroll).toBeLessThanOrEqual(large.viewport+2);
+  await noOverflow(page);
  });
 }
 test('P388 exact Swiss 31-day public month and Day use identical five limbs, Sunrise UTC and no full-ceremony certification',async({request})=>{

@@ -70,17 +70,12 @@ test('P390 one Tara 5 description appears at most once in visible summary and ad
  assert.equal(visible.split('Пратьярі (Тара 5)').length-1,1);
  assert.match(x.headline,/[Сс]приятливо/);
 });
-test('P410 Day UI keeps functional Today reset and open classical five-limb panel, without preliminary Muhurta',()=>{
+test('Panchanga Today keeps a Today reset and the classical five-limb panel, without .ics or preliminary Muhurta',()=>{
  const hub=readFileSync(new URL('../apps/web/app/components/PanchangaHub.tsx',import.meta.url),'utf8');
- const guide=readFileSync(new URL('../apps/web/app/components/PanchangaDailyOpportunities.tsx',import.meta.url),'utf8');
- for(const marker of ['resetToToday','localeDate(form.timeZone)','todayResetSerial','onToday={resetToToday}','p31-details','panchanga-five-angas','className={styles.classicPanchanga}'])
-  if(marker==='panchanga-five-angas')continue;
-  else assert.ok(hub.includes(marker),marker);
- assert.ok(guide.includes('onClick={onToday}'));
- assert.ok(guide.includes('Download event (.ics)'));
- assert.ok(guide.includes('calendarFile(opp,locale,point.place)'));
+ for(const marker of ['resetToToday','localeDate(form.timeZone)','onClick={resetToToday}','p31-details','<PanchangaLiveDay','hourPlan(','activityPlan('])
+  assert.ok(hub.includes(marker),marker);
  assert.ok(!hub.includes('PanchangaCleanDay'));
+ assert.ok(!hub.includes('PanchangaDailyOpportunities'),'the .ics download block is retired from the public page');
  assert.ok(!hub.includes('p410-advanced'));
- assert.ok(!guide.includes('onAdvanced'));
- assert.ok(!guide.includes('drikpanchang.com'));
+ assert.ok(!hub.includes('.ics'));
 });

@@ -30,11 +30,11 @@ export const ORGANIC_INTENTS:readonly OrganicIntent[]=[
   id:'panchanga',toolPath:'panchanga',
   keywords:['panchang','panchanga','tithi','nakshatra','rahu kalam','sunrise','vedic calendar','панчанга','тітхі','накшатра','раху-калам','місячний календар'],
   heading:{en:'Find today’s Panchanga for your city — and read its timing',uk:'Дізнайся Панчангу для свого міста та зрозумій час подій'},
-  intro:{en:'Tithi follows the Moon–Sun angle, while calendar dates, sunrise and displayed clock times depend on your location. A daily label cannot replace a real transition time.',uk:'Тітхі визначається кутом між Місяцем і Сонцем, а світанок та відображений час залежать від місця. Назва дня не замінює точного моменту переходу.'},
+  intro:{en:'Panchanga is the Vedic calendar of the day. It reads the day through the lunar cycle and the Moon’s position and, by traditional rules, shows when to begin new things and when to keep to routine. Sunrise and every transition depend on the place, so we calculate them for your city.',uk:'Панчанга — ведичний календар дня. Він описує день за місячним циклом і положенням Місяця та за давніми правилами підказує, коли краще починати нове, а коли зайнятися звичними справами. Час сходу Сонця й усі переходи залежать від міста, тому ми рахуємо їх для вашого.'},
   steps:[
-   {en:'Choose your city and calendar date; confirm that the time zone matches your location.',uk:'Обери місто й дату, перевір місцевий часовий пояс.'},
-   {en:'Inspect Tithi and Nakshatra transitions, rather than assuming they change at midnight.',uk:'Переглянь переходи тітхі й накшатри, а не припускай, що вони змінюються опівночі.'},
-   {en:'Use the activity guidance as a traditional interpretation; verify specialized Muhurta rules separately.',uk:'Використовуй поради щодо справ як традиційне тлумачення; спеціальні правила мухурти перевіряються окремо.'}
+   {en:'Choose your city, or take it from your birth chart.',uk:'Оберіть місто або візьміть його з натальної карти.'},
+   {en:'Read the verdict and the hours of the day: green is a good time, rose means do not start anything important.',uk:'Подивіться вердикт і години дня: зелене — добрий час, рожеве — не починайте важливого.'},
+   {en:'Plan ahead with the month calendar and the upcoming festivals.',uk:'Плануйте наперед за календарем місяця й найближчими святами.'}
   ],
   guides:[
    {path:'pedia/panchanga-time-by-city',label:{en:'Why Panchanga times differ by city',uk:'Чому час Панчанги відрізняється між містами'}},

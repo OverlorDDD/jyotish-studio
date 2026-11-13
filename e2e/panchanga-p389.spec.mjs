@@ -1,22 +1,37 @@
 import {test,expect} from '@playwright/test';
+// Wait for the hydrated consent prompt before interacting with mobile UI.
+// Reject via the actual button; R4.2 independently tests opt-in and revocation.
+async function rejectAnalyticsIfPrompted(page){
+ const dialog=page.getByRole('dialog',{name:/Аналітика відвідувань|Visitor analytics/});
+ try { await dialog.waitFor({state:'visible',timeout:8000}); }
+ catch { return; } // Previously decided consent or prompt intentionally absent.
+ await dialog.getByRole('button',{name:/Відхилити|Reject/}).click();
+ await expect(dialog).toHaveCount(0);
+}
+const noOverflow=async page=>{
+ const d=await page.evaluate(()=>({w:window.innerWidth,s:document.documentElement.scrollWidth}));
+ expect(d.s).toBeLessThanOrEqual(d.w+2);
+};
+
 for(const locale of ['uk','en']){
- test('P410 '+locale+' 320/390 mobile classical Panchanga and no preliminary election',async({page})=>{
+ test('Panchanga Today '+locale+' mobile 390/320: full page, explanation block and FAQ',async({page})=>{
   test.setTimeout(180000);
   await page.setViewportSize({width:390,height:844});
   await page.goto('/'+locale+'/panchanga?date=2026-11-03');
+  await rejectAnalyticsIfPrompted(page);
   const hub=page.getByTestId('panchanga-hub');
-  await expect(hub.getByTestId('p410-opportunities')).toBeVisible({timeout:90000});
-  await expect(hub.getByTestId('p410-advanced')).toHaveCount(0);
-  await expect(hub.getByTestId('p31-my-day')).toHaveCount(0);
-  await expect(hub.getByTestId('panchanga-five-angas')).toBeVisible({timeout:90000});
-  await expect(hub.getByTestId('panchanga-five-angas').locator('article')).toHaveCount(5);
-  await expect(hub.getByTestId('panchanga-daily-timeline')).toBeVisible();
-  await expect(hub.getByRole('heading',{name:locale==='uk'?'Класична Панчанга':'Classical Panchanga'})).toBeVisible();
+  await expect(hub.locator('#pt-verdict')).toBeVisible({timeout:90000});
+  await expect(hub.getByTestId('panchanga-activity')).toHaveCount(9,{timeout:90000});
+  await expect(page.getByTestId('g32-organic-panchanga')).toBeVisible();
+  const faq=page.getByTestId('panchanga-faq');
+  await expect(faq.locator('details')).toHaveCount(5);
+  await faq.locator('summary').first().click();
+  await expect(faq.locator('details').first().locator('p')).toBeVisible();
+  const ld=await page.locator('script[type="application/ld+json"]').allTextContents();
+  expect(ld.some(x=>x.includes('"FAQPage"'))).toBe(true);
   for(const width of [390,320]){
    await page.setViewportSize({width,height:740});
-   expect(await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth))
-    .toBeLessThanOrEqual(2);
+   await noOverflow(page);
   }
  });
-
 }

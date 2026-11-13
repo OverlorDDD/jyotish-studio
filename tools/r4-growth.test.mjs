@@ -6,12 +6,13 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('R4 keeps 2027 eclipse calendar discoverable in the current Panchanga hero',()=>{
  const hub=read('apps/web/app/components/PanchangaHub.tsx');
  const page=read('apps/web/app/[locale]/panchanga/page.tsx');
- const css=read('apps/web/app/components/PanchangaHub.module.css');
- const hero=hub.indexOf('<header className={styles.cleanHero}>');
+ const css=read('apps/web/app/components/PanchangaToday.module.css');
+ const hero=hub.indexOf('<header className={styles.head}>');
  const end=hub.indexOf('</header>',hero);
  const calendar=hub.indexOf("'/eclipses/2027'");
  assert.ok(hero>=0&&end>hero&&calendar>hero&&calendar<end,
   'a visible 2027 calendar link belongs above the observer controls');
+ assert.ok(end<hub.indexOf('data-testid="p386-observer"'));
  assert.match(hub,/styles\.eclipseShortcut/);
  assert.match(css,/\.eclipseShortcut\{/);
  assert.doesNotMatch(page,/eclipses\/2027/,'do not duplicate a buried card below the guide');

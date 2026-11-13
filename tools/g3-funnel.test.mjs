@@ -105,5 +105,5 @@ test('G3 Panchanga counts auto-load separately from confirmed user actions',()=>
  assert.match(p,/if\(explicit\)reportPublicToolEvent\('public_tool_completed','panchanga'\)/);
  assert.match(p,/if\(explicit\)reportPublicToolEvent\('public_tool_failed','panchanga'\)/);
  assert.match(p,/reportGrowthEvent\('panchanga_calculation_completed'\)/);
- assert.match(p,/if\(period==='day'&&view!=='day'\)manualDayRequest\.current=true/);
+ assert.match(p,/function setDate\(date:string\)\{[\s\S]{0,120}manualDayRequest\.current=true/);
 });
