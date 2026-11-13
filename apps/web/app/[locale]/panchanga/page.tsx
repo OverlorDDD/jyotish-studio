@@ -29,8 +29,9 @@ export default async function PanchangaPage({params}:{params:Promise<{locale:str
   <PanchangaHub locale={locale as PortalLocale}/>
   <OrganicIntentBridge kind="panchanga" locale={locale as PortalLocale}/>
   <PanchangaFaq locale={locale as PortalLocale}/>
-  <details className="as-wellness" style={{margin:'24px 0',padding:'16px',borderRadius:'14px'}}>
-   <summary style={{cursor:'pointer',fontWeight:700}}>{locale==='uk'?'Як читати Панчангу: короткий довідник':'How to read Panchanga: guide'}</summary>
+  <details style={{width:'min(100% - 32px,1024px)',boxSizing:'border-box',margin:'0 auto 28px',padding:'16px clamp(16px,3vw,26px)',
+   borderRadius:'20px',border:'1px solid rgba(214,185,127,.26)',background:'linear-gradient(145deg,#1b2b44,#16243a)',color:'#e6ecf5'}}>
+   <summary style={{cursor:'pointer',fontWeight:700,color:'#e8c08a'}}>{locale==='uk'?'Як читати Панчангу: короткий довідник':'How to read Panchanga: guide'}</summary>
    <PanchangaSearchGuide locale={locale as PortalLocale}/>
   </details>
 

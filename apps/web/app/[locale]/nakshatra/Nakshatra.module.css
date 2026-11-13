@@ -1,4 +1,4 @@
-.page{width:min(100% - 32px,900px);margin:clamp(20px,4vw,44px) auto;color:#e4eaf4;line-height:1.7}
+.page{width:min(100% - 32px,1024px);margin:clamp(20px,4vw,44px) auto;color:#e4eaf4;line-height:1.7}
 .page h2{margin:34px 0 12px;font-family:'Playfair Display',serif;font-size:clamp(20px,2.6vw,26px);color:#f1dfb6}
 .page a{color:#d6b97f}
 .crumbs{font-size:14px;color:#aab6c9}
@@ -11,6 +11,10 @@
 .facts dt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#aab6c9}
 .facts dd{margin:4px 0 0;font-weight:700;color:#fff}
 .table{width:100%;border-collapse:collapse;font-size:15px}
+.table{white-space:normal}
+/* The site-wide table styles are tuned for the dense chart dashboard (9–11px); readable sizes here. */
+.table tbody th,.table td{font-size:15px;letter-spacing:0;line-height:1.45}
+.table tbody th{font-weight:600}
 .table th,.table td{padding:10px 12px;border-bottom:1px solid rgba(214,185,127,.22);text-align:left;vertical-align:top}
 .table thead th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#aab6c9}
 .table tr[aria-current="true"] td,.table tr[aria-current="true"] th{background:rgba(214,185,127,.1)}

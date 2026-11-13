@@ -61,6 +61,8 @@ export function bestWindow(plan:HourPeriod[],from:number){
  return future.find(p=>p.why==='any')??future.find(p=>p.q==='best')??future[0]??null;
 }
 const longest=(w:[number,number][])=>w.reduce<[number,number]|null>((a,b)=>!a||b[1]-b[0]>a[1]-a[0]?b:a,null);
+/** Prefer a daytime window (starting before 20:00 local) for everyday advice, otherwise the longest. */
+const bestDaytime=(w:[number,number][],zone:string)=>longest(w.filter(([a])=>Number(clock(a,zone).slice(0,2))<20))??longest(w);
 
 /* ---------- moon ---------- */
 export function MoonDisc({elongation}:{elongation:number}){
@@ -252,7 +254,7 @@ export function ActivityCards({locale,zone,plans,nextPlans,isToday,nextHaircut,s
    <span>{pick(l,'оцінки для вашого міста','for your city')}</span></div>
   <div className={styles.acts}>{plans.map(p=>{
    const a=ACT[p.id],next=nextPlans?.find(x=>x.id===p.id);
-   const best=next?longest(next.windows):null;
+   const best=next?bestDaytime(next.windows,zone):null;
    const tomorrow=best?pick(l,'Найкраще вікно: ','Best window: ')+(isToday?pick(l,'завтра ','tomorrow '):pick(l,'наступного дня ','next day '))+range(best[0],best[1],zone):null;
    let line:string,note:string;
    if(p.id==='hair'){
@@ -304,7 +306,11 @@ const OBS:Record<ObservanceKind,{icon:LucideIcon;t:[string,string];d:[string,str
  guru_purnima:{icon:Sparkles,t:['Ґуру Пурніма','Guru Purnima'],d:['Повня вдячності вчителям і наставникам.','A Full Moon of gratitude to teachers and mentors.']},
  janmashtami:{icon:Sparkles,t:['Крішна Джанмаштамі','Krishna Janmashtami'],d:['Ніч народження Крішни: піст до півночі, співи й молитва.','The night of Krishna’s birth: fasting until midnight, songs and prayer.']},
  maha_shivaratri:{icon:Sparkles,t:['Маха Шиваратрі','Maha Shivaratri'],d:['Велика ніч Шиви: піст, нічна медитація й мантри.','The great night of Shiva: fasting, night meditation and mantras.']},
- diwali:{icon:Sparkles,t:['Дівалі','Diwali'],d:['Свято світла: вогні, вдячність і зустрічі з рідними.','The festival of light: lamps, gratitude and family gatherings.']}};
+ diwali:{icon:Sparkles,t:['Дівалі, Лакшмі-пуджа','Diwali, Lakshmi Puja'],d:['Головна ніч пʼятиденного свята світла: вогні, молитва Лакшмі, вдячність і зустрічі з рідними.','The main night of the five-day festival of light: lamps, prayer to Lakshmi, gratitude and family gatherings.']},
+ dhanteras:{icon:Sparkles,t:['Дхантерас','Dhanteras'],d:['Перший день Дівалі: прибирання дому, перші вогні, традиційні покупки металу й посуду.','The first day of Diwali: cleaning the home, the first lamps, traditional purchases of metal and utensils.']},
+ naraka_chaturdashi:{icon:Sparkles,t:['Нарака Чатурдаші, мала Дівалі','Naraka Chaturdashi, Choti Diwali'],d:['Другий день Дівалі: ранкове омовення, вогні на порозі, перемога світла над темрявою.','The second day of Diwali: an early bath, lamps at the threshold, light over darkness.']},
+ govardhan:{icon:Sparkles,t:['Говардхан-пуджа','Govardhan Puja'],d:['Четвертий день Дівалі: пам’ять про Крішну, що підняв пагорб Говардхан; щедре частування.','The fourth day of Diwali: Krishna lifting Govardhan hill; a generous food offering.']},
+ bhai_dooj:{icon:Heart,t:['Бхай Дудж','Bhai Dooj'],d:['Останній день Дівалі: свято братів і сестер, тілак і молитва одне за одного.','The last day of Diwali: brothers and sisters, a tilak and prayers for each other.']}};
 export const observanceShort=(k:ObservanceKind,l:L)=>pick(l,OBS[k].t[0],OBS[k].t[1]).split(',')[0];
 export type UpcomingDay={date:string;observances:{id:string;metadata?:Record<string,unknown>}[]};
 export function Upcoming({locale,from,days,today}:{locale:L;from:string;today:string|null;days:UpcomingDay[]|null}){
