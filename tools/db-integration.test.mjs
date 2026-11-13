@@ -126,6 +126,25 @@ test('A1 live Postgres: account access, quotas, concurrency and CSRF',{timeout:9
     method:'POST',cookie:b.cookie,fetchSite:'cross-site',body})).status,400);
    assert.equal((await request('/api/v1/tarot/readings',{cookie:b.cookie})).data.remaining,3);
   });
+  await t.test('card of the day is saved once per day in the owner profile, outside the spread quota',async()=>{
+   const date=new Date().toISOString().slice(0,10);
+   assert.equal((await request('/api/v1/tarot/journey')).status,401);
+   assert.equal((await post('/api/v1/tarot/journey/daily',{date,id:'major-star',reversed:false},b.cookie,'https://evil.example')).status,400);
+   assert.equal((await post('/api/v1/tarot/journey/daily',{date:'2001-01-01',id:'major-star',reversed:false},b.cookie)).status,400);
+   assert.equal((await post('/api/v1/tarot/journey/daily',{date,id:'not-a-card',reversed:false},b.cookie)).status,400);
+   const saves=await Promise.all([
+    post('/api/v1/tarot/journey/daily',{date,id:'major-star',reversed:false},b.cookie),
+    post('/api/v1/tarot/journey/daily',{date,id:'major-tower',reversed:true},b.cookie)]);
+   assert.ok(saves.every(x=>x.status===201),JSON.stringify(saves.map(x=>x.status)));
+   assert.equal(saves[0].data.stored.id,saves[1].data.stored.id,'two devices on one day get one card');
+   const mine=await request('/api/v1/tarot/journey',{cookie:b.cookie});
+   assert.deepEqual(mine.data.days,[date]);assert.equal(mine.data.daily.length,1);
+   assert.equal(mine.data.seen[saves[0].data.stored.id],1);
+   const others=await request('/api/v1/tarot/journey',{cookie:a.cookie});
+   assert.deepEqual(others.data.days,[]);
+   const spreads=await request('/api/v1/tarot/readings',{cookie:b.cookie});
+   assert.equal(spreads.data.remaining,3);assert.equal(spreads.data.readings.length,0);
+  });
   await t.test('8 parallel requests produce 3 member draws and 5 HTTP 429',async()=>{
    const draws=await Promise.all(Array.from({length:8},()=>post('/api/v1/tarot/readings',{
     spread:'one',question:'What may be useful today?'},a.cookie)));

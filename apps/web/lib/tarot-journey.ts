@@ -1,7 +1,8 @@
-/** Browser-only Tarot habit data: card of the day, weekly streak, cards met, guest spread counter.
- * Lives in localStorage on the visitor's device; never sent to the server. */
+/** Tarot habit data: card of the day, weekly streak, cards met, guest spread counter.
+ * Guests: lives only in this browser's localStorage. Signed-in members: the card of the day is
+ * saved to their private profile (see tarot-journey-sync.ts) and this copy is a merged cache. */
 export type TarotJourney={v:1;daily:{date:string;id:string;reversed:boolean}|null;days:string[];
- seen:Record<string,number>;guest:{date:string;count:number}};
+ seen:Record<string,number>;guest:{date:string;count:number};profile?:boolean};
 const KEY='gx-tarot-journey-v1';
 export const GUEST_DAILY_SPREADS=3;
 const empty=():TarotJourney=>({v:1,daily:null,days:[],seen:{},guest:{date:'',count:0}});
@@ -51,4 +52,16 @@ export function countGuestSpread(j:TarotJourney,today:string):TarotJourney{
 export function daysUk(n:number){return n%10===1&&n%100!==11?'день':[2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?'дні':'днів';}
 export function favouriteCard(j:TarotJourney){
  return Object.entries(j.seen).sort((a,b)=>b[1]-a[1])[0]?.[0]??null;
+}
+/** Server journey of a signed-in member. */
+export type ServerJourney={days:string[];daily:{date:string;id:string;reversed:boolean}[];seen:Record<string,number>};
+/** Merge profile data into the local copy: days are united, card counts take the larger value
+ * (the server already counts this device's signed-in spreads), and the profile's card of the
+ * day wins so every device shows the same card. */
+export function mergeJourney(local:TarotJourney,server:ServerJourney,today:string):TarotJourney{
+ const days=[...new Set([...local.days,...server.days])].sort();
+ const seen={...local.seen};
+ for(const [id,n] of Object.entries(server.seen))seen[id]=Math.max(seen[id]??0,n);
+ const remote=server.daily.find(d=>d.date===today);
+ return {...local,days,seen,daily:remote?{date:remote.date,id:remote.id,reversed:remote.reversed}:local.daily,profile:true};
 }

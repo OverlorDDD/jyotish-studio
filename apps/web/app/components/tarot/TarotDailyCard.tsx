@@ -3,7 +3,9 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {Sparkles} from 'lucide-react';
 import {aspectText,TAROT_LIBRARY,tarotCardById} from '../../../lib/tarot-meanings';
-import {daysUk,localDay,markSeen,pickDaily,readJourney,streak,weekDays,writeJourney,type TarotJourney} from '../../../lib/tarot-journey';
+import {daysUk,localDay,markSeen,mergeJourney,pickDaily,readJourney,streak,weekDays,writeJourney,type TarotJourney} from '../../../lib/tarot-journey';
+import {JOURNEY_EVENT,saveDailyCard,syncTarotJourney} from '../../../lib/tarot-journey-sync';
+import {guideTo} from '../../../lib/guide-focus';
 import {reportPublicToolEvent} from '../../../lib/growth-metrics';
 import {TarotBack,TarotFace} from './TarotArt';
 import styles from './TarotHub.module.css';
@@ -19,9 +21,14 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
   const day=localDay(),j=readJourney();
   setToday(day);setJourney(j);
   if(j.daily?.date===day){setPhase('done');setTurned(true);}
-  const sync=()=>setJourney(readJourney());
-  window.addEventListener('galaxiora:tarot-journey',sync);
-  return()=>window.removeEventListener('galaxiora:tarot-journey',sync);
+  // The profile's card of the day (another device, earlier visit) replaces an undrawn deck.
+  const sync=()=>{const next=readJourney();setJourney(next);
+   if(next.daily?.date===localDay()){setPhase(p=>p==='idle'?'done':p);setTurned(true);}};
+  const pull=()=>{void syncTarotJourney();};
+  window.addEventListener(JOURNEY_EVENT,sync);
+  window.addEventListener('galaxiora:auth-changed',pull);
+  pull();
+  return()=>{window.removeEventListener(JOURNEY_EVENT,sync);window.removeEventListener('galaxiora:auth-changed',pull);};
  },[]);
  function draw(){
   if(!journey||phase!=='idle')return;
@@ -30,7 +37,13 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
   writeJourney(next);setJourney(next);setPhase('flipping');
   window.setTimeout(()=>setTurned(true),40);
   reportPublicToolEvent('public_tool_started','tarot');
-  window.setTimeout(()=>{setPhase('done');window.dispatchEvent(new Event('galaxiora:tarot-journey'));},900);
+  // Signed in: keep the card in the profile; if another device already drew today's card, show that one.
+  void saveDailyCard({date:today,id:pick.id,reversed:pick.reversed}).then(server=>{
+   if(!server)return;
+   const merged=mergeJourney(readJourney(),server,today);
+   writeJourney(merged);setJourney(merged);
+  });
+  window.setTimeout(()=>{setPhase('done');window.dispatchEvent(new Event(JOURNEY_EVENT));},900);
  }
  const daily=journey?.daily?.date===today?journey.daily:null;
  const card=daily?tarotCardById(daily.id):null;
@@ -55,7 +68,7 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
      <div><b>{uk?'Порада':'Advice'}</b>{t.a}</div>
     </div>
     <p className={styles.links}><Link href={'/'+locale+'/tarot/cards/'+card.slug}>{uk?'Усе про карту ':'All about '}{card.name[locale]} →</Link>
-     <a href="#spreads">{uk?'Поставити питання картам →':'Ask the cards a question →'}</a></p>
+     <a href="#spreads" onClick={e=>{e.preventDefault();guideTo('spreads-choose',{block:'start'});}}>{uk?'Поставити питання картам →':'Ask the cards a question →'}</a></p>
     <p className={styles.small}>{uk?'Наступна карта дня — завтра. Повертайтеся щоранку.':'Your next card of the day comes tomorrow. Come back every morning.'}</p>
    </div>:<>
     <h2 id="tarot-daily-heading">{uk?'Ваша карта дня чекає':'Your card of the day is waiting'}</h2>

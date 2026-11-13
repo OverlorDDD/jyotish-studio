@@ -35,18 +35,20 @@
 .week li[data-on]{background:var(--gold2);color:#17223a;border-color:var(--gold2);font-weight:700}
 .week li[data-today]{outline:2px solid var(--gold);outline-offset:2px}
 .stage{position:relative;display:grid;place-items:center;min-height:400px;perspective:1200px}
-.deck{position:relative;width:200px;height:343px;border:0;background:none;padding:0;cursor:pointer}
+.deck{position:relative;display:block;width:200px;border:0;background:none;padding:0;cursor:pointer}
 .deck>span:not(.tap){position:absolute;inset:0;transition:transform .35s}
+.deck>span:first-child{position:relative;inset:auto}
 .deck:hover>span:nth-child(1),.deck:focus-visible>span:nth-child(1){transform:rotate(-9deg) translateX(-24px)}
 .deck:hover>span:nth-child(2),.deck:focus-visible>span:nth-child(2){transform:rotate(-3deg) translateX(-8px)}
 .deck:hover>span:nth-child(3),.deck:focus-visible>span:nth-child(3){transform:rotate(4deg) translateX(10px)}
 .tap{position:absolute;bottom:-30px;left:0;right:0;text-align:center;font-size:13px;color:var(--mut)}
-.flip{position:relative;width:210px;aspect-ratio:7/12;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+.flip{position:relative;width:210px;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.2,.8,.2,1)}
 .flip[data-turned]{transform:rotateY(180deg)}
 .flipBack,.flipFront{position:absolute;inset:0;backface-visibility:hidden}
+.flipBack{position:relative;inset:auto}
 .flipFront{transform:rotateY(180deg)}
 /* spreads */
-.spreads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border:0;margin:0;padding:0;min-width:0}
+.spreads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border:0;margin:0;padding:0;min-width:0;width:100%;max-width:none}
 .spread{position:relative;display:flex;flex-direction:column;gap:4px;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025);cursor:pointer;min-width:0;margin:0;letter-spacing:0;font-size:inherit;color:var(--tx)}
 .spread:hover{border-color:var(--gold)}
 .spread[data-selected]{border-color:var(--gold2);background:rgba(232,192,138,.08);box-shadow:inset 0 0 0 1px var(--gold2)}
@@ -81,6 +83,32 @@
 .synthesis p{margin:0 0 8px;color:#dbe3f0}
 .direct{font-size:17px;color:#fff!important}
 .afterReading{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+/* guided path: numbered steps, the next card to open, the honest tone, what to do next */
+.stepTitle{display:flex;align-items:center;gap:10px;padding:0;margin:0 0 12px;font-size:15px;font-weight:600;color:#d0d9e8;letter-spacing:0}
+.stepNo{display:inline-grid;place-items:center;flex:none;width:26px;height:26px;margin-right:8px;border-radius:50%;border:1px solid var(--gold);color:var(--gold2);font-size:13px;font-weight:700;vertical-align:middle}
+.stepTitle .stepNo{margin-right:0}
+.actions>.stepNo{margin-right:-4px}
+.page .label{display:flex;align-items:center}
+.hint{margin:6px 0 0;font-size:14px;color:var(--gold2);text-align:center}
+.reveal[data-next]{animation:gxNext 1.6s ease-in-out infinite;box-shadow:0 0 0 2px rgba(241,223,182,.75),0 0 22px rgba(232,192,138,.4)}
+@keyframes gxNext{0%,100%{box-shadow:0 0 0 2px rgba(241,223,182,.55),0 0 12px rgba(232,192,138,.25)}50%{box-shadow:0 0 0 3px rgba(241,223,182,.95),0 0 34px rgba(232,192,138,.6)}}
+.tone{display:inline-flex;align-items:center;gap:6px;margin:0 0 12px!important;padding:6px 12px;border-radius:999px;font-size:14px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.tone b{font-weight:700}
+.tone[data-tone=favourable] b,.tone[data-tone=mostlyGood] b{color:var(--good)}
+.tone[data-tone=mixed] b{color:var(--gold2)}
+.tone[data-tone=challenging] b,.tone[data-tone=difficult] b{color:var(--rose)}
+.tone[data-tone=challenging],.tone[data-tone=difficult]{border-color:rgba(229,115,136,.45);background:rgba(229,115,136,.08)}
+.nextSteps{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.nextGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.page .nextCard{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);
+ color:var(--tx);text-align:left;text-decoration:none;font:inherit;cursor:pointer;letter-spacing:0;width:auto;margin:0}
+.page .nextCard:hover{border-color:var(--gold)}
+.nextCard b{color:var(--gold2);font-size:15px}.nextCard span{font-size:13px;color:var(--mut)}
+.page .nextCard[data-primary]{border-color:var(--gold2);background:rgba(232,192,138,.1)}
+.page .inlineLink{display:inline;width:auto;margin:0;padding:0;border:0;background:none;color:var(--gold2);font:inherit;text-decoration:underline;cursor:pointer;letter-spacing:0}
+.page :global([data-gx-attention]){animation:gxAttention 2.2s ease-out;outline:2px solid #f2d298;outline-offset:3px}
+@keyframes gxAttention{0%{box-shadow:0 0 0 0 rgba(242,210,152,.75)}60%{box-shadow:0 0 0 12px rgba(242,210,152,0)}100%{box-shadow:none}}
+@media(prefers-reduced-motion:reduce){.reveal[data-next],.page :global([data-gx-attention]){animation:none}}
 /* progress */
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .stat{padding:16px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--line);min-width:0}
@@ -115,7 +143,7 @@
 .faq details{border-bottom:1px solid rgba(214,185,127,.15);padding:11px 0}
 .faq details:last-child{border-bottom:0}
 .faq summary{cursor:pointer;font-weight:600}.faq p{margin:8px 0 0;color:#c9d3e3}
-@media(max-width:860px){.page .hero{grid-template-columns:1fr}.stage{min-height:380px;order:-1}.spreads,.stats,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:860px){.page .hero{grid-template-columns:1fr}.nextGrid{grid-template-columns:1fr}.stage{min-height:380px;order:-1}.spreads,.stats,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
  .library{grid-template-columns:repeat(4,minmax(0,1fr))}.readers{grid-template-columns:1fr}.price{grid-template-columns:1fr}}
 @media(max-width:560px){.page{width:calc(100% - 24px);margin-top:12px}.spreads,.stats,.steps,.aspects{grid-template-columns:1fr}
- .library{grid-template-columns:repeat(3,minmax(0,1fr))}.cardsRow{grid-template-columns:repeat(2,minmax(0,1fr))}.deck{width:180px;height:309px}.flip{width:180px}}
+ .library{grid-template-columns:repeat(3,minmax(0,1fr))}.cardsRow{grid-template-columns:repeat(2,minmax(0,1fr))}.deck{width:180px}.flip{width:180px}}

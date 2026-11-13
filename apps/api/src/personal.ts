@@ -313,7 +313,7 @@ export class PersonalController{
  async overview(@Req()req:IncomingMessage){
   const uid=owner(req),profile=await this.profile(uid);
   const [tarot,journal,questions,practices]=await Promise.all([
-   this.prisma.tarotReading.findMany({where:{userId:uid},orderBy:{createdAt:'desc'},take:3,
+   this.prisma.tarotReading.findMany({where:{userId:uid,spread:{not:'daily'}},orderBy:{createdAt:'desc'},take:3,
     select:{id:true,createdAt:true,spread:true,question:true,cards:true}}),
    this.prisma.personalJournalEntry.findMany({where:{userId:uid},orderBy:{createdAt:'desc'},take:3,
     select:{id:true,kind:true,title:true,createdAt:true}}),

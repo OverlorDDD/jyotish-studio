@@ -9,12 +9,14 @@ import {reportGrowthEvent,reportPublicToolEvent} from '../../lib/growth-metrics'
 import {tarotCardById,YES_NO,type YesNo} from '../../lib/tarot-meanings';
 import {countGuestSpread,guestLeft,localDay,markSeen,readJourney,writeJourney} from '../../lib/tarot-journey';
 import {TarotBack,TarotFace} from './tarot/TarotArt';
+import {guideTo} from '../../lib/guide-focus';
 import styles from './tarot/TarotHub.module.css';
 
 type Localized={en:string;uk:string};
 type SpreadId='yesno'|'three'|'love'|'work'|'week'|'one'|'celtic';
 type Draw={id:string;position:number;reversed:boolean;name:Localized;meaning:Localized;detail:Localized;positionInsight:Localized;positionName:Localized};
-type ReaderNarrative={directAnswer:string;development:string;cardExplanations:string[];caution:string;advice:string};
+type Tone='favourable'|'mostlyGood'|'mixed'|'challenging'|'difficult';
+type ReaderNarrative={directAnswer:string;development:string;cardExplanations:string[];caution:string;advice:string;tone?:Tone};
 type Reading={id:string|null;createdAt:string;spread:SpreadId;question:string|null;cards:Draw[];
  reader:{en:ReaderNarrative;uk:ReaderNarrative};aiReading?:{language:string;model:string;reading:ReaderNarrative}|null;guest?:boolean};
 type HistoryReply={readings:Reading[];remaining:number;limit:number;reset:string;aiAvailable:boolean};
@@ -29,6 +31,9 @@ const SPREADS:readonly {id:SpreadId;count:number;uk:[string,string];en:[string,s
  {id:'celtic',count:10,tag:'advanced',uk:['Кельтський хрест','Десять карт для глибокого розбору важливого питання.'],en:['Celtic Cross','Ten cards for a deep look at an important question.']}
 ];
 const TAG:Record<string,[string,string]>={quick:['1 хвилина','1 minute'],popular:['популярне','popular'],advanced:['для досвідчених','for experienced readers']};
+const TONE:Record<Tone,[string,string]>={favourable:['сприятливий','favourable'],mostlyGood:['радше сприятливий','mostly favourable'],
+ mixed:['неоднозначний','mixed'],challenging:['складний','challenging'],difficult:['важкий','difficult']};
+const READER_TOPIC:Partial<Record<SpreadId,string>>={love:'relationships',work:'career',yesno:'decision'};
 const spreadTitle=(id:string,uk:boolean)=>{const s=SPREADS.find(x=>x.id===id);return s?(uk?s.uk[0]:s.en[0]):id;};
 /** Yes/no lean of one card; a reversal softens "yes" and hardens "maybe". */
 function yesNoOf(id:string,reversed:boolean):YesNo{
@@ -91,21 +96,43 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
  const allOpen=!!reading&&revealed.length===reading.cards.length;
  const chosen=SPREADS.find(s=>s.id===spread)!;
  const outOfDraws=remaining===0;
+ const nextToOpen=reading?.cards.find(c=>!revealed.includes(c.position))?.position??null;
+ const tone=reading?.reader?.[locale]?.tone??null;
+ const hardTone=tone==='challenging'||tone==='difficult';
+ const keyCard=reading?tarotCardById(reading.cards[reading.cards.length-1].id):null;
+ function reveal(position:number){
+  if(!reading||revealed.includes(position))return;
+  const next=[...revealed,position];
+  setRevealed(next);
+  if(next.length===reading.cards.length)guideTo('tarot-answer-heading',{block:'start',delay:450});
+ }
+ /** Carry the question and the drawn cards into the human reader form (it pre-fills empty fields). */
+ function toReader(event:React.MouseEvent){
+  if(!reading)return;
+  event.preventDefault();
+  const cards=reading.cards.map((c,i)=>(i+1)+'. '+c.positionName[locale]+': '+c.name[locale]+(c.reversed?(uk?' (перевернута карта)':' (reversed)'):'')).join('\n');
+  window.dispatchEvent(new CustomEvent('galaxiora:tarot-to-reader',{detail:{
+   question:reading.question??'',
+   context:(uk?'Мій онлайн-розклад «':'My online spread “')+spreadTitle(reading.spread,uk)+(uk?'»:\n':'”:\n')+cards,
+   topic:READER_TOPIC[reading.spread]??null}}));
+  guideTo('human-readings',{block:'start'});
+ }
  const answer=reading&&reading.spread==='yesno'&&allOpen?yesNoOf(reading.cards[0].id,reading.cards[0].reversed):null;
  return <div className="as-tarot-studio" id="spreads">
   <section className={styles.card} aria-labelledby="tarot-spreads-heading">
    <div className={styles.secHead}><h2 id="tarot-spreads-heading">{uk?'Запитайте карти':'Ask the cards'}</h2>
-    <span>{uk?'Оберіть, про що питання — ми підберемо розклад':'Choose what your question is about — we pick the spread'}</span></div>
+    <span>{uk?'Три кроки: тема → питання → карти':'Three steps: topic → question → cards'}</span></div>
    <form className="as-tarot-form" onSubmit={draw}>
-    <fieldset className={styles.spreads}><legend className={styles.srOnly}>{uk?'Оберіть розклад':'Choose your spread'}</legend>
+    <fieldset className={styles.spreads} id="spreads-choose" tabIndex={-1}><legend className={styles.stepTitle}><b className={styles.stepNo}>1</b>{uk?'Оберіть, про що ваше питання':'Choose what your question is about'}</legend>
      {SPREADS.map(v=><label className={styles.spread} data-selected={spread===v.id?'1':undefined} data-wide={v.id==='celtic'?'1':undefined} key={v.id}>
-      <input type="radio" name="spread" value={v.id} checked={spread===v.id} onChange={()=>setSpread(v.id)}/>
+      <input type="radio" name="spread" value={v.id} checked={spread===v.id} onChange={()=>setSpread(v.id)}
+       onClick={e=>{if(e.detail>0)guideTo('as-tarot-question',{focus:true,delay:30});}}/>
       {v.tag&&<span className={styles.tag} data-tag={v.tag}>{TAG[v.tag][uk?0:1]}</span>}
       <span className={styles.mini} aria-hidden="true">{Array.from({length:Math.min(v.count,10)},(_,i)=><i key={i}/>)}</span>
       <strong>{uk?v.uk[0]:v.en[0]}</strong><small>{uk?v.uk[1]:v.en[1]}</small>
      </label>)}
     </fieldset>
-    <label htmlFor="as-tarot-question" className={styles.label}>{spread==='yesno'?(uk?'Ваше питання, на яке можна відповісти «так» чи «ні»':'Your yes-or-no question')
+    <label htmlFor="as-tarot-question" className={styles.label}><b className={styles.stepNo}>2</b>{spread==='yesno'?(uk?'Ваше питання, на яке можна відповісти «так» чи «ні»':'Your yes-or-no question')
      :(uk?'Ваше питання (необов’язково)':'Your question (optional)')}</label>
     <textarea id="as-tarot-question" className={styles.textarea} rows={2} maxLength={600} value={question} onChange={e=>setQuestion(e.target.value)}
      placeholder={spread==='love'?(uk?'Наприклад: що нас чекає з цією людиною?':'For example: where is this relationship going?')
@@ -116,6 +143,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
      <span>{uk?'Хочу розгорнуту AI-трактовку. Дозволяю передати питання і назви карт підключеному AI-провайдеру.':'I want an extended AI reading and allow sending my question and card names to the connected AI provider.'}</span>
     </label>}
     <div className={styles.actions}>
+     <b className={styles.stepNo} aria-hidden="true">3</b>
      <button className="as-button as-button-primary" type="submit" disabled={busy||outOfDraws||loading}>
       <Sparkles size={17}/>{busy?(uk?'Перемішуємо…':'Shuffling…'):(uk?'Розкласти карти':'Draw the cards')}</button>
      <span className={styles.small}>{remaining===null?'':outOfDraws?(uk?'На сьогодні розклади закінчилися — повертайтеся завтра.':'No more readings today — come back tomorrow.')
@@ -132,15 +160,16 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
   {reading&&<section id="tarot-result" className={'as-tarot-result '+styles.card} aria-label={uk?'Результат розкладу':'Tarot reading'}>
    <div className={styles.secHead}><div><span className={styles.eyebrow}>{spreadTitle(reading.spread,uk)}</span>
      <h2>{uk?'Відкривайте карти по одній':'Reveal the cards one by one'}</h2>{reading.question&&<p className={styles.question}>«{reading.question}»</p>}</div>
-    {!allOpen&&<button type="button" onClick={()=>setRevealed(reading.cards.map(c=>c.position))} className="as-button as-button-secondary">{uk?'Відкрити всі':'Reveal all'}</button>}
+    {!allOpen&&<button type="button" onClick={()=>{setRevealed(reading.cards.map(c=>c.position));guideTo('tarot-answer-heading',{block:'start',delay:350});}} className="as-button as-button-secondary">{uk?'Відкрити всі':'Reveal all'}</button>}
    </div>
    <div className={styles.cardsRow} data-count={reading.cards.length}>
     {reading.cards.map((card,i)=>{
      const open=revealed.includes(card.position),lib=tarotCardById(card.id);
+     const isNext=!allOpen&&nextToOpen===card.position;
      return <div className={styles.slot} key={card.position}>
       <span className={styles.position}>{i+1}. {card.positionName[locale]}</span>
-      <button type="button" className={styles.reveal} aria-label={open?card.name[locale]:(uk?'Відкрити карту ':'Reveal card ')+(i+1)}
-       onClick={()=>setRevealed(prev=>prev.includes(card.position)?prev:[...prev,card.position])}>
+      <button type="button" className={styles.reveal} data-next={isNext?'1':undefined} aria-label={open?card.name[locale]:(uk?'Відкрити карту ':'Reveal card ')+(i+1)}
+       onClick={()=>reveal(card.position)}>
        {open?<TarotFace id={card.id} name={card.name[locale]} num={lib?.group==='major'?lib.num:undefined} reversed={card.reversed} locale={locale} size="sm"/>:<TarotBack size="sm"/>}
       </button>
       {open&&<div className={styles.interpret}><strong>{card.name[locale]} · {card.reversed?(uk?'перевернута':'reversed'):(uk?'пряма':'upright')}</strong>
@@ -151,26 +180,39 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
    </div>
    {answer&&<p className={styles.answer} data-answer={answer}>{uk?'Відповідь карт: ':'The cards say: '}<b>{YES_NO[answer][locale]}</b></p>}
    {allOpen&&narrative&&<article className={styles.synthesis} aria-labelledby="tarot-answer-heading">
-    <h3 id="tarot-answer-heading">{uk?'Що показують карти':'What the cards suggest'}</h3>
+    <h3 id="tarot-answer-heading" tabIndex={-1}>{uk?'Що показують карти':'What the cards suggest'}</h3>
+    {tone&&<p className={styles.tone} data-tone={tone}>{uk?'Загальний настрій розкладу: ':'Overall tone of the spread: '}<b>{TONE[tone][uk?0:1]}</b></p>}
     <p className={styles.direct}><GlossaryText text={narrative.directAnswer} locale={locale}/></p>
     <h4>{uk?'Як може розвиватися ситуація':'How the situation could unfold'}</h4>
     <p><GlossaryText text={narrative.development} locale={locale}/></p>
     {reading.cards.length>1&&<><h4>{uk?'Кожна карта у вашому питанні':'Every card in your question'}</h4>
-     {narrative.cardExplanations.map((paragraph,i)=><p key={i}><strong>{i+1}. {reading.cards[i].name[locale]}{reading.cards[i].reversed?(uk?' (перевернута)':' (reversed)'):''}:</strong> {paragraph}</p>)}</>}
+     {narrative.cardExplanations.map((paragraph,i)=><p key={i}><strong>{i+1}.{aiWasUsed?' '+reading.cards[i].name[locale]+(reading.cards[i].reversed?(uk?' (перевернута карта)':' (reversed)'):'')+':':''}</strong> {paragraph}</p>)}</>}
     <h4>{uk?'На що звернути увагу':'What to watch for'}</h4>
     <p><GlossaryText text={narrative.caution} locale={locale}/></p>
     <h4>{uk?'Порада':'Advice'}</h4>
     <p><GlossaryText text={narrative.advice} locale={locale}/></p>
     <p className={styles.small}>{aiWasUsed?(uk?'AI-трактовка за вашою згодою · модель: ':'AI reading with your consent · model: ')+reading.aiReading?.model:
      (uk?'Авторське тлумачення без AI: значення карт і їхня взаємодія в розкладі.':'Original reading without AI: card meanings and how they interact in the spread.')}</p>
-    <div className={styles.afterReading}>
-     <a href="#human-readings" className="as-button as-button-secondary">{uk?'Обговорити питання з живим тарологом':'Discuss it with a human reader'}</a>
-     <button type="button" className="as-button as-button-secondary" onClick={()=>{setReading(null);document.getElementById('spreads')?.scrollIntoView({behavior:'smooth'});}}>
-      {uk?'Новий розклад':'New reading'}</button>
+    <div className={styles.nextSteps} id="tarot-next-steps">
+     <h4>{uk?'Що далі?':'What next?'}</h4>
+     {hardTone&&<p className={styles.small}>{uk?'Розклад непростий. Такі ситуації краще розібрати разом із живим тарологом: він подивиться глибше й підкаже, як обійти ризики.':
+      'This spread is not an easy one. Situations like this are best explored with a human reader, who can look deeper and help you get around the risks.'}</p>}
+     <div className={styles.nextGrid}>
+      <a href="#human-readings" className={styles.nextCard} data-primary={hardTone?'1':undefined} onClick={toReader}>
+       <b>{uk?'Розібрати з живим тарологом':'Go through it with a human reader'}</b>
+       <span>{uk?'Ми перенесемо ваше питання й карти у форму. Перший крок безкоштовний.':'We will carry your question and cards into the form. The first step is free.'}</span></a>
+      <button type="button" className={styles.nextCard} onClick={()=>{setReading(null);setRevealed([]);guideTo('as-tarot-question',{focus:true,delay:60});}}>
+       <b>{uk?'Уточнити питання або новий розклад':'Refine the question or start a new reading'}</b>
+       <span>{remaining===0?(uk?'Сьогоднішні розклади закінчились — нові будуть завтра.':'No readings left today — new ones tomorrow.'):(uk?'Поставте наступне питання, поки ситуація свіжа.':'Ask the follow-up while the situation is fresh.')}</span></button>
+      {keyCard&&<a href={'/'+locale+'/tarot/cards/'+keyCard.slug} className={styles.nextCard}>
+       <b>{uk?'Детальніше про «'+keyCard.name.uk+'»':'More about '+keyCard.name.en}</b>
+       <span>{uk?'Ключова карта цього розкладу: символи, кохання, робота, порада.':'The key card of this spread: symbols, love, work, advice.'}</span></a>}
+     </div>
     </div>
    </article>}
    {allOpen&&reading.id&&<PersonalJournal key={reading.id} locale={locale} kind="TAROT" sourceId={reading.id}/>}
-   {!allOpen&&<p className={styles.small}>{uk?'Відкрийте всі карти, щоб побачити загальну відповідь.':'Reveal all cards to see the overall answer.'}</p>}
+   {!allOpen&&<p className={styles.hint}>{uk?'Натисніть на карту '+(reading.cards.findIndex(c=>c.position===nextToOpen)+1)+', щоб відкрити її. Коли відкриєте всі, з’явиться загальна відповідь.':
+    'Tap card '+(reading.cards.findIndex(c=>c.position===nextToOpen)+1)+' to turn it over. When all are open, the overall answer appears.'}</p>}
    <p className={styles.small}>{uk?'Ілюстрації: Pamela Colman Smith, класична колода Rider–Waite–Smith (1909), у кольорах Galaxiora. Таро не замінює медичних, юридичних чи фінансових рішень.':
     'Artwork: Pamela Colman Smith, the classic Rider–Waite–Smith deck (1909), in Galaxiora colours. Tarot does not replace medical, legal or financial decisions.'}</p>
   </section>}
