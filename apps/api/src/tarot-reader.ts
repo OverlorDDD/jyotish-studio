@@ -1,4 +1,5 @@
 import {describeDraws,type Spread} from './tarot-deck.ts';
+import {cardWeight,spreadTone,type TarotTone} from './tarot-tone.ts';
 type Lang='uk'|'en';
 type Draw={id:string;position:number;reversed:boolean};
 export type ReaderNarrative={
@@ -7,13 +8,15 @@ export type ReaderNarrative={
  cardExplanations:string[];
  caution:string;
  advice:string;
+ /** Honest overall tone of the cards (local reader only; AI narratives may omit it). */
+ tone?:TarotTone;
 };
 /** Distinct concrete situation cues for the classic deck; originally written for Galaxiora.
  * Predictive-sounding scenarios are POSSIBILITIES, never knowledge of future events.
  */
 const MAJOR:Record<string,[string,string,string,string]>={
  fool:['неочікуваний початок, запрошення або імпровізована зустріч','поспішне рішення чи невпевненість перед новим','a spontaneous invitation, encounter or fresh beginning','a rushed choice or hesitation before a new start'],
- magician:['розмову, в якій твої слова можуть змінити хід справи','обіцянку без чіткого плану або спробу впливу','a conversation where your initiative can shift events','a promise without a plan or an attempt at control'],
+ magician:['розмову, в якій ваші слова можуть змінити хід справи','обіцянку без чіткого плану або спробу впливу','a conversation where your initiative can shift events','a promise without a plan or an attempt at control'],
  priestess:['паузу, приховану інформацію або тонкий натяк','мовчання, за яким криється нез’ясоване питання','a pause, a quiet clue or information not yet shared','silence around an unresolved issue'],
  empress:['затишок, турботу або приємну зустріч із близькими','надмірні очікування уваги чи образу через нестачу турботи','comfort, generosity or a warm meeting with loved ones','an imbalance in care or expectations'],
  emperor:['серйозну домовленість чи впорядкування планів','жорстку вимогу, суперечку про правила або контроль','a firm agreement or plans becoming structured','a strict demand or dispute over control'],
@@ -102,56 +105,83 @@ export function cardScenario(id:string,reversed:boolean,lang:Lang):string{
 function period(question:string,lang:Lang):string{
  const sameDay=/вечір|сьогодн|вечером|tonight|today|this evening/i.test(question);
  const soon=/завтра|tomorrow|weekend|вихідн/i.test(question);
- return sameDay?(lang==='uk'?'сьогодні ввечері':'tonight'):soon?(lang==='uk'?'найближчим часом':'in the next few days'):(lang==='uk'?'у період, про який ти запитуєш':'in the period you asked about');
+ return sameDay?(lang==='uk'?'сьогодні ввечері':'tonight'):soon?(lang==='uk'?'найближчим часом':'in the next few days'):(lang==='uk'?'у період, про який ви питаєте':'in the period you asked about');
 }
 function highStakes(q:string){
  return /вагітн|народжен|дитин|діт|діагноз|рак|смерт|помер|самогуб|хвороб|лікуван|health|medical|pregnan|fertil|suicid|death|illness/i.test(q);
+}
+/** Honest opening line: says plainly whether the spread is supportive or hard. */
+function toneLine(cards:ReadonlyArray<{reversed:boolean}>,info:ReturnType<typeof spreadTone>,lang:Lang):string{
+ const uk=lang==='uk',n=cards.length;
+ const lead:Record<TarotTone,[string,string]>={
+  favourable:['Розклад сприятливий: карти здебільшого на вашому боці.','This is a favourable spread: most cards are on your side.'],
+  mostlyGood:['Розклад радше сприятливий, але в ньому є карти, які просять обережності.','The spread is mostly favourable, but some cards ask for caution.'],
+  mixed:['Розклад неоднозначний: можливості тут стоять поруч із реальними перешкодами.','The spread is mixed: real opportunities sit next to real obstacles.'],
+  challenging:['Скажу чесно: розклад складний. Карти говорять більше про перешкоди, затримки й напругу, ніж про легкий результат.','To be honest, this is a challenging spread. The cards speak more of obstacles, delays and tension than of an easy outcome.'],
+  difficult:['Скажу чесно: це важкий розклад. Карти прямо попереджають про проблеми, і прикрашати їх не варто.','To be honest, this is a difficult spread. The cards clearly warn about problems, and it would be wrong to sugar-coat them.']
+ };
+ let line=lead[info.tone][uk?0:1];
+ if(n>1&&info.reversed===n)line+=uk?' Усі '+n+' карти перевернуті — енергія заблокована: щось затримується, іде не так, як хочеться, або ви самі опираєтеся змінам.':' All '+n+' cards are reversed — the energy is blocked: something is delayed, going differently than you hope, or meeting your own resistance.';
+ else if(n>1&&info.reversed*2>n)line+=uk?' Більшість карт перевернуті ('+info.reversed+' з '+n+'): багато що зараз блокується або затримується.':' Most cards are reversed ('+info.reversed+' of '+n+'): much is blocked or delayed right now.';
+ else if(n===1&&cards[0].reversed)line+=uk?' Карта перевернута: її сила зараз заблокована або проявляється через труднощі.':' The card is reversed: its strength is blocked or comes through difficulty.';
+ return line;
 }
 export function readerReading(raw:ReadonlyArray<Draw>,spread:Spread,question:string|null,lang:Lang):ReaderNarrative{
  const cards=describeDraws(raw,spread);
  if(!cards.length)throw new Error('Reading without cards');
  const q=(question||'').trim();
- const first=cards[0],last=cards[cards.length-1],now=cards[Math.min(1,cards.length-1)];
  const t=period(q,lang);
  const uk=lang==='uk';
+ const info=spreadTone(cards);
+ const hardTone=info.tone==='challenging'||info.tone==='difficult';
+ const lastWeight=cardWeight(cards[cards.length-1]);
  const scenario=(i:number)=>cardScenario(cards[i].id,cards[i].reversed,lang);
  const lastEvent=scenario(cards.length-1);
  const firstEvent=scenario(0);
  const middle=cards.length>2?scenario(1):'';
- const title=(i:number)=>cards[i].name[lang]+(cards[i].reversed?(uk?' (перевернута)':' (reversed)'):'');
- const prefix=q?(uk?'На твоє запитання «'+q+'» карти відповідають так: ':'For your question “'+q+'”, the cards suggest this: '):'';
+ const title=(i:number)=>uk?'«'+cards[i].name.uk+'»'+(cards[i].reversed?' (перевернута)':''):cards[i].name.en+(cards[i].reversed?' (reversed)':'');
+ const honest=toneLine(cards,info,lang);
+ const prefix=q?(uk?'Ваше питання: «'+q+'». ':'Your question: “'+q+'”. '):'';
  const strong=cards.length>1?
- (uk?'початок може принести '+firstEvent+', а згодом розклад натякає на '+lastEvent+'.':'you might first notice '+firstEvent+', followed by '+lastEvent+'.'):
- (uk?'карта звертає увагу на '+lastEvent+'.':'the most prominent theme is '+lastEvent+'.');
+ (uk?'сам початок може принести '+firstEvent+', а згодом розклад натякає на '+lastEvent+'.':'you may first notice '+firstEvent+', and then the spread points to '+lastEvent+'.'):
+ (uk?'карта звертає увагу на '+lastEvent+'.':'the card points to '+lastEvent+'.');
  const directAnswer=highStakes(q)?
- (uk?'Цей розклад не може встановити медичний факт, вагітність, тривалість життя чи іншу критичну подію. У символах читається тема '+lastEvent+', але за достовірною інформацією варто звернутися до відповідного джерела.':'A tarot spread cannot establish a medical fact, pregnancy, life expectancy, or other critical outcome. Its imagery suggests '+lastEvent+', but real-world evidence is needed.'):
- (uk?prefix+'За картами '+t+' '+strong+' Разом з іншими картами цей образ відкриває глибший сенс розкладу.':
- prefix+'The cards lean toward this possibility '+t+': '+strong+' Read this image alongside the other cards for its fuller meaning.');
- const eventNames=cards.map((c,i)=>title(i)+' — '+scenario(i));
+ (uk?prefix+'Цей розклад не може встановити медичний факт, вагітність, тривалість життя чи іншу критичну подію. У символах читається тема '+lastEvent+', але за достовірною інформацією варто звернутися до відповідного джерела.':prefix+'A tarot spread cannot establish a medical fact, pregnancy, life expectancy, or other critical outcome. Its imagery suggests '+lastEvent+', but real-world evidence is needed.'):
+ (uk?prefix+honest+' '+(t==='у період, про який ви питаєте'?strong.charAt(0).toUpperCase()+strong.slice(1):t.charAt(0).toUpperCase()+t.slice(1)+' '+strong):
+ prefix+honest+' '+(t==='in the period you asked about'?strong.charAt(0).toUpperCase()+strong.slice(1):t.charAt(0).toUpperCase()+t.slice(1)+' '+strong));
  const partsUk=cards.length===1?
- 'Тут важлива не кількість подій, а їхній характер: '+firstEvent+'. Якщо ситуація ще не розгорнулася, зверни увагу на перший реальний сигнал, який підтвердить або спростує цю версію.':
- 'Початок показує '+firstEvent+'. '+(middle?'Далі розклад натякає на '+middle+'. ':'')+'А фінальна карта підкреслює '+lastEvent+'. Завершення розкладу показує, де назріває вибір і що вже час побачити без прикрас.';
+ 'Тут важлива не кількість подій, а їхній характер: '+firstEvent+'. '+(hardTone?'Не відмахуйтеся від цього сигналу — краще помітити проблему зараз, ніж коли вона виросте.':'Якщо ситуація ще не розгорнулася, зверніть увагу на перший реальний сигнал, який підтвердить або спростує цю версію.'):
+ 'Початок вказує на '+firstEvent+'. '+(middle?'Далі розклад натякає на '+middle+'. ':'')+'Фінальна карта підкреслює '+lastEvent+'. '+(lastWeight<0?(hardTone?'Якщо нічого не змінювати, ситуація найімовірніше піде саме цим непростим шляхом.':'Попри добрий початок, фінал розкладу тривожний: саме тут варто бути найуважнішими.'):hardTone?'Фінал м’якший за решту розкладу, але дістатися до нього буде непросто.':info.tone==='mixed'?'Куди переважить ситуація, залежить від того, як ви впораєтеся з перешкодами.':'Розвиток виглядає добрим, якщо ви не пропустите момент для дії.');
  const partsEn=cards.length===1?
- 'The key is the character of the moment: '+firstEvent+'. Look for real evidence before deciding whether this reading fits.':
- 'The opening suggests '+firstEvent+'. '+(middle?'The middle stage may bring '+middle+'. ':'')+'The final card emphasizes '+lastEvent+'. The final image reveals where a choice is taking shape.';
+ 'The key is the character of the moment: '+firstEvent+'. '+(hardTone?'Do not brush this signal aside — it is better to notice the problem now than when it grows.':'Look for the first real sign that confirms or contradicts this reading.'):
+ 'The opening suggests '+firstEvent+'. '+(middle?'The middle stage may bring '+middle+'. ':'')+'The final card emphasizes '+lastEvent+'. '+(lastWeight<0?(hardTone?'If nothing changes, the situation is most likely to follow this difficult path.':'Despite a good start, the ending of the spread is worrying: this is where to be most careful.'):hardTone?'The ending is softer than the rest of the spread, but getting there will not be easy.':info.tone==='mixed'?'Which way it tips depends on how you handle the obstacles.':'The development looks good as long as you do not miss the moment to act.');
  const cardExplanations=cards.map((c,i)=>{
   const position=c.positionName[lang].toLowerCase();
-  const lead=uk?'У позиції «'+position+'» карта «'+title(i)+'» натякає на '+scenario(i)+'. ':
-   'In the “'+position+'” position, '+title(i)+' suggests '+scenario(i)+'. ';
+  const w=cardWeight(c);
+  const lead=uk?'У позиції «'+position+'» карта '+title(i)+' вказує на '+scenario(i)+'. ':
+   'In the “'+position+'” position, '+title(i)+' points to '+scenario(i)+'. ';
   const detail=c.detail[lang];
-  const qualifier=spread==='celtic'?(uk?'Це окремий шар великого розкладу; зістав його з іншими картами.':'In this larger spread it is one strand, not the whole answer.'):
-   (i===0?(uk?'Це вихідна обставина, а не фінал.':'This sets the scene rather than the outcome.'):(uk?'Це можливий поворот, на який варто звернути увагу.':'This is a potential development worth watching.'));
-  return lead+detail+' '+qualifier;
+  const verdict=w<=-2?(uk?'Це прямо тривожний знак.':'This is a clear warning sign.'):w<0?(uk?'Тут є складність, яку не варто применшувати.':'There is a difficulty here that should not be played down.'):w>=2?(uk?'Це сильна підтримка.':'This is strong support.'):w>0?(uk?'Це радше добрий знак.':'This is mostly a good sign.'):(uk?'Карта нейтральна: усе залежить від ваших дій.':'The card is neutral: it depends on your actions.');
+  const qualifier=spread==='celtic'?(uk?'Це окремий шар великого розкладу; зіставте його з іншими картами.':'In this larger spread it is one strand, not the whole answer.'):
+   (i===0?(uk?'Це вихідна обставина, а не фінал.':'This sets the scene rather than the outcome.'):(uk?'Це можливий поворот, на який варто зважати.':'This is a potential development worth watching.'));
+  return lead+detail+' '+verdict+' '+qualifier;
  });
  const difficult=cards.find(c=>c.id==='major-tower'||c.id==='swords-three'||c.id==='swords-ten');
- const caution=difficult?
-  (uk?'У розкладі звучить гостра нота «'+difficult.name.uk+'»: вона відкриває те, що давно вимагало чесної зміни. '+(difficult.reversed?'Перевернуте положення підкреслює внутрішній опір змінам.':'Пряме положення говорить про переломний момент — важливо зберегти ясність.'):'A sharper note comes from '+difficult.name.en+': something needs honest change. '+(difficult.reversed?'Reversed, it points to resistance to this shift.':'Upright, it marks a turning point that calls for clarity.')):
-  (uk?'Зверни увагу на прихований мотив «'+title(cards.length-1)+'»: '+lastEvent+'. Саме він задає тон завершенню розкладу.':'Notice the underlying theme of '+title(cards.length-1)+': '+lastEvent+'. It sets the tone of the outcome.');
+ const sharp=difficult?(uk?' Найгостріша нота — «'+difficult.name.uk+'»: '+(difficult.reversed?'перевернуте положення говорить, що напруга вже накопичилася, а зміни відкладаються — і від цього вони не стануть легшими.':'це переломний момент; важливо зберегти ясність і не робити різких кроків зопалу.'):
+  ' The sharpest note is '+difficult.name.en+': '+(difficult.reversed?'reversed, the tension has built up while change is being postponed — and postponing will not make it easier.':'it marks a turning point; keep a clear head and avoid rash moves.')):'';
+ const risky=cards.map((c,i)=>({c,i,w:cardWeight(c)})).filter(x=>x.w<0).sort((a,b)=>a.w-b.w);
+ const caution=risky.length?
+  (uk?'Що може піти не так: '+risky.map(x=>title(x.i)+' натякає на '+scenario(x.i)).join('; ')+'. '+(risky.length>1?'Це не дрібниці, а реальні ризики, про які розклад попереджає.':'Поставтеся до цього попередження серйозно.')+sharp:
+   'What could go wrong: '+risky.map(x=>title(x.i)+' points to '+scenario(x.i)).join('; ')+'. '+(risky.length>1?'These are real risks the spread warns about, not small details.':'Take this warning seriously.')+sharp):
+  (uk?'Явно тривожних карт у розкладі немає. Та все ж стежте за темою '+title(cards.length-1)+': '+lastEvent+' — саме вона задає тон завершенню.':'There are no clearly worrying cards here. Still, watch the theme of '+title(cards.length-1)+': '+lastEvent+' — it sets the tone of the outcome.');
+ const step=hardTone?(uk?' Зараз краще не поспішати з важливими рішеннями: перевірте факти, обговоріть складне відверто й майте запасний план.':' Do not rush important decisions now: check the facts, talk openly about what is hard, and keep a plan B.'):
+  info.tone==='mixed'?(uk?' Спирайтеся на сильні карти, але не ігноруйте слабкі місця.':' Lean on the strong cards, but do not ignore the weak spots.'):
+  (uk?' Використайте цю підтримку й зробіть конкретний крок, поки момент сприятливий.':' Use this support and take a concrete step while the moment is right.');
  const advice=uk?
-  (cards.length===1?'Порада таролога: «'+title(0)+'» підкреслює тему '+scenario(0)+'. Придивися, як вона проявляється в твоїй ситуації.':
-  'Порада таролога: «'+title(0)+'» відкриває сюжет через '+scenario(0)+', а «'+title(cards.length-1)+'» веде до '+scenario(cards.length-1)+'. Саме зв’язок між цими двома образами розкриває головний рух розкладу.'):
-  (cards.length===1?'The reader’s insight: '+title(0)+' highlights '+scenario(0)+'. Notice how this theme appears in your situation.':
-  'The reader’s insight: '+title(0)+' opens through '+scenario(0)+', while '+title(cards.length-1)+' moves toward '+scenario(cards.length-1)+'. The thread between them reveals the central movement of the spread.');
- return {directAnswer,development:uk?partsUk:partsEn,cardExplanations,caution,advice};
+  (cards.length===1?'Порада таролога: '+title(0)+' підкреслює тему '+scenario(0)+'. Придивіться, як вона проявляється у вашій ситуації.'+step:
+  'Порада таролога: '+title(0)+' відкриває сюжет через '+scenario(0)+', а '+title(cards.length-1)+' натякає на '+scenario(cards.length-1)+'. Саме зв’язок між цими двома образами показує головний рух розкладу.'+step):
+  (cards.length===1?'The reader’s advice: '+title(0)+' highlights '+scenario(0)+'. Notice how this theme shows up in your situation.'+step:
+  'The reader’s advice: '+title(0)+' opens through '+scenario(0)+', while '+title(cards.length-1)+' points to '+scenario(cards.length-1)+'. The thread between these two images shows the main movement of the spread.'+step);
+ return {directAnswer,development:uk?partsUk:partsEn,cardExplanations,caution,advice,tone:info.tone};
 }
 export const TAROT_SCENARIO_CARD_COUNT=Object.keys(MAJOR).length+Object.keys(MINOR).length;

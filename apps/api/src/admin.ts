@@ -173,7 +173,7 @@ export class AdminController {
    }),
    this.prisma.user.count({where:{subscriptionTier:'PREMIUM',subscriptionEndsAt:{gt:new Date()}}}),
    this.prisma.readingDraft.count({where:{expiresAt:{gt:new Date()}}}),
-   this.prisma.tarotReading.count(),
+   this.prisma.tarotReading.count({where:{spread:{not:'daily'}}}),
    this.prisma.tarotQuestion.count({where:{expertSubmittedAt:{not:null},expertReviewedAt:null}}),
    this.prisma.user.count({where:{createdAt:{gte:weekStart}}}),
    this.prisma.chart.count({where:{createdAt:{gte:weekStart}}}),

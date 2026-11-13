@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import type {PortalLocale} from '../../lib/brand';
+import {guideTo} from '../../lib/guide-focus';
 import styles from './ExpertQuestionForm.module.css';
 type Topic='relationships'|'career'|'growth'|'decision'|'other';
 const topics:Record<Topic,[string,string]>={
@@ -25,8 +26,19 @@ export default function ExpertQuestionForm({locale}:{locale:PortalLocale}){
    if(saved){const d=JSON.parse(saved) as {topic:Topic;question:string;context:string};setTopic(d.topic);setQuestion(d.question);setContext(d.context);}
   }catch{/* ignore */}
   const onAuth=()=>setNeedsSignIn(false);
+  // From a finished online spread: pre-fill only empty fields, never overwrite what the person typed.
+  const fromSpread=(event:Event)=>{
+   const d=(event as CustomEvent<{question?:string;context?:string;topic?:Topic|null}>).detail;
+   if(!d)return;
+   setSubmitted(null);
+   if(d.topic&&d.topic in topics)setTopic(d.topic);
+   if(d.question)setQuestion(q=>q.trim()?q:d.question!.slice(0,600));
+   if(d.context)setContext(c=>c.trim()?c:d.context!.slice(0,2000));
+   guideTo(d.question?'expert-context':'expert-question',{focus:!d.question,delay:500});
+  };
   window.addEventListener('galaxiora:auth-changed',onAuth);
-  return()=>window.removeEventListener('galaxiora:auth-changed',onAuth);
+  window.addEventListener('galaxiora:tarot-to-reader',fromSpread);
+  return()=>{window.removeEventListener('galaxiora:auth-changed',onAuth);window.removeEventListener('galaxiora:tarot-to-reader',fromSpread);};
  },[]);
  async function submit(e:React.FormEvent){
   e.preventDefault();if(busy)return;

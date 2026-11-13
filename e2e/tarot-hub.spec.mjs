@@ -31,6 +31,8 @@ test('Guest yes-or-no reading works without sign-in and shows a clear answer',as
  await page.goto('/uk/tarot');
  await rejectAnalyticsIfPrompted(page);
  await page.locator('input[name="spread"][value="yesno"]').check();
+ // Guided path: choosing a topic moves straight to the question field.
+ await expect(page.locator('#as-tarot-question')).toBeFocused();
  await page.locator('#as-tarot-question').fill('Чи варто мені цього тижня почати курс?');
  await page.getByRole('button',{name:'Розкласти карти'}).click();
  const result=page.locator('.as-tarot-result');
@@ -38,6 +40,12 @@ test('Guest yes-or-no reading works without sign-in and shows a clear answer',as
  await result.getByRole('button',{name:/Відкрити карту 1/}).click();
  await expect(result.locator('[data-answer]')).toContainText(/Так|Ні|Можливо/);
  await expect(result.getByRole('heading',{name:'Що показують карти'})).toBeVisible();
+ await expect(result.locator('[data-tone]')).toContainText('Загальний настрій розкладу');
+ await expect(result.getByText('Що далі?')).toBeVisible();
+ await result.getByRole('link',{name:/Розібрати з живим тарологом/}).click();
+ await expect(page.locator('#expert-question')).toHaveValue('Чи варто мені цього тижня почати курс?');
+ await expect(page.locator('#expert-context')).toHaveValue(/Так чи ні/);
+ await expect(page.getByTestId('tarot-progress-storage')).toContainText('лише в цьому браузері');
  await expect(page.locator('.as-tarot-history')).toHaveCount(0);
  await expect(page.getByText(/Сьогодні залишилось розкладів: 2/)).toBeVisible();
 });

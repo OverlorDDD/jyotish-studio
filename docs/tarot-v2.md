@@ -61,3 +61,8 @@ The backend checks role inside transaction; manually changing account role in cl
 5. Check ADMIN shows **100** initially (minus already-used readings today); MEMBER still **3**, fourth normal-user draw 429.
 6. If AI intentionally configured, check consent, real usage counts from provider and preserved AI reading in history. Uncheck consent: no AI call should occur. If provider fails, user still gets the rule-based reading. No real payment.
 7. No account can see someone else's Tarot history. Check normal Jyotish charts and admin overview continue to work.
+
+## Tarot journey in the profile, honest tone, guided path (2026-11-13)
+- `GET /api/v1/tarot/journey` (owner only) and `POST /api/v1/tarot/journey/daily` (same-origin, owner only, `{date:'YYYY-MM-DD',id,reversed}`). The card of the day is stored as a `TarotReading` row with `spread='daily'` and `narrative={kind:'daily',date}`: **no schema change**. One card per user per local day (row-locked); never counted in the spread quota, never listed in the reading journal or Personal overview. Guests keep the browser-only journey; on sign-in today's guest card is uploaded once and the profile card wins on every device.
+- `apps/api/src/tarot-tone.ts` weighs each drawn card (+2…−2, reversals block supportive cards). The offline reader opens with an honest tone line, lists every difficult card under "what could go wrong", and never calls a spread with a difficult final card or mostly reversed cards "good". The AI prompt receives `spreadTone` and the same honesty rule.
+- Guided path on `/tarot`: topic tile → question field (scroll + highlight + focus) → cards with the next card glowing → answer → "What next?" (human reader form pre-filled with the question and cards, refine/new reading, key card page).

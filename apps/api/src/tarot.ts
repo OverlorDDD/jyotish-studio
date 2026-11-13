@@ -1,8 +1,8 @@
 /** Thin HTTP adapter. Business rules, quotas, persistence and AI live behind use cases. */
-import {BadRequestException,Body,Controller,Get,Inject,HttpException,HttpStatus,Post,Req,UnauthorizedException} from '@nestjs/common';
+import {BadRequestException,Body,Controller,Get,Header,Inject,HttpException,HttpStatus,Post,Req,UnauthorizedException} from '@nestjs/common';
 import {createHourlyLimiter} from './ai.ts';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
-import {IsBoolean,IsIn,IsOptional,IsString,MaxLength} from 'class-validator';
+import {IsBoolean,IsIn,IsOptional,IsString,Matches,MaxLength} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import type {Spread} from './tarot-deck.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
@@ -30,6 +30,14 @@ export class TarotDrawDto {
  @ApiProperty({type:Boolean,required:false,description:'Consent to send question and card facts to external AI'})
  @IsOptional() @IsBoolean() aiConsent?:boolean;
 }
+export class TarotDailyDto {
+ @ApiProperty({type:String,description:'Local calendar day YYYY-MM-DD'})
+ @IsString() @Matches(/^\d{4}-\d{2}-\d{2}$/) date!:string;
+ @ApiProperty({type:String,maxLength:40})
+ @IsString() @MaxLength(40) id!:string;
+ @ApiProperty({type:Boolean})
+ @IsBoolean() reversed!:boolean;
+}
 function requireUser(req:IncomingMessage){
  const userId=cookieUser(req);
  if(!userId)throw new UnauthorizedException('Sign in to save and draw your free tarot readings.');
@@ -43,6 +51,21 @@ export class TarotController{
  deck(){return this.tarot.deck();}
  @Get('readings')
  history(@Req()req:IncomingMessage){return this.tarot.history(requireUser(req));}
+ @Get('journey') @Header('Cache-Control','private, no-store')
+ journey(@Req()req:IncomingMessage){return this.tarot.journey(requireUser(req));}
+ @Post('journey/daily')
+ async saveDaily(@Body()body:TarotDailyDto,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new BadRequestException('Cross-origin tarot request blocked');
+  const userId=requireUser(req);
+  try{return await this.tarot.saveDaily(userId,{date:body.date,id:body.id,reversed:body.reversed});}
+  catch(error){
+   if(error instanceof TarotDomainError){
+    if(error.code==='account_missing')throw new UnauthorizedException(error.message);
+    throw new BadRequestException(error.message);
+   }
+   throw error;
+  }
+ }
  @Post('public-readings')
  guestDraw(@Body()body:TarotGuestDrawDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new BadRequestException('Cross-origin tarot request blocked');
@@ -73,3 +96,5 @@ Reflect.defineMetadata('design:paramtypes',[],TarotController.prototype,'deck');
 Reflect.defineMetadata('design:paramtypes',[Object],TarotController.prototype,'history');
 Reflect.defineMetadata('design:paramtypes',[TarotDrawDto,Object],TarotController.prototype,'draw');
 Reflect.defineMetadata('design:paramtypes',[TarotGuestDrawDto,Object],TarotController.prototype,'guestDraw');
+Reflect.defineMetadata('design:paramtypes',[Object],TarotController.prototype,'journey');
+Reflect.defineMetadata('design:paramtypes',[TarotDailyDto,Object],TarotController.prototype,'saveDaily');

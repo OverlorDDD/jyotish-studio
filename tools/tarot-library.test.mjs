@@ -79,3 +79,55 @@ test('Tarot hub order, 78 card pages in the sitemap, and payment details never s
  assert.match(readers,/\$30/);assert.match(readers,/Binance Pay/);
  assert.doesNotMatch(read('apps/web/app/components/tarot/TarotDailyCard.tsx')+read('apps/web/app/components/TarotStudio.tsx'),/[\u{1F300}-\u{1FAFF}]/u);
 });
+
+test('Readings are honest: reversed and hard cards are named as risks, never dressed up as a good spread',async()=>{
+ const {readerReading}=await import('../apps/api/src/tarot-reader.ts');
+ const {spreadTone}=await import('../apps/api/src/tarot-tone.ts');
+ const hard=[{id:'major-tower',position:0,reversed:true},{id:'major-fool',position:1,reversed:true},{id:'swords-page',position:2,reversed:true}];
+ assert.ok(['challenging','difficult'].includes(spreadTone(hard).tone));
+ const r=readerReading(hard,'love','це буде гарний вечір?','uk');
+ assert.match(r.directAnswer,/Скажу чесно/);
+ assert.match(r.directAnswer,/Усі 3 карти перевернуті/);
+ for(const name of ['Вежа','Блазень','Паж Мечів'])assert.ok(r.caution.includes(name),name);
+ assert.match(r.caution,/Що може піти не так/);
+ assert.ok(!/виглядає добрим/.test(r.development));
+ const en=readerReading(hard,'love','Will tonight be good?','en');
+ assert.match(en.directAnswer,/To be honest/);
+ const good=[{id:'major-sun',position:0,reversed:false},{id:'major-star',position:1,reversed:false},{id:'major-world',position:2,reversed:false}];
+ assert.equal(spreadTone(good).tone,'favourable');
+ assert.ok(!readerReading(good,'three',null,'uk').caution.includes('Що може піти не так'));
+ // A difficult final card is never presented as a good ending.
+ const badEnd=[{id:'major-sun',position:0,reversed:false},{id:'cups-two',position:1,reversed:false},{id:'swords-five',position:2,reversed:false}];
+ assert.equal(spreadTone(badEnd).tone,'mixed');
+ assert.match(readerReading(badEnd,'three',null,'uk').development,/фінал розкладу тривожний/);
+ // The AI prompt carries the same honesty rule and the computed tone.
+ assert.match(read('apps/api/src/tarot-ai.ts'),/spreadTone:fallback\.tone/);
+});
+test('Card commentary speaks to the reader as «ви», like the rest of the site',()=>{
+ const text=read('apps/api/src/tarot-depth.ts')+read('apps/api/src/tarot-deck.ts')+read('apps/api/src/tarot-reader.ts');
+ for(const w of ['Почни','Обери','Спробуй','Зверни','Відбудовуй','Радій','Дозволь','Поміркуй','Перевіряй','твоя','твоє','можеш'])
+  assert.ok(!new RegExp('(^|[^А-Яа-яІіЇїЄєҐґ’])'+w+'([^А-Яа-яІіЇїЄєҐґ’]|$)').test(text),w);
+});
+test('Signed-in journey: profile card of the day wins, days unite, card counts never double',async()=>{
+ const {mergeJourney}=await import('../apps/web/lib/tarot-journey.ts');
+ const local={v:1,daily:{date:'2026-11-13',id:'major-fool',reversed:false},days:['2026-11-12','2026-11-13'],seen:{'major-fool':2,'cups-ace':1},guest:{date:'',count:0}};
+ const merged=mergeJourney(local,{days:['2026-11-10','2026-11-13'],daily:[{date:'2026-11-13',id:'major-sun',reversed:true}],seen:{'major-fool':1,'major-sun':4}},'2026-11-13');
+ assert.deepEqual(merged.days,['2026-11-10','2026-11-12','2026-11-13']);
+ assert.deepEqual(merged.daily,{date:'2026-11-13',id:'major-sun',reversed:true});
+ assert.deepEqual(merged.seen,{'major-fool':2,'cups-ace':1,'major-sun':4});
+ assert.equal(merged.profile,true);
+ const repo=read('apps/api/src/tarot-prisma-repository.ts');
+ assert.match(repo,/spread:\{not:DAILY_SPREAD\},createdAt:\{gte:input\.start/,'daily cards never use the spread quota');
+ assert.match(read('apps/api/src/tarot.ts'),/@Post\('journey\/daily'\)[\s\S]*sameOrigin\(req\)[\s\S]*requireUser\(req\)/);
+});
+test('Guided path: topic → question → cards → answer → next step, with the question carried to a human reader',()=>{
+ const studio=read('apps/web/app/components/TarotStudio.tsx');
+ assert.match(studio,/guideTo\('as-tarot-question',\{focus:true/);
+ assert.match(studio,/guideTo\('tarot-answer-heading'/);
+ assert.match(studio,/galaxiora:tarot-to-reader/);
+ assert.match(studio,/data-next=/);
+ assert.match(read('apps/web/app/components/ExpertQuestionForm.tsx'),/addEventListener\('galaxiora:tarot-to-reader'/);
+ const art=read('apps/web/app/components/tarot/TarotArt.module.css');
+ assert.match(art,/aspect-ratio:720\/1248/,'whole printed card visible, title included');
+ assert.ok(!/height:calc\(100% - 30px\)/.test(art));
+});
