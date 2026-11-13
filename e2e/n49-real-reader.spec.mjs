@@ -30,27 +30,36 @@ async function createInventedBirth(page,lang){
  expect(json.ai?.fallbackReason).toBe('reader_only');
  return json;
 }
-const CHAPTERS=['core','self','money','work','love','home','path','summary'];
+const CHAPTERS=['self','money','work','love','home','path','summary'];
 for(const lang of ['uk','en']){
- test('Reader 10 '+lang+': one reading block, eight chapters, every divisional chart used, mobile layout',async({page},testInfo)=>{
+ test('Reader 10 '+lang+': plain reading first, astrology one tap away, every divisional chart used, mobile layout',async({page},testInfo)=>{
   const report=await createInventedBirth(page,lang);
-  expect(report.reader10?.version).toBe('reader10-full-1');
+  expect(report.reader10?.version).toBe('reader10-plain-1');
   expect(report.reader10.chapters.map(c=>c.id)).toEqual(CHAPTERS);
   const reader=page.getByTestId('reader10');
   await expect(reader).toBeVisible();
   await expect(reader.locator(':scope > h2')).toHaveText(lang==='uk'?'Трактування вашої карти':'Your chart reading');
-  await expect(reader.locator(':scope > article')).toHaveCount(8);
+  await expect(reader.locator(':scope > article')).toHaveCount(7);
   // The previous Reader view is no longer rendered next to the complete reading.
   await expect(page.getByTestId('reader-v8')).toHaveCount(0);
   for(const id of CHAPTERS){
    const chapter=reader.getByTestId('reader10-'+id);
    await expect(chapter.locator(':scope > h3')).not.toBeEmpty();
-   expect(await chapter.locator(':scope > p').count()).toBeGreaterThanOrEqual(4);
+   expect(await chapter.locator(':scope > p').count()).toBeGreaterThanOrEqual(2);
   }
-  await expect(reader.getByTestId('reader10-core').locator('h3')).toHaveText(lang==='uk'?'Центральна тема вашої карти':'The central theme of your chart');
-  await expect(reader.getByTestId('reader10-self').locator('p').first()).toContainText(lang==='uk'?'Ваша лагна —':'Your lagna is');
+  const self=reader.getByTestId('reader10-self');
+  await expect(self.locator('h3')).toHaveText(lang==='uk'?'Хто ви':'Who you are');
+  await expect(self.locator(':scope > p').first()).toContainText(lang==='uk'?'Головна тема вашого життя':'The main theme of your life');
+  // The visible plain layer carries no astrological terms; they live in the collapsed details.
+  const plain=(await reader.locator(':scope > article > p').allInnerTexts()).join(' ');
+  expect(plain).not.toMatch(lang==='uk'?/лагн|накшатр|управител|D\d/i:/lagna|nakshatra|\blord\b|D\d/i);
+  const details=self.getByTestId('reader10-self-details');
+  expect(await details.evaluate(el=>el.open)).toBe(false);
+  await details.locator(':scope > summary').click();
+  await expect(details).toContainText(lang==='uk'?'Лагна, тобто знак':'The lagna, the sign');
+  await expect(details.locator('a[href^="/'+lang+'/nakshatra/"]')).toHaveCount(1);
   // Every supporting divisional chart is named somewhere in the single reading block.
-  const text=await reader.innerText();
+  const text=await reader.evaluate(el=>el.textContent||'');
   for(const div of [2,3,4,7,9,10,12,16,20,24,27,30,40,45])expect(text,'D'+div+' is used').toContain('D'+div+' (');
   expect(text).not.toMatch(/undefined|NaN|D1\.ascendant|house-lord\.\d/);
   await expect(reader.locator('code')).toHaveCount(0);
@@ -82,5 +91,5 @@ test('Reader 10 approximate birth time shows one note and keeps the full reading
  await details.locator('input[type="checkbox"]').check();
  await expect(reader.getByRole('note')).toContainText('Your birth time is marked approximate');
  await expect(reader.getByRole('note')).toHaveCount(1);
- await expect(reader.locator(':scope > article')).toHaveCount(8);
+ await expect(reader.locator(':scope > article')).toHaveCount(7);
 });
