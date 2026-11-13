@@ -59,7 +59,8 @@ test('P3.5 rejects invalid days and locations before a personalized calculation'
  const a=await fixtureAccount(page,{data:{email:'p35-invalid-'+id+'@example.invalid',
   password:'P35-invalid-'+id+'-test-example'}});
  expect(a.status()).toBe(201);
- for(const q of [qs.replace('days=7','days=31'),
+ // 28–31 days are valid calendar-month views since P3.8.7; 32 is not.
+ for(const q of [qs.replace('days=7','days=32'),qs.replace('days=7','days=14'),
   qs.replace('2026-11-02','2026-13-99'),qs.replace('latitude=50.4501','latitude=91')]){
   const response=await page.request.get(root+'?'+q);
   expect(response.status()).toBe(400);
