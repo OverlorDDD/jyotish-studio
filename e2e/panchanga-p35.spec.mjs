@@ -8,29 +8,8 @@ test('P3.5 guest cannot access owner calendar, no public cache',async({request})
  expect(res.status()).toBe(401);
  expect(res.headers()['cache-control']).toContain('no-store');
 });
-for(const locale of ['uk','en']){
- test('P3.5 '+locale+' switches 7/30, shows all sunrise cards and opens exact P3.4 day',async({page})=>{
-  test.setTimeout(180000);
-  await page.goto('/'+locale+'/panchanga?date=2026-11-02');
-  const calendarTab=page.getByRole('button',{name:locale==='uk'?'Мій календар 7/30':'My 7/30 calendar'});
-  await calendarTab.click();
-  const c=page.getByTestId('p35-calendar');
-  await expect(c).toBeVisible();
-  await expect(c.getByTestId('p35-guest')).toBeVisible({timeout:90000});
-  await expect(c.getByTestId('p35-scope')).toContainText(
-   locale==='uk'?'Загальний астрономічний':'General astronomical');
-  await expect(c.getByTestId('p35-days').locator('article')).toHaveCount(7);
-  await c.getByRole('button',{name:'30 '+(locale==='uk'?'днів':'days')}).click();
-  await expect(c.getByTestId('p35-days').locator('article')).toHaveCount(30,{timeout:90000});
-  await c.getByRole('button',{name:locale==='uk'?'Поїздки':'Travel'}).click();
-  await expect(c.getByTestId('p35-days').locator('article')).toHaveCount(30);
-  await c.getByRole('button',{name:locale==='uk'?'Відкрити день і точні години':
-   'Open day and exact hours'}).first().click();
-  await expect(page.getByTestId('p31-my-day')).toBeVisible({timeout:90000});
-  await expect(page.getByTestId('p34-timing')).toBeVisible();
-  await expect(page.getByTestId('p32-headline')).toHaveCount(1);
- });
-}
+// The standalone «Мій календар 7/30» tab was retired with the Panchanga Today redesign (PR #181/#182);
+// the owner calendar API, its privacy and isolation stay covered below.
 test('P3.5 exact owner chart selected, 7/30 verified API and other-user isolation',async({page,browser})=>{
  test.setTimeout(270000);
  const id=randomUUID().slice(0,8);
@@ -62,11 +41,6 @@ test('P3.5 exact owner chart selected, 7/30 verified API and other-user isolatio
   for(const sensitive of ['birthDate','birthTime','birthLatitude','birthLongitude','ownerId','email','input'])
    expect(Object.keys(info)).not.toContain(sensitive);
  }
- await page.goto('/uk/panchanga?date=2026-11-02');
- await page.getByRole('button',{name:'Мій календар 7/30'}).click();
- await expect(page.getByTestId('p35-scope')).toContainText('Персональна оцінка',
-  {timeout:120000});
- await expect(page.getByTestId('p35-days').locator('article')).toHaveCount(7);
  const otherCtx=await browser.newContext();
  try{
   const other=await otherCtx.newPage();
