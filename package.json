@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test:reader9": "node --experimental-strip-types --test tools/n496-human-first-reading.test.mjs tools/n496-ukrainian-editorial-qa.test.mjs tools/reader9-editorial-qa.test.mjs",
+    "test:reader9": "node --experimental-strip-types --test tools/n496-human-first-reading.test.mjs tools/n496-ukrainian-editorial-qa.test.mjs tools/reader9-editorial-qa.test.mjs tools/reader10.test.mjs",
     "test:g32:organic": "node --experimental-strip-types --test tools/g32-organic-health.test.mjs tools/g32-search-intelligence.test.mjs tools/g32-content-engine.test.mjs",
     "g32:organic:health": "node --experimental-strip-types tools/g32-organic-health.mjs --json",
     "g32:organic:search": "node --experimental-strip-types tools/g32-search-intelligence.mjs --json",

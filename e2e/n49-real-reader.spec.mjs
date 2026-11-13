@@ -104,3 +104,18 @@ test('N4.9.6 approximate birth time keeps five life themes without repeated warn
  await expect(reader.getByTestId('reader-n496-life-topics').locator(':scope > section')).toHaveCount(5);
  await expect(reader.locator('code')).toHaveCount(0);
 });
+
+test('Reader 10 opens the reading with chart-specific core and self chapters from the real pipeline',async({page})=>{
+ const report=await createInventedBirth(page,'uk');
+ expect(report.reader10?.version).toBe('reader10-core-self-1');
+ const reader=page.getByTestId('reader10');
+ await expect(reader).toBeVisible();
+ await expect(reader.getByTestId('reader10-core').locator('h3')).toHaveText('Стрижень вашої карти');
+ await expect(reader.getByTestId('reader10-core').locator('p').first()).toContainText('управитель лагни');
+ await expect(reader.getByTestId('reader10-self').locator('p').first()).toContainText('Ваша лагна —');
+ await expect(reader.getByTestId('reader10-self')).toContainText('Накшатра');
+ // The new chapters come before the previous Reader view.
+ const order=await page.evaluate(()=>{const a=document.querySelector('[data-testid=reader10]'),b=document.querySelector('[data-testid=reader-v8]');
+  return a&&b?Boolean(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING):false;});
+ expect(order).toBe(true);
+});
