@@ -81,3 +81,6 @@ test('route contract: canonical, hreflang, sitemap, directory and no invented da
  const hub=read('apps/web/app/components/PanchangaHub.tsx');
  assert.match(hub,/qs\.get\('city'\)/);assert.match(hub,/panchangaCityBySlug\(slug\)/);
 });
+
+// Panchanga Today day plan (registered here so the release needs no package.json change).
+import './panchanga-today.test.mjs';
