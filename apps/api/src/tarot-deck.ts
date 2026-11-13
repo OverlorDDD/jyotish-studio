@@ -59,9 +59,14 @@ export const TAROT_DECK:ReadonlyArray<TarotCard>=[
   reversed:{en:'Check for '+suit.shadowEn+' while approaching '+lensEn+'.',uk:'Зверни увагу на прояви '+suit.shadowUk+' у темі '+lensUk+'.'}
  })))
 ];
-export type Spread='one'|'three'|'celtic';
+export type Spread='one'|'three'|'celtic'|'yesno'|'love'|'work'|'week';
 export const SPREADS={
  one:[{en:'Focus of the day',uk:'Фокус дня'}],
+ yesno:[{en:'Answer to your question',uk:'Відповідь на питання'}],
+ love:[{en:'You',uk:'Ви'},{en:'The other person',uk:'Інша людина'},{en:'What connects you',uk:'Що вас поєднує'}],
+ work:[{en:'Your strength',uk:'Ваша сильна сторона'},{en:'The obstacle',uk:'Перешкода'},{en:'Best next step',uk:'Найкращий крок'}],
+ week:[{en:'Mood of the week',uk:'Настрій тижня'},{en:'Work and plans',uk:'Справи й плани'},{en:'Feelings and people',uk:'Почуття й люди'},
+  {en:'What to watch',uk:'На що зважати'},{en:'Advice',uk:'Порада'}],
  three:[{en:'Past influence',uk:'Вплив минулого'},{en:'Present situation',uk:'Теперішня ситуація'},{en:'Possible direction',uk:'Можливий напрям'}],
  celtic:[
   {en:'Present situation',uk:'Поточна ситуація'},{en:'Crossing challenge',uk:'Перешкода'},

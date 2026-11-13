@@ -4,7 +4,7 @@ import {YOGA_PRACTICES} from '../lib/yoga-content';
 import {ACADEMY_LESSONS} from '../lib/academy-content';
 import {PEDIA_ARTICLES,PEDIA_CATEGORIES} from '../lib/pedia-content';
 import {MOON_SIGN_GUIDES} from '../lib/moon-sign-guides';
-import {TAROT_GUIDES} from '../lib/tarot-guides';
+import {TAROT_LIBRARY} from '../lib/tarot-meanings';
 import {PANCHANGA_CITIES} from '../lib/panchanga-cities';
 import {NAKSHATRA_GUIDES} from '../lib/nakshatra-guides';
 import {publishedList} from '../lib/editorial-public';
@@ -17,7 +17,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
   ...MOON_SIGN_GUIDES.map(s=>'horoscope/western/'+s.slug),
   ...YOGA_PRACTICES.map(p=>'yoga/'+p.slug),...ACADEMY_LESSONS.map(l=>'pedia/'+l.slug),...PEDIA_ARTICLES.map(a=>'pedia/'+a.slug),
   ...PEDIA_CATEGORIES.map(c=>'pedia/topic/'+c.id),
-  ...TAROT_GUIDES.map(card=>'tarot/cards/'+card.slug),
+  ...TAROT_LIBRARY.map(card=>'tarot/cards/'+card.slug),
   ...PANCHANGA_CITIES.map(city=>'panchanga/'+city.slug),
   'nakshatra',...NAKSHATRA_GUIDES.map(item=>'nakshatra/'+item.slug),
   ...yoga.map(p=>'yoga/'+p.slug),...academy.map(p=>'pedia/'+p.slug)])];

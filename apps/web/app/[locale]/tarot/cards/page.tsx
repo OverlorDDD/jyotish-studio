@@ -2,14 +2,20 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import PortalShell from '../../../components/PortalShell';
-import {TAROT_GUIDES} from '../../../../lib/tarot-guides';
+import TarotLibraryGrid from '../../../components/tarot/TarotLibraryGrid';
+import styles from './TarotCards.module.css';
+import hubStyles from '../../../components/tarot/TarotHub.module.css';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../../lib/brand';
 import {indexRobots,publicSiteOrigin,publicIndexingEnabled} from '../../../../lib/site-indexing';
 
 type Props={params:Promise<{locale:string}>};
 const META={
- uk:{title:'Значення карт Таро — прямі й перевернуті | Galaxiora',description:'Авторський довідник Старших Арканів Таро: образи карт, прямі й перевернуті значення, приклади розкладів та запитання для роздумів.',heading:'Значення карт Таро: бібліотека Старших Арканів',lead:'Карта не існує окремо від запитання. Вивчай символи, порівнюй пряме та перевернуте положення, а потім дивись, як аркан працює в цілому розкладі.',read:'Дослідити карту',play:'Спробувати розклад GalaxiTarot',learn:'Як працюють перевернуті карти',method:'Чому контекст має значення',home:'Головна',tarot:'Таро'},
- en:{title:'Tarot Card Meanings — Upright and Reversed | Galaxiora',description:'Original Major Arcana Tarot guide: card symbols, upright and reversed meanings, spread context and questions for reflection.',heading:'Tarot card meanings: the Major Arcana library',lead:'A card never stands apart from its question. Explore its symbols, compare upright and reversed meanings, then see how it fits the entire spread.',read:'Explore this card',play:'Try a GalaxiTarot reading',learn:'How reversed cards work',method:'Why context matters',home:'Home',tarot:'Tarot'}
+ uk:{title:'Значення карт Таро — усі 78 карт: пряме й перевернуте | Galaxiora',description:'Значення всіх 78 карт Таро Райдера–Вейта: Старші Аркани, Жезли, Кубки, Мечі й Пентаклі. Пряме й перевернуте значення, кохання, робота, так чи ні.',
+  home:'Головна',tarot:'Таро',heading:'Значення карт Таро',lead:'Довідник усіх 78 карт класичної колоди Райдера–Вейта: ключові слова, пряме й перевернуте значення, кохання, робота і відповідь «так чи ні». Оберіть масть і відкрийте карту.',
+  method:'Як користуватися довідником',learn:'Урок про перевернуті карти',play:'Витягнути карту дня або зробити розклад'},
+ en:{title:'Tarot Card Meanings — All 78 Cards, Upright and Reversed | Galaxiora',description:'Meanings of all 78 Rider–Waite Tarot cards: Major Arcana, Wands, Cups, Swords and Pentacles. Upright and reversed, love, work, yes or no.',
+  home:'Home',tarot:'Tarot',heading:'Tarot card meanings',lead:'A guide to all 78 cards of the classic Rider–Waite deck: keywords, upright and reversed meanings, love, work and a yes-or-no answer. Choose a suit and open a card.',
+  method:'How to use this guide',learn:'Learn about reversals',play:'Draw a card of the day or do a reading'}
 } as const;
 export function generateStaticParams(){return BRAND.locales.map(locale=>({locale}));}
 export async function generateMetadata({params}:Props):Promise<Metadata>{
@@ -32,27 +38,18 @@ export default async function TarotGuideHub({params}:Props){
  }).replace(/</g,'\\u003c'):null;
  return <PortalShell locale={loc} active="tarot" languagePath="tarot/cards">
   {breadcrumb&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:breadcrumb}}/>}
-  <div className="as-wellness as-academy-detail">
-   <nav aria-label={loc==='uk'?'Навігація':'Breadcrumb'}><Link href={'/'+loc}>{t.home}</Link> / <Link href={'/'+loc+'/tarot'}>{t.tarot}</Link> / {t.heading}</nav>
-   <header className="as-wellness-detail-head" style={{marginTop:30}}>
-    <span className="as-overline">GALAXIORA · GALAXITAROT · MAJOR ARCANA</span>
+  <div className={styles.page}>
+   <nav className={styles.crumbs} aria-label={loc==='uk'?'Навігація':'Breadcrumb'}><Link href={'/'+loc}>{t.home}</Link> / <Link href={'/'+loc+'/tarot'}>{t.tarot}</Link> / {t.heading}</nav>
+   <header className={styles.hub}>
+    <span className={styles.eyebrow}>GALAXIORA · GALAXITAROT</span>
     <h1>{t.heading}</h1><p>{t.lead}</p>
    </header>
-   <section className="as-wellness-grid" aria-label={t.heading}>
-    {TAROT_GUIDES.map(card=><article className="as-wellness-card as-lesson-card" key={card.slug}>
-     <span className="as-overline">MAJOR ARCANA</span>
-     <h2 style={{margin:'0 0 10px',fontSize:'clamp(24px,2.4vw,30px)'}}>
-      <Link href={'/'+loc+'/tarot/cards/'+card.slug}>{card.title[loc]}</Link>
-     </h2>
-     <p>{card.summary[loc]}</p>
-     <Link className="as-wellness-card-link" href={'/'+loc+'/tarot/cards/'+card.slug}>{t.read} →</Link>
-    </article>)}
-   </section>
-   <section className="as-lesson-section" style={{marginTop:32}}>
+   <div className={hubStyles.page} style={{width:'100%',margin:0}}><TarotLibraryGrid locale={loc} heading={false}/></div>
+   <section className={styles.section}>
     <h2>{t.method}</h2>
-    <p>{loc==='uk'?'Бібліотеку розпочато з восьми карт, для яких підготовлено окремі змістовні пояснення. Решта карт доступна в інтерактивному розкладі; ми додаватимемо гіди поступово після редакційної перевірки, а не створюватимемо шаблонні сторінки.':'This library begins with eight cards that have individually developed interpretations. All 78 cards are available in the interactive reading; additional guides will be published after editorial review instead of generating thin templates.'}</p>
-    <p><Link href={'/'+loc+'/pedia/tarot-reversals'}>{t.learn}</Link></p>
-    <p><Link href={'/'+loc+'/tarot'}>{t.play}</Link></p>
+    <p>{loc==='uk'?'Кожна карта має пряме й перевернуте значення. Перевернута карта не обов’язково погана: її енергія слабша, із затримкою або спрямована всередину. Значення завжди читайте разом із питанням і позицією карти в розкладі.':
+     'Every card has an upright and a reversed meaning. A reversed card is not necessarily bad: its energy is weaker, delayed or turned inward. Always read a meaning together with the question and the card’s position in the spread.'}</p>
+    <p style={{marginTop:10}}><Link href={'/'+loc+'/pedia/tarot-reversals'}>{t.learn}</Link> · <Link href={'/'+loc+'/tarot'}>{t.play}</Link></p>
    </section>
   </div>
  </PortalShell>;

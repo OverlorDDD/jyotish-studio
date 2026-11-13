@@ -40,7 +40,7 @@ test('R3.2 about and home pages have no horizontal overflow at mobile width',asy
 test('R3.2 both Tarot landing pages expose a meaningful H1 in the initial HTML',async({page})=>{
  for(const locale of ['uk','en']){
   await page.goto('/'+locale+'/tarot');
-  await expect(page.getByRole('heading',{level:1})).toContainText('GalaxiTarot');
+  await expect(page.getByRole('heading',{level:1})).toContainText(locale==='uk'?'Таро онлайн':'Tarot Reading Online');
  }
 });
 

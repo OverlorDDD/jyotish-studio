@@ -10,7 +10,7 @@ for(const locale of ['uk','en']){
   for(const slug of slugs)expect(body).toContain('/'+locale+'/tarot/cards/'+slug);
   await page.goto(hub);
   await expect(page.getByRole('heading',{level:1})).toContainText(locale==='uk'?'Значення карт Таро':'Tarot card meanings');
-  await expect(page.locator('article.as-lesson-card')).toHaveCount(8);
+  await expect(page.getByTestId('tarot-library').locator('a[href^="/'+locale+'/tarot/cards/"]')).toHaveCount(78);
   for(const slug of slugs){
    const url='/'+locale+'/tarot/cards/'+slug;
    const r=await request.get(url);
