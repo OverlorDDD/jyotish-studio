@@ -20,7 +20,7 @@ export function TarotFace({id,name,reversed=false,locale,size='md'}:{id:string;n
   <span className={styles.inner}>
    <span className={styles.pic}>{source?<img src={source} alt={name+(reversed?(locale==='uk'?' — перевернута':' — reversed'):'')} loading="lazy" decoding="async" draggable={false}
     onError={()=>setSource(current=>current===local?remote:null)}/>:<span className={styles.missing}>{name}</span>}</span>
-   <span className={styles.name}>{name}</span>
+   <span className={styles.name}><span className={styles.nameText}>{name}</span></span>
   </span>
  </span>;
 }
