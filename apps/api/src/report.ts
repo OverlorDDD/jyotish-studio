@@ -7,6 +7,7 @@ import {ruleFindings,ruleFingerprint,RULESET_VERSION,SIGN_NAMES} from '../../../
 import {buildN4VargaReadings,type VargaReadingBundle} from './reader-varga-n4.ts';
 import {buildReaderV7,type PlainReader} from './reader-v7.ts';
 import {buildClassicalReaderV8,type ClassicalReaderReport} from './reader-v8.ts';
+import {buildReader10,type Reader10Report} from './reader10.ts';
 
 /** Report data is compiled from Swiss Ephemeris output, not invented by the LLM. */
 export type ReportSection={
@@ -18,6 +19,7 @@ export type DetailedReport={
  vargaReadings?:VargaReadingBundle;
  readerV7?:PlainReader;
  readerV8?:ClassicalReaderReport;
+ reader10?:Reader10Report|null;
  asOf:string;rulesVersion:string;rulesDigest:string;ruleFacts:ReturnType<typeof ruleFindings>['facts'];
  practicalTips:PracticalTip[];lifePortrait:LifePortrait;editorial:InterpretationV3;
 };
@@ -293,5 +295,5 @@ export function buildDetailedReport(chart:CalculatedChart,lang:'uk'|'en',asOf=ne
  return {sections,generatedAt:asOf+'T00:00:00.000Z',asOf,
   rulesVersion:RULESET_VERSION,rulesDigest:ruleFingerprint(chart,asOf),
   ruleFacts:findings.facts,practicalTips:practicalGuidance(chart,lang),lifePortrait:createLifePortrait(chart,lang),editorial:buildInterpretationV3(chart,lang,asOf),
-  vargaReadings:buildN4VargaReadings(chart,lang),readerV7:buildReaderV7(chart,lang),readerV8:buildClassicalReaderV8(chart,lang,asOf),chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
+  vargaReadings:buildN4VargaReadings(chart,lang),readerV7:buildReaderV7(chart,lang),readerV8:buildClassicalReaderV8(chart,lang,asOf),reader10:buildReader10(chart,lang),chartSummary:(uk?"Лагна: ":"Ascendant: ")+sign(asc.sign,uk),language:lang};
 }
