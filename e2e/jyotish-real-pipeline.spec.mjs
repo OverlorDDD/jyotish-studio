@@ -54,7 +54,7 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  const reading=page.getByTestId('reader10');
  await expect(reading).toBeVisible({timeout:30000});
  await expect(reading.locator(':scope > article')).toHaveCount(8);
- await expect(reading.getByTestId('reader10-core').locator('p').first()).toContainText('управитель');
+ await expect(reading.getByTestId('reader10-core').locator('p').first()).toContainText('управителя лагни');
  await expect(reading.getByTestId('reader10-work')).toContainText('D10');
  await expect(page.getByTestId('reader-v8')).toHaveCount(0);
  await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
@@ -70,16 +70,12 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  await enterSyntheticBirthFields(page);
  await page.getByRole('button',{name:'Calculate birth chart'}).click();
  await expect(page.getByTestId('n4-rc-explorer').locator('.jy-south-chart').first()).toBeVisible();
- const reading=page.getByTestId('reader-n496-life-topics');
+ const reading=page.getByTestId('reader10');
  await expect(reading).toBeVisible({timeout:30000});
- await expect(reading.locator(':scope > section')).toHaveCount(5);
- await expect(page.getByTestId('reader-v8').locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
- for(const topic of await reading.locator(':scope > section').all()){
-  const extra=topic.locator(':scope > details');
-  if(await extra.count())await extra.locator(':scope > summary').click();
- }
- await expect(page.getByTestId('reader-n492-meaning-D60')).not.toBeEmpty();
- await expect(page.getByTestId('reader-v8-d60')).toContainText('A practical step:');
- await expect(page.getByTestId('reader-v8-d60').locator('details > summary').first()).toBeVisible();
- await expect(page.getByTestId('reader-n492-final')).toBeVisible();
+ await expect(reading.locator(':scope > h2')).toHaveText('Your chart reading');
+ await expect(reading.locator(':scope > article')).toHaveCount(8);
+ await expect(reading.getByTestId('reader10-core').locator('p').first()).toContainText('The central theme of your chart is set by the lagna lord');
+ await expect(reading.getByTestId('reader10-love')).toContainText('D9 (Navamsha)');
+ await expect(reading.getByTestId('reader10-summary')).toContainText('In short:');
+ await expect(page.getByTestId('reader-v8')).toHaveCount(0);
 });
