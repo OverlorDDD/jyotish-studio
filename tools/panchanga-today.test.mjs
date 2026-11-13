@@ -100,3 +100,19 @@ test('Panchanga page: day plan first, details later, no calendar-file download, 
  assert.doesNotMatch(parts+hub,/[\u{1F300}-\u{1FAFF}]/u,'site line icons, not emoji');
  assert.doesNotMatch(parts+hub,/Близнят|місячного місяця|Місячний місяць/);
 });
+
+test('Diwali is shown as five days around the calculated Kartika Amavasya',async()=>{
+ const {withFestivalSeries}=await import('../apps/web/lib/panchanga-today.ts');
+ // Kyiv, November 2026: sunrise tithi and tithi at sunset (Pradosha).
+ const rows=[['11-05',26,27],['11-06',27,28],['11-07',28,29],['11-08',29,30],['11-09',30,1],['11-10',1,2],['11-11',2,3],['11-12',3,4]];
+ const days=rows.map(([d,t,p])=>({date:'2026-'+d,tithi:t,pradoshaTithi:p,observances:d==='11-08'?[{id:'diwali_amavasya'}]:[]}));
+ const out=withFestivalSeries(days);
+ const kinds=Object.fromEntries(out.map(d=>[d.date.slice(5),dayObservances(d.observances).map(o=>o.kind).join('+')]));
+ assert.equal(kinds['11-06'],'dhanteras');
+ assert.equal(kinds['11-07'],'naraka_chaturdashi');
+ assert.equal(kinds['11-08'],'diwali');
+ assert.equal(kinds['11-10'],'govardhan');
+ assert.equal(kinds['11-11'],'bhai_dooj');
+ assert.equal(kinds['11-12'],'');
+ assert.equal(days[0].observances.length,0,'input is not mutated');
+});

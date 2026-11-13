@@ -1,7 +1,7 @@
 /* Panchanga Today: one calm page, dense useful information first. Site palette: navy cards, gold lines and glyphs. */
 .page{--card:#16243a;--card2:#1b2b44;--line:rgba(214,185,127,.26);--gold:#e8c08a;--gold2:#f1dfb6;--tx:#e6ecf5;--mut:#a7b5c8;
  --best:#f2cf7c;--good:#5cc8a0;--ok:#8ea4c8;--routine:#a993dc;--avoid:#e57388;
- width:min(1080px,calc(100% - 32px));margin:22px auto 40px;color:var(--tx);line-height:1.55;min-width:0}
+ width:min(100% - 32px,1024px);margin:22px auto 40px;color:var(--tx);line-height:1.55;min-width:0}
 .page h1,.page h2{font-family:'Playfair Display',Georgia,serif;font-weight:600;margin:0}
 .page :is(button,input,select,a,summary):focus-visible{outline:2px solid #f2d298;outline-offset:3px}
 .eyebrow{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--gold)}
@@ -9,9 +9,11 @@
 .head h1{font-size:clamp(30px,5vw,46px);line-height:1.15;color:#fff;margin-top:6px}
 .eclipseShortcut{display:inline-flex;align-items:center;gap:6px;color:var(--gold2);font-size:14px;font-weight:600;text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px}
 .observer{display:grid;gap:10px;margin:0 0 16px}
-.city{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;color:var(--gold)}
-.city>div{flex:1 1 260px;min-width:0;max-width:520px}
-.cityNote{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mut)}
+.city{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 14px}
+.city>div:first-child{flex:0 1 520px;min-width:0}
+.city label{margin-top:0!important}
+.cityNote{display:inline-flex;align-items:center;gap:6px;min-height:42px;font-size:13px;color:var(--mut)}
+.cityNote svg{color:var(--gold)}
 .dateBar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .dateBar strong{font-size:16px;margin:0 4px;color:#fff}
 .chip,.chipGold{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:7px 14px;border:1px solid var(--line);
@@ -135,6 +137,7 @@
 @media(max-width:860px){.acts{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:1fr}}
 @media(max-width:560px){
  .page{width:calc(100% - 24px);margin-top:12px}
+ .cityNote{min-height:0}
  .verdict{grid-template-columns:1fr;gap:12px}
  .moonCol{display:flex;align-items:center;gap:12px;text-align:left;min-width:0}
  .moonDisc{width:58px;height:58px}

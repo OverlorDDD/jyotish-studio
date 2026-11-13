@@ -35,3 +35,14 @@ for(const locale of ['uk','en']){
   }
  });
 }
+
+test('Panchanga page blocks share one column on desktop',async({page})=>{
+ test.setTimeout(150000);
+ await page.setViewportSize({width:1536,height:900});
+ await page.goto('/uk/panchanga?date=2026-11-03');
+ await rejectAnalyticsIfPrompted(page);
+ await expect(page.locator('#pt-verdict')).toBeVisible({timeout:90000});
+ const edges=await page.evaluate(()=>['panchanga-quick-links','panchanga-hub','g32-organic-panchanga','panchanga-faq','panchanga-city-index']
+  .map(id=>{const b=document.querySelector('[data-testid="'+id+'"]').getBoundingClientRect();return [Math.round(b.left),Math.round(b.width)];}));
+ for(const [left,width] of edges){expect(Math.abs(left-edges[1][0])).toBeLessThanOrEqual(2);expect(Math.abs(width-edges[1][1])).toBeLessThanOrEqual(2);}
+});

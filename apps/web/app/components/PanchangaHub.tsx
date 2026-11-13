@@ -1,12 +1,12 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
-import {ArrowUpRight,CalendarDays,ChevronLeft,ChevronRight,MapPin,Orbit} from 'lucide-react';
+import {ArrowUpRight,CalendarDays,ChevronLeft,ChevronRight,Orbit} from 'lucide-react';
 import type {PortalLocale} from '../../lib/brand';
 import {chooseInitialDay} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
 import type {OpportunityDay} from '../../lib/panchanga-opportunities';
-import {activityPlan,dayObservances,dayTier,haircutFriendly,hourPlan,isNewStartFriendly,TODAY_ACTIVITIES,
+import {activityPlan,dayObservances,dayTier,haircutFriendly,hourPlan,isNewStartFriendly,TODAY_ACTIVITIES,withFestivalSeries,
  type ActivityPlan,type DayTier,type HourPeriod,type SunriseAngas} from '../../lib/panchanga-today';
 import CitySearch from './CitySearch';
 import PanchangaLiveDay from './PanchangaLiveDay';
@@ -26,7 +26,7 @@ type Day=LivePanchangaDay&{
  gulikaKalam:{part:number;fromUtc:string;untilUtc:string}};
  sunriseMethod:string;
 };
-type OverviewDay=UpcomingDay&{sunriseUtc:string;sunsetUtc:string;nextSunriseUtc:string;
+type OverviewDay=UpcomingDay&{sunriseUtc:string;sunsetUtc:string;nextSunriseUtc:string;tithi?:number;pradoshaTithi?:number;
  sunriseAngas:SunriseAngas;moonMonth:{name:string|null;lunarMonthStatus:string};
  windows?:{daytimeKalas?:{rahuKalam?:{fromUtc:string;untilUtc:string}}}};
 type Overview={days:OverviewDay[];phaseEvents:{kind:MonthCell['phase'];atUtc:string;localDate:string}[];
@@ -179,7 +179,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   if(!requested)return;
   let live=true;const ctl=new AbortController();setUpcoming(null);
   getJson<Overview>(overviewUrl(requested,requested.date,31),ctl.signal)
-   .then(o=>{if(live&&sameObserver(o.observer,requested)&&o.days?.[0]?.date===requested.date)setUpcoming(o);})
+   .then(o=>{if(live&&sameObserver(o.observer,requested)&&o.days?.[0]?.date===requested.date)setUpcoming({...o,days:withFestivalSeries(o.days)});})
    .catch(()=>{});
   return()=>{live=false;ctl.abort()};
  },[requested]);
@@ -189,7 +189,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   let live=true;const ctl=new AbortController();setMonthData(null);
   const start=month+'-01';
   if(start>='1900-01-01'&&start<='2099-11-01')getJson<Overview>(overviewUrl(requested,start,monthLength(month)),ctl.signal)
-   .then(o=>{if(live&&sameObserver(o.observer,requested)&&o.days?.[0]?.date===start)setMonthData(o);})
+   .then(o=>{if(live&&sameObserver(o.observer,requested)&&o.days?.[0]?.date===start)setMonthData({...o,days:withFestivalSeries(o.days)});})
    .catch(()=>{});
   return()=>{live=false;ctl.abort()};
  },[requested?.timeZone,requested?.latitude,requested?.longitude,month]);
@@ -251,7 +251,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   </header>
   <div className={styles.observer} data-testid="p386-observer">
    <div id="panchanga-place" className={styles.city}>
-    <MapPin size={18} aria-hidden="true"/>
     <CitySearch locale={locale} selectedPlace={form.place} onChoose={c=>
      selectLocation({...form,timeZone:c.timeZone,latitude:String(c.latitude),
       longitude:String(c.longitude),

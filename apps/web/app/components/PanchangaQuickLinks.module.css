@@ -1,4 +1,4 @@
-.strip{display:flex;align-items:center;gap:8px;width:min(100% - 32px,1280px);margin:14px auto 6px;padding:4px 0;overflow-x:auto;white-space:nowrap;font-size:14px;color:#c9d3e3;scrollbar-width:thin}
+.strip{display:flex;align-items:center;gap:8px;width:min(100% - 32px,1024px);margin:14px auto 6px;padding:4px 0;overflow-x:auto;white-space:nowrap;font-size:14px;color:#c9d3e3;scrollbar-width:thin}
 .label{color:#aab6c9;flex:none}
 .strip a{flex:none;padding:6px 12px;border:1px solid rgba(214,185,127,.26);border-radius:999px;color:#e4eaf4;text-decoration:none}
 .strip a:hover,.strip a:focus-visible{border-color:rgba(214,185,127,.75);background:rgba(255,255,255,.06)}

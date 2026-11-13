@@ -181,7 +181,8 @@ export function dayTier(input:{date:string;timeZone:string;sunriseUtc:string;sun
  return ex>=5?'quiet':sup>=2&&ex<=1?'good':'normal';
 }
 export type ObservanceKind='ekadashi'|'pradosha'|'purnima'|'amavasya'|'sankranti'|'rama_navami'|
- 'ganesh_chaturthi'|'chaitra_navratri'|'sharad_navratri'|'guru_purnima'|'janmashtami'|'maha_shivaratri'|'diwali';
+ 'ganesh_chaturthi'|'chaitra_navratri'|'sharad_navratri'|'guru_purnima'|'janmashtami'|'maha_shivaratri'|'diwali'|
+ 'dhanteras'|'naraka_chaturdashi'|'govardhan'|'bhai_dooj';
 export function observanceKind(id:string):ObservanceKind|null{
  if(id.startsWith('ekadashi'))return 'ekadashi';
  if(id.startsWith('pradosha'))return 'pradosha';
@@ -189,10 +190,10 @@ export function observanceKind(id:string):ObservanceKind|null{
  if(id==='amavasya_sunrise')return 'amavasya';
  if(id==='diwali_amavasya')return 'diwali';
  return (['sankranti','rama_navami','ganesh_chaturthi','chaitra_navratri','sharad_navratri','guru_purnima',
-  'janmashtami','maha_shivaratri'] as const).find(k=>k===id)??null;
+  'janmashtami','maha_shivaratri','dhanteras','naraka_chaturdashi','govardhan','bhai_dooj'] as const).find(k=>k===id)??null;
 }
 /** Named festivals outrank generic monthly markers on the same date. */
-const RANK:Record<ObservanceKind,number>={diwali:0,maha_shivaratri:0,janmashtami:0,rama_navami:0,ganesh_chaturthi:0,
+const RANK:Record<ObservanceKind,number>={diwali:0,dhanteras:0,naraka_chaturdashi:0,govardhan:0,bhai_dooj:0,maha_shivaratri:0,janmashtami:0,rama_navami:0,ganesh_chaturthi:0,
  chaitra_navratri:0,sharad_navratri:0,guru_purnima:0,sankranti:1,ekadashi:2,purnima:3,amavasya:3,pradosha:4};
 export function dayObservances(observances:{id:string;metadata?:Record<string,unknown>}[]){
  const seen=new Map<ObservanceKind,{kind:ObservanceKind;toSign:number|null}>();
@@ -202,6 +203,30 @@ export function dayObservances(observances:{id:string;metadata?:Record<string,un
   seen.set(kind,{kind,toSign:Number.isInteger(sign)&&sign>=1&&sign<=12?sign:null});
  }
  return [...seen.values()].sort((a,b)=>RANK[a.kind]-RANK[b.kind]);
+}
+type SeriesDay={date:string;tithi?:number;pradoshaTithi?:number;sunriseAngas?:{tithi:{number:number}};
+ observances:{id:string;atUtc?:string;metadata?:Record<string,unknown>}[]};
+/** Diwali is a five-day festival around the calculated Kartika Amavasya evening:
+ * Dhanteras (Krishna Trayodashi at Pradosha), Naraka Chaturdashi, Lakshmi Puja,
+ * Govardhan Puja (Shukla Pratipada at sunrise) and Bhai Dooj (Shukla Dwitiya at sunrise).
+ * Adds those days as observances; dates still vary by region and tradition. */
+export function withFestivalSeries<D extends SeriesDay>(days:D[]):D[]{
+ const out=days.map(d=>({...d,observances:[...d.observances]}));
+ const tithi=(d:SeriesDay)=>d.tithi??d.sunriseAngas?.tithi.number;
+ const mark=(i:number,id:string)=>{if(i>=0&&i<out.length&&!out[i].observances.some(o=>o.id===id))(out[i].observances as {id:string}[]).push({id});};
+ out.forEach((d,i)=>{
+  if(!d.observances.some(o=>o.id==='diwali_amavasya'))return;
+  let dh=-1;for(let k=i-1;k>=Math.max(0,i-3);k--)if(out[k].pradoshaTithi===28){dh=k;break;}
+  if(dh<0&&i-2>=0)dh=i-2;
+  mark(dh,'dhanteras');
+  if(dh>=0&&i-1>dh)mark(i-1,'naraka_chaturdashi');
+  let gv=-1;for(let k=i+1;k<=Math.min(out.length-1,i+3);k++)if(tithi(out[k])===1){gv=k;break;}
+  if(gv<0&&i+1<out.length)gv=i+1;
+  mark(gv,'govardhan');
+  if(gv>=0){let bd=-1;for(let k=gv+1;k<=Math.min(out.length-1,gv+2);k++)if(tithi(out[k])===2){bd=k;break;}
+   mark(bd>=0?bd:gv+1,'bhai_dooj');}
+ });
+ return out as D[];
 }
 /** Waxing/waning and illuminated fraction from the Sun–Moon elongation. */
 export function moonLight(elongationDegrees:number){
