@@ -49,19 +49,14 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(data.editorial?.version).toBe('6.0.0');
  expect(data.editorial?.chapters?.length).toBe(8);
  expect(data.ai?.fallbackReason).toBe('reader_only');
- // The modern product generates verified Reader 8 automatically when the chart is ready.
- const reading=page.getByTestId('reader-n496-life-topics');
+ // The product renders the complete Reader 10 reading automatically when the chart is ready.
+ expect(data.reader10?.version).toBe('reader10-full-1');
+ const reading=page.getByTestId('reader10');
  await expect(reading).toBeVisible({timeout:30000});
- await expect(reading.locator(':scope > section')).toHaveCount(5);
- await expect(page.getByTestId('reader-v8').locator('[data-testid^="reader-v8-D"]')).toHaveCount(15);
- for(const topic of await reading.locator(':scope > section').all()){
-  const extra=topic.locator(':scope > details');
-  if(await extra.count())await extra.locator(':scope > summary').click();
- }
- await expect(page.getByTestId('reader-v8-d60')).toBeVisible();
- await expect(page.getByTestId('reader-n492-meaning-D60')).not.toBeEmpty();
- await expect(page.getByTestId('reader-v8-d60')).toContainText('Що можна спробувати:');
- await expect(page.getByTestId('reader-n492-final')).toBeVisible();
+ await expect(reading.locator(':scope > article')).toHaveCount(8);
+ await expect(reading.getByTestId('reader10-core').locator('p').first()).toContainText('управитель');
+ await expect(reading.getByTestId('reader10-work')).toContainText('D10');
+ await expect(page.getByTestId('reader-v8')).toHaveCount(0);
  await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
  expect(await page.locator('.reading-root').innerText()).not.toContain('Reader v5');
  // The no-LLM local path is a real complete reading, not an empty fallback.

@@ -211,8 +211,9 @@ export default function DetailedReport({report,lang,minutesUncertain=false}:{rep
    <p className="jy-direct-source">{uk?'AI пояснює підтверджені розрахунки простою мовою. Це трактування традиції, не підтвердження фактів про ваше життя. D60 не використовується для персональних висновків.':'AI explains verified calculations in everyday language. This is a traditional interpretation, not a confirmed fact about your life. D60 is excluded from personal conclusions.'}</p>
    <DirectArticle text={ai.text} lang={lang}/>
   </article>:null}
-  {isReader10(report.reader10)?<Reader10View data={report.reader10} lang={lang}/>:null}
-  {hasV8&&report.readerV8?<ReaderN492View data={report.readerV8} lang={lang} minutesUncertain={minutesUncertain}/>:null}
+  {isReader10(report.reader10)?<Reader10View data={report.reader10} lang={lang} minutesUncertain={minutesUncertain}/>:null}
+  {/* Reader 10 is the complete reading; the previous view stays only for reports generated before it. */}
+  {!isReader10(report.reader10)&&hasV8&&report.readerV8?<ReaderN492View data={report.readerV8} lang={lang} minutesUncertain={minutesUncertain}/>:null}
   {!hasV8&&hasV7&&report.readerV7?<ReaderV7View data={report.readerV7} lang={lang}/>:null}
     {!hasV8&&report.editorial?.chapters?.length&&(!hasLlm||Boolean(ai.chapters?.length))?
      <details className={vargaStyles.deepDive} open={!hasV7&&!hasV8}>

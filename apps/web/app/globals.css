@@ -1309,3 +1309,10 @@
 .jy-data-workspace .jy-reference-details{margin-top:22px}
 .jy-data-workspace .jy-reference-details .jy-data-list{margin:12px 0}
 .reading-provider-quiet{margin:26px 0 10px;font-size:12px;opacity:.75}
+/* Saved charts in the account popover: a long place name must truncate, never widen the list.
+   Grid items default to min-width:auto, which let a nowrap title push the row past the panel. */
+.account-history{grid-template-columns:minmax(0,1fr);max-width:100%;overflow:hidden}
+.account-history .account-history-item{min-width:0;max-width:100%}
+.account-history .account-history-item>div{flex:1 1 0;min-width:0;overflow:hidden}
+.account-history .account-history-item strong,.account-history .account-history-item small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-history .account-history-item button{flex:none}
