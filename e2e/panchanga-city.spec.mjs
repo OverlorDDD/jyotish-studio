@@ -35,5 +35,5 @@ test('City landing link preselects that city in the interactive calendar',async(
  test.setTimeout(120000);
  await page.goto('/en/panchanga?city=delhi');
  await expect(page.getByTestId('global-city-search').getByRole('combobox')).toHaveValue('Delhi',{timeout:20000});
- await expect(page.getByTestId('panchanga-hub').getByTestId('panchanga-five-angas')).toBeVisible({timeout:90000});
+ await expect(page.getByTestId('panchanga-hub').getByTestId('panchanga-hours')).toBeVisible({timeout:90000});
 });
