@@ -120,6 +120,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
       <Sparkles size={17}/>{busy?(uk?'Перемішуємо…':'Shuffling…'):(uk?'Розкласти карти':'Draw the cards')}</button>
      <span className={styles.small}>{remaining===null?'':outOfDraws?(uk?'На сьогодні розклади закінчилися — повертайтеся завтра.':'No more readings today — come back tomorrow.')
       :(uk?'Сьогодні залишилось розкладів: ':'Readings left today: ')+remaining}</span>
+     <a className={'as-tarot-live-link '+styles.liveLink} href="#human-readings">{uk?'Важливе питання? Живий таролог →':'An important question? Ask a human reader →'}</a>
     </div>
     {!signedIn&&!loading&&<p className={styles.small}>{uk?'Без реєстрації — 3 розклади на день. Увійдіть, щоб зберігати їх у щоденнику на будь-якому пристрої.':
      'Without an account: 3 readings a day. Sign in to keep them in your journal on any device.'}</p>}
