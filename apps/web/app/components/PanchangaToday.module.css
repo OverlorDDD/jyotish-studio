@@ -48,9 +48,6 @@
 .facts{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;color:var(--mut)}
 .facts li{display:inline-flex;align-items:center;gap:6px}.facts svg{color:var(--gold)}.facts b{color:var(--tx)}
 
-.personal{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;margin:0 0 18px;
- border:1px dashed var(--gold);border-radius:16px;font-size:15px}
-.personal p{display:flex;align-items:center;gap:10px;margin:0}.personal p svg{color:var(--gold);flex:none}
 
 /* hours */
 .page [data-q=best]{--c:var(--best)}.page [data-q=good]{--c:var(--good)}.page [data-q=ok]{--c:var(--ok)}.page [data-q=routine]{--c:var(--routine)}.page [data-q=avoid]{--c:var(--avoid)}

@@ -5,12 +5,10 @@ import {ArrowUpRight,CalendarDays,ChevronLeft,ChevronRight,MapPin,Orbit} from 'l
 import type {PortalLocale} from '../../lib/brand';
 import {chooseInitialDay} from '../../lib/panchanga-integration';
 import type {LivePanchangaDay} from '../../lib/panchanga-live';
-import type {P38ActivityId} from '../../lib/panchanga-p38-decision';
 import type {OpportunityDay} from '../../lib/panchanga-opportunities';
 import {activityPlan,dayObservances,dayTier,haircutFriendly,hourPlan,isNewStartFriendly,TODAY_ACTIVITIES,
  type ActivityPlan,type DayTier,type HourPeriod,type SunriseAngas} from '../../lib/panchanga-today';
 import CitySearch from './CitySearch';
-import PanchangaRangeView from './PanchangaRangeView';
 import PanchangaLiveDay from './PanchangaLiveDay';
 import GlossaryText from './GlossaryText';
 import {ActivityCards,addDays,clock,dayLabel,HoursOfDay,MonthCalendar,observanceShort,Upcoming,Verdict,
@@ -75,8 +73,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
  const [month,setMonth]=useState<string>(form.date.slice(0,7));
  const [monthData,setMonthData]=useState<Overview|null>(null);
  const [now,setNow]=useState<number|null>(null);
- const [personalOpen,setPersonalOpen]=useState(false);
- const [activity,setActivity]=useState<P38ActivityId>('job_start');
  const [source,setSource]=useState<'checking'|'guest'|'none'|'natal'|'saved'>('checking');
  const [autoSave,setAutoSave]=useState(true);
  const [saveState,setSaveState]=useState<'idle'|'saving'|'saved'|'error'>('idle');
@@ -241,8 +237,7 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
   return Number.isFinite(end)&&end<nx?end:null;
  })():null;
  const prev=addDays(form.date,-1),next=addDays(form.date,1);
- const signedIn=source==='natal'||source==='saved';
- const account=signedIn||source==='none';
+ const account=source==='natal'||source==='saved'||source==='none';
 
  return <section data-testid="panchanga-hub" className={styles.page}>
   <header className={styles.head}>
@@ -286,18 +281,6 @@ export default function PanchangaHub({locale}:{locale:PortalLocale}){
    <Verdict locale={locale} zone={zone} plan={plan} nextPlan={nextPlan} now={isToday?now:null} tier={tier}
     elongation={day.sunrise.elongationDegrees??0} sunriseMs={Date.parse(day.sunriseUtc)} sunsetMs={Date.parse(day.sunsetUtc)}
     tithi={day.sunrise.tithi.number} tithiEndMs={tithiEnd} lunarMonth={lunarMonth}/>
-   <div className={styles.personal} data-testid="p410-personal">
-    <p><Orbit size={18} aria-hidden="true"/>{signedIn
-     ?(uk?'Покажемо, як дні місяця діють саме на вас — за вашою натальною картою.':'See how the days of the month work for you, from your birth chart.')
-     :(uk?'Маєте натальну карту? Покажемо, як дні діють саме на вас.':'Have a birth chart? See how each day works for you personally.')}</p>
-    {signedIn?<button type="button" className={styles.chipGold} aria-expanded={personalOpen} onClick={()=>setPersonalOpen(x=>!x)}>
-     {personalOpen?(uk?'Сховати мій календар':'Hide my calendar'):(uk?'Показати мій календар':'Show my calendar')}</button>
-     :<Link className={styles.chipGold} href={'/'+locale+'/astrology/jyotish'}>{uk?'Побудувати карту':'Create my chart'}</Link>}
-   </div>
-   {signedIn&&personalOpen&&requested&&<div className={styles.card}>
-    <PanchangaRangeView locale={locale} view="month" point={requested} monthSystem="amanta"
-     onPick={date=>{setDate(date);setPersonalOpen(false);}} activity={activity} onActivityChange={setActivity} canPersonal/>
-   </div>}
    <HoursOfDay locale={locale} zone={zone} now={now}
     days={[{date:day.date,plan,isToday},...(nextDay&&nextPlan?[{date:nextDay.date,plan:nextPlan,isToday:false}]:[])]}/>
    {activities&&<ActivityCards locale={locale} zone={zone} plans={activities} nextPlans={nextActivities} isToday={isToday}
