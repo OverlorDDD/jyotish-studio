@@ -15,7 +15,10 @@ Crawler policy: https://galaxiora.com/robots.txt
 - [Panchanga calendar (English)](https://galaxiora.com/en/panchanga): Date- and location-sensitive lunar-calendar information.
 - [Панчанга (українською)](https://galaxiora.com/uk/panchanga): Ukrainian lunar calendar.
 - [Horoscopes](https://galaxiora.com/en/horoscope): Public sign-based horoscope pages.
-- [Tarot](https://galaxiora.com/en/tarot): Public descriptions of Tarot and readings.
+- [Free Tarot reading (English)](https://galaxiora.com/en/tarot): Card of the day and free spreads with no sign-up: yes-or-no, past-present-future, love, work, weekly advice and the Celtic Cross (Rider–Waite deck, upright and reversed). Optional paid question to a human reader.
+- [Таро онлайн безкоштовно (українською)](https://galaxiora.com/uk/tarot): Карта дня і безкоштовні розклади без реєстрації: так чи ні, кохання, робота, порада на тиждень, Кельтський хрест.
+- [Tarot card meanings, all 78 cards (English)](https://galaxiora.com/en/tarot/cards): Upright and reversed meaning, love, work, advice and yes-or-no lean for every Rider–Waite card. Card pages look like https://galaxiora.com/en/tarot/cards/star and https://galaxiora.com/en/tarot/cards/ace-of-cups.
+- [Значення 78 карт Таро (українською)](https://galaxiora.com/uk/tarot/cards): Пряме й перевернуте значення, кохання, робота, порада і «так чи ні» для кожної карти.
 - [Yoga](https://galaxiora.com/en/yoga): Mindfulness and breathing exercises.
 
 ## Reference and methodology

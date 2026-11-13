@@ -54,11 +54,11 @@ test('Tarot experts are nested and legacy /experts links redirect correctly',()=
  const nav=read('apps/web/app/components/PortalShell.tsx');
  const profile=read('apps/web/app/components/AccountDashboard.tsx');
  assert.ok(section.includes("section==='tarot'")&&section.includes("<TarotStudio locale={locale}/>"));
- const tarot=read('apps/web/app/components/TarotStudio.tsx');
- const expert=read('apps/web/app/components/ExpertQuestionForm.tsx');
+ const tarot=read('apps/web/app/components/tarot/TarotReaders.tsx');
+ assert.ok(section.includes('<TarotReaders locale={locale}/>'));
  assert.ok(tarot.includes('<ExpertQuestionForm locale={locale}/>'));
  assert.ok(tarot.includes('<PrivateTarotQuestions locale={locale}/>'));
- assert.ok(expert.includes('id="human-readings"'));
+ assert.ok(tarot.includes('id="human-readings"'));
  assert.ok(!section.includes('<ExpertOffer locale={locale}/>'),'The legacy payment form must not duplicate the new inquiry form');
  assert.ok(route.includes("redirect(portalPath(locale,'tarot')+'#human-readings')"));
  assert.ok(profile.includes("portalPath(locale,'tarot')+'#human-readings'"));

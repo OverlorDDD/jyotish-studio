@@ -241,6 +241,7 @@ jobs:
             e2e/r42-consent.spec.mjs \
             e2e/r42-ga4-diagnostics.spec.mjs \
             e2e/tarot-expert-inquiry.spec.mjs \
+            e2e/tarot-hub.spec.mjs \
             e2e/visitor-analytics.spec.mjs \
             --config=playwright.config.mjs --project=desktop-chromium
       - name: Current production responsive and privacy regression (mobile)
@@ -256,5 +257,6 @@ jobs:
             e2e/panchanga-p386.spec.mjs \
             e2e/panchanga-p389.spec.mjs \
             e2e/r42-consent.spec.mjs \
+            e2e/tarot-hub.spec.mjs \
             e2e/visitor-analytics.spec.mjs \
             --config=playwright.config.mjs --project=mobile-chromium

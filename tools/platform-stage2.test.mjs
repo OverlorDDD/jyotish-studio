@@ -40,8 +40,9 @@ test('post-payment private brief endpoint is fail-closed and ownership-checked',
  const section=source('apps/web/app/components/PortalSection.tsx');
  assert.ok(section.includes('<TarotStudio locale={locale}/>'));
  assert.ok(!section.includes('<ExpertOffer locale={locale}/>'),'Old checkout pitch must not appear beside the live expert inquiry form');
- const tarot=source('apps/web/app/components/TarotStudio.tsx');
- assert.ok(tarot.includes('<ExpertQuestionForm locale={locale}/>'));
+ const readers=source('apps/web/app/components/tarot/TarotReaders.tsx');
+ assert.ok(section.includes('<TarotReaders locale={locale}/>'));
+ assert.ok(readers.includes('<ExpertQuestionForm locale={locale}/>'));
  assert.ok(!section.includes('<ReadingIntake locale={locale}/>'));
 });
 test('provider calls record usage fields and never log raw user prompts or keys',()=>{

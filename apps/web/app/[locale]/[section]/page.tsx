@@ -12,10 +12,10 @@ export async function generateMetadata({params}:{params:Promise<{locale:string;s
  const data=SECTION_COPY[locale][section];
  if(section==='experts')return {title:data.title,robots:{index:false,follow:true},alternates:{canonical:'/'+locale+'/tarot'}};
  // Search intent must land on the actual tool route, not on a generic portal
- // page. Tarot has an account-gated draw, so do not claim anonymous readings.
+ // page. Guests can draw the card of the day and 3 spreads a day without an account.
  const seo=section==='tarot'?{
-  title:locale==='uk'?'Таро онлайн — безкоштовні розклади на 1, 3 і 10 карт':'Free Online Tarot Readings — 1, 3 & 10 Card Spreads',
-  description:locale==='uk'?'78 класичних карт Таро, розклади на 1, 3 і 10 карт, прямі та перевернуті значення. Увійди, щоб зробити й зберегти власний розклад.':'Explore 78 classic Tarot cards, 1-, 3- and 10-card spreads, and upright or reversed meanings. Sign in to draw and save your reading.'
+  title:locale==='uk'?'Таро онлайн — безкоштовні розклади: карта дня, так чи ні, кохання':'Free Online Tarot Readings — Card of the Day, Yes or No, Love',
+  description:locale==='uk'?'Безкоштовне Таро онлайн без реєстрації: карта дня, розклад «так чи ні», на кохання, роботу й тиждень, значення всіх 78 карт і особисте питання живому тарологу.':'Free online Tarot with no sign-up: card of the day, yes-or-no, love, work and weekly spreads, meanings of all 78 cards and a personal question to a human reader.'
  }:section==='yoga'?{title:locale==='uk'?'Йога й медитація — покрокові практики':'Yoga & Mindfulness — Guided Practices',description:locale==='uk'?'Чотири доступні практики йоги та уважності з таймером і поясненнями.':'Four guided yoga and mindfulness sessions with step-by-step support.'}:section==='learn'?{title:locale==='uk'?'Академія — уроки Джйотіш, Таро та йоги':'Academy — Jyotish, Tarot & Yoga Lessons',description:locale==='uk'?'Вісім авторських уроків про Джйотіш, Таро та уважність із перевіркою знань.':'Eight original lessons on Jyotish, Tarot and mindful practice with quizzes.'}:null;
  return {
   title:moduleTitle(section)+(seo?' — '+seo.title:' — '+data.title),description:seo?.description??data.lead,

@@ -3,6 +3,12 @@ import {redirect} from 'next/navigation';
 import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles,Newspaper,MessagesSquare} from 'lucide-react';
 import PortalShell from './PortalShell';
 import TarotStudio from './TarotStudio';
+import TarotDailyCard from './tarot/TarotDailyCard';
+import TarotProgress from './tarot/TarotProgress';
+import TarotLibraryGrid from './tarot/TarotLibraryGrid';
+import TarotReaders from './tarot/TarotReaders';
+import TarotFaq from './tarot/TarotFaq';
+import tarotStyles from './tarot/TarotHub.module.css';
 import YogaHub from './YogaHub';
 import AcademyHub from './AcademyHub';
 import NewsWorld from './NewsWorld';
@@ -38,20 +44,22 @@ const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower
 export default function PortalSection({locale,section}:{locale:PortalLocale;section:PortalSectionSlug}){
  if(section==='astrology')redirect('/'+locale+'/astrology/jyotish');
  if(section==='tarot'){
-  const copy=SECTION_COPY[locale].tarot;
-  return <PortalShell locale={locale} active="tarot"><div className="as-subpage as-direct-module">
-   <header style={{margin:'0 0 22px'}}>
-    <span className="as-overline">GALAXIORA · GALAXITAROT</span>
-    <h1 style={{fontSize:'clamp(30px,3.1vw,44px)',lineHeight:1.18,margin:'10px 0 12px'}}>{copy.title} · GalaxiTarot</h1>
-    <p style={{maxWidth:820}}>{copy.lead}</p>
+  const uk=locale==='uk';
+  return <PortalShell locale={locale} active="tarot"><div className={tarotStyles.page}>
+   <header className={tarotStyles.head}>
+    <span className={tarotStyles.eyebrow}>GALAXIORA · GALAXITAROT</span>
+    <h1>{uk?'Таро онлайн безкоштовно: карта дня і розклади':'Free Tarot Reading Online: Card of the Day & Spreads'}</h1>
+    <p>{uk?'Витягніть карту дня, поставте картам питання про кохання, роботу чи вибір, дізнайтеся значення всіх 78 карт — без реєстрації. А для важливого питання є живий таролог.':
+     'Draw your card of the day, ask the cards about love, work or a choice, and learn the meaning of all 78 cards — no sign-up needed. For an important question, a human reader is here.'}</p>
    </header>
+   <TarotDailyCard locale={locale}/>
    <TarotStudio locale={locale}/>
+   <TarotProgress locale={locale}/>
+   <TarotLibraryGrid locale={locale}/>
+   <TarotReaders locale={locale}/>
+   <TarotFaq locale={locale}/>
    <OrganicIntentBridge kind="tarot" locale={locale}/>
-   <section className="as-lesson-section" style={{marginTop:36}} aria-label={locale==='uk'?'Значення карт Таро':'Tarot card meanings'}>
-    <h2>{locale==='uk'?'Значення Старших Арканів: вивчай і практикуй':'Major Arcana meanings: learn and practice'}</h2>
-    <p>{locale==='uk'?'Розпочни з восьми змістовних гідів: символи, прямі та перевернуті значення, приклади у розкладі. Усі 78 карт доступні в інтерактивній колоді вище.':'Begin with eight detailed guides covering symbolism, upright and reversed meanings and real spread context. All 78 cards remain available in the interactive deck above.'}</p>
-    <Link href={'/'+locale+'/tarot/cards'}>{locale==='uk'?'Відкрити бібліотеку значень карт':'Explore the Tarot card meaning library'} →</Link>
-   </section>
+   <p className={tarotStyles.small} style={{textAlign:'center'}}><Link href={'/'+locale+'/tarot/cards'}>{uk?'Відкрити бібліотеку значень карт':'Explore the Tarot card meaning library'} →</Link></p>
    <GalaxiComModuleLink locale={locale} kind="tarot"/>
   </div></PortalShell>;
  }

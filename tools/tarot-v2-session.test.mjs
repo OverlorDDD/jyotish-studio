@@ -13,7 +13,8 @@ test('Account login and logout notify the mounted Tarot studio',()=>{
  assert.ok(studio.includes('setRemaining(null)'));
  assert.ok(studio.includes('setHistory([])'));
  assert.ok(studio.includes("setError('');setLoading(true)"));
- assert.ok(studio.includes("Повторити перевірку акаунта"));
+ // Guests are no longer blocked: a 401 switches the studio to stateless guest readings.
+ assert.ok(studio.includes("'/api/v1/tarot/public-readings'"));
 });
 
 test('Offline Ukrainian tarot prose uses natural accusative event phrases',()=>{

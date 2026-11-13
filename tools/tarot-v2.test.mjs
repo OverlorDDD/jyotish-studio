@@ -108,8 +108,8 @@ test('Server enforces ADMIN 100 and MEMBER 3 with no ability to claim ADMIN in t
  assert.ok(adapter.includes('narrative:reading'));
  assert.ok(api.includes('TAROT_USE_CASES'));
  assert.ok(!api.includes('this.prisma'));
- assert.ok(ui.includes('TarotCardArt'));
- assert.ok(ui.includes('as-reader-direct'));
+ assert.ok(ui.includes('TarotFace'));
+ assert.ok(ui.includes('styles.direct'));
  assert.ok(ui.includes('aiConsent:aiAvailable&&aiConsent'));
 });
 test('New Tarot schema upgrade is additive and artwork setup downloads a complete classic deck',()=>{
@@ -135,3 +135,6 @@ test('Tarot classic illustrations are automatically prepared on full local start
  assert.ok(installer.includes('rename(temp,destination)'));
  assert.ok(installer.includes('validJpeg(data)'));
 });
+
+// Tarot library, daily habit and guest readings (registered here so the release needs no package.json change).
+import './tarot-library.test.mjs';

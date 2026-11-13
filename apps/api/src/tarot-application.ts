@@ -16,6 +16,16 @@ export class TarotUseCases{
   return {version:'rws-v1',aiAvailable:this.ai.enabled(),total:TAROT_DECK.length,
    spreads:Object.entries(SPREADS).map(([id,positions])=>({id,cards:positions.length}))};
  }
+ /** Guest reading: same cards, reader and synthesis as members; never stored, no AI. */
+ guestDraw(input:{spread:Spread;question?:string}){
+  if(!isTarotSpread(input.spread))throw new TarotDomainError('invalid_spread','Unsupported tarot spread');
+  const question=normalizeTarotQuestion(input.question);
+  const drawn=drawCards(input.spread);
+  return {id:null,createdAt:this.now().toISOString(),spread:input.spread,question,guest:true,
+   cards:describeDraws(drawn,input.spread),synthesis:synthesizeTarot(drawn,input.spread,question),
+   reader:{uk:readerReading(drawn,input.spread,question,'uk'),en:readerReading(drawn,input.spread,question,'en')},
+   aiReading:null};
+ }
  async history(userId:string){
   const {start}=utcDayBounds(this.now());
   const state=await this.readings.history(userId,start);

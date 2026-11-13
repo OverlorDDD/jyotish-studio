@@ -1,5 +1,6 @@
 /** Thin HTTP adapter. Business rules, quotas, persistence and AI live behind use cases. */
 import {BadRequestException,Body,Controller,Get,Inject,HttpException,HttpStatus,Post,Req,UnauthorizedException} from '@nestjs/common';
+import {createHourlyLimiter} from './ai.ts';
 import {ApiProperty,ApiTags} from '@nestjs/swagger';
 import {IsBoolean,IsIn,IsOptional,IsString,MaxLength} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
@@ -9,9 +10,19 @@ import {TarotDomainError} from './tarot-domain.ts';
 import {TarotUseCases} from './tarot-application.ts';
 
 export const TAROT_USE_CASES='TAROT_USE_CASES';
+export const TAROT_SPREAD_IDS=['one','three','celtic','yesno','love','work','week'];
+/** Guests: no account, nothing stored. The browser keeps its own 3-a-day counter;
+ * this process-wide hourly cap only protects the server from abuse. */
+const allowGuestReading=createHourlyLimiter(900);
+export class TarotGuestDrawDto {
+ @ApiProperty({type:String,enum:TAROT_SPREAD_IDS})
+ @IsString() @IsIn(TAROT_SPREAD_IDS) spread!:Spread;
+ @ApiProperty({type:String,required:false,maxLength:600})
+ @IsOptional() @IsString() @MaxLength(600) question?:string;
+}
 export class TarotDrawDto {
- @ApiProperty({type:String,enum:['one','three','celtic']})
- @IsString() @IsIn(['one','three','celtic']) spread!:Spread;
+ @ApiProperty({type:String,enum:TAROT_SPREAD_IDS})
+ @IsString() @IsIn(TAROT_SPREAD_IDS) spread!:Spread;
  @ApiProperty({type:String,required:false,maxLength:600})
  @IsOptional() @IsString() @MaxLength(600) question?:string;
  @ApiProperty({type:String,enum:['uk','en'],required:false})
@@ -32,6 +43,16 @@ export class TarotController{
  deck(){return this.tarot.deck();}
  @Get('readings')
  history(@Req()req:IncomingMessage){return this.tarot.history(requireUser(req));}
+ @Post('public-readings')
+ guestDraw(@Body()body:TarotGuestDrawDto,@Req()req:IncomingMessage){
+  if(!sameOrigin(req))throw new BadRequestException('Cross-origin tarot request blocked');
+  if(!allowGuestReading())throw new HttpException('Too many guest readings right now',HttpStatus.TOO_MANY_REQUESTS);
+  try{return this.tarot.guestDraw({spread:body.spread,question:body.question});}
+  catch(error){
+   if(error instanceof TarotDomainError)throw new BadRequestException(error.message);
+   throw error;
+  }
+ }
  @Post('readings')
  async draw(@Body()body:TarotDrawDto,@Req()req:IncomingMessage){
   if(!sameOrigin(req))throw new BadRequestException('Cross-origin tarot request blocked');
@@ -51,3 +72,4 @@ export class TarotController{
 Reflect.defineMetadata('design:paramtypes',[],TarotController.prototype,'deck');
 Reflect.defineMetadata('design:paramtypes',[Object],TarotController.prototype,'history');
 Reflect.defineMetadata('design:paramtypes',[TarotDrawDto,Object],TarotController.prototype,'draw');
+Reflect.defineMetadata('design:paramtypes',[TarotGuestDrawDto,Object],TarotController.prototype,'guestDraw');

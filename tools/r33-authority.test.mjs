@@ -47,7 +47,7 @@ test('R3.3 only canonical curated routes are indexed; no account or preview URLs
  assert.ok(SEO_PATHS.includes('tarot/cards'));
  assert.ok(SEO_PATHS.includes('eclipses/2027'));
  const sitemap=read('apps/web/app/sitemap.ts');
- assert.match(sitemap,/TAROT_GUIDES/);
+ assert.match(sitemap,/TAROT_LIBRARY/);
  assert.match(sitemap,/tarot\/cards\//);
  assert.match(sitemap,/publicIndexingEnabled\(\)/);
  const deck=read('apps/api/src/tarot-deck.ts');

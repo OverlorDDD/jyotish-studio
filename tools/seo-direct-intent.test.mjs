@@ -9,7 +9,8 @@ test('Intent-specific Tarot and natal pages have distinct UK/EN metadata and can
  assert.match(section,/section==='tarot'\?\{/);
  assert.match(section,/Таро онлайн — безкоштовні розклади/);
  assert.match(section,/Free Online Tarot Readings/);
- assert.match(section,/Sign in to draw and save your reading/);
+ assert.match(section,/no sign-up/);
+ assert.match(section,/без реєстрації/);
  assert.match(section,/alternates:\{canonical:'\/'\+locale\+'\/'\+section/);
  assert.match(section,/'x-default':'\/en\/'\+section/);
  assert.ok(natal.includes('Натальна карта Джйотіш — 16 карт | Galaxiora'));
