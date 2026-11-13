@@ -101,10 +101,10 @@ jobs:
             # duplicate UI. Run their maintained replacement contracts plus
             # protected specialist, week/month, and bilingual mobile tests.
             npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p387.spec.mjs e2e/panchanga-p388.spec.mjs e2e/panchanga-p389.spec.mjs e2e/panchanga-daily-opportunities.spec.mjs --config=playwright.config.mjs --project=desktop-chromium
-          elif [[ "${{ github.event_name }}" == "pull_request" ]] && grep -q 'PanchangaDailyOpportunities' apps/web/app/components/PanchangaHub.tsx; then
-            # The current P4.10 Panchanga removed legacy P2 duplicated controls.
-            # Validate its actual bilingual, mobile, accessibility and protected
-            # guest flows; keep legacy P2 specs for the historical P2 branches.
+          elif [[ "${{ github.event_name }}" == "pull_request" ]] && grep -qE 'PanchangaDailyOpportunities|hourPlan\(' apps/web/app/components/PanchangaHub.tsx; then
+            # The current Panchanga (P4.10, then Panchanga Today) removed legacy P2
+            # duplicated controls. Validate its actual bilingual, mobile, accessibility
+            # and protected guest flows; keep legacy P2 specs for historical P2 branches.
             npx playwright test e2e/panchanga-p386.spec.mjs e2e/panchanga-p389.spec.mjs e2e/panchanga-daily-opportunities.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --workers=2
           else
             npx playwright test e2e/panchanga.spec.mjs e2e/panchanga-v2.spec.mjs e2e/panchanga-p22.spec.mjs e2e/panchanga-p23.spec.mjs e2e/panchanga-p24.spec.mjs e2e/panchanga-p25.spec.mjs e2e/panchanga-p31.spec.mjs e2e/panchanga-p32.spec.mjs e2e/panchanga-p33.spec.mjs e2e/panchanga-p34.spec.mjs e2e/panchanga-p35.spec.mjs --config=playwright.config.mjs --project=desktop-chromium --project=mobile-chromium
