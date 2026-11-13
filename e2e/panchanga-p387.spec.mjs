@@ -48,7 +48,7 @@ test('Guest: protected personal endpoints are not called automatically',async({p
  await expect(page.getByRole('button',{name:'Показати мій календар'})).toHaveCount(0);
 });
 
-test('P3.8.7 real signed-in month 31/29 days, personal calendar overlay, and second-owner isolation',async({page,browser},testInfo)=>{
+test('P3.8.7 real signed-in month 31/29 days, natal city, and second-owner isolation',async({page,browser},testInfo)=>{
  test.skip(testInfo.project.name!=='desktop-chromium','Full chart calculation tested once on desktop');
  test.setTimeout(270000);
  const suffix=randomUUID().slice(0,8);
@@ -77,11 +77,10 @@ test('P3.8.7 real signed-in month 31/29 days, personal calendar overlay, and sec
  }
  await page.goto('/uk/panchanga?date=2026-11-02');
  await rejectAnalyticsIfPrompted(page);
- await page.getByRole('button',{name:'Показати мій календар'}).click({timeout:90000});
- await expect(page.getByTestId('panchanga-day-cell')).toHaveCount(30,{timeout:90000});
- await page.getByRole('button',{name:'Показати особисті події'}).click();
- await expect(page.getByTestId('p387-personal-scope')).toBeVisible({timeout:120000});
- await expect(page.getByTestId('p387-sunrise')).toHaveCount(30);
+ // The chart owner's city comes from the birth chart; no duplicate month grid.
+ await expect(page.getByTestId('panchanga-hub')).toContainText('Місто з вашої натальної карти',{timeout:90000});
+ await expect(page.getByTestId('panchanga-month-day')).toHaveCount(30,{timeout:90000});
+ await expect(page.getByTestId('panchanga-day-cell')).toHaveCount(0);
  const other=await browser.newContext();
  try{
   const p=await other.newPage();

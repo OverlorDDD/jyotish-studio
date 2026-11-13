@@ -38,13 +38,13 @@ for(const locale of ['uk','en']){
   });
  }
 }
-test('Panchanga Today guest sees a birth-chart invitation and the private API stays protected',async({page,request})=>{
+test('Panchanga Today has no duplicate personal calendar block and the private API stays protected',async({page,request})=>{
  test.setTimeout(120000);
  await page.goto('/en/panchanga?date='+DAY);
  await rejectAnalyticsIfPrompted(page);
- const personal=page.getByTestId('p410-personal');
- await expect(personal).toContainText('birth chart',{timeout:90000});
- await expect(personal.getByRole('link',{name:'Create my chart'})).toHaveAttribute('href','/en/astrology/jyotish');
+ await expect(page.locator('#pt-verdict')).toBeVisible({timeout:90000});
+ await expect(page.getByTestId('p410-personal')).toHaveCount(0);
+ await expect(page.getByTestId('panchanga-day-cell')).toHaveCount(0);
  const q=new URLSearchParams({date:DAY,zone:'Europe/Kyiv',latitude:'50.4501',
   longitude:'30.5234',at:'2026-11-05T10:00:00.000Z'});
  const privateResponse=await request.get('/api/v1/personal/panchanga/resonance?'+q);
