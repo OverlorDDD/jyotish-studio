@@ -1,5 +1,5 @@
-.section{width:min(100% - 32px,1024px);margin:clamp(30px,5vw,56px) auto;padding:clamp(20px,4vw,40px);border:1px solid rgba(214,185,127,.3);border-radius:24px;background:linear-gradient(145deg,#18283f 0%,#101b30 62%,#111d30 100%);color:#e4eaf4}
-.title{margin:0 0 8px;font-family:'Playfair Display',serif;font-size:clamp(22px,3.2vw,32px);color:#fff}
+.section{width:min(100% - 32px,1024px);margin:clamp(30px,5vw,56px) auto;padding:clamp(20px,4vw,40px);border:1px solid var(--gx-line);border-radius:24px;background:var(--gx-panel);color:#e4eaf4}
+.title{margin:0 0 8px;font-family:var(--gx-font);font-size:clamp(22px,3.2vw,32px);color:#fff;letter-spacing:-.02em}
 .lead{margin:0 0 18px;color:#c9d3e3}
 .region{margin-top:18px}
 .region h3{margin:0 0 8px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#d6b97f}

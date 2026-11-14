@@ -1,7 +1,7 @@
 /* GalaxiTarot: navy cards, gold lines, one 1024px column like the rest of the site. */
-.page{--card:#16243a;--card2:#1b2b44;--line:rgba(214,185,127,.26);--gold:#e8c08a;--gold2:#f1dfb6;--tx:#e6ecf5;--mut:#a7b5c8;--good:#5cc8a0;--rose:#e57388;--violet:#a993dc;
+.page{--card:#16243a;--card2:#1b2b44;--line:var(--gx-line);--gold:#e8c08a;--gold2:#f1dfb6;--tx:#e6ecf5;--mut:#a7b5c8;--good:#5cc8a0;--rose:#e57388;--violet:#a993dc;
  width:min(100% - 32px,1024px);margin:22px auto 40px;color:var(--tx);line-height:1.55;min-width:0}
-.page h1,.page h2,.page h3{font-family:'Playfair Display',Georgia,serif;font-weight:600;margin:0}
+.page h1,.page h2,.page h3{font-family:var(--gx-font);font-weight:700;margin:0}
 .page :is(button,a,summary,input,textarea):focus-visible{outline:2px solid #f2d298;outline-offset:3px}
 .head{margin:0 0 16px}
 .head h1{font-size:clamp(30px,4.6vw,44px);line-height:1.15;color:#fff;margin:8px 0 8px}
@@ -75,7 +75,7 @@
 .reveal:hover{transform:translateY(-3px)}
 .interpret{font-size:14px;color:#dbe3f0}.interpret strong{color:#fff}.interpret p{margin:4px 0}.interpret a{color:var(--gold2);font-size:13px}
 .answer{margin:8px 0 14px;padding:14px 18px;border-radius:14px;font-size:18px;text-align:center;border:1px solid var(--line);background:rgba(255,255,255,.03)}
-.answer b{font:600 26px Georgia,serif;margin-left:6px}
+.answer b{font:700 26px var(--gx-font);margin-left:6px;letter-spacing:-.02em}
 .answer[data-answer=yes] b{color:var(--good)}.answer[data-answer=no] b{color:var(--rose)}.answer[data-answer=maybe] b{color:var(--gold2)}
 .synthesis{margin-top:8px;padding-top:14px;border-top:1px solid var(--line)}
 .synthesis h3{font-size:22px;color:var(--gold2);margin:0 0 8px}
@@ -112,7 +112,7 @@
 /* progress */
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .stat{padding:16px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--line);min-width:0}
-.stat b{font:600 26px Georgia,serif;color:var(--gold2)}.stat p{margin:4px 0 0;font-size:14px;color:var(--mut)}.stat a{color:var(--gold2)}
+.stat b{font:700 26px var(--gx-font);color:var(--gold2);letter-spacing:-.02em}.stat p{margin:4px 0 0;font-size:14px;color:var(--mut)}.stat a{color:var(--gold2)}
 .bar{display:block;height:8px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2))}
 /* library */
@@ -125,17 +125,17 @@
 .library a:hover span:last-child{color:var(--gold2)}
 /* readers */
 .readersTitle{font-size:clamp(24px,3vw,30px);color:#fff;margin:8px 0 6px!important}
-.quote{font:italic 19px/1.45 Georgia,serif;color:var(--gold2);margin:6px 0 16px}
+.quote{font:italic 19px/1.45 var(--gx-font);color:var(--gold2);margin:6px 0 16px}
 .readers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 16px}
 .reader{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;padding:16px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
 .reader h3{font-size:20px;color:#fff}.reader p{margin:4px 0 0;font-size:14px;color:#cfd8e6}
 .focus{color:var(--gold)!important;font-weight:600}
-.avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font:600 28px Georgia,serif;color:var(--gold2);border:1px solid var(--gold);background:radial-gradient(circle at 35% 30%,#2a3a58,#141f33)}
+.avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font:700 28px var(--gx-font);color:var(--gold2);border:1px solid var(--gold);background:radial-gradient(circle at 35% 30%,#2a3a58,#141f33);letter-spacing:-.02em}
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;list-style:none;margin:0 0 6px;padding:0}
 .steps li{padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line);font-size:14px}
 .steps b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--gold);color:var(--gold2);margin-bottom:8px;font-size:13px}
 /* faq */
-.faq details{border-bottom:1px solid rgba(214,185,127,.15);padding:11px 0}
+.faq details{border-bottom:1px solid var(--gx-line);padding:11px 0}
 .faq details:last-child{border-bottom:0}
 .faq summary{cursor:pointer;font-weight:600}.faq p{margin:8px 0 0;color:#c9d3e3}
 @media(max-width:860px){.page .hero{grid-template-columns:1fr}.nextGrid{grid-template-columns:1fr}.stage{min-height:380px;order:-1}.spreads,.stats,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}

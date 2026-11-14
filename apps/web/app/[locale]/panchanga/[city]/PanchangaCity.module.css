@@ -1,8 +1,8 @@
 .page{width:min(100% - 32px,1024px);margin:clamp(20px,4vw,44px) auto;color:#e4eaf4;line-height:1.65}
-.page h2{margin:34px 0 12px;font-family:'Playfair Display',serif;font-size:clamp(20px,2.6vw,26px);color:#f1dfb6}
+.page h2{margin:34px 0 12px;font-family:var(--gx-font);font-size:clamp(20px,2.6vw,26px);color:#f1dfb6;letter-spacing:-.02em}
 .page a{color:#d6b97f}
 .crumbs{font-size:14px;color:#aab6c9}
-.title{margin:10px 0 6px;font-family:'Playfair Display',serif;font-size:clamp(28px,4.6vw,44px);line-height:1.15;color:#fff}
+.title{margin:10px 0 6px;font-family:var(--gx-font);font-size:clamp(28px,4.6vw,44px);line-height:1.15;color:#fff;letter-spacing:-.02em}
 .date{margin:0 0 18px;color:#c9d3e3}
 .date time{font-weight:700;color:#f1dfb6}
 .lead{font-size:17px;color:#dbe3f0}
@@ -11,14 +11,14 @@
 /* The site-wide table styles are tuned for the dense chart dashboard (9–11px); readable sizes here. */
 .table tbody th,.table td{font-size:15px;letter-spacing:0;line-height:1.45}
 .table tbody th{font-weight:600}
-.table th,.table td{padding:11px 12px;border-bottom:1px solid rgba(214,185,127,.22);text-align:left;vertical-align:top}
+.table th,.table td{padding:11px 12px;border-bottom:1px solid var(--gx-line);text-align:left;vertical-align:top}
 .table thead th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#aab6c9}
 .table tbody th{color:#f1dfb6;white-space:nowrap}
 .changes{margin:0;padding-left:20px}
 .changes li{margin:6px 0}
 .changes span{color:#f1dfb6}
 .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:0}
-.facts div{padding:12px 14px;border:1px solid rgba(214,185,127,.22);border-radius:14px;background:rgba(255,255,255,.035)}
+.facts div{padding:12px 14px;border:1px solid var(--gx-line);border-radius:14px;background:rgba(255,255,255,.035)}
 .facts dt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#aab6c9}
 .facts dd{margin:4px 0 0;font-size:18px;font-weight:700;color:#fff}
 .note{font-size:14px;color:#aab6c9}

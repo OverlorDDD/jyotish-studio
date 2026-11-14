@@ -54,6 +54,6 @@
 @media(prefers-reduced-motion:reduce){.heroCta{transition:none}.heroCta:hover{transform:none}}
 
 /* Stage 0: after calculation the marketing hero gives way to a compact result header. */
-.resultHead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:8px 0 14px;padding:clamp(16px,2.4vw,26px);border:1px solid rgba(214,185,127,.3);border-radius:18px;background:linear-gradient(145deg,#1b2a3f,#132033)}
-.resultHead h1{margin:6px 0 4px;font:600 clamp(26px,3.6vw,38px)/1.15 'Playfair Display',Georgia,serif;color:#fff}
+.resultHead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:8px 0 14px;padding:clamp(16px,2.4vw,26px);border:1px solid var(--gx-line);border-radius:18px;background:var(--gx-panel)}
+.resultHead h1{margin:6px 0 4px;font:700 clamp(26px,3.6vw,38px)/1.15 var(--gx-font);color:#fff;letter-spacing:-.02em}
 .resultHead p{margin:0;font-size:15px;color:#c9d3e3}

@@ -2,17 +2,17 @@
   width:min(100% - 32px,1024px);
   margin:clamp(30px,5vw,60px) auto;
   padding:clamp(22px,4vw,44px);
-  border:1px solid rgba(214,185,127,.34);
+  border:1px solid var(--gx-line);
   border-radius:24px;
-  background:linear-gradient(145deg,#18283f 0%,#101b30 62%,#111d30 100%);
+  background:var(--gx-panel);
   color:#e4eaf4;
   text-align:center;
 }
 .eyebrow{font-size:11px;font-weight:700;letter-spacing:.17em;color:#d6b97f}
-.title{margin:10px 0 12px;font-family:'Playfair Display',serif;font-size:clamp(24px,3.6vw,36px);color:#fff}
+.title{margin:10px 0 12px;font-family:var(--gx-font);font-size:clamp(24px,3.6vw,36px);color:#fff;letter-spacing:-.02em}
 .lead{max-width:720px;margin:0 auto 26px;line-height:1.65;color:#c9d3e3}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin:0;padding:0;list-style:none;text-align:left}
-.card{display:flex;flex-direction:column;gap:6px;height:100%;padding:16px 18px;border:1px solid rgba(214,185,127,.22);border-radius:16px;background:rgba(255,255,255,.035);color:inherit;text-decoration:none;transition:border-color .15s,background .15s}
+.card{display:flex;flex-direction:column;gap:6px;height:100%;padding:16px 18px;border:1px solid var(--gx-line);border-radius:16px;background:rgba(255,255,255,.035);color:inherit;text-decoration:none;transition:border-color .15s,background .15s}
 .card:hover,.card:focus-visible{border-color:rgba(214,185,127,.7);background:rgba(255,255,255,.07)}
 .cardTitle{font-size:16px;color:#f1dfb6}
 .cardText{font-size:14px;line-height:1.5;color:#c9d3e3}

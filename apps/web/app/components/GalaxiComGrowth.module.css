@@ -41,5 +41,5 @@
  border:1px solid #50647c;border-radius:11px;color:#f0d3a1;background:#203149;cursor:pointer}
 .trigger[aria-expanded=true]{background:#2e405b;border-color:#d6b77d}
 .expanded{min-width:0;width:100%;overflow-wrap:anywhere}
-.expanded h3{font:600 19px/1.4 Georgia,serif;color:#f0d4a4;margin:0 0 12px}
+.expanded h3{font:700 19px/1.4 var(--gx-font);color:#f0d4a4;margin:0 0 12px}
 .expanded .settings{max-width:640px}

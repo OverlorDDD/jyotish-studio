@@ -2,7 +2,7 @@
 .hero{position:relative;overflow:hidden;border:1px solid #405066;border-radius:22px;padding:clamp(24px,5vw,54px);background:radial-gradient(circle at 86% 25%,#2a344b 0,transparent 38%),linear-gradient(130deg,#182538,#0d1625);box-shadow:0 22px 70px #030b193d}
 .stars{position:absolute;top:22px;right:35px;color:#a99870;letter-spacing:28px;opacity:.7;font-size:25px}
 .eyebrow{display:block;font-size:11px;letter-spacing:3px;color:#d5b77f;font-weight:650}
-.hero h1{font-family:Georgia,'Playfair Display',serif;font-size:clamp(38px,6vw,68px);line-height:1.1;letter-spacing:-1px;margin:16px 0;color:#f3e4ca}
+.hero h1{font-family:var(--gx-font);font-size:clamp(38px,6vw,68px);line-height:1.1;letter-spacing:-1px;margin:16px 0;color:#f3e4ca}
 .hero p{font-size:16px;max-width:720px;line-height:1.8;color:#b9c7d5;margin:0}
 .heroBottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:28px;flex-wrap:wrap;color:#d8c49a;font-size:13px}
 .heroBottom span{display:flex;align-items:center;gap:8px}
@@ -35,7 +35,7 @@
 .thread,.panel,.reply{background:linear-gradient(135deg,#1b283d,#121e2f);border:1px solid #35455d;border-radius:15px;padding:22px;margin-bottom:13px}
 .thread{transition:border-color .15s ease}
 .thread:hover{border-color:#978366}
-.thread h2,.panel h2{font-family:Georgia,'Playfair Display',serif;line-height:1.3;font-weight:600;font-size:clamp(20px,2.4vw,27px);margin:11px 0}
+.thread h2,.panel h2{font-family:var(--gx-font);line-height:1.3;font-weight:700;font-size:clamp(20px,2.4vw,27px);margin:11px 0;letter-spacing:-.02em}
 .thread h2 a{text-decoration:none;color:#f1dfc0}
 .thread h2 a:hover{text-decoration:underline}
 .meta{font-size:12px;color:#a9b8cb;display:flex;align-items:center;gap:5px;flex-wrap:wrap}

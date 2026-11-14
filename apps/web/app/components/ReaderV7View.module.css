@@ -30,8 +30,8 @@
 /* N4.7 — editorial synthesis sits before the per-topic readings. */
 .synthesis{padding:clamp(18px,2.8vw,28px);margin:6px 0 23px;border:1px solid rgba(219,190,140,.35);
  border-radius:17px;background:linear-gradient(150deg,rgba(39,52,73,.83),rgba(18,34,54,.72))}
-.synthesis h3,.d60Section h3{margin:10px 0 14px;font-family:Georgia,serif;font-weight:600;
- font-size:clamp(20px,2.5vw,27px);line-height:1.25;color:#f3d2a3}
+.synthesis h3,.d60Section h3{margin:10px 0 14px;font-family:var(--gx-font);font-weight:700;
+ font-size:clamp(20px,2.5vw,27px);line-height:1.25;color:#f3d2a3;letter-spacing:-.02em}
 .synthesis>p,.synthesisDirection p,.synthesisParts p,.d60Section p{font-size:14px;line-height:1.85;
  color:#e0e6ed;max-width:90ch;margin:6px 0 0}
 .synthesisParts{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:19px}

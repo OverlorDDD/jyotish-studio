@@ -9,13 +9,12 @@
 .pic img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;filter:url(#gx-tarot-duo)}
 .face[data-reversed] .pic img{transform:rotate(180deg)}
 .back .pic svg{position:absolute;inset:4%;width:92%;height:92%}
-.name{position:relative;flex:none;display:flex;align-items:center;justify-content:center;height:30px;min-width:0;border-top:1px solid rgba(241,223,182,.3);
- font:600 clamp(8px,6.2cqw,12px) Georgia,serif;letter-spacing:.04em;text-transform:uppercase;color:#f1dfb6;background:#0e1828;overflow:hidden}
+.name{position:relative;flex:none;display:flex;align-items:center;justify-content:center;height:30px;min-width:0;border-top:1px solid rgba(241,223,182,.3);font:700 clamp(8px,6.2cqw,12px) var(--gx-font);letter-spacing:.04em;text-transform:uppercase;color:#f1dfb6;background:#0e1828;overflow:hidden}
 /* Out of flow, so a long name never widens the card in narrow grids; it is cut with an ellipsis. */
 .nameText{position:absolute;left:6px;right:6px;top:50%;transform:translateY(-50%);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .back .name{background:#121d31;border-top-color:rgba(241,223,182,.18)}
 .ornament{color:#e8c08a;opacity:.7;font-size:11px}
-.missing{position:absolute;inset:0;display:grid;place-items:center;color:#f1dfb6;font:600 14px Georgia,serif;text-align:center;padding:10px}
+.missing{position:absolute;inset:0;display:grid;place-items:center;color:#f1dfb6;font:700 14px var(--gx-font);text-align:center;padding:10px}
 .face[data-size=sm],.back[data-size=sm]{padding:4px;border-radius:9px}
 .face[data-size=sm] .inner,.back[data-size=sm] .inner{border-radius:6px}
 .face[data-size=sm] .name,.back[data-size=sm] .name{height:22px;font-size:clamp(7px,6.6cqw,9.5px);letter-spacing:.02em}
