@@ -16,10 +16,22 @@ export {newsIngestionEnabled} from './news-operational.ts';
 const PERIOD_MS=15*60*1000,LEASE_MS=12*60*1000;
 type Job={key:string;run:()=>Promise<Candidate[]>;hint:Topic;allowSnippet:boolean;isGdelt:boolean};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
+const bareHost=(h:string)=>h.toLowerCase().replace(/^www\./,'');
+/** Feeds move (/feed/ → /rss.xml, www ↔ apex). Follow at most 3 HTTPS
+ * redirects that stay on the same site; anything else is still refused. */
 async function read(url:string,accept:string,timeoutMs=9000){
- const r=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(timeoutMs),
-  headers:{Accept:accept,'User-Agent':'GalaxioraNewsDiscovery/1.1 (metadata only)'}});
- if(!r.ok)throw Error('HTTP '+r.status);
+ let target=url,r:Response|null=null;
+ for(let hop=0;hop<4;hop++){
+  r=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(timeoutMs),
+   headers:{Accept:accept,'User-Agent':'Mozilla/5.0 (compatible; GalaxioraNews/1.2; +https://galaxiora.com/en/methodology)'}});
+  if(r.status<300||r.status>=400)break;
+  const next=r.headers.get('location');
+  if(!next||hop===3)throw Error('HTTP '+r.status+' redirect');
+  const to=new URL(next,target),from=new URL(target);
+  if(to.protocol!=='https:'||bareHost(to.hostname)!==bareHost(from.hostname))throw Error('Cross-site redirect refused');
+  target=to.toString();
+ }
+ if(!r||!r.ok)throw Error('HTTP '+(r?.status??0));
  if(Number(r.headers.get('content-length')||0)>1500000)throw Error('Feed too large');
  const type=r.headers.get('content-type')||'';
  if(!/xml|rss|atom|json|text|octet-stream/i.test(type))throw Error('Unexpected content type');
@@ -198,14 +210,15 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
          // Can enrich old rows, but do not change their visibility/moderation.
          // New publisher metadata can enhance existing legacy rows and trigger translation.
          const prior=await this.prisma.newsArticle.findUnique({where:{urlHash},
-          select:{feedDescription:true,summaryKind:true}});
+          select:{feedDescription:true,summaryKind:true,imageUrl:true,imageLicense:true}});
          const received=item.description?.slice(0,1200)||'';
          const isNewContext=received.length>45&&received!==prior?.feedDescription;
          await this.prisma.newsArticle.updateMany({where:{urlHash},data:{
           lastSeenAt:new Date(),
           ...(isNewContext?{feedDescription:received,summaryKind:'needs_editorial',
            editorialNextAttemptAt:null,editorialAttempts:0}:{}),
-          ...(c.imageUrl?{imageUrl:c.imageUrl,imageCredit:c.imageCredit,
+          // Never replace an openly licensed photo with a publisher preview.
+          ...(c.imageUrl&&(!prior?.imageUrl||!prior.imageLicense)?{imageUrl:c.imageUrl,imageCredit:c.imageCredit,
            imageLicense:c.imageLicense?.slice(0,80)||null}:{}),
           ...(c.summaryKind==='source_excerpt'&&prior?.summaryKind!=='ai_editorial'?
            {summary:c.summary,summaryKind:'source_excerpt'}:{})

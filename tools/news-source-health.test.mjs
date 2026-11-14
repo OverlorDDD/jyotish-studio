@@ -5,7 +5,11 @@ import {RSS_SOURCES} from '../apps/api/src/news-sources.ts';
 test('broken RSS URLs are replaced with publisher-indexed candidate feeds',()=>{
  const astrology=RSS_SOURCES.find(s=>s.key==='astrosage');
  const vedic=RSS_SOURCES.find(s=>s.key==='astroved');
- assert.equal(astrology?.url,'https://horoscope.astrosage.com/feed');
+ assert.equal(astrology?.url,'https://horoscope.astrosage.com/feed/');
+ assert.equal(RSS_SOURCES.find(s=>s.key==='hinduism-today')?.url,'https://www.hinduismtoday.com/rss.xml');
+ for(const stale of ['mountain-astrologer','llewellyn','yoga-lily','yoga-synergy','biddy-tarot','lunar-astro','clickastro'])
+  assert.equal(RSS_SOURCES.some(s=>s.key===stale),false,stale);
+ assert.ok(RSS_SOURCES.some(s=>s.key==='earthsky'&&s.hint==='astronomy'));
  assert.equal(vedic?.url,'https://astroved.com/blogs/feed');
  assert.equal(RSS_SOURCES.some(s=>s.key==='astrology-weekly'),false);
  assert.equal(RSS_SOURCES.some(s=>s.key==='indastro'),false);

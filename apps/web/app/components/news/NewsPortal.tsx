@@ -9,6 +9,9 @@ import NewsThumb from './NewsThumb';
 import NewsRow from './NewsRow';
 import NewsFresh from './NewsFresh';
 import NewsMore from './NewsMore';
+import NewsTabs from './NewsTabs';
+import NewsLive from './NewsLive';
+export {NewsTabs};
 import styles from './News.module.css';
 import {NEWS_TOPICS,TOPIC_COPY,fetchNewsFeed,fetchPanchangaToday,fetchSkyEvents,formatKyiv,isOwn,kyivDate,
  kyivTime,newsTeaser,newsTitle,relativeAge,sourceLabel,storyPath,topicPath,
@@ -19,15 +22,6 @@ import {nakshatraLabel,tithiLabel,varaLabel} from '../../../lib/panchanga-city-d
 const SIGN_UK=['Овні','Тельці','Близнюках','Раку','Леві','Діві','Терезах','Скорпіоні','Стрільці','Козерозі','Водолії','Рибах'];
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const PAGE=16;
-
-export function NewsTabs({locale,active}:{locale:NewsLocale;active:NewsTopic|'all'|'for-you'}){
- return <nav className={styles.tabs} aria-label={locale==='uk'?'Теми новин':'News topics'}>
-  <Link className={styles.tab} href={'/'+locale+'/news'} aria-current={active==='all'?'page':undefined}>{locale==='uk'?'Усе':'All'}</Link>
-  {NEWS_TOPICS.map(t=><Link key={t} className={styles.tab} href={topicPath(t,locale)} aria-current={active===t?'page':undefined}>
-   {locale==='uk'?TOPIC_COPY[t].uk:TOPIC_COPY[t].en}</Link>)}
-  <Link className={styles.tab} href={'/'+locale+'/news/for-you'} aria-current={active==='for-you'?'page':undefined}>{locale==='uk'?'Для мене':'For me'}</Link>
- </nav>;
-}
 
 /** Own sky stories carry their event; rank by closeness of the event to now. */
 function pickLead(own:NewsItem[],now:number){
@@ -111,6 +105,7 @@ export async function TodayPanel({locale}:{locale:NewsLocale}){
    <dt>{locale==='uk'?'День':'Day'}</dt><dd>{vara}</dd>
   </dl>
   <Link className={styles.panelLink} href={'/'+locale+'/panchanga/kyiv'}>{locale==='uk'?'Уся Панчанга дня':'Full Panchanga for today'}</Link>
+  <br/><Link className={styles.panelLink} href={'/'+locale+'/horoscope'}>{locale==='uk'?'Гороскоп на сьогодні за знаком Місяця':'Today’s Moon-sign horoscope'}</Link>
  </section>;
 }
 
@@ -154,6 +149,7 @@ export default async function NewsPortal({locale,topic}:{locale:NewsLocale;topic
     <div className={styles.status}>
      {scan&&<span className={styles.live}>{(locale==='uk'?'Оновлено ':'Updated ')+relativeAge(scan,locale,now)}</span>}
      <NewsFresh locale={locale}/>
+     <NewsLive locale={locale} topic={topic} newestAt={latest.items[0]?.publishedAt}/>
     </div>
    </header>
    <NewsTabs locale={locale} active={topic||'all'}/>

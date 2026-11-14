@@ -1,30 +1,32 @@
-/** Unverified candidate sources. Always inspect source-scan health before claiming coverage. */
+/** Candidate sources. Always inspect source-scan health before claiming coverage.
+ * Review 2026-11-14 (production source scans + live feed check):
+ * removed — stale for 90+ days: Mountain Astrologer, Llewellyn, Yoga Lily,
+ *   Yoga Synergy, Biddy Tarot (last post Aug 2026, mostly course promos);
+ *   empty: Lunar Astro; all items off-topic: Clickastro; duplicate of the main
+ *   podcast feed: Astrology Podcast audio feed.
+ * fixed — Hinduism Today moved to /rss.xml; AstroSage needs the trailing slash.
+ * added — EarthSky, Sky & Telescope (astronomy). */
 import type {Topic} from './news-domain.ts';
 export type SourceKind='news'|'magazine'|'brand';
 export type RssSource={key:string;name:string;url:string;hint:Topic;allowSnippet:boolean;kind:SourceKind};
 const data:[string,string,string,Topic,boolean][]=[
  ['astrology-podcast','The Astrology Podcast','https://theastrologypodcast.com/feed/','astrology',true],
- ['astrology-podcast-audio','The Astrology Podcast','https://theastrologypodcast.com/feed/podcast/','astrology',true],
- ['biddy-tarot','Biddy Tarot','https://www.biddytarot.com/feed/','tarot',false],
  ['yoga-journal','Yoga Journal','https://www.yogajournal.com/feed/','yoga',false],
- ['llewellyn','Llewellyn Unbound','https://www.llewellyn.com/blog/feed/','tarot',false],
- ['yoga-lily','Yoga Lily','https://yogalily.com/feed/','yoga',false],
- ['yoga-synergy','Yoga Synergy','https://yogasynergy.com/feed/','yoga',false],
- ['astrosage','AstroSage Magazine','https://horoscope.astrosage.com/feed','jyotish',false],
+ ['astrosage','AstroSage Magazine','https://horoscope.astrosage.com/feed/','jyotish',false],
  ['astroved','AstroVed','https://astroved.com/blogs/feed','jyotish',false],
  ['astrotalk','AstroTalk Blog','https://astrotalk.com/astrology-blog/feed/','jyotish',false],
- ['clickastro','Clickastro','https://www.clickastro.com/blog/feed/','jyotish',false],
- ['lunar-astro','Lunar Astro','https://lunarastro.org/blog/feed/','jyotish',false],
- ['hinduism-today','Hinduism Today','https://www.hinduismtoday.com/feed/','vedic',false],
+ ['hinduism-today','Hinduism Today','https://www.hinduismtoday.com/rss.xml','vedic',false],
  ['hindu-press','Hindu Press International','https://www.hinduismtoday.com/hpi/feed/','vedic',false],
  ['tricycle','Tricycle','https://tricycle.org/feed/','meditation',false],
  ['lions-roar',"Lion's Roar",'https://www.lionsroar.com/feed/','meditation',false],
  ['mindful','Mindful','https://www.mindful.org/feed/','meditation',false],
  ['astrology-hub','Astrology Hub','https://astrologyhub.com/feed/','astrology',false],
- ['mountain-astrologer','The Mountain Astrologer','https://mountainastrologer.com/feed/','astrology',false],
  ['astrotwins','The AstroTwins','https://astrostyle.com/feed/','astrology',false],
  ['elephant-journal','Elephant Journal','https://www.elephantjournal.com/feed/','self-development',false],
- ['yoga-basics','Yoga Basics','https://www.yogabasics.com/feed/','yoga',false]
+ ['yoga-basics','Yoga Basics','https://www.yogabasics.com/feed/','yoga',false],
+ // Sky news for the Astronomy hub (verified 2026-11-14: several stories a week).
+ ['earthsky','EarthSky','https://earthsky.org/feed/','astronomy',false],
+ ['sky-and-telescope','Sky & Telescope','https://skyandtelescope.org/feed/','astronomy',false]
 ];
 /** Editorial weight of a publisher on the GalaxiNews front page.
  * news: reporting on events; magazine: edited long-form; brand: blogs of
@@ -32,8 +34,8 @@ const data:[string,string,string,Topic,boolean][]=[
  * leading the front page, where they read as advertising. */
 const KIND:Record<string,SourceKind>={
  'hindu-press':'news','hinduism-today':'magazine','tricycle':'magazine','lions-roar':'magazine',
- 'mindful':'magazine','yoga-journal':'magazine','mountain-astrologer':'magazine',
- 'astrology-podcast':'magazine','astrology-podcast-audio':'magazine','llewellyn':'magazine'
+ 'mindful':'magazine','yoga-journal':'magazine','astrology-podcast':'magazine',
+ 'earthsky':'news','sky-and-telescope':'magazine'
 };
 export const RSS_SOURCES:readonly RssSource[]=data.map(([key,name,url,hint,allowSnippet])=>({key,name,url,hint,allowSnippet,kind:KIND[key]||'brand'}));
 const hostOf=(raw:string)=>{try{return new URL(raw).hostname.replace(/^www\./,'').toLowerCase();}catch{return '';}};
@@ -48,20 +50,14 @@ export function sourceKindFor(article:{url:string;source:string}):SourceKind|'ow
  const byHost=RSS_SOURCES.find(s=>hostOf(s.url)===host);
  return byHost?byHost.kind:'news';
 }
+/** GDELT allows about one request per 5 s and answers cloud IPs with 429 when
+ * pressed; 13 separate queries tripped the breaker every cycle. Four broader
+ * queries cover the same topics (classification still decides the topic). */
 export const GDELT_QUERIES=[
- ['vedic-jyotish','"Vedic astrology" OR Jyotish','jyotish'],
- ['nakshatra','nakshatra OR Vimshottari','jyotish'],
- ['tarot','"tarot cards" OR "tarot reading"','tarot'],
- ['tarot-arcana','"major arcana" OR "tarot deck"','tarot'],
- ['yoga','"yoga practice" OR "yoga philosophy"','yoga'],
- ['meditation','"meditation practice" OR "mindfulness meditation"','meditation'],
- ['vedic','"vedic tradition" OR "Bhagavad Gita"','vedic'],
- ['natal','astrology AND "natal chart"','astrology'],
- ['spiritual','"spiritual development" AND meditation','self-development'],
- ['mainstream-astrology','astrology OR horoscope OR zodiac','astrology'],
- ['mainstream-tarot','"tarot" OR "tarot cards"','tarot'],
- ['mainstream-yoga','"yoga" AND (practice OR traditions)','yoga'],
- ['mainstream-meditation','meditation AND (mindfulness OR practice)','meditation']
+ ['vedic-jyotish','"Vedic astrology" OR Jyotish OR nakshatra OR "Bhagavad Gita" OR "vedic tradition"','jyotish'],
+ ['astrology','astrology OR horoscope OR zodiac OR "natal chart"','astrology'],
+ ['tarot','"tarot cards" OR "tarot reading" OR "tarot deck" OR "major arcana"','tarot'],
+ ['yoga-meditation','"yoga practice" OR "yoga philosophy" OR "meditation practice" OR "mindfulness meditation"','yoga']
 ] as const;
 
 /** Optional operator quarantine, not a silent removal of unreliable publishers.

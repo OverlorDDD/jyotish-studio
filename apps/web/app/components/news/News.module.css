@@ -12,6 +12,7 @@
 .live{display:inline-flex;align-items:center;gap:8px}
 .live::before{content:'';width:7px;height:7px;border-radius:50%;background:#8FD3B8;box-shadow:0 0 10px #8FD3B8}
 .fresh{color:var(--gx-gold-2);font-weight:600}
+.livePill{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:30;height:44px;padding:0 20px;border-radius:999px;border:0;background:linear-gradient(180deg,#F2CC86,#DDB066);color:#0A1226;font:600 15px var(--gx-font);box-shadow:0 10px 30px rgba(5,10,22,.55);cursor:pointer}
 
 .tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;margin-bottom:18px;border-bottom:1px solid var(--gx-line);scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}

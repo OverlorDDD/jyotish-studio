@@ -122,7 +122,7 @@ modules:
     web: "Portal 2026-11: SSR /{locale}/news (apps/web/app/components/news/NewsPortal.tsx), topic hubs /{locale}/news/{topic}, story pages /{locale}/news/{words}-{id8} (NewsStory.tsx; own sky stories composed by apps/web/lib/news-sky.ts from Swiss events), personal feed/search/reactions at /{locale}/news/for-you (legacy NewsWorld.tsx, world-v1.8)"
     seo: "own stories indexable + NewsArticle JSON-LD + 1200x630 OG; world stories noindex,follow; /news-sitemap.xml (own, 48h); /{locale}/news/rss.xml; topic hubs in sitemap.xml"
     images: "licensed (CC/approved host) may be large; publisher RSS/og:image only as credited thumbnail (thumbUrl); Commons stock only when no picture at all"
-    sources: "news-sources.ts kind news|magazine|brand; brand (reading-shop blogs) excluded from the front page via feed scope=portal"
+    sources: "news-sources.ts kind news|magazine|brand; brand (reading-shop blogs) excluded from the front page via feed scope=portal; 2026-11-14 review: 16 RSS (stale/empty removed, EarthSky + Sky & Telescope added), 4 combined GDELT queries, same-site redirects followed"
     interests: "guest-local + server owner-scoped tags and reversible reactions, suppression of highly similar rejected news, history, export/reset, opt-out; no natal inference"
     safeguard: "no full articles, no invented facts or meta-text; hide unsupported teasers; image CC licence / explicitly-approved hosts; GDELT seendate marked observation; astronomy separate"
     tests: "npm run test:news; e2e/news-world.spec.mjs"
