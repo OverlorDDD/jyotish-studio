@@ -1,10 +1,11 @@
 """Build the Galaxiora Tarot deck from the 1909 Rider–Waite–Smith scans (public domain).
 
-    python3 tools/tarot-art/build_deck.py <scans_dir> [dark|light]
+    python3 tools/tarot-art/build_deck.py <scans_dir> [classic|light|dark|night2]
 
 <scans_dir> = tarot/rider-waite/full of https://github.com/mixvlad/TarotCards (pinned revision in
-apps/web/lib/tarot-art.ts). dark → apps/web/public/tarot/galaxiora, light → .../galaxiora-light.
-Writes <card-id>.webp (600×1000) and <card-id>-sm.webp (300×500) for all 78 cards.
+apps/web/lib/tarot-art.ts). classic (the site's deck: the printed classic re-tuned to the site palette)
+→ apps/web/public/tarot/galaxiora; any other theme → .../galaxiora-<theme>.
+Writes <card-id>.webp (600×940) and <card-id>-sm.webp (300×470) for all 78 cards.
 Needs Python with numpy, opencv-python and Pillow (WebP)."""
 import os, sys
 import numpy as np
@@ -28,15 +29,15 @@ def card_files():
 
 def main():
     src = sys.argv[1]
-    theme = sys.argv[2] if len(sys.argv) > 2 else 'dark'
+    theme = sys.argv[2] if len(sys.argv) > 2 else 'classic'
     root = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'apps', 'web', 'public', 'tarot')
-    out = os.path.join(root, 'galaxiora' if theme == 'dark' else 'galaxiora-' + theme)
+    out = os.path.join(root, 'galaxiora' if theme == 'classic' else 'galaxiora-' + theme)
     os.makedirs(out, exist_ok=True)
     for cid, name in card_files().items():
         rgb = np.array(Image.open(os.path.join(src, name)).convert('RGB'))
         card = Image.fromarray(R.frame(R.recolor(R.crop_picture(rgb, name), theme), theme))
         card.save(os.path.join(out, cid + '.webp'), 'WEBP', quality=82, method=6)
-        card.resize((300, 500), Image.LANCZOS).save(os.path.join(out, cid + '-sm.webp'), 'WEBP', quality=80, method=6)
+        card.resize((300, 470), Image.LANCZOS).save(os.path.join(out, cid + '-sm.webp'), 'WEBP', quality=80, method=6)
     print('78 cards →', os.path.normpath(out))
 
 if __name__ == '__main__':

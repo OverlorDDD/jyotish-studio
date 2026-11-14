@@ -1,8 +1,8 @@
-/* A card = the deck art (600×1000, its own gold frame) + the localized name bar under it.
+/* A card = the deck art (600×940, its own gold frame) + the localized name bar under it.
  * Faces and backs share this structure, so a card keeps its size when it is turned over. */
 .face,.back{position:relative;display:flex;flex-direction:column;width:100%;min-width:0;container-type:inline-size;border-radius:14px;overflow:hidden;
  background:#0A1226;box-shadow:0 18px 40px rgba(3,6,16,.55),0 0 0 1px rgba(243,238,228,.07)}
-.pic{position:relative;display:block;width:100%;aspect-ratio:3/5;overflow:hidden}
+.pic{position:relative;display:block;width:100%;aspect-ratio:600/940;overflow:hidden}
 .pic img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
 .face[data-reversed] .pic img{transform:rotate(180deg)}
 .name{position:relative;flex:none;display:flex;align-items:center;justify-content:center;height:32px;min-width:0;border-top:1px solid var(--gx-line,rgba(243,238,228,.08));
