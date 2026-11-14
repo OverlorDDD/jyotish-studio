@@ -70,6 +70,16 @@ export default function HoroscopeHome({locale,system,date,signs}:{locale:HoroLoc
      </Link>;
     })}
    </div>
+   <div className={styles.tools}>
+    <Link href={'/'+locale+'/horoscope/compatibility'} className={styles.tool}>
+     <b>{uk?'Сумісність знаків':'Sign compatibility'}</b>
+     <span>{uk?'78 пар у коханні й дружбі та ведичні 36 гун за датами народження.':'78 pairs in love and friendship, plus the Vedic 36 gunas from birth dates.'}</span>
+    </Link>
+    <Link href={'/'+locale+'/horoscope/my-sign'} className={styles.tool}>
+     <b>{uk?'Зоряний паспорт':'Star Passport'}</b>
+     <span>{uk?'Ваш західний і ведичний знак, знак Місяця й накшатра за датою народження.':'Your Western and Vedic signs, Moon sign and nakshatra from your birth date.'}</span>
+    </Link>
+   </div>
    {!signs&&<p className={styles.error}>{uk?'Розрахунок прогнозу тимчасово недоступний. Спробуйте оновити сторінку за хвилину.':'The forecast calculation is temporarily unavailable. Please refresh in a minute.'}</p>}
 
    <section className={styles.faq} aria-labelledby="horo-faq">

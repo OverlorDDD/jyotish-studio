@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {GOCHARA_GOOD,composeDay,houseFrom,inRange,moonPhase,passport,ratings,validSign,validSystem} from '../apps/api/src/horoscope-v3.ts';
+import {GOCHARA_GOOD,composeDay,houseFrom,inRange,matchCouple,moonPhase,passport,ratings,validSign,validSystem} from '../apps/api/src/horoscope-v3.ts';
 import {MOON_HOUSE,LOVE_BY_HOUSE,WORK_BY_HOUSE,MONEY_BY_HOUSE,HEALTH_BY_HOUSE,SUN_HOUSE,WEEKDAY} from '../apps/api/src/horoscope-v3-texts.ts';
 const source=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
@@ -96,4 +96,66 @@ test('Horoscope v3 passport: 27 March 1996 is tropical Aries but sidereal Pisces
  const noTime=await passport({date:'1996-03-27'});
  assert.equal(noTime.timeKnown,false);
  assert.ok(noTime.vedic.moonSigns.includes(3));
+});
+
+/* ---------- Phase 2: compatibility ---------- */
+import {ALL_PAIRS,pairContent,parsePair,westernScores,vedicSignLevel} from '../apps/web/lib/compatibility.ts';
+import {SIGNS} from '../apps/web/lib/horoscope-signs.ts';
+
+test('Compatibility: exactly 78 canonical pairs, each with complete original content',()=>{
+ assert.equal(ALL_PAIRS.length,78);
+ assert.equal(new Set(ALL_PAIRS.map(p=>p.slug)).size,78);
+ const taglines=new Set();
+ for(const p of ALL_PAIRS){
+  const c=pairContent(p);
+  assert.ok(c.tagline?.uk&&c.tagline?.en,p.slug+' tagline');
+  assert.ok(c.element?.text?.uk,p.slug+' element text');
+  assert.ok(c.aspect.strengths.length>=3&&c.aspect.challenges.length>=2);
+  taglines.add(c.tagline.uk);
+  for(const v of Object.values(c.western))assert.ok(v>=30&&v<=97,p.slug);
+  assert.equal(c.vedic.max,15);
+  assert.ok(c.vedic.total>=0&&c.vedic.total<=15);
+ }
+ assert.equal(taglines.size,78,'every pair has its own line');
+});
+
+test('Compatibility: pair URLs are canonical in zodiac order and symmetric',()=>{
+ assert.deepEqual({slug:parsePair('aries-leo').slug,canonical:parsePair('aries-leo').canonical},{slug:'aries-leo',canonical:true});
+ assert.deepEqual({slug:parsePair('leo-aries').slug,canonical:parsePair('leo-aries').canonical},{slug:'aries-leo',canonical:false});
+ assert.equal(parsePair('aries-nope'),null);
+ assert.equal(parsePair('../etc'),null);
+ for(const a of SIGNS)for(const b of SIGNS){
+  assert.deepEqual(westernScores(a,b),westernScores(b,a));
+  assert.equal(vedicSignLevel(a,b).total,vedicSignLevel(b,a).total);
+ }
+ // Trines (same element) outrank squares for every sign.
+ for(const a of SIGNS)assert.ok(westernScores(a,SIGNS[(a.n+3)%12]).overall>westernScores(a,SIGNS[(a.n+2)%12]).overall,a.slug);
+});
+
+test('Compatibility: routes, sitemap and the private 36-guna endpoint are wired',()=>{
+ const sitemap=source('apps/web/app/sitemap.ts');
+ assert.match(sitemap,/'horoscope\/compatibility',\.\.\.ALL_PAIRS\.map/);
+ const pairRoute=source('apps/web/app/[locale]/horoscope/compatibility/[pair]/page.tsx');
+ assert.match(pairRoute,/permanentRedirect\(compatPath\(locale,pair\.slug\)\)/,'reverse-order URLs consolidate');
+ const api=source('apps/api/src/horoscope.ts');
+ assert.match(api,/@Post\('v3\/match'\)/);
+ assert.match(api,/v3Match[\s\S]*no-store|no-store[\s\S]*v3Match/);
+ const form=source('apps/web/app/components/horoscope/CoupleMatch.tsx');
+ assert.match(form,/method:'POST'/);
+ assert.doesNotMatch(form,/localStorage/,'couple birth data is never kept in the browser');
+});
+
+test('Compatibility: 36-guna matching from real Swiss Moons',{timeout:60000},async t=>{
+ const one={date:'1996-03-27',time:'14:00',zone:'Europe/Kyiv'};
+ let r;
+ try{r=await matchCouple({a:one,b:one});}
+ catch(error){if(/swisseph|ephemeris backend/i.test(String(error))){t.skip('Swiss Ephemeris is not installed here');return;}throw error;}
+ assert.equal(r.a.moonSign,3,'sidereal Gemini Moon');
+ assert.equal(r.ashtakoota.full,true);
+ assert.equal(r.ashtakoota.total,28,'identical Moons: everything but Nadi');
+ assert.equal(r.approximate,false);
+ const loose=await matchCouple({a:{date:'1996-03-27'},b:{date:'1990-03-02',zone:'Europe/Warsaw'}});
+ assert.ok(loose.ashtakoota.total>=0&&loose.ashtakoota.total<=36);
+ assert.equal(typeof loose.approximate,'boolean');
+ await assert.rejects(()=>matchCouple({a:{date:'1996-02-30'},b:one}),/Invalid birth date/);
 });

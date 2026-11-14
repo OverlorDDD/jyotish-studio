@@ -162,8 +162,10 @@ modules:
     public_api: "GET /api/v1/horoscope/v3/day|all|period; POST /api/v1/horoscope/v3/passport (no-store, never stored or logged)"
     engine: "apps/api/src/horoscope-v3.ts — Swiss sky at Kyiv noon; classical Gochara favourable houses (Phaladeepika 26) whole-sign from the sign; Chandrashtama caps; texts apps/api/src/horoscope-v3-texts.ts (UK/EN, «ви» voice)"
     web: "apps/web/lib/horoscope-signs.ts; apps/web/lib/horoscope-v3.ts; apps/web/lib/horoscope-page.tsx; apps/web/app/components/horoscope/*"
-    tests: "tools/horoscope-v3.test.mjs (run via test:horoscope-basis); tools/gsc-coverage-recovery.test.mjs"
-    next: "phase 2 compatibility tool + 78 pair pages; phase 3 yearly 2027 per sign and share images"
+    compatibility: "phase 2: /{locale}/horoscope/compatibility (picker, 12x12 table, 36-guna calculator) and 78 SSR pair pages /{locale}/horoscope/compatibility/{a}-{b} (reverse order 308-redirects); apps/web/lib/compatibility.ts + compatibility-texts.ts; POST /api/v1/horoscope/v3/match (no-store, nothing stored)"
+    ashtakoota: "packages/jyotish-core/src/ashtakoota.ts — pure Varna/Vashya/Tara/Yoni/Graha Maitri/Gana/Bhakoot/Nadi tables (version ashtakoota-mc-v1); without roles both orientations are averaged; tests packages/jyotish-core/src/ashtakoota.test.ts"
+    tests: "tools/horoscope-v3.test.mjs (run via test:horoscope-basis); packages/jyotish-core/src/ashtakoota.test.ts (npm test); tools/gsc-coverage-recovery.test.mjs"
+    next: "phase 3 yearly 2027 per sign and share images"
   news_multilingual_nmt:
     status: "candidate: script-aware Hindi/Latin UK/EN translation, strict numbers, bounded Azure reservations and six-attempt quarantine"
     source_plan: "apps/api/src/news-headline-nmt-plan.ts"
@@ -203,7 +205,7 @@ routes:
   web:
     home: "/uk | /en"
     jyotish: "/{locale}/astrology/jyotish"
-    horoscope: "/{locale}/horoscope | /{locale}/horoscope/vedic | /{locale}/horoscope[/vedic]/{sign}[/tomorrow|week|month] | /{locale}/horoscope/my-sign | /{locale}/horoscope/personal"
+    horoscope: "/{locale}/horoscope | /{locale}/horoscope/vedic | /{locale}/horoscope[/vedic]/{sign}[/tomorrow|week|month] | /{locale}/horoscope/my-sign | /{locale}/horoscope/personal | /{locale}/horoscope/compatibility[/{a}-{b}]"
     tarot: "/{locale}/tarot"
     yoga: "/{locale}/yoga | /{locale}/yoga/{slug}"
     academy: "/{locale}/learn | /{locale}/learn/{slug}"

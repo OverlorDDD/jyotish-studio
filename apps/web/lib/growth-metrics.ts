@@ -37,7 +37,7 @@ export function safeGrowthPath(pathname:string):string|null{
  // only the coarse section, never a free-form slug or URL query.
  if(/^pedia\/(?:[a-z0-9-]+|topic\/[a-z0-9-]+)$/.test(section))return '/'+parts[0]+'/pedia';
  if(/^yoga\/[a-z-]+$/.test(section))return '/'+parts[0]+'/yoga';
- if(/^horoscope\/(?:(?:western|vedic)\/)?[a-z-]+(?:\/(?:tomorrow|week|month))?$/.test(section))return '/'+parts[0]+'/horoscope';
+ if(/^horoscope\/(?:(?:(?:western|vedic)\/)?[a-z-]+(?:\/(?:tomorrow|week|month))?|compatibility\/[a-z]+-[a-z]+)$/.test(section))return '/'+parts[0]+'/horoscope';
  return null;
 }
 export function safeGrowthEvent(name:string):name is GrowthEvent{
