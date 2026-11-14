@@ -1,8 +1,8 @@
 /* Panchanga Today: one calm page, dense useful information first. Site palette: navy cards, gold lines and glyphs. */
-.page{--card:#16243a;--card2:#1b2b44;--line:rgba(214,185,127,.26);--gold:#e8c08a;--gold2:#f1dfb6;--tx:#e6ecf5;--mut:#a7b5c8;
+.page{--card:#16243a;--card2:#1b2b44;--line:var(--gx-line);--gold:#e8c08a;--gold2:#f1dfb6;--tx:#e6ecf5;--mut:#a7b5c8;
  --best:#f2cf7c;--good:#5cc8a0;--ok:#8ea4c8;--routine:#a993dc;--avoid:#e57388;
  width:min(100% - 32px,1024px);margin:22px auto 40px;color:var(--tx);line-height:1.55;min-width:0}
-.page h1,.page h2{font-family:'Playfair Display',Georgia,serif;font-weight:600;margin:0}
+.page h1,.page h2{font-family:var(--gx-font);font-weight:700;margin:0}
 .page :is(button,input,select,a,summary):focus-visible{outline:2px solid #f2d298;outline-offset:3px}
 .eyebrow{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--gold)}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 18px;margin:0 0 14px}
@@ -117,7 +117,7 @@
 .legend i[data-tier=good]{background:rgba(92,200,160,.45)}.legend i[data-tier=normal]{background:rgba(255,255,255,.1)}.legend i[data-tier=quiet]{background:rgba(232,192,138,.38)}
 .legend .phase{width:11px;height:11px;border-radius:50%}
 .events{list-style:none;margin:0;padding:0}
-.events li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(214,185,127,.15)}
+.events li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gx-line)}
 .events li:last-child{border:0}
 .events h3{margin:0;font-size:17px;color:#fff}.events p{margin:2px 0 0;font-size:14px;color:#c9d3e3}
 .evWhen{font-size:12px!important;color:var(--gold)!important;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
@@ -128,7 +128,7 @@
 .detailsBody{padding:0 clamp(12px,2.4vw,22px) 18px;min-width:0}
 .detailsBody>h2{font-size:22px;color:var(--gold2);margin:4px 0 12px}
 .kalas{margin-top:18px}.kalas h3{margin:0 0 6px;color:var(--gold2);font-size:17px}
-.kalas p{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;margin:0;padding:9px 0;border-bottom:1px solid rgba(214,185,127,.15);font-size:14px}
+.kalas p{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;margin:0;padding:9px 0;border-bottom:1px solid var(--gx-line);font-size:14px}
 .kalas time,.kalas span{color:var(--gold2)}
 .settings{padding-bottom:6px}.settings label{display:flex;align-items:center;gap:8px;padding:0 18px 10px;font-size:14px}
 .settings label input{width:auto;height:auto}

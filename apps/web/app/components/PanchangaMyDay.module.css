@@ -1,11 +1,11 @@
 .dashboard{border:1px solid #6a7691;background:linear-gradient(140deg,#172b45,#111e32);border-radius:20px;padding:clamp(16px,3vw,30px);margin:22px 0;color:#e5edf7;min-width:0;overflow-wrap:break-word}
 .top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .eyebrow{font-size:11px;letter-spacing:.14em;color:#dcc08e;font-weight:700}
-.top h2{font:600 clamp(27px,4vw,42px)/1.2 Georgia,serif;color:#f4ddaf;margin:9px 0}
+.top h2{font:700 clamp(27px,4vw,42px)/1.2 var(--gx-font);color:#f4ddaf;margin:9px 0;letter-spacing:-.02em}
 .top p{margin:0;color:#bfcddd;font-size:13px}
 .scope{border:1px solid #8e9db1;color:#e8ddc6;padding:6px 12px;border-radius:50px;font-size:12px}
 .status{font-size:12px;color:#eed0a4;margin:18px 0 9px}
-.summary h3{font:600 clamp(21px,3vw,30px)/1.3 Georgia,serif;margin:0;color:#fff0ce}
+.summary h3{font:700 clamp(21px,3vw,30px)/1.3 var(--gx-font);margin:0;color:#fff0ce;letter-spacing:-.02em}
 .moonNote{font-size:13px;color:#bfccd9;margin:6px 0 16px}
 .sunTimes{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
 .sunTimes span{display:inline-flex;gap:8px;border:1px solid #53677e;background:#192e48;border-radius:10px;padding:8px 12px;font-size:13px}
@@ -16,12 +16,12 @@
 .topicButtons button,.sky button{border:1px solid #d1b47e;border-radius:9px;background:#1a2c45;color:#f4dfb4;padding:9px 14px;cursor:pointer;font:600 13px/1.35 system-ui,sans-serif;min-height:42px}
 .topicButtons button[aria-pressed=true]{background:#e2c48b;color:#152238}
 .topicButtons button:focus-visible,.sky button:focus-visible,.profileLink:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.advice h4{font:600 clamp(19px,2.5vw,24px)/1.3 Georgia,serif;color:#f3ddb5;margin:0 0 7px}
+.advice h4{font:700 clamp(19px,2.5vw,24px)/1.3 var(--gx-font);color:#f3ddb5;margin:0 0 7px;letter-spacing:-.02em}
 .action{margin:0 0 10px;font-size:16px;line-height:1.65}
 .scopeNote{font-size:12px;color:#bbc9d8;line-height:1.6;margin:10px 0}
 .profileLink{display:inline-block;color:#f3d090;font-size:14px;margin-top:5px}
 .sky{margin-top:20px;background:#182b42;border:1px solid #526a86;padding:clamp(14px,2vw,20px);border-radius:14px}
-.sky h3{font:600 clamp(19px,2.4vw,24px)/1.35 Georgia,serif;color:#f5deb2;margin:0}
+.sky h3{font:700 clamp(19px,2.4vw,24px)/1.35 var(--gx-font);color:#f5deb2;margin:0;letter-spacing:-.02em}
 .sky p{font-size:14px;margin:6px 0 12px}
 .skyResults{padding:12px 0 0;font-size:14px}
 .skyResults ul{padding-left:22px}.skyResults li{margin:8px 0}
@@ -42,7 +42,7 @@
 
 /* P3.7: five source-backed cards; no competing legacy verdict panel. */
 .factorHeader{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin:24px 0 13px}
-.factorHeader h3,.personalSummary h3{margin:0 0 6px;color:#f4dfb4;font:600 clamp(19px,2.5vw,24px)/1.3 Georgia,serif}
+.factorHeader h3,.personalSummary h3{margin:0 0 6px;color:#f4dfb4;font:700 clamp(19px,2.5vw,24px)/1.3 var(--gx-font);letter-spacing:-.02em}
 .factorHeader p{color:#c6d6e5;font-size:13px;margin:0;line-height:1.6}
 .moment{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:#d4e2f3;background:#142941;border:1px solid #536a86;padding:7px 10px;border-radius:100px}
 .factorGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}

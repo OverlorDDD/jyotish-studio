@@ -3,6 +3,7 @@ import {ArrowUpRight} from 'lucide-react';
 import Image from 'next/image';
 import {BRAND,moduleTitle,portalPath,type PortalLocale} from '../../lib/brand';
 import GlobalAccount from './GlobalAccount';
+import StarSky from './StarSky';
 
 type Props={locale:PortalLocale;children:React.ReactNode;active?:string;languagePath?:string};
 const LABELS={
@@ -14,6 +15,7 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
  const t=LABELS[locale];
  const publicContact=process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL?.trim()||'';
  return <div className="as-shell">
+  <StarSky/>
   <a href="#main-content" className="as-skip-link">{locale==='uk'?'Перейти до вмісту':'Skip to main content'}</a>
   <header className="as-header">
    <div className="as-header-inner">

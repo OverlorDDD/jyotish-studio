@@ -10,7 +10,7 @@
 .sign strong{font-size:12px;color:#e9c99c}.sign span{font-size:12px;color:#f3f6fc;overflow-wrap:anywhere}.sign small{font-size:10px;color:#f3c28a}
 .notice{border-left:2px solid #d7ac73;background:rgba(213,166,101,.09);border-radius:0 6px 6px 0;padding:9px 12px;margin:0;font-size:12px;line-height:1.65;color:#e9d5bb}
 .final{border-top:1px solid rgba(211,172,110,.32);margin-top:30px;padding:22px 0 4px;max-width:88ch}
-.final h3{font-family:Georgia,serif;font-size:clamp(20px,3vw,26px);color:#f4d4ab;margin:8px 0 14px}
+.final h3{font-family:var(--gx-font);font-size:clamp(20px,3vw,26px);color:#f4d4ab;margin:8px 0 14px;letter-spacing:-.02em}
 .final p{font-size:14px;line-height:1.8;margin:8px 0;color:#e6eaf1}.final strong{color:#f0d6b5}
 .method{max-width:88ch;margin:22px 0 5px;font-size:12px;color:#c2cede}
 .method summary{cursor:pointer;color:#eac790}.method p{line-height:1.65}
@@ -20,7 +20,7 @@
 
 /* N4.9.3: concise chart-specific discovery shortlist, not a second essay. */
 .discoveries{margin:18px 0 28px;padding:18px 19px;border:1px solid rgba(217,184,127,.29);border-radius:14px;background:linear-gradient(145deg,rgba(31,43,68,.55),rgba(16,24,43,.65))}
-.discoveries h3{font-size:clamp(18px,2.7vw,23px);font-family:Georgia,serif;color:#f3d7ad;margin:10px 0 6px}
+.discoveries h3{font-size:clamp(18px,2.7vw,23px);font-family:var(--gx-font);color:#f3d7ad;margin:10px 0 6px;letter-spacing:-.02em}
 .discoveriesIntro{font-size:13px;line-height:1.65;color:#d2dbeb;max-width:75ch;margin:0 0 14px}
 .discoveries ol{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .discovery{padding:12px 14px;border-radius:10px;background:rgba(11,22,40,.5);border:1px solid rgba(183,192,213,.13);min-width:0;overflow-wrap:anywhere}
@@ -34,7 +34,7 @@
 /* N4.9.6: one calm, human-first reading, with technical depth on demand. */
 .lifeTopics{display:grid;grid-template-columns:minmax(0,1fr);gap:17px;margin:22px 0}
 .lifeTopic{border:1px solid rgba(206,180,134,.28);border-radius:16px;padding:clamp(16px,3vw,27px);background:linear-gradient(155deg,rgba(25,34,55,.82),rgba(11,22,39,.82));min-width:0}
-.lifeTopic h3{font:500 clamp(21px,3vw,27px)/1.3 Georgia,serif;color:#f2d4aa;margin:0 0 14px}
+.lifeTopic h3{font:700 clamp(21px,3vw,27px)/1.3 var(--gx-font);color:#f2d4aa;margin:0 0 14px;letter-spacing:-.02em}
 .primary{display:grid;gap:12px;min-width:0}
 .story{font-size:clamp(15px,1.8vw,17px);line-height:1.8;color:#e9eff7;max-width:76ch;margin:0;overflow-wrap:break-word}
 .action{margin:0;padding:12px 15px;background:rgba(206,164,102,.08);border-left:3px solid #d5ad73;border-radius:0 9px 9px 0;font-size:14px;line-height:1.75;color:#e8ebf4}
@@ -60,7 +60,7 @@
 /* N4.9.7: complete, visible map of the 16 traditional subdivisions. */
 .primarySource{display:block;color:#b9c7dc;font-size:11px;line-height:1.5;letter-spacing:.01em}
 .vargaGuide{margin:18px 0 12px;padding:clamp(16px,2.8vw,24px);border:1px solid rgba(180,186,216,.23);background:rgba(10,22,42,.58);border-radius:14px;min-width:0}
-.vargaGuide h3{font:500 clamp(19px,2.8vw,24px)/1.35 Georgia,serif;color:#e9d3b2;margin:0 0 8px}
+.vargaGuide h3{font:700 clamp(19px,2.8vw,24px)/1.35 var(--gx-font);color:#e9d3b2;margin:0 0 8px;letter-spacing:-.02em}
 .vargaGuide>p{color:#ccd7e5;line-height:1.7;font-size:13px;max-width:75ch;margin:0 0 15px}
 .vargaGrid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .vargaGrid li{min-width:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:11px 12px;border-radius:9px;border:1px solid rgba(169,183,201,.15);background:rgba(12,24,43,.58);color:#e2e9f2;line-height:1.55;font-size:12px;overflow-wrap:anywhere}

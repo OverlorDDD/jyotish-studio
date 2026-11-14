@@ -4,7 +4,7 @@
  color:#e8eff8;overflow-wrap:anywhere}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 17px}
 .eyebrow{font-size:10px;letter-spacing:.19em;font-weight:800;color:#debf82}
-.top h2{font:600 clamp(23px,3.5vw,34px)/1.2 Georgia,serif;margin:6px 0 0;color:#f5dfb9}
+.top h2{font:700 clamp(23px,3.5vw,34px)/1.2 var(--gx-font);margin:6px 0 0;color:#f5dfb9;letter-spacing:-.02em}
 .moment{display:inline-flex;align-items:center;gap:6px;color:#cedeed;border-radius:30px;
  border:1px solid #526e86;background:#14283e;padding:6px 11px;font-size:12px}
 .advice{border:1px solid #647e98;background:#203650;padding:clamp(13px,2.5vw,22px);border-radius:14px}
@@ -24,8 +24,8 @@
 .decision{margin-top:17px;padding-top:17px;border-top:1px solid #425a76}
 .verdictRow{display:flex;justify-content:space-between;align-items:center;gap:22px}
 .resultLabel{color:#c5d4e3;font-size:12px;font-weight:600}
-.decision h4{color:#ffdfab;font:600 clamp(21px,2.8vw,29px)/1.25 Georgia,serif;
- margin:6px 0 11px;max-width:55ch}
+.decision h4{color:#ffdfab;font:700 clamp(21px,2.8vw,29px)/1.25 var(--gx-font);
+ margin:6px 0 11px;max-width:55ch;letter-spacing:-.02em}
 .resultReason{line-height:1.6;font-size:14px;color:#d8e5f3;margin:0;max-width:74ch}
 .ratioContainer{display:flex;flex:0 0 auto;flex-direction:column;align-items:center;gap:5px}
 .ratioContainer small{text-align:center;color:#cbdbea;font-size:11px;line-height:1.25}
@@ -53,8 +53,8 @@
 .timeResult time{font-weight:750;color:#fff0d2;font-size:18px}
 .timeResult small{color:#c5d7e6;font-size:12px}
 .factorSection{margin:20px 0 0}
-.factorSection h3,.natalSection h3{font:600 clamp(20px,2.6vw,25px)/1.25 Georgia,serif;
- color:#f2d8ad;margin:0 0 13px}
+.factorSection h3,.natalSection h3{font:700 clamp(20px,2.6vw,25px)/1.25 var(--gx-font);
+ color:#f2d8ad;margin:0 0 13px;letter-spacing:-.02em}
 .factorGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
 .factorCard{min-width:0;border-radius:12px;border:1px solid #536f8d;
  background:linear-gradient(145deg,#1d3753,#15273e);padding:11px;align-self:start}
@@ -107,7 +107,7 @@
  border-left:2px solid #75839b;padding:7px 0 7px 12px;margin:13px 0 0}
 .specialChecklist{margin-top:17px;padding:15px;border-radius:12px;
  border:1px solid #6d7d95;background:#192e47;color:#d7e6f2}
-.specialChecklist h5{font:650 17px/1.35 Georgia,serif;color:#f2d6a2;margin:0 0 10px}
+.specialChecklist h5{font:650 17px/1.35 var(--gx-font);color:#f2d6a2;margin:0 0 10px}
 .specialChecklist p,.specialChecklist li{font-size:13px;line-height:1.65}
 .specialChecklist p{margin:9px 0}
 .specialChecklist ul{margin:10px 0;padding-left:22px}
