@@ -8,7 +8,8 @@ type Props={params:Promise<{locale:string;pair:string}>};
 export function generateStaticParams(){return BRAND.locales.flatMap(locale=>ALL_PAIRS.map(p=>({locale,pair:p.slug})));}
 export async function generateMetadata({params}:Props):Promise<Metadata>{
  const {locale,pair:raw}=await params;
- const pair=isPortalLocale(locale)?parsePair(raw):null;
+ if(!isPortalLocale(locale))return {};
+ const pair=parsePair(raw);
  if(!pair||!pair.canonical)return {};
  const uk=locale==='uk',c=pairContent(pair),t=pairTitle(pair,locale);
  const title=uk?t+': кохання, дружба, шлюб':t+': love, friendship, marriage';
