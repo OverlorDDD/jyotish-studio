@@ -16,6 +16,18 @@ THEMES = {
                  (70, (18, 32, 52), (34, 56, 80)), (120, (16, 42, 46), (44, 92, 88)), (190, (20, 38, 72), (46, 80, 132)),
                  (230, (22, 30, 74), (56, 72, 146)), (275, (38, 28, 80), (96, 78, 158)), (330, (56, 24, 54), (128, 62, 108))],
         grey=((12, 20, 40), (92, 104, 140)), sat_floor=.14, fill=(9, 15, 32)),
+    'night2': dict(
+        ink=(222, 184, 116), frame=(231, 189, 114), border_bg=(10, 18, 38), glow=0, ink_alpha=.82,
+        anchors=[(0, (84, 30, 52), (176, 78, 104)), (22, (110, 76, 64), (214, 172, 148)), (45, (16, 26, 54), (30, 48, 92)),
+                 (70, (20, 36, 58), (42, 66, 92)), (120, (22, 56, 56), (88, 150, 132)), (190, (26, 50, 92), (96, 146, 204)),
+                 (230, (28, 38, 92), (98, 118, 204)), (275, (46, 36, 96), (146, 122, 210)), (330, (70, 30, 66), (180, 96, 152))],
+        grey=((12, 20, 40), (196, 194, 196)), sat_floor=.14, fill=(9, 15, 32)),
+    # The site's deck: the classic printed deck, every hue re-tuned to the site palette, dark navy linework.
+    'classic': dict(
+        ink=(16, 24, 48), frame=(231, 189, 114), border_bg=(10, 18, 38), glow=0, ink_alpha=1, single=True,
+        anchors=[(0, (168, 69, 94)), (22, (226, 178, 146)), (45, (231, 189, 114)), (70, (222, 200, 128)), (120, (78, 138, 120)),
+                 (190, (92, 134, 198)), (230, (64, 95, 166)), (275, (138, 116, 201)), (330, (172, 82, 138))],
+        grey=((16, 24, 48), (243, 238, 228)), sat_floor=.12, fill=(16, 24, 48)),
     'light': dict(
         ink=(27, 37, 71), frame=(176, 136, 70), border_bg=(246, 241, 231), glow=0,
         anchors=[(0, (170, 92, 104), (236, 196, 200)), (22, (196, 146, 120), (246, 222, 206)), (45, (232, 214, 170), (250, 240, 212)),
@@ -73,6 +85,9 @@ def recolor(rgb, theme):
     lum_s = (0.299 * sf[..., 0] + 0.587 * sf[..., 1] + 0.114 * sf[..., 2])
     # Hue → palette colour: each anchor has a shadow and a light colour; value picks between them.
     anchors = sorted(t['anchors'])
+    if t.get('single'):   # one colour per hue: shadows darken toward ink, lights toward ivory
+        ivory = np.array((243, 238, 228)); ink0 = np.array(t['ink'])
+        anchors = [(a[0], tuple(ink0 * .45 + np.array(a[1]) * .55), tuple(np.array(a[1]) * .7 + ivory * .3)) for a in anchors]
     hs = np.array([a[0] for a in anchors] + [anchors[0][0] + 360], np.float32)
     dk = np.array([a[1] for a in anchors] + [anchors[0][1]], np.float32) / 255.
     lt = np.array([a[2] for a in anchors] + [anchors[0][2]], np.float32) / 255.
@@ -100,6 +115,7 @@ def recolor(rgb, theme):
     ink_c = np.array(t['ink'], np.float32) / 255.
     fill_c = np.array(t.get('fill', t['grey'][0]), np.float32) / 255.
     line_c = ink_c * (1 - fill) + fill_c * fill
+    ink = ink * t.get('ink_alpha', 1)
     out = base * (1 - ink) + line_c * ink
     ink = ink * (1 - fill)
     if t['glow']:
@@ -107,15 +123,17 @@ def recolor(rgb, theme):
         out = np.clip(out + ink_c * glow, 0, 1)
     return (out * 255).astype(np.uint8)
 
-def frame(pic, theme, W=600, H=1000, border=18):
+def frame(pic, theme, W=600, H=940, border=16):
     t = THEMES[theme]
     canvas = np.zeros((H, W, 3), np.uint8); canvas[:] = t['border_bg']
     ih, iw = pic.shape[:2]
     bw, bh = W - 2 * border, H - 2 * border
-    s = min(bw / iw, bh / ih)
-    nw, nh = int(iw * s), int(ih * s)
-    rs = cv2.resize(pic, (nw, nh), interpolation=cv2.INTER_AREA)
-    x0, y0 = (W - nw) // 2, (H - nh) // 2
+    s = max(bw / iw, bh / ih)   # cover: majors lose ~3% at the sides, pips ~3% top and bottom
+    rs = cv2.resize(pic, (int(round(iw * s)), int(round(ih * s))), interpolation=cv2.INTER_AREA)
+    cy, cx = (rs.shape[0] - bh) // 2, (rs.shape[1] - bw) // 2
+    rs = rs[cy:cy + bh, cx:cx + bw]
+    nw, nh = bw, bh
+    x0, y0 = border, border
     canvas[y0:y0 + nh, x0:x0 + nw] = rs
     fc = t['frame']
     cv2.rectangle(canvas, (x0 - 1, y0 - 1), (x0 + nw, y0 + nh), fc, 2, cv2.LINE_AA)

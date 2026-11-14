@@ -1,7 +1,7 @@
-/** Card art. The site shows the Galaxiora deck: Pamela Colman Smith's 1909 Rider–Waite–Smith drawings
- * (public domain), line for line, re-painted in the site palette by tools/tarot-art/build_deck.py
- * (gold linework on the night palette; a light-theme set is one command away).
- * Files: apps/web/public/tarot/galaxiora/<card-id>.webp (600×1000) and <card-id>-sm.webp (300×500), back.svg.
+/** Card art. The site shows the Galaxiora deck: Pamela Colman Smith's 1909 Rider–Waite–Smith cards
+ * (public domain) as printed, every colour re-tuned to the site palette by tools/tarot-art/build_deck.py
+ * (theme 'classic'; other themes, e.g. for a light site theme, are one command away).
+ * Files: apps/web/public/tarot/galaxiora/<card-id>.webp (600×940) and <card-id>-sm.webp (300×470), back.svg.
  * The scan map below is the source of the pipeline (pinned revision) and of the optional asset tooling. */
 export const TAROT_DECK_PATH='/tarot/galaxiora/';
 const DECK_ID=/^(major-(fool|magician|priestess|empress|emperor|hierophant|lovers|chariot|strength|hermit|wheel|justice|hanged|death|temperance|devil|tower|star|moon|sun|judgement|world)|(wands|cups|swords|pentacles)-(ace|two|three|four|five|six|seven|eight|nine|ten|page|knight|queen|king))$/;
