@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {tarotArtLocal,tarotArtRemote} from '../../../lib/tarot-art';
 import styles from './TarotArt.module.css';
 
@@ -11,14 +11,19 @@ export function TarotFace({id,name,reversed=false,locale,size='md'}:{id:string;n
  locale:'uk'|'en';size?:'sm'|'md'|'lg'}){
  const local=tarotArtLocal(id),remote=tarotArtRemote(id);
  const [source,setSource]=useState<string|null>(local);
+ const img=useRef<HTMLImageElement>(null);
  useEffect(()=>setSource(local),[local]);
+ // Server-rendered images can fail before React attaches onError (e.g. the local copy is not
+ // deployed): detect that after hydration and switch to the next source.
+ useEffect(()=>{const el=img.current;
+  if(el&&el.complete&&el.naturalWidth===0)setSource(current=>current===local?remote:null);},[source,local,remote]);
  return <span className={styles.face} data-size={size} data-reversed={reversed?'1':undefined}>
   <svg className={styles.defs} aria-hidden="true" focusable="false"><filter id="gx-tarot-duo" colorInterpolationFilters="sRGB">
    <feColorMatrix type="matrix" values=".33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0 0 0 0 1 0"/>
    <feComponentTransfer><feFuncR type="table" tableValues=".06 .96"/><feFuncG type="table" tableValues=".1 .87"/><feFuncB type="table" tableValues=".17 .69"/></feComponentTransfer>
   </filter></svg>
   <span className={styles.inner}>
-   <span className={styles.pic}>{source?<img src={source} alt={name+(reversed?(locale==='uk'?' — перевернута':' — reversed'):'')} loading="lazy" decoding="async" draggable={false}
+   <span className={styles.pic}>{source?<img ref={img} src={source} alt={name+(reversed?(locale==='uk'?' — перевернута':' — reversed'):'')} loading="lazy" decoding="async" draggable={false}
     onError={()=>setSource(current=>current===local?remote:null)}/>:<span className={styles.missing}>{name}</span>}</span>
    <span className={styles.name}><span className={styles.nameText}>{name}</span></span>
   </span>

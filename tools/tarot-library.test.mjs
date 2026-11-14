@@ -75,8 +75,12 @@ test('Tarot hub order, 78 card pages in the sitemap, and payment details never s
  const admin=read('apps/web/app/components/AdminExpertRequests.tsx');
  assert.match(admin,/localStorage\.setItem\(PAY_KEY/);
  assert.doesNotMatch(admin.slice(admin.indexOf('function savePay')),/fetch\([^)]*pay/i);
- const readers=read('apps/web/app/components/tarot/TarotReaders.tsx');
- assert.match(readers,/\$30/);assert.match(readers,/Binance Pay/);
+ // The page never shows a price; it appears only at the end, in the reader's personal email.
+ const readers=read('apps/web/app/components/tarot/TarotReaders.tsx')+read('apps/web/app/components/tarot/TarotFaq.tsx')+read('apps/web/app/components/ExpertQuestionForm.tsx');
+ assert.doesNotMatch(readers,/\$30|Binance|USDT/);
+ const mail=admin.slice(admin.indexOf('function offerMail'),admin.indexOf('export default'));
+ assert.ok(mail.indexOf('Коротка безкоштовна підказка')<mail.indexOf('Вартість'),'free hint before price');
+ assert.match(mail,/p\.card/);assert.match(mail,/p\.binance/);
  assert.doesNotMatch(read('apps/web/app/components/tarot/TarotDailyCard.tsx')+read('apps/web/app/components/TarotStudio.tsx'),/[\u{1F300}-\u{1FAFF}]/u);
 });
 

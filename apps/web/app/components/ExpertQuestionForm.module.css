@@ -21,3 +21,6 @@
 .success{background:#1d383b;border:1px solid #4f8277;padding:20px;border-radius:14px;color:#eef8f2}
 .link{font-weight:700;color:#efd5a8;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:640px){.form>button[type=submit]{width:100%;justify-content:center}}
+
+.next{margin:8px 0 12px;padding-left:20px;display:grid;gap:6px}
+.next li{line-height:1.5}

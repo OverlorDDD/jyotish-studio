@@ -11,7 +11,8 @@ test('minimal Tarot expert inquiry uses dark form, saves without payment and rev
  await page.goto('/uk/tarot#human-readings');
  const form=page.locator('#human-readings');
  await expect(form.getByRole('heading',{name:'Коли питання надто важливе для автоматичного розкладу'})).toBeVisible();
- await expect(form).toContainText('$30');
+ await expect(form).not.toContainText('$30');
+ await expect(form).toContainText('коротку підказку');
  await expect(form.locator('a[href="https://t.me/Galaxiora"]')).toHaveCount(0);
  const question=form.getByLabel('Ваше питання');
  await question.fill('Я');

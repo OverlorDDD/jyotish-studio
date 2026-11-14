@@ -2,8 +2,9 @@ import ExpertQuestionForm from '../ExpertQuestionForm';
 import PrivateTarotQuestions from '../PrivateTarotQuestions';
 import styles from './TarotHub.module.css';
 
-/** Human readers: story and trust first, the free question next, the price and payment last.
- * Reader details are placeholders until the team provides final profiles. */
+/** Human readers. The page never shows a price: the person first meets the readers, asks for free and
+ * gets a short free hint by email; only that personal email (written from the admin inbox) offers a
+ * full live reading with its price and payment details. Reader details are placeholders for now. */
 const READERS=[
  {initial:'А',uk:{name:'Анна',focus:'Стосунки, почуття, складні вибори',text:'Працює з класичною колодою Райдера–Вейта. Допомагає побачити ситуацію в стосунках ясніше й зрозуміти, чого ви насправді хочете.'},
   en:{name:'Anna',focus:'Relationships, feelings, hard choices',text:'Works with the classic Rider–Waite deck. Helps you see a relationship more clearly and understand what you really want.'}},
@@ -25,18 +26,13 @@ export default function TarotReaders({locale}:{locale:'uk'|'en'}){
    </article>)}
   </div>
   <ol className={styles.steps}>
-   <li><b>1</b>{uk?'Опишіть питання. Це безкоштовно і ні до чого не зобов’язує.':'Describe your question. It is free and with no obligation.'}</li>
-   <li><b>2</b>{uk?'Таролог прочитає його й відповість на пошту: чи візьметься і який розклад пропонує.':'A reader replies by email: whether they can take it and which spread they suggest.'}</li>
-   <li><b>3</b>{uk?'Тільки тоді ви вирішуєте, чи замовляти. Відповідь — протягом доби після оплати.':'Only then do you decide whether to order. The answer comes within a day of payment.'}</li>
+   <li><b>1</b>{uk?'Опишіть, що вас турбує. Це безкоштовно і ні до чого не зобов’язує.':'Describe what is on your mind. It is free and with no obligation.'}</li>
+   <li><b>2</b>{uk?'Анна або Євгенія прочитає питання й протягом доби надішле вам на пошту коротку підказку: на що звернути увагу вже зараз.':
+    'Anna or Yevheniia reads your question and within a day emails you a short hint: what to pay attention to right now.'}</li>
+   <li><b>3</b>{uk?'Захочете піти глибше — тарологиня запропонує повний живий розклад саме на вашу ситуацію. Вирішуєте лише ви.':
+    'If you want to go deeper, the reader will offer a full live reading for your situation. The choice is yours.'}</li>
   </ol>
   <ExpertQuestionForm locale={locale}/>
-  <div className={styles.price}>
-   <div><b>$30</b><p>{uk?'Живий розклад Таро на ваше питання: фото розкладу й докладна письмова відповідь.':'A live Tarot reading on your question: a photo of the spread and a detailed written answer.'}</p></div>
-   <div><p className={styles.payTitle}>{uk?'Як оплатити':'How to pay'}</p>
-    <ul className={styles.pay}><li>{uk?'Картка Visa / Mastercard':'Visa / Mastercard card'}</li><li>{uk?'USDT через Binance Pay':'USDT via Binance Pay'}</li></ul>
-    <p className={styles.small}>{uk?'Платите лише після того, як таролог підтвердив, що візьметься за питання. Реквізити надсилаємо на пошту. Якщо відповідь не прийде протягом доби після оплати, повернемо гроші.':
-     'You pay only after a reader confirms they will take your question. Payment details come by email. If the answer does not arrive within a day of payment, we refund you.'}</p></div>
-  </div>
   <PrivateTarotQuestions locale={locale}/>
  </section>;
 }

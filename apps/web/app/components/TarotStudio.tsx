@@ -1,5 +1,4 @@
 'use client';
-import PersonalJournal from './PersonalJournal';
 import {useEffect,useState} from 'react';
 import {History,RefreshCcw,Sparkles} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
@@ -150,8 +149,8 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
       :(uk?'Сьогодні залишилось розкладів: ':'Readings left today: ')+remaining}</span>
      <a className={'as-tarot-live-link '+styles.liveLink} href="#human-readings">{uk?'Важливе питання? Живий таролог →':'An important question? Ask a human reader →'}</a>
     </div>
-    {!signedIn&&!loading&&<p className={styles.small}>{uk?'Без реєстрації — 3 розклади на день. Увійдіть, щоб зберігати їх у щоденнику на будь-якому пристрої.':
-     'Without an account: 3 readings a day. Sign in to keep them in your journal on any device.'}</p>}
+    {!signedIn&&!loading&&<p className={styles.small}>{uk?'Без реєстрації — 3 розклади на день. Увійдіть, щоб розклади зберігалися в історії на будь-якому пристрої.':
+     'Without an account: 3 readings a day. Sign in to keep them on any device.'}</p>}
     {chosen.id==='celtic'&&<p className={styles.small}>{uk?'Кельтський хрест — великий розклад. Якщо ви тільки починаєте, спробуйте «Минуле, теперішнє, майбутнє».':
      'The Celtic Cross is a large spread. If you are just starting, try “Past, present, future”.'}</p>}
    </form>
@@ -210,14 +209,13 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
      </div>
     </div>
    </article>}
-   {allOpen&&reading.id&&<PersonalJournal key={reading.id} locale={locale} kind="TAROT" sourceId={reading.id}/>}
    {!allOpen&&<p className={styles.hint}>{uk?'Натисніть на карту '+(reading.cards.findIndex(c=>c.position===nextToOpen)+1)+', щоб відкрити її. Коли відкриєте всі, з’явиться загальна відповідь.':
     'Tap card '+(reading.cards.findIndex(c=>c.position===nextToOpen)+1)+' to turn it over. When all are open, the overall answer appears.'}</p>}
    <p className={styles.small}>{uk?'Ілюстрації: Pamela Colman Smith, класична колода Rider–Waite–Smith (1909), у кольорах Galaxiora. Таро не замінює медичних, юридичних чи фінансових рішень.':
     'Artwork: Pamela Colman Smith, the classic Rider–Waite–Smith deck (1909), in Galaxiora colours. Tarot does not replace medical, legal or financial decisions.'}</p>
   </section>}
   {signedIn&&<section className={'as-tarot-history '+styles.card}>
-   <h2><History size={21}/>{uk?'Мій щоденник розкладів':'My reading journal'}</h2>
+   <h2><History size={21}/>{uk?'Історія моїх розкладів':'My reading history'}</h2>
    {history.length?history.map(h=><button type="button" key={h.id??h.createdAt} onClick={()=>showSaved(h)}>
     <span>{new Date(h.createdAt).toLocaleString(uk?'uk-UA':'en-US')}</span>
     <strong>{spreadTitle(h.spread,uk)}</strong>

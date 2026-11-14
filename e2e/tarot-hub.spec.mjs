@@ -74,7 +74,8 @@ test('Tarot hub has no horizontal overflow on phones and keeps the reader block 
   await page.setViewportSize({width,height:800});
   await page.goto('/uk/tarot');
   await rejectAnalyticsIfPrompted(page);
-  await expect(page.getByTestId('tarot-readers')).toContainText('$30');
+  await expect(page.getByTestId('tarot-readers')).toContainText('коротку підказку');
+  await expect(page.getByTestId('tarot-readers')).not.toContainText('$30');
   await noOverflow(page);
  }
  const ld=await page.locator('script[type="application/ld+json"]').allTextContents();
