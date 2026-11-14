@@ -8,6 +8,7 @@ import {indexRobots,publicIndexingEnabled,publicSiteOrigin} from '../../../../li
 import {TOPIC_COPY,fetchNewsFeed,fetchNewsStory,fetchRubricData,fetchSkyEvents,isNewsTopic,isOwn,kyivDate,newsTeaser,newsTitle,
  storyIndexable,storyKey,storySlug,type NewsItem,type NewsLocale} from '../../../../lib/news-public';
 import {composeSkyArticle} from '../../../../lib/news-sky';
+import {rubricArt} from '../../../../lib/news-rubric-art';
 
 export const dynamic='force-dynamic';
 type Props={params:Promise<{locale:string;slug:string}>};
@@ -63,7 +64,7 @@ export default async function NewsSlugPage({params}:Props){
  const jsonLd=own&&base&&publicIndexingEnabled()?JSON.stringify({
   '@context':'https://schema.org','@type':'NewsArticle',headline:h.title,description:h.lead||undefined,
   datePublished:item.publishedAt,dateModified:item.publishedAt,inLanguage:locale==='uk'?'uk-UA':'en',
-  mainEntityOfPage:url,image:[url+'/opengraph-image'],
+  mainEntityOfPage:url,image:[(item.rubric&&rubricArt(item.rubric.kind,item.rubric.key)?base+rubricArt(item.rubric.kind,item.rubric.key)!.jpg:url+'/opengraph-image')],
   author:{'@type':'Organization',name:'Galaxiora',url:base},
   publisher:{'@type':'Organization',name:'Galaxiora',logo:{'@type':'ImageObject',url:base+'/galaxiora-favicon.png'}},
   isAccessibleForFree:true,articleSection:locale==='uk'?TOPIC_COPY[item.topic]?.uk:TOPIC_COPY[item.topic]?.en

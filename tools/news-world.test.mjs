@@ -222,3 +222,22 @@ test('article metadata: large pages are read, same-site redirects followed',()=>
  assert.match(src,/to\.hostname\.replace\(\/\^www\\\.\/,''\)!==u\.hostname\.replace/);
  assert.match(src,/while\(total<140000\)/,'still reads at most 140 KB');
 });
+
+// ---- Rubric artwork (2026-11-14): 12 monthly scenes + 53 weekly charts, reused every year ----
+import {rubricArt,isoWeek} from '../apps/web/lib/news-rubric-art.ts';
+test('every rubric period has its own original picture, reused each year',()=>{
+ for(let m=1;m<=12;m++)for(const y of ['2026','2031']){
+  const a=rubricArt('month',y+'-'+String(m).padStart(2,'0'));
+  for(const f of [a.src,a.small,a.jpg])assert.ok(existsSync(new URL('../apps/web/public'+f,import.meta.url)),f);
+ }
+ for(let w=1;w<=53;w++)for(const f of ['.webp','-sm.webp','.jpg'])
+  assert.ok(existsSync(new URL('../apps/web/public/news/rubrics/week-'+String(w).padStart(2,'0')+f,import.meta.url)),'week '+w+f);
+ assert.equal(isoWeek('2026-11-16'),47);
+ assert.equal(isoWeek('2026-12-28'),53);
+ assert.equal(isoWeek('2027-01-04'),1);
+ assert.equal(rubricArt('week','2026-11-16').caption.uk,'Сонце на своєму шляху крізь знак Скорпіона. Ілюстрація Galaxiora.');
+ assert.equal(rubricArt('week','2027-11-22').src,rubricArt('week','2026-11-16').src,'same week next year → same picture');
+ assert.match(rubricArt('month','2026-11').caption.uk,/Дівалі/);
+ const og=readFileSync(new URL('../apps/web/app/[locale]/news/[slug]/opengraph-image.tsx',import.meta.url),'utf8');
+ assert.match(og,/rubricPicture\(slug\)/);
+});
