@@ -18,7 +18,7 @@ export default function TarotLibraryGrid({locale,heading=true}:{locale:'uk'|'en'
   <ul className={styles.library}>
    {TAROT_LIBRARY.map(card=><li key={card.id} hidden={card.group!==group}>
     <Link href={'/'+locale+'/tarot/cards/'+card.slug}>
-     <TarotFace id={card.id} name={card.name[locale]} num={card.group==='major'?card.num:undefined} locale={locale} size="sm"/>
+     <TarotFace id={card.id} name={card.name[locale]} num={card.group==='major'?card.num:undefined} locale={locale} size="sm" label={false}/>
      <span>{card.name[locale]}</span>
     </Link>
    </li>)}
