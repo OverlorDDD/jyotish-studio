@@ -63,7 +63,7 @@ async function routeApi(page,guest=false){
 for(const locale of ['uk','en']){
  test(locale+': synthesis day/week has both source-specific signals and no mixing on switch',async({page})=>{
   await routeApi(page);
-  await page.goto('/'+locale+'/horoscope');
+  await page.goto('/'+locale+'/horoscope/personal');
   await page.getByRole('button',{name:locale==='uk'?'Мій персональний':'My personal reading'}).click();
   const synthesis=page.getByTestId('synthesis-switch');
   await expect(synthesis).toBeVisible();
@@ -96,7 +96,7 @@ for(const locale of ['uk','en']){
   let posts=0;
   await routeApi(page);
   page.on('request',r=>{if(r.method()==='POST')posts++;});
-  await page.goto('/'+locale+'/horoscope');
+  await page.goto('/'+locale+'/horoscope/personal');
   await page.getByRole('button',{name:locale==='uk'?'Мій персональний':'My personal reading'}).click();
   await page.getByTestId('synthesis-switch').click();
   const editorial=page.getByTestId('synthesis-editorial-v3');
@@ -110,7 +110,7 @@ for(const locale of ['uk','en']){
  });
  test(locale+': guests cannot see a synthesized private natal reading',async({page})=>{
   await routeApi(page,true);
-  await page.goto('/'+locale+'/horoscope');
+  await page.goto('/'+locale+'/horoscope/personal');
   await page.getByRole('button',{name:locale==='uk'?'Мій персональний':'My personal reading'}).click();
   await page.getByTestId('synthesis-switch').click();
   await expect(page.getByTestId('synthesis-day')).toHaveCount(0);

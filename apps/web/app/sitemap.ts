@@ -16,8 +16,9 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
  const base=publicSiteOrigin()!;
  const [yoga,academy,ownUk,ownEn]=await Promise.all([publishedList('YOGA'),publishedList('ACADEMY'),
   fetchNewsFeed({locale:'uk',scope:'own',limit:48,sort:'latest'}),fetchNewsFeed({locale:'en',scope:'own',limit:48,sort:'latest'})]);
- const allPages=[...new Set([...SEO_PATHS,...MOON_SIGN_GUIDES.map(s=>'horoscope/'+s.slug),
-  ...MOON_SIGN_GUIDES.map(s=>'horoscope/western/'+s.slug),
+ // Horoscopes v3: every sign × period in both systems, plus the hubs and Star Passport.
+ const allPages=[...new Set([...SEO_PATHS,'horoscope/vedic','horoscope/my-sign',
+  ...MOON_SIGN_GUIDES.flatMap(s=>['','/tomorrow','/week','/month'].flatMap(p=>['horoscope/'+s.slug+p,'horoscope/vedic/'+s.slug+p])),
   ...YOGA_PRACTICES.map(p=>'yoga/'+p.slug),...ACADEMY_LESSONS.map(l=>'pedia/'+l.slug),...PEDIA_ARTICLES.map(a=>'pedia/'+a.slug),
   ...PEDIA_CATEGORIES.map(c=>'pedia/topic/'+c.id),
   ...TAROT_LIBRARY.map(card=>'tarot/cards/'+card.slug),

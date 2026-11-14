@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import './horoscope-v3.test.mjs';
 import {readPublicSign} from '../apps/api/src/horoscope-editorial.ts';
 import {buildMoonSignHoroscope} from '../apps/api/src/personal-guidance.ts';
 const t={date:'2026-10-28',sampledAtUtc:'2026-10-28T10:00:00Z',method:'SWISS_LAHIRI',

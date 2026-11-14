@@ -1,25 +1,17 @@
-import type {Metadata} from 'next';
-import {notFound} from 'next/navigation';
-import PortalShell from '../../components/PortalShell';
-import HoroscopeHub from '../../components/HoroscopeHub';
-import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
-import {indexRobots} from '../../../lib/site-indexing';
-const SEO_COPY={"uk":{"title":"Гороскопи для 12 знаків — західні та ведичні","description":"Західні гороскопи за тропічним Сонцем, ведичні прогнози за сидеричним Місяцем і персональний аналіз натальної карти. Точні розрахунки Swiss Ephemeris."},"en":{"title":"Horoscopes for 12 Signs — Western Sun & Vedic Moon","description":"Western tropical Sun-sign horoscopes, Vedic sidereal Moon-sign readings, and personalized birth-chart guidance computed from Swiss Ephemeris."}} as const;
-export async function generateMetadata({params}:{params:Promise<{locale:string}>}):Promise<Metadata>{
- const {locale}=await params;
- if(!isPortalLocale(locale))return {};
- const current=SEO_COPY[locale],path="horoscope";
- const canonical='/'+locale+'/'+path;
- return {title:current.title+' | Galaxiora',description:current.description,robots:indexRobots(),
-  alternates:{canonical,languages:{uk:'/uk/'+path,en:'/en/'+path,'x-default':'/en/'+path}},
-  openGraph:{title:current.title,description:current.description,type:'website',locale:locale==='uk'?'uk_UA':'en_US',
-   url:canonical,siteName:'Galaxiora'},
-  twitter:{card:'summary_large_image',title:current.title,description:current.description}};
-}
-export function generateStaticParams(){return BRAND.locales.map(locale=>({locale}));}
-export default async function HoroscopePage({params}:{params:Promise<{locale:string}>}){
- const {locale}=await params;if(!isPortalLocale(locale))notFound();
- return <PortalShell locale={locale as PortalLocale} active="horoscope" languagePath="horoscope">
-  <HoroscopeHub locale={locale as PortalLocale}/>
- </PortalShell>;
+import {permanentRedirect} from 'next/navigation';
+import {hubMetadata,renderHub} from '../../../lib/horoscope-page';
+import {hubPath,signBySlug,signPath} from '../../../lib/horoscope-signs';
+export const dynamic='force-dynamic';
+type Props={params:Promise<{locale:string}>;searchParams:Promise<Record<string,string|string[]|undefined>>};
+export async function generateMetadata({params}:Props){return hubMetadata((await params).locale,'western');}
+export default async function HoroscopePage({params,searchParams}:Props){
+ const {locale}=await params,q=await searchParams;
+ // Legacy bookmarks (?system=vedic&sign=gemini) consolidate to one canonical page.
+ // The old hub defaulted to the Vedic Moon sign, so a bare ?sign= keeps that meaning.
+ if((locale==='uk'||locale==='en')&&(typeof q.sign==='string'||typeof q.system==='string')){
+  const system=q.system==='western'?'western':'vedic';
+  const sign=typeof q.sign==='string'?signBySlug(q.sign.toLowerCase()):undefined;
+  permanentRedirect(sign?signPath(locale,system,sign.slug):hubPath(locale,system));
+ }
+ return renderHub(locale,'western');
 }

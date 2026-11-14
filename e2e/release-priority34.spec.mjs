@@ -7,16 +7,14 @@ const mockReading=(headline,kind)=>({
   natalMoonSign:3,natalLagnaSign:1,house:12,sign:12,nakshatra:'Revati'}
 });
 for(const locale of ['uk','en']){
- test('release SEO: '+locale+' Moon-sign permalink has original content and valid live sign deep link',async({page})=>{
-  await page.goto('/'+locale+'/horoscope/aries');
-  await expect(page.getByTestId('moon-sign-guide')).toBeVisible();
+ test('release SEO: '+locale+' Vedic sign permalink is a real server-rendered forecast page',async({page})=>{
+  const response=await page.goto('/'+locale+'/horoscope/vedic/aries');
+  expect(response.status()).toBe(200);
   await expect(page.getByRole('heading',{level:1})).toContainText(locale==='uk'?'Овен':'Aries');
-  const link=page.locator('a[href="/'+locale+'/horoscope?sign=aries"]');
-  await expect(link).toBeVisible();
-  await link.click();
-  await expect(page.getByRole('button',{name:locale==='uk'?'Овен':'Aries'})).toHaveAttribute('aria-pressed','true');
-  await expect(page.getByTestId('lunar-sign-explanation')).toBeVisible();
-  await expect(page.getByTestId('horoscope-reading')).toBeVisible();
+  await expect(page.locator('a[href="/'+locale+'/horoscope/vedic/aries/week"]')).toBeVisible();
+  await expect(page.locator('a[href="/'+locale+'/horoscope/aries"]').first()).toBeVisible();
+  const legacy=await page.goto('/'+locale+'/horoscope?sign=aries');
+  expect(new URL(legacy.url()).pathname).toBe('/'+locale+'/horoscope/vedic/aries');
  });
 }
 test('a public Aries selection cannot silently override an authenticated Gemini natal Moon',async({page})=>{
@@ -32,7 +30,7 @@ test('a public Aries selection cannot silently override an authenticated Gemini 
   status:200,contentType:'application/json',
   body:JSON.stringify({horoscopeStatus:'personalized',horoscopes:[]})
  }));
- await page.goto('/uk/horoscope?sign=aries');
+ await page.goto('/uk/horoscope/personal?sign=aries');
  await expect(page.getByTestId('lunar-sign-explanation')).toContainText('Овен');
  await expect(page.getByTestId('lunar-sign-explanation')).toContainText('Близнюки');
  await page.getByRole('button',{name:'Мій персональний'}).click();

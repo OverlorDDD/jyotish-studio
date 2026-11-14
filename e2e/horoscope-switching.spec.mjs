@@ -46,7 +46,7 @@ async function stub(page,hasAccount=true){
 for(const locale of ['uk','en']){
  test(locale+': switching My personal never mixes Western Sun with Vedic Moon in day/week',async({page})=>{
   await stub(page,true);
-  await page.goto('/'+locale+'/horoscope');
+  await page.goto('/'+locale+'/horoscope/personal');
   const western=page.getByRole('button',{name:locale==='uk'?'Західний · Сонце':'Western · Sun'});
   const vedic=page.getByRole('button',{name:locale==='uk'?'Ведичний · Місяць':'Vedic · Moon'});
   await page.getByRole('button',{name:locale==='uk'?'Мій персональний':'My personal reading'}).click();
@@ -71,7 +71,7 @@ for(const locale of ['uk','en']){
  });
  test(locale+': public modes keep correct reference, 7 distinct dated rows and exact natal selection',async({page})=>{
   await stub(page,true);
-  await page.goto('/'+locale+'/horoscope?system=vedic&sign=gemini');
+  await page.goto('/'+locale+'/horoscope/personal?system=vedic&sign=gemini');
   await expect(page.getByRole('button',{name:locale==='uk'?'Ведичний · Місяць':'Vedic · Moon'})).toHaveAttribute('aria-pressed','true');
   await expect(page.getByTestId('horoscope-reading')).toContainText('VEDIC PUBLIC');
   await page.getByRole('button',{name:locale==='uk'?'Західний · Сонце':'Western · Sun'}).click();
