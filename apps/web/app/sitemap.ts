@@ -36,6 +36,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
  // locale with the slug of that locale, and the date we published them.
  const stories=[...ownUk.items.map(i=>({i,l:'uk' as const})),...ownEn.items.map(i=>({i,l:'en' as const}))]
   .filter(({i,l})=>i.event&&composeSkyArticle(i.event)||newsTitle(i,l))
-  .map(({i,l})=>({url:base+'/'+l+'/news/'+storySlug(i,l),lastModified:i.publishedAt}));
- return [...localized,...stories];
+  .map(({i,l})=>({url:[base,l,'news',storySlug(i,l)].join('/'),lastModified:i.publishedAt}));
+ (localized as MetadataRoute.Sitemap).push(...stories);
+ return localized;
 }

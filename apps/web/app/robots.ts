@@ -37,5 +37,5 @@ export default function robots():MetadataRoute.Robots{
   ...PUBLIC_SEARCH_USER_AGENTS.map(userAgent=>({
    userAgent,allow:'/',disallow:privatePaths
   }))
- ],sitemap:[origin+'/sitemap.xml',origin+'/news-sitemap.xml'],host:origin};
+ ],sitemap:origin+'/sitemap.xml',host:origin};
 }
