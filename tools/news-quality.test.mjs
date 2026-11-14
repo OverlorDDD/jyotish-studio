@@ -43,6 +43,8 @@ test('bounded quality counts are factual and work with empty feeds',()=>{
 
 test('public feed rechecks legacy media rights and admin UI shows bounded quality',()=>{
  const source=(name)=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
- assert.ok(source('apps/api/src/news.ts').includes('imageUrl:rest.imageUrl?safeImageUrl'));
+ // Large images still need a licence at serving time; publisher previews are thumbnails only.
+ assert.match(source('apps/api/src/news.ts'),/const licensed=row\.imageUrl\?safeImageUrl\(/);
+ assert.match(source('apps/api/src/news.ts'),/imageUrl:licensed,thumbUrl:licensed\|\|preview/);
  assert.ok(source('apps/web/app/components/NewsDiagnostics.tsx').includes('data-testid="news-quality-summary"'));
 });

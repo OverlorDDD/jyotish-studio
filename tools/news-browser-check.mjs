@@ -15,7 +15,7 @@ const context=await browser.newContext({viewport:{width:1440,height:900}});
 const page=await context.newPage();
 let stage='opening GalaxiNews';
 try{
- const response=await page.goto('http://127.0.0.1:3000/uk/news?check=v1.8',{waitUntil:'domcontentloaded',timeout:30000});
+ const response=await page.goto('http://127.0.0.1:3000/uk/news/for-you?check=v1.8',{waitUntil:'domcontentloaded',timeout:30000});
  stage='waiting for GalaxiNews client view';
  await page.getByTestId('galaxinews-world').waitFor({state:'visible',timeout:15000});
  stage='checking public feed API';

@@ -13,7 +13,7 @@ test('licensed Commons alternative photo is visible with creator and click-throu
    imageLicense:'CC BY 4.0',imageLicenseUrl:'https://creativecommons.org/licenses/by/4.0/'}],
   total:1,articleCount:1,page:1,limit:24,lastScan:null,personalized:false,sort:'relevance'
  })}));
- await page.goto('/uk/news');
+ await page.goto('/uk/news/for-you');
  const img=page.locator('img[src*="upload.wikimedia.org"]').first();
  await expect(img).toBeVisible();
  await expect(page.getByRole('link',{name:/Photographer Example/})).toHaveAttribute('href','https://commons.wikimedia.org/wiki/File:Sunrise.jpg');
@@ -35,7 +35,7 @@ test('news card keeps an immediately readable illustration when the licensed pho
    total:1,articleCount:1,lastScan:null
   })
  }));
- await page.goto('/uk/news');
+ await page.goto('/uk/news/for-you');
  const fallback=page.locator('article img[data-image-role="fallback"]').first();
  await expect(fallback).toBeVisible();
  await expect.poll(()=>fallback.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);

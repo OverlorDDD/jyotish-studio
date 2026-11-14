@@ -107,3 +107,60 @@ test('extra interest tags are additive and do not break existing news categories
  assert.ok(mantra.tags.includes('mantras'));
  assert.ok(mantra.tags.includes('pranayama'));
 });
+
+// ---- GalaxiNews portal (2026-11): thumbnails, source kinds, own sky stories, slugs ----
+import {readFileSync} from 'node:fs';
+import {publisherThumbUrl as portalThumb} from '../apps/api/src/news-domain.ts';
+import {sourceKindFor} from '../apps/api/src/news-sources.ts';
+import {skyHeadline,skyTags,skyEventFromTags} from '../apps/api/src/news-astronomy.ts';
+import {storySlug,storyKey,newsTeaser,storyIndexable} from '../apps/web/lib/news-public.ts';
+import {composeSkyArticle,nextEventFor} from '../apps/web/lib/news-sky.ts';
+test('publisher previews are thumbnails only; large images still need a licence',()=>{
+ assert.equal(portalThumb('https://www.hinduismtoday.com/wp-content/uploads/2026/11/temple.jpg'),'https://www.hinduismtoday.com/wp-content/uploads/2026/11/temple.jpg');
+ for(const bad of ['http://a.org/x.jpg','https://a.org/logo.png','https://a.org/x.svg','https://secure.gravatar.com/a.jpg',null,''])
+  assert.equal(portalThumb(bad),null,String(bad));
+ const api=readFileSync(new URL('../apps/api/src/news.ts',import.meta.url),'utf8');
+ assert.match(api,/imageUrl:licensed,thumbUrl:licensed\|\|preview/);
+ const portal=readFileSync(new URL('../apps/web/app/components/news/NewsPortal.tsx',import.meta.url),'utf8');
+ assert.match(portal,/Only openly licensed photos may be shown large/);
+ const media=readFileSync(new URL('../apps/api/src/news-open-media.ts',import.meta.url),'utf8');
+ assert.match(media,/\{imageUrl:null\},/,'stock photos never replace a publisher preview');
+});
+test('front page keeps reading-shop blogs out; own items are recognised',()=>{
+ assert.equal(sourceKindFor({url:'https://www.hinduismtoday.com/hpi/2026/11/x',source:'Hindu Press International'}),'news');
+ assert.equal(sourceKindFor({url:'https://astrotalk.com/astrology-blog/x',source:'AstroTalk Blog'}),'brand');
+ assert.equal(sourceKindFor({url:'https://tricycle.org/x',source:'Tricycle'}),'magazine');
+ assert.equal(sourceKindFor({url:'https://galaxiora.com/uk/panchanga',source:'Galaxiora Astronomical Calendar'}),'own');
+ assert.equal(sourceKindFor({url:'https://www.reuters.com/x',source:'reuters.com'}),'news');
+});
+test('own sky stories: dated headline, event tags round-trip, honest tense',()=>{
+ const e={kind:'direct_station',body:'Venus',atUtc:'2026-11-14T00:29:33Z',sign:6,longitude:178.629};
+ assert.equal(skyHeadline(e).uk,'Венера розвертається в прямий рух 14 листопада 2026');
+ assert.equal(skyHeadline({kind:'sidereal_ingress',body:'Sun',atUtc:'2026-11-16T14:12:56Z',toSign:8}).uk,'Сонце входить у знак Скорпіона 16 листопада 2026');
+ assert.deepEqual(skyEventFromTags(['astronomy',...skyTags(e)]),{...e,longitude:178.629});
+ assert.equal(skyEventFromTags(['astronomy','jyotish']),null);
+ const next={kind:'sidereal_ingress',body:'Venus',atUtc:'2026-11-22T00:24:55Z',fromSign:6,toSign:7};
+ assert.equal(nextEventFor(e,[next]),next);
+ const after=composeSkyArticle(e,next,Date.parse('2026-11-15T00:00:00Z'));
+ assert.match(after.lead.uk,/^Ретроградний відрізок Венери завершився на 28°38′ Діви/);
+ assert.match(after.sections[1].paragraphs[0].uk,/відповідає за стосунки, красу, мистецтво/);
+ assert.match(after.sections[1].paragraphs[1].uk,/ослабленні \(нічі\)/);
+ assert.ok(after.facts.some(f=>/Терезів/.test(f.value.uk)));
+ const before=composeSkyArticle(e,null,Date.parse('2026-11-10T00:00:00Z'));
+ assert.match(before.lead.uk,/^14 листопада 2026 о 02:29 ретроградний відрізок Венери завершиться/);
+ const retro=composeSkyArticle({kind:'retrograde_station',body:'Mercury',atUtc:'2026-11-30T14:00:00Z',sign:9,longitude:250.5},null,Date.parse('2026-12-01T00:00:00Z'));
+ assert.match(retro.lead.uk,/Меркурій зупинився й почав/);
+ assert.match(retro.lead.uk,/переглянути мову, навчання/);
+ for(const kind of ['new_moon','first_quarter','full_moon','last_quarter'])assert.ok(composeSkyArticle({kind,atUtc:'2026-11-24T14:53:00Z'}));
+ assert.equal(composeSkyArticle({kind:'solar-eclipse',atUtc:'2027-02-06T16:00:00Z'}),null);
+});
+test('story URLs are readable, stable by key, and only own stories are indexable',()=>{
+ const item={id:'98ad1bea-1234-4000-8000-000000000001',title:'Venus stations direct',titleUk:'Венера розвертається в прямий рух 14 листопада 2026',titleEn:'Venus stations direct on 14 November 2026'};
+ assert.equal(storySlug(item,'uk'),'venera-rozvertaietsia-v-priamyi-rukh-14-lystopada-2026-98ad1bea');
+ assert.equal(storySlug(item,'en'),'venus-stations-direct-on-14-november-2026-98ad1bea');
+ assert.equal(storyKey('venera-98ad1bea'),'98ad1bea');
+ assert.equal(storyKey('astrology'),null);
+ assert.equal(storyIndexable({source:'Galaxiora Astronomical Calendar',sourceKind:'own'}),true);
+ assert.equal(storyIndexable({source:'Hindu Press International',sourceKind:'news'}),false);
+ assert.equal(newsTeaser({summaryUk:'Час події за Swiss Ephemeris: 2026-11-14T00:29Z.',language:'uk'},'uk'),null);
+});

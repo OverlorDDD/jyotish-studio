@@ -74,7 +74,9 @@ test('News and GalaxiCom are discoverable live modules without legacy coming-soo
   assert.ok(sections.includes(slug+':{title:'));
   assert.ok(nav.includes("'"+slug+"'"));
  }
- assert.ok(sections.includes("section==='news'")&&sections.includes('<NewsWorld locale={locale}/>'));
+ // GalaxiNews has its own routes: portal, topic hubs, stories; the personal feed lives at /news/for-you.
+ assert.ok(read('apps/web/app/[locale]/news/page.tsx').includes('<NewsPortal'));
+ assert.ok(read('apps/web/app/[locale]/news/[slug]/page.tsx').includes("slug==='for-you')return <NewsWorld"));
  assert.ok(sections.includes("section==='community'")&&sections.includes('<GalaxiCom locale={locale}/>'));
  assert.ok(home.includes("slug:'community'")&&home.includes("live:true"));
  assert.ok(!sections.includes('Жива новинна стрічка ще не працює'));

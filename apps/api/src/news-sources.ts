@@ -1,6 +1,7 @@
 /** Unverified candidate sources. Always inspect source-scan health before claiming coverage. */
 import type {Topic} from './news-domain.ts';
-export type RssSource={key:string;name:string;url:string;hint:Topic;allowSnippet:boolean};
+export type SourceKind='news'|'magazine'|'brand';
+export type RssSource={key:string;name:string;url:string;hint:Topic;allowSnippet:boolean;kind:SourceKind};
 const data:[string,string,string,Topic,boolean][]=[
  ['astrology-podcast','The Astrology Podcast','https://theastrologypodcast.com/feed/','astrology',true],
  ['astrology-podcast-audio','The Astrology Podcast','https://theastrologypodcast.com/feed/podcast/','astrology',true],
@@ -25,7 +26,28 @@ const data:[string,string,string,Topic,boolean][]=[
  ['elephant-journal','Elephant Journal','https://www.elephantjournal.com/feed/','self-development',false],
  ['yoga-basics','Yoga Basics','https://www.yogabasics.com/feed/','yoga',false]
 ];
-export const RSS_SOURCES:readonly RssSource[]=data.map(([key,name,url,hint,allowSnippet])=>({key,name,url,hint,allowSnippet}));
+/** Editorial weight of a publisher on the GalaxiNews front page.
+ * news: reporting on events; magazine: edited long-form; brand: blogs of
+ * services that sell readings/consultations — kept in topic pages, but never
+ * leading the front page, where they read as advertising. */
+const KIND:Record<string,SourceKind>={
+ 'hindu-press':'news','hinduism-today':'magazine','tricycle':'magazine','lions-roar':'magazine',
+ 'mindful':'magazine','yoga-journal':'magazine','mountain-astrologer':'magazine',
+ 'astrology-podcast':'magazine','astrology-podcast-audio':'magazine','llewellyn':'magazine'
+};
+export const RSS_SOURCES:readonly RssSource[]=data.map(([key,name,url,hint,allowSnippet])=>({key,name,url,hint,allowSnippet,kind:KIND[key]||'brand'}));
+const hostOf=(raw:string)=>{try{return new URL(raw).hostname.replace(/^www\./,'').toLowerCase();}catch{return '';}};
+/** Kind for a stored article. Own Galaxiora items are 'own'; GDELT-indexed
+ * outlets (mainstream press) count as 'news'; curated RSS uses KIND. */
+export function sourceKindFor(article:{url:string;source:string}):SourceKind|'own'{
+ if(/^Galaxiora\b/.test(article.source))return 'own';
+ const host=hostOf(article.url);
+ // Several feeds share a host (hinduismtoday.com hosts HPI and the magazine).
+ const byName=RSS_SOURCES.find(s=>s.name===article.source);
+ if(byName)return byName.kind;
+ const byHost=RSS_SOURCES.find(s=>hostOf(s.url)===host);
+ return byHost?byHost.kind:'news';
+}
 export const GDELT_QUERIES=[
  ['vedic-jyotish','"Vedic astrology" OR Jyotish','jyotish'],
  ['nakshatra','nakshatra OR Vimshottari','jyotish'],
