@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('Account login and logout notify the mounted Tarot studio',()=>{
@@ -32,11 +32,11 @@ test('Offline Ukrainian tarot prose uses natural accusative event phrases',()=>{
  assert.ok(!code.includes('спочатку може проявитися '));
  assert.ok(!code.includes('У розвитку ситуації може втрутитися '));
 });
-test('Card artwork has 78 mapped classic images and is auto-cached before full launch',()=>{
+test('Card artwork: the Galaxiora deck ships all 78 cards and a back; the classic scan tooling stays mapped',()=>{
  const api=read('apps/api/src/tarot.ts');
  const mapping=read('apps/web/lib/tarot-art.ts');
  const prep=read('tools/tarot-assets-prepare.mjs');
- const card=read('apps/web/app/components/TarotCardArt.tsx');
+ const card=read('apps/web/app/components/tarot/TarotArt.tsx');
  const pkg=JSON.parse(read('package.json'));
  const rules=read('apps/api/src/tarot-domain.ts');
  assert.ok(rules.includes('ADMIN_LIMIT=100'));
@@ -47,7 +47,12 @@ test('Card artwork has 78 mapped classic images and is auto-cached before full l
  assert.ok(mapping.includes("'/tarot/rws/'"));
  assert.ok(prep.includes("count===78"));
  assert.equal(pkg.scripts['predev:full'],'node --experimental-strip-types tools/tarot-assets-prepare.mjs');
- assert.ok(card.includes('tarotArtLocal'));
- assert.ok(card.includes('tarotArtRemote'));
- assert.ok(card.includes("reversed?'is-reversed'"));
+ assert.ok(card.includes('tarotDeckArt'));
+ assert.ok(card.includes('TAROT_DECK_BACK'));
+ const deck=readdirSync(new URL('../apps/web/public/tarot/galaxiora/',import.meta.url)).filter(f=>f.endsWith('.svg'));
+ assert.equal(deck.length,79);
+ for(const f of deck){const svg=read('apps/web/public/tarot/galaxiora/'+f);
+  assert.ok(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 520"'),f);
+  assert.doesNotMatch(svg,/<script|<image|href="http|foreignObject/i,f);}
+ assert.ok(card.includes("data-reversed={reversed?'1':undefined}"));
 });

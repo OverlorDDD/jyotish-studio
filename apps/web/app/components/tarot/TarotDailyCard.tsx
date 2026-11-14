@@ -87,6 +87,13 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
    </div>}
   </div>
   <div className={styles.stage}>
+   <svg className={styles.orbit} viewBox="0 0 440 440" aria-hidden="true" focusable="false">
+    <defs><radialGradient id="gx-daily-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#F2C982" stopOpacity=".26"/><stop offset=".5" stopColor="#3C5FA6" stopOpacity=".2"/><stop offset="1" stopColor="#3C5FA6" stopOpacity="0"/></radialGradient></defs>
+    <circle cx="220" cy="220" r="210" fill="url(#gx-daily-glow)"/>
+    <ellipse cx="220" cy="236" rx="200" ry="60" transform="rotate(-14 220 236)" fill="none" stroke="#E7BD72" strokeOpacity=".35"/>
+    <ellipse cx="220" cy="236" rx="160" ry="44" transform="rotate(-14 220 236)" fill="none" stroke="#E7BD72" strokeOpacity=".18"/>
+    <circle cx="34" cy="280" r="4.5" fill="#F6DCA4"/><circle cx="392" cy="182" r="3" fill="#A7B2C9"/>
+   </svg>
    {phase==='idle'?<button type="button" className={styles.deck} onClick={draw} disabled={!journey} aria-label={uk?'Витягнути карту дня':'Draw my card of the day'}>
     <TarotBack size="lg"/><TarotBack size="lg"/><TarotBack size="lg"/>
     <span className={styles.tap}>{uk?'натисніть на колоду':'tap the deck'}</span>

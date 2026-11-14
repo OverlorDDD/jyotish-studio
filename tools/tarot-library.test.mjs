@@ -132,6 +132,6 @@ test('Guided path: topic → question → cards → answer → next step, with t
  assert.match(studio,/data-next=/);
  assert.match(read('apps/web/app/components/ExpertQuestionForm.tsx'),/addEventListener\('galaxiora:tarot-to-reader'/);
  const art=read('apps/web/app/components/tarot/TarotArt.module.css');
- assert.match(art,/aspect-ratio:720\/1248/,'whole printed card visible, title included');
+ assert.match(art,/aspect-ratio:300\/520/,'whole card art visible');
  assert.ok(!/height:calc\(100% - 30px\)/.test(art));
 });
