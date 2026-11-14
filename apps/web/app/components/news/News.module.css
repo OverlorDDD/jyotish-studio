@@ -73,6 +73,7 @@
 .thumb{position:relative;display:block;flex:0 0 136px;height:96px;border-radius:12px;overflow:hidden;border:1px solid var(--gx-line);background:#13203F}
 .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .thumb small{position:absolute;left:0;right:0;bottom:0;padding:2px 6px;font-size:10px;line-height:1.4;color:#E4E8F1;background:linear-gradient(transparent,rgba(5,10,22,.85));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artThumb svg{position:absolute;inset:0;width:100%;height:100%}
 .more{margin-top:18px;width:100%;height:48px;border-radius:999px;border:1px solid rgba(243,238,228,.16);background:transparent;color:var(--gx-ivory);font:500 15px var(--gx-font);cursor:pointer}
 .more:hover{border-color:rgba(231,189,114,.5)}
 .more:disabled{opacity:.5;cursor:default}
@@ -92,11 +93,38 @@
 .mini a:hover{color:var(--gx-gold-2)}
 .mini span{display:block;font-size:12px;color:var(--gx-mist);margin-top:2px}
 
+.popular{counter-reset:pop}
+.popular li{position:relative;padding-left:30px!important;counter-increment:pop}
+.popular li::before{content:counter(pop);position:absolute;left:0;top:9px;font-size:18px;font-weight:700;color:var(--gx-gold)}
 .band{margin-top:40px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
 .card{display:block;border-radius:18px;border:1px solid var(--gx-line);background:rgba(17,29,58,.5);padding:16px 18px}
 .card:hover h3{color:var(--gx-gold-2)}
 .card h3{margin:6px 0 6px;font-size:17px;line-height:1.3;font-weight:600;transition:color .2s}
+
+/* Rubric calendar */
+.calendar{display:grid;gap:4px;margin:0 0 24px}
+.calendar section{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:4px 18px;padding:12px 0;border-bottom:1px solid rgba(243,238,228,.07)}
+.calendar h3{margin:0;font-size:15px;font-weight:600;color:var(--gx-gold-2)}
+.calendar ul{list-style:none;margin:0;padding:0!important;display:grid;gap:6px!important}
+.calendar li{display:flex;gap:12px;font-size:16px;line-height:1.45}
+.calendar li[data-weight='1']{color:var(--gx-mist);font-size:15px}
+.calendar time{flex:0 0 48px;color:var(--gx-mist);font-variant-numeric:tabular-nums}
+.calendar a{color:var(--gx-ivory)!important;text-decoration:underline;text-decoration-color:rgba(231,189,114,.45);text-underline-offset:3px}
+.calendar a:hover{color:var(--gx-gold-2)!important}
+.highlight h3{margin:18px 0 6px;font-size:19px;line-height:1.3}
+.highlight h3 a{color:var(--gx-ivory)!important}
+.highlight h3 a:hover{color:var(--gx-gold-2)!important}
+.discuss{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border-radius:18px;padding:16px 20px;margin:0 0 24px;border:1px solid var(--gx-line);background:rgba(17,29,58,.55)}
+.discuss p{margin:0!important;font-size:15px;color:#CED6E6}
+.discuss a{display:inline-flex;align-items:center;height:42px;padding:0 18px;border-radius:999px;border:1px solid rgba(231,189,114,.5);color:var(--gx-ivory)!important;font-weight:500;font-size:15px;white-space:nowrap}
+.rubrics{margin-bottom:34px}
+.rubricGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.rubricCard{display:flex;gap:16px;align-items:center;border-radius:18px;padding:14px;border:1px solid rgba(231,189,114,.28);background:radial-gradient(260px 160px at 100% 0%,rgba(231,189,114,.1),transparent 70%),#111D3A}
+.rubricCard:hover h3{color:var(--gx-gold-2)}
+.rubricCard .thumb{flex:0 0 96px;height:96px}
+.rubricCard h3{margin:4px 0 4px;font-size:17px;line-height:1.3;font-weight:600;transition:color .2s}
+@media(max-width:640px){.calendar section{grid-template-columns:1fr}}
 
 /* Story pages */
 .story{display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start}

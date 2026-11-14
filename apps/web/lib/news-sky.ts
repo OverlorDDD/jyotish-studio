@@ -7,7 +7,7 @@ import type {NewsLocale,SkyEvent} from './news-public.ts';
 type L={uk:string;en:string};
 export type SkyArticle={headline:L;lead:L;facts:{label:L;value:L}[];
  sections:{title:L;paragraphs:L[];bullets?:L[]}[];cta:{title:L;text:L;label:L;href:string};
- art:{kind:'station'|'ingress'|'phase'|'eclipse';body?:string;phase?:number;retro?:boolean}};
+ art:{kind:'station'|'ingress'|'phase'|'eclipse'|'calendar';body?:string;phase?:number;retro?:boolean;solar?:boolean;count?:number}};
 
 const SIGN_NOM:L[]=[['Овен','Aries'],['Телець','Taurus'],['Близнюки','Gemini'],['Рак','Cancer'],['Лев','Leo'],['Діва','Virgo'],
  ['Терези','Libra'],['Скорпіон','Scorpio'],['Стрілець','Sagittarius'],['Козоріг','Capricorn'],['Водолій','Aquarius'],['Риби','Pisces']].map(([uk,en])=>({uk,en}));
@@ -57,6 +57,7 @@ const P:Record<string,Planet>={
    retro:[{uk:'Перегляньте свої зобов’язання й чесно відмовтеся від тих, що вже не ваші.',en:'Review your obligations and honestly release those that are no longer yours.'}],
    ingress:[{uk:'Шані перебуватиме в цьому знаку близько двох з половиною років — подумайте, яку звичку ви хочете вибудувати за цей час.',en:'Shani stays in this sign for about two and a half years — choose one habit to build over that time.'}]}}
 };
+export const planetName=(body:string,locale:NewsLocale)=>locale==='uk'?(P[body]?.nom||body):(P[body]?.en||body);
 const dms=(lon:number)=>{const inSign=((lon%30)+30)%30;let d=Math.floor(inSign),m=Math.round((inSign-d)*60);if(m===60){d+=1;m=0;}return d+'°'+String(m).padStart(2,'0')+'′';};
 const kyiv=(iso:string,locale:NewsLocale,o:Intl.DateTimeFormatOptions)=>new Intl.DateTimeFormat(locale==='uk'?'uk-UA':'en-GB',{timeZone:'Europe/Kyiv',...o}).format(new Date(iso));
 const dayLong=(iso:string)=>({uk:kyiv(iso,'uk',{day:'numeric',month:'long',year:'numeric'}).replace(/\s*р\.$/,''),en:kyiv(iso,'en',{day:'numeric',month:'long',year:'numeric'})});
@@ -112,6 +113,28 @@ export function composeSkyArticle(e:SkyEvent,next?:SkyEvent|null,now=Date.now())
       newm?[{uk:'Завершіть одну справу, яка тягнеться давно.',en:'Finish one long-dragging task.'},{uk:'Згадайте своїх предків добрим словом — так Амавасью зустрічають у традиції.',en:'Remember your ancestors with a kind word — the traditional way to meet Amavasya.'}]:undefined}],
    cta:{title:{uk:'Місяць у вашому місті',en:'The Moon where you live'},text:{uk:'Тітхі, накшатра й добрі години дня — у Панчанзі для вашого міста.',en:'Tithi, nakshatra and the good hours of the day — in Panchanga for your city.'},label:{uk:'Відкрити Панчангу',en:'Open Panchanga'},href:'panchanga'},
    art:{kind:'phase',phase:phase.phase}};
+ }
+ if(e.kind==='solar-eclipse'||e.kind==='lunar-eclipse'){
+  const solar=e.kind==='solar-eclipse';
+  const KIND_UK:Record<string,string>={total:'Повне',annular:'Кільцеподібне',partial:'Часткове',penumbral:'Напівтіньове',hybrid:'Гібридне'};
+  const kUk=e.eclipseKind&&KIND_UK[e.eclipseKind]?KIND_UK[e.eclipseKind]:'',kEn=e.eclipseKind?e.eclipseKind.charAt(0).toUpperCase()+e.eclipseKind.slice(1):'';
+  const nameUk=(kUk?kUk+' '+(solar?'сонячне':'місячне'):(solar?'Сонячне':'Місячне'))+' затемнення',nameEn=(kEn?kEn+' ':'')+(solar?'solar':'lunar')+' eclipse';
+  const vis=typeof e.visibleHere==='boolean'?{label:{uk:'Видимість у Києві',en:'Visible from Kyiv'},value:e.visibleHere?{uk:'так, за розрахунковою моделлю',en:'yes, per the calculated model'}:{uk:'ні, за розрахунковою моделлю',en:'no, per the calculated model'}}:null;
+  return {headline:{uk:nameUk+' '+when.uk,en:nameEn.charAt(0).toUpperCase()+nameEn.slice(1)+' on '+when.en},
+   lead:{uk:(past?when.uk+' о '+time+' був максимум ':onUk+'настане максимум ')+(solar?'сонячного':'місячного')+' затемнення.'+(e.visibleHere===false?' З України його не видно, але в Джйотиш затемнення враховують незалежно від видимості.':e.visibleHere?' Його можна буде побачити з України — за ясної погоди.':''),
+    en:(past?'The '+(solar?'solar':'lunar')+' eclipse peaked on '+when.en+' at '+time+'.':onEn+'the '+(solar?'solar':'lunar')+' eclipse reaches its maximum.')+(e.visibleHere===false?' It is not visible from Ukraine, yet Jyotish takes eclipses into account regardless of visibility.':'')},
+   facts:[{label:{uk:'Максимум (Київ)',en:'Maximum (Kyiv)'},value:at.value},...(vis?[vis]:[]),method],
+   sections:[{title:{uk:'Що відбувається на небі',en:'What happens in the sky'},paragraphs:[{
+     uk:solar?'Сонячне затемнення настає в молодик, коли Місяць проходить точно між Сонцем і Землею й закриває сонячний диск — повністю, частково або кільцем. Дивитися на Сонце без спеціального фільтра не можна навіть під час затемнення.':
+      'Місячне затемнення настає в повню, коли Місяць заходить у тінь Землі. Його видно з усієї нічної півкулі, і дивитися на нього можна неозброєним оком.',
+     en:solar?'A solar eclipse happens at New Moon, when the Moon passes exactly between the Sun and Earth and covers the solar disc — fully, partly or as a ring. Never look at the Sun without a proper filter.':
+      'A lunar eclipse happens at Full Moon, when the Moon enters Earth’s shadow. It is visible from the whole night hemisphere and safe to watch with the naked eye.'}]},
+    {title:{uk:'Що це означає в Джйотиш',en:'What it means in Jyotish'},paragraphs:[{
+     uk:'У Джйотиш затемнення пов’язують із Раху й Кету — місячними вузлами. Цей час традиційно присвячують мантрі, медитації й тиші; важливі справи, урочистості й нові починання на день затемнення не призначають, а після нього роблять омивання й дають дану.',
+     en:'Jyotish links eclipses with Rahu and Ketu, the lunar nodes. Traditionally the time is given to mantra, meditation and quiet; important undertakings and celebrations are not scheduled on the eclipse day, and afterwards one bathes and gives charity.'}],
+     bullets:[{uk:'Присвятіть час затемнення мантрі або тихій медитації.',en:'Give the eclipse time to mantra or quiet meditation.'},{uk:'Не призначайте на цей день важливих починань.',en:'Do not schedule important beginnings for this day.'}]}],
+   cta:{title:{uk:'Як затемнення торкається вашої карти?',en:'How does the eclipse touch your chart?'},text:{uk:'Побудуйте натальну карту й подивіться, у якому домі воно відбувається.',en:'Build your birth chart to see which house it falls in.'},label:{uk:'Побудувати карту',en:'Build my chart'},href:'astrology/jyotish'},
+   art:{kind:'eclipse',solar}};
  }
  const p=P[e.body||''];
  if(!p)return null;

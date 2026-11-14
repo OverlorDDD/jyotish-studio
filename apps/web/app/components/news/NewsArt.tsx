@@ -45,10 +45,24 @@ export default function NewsArt({art,id,label}:{art:SkyArticle['art'];id:string;
     {ph===2&&<g fill="#B7AF9D" opacity=".35"><circle cx={cx-50} cy={cy-40} r="34"/><circle cx={cx+60} cy={cy+50} r="24"/><circle cx={cx+20} cy={cy-80} r="14"/></g>}
    </>;
   })()}
-  {art.kind==='eclipse'&&<>
-   <circle cx="600" cy="330" r="230" fill="#F2B65A" opacity=".18"/>
-   <circle cx="600" cy="330" r="150" fill="#F6DCA4"/>
-   <circle cx="640" cy="320" r="150" fill="#0B1428"/>
-  </>}
+  {art.kind==='eclipse'&&(art.solar!==false?<>
+   <circle cx="600" cy="330" r="240" fill="#F2B65A" opacity=".16"/>
+   <circle cx="600" cy="330" r="158" fill="#F6DCA4"/>
+   <circle cx="628" cy="324" r="150" fill="#0B1428"/>
+  </>:<>
+   <circle cx="600" cy="330" r="170" fill="#7A2E22"/>
+   <circle cx="600" cy="330" r="170" fill={'url(#'+g('m')+')'} opacity=".28"/>
+   <circle cx="600" cy="330" r="230" fill="none" stroke="#E0785A" strokeOpacity=".25" strokeWidth="2"/>
+  </>)}
+  {art.kind==='calendar'&&(()=>{
+   const n=Math.max(7,Math.min(31,art.count||7)),r=n>7?250:210,cx=600,cy=340;
+   return <>
+    <circle cx={cx} cy={cy} r={r} fill="none" stroke="#E7BD72" strokeOpacity=".25" strokeWidth="2"/>
+    {Array.from({length:n},(_,i)=>{const a=-Math.PI/2+i*2*Math.PI/n,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a),lit=(1+Math.cos(i*2*Math.PI/n))/2;
+     return <circle key={i} cx={x} cy={y} r={n>7?11:22} fill="#F3EEE4" opacity={.25+lit*.7}/>;})}
+    <circle cx={cx} cy={cy} r="70" fill={'url(#'+g('p')+')'}/>
+    <circle cx={cx} cy={cy} r="20" fill={core}/>
+   </>;
+  })()}
  </svg>;
 }

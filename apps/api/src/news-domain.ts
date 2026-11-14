@@ -130,6 +130,8 @@ export function articlePreview(c:Candidate,topic:Topic){
  }
  return {summary:'',summaryKind:'needs_editorial' as const};
 }
+/** What an astronomy-feed story must be about to enter GalaxiNews. */
+const SKY_SCIENCE=/\b(?:planet|moon|lunar|sun|solar|star|stellar|galax|nebula|comet|asteroid|meteor|eclipse|telescope|cosmic|universe|black hole|exoplanet|mars|jupiter|saturn|venus|mercury|uranus|neptune|pluto|apod|night sky|sky|aurora|supernova|orbit)/i;
 export function classify(c:Candidate){
  const url=canonicalUrl(c.url),title=c.title.replace(/\s+/g,' ').trim();
  if(!url||title.length<15||title.length>240||!Number.isFinite(c.publishedAt.getTime())||
@@ -139,9 +141,10 @@ export function classify(c:Candidate){
  const matched=TOPICS.filter(t=>terms[t].test(title+' '+cleanDescription(c.description||'').slice(0,600)));
  if(!matched.length&&!(c.hint&&cleanDescription(c.description||'').length>60))return null;
  const priority:Topic[]=['jyotish','tarot','yoga','vedic','meditation','astrology','self-development','astronomy'];
- // A curated astronomy feed may file its own sky stories under Astronomy; it is
- // never escalated to Astrology (that still needs explicit astrology terms).
- const primary=priority.find(t=>matched.includes(t))||(c.hint||null);
+ // A curated astronomy feed may file its own sky stories under Astronomy (never
+ // Astrology), but only real sky/space science — not conferences or budgets.
+ const skyStory=c.hint==='astronomy'&&SKY_SCIENCE.test(title+' '+cleanDescription(c.description||'').slice(0,600));
+ const primary=priority.find(t=>matched.includes(t))||(c.hint&&c.hint!=='astronomy'?c.hint:skyStory?'astronomy':null);
  if(!primary)return null;
  // Astronomy is opt-in topic: no escalation to astrology, unless explicitly in text.
  const tagContent=title+' '+cleanDescription(c.description||'').slice(0,600);

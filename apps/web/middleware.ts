@@ -26,7 +26,9 @@ export function middleware(request:NextRequest,event:NextFetchEvent){
  if(section){
   event.waitUntil(fetch((process.env.INTERNAL_API_ORIGIN||'http://127.0.0.1:4000')+'/api/v1/internal/visitor-analytics/hit',{
    method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','x-galaxiora-internal-key':secret!},
-   body:JSON.stringify({section,channel:classifyReferralBucket(request.headers.get('referer'),request.nextUrl.search)})
+   // GalaxiNews «Найчитаніше»: the 8-hex story key from the public URL only.
+   body:JSON.stringify({section,channel:classifyReferralBucket(request.headers.get('referer'),request.nextUrl.search),
+    ...(section==='news'?{story:/^\/(?:uk|en)\/news\/[a-z0-9-]*-([0-9a-f]{8})$/.exec(request.nextUrl.pathname)?.[1]}:{})})
   }).then(()=>{}).catch(()=>{}));
  }
  // Never cache authenticated views or frequently changing user-generated feeds.

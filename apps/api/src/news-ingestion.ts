@@ -8,6 +8,7 @@ import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
 import {sourceCooldownMs,gdeltCircuitFailure,sourceRetryStateFromHistory} from './news-source-health.ts';
 import {publishAstronomicalNews} from './news-astronomy.ts';
+import {publishRubrics} from './news-rubrics.ts';
 import {enrichOpenNewsPhotos} from './news-open-media.ts';
 /** Local development with an existing .env and no NEWS_* flag must not
  * silently stop news. CI/test and production remain explicitly opted in.
@@ -152,12 +153,19 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
     // A verified, original Galaxiora astronomy digest, at most daily. This
     // operates independently of failing external RSS/GDELT publishers.
     if(Date.now()>=this.nextAstronomyAt){
-     this.nextAstronomyAt=Date.now()+24*60*60*1000;
+     // Every 6 h: sky stories and the weekly/monthly rubrics appear on time.
+     this.nextAstronomyAt=Date.now()+6*60*60*1000;
      try{
       const original=await publishAstronomicalNews(this.prisma);
       if(original.created)console.log('[news] first-party Swiss astronomy:',original.created,'new stories');
       added+=original.created;
      }catch(e){console.warn('[news] astronomy digest:',String(e).slice(0,180));}
+     // «Тиждень у небі» / «Небо місяця»: created automatically when due.
+     try{
+      const rubrics=await publishRubrics(this.prisma);
+      if(rubrics.created)console.log('[news] rubrics:',rubrics.created,'new');
+      added+=rubrics.created;
+     }catch(e){console.warn('[news] rubrics:',String(e).slice(0,180));}
     }
 
     // Restore actual licensed photos for older cards before unreliable RSS
@@ -276,15 +284,15 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    where:{status:'PUBLISHED',OR:[{metadataCheckedAt:null},
     {metadataCheckedAt:{lt:new Date(Date.now()-7*24*3600000)},feedDescription:null},
     // Publisher previews are now shown as credited thumbnails: re-read og:image
-    // for recent stories that still have no picture (at most every 3 days).
-    {metadataCheckedAt:{lt:new Date(Date.now()-3*24*3600000)},imageUrl:null,
+    // for recent stories that still have no picture (at most every 12 hours).
+    {metadataCheckedAt:{lt:new Date(Date.now()-12*3600000)},imageUrl:null,
      publishedAt:{gt:new Date(Date.now()-21*24*3600000)}}]},
    orderBy:{publishedAt:'desc'},take:600,
    select:{id:true,url:true,feedDescription:true,imageUrl:true,imageCredit:true}
   });
   let checked=0,filled=0;
   for(const row of rows){
-   if(checked>=18)break;
+   if(checked>=30)break;
    const domain=publisherDomain(row.url);
    if(!domain)continue;
    if(!approved.has(domain)&&!approved.has('www.'+domain))continue;

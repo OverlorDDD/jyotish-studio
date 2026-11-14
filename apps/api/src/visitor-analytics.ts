@@ -7,7 +7,7 @@ import type {IncomingMessage} from 'node:http';
 import {timingSafeEqual} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
 
-import {countVisitorAggregate,validSection,validReferralBucket,referralMetric} from './visitor-aggregate.ts';
+import {countVisitorAggregate,countStoryRead,validSection,validReferralBucket,referralMetric} from './visitor-aggregate.ts';
 function loopbackAddress(address:string|undefined){
  return address==='127.0.0.1'||address==='::1'||address==='::ffff:127.0.0.1';
 }
@@ -33,6 +33,12 @@ export class InternalVisitorAnalyticsController {
    // Same coarse UTC date/section aggregation: raw Referer and UTM values
    // are never transmitted to this controller or persisted in the database.
    await countVisitorAggregate(this.prisma,referralMetric(referral),section);
+  }
+  const story=(body as {story?:unknown}|null)?.story;
+  if(section==='news'&&typeof story==='string'&&/^[0-9a-f]{8}$/.test(story)){
+   // Only stories that exist and are published are counted.
+   const exists=await this.prisma.newsArticle.count({where:{status:'PUBLISHED',id:{startsWith:story}}});
+   if(exists===1)await countStoryRead(this.prisma,story);
   }
  }
 }

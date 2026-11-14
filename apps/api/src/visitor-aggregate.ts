@@ -35,3 +35,17 @@ export async function countVisitorAggregate(prisma:PrismaService,metric:VisitorM
   update:{count:{increment:1}}
  });
 }
+
+/** GalaxiNews «Найчитаніше за тиждень»: per-day read counter for one story,
+ * keyed only by the public 8-hex story key. Same server-side, bot-filtered
+ * document requests as public_html_request; nothing about the reader. */
+export const NEWS_STORY_SECTION='news_story';
+export async function countStoryRead(prisma:PrismaService,key:string){
+ if(!/^[0-9a-f]{8}$/.test(key))return;
+ const day=new Date();day.setUTCHours(0,0,0,0);
+ await prisma.visitorAggregate.upsert({
+  where:{day_section_metric:{day,section:NEWS_STORY_SECTION,metric:key}},
+  create:{day,section:NEWS_STORY_SECTION,metric:key,count:1},
+  update:{count:{increment:1}}
+ });
+}

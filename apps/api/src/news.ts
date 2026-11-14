@@ -1,4 +1,4 @@
-import {BadRequestException,Body,ConflictException,Controller,Delete,Get,Header,HttpException,Inject,NotFoundException,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ForbiddenException} from '@nestjs/common';
+import {BadRequestException,Body,ConflictException,Controller,Delete,Get,Header,HttpException,Inject,NotFoundException,Param,Patch,Post,Put,Query,Req,UnauthorizedException,ForbiddenException,ServiceUnavailableException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {ArrayMaxSize,IsArray,IsBoolean,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
@@ -6,6 +6,8 @@ import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
 import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,safeImageUrl,publisherThumbUrl} from './news-domain.ts';
 import {skyEventFromTags} from './news-astronomy.ts';
+import {rubricData,rubricFromTags,validRubricKey,type RubricKind} from './news-rubrics.ts';
+import {NEWS_STORY_SECTION} from './visitor-aggregate.ts';
 import {NewsIngestionService,newsIngestionEnabled} from './news-ingestion.ts';
 import {newsOperationalHealth} from './news-operational.ts';
 import {headlineDebtSummary} from './news-headline-backlog.ts';
@@ -33,7 +35,7 @@ export function publicNewsItem<T extends PublicRow>(row:T){
  const preview=!licensed&&kind!=='own'?publisherThumbUrl(row.imageUrl):null;
  return {...row,tags:row.tags.filter(t=>(INTEREST_TAGS as readonly string[]).includes(t)),
   imageUrl:licensed,thumbUrl:licensed||preview,imageKind:licensed?'licensed':preview?'publisher':null,
-  sourceKind:kind,event:kind==='own'?skyEventFromTags(row.tags):null};
+  sourceKind:kind,event:kind==='own'?skyEventFromTags(row.tags):null,rubric:kind==='own'?rubricFromTags(row.tags):null};
 }
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
 class SourcePolicyDto{@IsIn(['DISCOVERED','BLOCKED','TRUSTED'])status!:'DISCOVERED'|'BLOCKED'|'TRUSTED';}
@@ -141,6 +143,29 @@ export class NewsController {
   const items=related.filter(r=>sourceKindFor(r)!=='brand'&&publicTitleForLocale(r,'uk'))
    .slice(0,6).map(({score:_s,...r})=>publicNewsItem(r));
   return {item:publicNewsItem(row),related:items};
+ }
+ /** «Найчитаніше за тиждень»: anonymous per-day story read counters (last 7 days).
+  * Empty until at least three stories have two or more reads. */
+ @Get('popular') @Header('Cache-Control','public,max-age=300')
+ async popular(@Query('lang')lang='uk'){
+  if(lang!=='uk'&&lang!=='en')throw new BadRequestException('Invalid news locale');
+  const since=new Date();since.setUTCHours(0,0,0,0);since.setUTCDate(since.getUTCDate()-6);
+  const rows=await this.prisma.visitorAggregate.groupBy({by:['metric'],where:{section:NEWS_STORY_SECTION,day:{gte:since}},
+   _sum:{count:true},orderBy:{_sum:{count:'desc'}},take:30});
+  const ranked=rows.map(r=>({key:r.metric,reads:r._sum.count||0})).filter(r=>/^[0-9a-f]{8}$/.test(r.key)&&r.reads>=2);
+  if(ranked.length<3)return {items:[]};
+  const found=await this.prisma.newsArticle.findMany({where:{status:'PUBLISHED',OR:ranked.map(r=>({id:{startsWith:r.key}}))},
+   select:PUBLIC_SELECT,take:60});
+  const items=ranked.map(r=>found.find(f=>f.id.startsWith(r.key))).filter((x):x is NonNullable<typeof x>=>Boolean(x))
+   .filter(a=>publicTitleForLocale(a,lang as 'uk'|'en')).slice(0,5).map(({score:_s,...a})=>publicNewsItem(a));
+  return {items:items.length>=3?items:[]};
+ }
+ /** Data behind «Тиждень у небі» / «Небо місяця» pages, recomputed from Swiss Ephemeris. */
+ @Get('rubric/:kind/:key') @Header('Cache-Control','public,max-age=1800')
+ async rubric(@Param('kind')kind:string,@Param('key')key:string){
+  if((kind!=='week'&&kind!=='month')||!validRubricKey(kind as RubricKind,key))throw new BadRequestException('Invalid rubric period');
+  try{return await rubricData(kind as RubricKind,key);}
+  catch{throw new ServiceUnavailableException('Verified Swiss Ephemeris data unavailable');}
  }
  /** P2: one reversible opinion per article, persisted only by explicit user action. */
  private async reactionOwner(req:IncomingMessage,mutation=false){
@@ -372,6 +397,8 @@ export class NewsController {
 for(const [method,types] of [
  ['feed',[String,String,String,String,String,String,String,Object,String,String]],
  ['story',[String]],
+ ['rubric',[String,String]],
+ ['popular',[String]],
  ['getReactions',[Object]],
  ['putReaction',[Object,String,NewsVoteDto]],
  ['undoReaction',[Object,String]],

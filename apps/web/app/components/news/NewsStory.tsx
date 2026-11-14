@@ -10,6 +10,8 @@ import styles from './News.module.css';
 import {TOPIC_COPY,formatKyiv,isOwn,newsTeaser,newsTitle,relativeAge,sourceLabel,storyPath,topicPath,
  type NewsItem,type NewsLocale,type SkyEvent} from '../../../lib/news-public';
 import {composeSkyArticle,nextEventFor} from '../../../lib/news-sky';
+import {composeRubric,type RubricData} from '../../../lib/news-rubric';
+import NewsDiscuss from './NewsDiscuss';
 
 /** Short, honest context per topic: what Galaxiora offers around such news. */
 const CONTEXT:Record<string,{uk:string;en:string;links:{href:string;uk:string;en:string}[]}>={
@@ -38,9 +40,11 @@ function Related({items,locale,now}:{items:NewsItem[];locale:NewsLocale;now:numb
  </section>;
 }
 
-export default function NewsStory({item,related,events,ownItems,locale,jsonLd,shareUrl}:{item:NewsItem;related:NewsItem[];events:SkyEvent[];ownItems:NewsItem[];locale:NewsLocale;jsonLd:string|null;shareUrl:string}){
+export default function NewsStory({item,related,events,ownItems,locale,jsonLd,shareUrl,rubricData}:{item:NewsItem;related:NewsItem[];events:SkyEvent[];ownItems:NewsItem[];locale:NewsLocale;jsonLd:string|null;shareUrl:string;rubricData?:RubricData|null}){
  const now=Date.now(),own=isOwn(item),topic=TOPIC_COPY[item.topic]||TOPIC_COPY.astrology;
  const article=own&&item.event?composeSkyArticle(item.event,nextEventFor(item.event,events),now):null;
+ const storyFor=(e:SkyEvent)=>{const hit=ownItems.find(i=>i.event&&i.event.kind===e.kind&&Math.abs(Date.parse(i.event.atUtc)-Date.parse(e.atUtc))<120000);return hit?storyPath(hit,locale):undefined;};
+ const rubric=own&&item.rubric&&rubricData?composeRubric(rubricData,storyFor,now):null;
  const title=article?article.headline[locale]:newsTitle(item,locale)||item.title;
  const crumbs=<nav className={styles.crumbs} aria-label={locale==='uk'?'Хлібні крихти':'Breadcrumbs'}>
   <Link href={'/'+locale+'/news'}>GalaxiNews</Link> <span aria-hidden="true">/</span> <Link href={topicPath(item.topic,locale)}>{locale==='uk'?topic.uk:topic.en}</Link></nav>;
@@ -53,9 +57,44 @@ export default function NewsStory({item,related,events,ownItems,locale,jsonLd,sh
    <div className={styles.story}>
     <article className={styles.article}>
      {crumbs}
-     <span className={styles.topicDot} style={{color:topic.color}}>{own?(locale==='uk'?'Подія неба · Galaxiora':'Sky event · Galaxiora'):(locale==='uk'?topic.uk+' · Світ':topic.en+' · World')}</span>
+     <span className={styles.topicDot} style={{color:topic.color}}>{own&&item.rubric?(item.rubric.kind==='week'?(locale==='uk'?'Рубрика · Тиждень у небі':'Rubric · Week in the sky'):(locale==='uk'?'Рубрика · Небо місяця':'Rubric · Sky this month')):own?(locale==='uk'?'Подія неба · Galaxiora':'Sky event · Galaxiora'):(locale==='uk'?topic.uk+' · Світ':topic.en+' · World')}</span>
      <h1>{title}</h1>
-     {article?<>
+     {rubric&&item.rubric?<>
+      <p className={styles.standfirst}>{rubric.lead[locale]}</p>
+      <div className={styles.byline}>
+       <span><b>{locale==='uk'?'Редакція Galaxiora':'Galaxiora editors'}</b></span>
+       <time dateTime={item.publishedAt}>{formatKyiv(item.publishedAt,locale,{day:'numeric',month:'long',year:'numeric'})}</time>
+       <span className={styles.share}><a href={tg} target="_blank" rel="noopener noreferrer">{locale==='uk'?'Поділитися в Telegram':'Share on Telegram'}</a></span>
+      </div>
+      <figure className={styles.figure}>
+       <NewsArt art={rubric.art} id={'rubric-'+item.id.slice(0,8)} label={(locale==='uk'?'Календар неба: ':'Sky calendar: ')+title}/>
+       <figcaption>{locale==='uk'?'Ілюстрація Galaxiora.':'Galaxiora illustration.'}</figcaption>
+      </figure>
+      <section className={styles.facts} aria-labelledby="story-facts">
+       <h2 id="story-facts">{locale==='uk'?'Коротко':'At a glance'}</h2>
+       <dl>{rubric.facts.map(f=><div key={f.label.en} style={{display:'contents'}}><dt>{f.label[locale]}</dt><dd>{f.value[locale]}</dd></div>)}</dl>
+      </section>
+      <h2>{item.rubric.kind==='week'?(locale==='uk'?'День за днем':'Day by day'):(locale==='uk'?'Календар місяця':'Month calendar')}</h2>
+      <div className={styles.calendar}>{rubric.days.map(d=><section key={d.date} aria-label={d.label[locale]}>
+       <h3>{d.label[locale]}</h3>
+       <ul>{d.entries.map(e=><li key={e.key} data-weight={e.weight}>
+        {e.time&&<time>{e.time}</time>}
+        {e.href?<Link href={e.href}>{e.text[locale]}</Link>:<span>{e.text[locale]}</span>}
+       </li>)}</ul>
+      </section>)}</div>
+      <h2>{locale==='uk'?'Ретроградні планети':'Retrograde planets'}</h2>
+      <p>{rubric.retro[locale]}</p>
+      {rubric.highlights.length>0&&<><h2>{locale==='uk'?'Що це означає':'What it means'}</h2>
+       {rubric.highlights.map(h=><section key={h.title.en} className={styles.highlight}>
+        <h3>{h.href?<Link href={h.href}>{h.title[locale]}</Link>:h.title[locale]}</h3><p>{h.text[locale]}</p></section>)}</>}
+      <section className={styles.cta} aria-labelledby="story-cta">
+       <div><h2 id="story-cta">{locale==='uk'?'Панчанга для вашого міста':'Panchanga for your city'}</h2><p>{locale==='uk'?'Час Екадаші, тітхі й добрі години залежать від місця — відкрийте календар для свого міста.':'Ekadashi timing, tithi and auspicious hours depend on place — open the calendar for your city.'}</p></div>
+       <Link className={styles.button} href={'/'+locale+'/panchanga'}>{locale==='uk'?'Відкрити Панчангу':'Open Panchanga'}</Link>
+      </section>
+      <NewsDiscuss locale={locale} title={title} path={storyPath(item,locale)} topic={item.topic}/>
+      <p className={styles.method}>{locale==='uk'?'Рубрика оновлюється автоматично: усі дати й час розраховані Swiss Ephemeris (сидеричний зодіак, айанамша Лахірі) для Києва; дні Панчанги — за тітхі на світанку. ':'This rubric updates automatically: dates and times are calculated with Swiss Ephemeris (sidereal, Lahiri) for Kyiv; Panchanga days by the tithi at sunrise. '}
+       <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Як ми працюємо':'How we work'}</Link></p>
+     </>:article?<>
       <p className={styles.standfirst}>{article.lead[locale]}</p>
       <div className={styles.byline}>
        <span><b>{locale==='uk'?'Редакція Galaxiora':'Galaxiora editors'}</b></span>
@@ -81,6 +120,7 @@ export default function NewsStory({item,related,events,ownItems,locale,jsonLd,sh
        <div><h2 id="story-cta">{article.cta.title[locale]}</h2><p>{article.cta.text[locale]}</p></div>
        <Link className={styles.button} href={'/'+locale+'/'+article.cta.href}>{article.cta.label[locale]}</Link>
       </section>
+      <NewsDiscuss locale={locale} title={title} path={storyPath(item,locale)} topic={item.topic}/>
       <p className={styles.method}>{locale==='uk'?'Розрахунок: Swiss Ephemeris, сидеричний зодіак, айанамша Лахірі; час — київський. Тлумачення — за традицією Джйотиш і не є передбаченням конкретних подій. ':'Calculation: Swiss Ephemeris, sidereal zodiac, Lahiri ayanamsha; Kyiv time. Interpretation follows the Jyotish tradition and does not predict specific events. '}
        <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Як ми працюємо':'How we work'}</Link></p>
      </>:own?<>

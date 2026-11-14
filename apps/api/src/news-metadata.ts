@@ -51,11 +51,20 @@ export async function fetchArticleMetadata(url:string,fetcher:typeof fetch=fetch
   if(isIP(u.hostname))return {};
   const addresses=await lookup(u.hostname,{all:true,verbatim:true});
   if(!addresses.length||addresses.some(x=>forbidden(x.address)))return {};
-  const response=await fetcher(clean,{redirect:'error',signal:AbortSignal.timeout(6500),
-   headers:{Accept:'text/html','User-Agent':'GalaxioraNewsMetadata/1.2'}});
-  if(!response.ok||!/(text\/html|application\/xhtml\+xml)/i.test(response.headers.get('content-type')||''))return {};
-  const length=Number(response.headers.get('content-length')||0);
-  if(length>160000)return {};
+  // Follow at most 3 same-site HTTPS redirects (trailing slash, www ↔ apex).
+  let target=clean,response:Response|null=null;
+  for(let hop=0;hop<4;hop++){
+   response=await fetcher(target,{redirect:'manual',signal:AbortSignal.timeout(6500),
+    headers:{Accept:'text/html','User-Agent':'Mozilla/5.0 (compatible; GalaxioraNews/1.2; +https://galaxiora.com/en/methodology)'}});
+   if(response.status<300||response.status>=400)break;
+   const next=response.headers.get('location');if(!next||hop===3)return {};
+   const to=new URL(next,target);
+   if(to.protocol!=='https:'||to.hostname.replace(/^www\./,'')!==u.hostname.replace(/^www\./,''))return {};
+   target=to.toString();
+  }
+  if(!response||!response.ok||!/(text\/html|application\/xhtml\+xml)/i.test(response.headers.get('content-type')||''))return {};
+  // Article pages are often 200–600 KB; og:image lives in <head>, so read only
+  // the first 140 KB instead of refusing large pages outright.
   const reader=response.body?.getReader();if(!reader)return {};
   const chunks:Uint8Array[]=[];let total=0;
   try{
@@ -64,6 +73,6 @@ export async function fetchArticleMetadata(url:string,fetcher:typeof fetch=fetch
     chunks.push(item.value);total+=item.value.byteLength;
    }
   }finally{void reader.cancel().catch(()=>{});}
-  return parseArticleMeta(new TextDecoder().decode(Buffer.concat(chunks)),clean);
+  return parseArticleMeta(new TextDecoder().decode(Buffer.concat(chunks)),target);
  }catch{return {};}
 }

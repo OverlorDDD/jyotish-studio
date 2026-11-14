@@ -5,7 +5,7 @@ import NewsStory from '../../../components/news/NewsStory';
 import NewsWorld from '../../../components/NewsWorld';
 import {isPortalLocale} from '../../../../lib/brand';
 import {indexRobots,publicIndexingEnabled,publicSiteOrigin} from '../../../../lib/site-indexing';
-import {TOPIC_COPY,fetchNewsFeed,fetchNewsStory,fetchSkyEvents,isNewsTopic,isOwn,kyivDate,newsTeaser,newsTitle,
+import {TOPIC_COPY,fetchNewsFeed,fetchNewsStory,fetchRubricData,fetchSkyEvents,isNewsTopic,isOwn,kyivDate,newsTeaser,newsTitle,
  storyIndexable,storyKey,storySlug,type NewsItem,type NewsLocale} from '../../../../lib/news-public';
 import {composeSkyArticle} from '../../../../lib/news-sky';
 
@@ -56,8 +56,9 @@ export default async function NewsSlugPage({params}:Props){
  const canonical=storySlug(item,locale);
  if(slug!==canonical)permanentRedirect('/'+locale+'/news/'+canonical);
  const own=isOwn(item);
- const [events,ownFeed]=own?await Promise.all([fetchSkyEvents(kyivDate(new Date(Date.now()-86400000)),21),
-  fetchNewsFeed({locale,scope:'own',limit:24,sort:'latest'})]):[[],{items:[]}];
+ const [events,ownFeed,rubricData]=own?await Promise.all([fetchSkyEvents(kyivDate(new Date(Date.now()-86400000)),21),
+  fetchNewsFeed({locale,scope:'own',limit:48,sort:'latest'}),
+  item.rubric?fetchRubricData(item.rubric.kind,item.rubric.key):Promise.resolve(null)]):[[],{items:[]},null];
  const base=publicSiteOrigin(),url=(base||'https://galaxiora.com')+'/'+locale+'/news/'+canonical;
  const jsonLd=own&&base&&publicIndexingEnabled()?JSON.stringify({
   '@context':'https://schema.org','@type':'NewsArticle',headline:h.title,description:h.lead||undefined,
@@ -67,5 +68,5 @@ export default async function NewsSlugPage({params}:Props){
   publisher:{'@type':'Organization',name:'Galaxiora',logo:{'@type':'ImageObject',url:base+'/galaxiora-favicon.png'}},
   isAccessibleForFree:true,articleSection:locale==='uk'?TOPIC_COPY[item.topic]?.uk:TOPIC_COPY[item.topic]?.en
  }).replace(/</g,'\\u003c'):null;
- return <NewsStory item={item} related={data.related} events={events} ownItems={ownFeed.items} locale={locale} jsonLd={jsonLd} shareUrl={url}/>;
+ return <NewsStory item={item} related={data.related} events={events} ownItems={ownFeed.items} locale={locale} jsonLd={jsonLd} shareUrl={url} rubricData={rubricData}/>;
 }
