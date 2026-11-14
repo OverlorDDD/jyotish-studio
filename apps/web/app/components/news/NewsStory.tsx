@@ -11,6 +11,7 @@ import {TOPIC_COPY,formatKyiv,isOwn,newsTeaser,newsTitle,relativeAge,sourceLabel
  type NewsItem,type NewsLocale,type SkyEvent} from '../../../lib/news-public';
 import {composeSkyArticle,nextEventFor} from '../../../lib/news-sky';
 import {composeRubric,type RubricData} from '../../../lib/news-rubric';
+import {rubricArt} from '../../../lib/news-rubric-art';
 import NewsDiscuss from './NewsDiscuss';
 
 /** Short, honest context per topic: what Galaxiora offers around such news. */
@@ -66,10 +67,11 @@ export default function NewsStory({item,related,events,ownItems,locale,jsonLd,sh
        <time dateTime={item.publishedAt}>{formatKyiv(item.publishedAt,locale,{day:'numeric',month:'long',year:'numeric'})}</time>
        <span className={styles.share}><a href={tg} target="_blank" rel="noopener noreferrer">{locale==='uk'?'Поділитися в Telegram':'Share on Telegram'}</a></span>
       </div>
-      <figure className={styles.figure}>
-       <NewsArt art={rubric.art} id={'rubric-'+item.id.slice(0,8)} label={(locale==='uk'?'Календар неба: ':'Sky calendar: ')+title}/>
-       <figcaption>{locale==='uk'?'Ілюстрація Galaxiora.':'Galaxiora illustration.'}</figcaption>
-      </figure>
+      {(()=>{const pic=rubricArt(item.rubric.kind,item.rubric.key);return <figure className={styles.figure}>
+       {pic?<img className={styles.heroImage} src={pic.src} alt={pic.alt[locale]} width={1200} height={675} fetchPriority="high"/>:
+        <NewsArt art={rubric.art} id={'rubric-'+item.id.slice(0,8)} label={(locale==='uk'?'Календар неба: ':'Sky calendar: ')+title}/>}
+       <figcaption>{pic?pic.caption[locale]:(locale==='uk'?'Ілюстрація Galaxiora.':'Galaxiora illustration.')}</figcaption>
+      </figure>;})()}
       <section className={styles.facts} aria-labelledby="story-facts">
        <h2 id="story-facts">{locale==='uk'?'Коротко':'At a glance'}</h2>
        <dl>{rubric.facts.map(f=><div key={f.label.en} style={{display:'contents'}}><dt>{f.label[locale]}</dt><dd>{f.value[locale]}</dd></div>)}</dl>

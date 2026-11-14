@@ -4,11 +4,14 @@ import Link from 'next/link';
 import NewsThumb from './NewsThumb';
 import NewsArt from './NewsArt';
 import {composeSkyArticle} from '../../../lib/news-sky';
+import {rubricArt} from '../../../lib/news-rubric-art';
 import styles from './News.module.css';
 import {TOPIC_COPY,newsTeaser,newsTitle,relativeAge,sourceLabel,storyPath,isOwn,type NewsItem,type NewsLocale} from '../../../lib/news-public';
 
 /** Our own stories show their own sky diagram, not a generic topic picture. */
 export function OwnThumb({item,className}:{item:NewsItem;className?:string}){
+ const picture=item.rubric?rubricArt(item.rubric.kind,item.rubric.key):null;
+ if(picture)return <span className={(className||styles.thumb)} aria-hidden="true"><img src={picture.small} alt="" loading="lazy" decoding="async"/></span>;
  const art=item.rubric?{kind:'calendar' as const,count:item.rubric.kind==='week'?7:30}:item.event?composeSkyArticle(item.event)?.art:null;
  if(!art)return <NewsThumb topic={item.topic} seed={item.id} className={className}/>;
  return <span className={(className||styles.thumb)+' '+styles.artThumb} aria-hidden="true"><NewsArt art={art} id={'t-'+item.id.slice(0,8)} label=""/></span>;

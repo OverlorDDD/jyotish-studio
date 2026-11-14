@@ -119,10 +119,12 @@
 .discuss p{margin:0!important;font-size:15px;color:#CED6E6}
 .discuss a{display:inline-flex;align-items:center;height:42px;padding:0 18px;border-radius:999px;border:1px solid rgba(231,189,114,.5);color:var(--gx-ivory)!important;font-weight:500;font-size:15px;white-space:nowrap}
 .rubrics{margin-bottom:34px}
-.rubricGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
-.rubricCard{display:flex;gap:16px;align-items:center;border-radius:18px;padding:14px;border:1px solid rgba(231,189,114,.28);background:radial-gradient(260px 160px at 100% 0%,rgba(231,189,114,.1),transparent 70%),#111D3A}
+.rubricGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+.rubricCard{display:flex;flex-direction:column;border-radius:20px;overflow:hidden;border:1px solid rgba(231,189,114,.32);background:#111D3A;box-shadow:0 18px 40px -24px rgba(231,189,114,.35);transition:border-color .2s,box-shadow .2s}
+.rubricCard:hover{border-color:rgba(231,189,114,.6);box-shadow:0 22px 50px -22px rgba(231,189,114,.5)}
+.rubricCard>div{padding:14px 18px 18px}
 .rubricCard:hover h3{color:var(--gx-gold-2)}
-.rubricCard .thumb{flex:0 0 96px;height:96px}
+.rubricCard .thumb{flex:none;width:100%;height:auto;aspect-ratio:16/9;border:0;border-radius:0}
 .rubricCard h3{margin:4px 0 4px;font-size:17px;line-height:1.3;font-weight:600;transition:color .2s}
 @media(max-width:640px){.calendar section{grid-template-columns:1fr}}
 
@@ -139,6 +141,7 @@
 .share a,.share button{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(243,238,228,.16);background:transparent;color:var(--gx-ivory);font:500 14px var(--gx-font);cursor:pointer}
 .figure{margin:24px 0}
 .figure svg{display:block;width:100%;height:auto;border-radius:20px}
+.heroImage{display:block;width:100%;height:auto;aspect-ratio:16/9;border-radius:20px;object-fit:cover}
 .figure figcaption{margin-top:8px;font-size:14px;color:var(--gx-mist)}
 .facts{border-radius:18px;padding:18px 22px;border:1px solid var(--gx-line);background:rgba(17,29,58,.6);margin:0 0 28px}
 .facts h2{margin:0 0 10px;font-size:18px}
@@ -186,4 +189,4 @@
  .article{font-size:16px}
  .standfirst{font-size:18px}
 }
-@media(prefers-reduced-motion:reduce){.leadBody h2,.side h3,.card h3,.tab{transition:none}}
+@media(prefers-reduced-motion:reduce){.leadBody h2,.side h3,.card h3,.tab,.rubricCard{transition:none}}
