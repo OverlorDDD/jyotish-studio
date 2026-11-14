@@ -2,7 +2,7 @@ import {Inject,Injectable,OnModuleDestroy,OnModuleInit} from '@nestjs/common';
 import {newsIngestionEnabled} from './news-operational.ts';
 import {createHash,randomUUID} from 'node:crypto';
 import {PrismaService} from './prisma.ts';
-import {classifyWithReason,parseXml,publisherDomain,safeImageUrl,type Candidate,type Topic} from './news-domain.ts';
+import {classifyWithReason,parseXml,publisherDomain,publisherThumbUrl,type Candidate,type Topic} from './news-domain.ts';
 import {selectedNewsSources} from './news-sources.ts';
 import {enrichPendingNews} from './news-editorial.ts';
 import {fetchArticleMetadata,metadataHosts} from './news-metadata.ts';
@@ -261,7 +261,11 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
   const extra=trusted.map(x=>x.domain);
   const approved=metadataHosts(extra),rows=await this.prisma.newsArticle.findMany({
    where:{status:'PUBLISHED',OR:[{metadataCheckedAt:null},
-    {metadataCheckedAt:{lt:new Date(Date.now()-7*24*3600000)},feedDescription:null}]},
+    {metadataCheckedAt:{lt:new Date(Date.now()-7*24*3600000)},feedDescription:null},
+    // Publisher previews are now shown as credited thumbnails: re-read og:image
+    // for recent stories that still have no picture (at most every 3 days).
+    {metadataCheckedAt:{lt:new Date(Date.now()-3*24*3600000)},imageUrl:null,
+     publishedAt:{gt:new Date(Date.now()-21*24*3600000)}}]},
    orderBy:{publishedAt:'desc'},take:600,
    select:{id:true,url:true,feedDescription:true,imageUrl:true,imageCredit:true}
   });
@@ -273,7 +277,8 @@ export class NewsIngestionService implements OnModuleInit,OnModuleDestroy{
    if(!approved.has(domain)&&!approved.has('www.'+domain))continue;
    checked++;
    const meta=await fetchArticleMetadata(row.url,fetch,extra);
-   const externalImage=meta.imageUrl?safeImageUrl(meta.imageUrl,'',domain,false):null;
+   // Stored as the publisher's preview; served large only if licensed (see publicNewsItem).
+   const externalImage=publisherThumbUrl(meta.imageUrl);
    await this.prisma.newsArticle.updateMany({where:{id:row.id,status:'PUBLISHED'},data:{
     metadataCheckedAt:new Date(),
     ...(!row.feedDescription&&meta.description?{feedDescription:meta.description,summaryKind:'needs_editorial',editorialNextAttemptAt:null,editorialAttempts:0}:{}),

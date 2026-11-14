@@ -4,7 +4,8 @@ import {ArrayMaxSize,IsArray,IsBoolean,IsIn} from 'class-validator';
 import type {IncomingMessage} from 'node:http';
 import {PrismaService} from './prisma.ts';
 import {cookieUser,sameOrigin} from './auth.ts';
-import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,safeImageUrl} from './news-domain.ts';
+import {TOPICS,TOPIC_LABELS,INTEREST_TAGS,EXTRA_INTEREST_LABELS,rank,diversify,safeImageUrl,publisherThumbUrl} from './news-domain.ts';
+import {skyEventFromTags} from './news-astronomy.ts';
 import {NewsIngestionService,newsIngestionEnabled} from './news-ingestion.ts';
 import {newsOperationalHealth} from './news-operational.ts';
 import {headlineDebtSummary} from './news-headline-backlog.ts';
@@ -14,7 +15,26 @@ import {publicTitleForLocale} from './news-localization.ts';
 import {rankPersonalNews} from './news-relevance.ts';
 import {collapseNewsEvents,newsQualitySnapshot} from './news-quality.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
-import {RSS_SOURCES,GDELT_QUERIES} from './news-sources.ts';
+import {RSS_SOURCES,GDELT_QUERIES,sourceKindFor} from './news-sources.ts';
+const PUBLIC_SELECT={
+ id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
+ publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true,
+ titleUk:true,titleEn:true,imageUrl:true,imageCredit:true,imageLicense:true,imageLicenseUrl:true,imagePageUrl:true
+} as const;
+type PublicRow={url:string;source:string;tags:string[];imageUrl:string|null;imageLicense:string|null;imageLicenseUrl:string|null};
+/** One public shape for feed and story pages.
+ * imageUrl: licensed image that may be shown large.
+ * thumbUrl: what may be shown small — licensed image, else the publisher's
+ *   own preview (credited, linked to the source, never enlarged).
+ * Internal event tags are parsed into `event` and never leak as interests. */
+export function publicNewsItem<T extends PublicRow>(row:T){
+ const licensed=row.imageUrl?safeImageUrl(row.imageUrl,row.imageLicenseUrl||row.imageLicense||'',row.source,false):null;
+ const kind=sourceKindFor(row);
+ const preview=!licensed&&kind!=='own'?publisherThumbUrl(row.imageUrl):null;
+ return {...row,tags:row.tags.filter(t=>(INTEREST_TAGS as readonly string[]).includes(t)),
+  imageUrl:licensed,thumbUrl:licensed||preview,imageKind:licensed?'licensed':preview?'publisher':null,
+  sourceKind:kind,event:kind==='own'?skyEventFromTags(row.tags):null};
+}
 class ModerateDto{@IsIn(['PUBLISHED','HIDDEN'])status!:'PUBLISHED'|'HIDDEN';}
 class SourcePolicyDto{@IsIn(['DISCOVERED','BLOCKED','TRUSTED'])status!:'DISCOVERED'|'BLOCKED'|'TRUSTED';}
 class NewsVoteDto{@IsIn(['YES','NO'])vote!:'YES'|'NO';}
@@ -39,13 +59,14 @@ export class NewsController {
  topics(){return {...TOPIC_LABELS,...EXTRA_INTEREST_LABELS};}
  @Get('feed') @Header('Cache-Control','private,no-store')
  async feed(@Query('topic')topic='all',@Query('tag')tag='',@Query('limit')limit='24',
-  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q='',@Req()req:IncomingMessage,@Query('lang')lang='all'){
+  @Query('page')page='1',@Query('sort')sort='relevance',@Query('tags')tags='',@Query('q')q='',@Req()req:IncomingMessage,@Query('lang')lang='all',@Query('scope')scope='all'){
   if(topic!=='all'&&!TOPICS.includes(topic as typeof TOPICS[number])||
    tag&&!INTEREST_TAGS.includes(tag as typeof INTEREST_TAGS[number]))throw new BadRequestException('Invalid category');
   if(!/^\d{1,2}$/.test(limit)||Number(limit)<1||Number(limit)>48||
    !/^\d{1,3}$/.test(page)||Number(page)<1||Number(page)>20)throw new BadRequestException('Invalid pagination');
   if(!['relevance','latest','personal'].includes(sort))throw new BadRequestException('Invalid sort');
   if(!['uk','en','all'].includes(lang))throw new BadRequestException('Invalid news locale');
+  if(!['all','portal','own'].includes(scope))throw new BadRequestException('Invalid scope');
   const selectedTags=tags?tags.split(','):[];
   if(selectedTags.length>INTEREST_TAGS.length||selectedTags.some(x=>!INTEREST_TAGS.includes(x as typeof INTEREST_TAGS[number])))
    throw new BadRequestException('Invalid tags');
@@ -64,13 +85,13 @@ export class NewsController {
   if(sort==='personal'&&!uid)throw new UnauthorizedException('Sign in for personal recommendations');
   const articles=await this.prisma.newsArticle.findMany({
    where:{status:'PUBLISHED',...find,...(topic!=='all'?{topic}:{}),...(sort==='personal'?{}:tag?{tags:{has:tag}}:selectedTags.length?{tags:{hasSome:selectedTags}}:{})},
-   take:600,orderBy:{publishedAt:'desc'},select:{
-    id:true,url:true,title:true,source:true,language:true,topic:true,tags:true,publishedAt:true,
-    publishedAccuracy:true,score:true,summary:true,summaryKind:true,summaryUk:true,summaryEn:true,
-    titleUk:true,titleEn:true,imageUrl:true,imageCredit:true,imageLicense:true,imageLicenseUrl:true,imagePageUrl:true
-   }
+   take:600,orderBy:{publishedAt:'desc'},select:PUBLIC_SELECT
   });
-  const ordered=articles.map(a=>({...a,relevance:rank(a.score,a.publishedAt)}))
+  // Front page: no reading-shop blogs; own: only first-party Galaxiora items.
+  const scoped=scope==='all'?articles:articles.filter(a=>{
+   const kind=sourceKindFor(a);return scope==='own'?kind==='own':kind!=='brand';
+  });
+  const ordered=scoped.map(a=>({...a,relevance:rank(a.score,a.publishedAt)}))
    .sort((a,b)=>sort==='latest'?b.publishedAt.getTime()-a.publishedAt.getTime():
     b.relevance-a.relevance||b.publishedAt.getTime()-a.publishedAt.getTime());
   let ranked=sort==='relevance'&&topic==='all'&&!tag?diversify(ordered,3):ordered;
@@ -101,11 +122,25 @@ export class NewsController {
    this.prisma.newsScan.findFirst({orderBy:{createdAt:'desc'},select:{createdAt:true,sources:true,accepted:true,errors:true}}),
    this.prisma.newsArticle.count({where:{status:'PUBLISHED'}})
   ]);
-  return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>({...rest,
-   // Legacy RSS thumbnails are rechecked at serving time, not trusted from old DB rows.
-   imageUrl:rest.imageUrl?safeImageUrl(rest.imageUrl,rest.imageLicenseUrl||rest.imageLicense||'',rest.source,false):null})),
+  // Legacy RSS thumbnails are rechecked at serving time, not trusted from old DB rows.
+  return {items:ranked.slice(offset,offset+size).map(({score,...rest})=>publicNewsItem(rest)),
    total:ranked.length,articleCount,page:Number(page),limit:size,lastScan,
    personalized:personalEnabled,sort};
+ }
+ /** Public story page: one published item by the first 8 hex chars of its id,
+  * plus same-topic stories. Read-only, no cookies, cacheable. */
+ @Get('story/:key') @Header('Cache-Control','public,max-age=120')
+ async story(@Param('key')key:string){
+  if(!/^[0-9a-f]{8}$/.test(key))throw new BadRequestException('Invalid story key');
+  const rows=await this.prisma.newsArticle.findMany({where:{status:'PUBLISHED',id:{startsWith:key}},
+   take:2,select:PUBLIC_SELECT});
+  if(rows.length!==1)throw new NotFoundException('Story unavailable');
+  const {score,...row}=rows[0];void score;
+  const related=await this.prisma.newsArticle.findMany({where:{status:'PUBLISHED',topic:row.topic,id:{not:row.id}},
+   take:40,orderBy:{publishedAt:'desc'},select:PUBLIC_SELECT});
+  const items=related.filter(r=>sourceKindFor(r)!=='brand'&&publicTitleForLocale(r,'uk'))
+   .slice(0,6).map(({score:_s,...r})=>publicNewsItem(r));
+  return {item:publicNewsItem(row),related:items};
  }
  /** P2: one reversible opinion per article, persisted only by explicit user action. */
  private async reactionOwner(req:IncomingMessage,mutation=false){
@@ -335,7 +370,8 @@ export class NewsController {
  }
 }
 for(const [method,types] of [
- ['feed',[String,String,String,String,String,String,String,String,Object]],
+ ['feed',[String,String,String,String,String,String,String,Object,String,String]],
+ ['story',[String]],
  ['getReactions',[Object]],
  ['putReaction',[Object,String,NewsVoteDto]],
  ['undoReaction',[Object,String]],

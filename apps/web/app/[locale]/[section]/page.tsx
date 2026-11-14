@@ -5,7 +5,8 @@ import {BRAND,moduleTitle,isPortalLocale,portalPath,type PortalLocale} from '../
 import {indexRobots,INDEXED_SECTIONS} from '../../../lib/site-indexing';
 
 export const dynamicParams=false;
-export function generateStaticParams(){return BRAND.locales.flatMap(locale=>SECTIONS.map(section=>({locale,section})));}
+// /news has its own routes (app/[locale]/news): portal, topic hubs and stories.
+export function generateStaticParams(){return BRAND.locales.flatMap(locale=>SECTIONS.filter(s=>s!=='news').map(section=>({locale,section})));}
 export async function generateMetadata({params}:{params:Promise<{locale:string;section:string}>}):Promise<Metadata>{
  const {locale,section}=await params;
  if(!isPortalLocale(locale)||!isPortalSection(section))return {};

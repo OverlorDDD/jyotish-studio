@@ -105,6 +105,22 @@ export function safeImageUrl(raw:string,license='',publisher='',feedPreview=fals
   return url;
  }catch{return null;}
 }
+/** Publisher preview (RSS media / og:image) shown ONLY as a small, credited
+ * thumbnail that links back to the source — never enlarged, cropped into a
+ * hero, or presented as Galaxiora's own photo. Large images still require
+ * safeImageUrl (explicit CC licence or an operator-approved host). */
+export function publisherThumbUrl(raw:string|null|undefined):string|null{
+ if(!raw)return null;
+ const url=canonicalUrl(raw);
+ if(!url||/\.(?:svg|gif|html|js|php)(?:\?|$)/i.test(url))return null;
+ try{
+  const u=new URL(url);
+  // Tracking pixels, avatars and generic site logos are not story previews.
+  if(/(?:^|\/)(?:pixel|spacer|blank|logo|favicon|avatar|gravatar)[\w-]*\.(?:png|jpe?g|webp)/i.test(u.pathname)||
+   /(?:^|\.)(?:gravatar\.com|feedburner\.com|doubleclick\.net)$/i.test(u.hostname))return null;
+  return url;
+ }catch{return null;}
+}
 /** No boilerplate, guessed article detail or fake one-paragraph summaries. */
 export function articlePreview(c:Candidate,topic:Topic){
  const desc=cleanDescription(c.description||'');

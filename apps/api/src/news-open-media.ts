@@ -96,7 +96,12 @@ export async function enrichOpenNewsPhotos(prisma:PrismaService,fetcher:typeof f
  // Those were hidden at delivery time, and must also qualify for remediation.
  const rows=await prisma.newsArticle.findMany({where:{status:'PUBLISHED',
   AND:[
-   {OR:[{imageUrl:null},{imageLicense:null,imageLicenseUrl:null}]},
+   // A publisher's own preview (shown as a credited thumbnail) beats a stock
+   // illustration; only rows with no picture at all get a Commons photo.
+   {imageUrl:null},
+   // Give RSS/og:image discovery a few hours first; own items draw their own art.
+   {discoveredAt:{lt:new Date(Date.now()-6*3600000)}},
+   {NOT:{source:{startsWith:'Galaxiora'}}},
    {OR:[{imageLookupAt:null},{imageLookupAt:{lt:retryBefore}}]}
   ]},
   orderBy:{publishedAt:'desc'},take:12,

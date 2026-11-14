@@ -51,7 +51,7 @@ test('P4: reactions history, export, opt-out and confirmed news-only reset prese
   expect((await page.request.put(articleRoute,{data:{vote:'YES'}})).status()).toBe(409);
   // Turning personalization off does not silently delete the user's saved feedback.
   expect((await prisma.newsReaction.count({where:{articleId:id}})).toString()).toBe('1');
-  await page.goto('/uk/news');
+  await page.goto('/uk/news/for-you');
   const toggle=page.getByRole('button',{name:'Керування рекомендаціями'});
   await toggle.click();
   await expect(page.getByRole('switch',{name:'Персоналізацію вимкнено'})).toBeVisible();
@@ -101,7 +101,7 @@ test('P5 guests suppress similar news locally and restore on undo without accoun
     topic:'yoga',tags:['yoga','pranayama'],language:'en',source:'P5 guest publisher',
     score:9999-n,publishedAt:new Date()}})
   }
-  await page.goto('/uk/news');
+  await page.goto('/uk/news/for-you');
   await page.getByRole('searchbox',{name:'Пошук новин'}).fill('P5Guest'+suffix);
   await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(2);
   const no=page.getByTestId('news-vote-no').first();

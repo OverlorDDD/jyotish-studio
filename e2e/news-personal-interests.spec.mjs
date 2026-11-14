@@ -16,7 +16,7 @@ test('News Personal Interests P1: guests private; explicit save; legacy profile 
  const before=await page.request.get('/api/v1/news/interests');
  expect(before.status()).toBe(200);
  expect((await before.json()).tags).toEqual(['jyotish']);
- await page.goto('/uk/news');
+ await page.goto('/uk/news/for-you');
  // A saved account tag is selected without requiring old guest browser state.
  await expect(page.getByRole('button',{name:'Джйотіш'})).toHaveAttribute('aria-pressed','true');
  await page.getByRole('button',{name:'Таро',exact:true}).click();

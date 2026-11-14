@@ -17,7 +17,7 @@ test('GalaxiNews automatically shows a fast initial response and never erases it
    personalized:false,sort:'relevance'
   })});
  });
- await page.goto('/uk/news');
+ await page.goto('/uk/news/for-you');
  const headline=page.getByRole('heading',{name:item.titleUk});
  await expect(headline).toBeVisible({timeout:15000});
  await expect(page.getByTestId('news-article-count')).toContainText('110 статей');
@@ -33,7 +33,7 @@ test('GalaxiNews automatically shows a fast initial response and never erases it
  await expect(headline).toBeVisible();
 });
 test('GalaxiNews World is a public bilingual editorial feed with tag preferences',async({page})=>{
- const response=await page.goto('/uk/news');
+ const response=await page.goto('/uk/news/for-you');
  expect(response?.headers()['x-galaxiora-news-revision']).toBe('world-v1.8');
  await expect(page.getByTestId('galaxinews-world')).toBeVisible();
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
@@ -92,7 +92,7 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  expect(data.personalized).toBe(false);
  const bad=await page.request.get('/api/v1/news/feed?topic=invalid');
  expect(bad.status()).toBe(400);
- await page.goto('/en/news');
+ await page.goto('/en/news/for-you');
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
  await expect(page.getByRole('region',{name:'Your constellation of interests'})).toBeVisible();
 });
@@ -136,7 +136,7 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   // This test seeds real published articles BEFORE opening the page.
   // Initial loading must display them without clicking refresh. The debounce
   // timer must NOT erase the list after the first successful request.
-  await page.goto('/uk/news');
+  await page.goto('/uk/news/for-you');
   await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible({timeout:15000});
   await page.waitForTimeout(850); // exceeds the old 320ms destructive debounce
   await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible();

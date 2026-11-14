@@ -11,7 +11,6 @@ import TarotFaq from './tarot/TarotFaq';
 import tarotStyles from './tarot/TarotHub.module.css';
 import YogaHub from './YogaHub';
 import AcademyHub from './AcademyHub';
-import NewsWorld from './NewsWorld';
 import GalaxiCom from './GalaxiCom';
 import GalaxiComModuleLink from './GalaxiComModuleLink';
 import OrganicIntentBridge from './OrganicIntentBridge';
@@ -65,7 +64,6 @@ export default function PortalSection({locale,section}:{locale:PortalLocale;sect
  }
  if(section==='yoga')return <YogaHub locale={locale}/>;
  if(section==='learn')return <AcademyHub locale={locale}/>;
- if(section==='news')return <NewsWorld locale={locale}/>;
  if(section==='community')return <GalaxiCom locale={locale}/>;
  const t=SECTION_COPY[locale][section];
  const Icon=iconMap[section];
