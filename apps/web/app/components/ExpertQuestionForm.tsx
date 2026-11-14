@@ -70,8 +70,11 @@ export default function ExpertQuestionForm({locale}:{locale:PortalLocale}){
  return <div className={styles.section} data-testid="reader-question-form">
   {submitted?<div role="status" className={styles.success}>
    <strong>{uk?'Питання надіслано!':'Your question has been sent!'}</strong>
-   <p>{uk?'Таролог прочитає його й відповість на пошту вашого акаунта, зазвичай протягом доби: чи візьметься за питання і який розклад пропонує. Платити зараз нічого не потрібно.':
-    'A reader will read it and reply to your account email, usually within a day: whether they can take the question and which spread they suggest. Nothing to pay now.'}</p>
+   <ol className={styles.next}>
+    <li>{uk?'Протягом доби на пошту вашого акаунта прийде коротка безкоштовна підказка від тарологині.':'Within a day, a short free hint from the reader arrives at your account email.'}</li>
+    <li>{uk?'У тому ж листі — пропозиція повного живого розкладу, якщо захочете піти глибше.':'The same email offers a full live reading if you want to go deeper.'}</li>
+    <li>{uk?'Платити зараз нічого не потрібно.':'Nothing to pay now.'}</li>
+   </ol>
    <p>{uk?'Якщо хочете пришвидшити відповідь, відкрийте наш Telegram і напишіть адміністратору — можна зв’язатися з ним через контакти в каналі.':
     'To speed things up, open our Telegram and message the administrator using the contacts in the channel.'}</p>
    <p><a href="https://t.me/Galaxiora" target="_blank" rel="noopener noreferrer" className={styles.link}>
