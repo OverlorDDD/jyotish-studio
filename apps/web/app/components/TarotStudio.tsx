@@ -211,8 +211,8 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
    </article>}
    {!allOpen&&<p className={styles.hint}>{uk?'Натисніть на карту '+(reading.cards.findIndex(c=>c.position===nextToOpen)+1)+', щоб відкрити її. Коли відкриєте всі, з’явиться загальна відповідь.':
     'Tap card '+(reading.cards.findIndex(c=>c.position===nextToOpen)+1)+' to turn it over. When all are open, the overall answer appears.'}</p>}
-   <p className={styles.small}>{uk?'Ілюстрації: власна колода Galaxiora за класичною символікою Райдера–Вейта–Сміт. Таро не замінює медичних, юридичних чи фінансових рішень.':
-    'Artwork: Galaxiora’s own deck, drawn on the classic Rider–Waite–Smith symbolism. Tarot does not replace medical, legal or financial decisions.'}</p>
+   <p className={styles.small}>{uk?'Ілюстрації: Памела Колман Сміт, класична колода Райдера–Вейта–Сміт (1909, суспільне надбання), у кольорах Galaxiora. Таро не замінює медичних, юридичних чи фінансових рішень.':
+    'Artwork: Pamela Colman Smith, the classic Rider–Waite–Smith deck (1909, public domain), in Galaxiora colours. Tarot does not replace medical, legal or financial decisions.'}</p>
   </section>}
   {signedIn&&<section className={'as-tarot-history '+styles.card}>
    <h2><History size={21}/>{uk?'Історія моїх розкладів':'My reading history'}</h2>
