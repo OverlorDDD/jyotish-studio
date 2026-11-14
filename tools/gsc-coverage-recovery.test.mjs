@@ -3,14 +3,18 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
-test('GSC: horoscope sign entry links use fragments, not duplicate query resources',()=>{
- const moon=read('apps/web/app/[locale]/horoscope/[sign]/page.tsx');
+test('GSC: horoscope sign pages are real crawlable URLs, never query or fragment duplicates',()=>{
+ const today=read('apps/web/app/[locale]/horoscope/[sign]/page.tsx');
  const western=read('apps/web/app/[locale]/horoscope/western/[sign]/page.tsx');
- assert.ok(moon.includes("'/horoscope#vedic-'+sign"));
- assert.ok(western.includes("'/horoscope#western-'+sign"));
- assert.ok(western.includes("'/horoscope#vedic-'+sign"));
- for(const source of [moon,western]){
+ const signs=read('apps/web/lib/horoscope-signs.ts');
+ const home=read('apps/web/app/components/horoscope/HoroscopeHome.tsx');
+ const page=read('apps/web/app/components/horoscope/SignPage.tsx');
+ assert.match(today,/renderSign\(p\.locale,'western',p\.sign\)/);
+ assert.match(western,/permanentRedirect\('\/'\+locale\+'\/horoscope\/'\+sign\)/,'old Western URLs consolidate to one canonical page');
+ assert.ok(signs.includes("'/horoscope/'+(system==='vedic'?'vedic/':'')"),'Vedic sign pages live under /horoscope/vedic/');
+ for(const source of [today,western,home,page,signs]){
   assert.doesNotMatch(source,/\/horoscope\?system=/,'public links must not create additional query URL crawl targets');
+  assert.doesNotMatch(source,/horoscope#(vedic|western)-/,'sign pages are real URLs now, not hub fragments');
  }
 });
 

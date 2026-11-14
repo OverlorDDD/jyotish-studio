@@ -15,7 +15,7 @@ test('12 unique bilingual Moon-sign landing pages have real classical rulers and
  assert.equal(MOON_SIGN_GUIDES.find(g=>g.slug==='gemini').lordEn,'Mercury');
  assert.equal(MOON_SIGN_GUIDES.find(g=>g.slug==='pisces').lordEn,'Jupiter');
  assert.match(file('apps/web/app/sitemap.ts'),/MOON_SIGN_GUIDES/);
- assert.match(file('apps/web/app/[locale]/horoscope/[sign]/page.tsx'),/BreadcrumbList/);
+ assert.match(file('apps/web/app/components/horoscope/SignPage.tsx'),/BreadcrumbList/);
 });
 
 test('search indexing requires an explicit launch opt-in and a clean external HTTPS origin',()=>{
@@ -65,7 +65,7 @@ test('release copy is positive and describes available capabilities rather than 
  assert.doesNotMatch(home,/Згодом додамо більше інструментів|with more chart tools to come/i);
  assert.doesNotMatch(hub,/транзити й місячний календар — у планах|transits and lunar calendars are planned/i);
  for(const route of ['horoscope','panchanga']){
-  const s=file('apps/web/app/[locale]/'+route+'/page.tsx');
+  const s=file('apps/web/app/[locale]/'+route+'/page.tsx')+(route==='horoscope'?file('apps/web/lib/horoscope-page.tsx'):'');
   assert.match(s,/generateMetadata/);
   assert.match(s,/indexRobots/);
   assert.match(s,/alternates/);

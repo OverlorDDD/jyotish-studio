@@ -28,7 +28,7 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  expect(favicon.status()).toBe(200);
  expect(favicon.headers()['content-type']).toMatch(/image\/svg\+xml/);
  expect(await favicon.text()).toContain('Galaxiora');
- await page.goto('/uk/horoscope');
+ await page.goto('/uk/horoscope/personal');
  await expect(page.getByRole('heading',{name:'Гороскопи'})).toBeVisible();
  // Browser-level proof of the owner's requested genuinely round favicon:
  // the four pixels outside the golden ring are transparent, center opaque.
@@ -55,6 +55,6 @@ test('public Jyotish horoscope navigation and 12 lunar signs with sources, plus 
  await page.getByRole('button',{name:'Мій персональний'}).click();
  await expect(page.getByText('Збережи власну натальну карту',{exact:false})).toBeVisible();
  await expect(page.getByRole('link',{name:/Перейти до «Мого Всесвіту»/})).toHaveAttribute('href','/uk/personal');
- await page.goto('/en/horoscope');
+ await page.goto('/en/horoscope/personal');
  await expect(page.getByRole('heading',{name:'Horoscopes'})).toBeVisible();
 });

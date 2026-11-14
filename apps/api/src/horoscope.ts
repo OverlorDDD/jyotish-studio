@@ -1,9 +1,10 @@
-import {Controller,Get,Header,ServiceUnavailableException} from '@nestjs/common';
+import {BadRequestException,Body,Controller,Get,Header,HttpCode,Post,Query,ServiceUnavailableException} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {calendarDays,dailyTransit,localToday} from './personal-transits.ts';
 import {readPublicSign,EDITORIAL_REFERENCE} from './horoscope-editorial.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {tropicalSkyForDay,westernSignReading,WESTERN_HOROSCOPE_SOURCES,TROPICAL_METHOD} from './western-horoscope.ts';
+import {allSigns,dayReading,inRange,passport,periodReading,validSign,validSystem} from './horoscope-v3.ts';
 /** Moon moves about 11–16 degrees per 24h. Reject reused/corrupted daily snapshots. */
 export function verifyLunarContinuity(days:Awaited<ReturnType<typeof dailyTransit>>[]){
  for(let i=1;i<days.length;i++){
@@ -47,6 +48,37 @@ export class HoroscopeController{
     signs:Array.from({length:12},(_,i)=>readPublicSign(i+1,transit))
    })),sources:EDITORIAL_REFERENCE};
  }
+ // ---- Horoscope v3 (public; nothing about the visitor is read or stored) ----
+ @Get('v3/day') @Header('Cache-Control','public,max-age=600')
+ async v3Day(@Query('system')system?:string,@Query('sign')sign?:string,@Query('date')date?:string){
+  const sys=validSystem(system),s=validSign(sign),d=date||localToday('Europe/Kyiv');
+  if(!sys||!s||!inRange(d))throw new BadRequestException('Invalid system, sign or date');
+  try{return await dayReading(sys,s,d);}
+  catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
+ }
+ @Get('v3/all') @Header('Cache-Control','public,max-age=600')
+ async v3All(@Query('system')system?:string,@Query('date')date?:string){
+  const sys=validSystem(system),d=date||localToday('Europe/Kyiv');
+  if(!sys||!inRange(d))throw new BadRequestException('Invalid system or date');
+  try{return {system:sys,date:d,signs:await allSigns(sys,d)};}
+  catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
+ }
+ @Get('v3/period') @Header('Cache-Control','public,max-age=900')
+ async v3Period(@Query('system')system?:string,@Query('sign')sign?:string,@Query('start')start?:string,@Query('days')days?:string){
+  const sys=validSystem(system),s=validSign(sign),st=start||localToday('Europe/Kyiv'),n=Number(days||7);
+  if(!sys||!s||!inRange(st)||!Number.isInteger(n)||n<1||n>31)throw new BadRequestException('Invalid period');
+  try{return await periodReading(sys,s,st,n);}
+  catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
+ }
+ /** «Зоряний паспорт». POST so birth data never lands in URLs or access logs. */
+ @Post('v3/passport') @HttpCode(200) @Header('Cache-Control','no-store')
+ async v3Passport(@Body()body:unknown){
+  const b=(body||{}) as {date?:unknown;time?:unknown;zone?:unknown};
+  const date=typeof b.date==='string'?b.date:'',time=typeof b.time==='string'&&b.time?b.time:undefined;
+  const zone=typeof b.zone==='string'&&/^[A-Za-z_]+(?:\/[A-Za-z_\-]+){0,2}$/.test(b.zone)?b.zone:undefined;
+  try{return await passport({date,time,zone});}
+  catch(e){throw new BadRequestException(e instanceof Error?e.message:'Invalid birth data');}
+ }
  @Get('western/today') @Header('Cache-Control','public,max-age=300')
  async westernToday(){
   const zone='Europe/Kyiv',date=localToday(zone);
@@ -74,4 +106,8 @@ export class HoroscopeController{
  }
 }
 Reflect.defineMetadata('design:paramtypes',[],HoroscopeController.prototype,'today');
+Reflect.defineMetadata('design:paramtypes',[String,String,String],HoroscopeController.prototype,'v3Day');
+Reflect.defineMetadata('design:paramtypes',[String,String],HoroscopeController.prototype,'v3All');
+Reflect.defineMetadata('design:paramtypes',[String,String,String,String],HoroscopeController.prototype,'v3Period');
+Reflect.defineMetadata('design:paramtypes',[Object],HoroscopeController.prototype,'v3Passport');
 Reflect.defineMetadata('design:paramtypes',[],HoroscopeController.prototype,'week');

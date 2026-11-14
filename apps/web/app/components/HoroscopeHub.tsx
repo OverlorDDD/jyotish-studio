@@ -241,8 +241,8 @@ export default function HoroscopeHub({locale}:{locale:PortalLocale}){
      {tradition==='western'?(uk?'Розрахувати точний знак Сонця':'Calculate my exact Sun sign'):(uk?'Визначити натальний знак Місяця':'Calculate my natal Moon sign')} →</Link>}
    </div>
    <p className={styles.signGuideLink}>
-    <Link href={'/'+locale+'/horoscope/'+(tradition==='western'?'western/':'')+SIGN_SLUGS[selected-1]}>
-     {tradition==='western'?(uk?'Про західне Сонце в знаку ':'About the Western Sun in '):(uk?'Про ведичний Місяць у знаку ':'About the Vedic Moon in ')}{SIGNS[locale][selected-1]} ↗
+    <Link href={'/'+locale+'/horoscope/'+(tradition==='western'?'':'vedic/')+SIGN_SLUGS[selected-1]}>
+     {tradition==='western'?(uk?'Західний гороскоп для знака ':'Western horoscope for '):(uk?'Ведичний гороскоп для знака ':'Vedic horoscope for ')}{SIGNS[locale][selected-1]} ↗
     </Link>
    </p>
    {period==='day'&&reading&&detail({...reading,evidence:{...reading.evidence,house:reading.house,timeZone:visibleData?.zone}})}

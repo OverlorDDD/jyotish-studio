@@ -156,6 +156,14 @@ modules:
     research: "docs/research/horoscope-deterministic-editorial-2026-10-31.md"
     guarded_aws_release: "tools/galaxiora-horoscope-editorial-production-update.sh"
     guardrails: "Owner-only private natal chart; no AI requests from horoscope; SWIEPH no Moshier; no artificial daily wording when sky is unchanged; ASE-1 fallback; full JQA-3 certification separate"
+  horoscope_v3:
+    status: "public sign horoscopes rebuilt (phase 1): SSR hub + 12 signs x today/tomorrow/week/month in Western (default) and Vedic systems; Star Passport; personal hub moved to /horoscope/personal"
+    routes: "/{locale}/horoscope[/vedic] hub; /{locale}/horoscope[/vedic]/{sign}[/tomorrow|week|month]; /{locale}/horoscope/my-sign; /{locale}/horoscope/personal (noindex); legacy /horoscope/western/{sign} and ?system=&sign= permanently redirect"
+    public_api: "GET /api/v1/horoscope/v3/day|all|period; POST /api/v1/horoscope/v3/passport (no-store, never stored or logged)"
+    engine: "apps/api/src/horoscope-v3.ts — Swiss sky at Kyiv noon; classical Gochara favourable houses (Phaladeepika 26) whole-sign from the sign; Chandrashtama caps; texts apps/api/src/horoscope-v3-texts.ts (UK/EN, «ви» voice)"
+    web: "apps/web/lib/horoscope-signs.ts; apps/web/lib/horoscope-v3.ts; apps/web/lib/horoscope-page.tsx; apps/web/app/components/horoscope/*"
+    tests: "tools/horoscope-v3.test.mjs (run via test:horoscope-basis); tools/gsc-coverage-recovery.test.mjs"
+    next: "phase 2 compatibility tool + 78 pair pages; phase 3 yearly 2027 per sign and share images"
   news_multilingual_nmt:
     status: "candidate: script-aware Hindi/Latin UK/EN translation, strict numbers, bounded Azure reservations and six-attempt quarantine"
     source_plan: "apps/api/src/news-headline-nmt-plan.ts"
@@ -195,7 +203,7 @@ routes:
   web:
     home: "/uk | /en"
     jyotish: "/{locale}/astrology/jyotish"
-    horoscope: "/{locale}/horoscope"
+    horoscope: "/{locale}/horoscope | /{locale}/horoscope/vedic | /{locale}/horoscope[/vedic]/{sign}[/tomorrow|week|month] | /{locale}/horoscope/my-sign | /{locale}/horoscope/personal"
     tarot: "/{locale}/tarot"
     yoga: "/{locale}/yoga | /{locale}/yoga/{slug}"
     academy: "/{locale}/learn | /{locale}/learn/{slug}"
