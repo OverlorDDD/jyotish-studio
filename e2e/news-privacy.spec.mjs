@@ -107,12 +107,12 @@ test('P5 guests suppress similar news locally and restore on undo without accoun
   const no=page.getByTestId('news-vote-no').first();
   await expect(no).toBeEnabled();await no.click();
   await page.getByRole('button',{name:'Пранаяма'}).click();
-  await page.getByRole('button',{name:/Для мене/}).click();
+  await page.getByRole('button',{name:/Мої теми/}).click();
   await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(0);
   await page.getByRole('button',{name:/Головне/}).click();
   await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(2);
   await page.getByTestId('news-vote-no').first().click();
-  await page.getByRole('button',{name:/Для мене/}).click();
+  await page.getByRole('button',{name:/Мої теми/}).click();
   await expect(page.locator('[data-testid="galaxinews-world"] article')).toHaveCount(2);
   expect((await page.request.get('/api/v1/news/reactions')).status()).toBe(401);
  }finally{

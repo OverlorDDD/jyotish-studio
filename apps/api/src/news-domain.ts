@@ -26,7 +26,7 @@ const terms:Record<Topic,RegExp>={
  meditation:/meditat|mindfulness|mantra|медитац|мантр/i,
  vedic:/vedic|vedanta|bhagavad.gita|upanishad|hindu tradition|hinduism|ведичн|ведант|упанішад|індуїзм/i,
  'self-development':/self.development|personal growth|self.discovery|духовн.{0,10}практик|саморозвит|особистісн.{0,10}розвит/i,
- astronomy:/astronom|telescope|solar eclipse|lunar eclipse|meteor shower|телескоп|затемнен|метеорн/i
+ astronomy:/astronom|telescope|solar eclipse|lunar eclipse|meteor shower|night sky|full moon|new moon|supermoon|moon phase|sunspot|solar flare|aurora|comet|asteroid|meteor|planets? (?:visible|tonight)|equinox|solstice|galax|nebula|star cluster|constellation|телескоп|затемнен|метеорн|повня|молодик|комет|астероїд|полярн.{0,6}сяйв/i
 };
 export const TOPIC_LABELS:Record<Topic,{uk:string;en:string}>={
  jyotish:{uk:'Джйотіш',en:'Jyotish'},astrology:{uk:'Астрологія',en:'Astrology'},
@@ -139,7 +139,9 @@ export function classify(c:Candidate){
  const matched=TOPICS.filter(t=>terms[t].test(title+' '+cleanDescription(c.description||'').slice(0,600)));
  if(!matched.length&&!(c.hint&&cleanDescription(c.description||'').length>60))return null;
  const priority:Topic[]=['jyotish','tarot','yoga','vedic','meditation','astrology','self-development','astronomy'];
- const primary=priority.find(t=>matched.includes(t))||(c.hint&&c.hint!=='astronomy'?c.hint:null);
+ // A curated astronomy feed may file its own sky stories under Astronomy; it is
+ // never escalated to Astrology (that still needs explicit astrology terms).
+ const primary=priority.find(t=>matched.includes(t))||(c.hint||null);
  if(!primary)return null;
  // Astronomy is opt-in topic: no escalation to astrology, unless explicitly in text.
  const tagContent=title+' '+cleanDescription(c.description||'').slice(0,600);
@@ -149,7 +151,9 @@ export function classify(c:Candidate){
  const topicWeight=primary==='astronomy'?12:primary==='self-development'?24:42;
  const score=Math.round((35*Math.max(0,1-Math.max(age,0)/(24*30))+topicWeight+quality)*100)/100;
  return {...c,url,title,topic:primary,tags,score,
-  imageUrl:c.imageUrl?safeImageUrl(c.imageUrl,c.imageLicense,c.source,Boolean(c.imageFeedPreview)):null,
+  // Keep the publisher's preview: publicNewsItem shows it large only if licensed,
+  // otherwise as a credited thumbnail.
+  imageUrl:c.imageUrl?safeImageUrl(c.imageUrl,c.imageLicense,c.source,Boolean(c.imageFeedPreview))||publisherThumbUrl(c.imageUrl):null,
   imageCredit:cleanDescription(c.imageCredit||c.source).slice(0,160),
   ...articlePreview(c,primary)};
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {editorialDecision,publisherDomain,parseXml,classify} from '../apps/api/src/news-domain.ts';
+import {editorialDecision,publisherDomain,parseXml,classify,safeImageUrl} from '../apps/api/src/news-domain.ts';
 import {parseArticleMeta} from '../apps/api/src/news-metadata.ts';
 test('publisher discovery works for independent mainstream publishers and canonical domains',()=>{
  assert.equal(publisherDomain('https://www.guardian.example/culture/tarot?utm_source=x'),'guardian.example');
@@ -22,9 +22,12 @@ test('publisher metadata yields factual preview information without article body
  assert.equal(result.imageUrl,'https://culture.example.org/assets/tarot-card.jpg');
  assert.doesNotMatch(result.description,/FULL ARTICLE/);
 });
-test('unlicensed RSS thumbnails fall back instead of bypassing image rights checks',()=>{
+test('unlicensed RSS previews are kept only as thumbnails, never as licensed images',()=>{
  const xml='<rss><channel><item><title>Yoga practice connects mindful movement and breath</title><link>https://magazine.example.com/yoga</link><pubDate>Mon, 26 Oct 2026 10:00:00 GMT</pubDate><enclosure url="https://cdn.magazine.example.com/images/yoga.webp" type="image/webp"/></item></channel></rss>';
  const c=parseXml(xml,'Magazine')[0];
  assert.ok(c.imageFeedPreview);
- assert.equal(classify(c)?.imageUrl,null);
+ const stored=classify(c);
+ // Stored as the publisher preview; no licence is invented for it.
+ assert.equal(stored?.imageUrl,'https://cdn.magazine.example.com/images/yoga.webp');
+ assert.equal(safeImageUrl(stored.imageUrl,''),null,'not licensed: served only as a thumbnail');
 });

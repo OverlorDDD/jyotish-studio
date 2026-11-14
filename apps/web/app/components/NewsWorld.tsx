@@ -1,7 +1,9 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,MoonStar,RefreshCw,Sparkles,Tags,Orbit,Search,X,Settings2,Download,Trash2,Undo2,ShieldCheck} from 'lucide-react';
+import {ArrowUpRight,BookOpen,Check,ChevronDown,Compass,Heart,HeartOff,RefreshCw,Tags,Orbit,Search,X,Settings2,Download,Trash2,Undo2,ShieldCheck} from 'lucide-react';
 import PortalShell from './PortalShell';
+import NewsTabs from './news/NewsTabs';
+import {storyPath} from '../../lib/news-public';
 import styles from './NewsWorld.module.css';
 import {newsFallbackArtwork} from './news-fallback-artwork';
 import GlossaryText from './GlossaryText';
@@ -12,7 +14,7 @@ type Topic=typeof TOPICS[number];
 const EXTRA_INTEREST_TAGS=['natal-charts','nakshatras','mantras','pranayama'] as const;
 const INTEREST_TAGS=[...TOPICS,...EXTRA_INTEREST_TAGS] as const;
 type InterestTag=typeof INTEREST_TAGS[number];
-type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;titleEn?:string|null;imageUrl?:string|null;imageCredit?:string|null;imagePageUrl?:string|null;imageLicense?:string|null;imageLicenseUrl?:string|null;personalReason?:'selected_topic'|'similar_to_liked'|'fresh_discovery'|'world_highlight';matchingTag?:InterestTag|null};
+type Story={id:string;url:string;title:string;source:string;language:string;topic:Topic;tags:InterestTag[];publishedAt:string;relevance:number;publishedAccuracy?:'observed'|'published';summary?:string|null;summaryKind?:string;summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;titleEn?:string|null;imageUrl?:string|null;thumbUrl?:string|null;imageKind?:'licensed'|'publisher'|null;imageCredit?:string|null;imagePageUrl?:string|null;imageLicense?:string|null;imageLicenseUrl?:string|null;personalReason?:'selected_topic'|'similar_to_liked'|'fresh_discovery'|'world_highlight';matchingTag?:InterestTag|null};
 type Feed={items:Story[];total:number;articleCount:number;lastScan:{createdAt:string;errors:number;sources:number}|null};
 type View='all'|'latest'|'mine';
 type Vote='yes'|'no';
@@ -28,45 +30,45 @@ const LABELS:Record<InterestTag,{uk:string;en:string}>={
 };
 const COPY={
  uk:{
-  kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'Живий світ астрології, Таро та духовних традицій.',
-  intro:'Відкривай нові матеріали з усього світу. Обирай теми, знаходь першоджерела та формуй стрічку, яка цікава саме тобі.',
-  all:'Головне',latest:'Найсвіжіше',mine:'Для мене',topics:'Хмара твоїх інтересів',articles:'статей',
+  kicker:'GalaxiNews',title:'GalaxiNews: моя стрічка',subtitle:'',
+  intro:'Оберіть теми, які вам цікаві, шукайте матеріали й позначайте, що сподобалося, — добірка «Мої теми» підлаштується під вас.',
+  all:'Головне',latest:'Найсвіжіше',mine:'Мої теми',topics:'Ваші інтереси',articles:'статей',
   allTopics:'Усі теми',
   loading:'Завантажуємо новини…',
-  world:'Світові матеріали',select:'Обери теми вище, щоб сформувати добірку.',
+  world:'Світові матеріали',select:'Оберіть теми, щоб сформувати добірку.',
   zero:'Поки немає підтверджених матеріалів за цим фільтром.',
-  bootstrap:'Нові матеріали з’являються в міру оновлення джерел. Переглянь інші цікаві теми.',
-  offline:'Новини зараз недоступні. Спробуй оновити стрічку трохи пізніше.',
+  bootstrap:'Нові матеріали з’являються в міру оновлення джерел. Перегляньте інші теми.',
+  offline:'Новини зараз недоступні. Спробуйте оновити стрічку трохи пізніше.',
   more:'Показати ще',retry:'Спробувати ще раз',original:'Читати в першоджерелі',observed:'Знайдено',refresh:'Оновити стрічку',
-  interesting:'Вам цікава ця публікація?',yes:'Так, цікаво',no:'Не для мене',thanks:'Враховано у твоїй стрічці',
+  interesting:'Вам цікава ця публікація?',yes:'Так, цікаво',no:'Не для мене',thanks:'Враховано у вашій стрічці',
   feedbackSaved:'Реакцію збережено в кабінеті',feedbackLocal:'Враховано в цьому браузері',
-  feedbackError:'Не вдалося зберегти реакцію. Повтори спробу.',
-  reasonChosen:'За обраним інтересом',reasonLiked:'Схоже на те, що тобі сподобалося',
+  feedbackError:'Не вдалося зберегти реакцію. Спробуйте ще раз.',
+  reasonChosen:'За обраним інтересом',reasonLiked:'Схоже на те, що вам сподобалося',
   reasonFresh:'Нова тема для відкриття',reasonWorld:'Важлива світова публікація',
   chosen:'Обрані теми',reset:'Очистити вибір',external:'Зовнішня публікація',
   attribution:'Заголовки належать відповідним видавцям. Galaxiora показує посилання на першоджерела; текст статті залишається на сайті автора.',
-  yourFeed:'Добірка за твоїми інтересами',noPersonal:'Обери хоча б один тег, щоб налаштувати стрічку.',
-  nothingPersonal:'За обраними тегами ще немає публікацій. Спробуй інші теми.',
+  yourFeed:'Добірка за вашими інтересами',noPersonal:'Оберіть хоча б одну тему, щоб налаштувати стрічку.',
+  nothingPersonal:'За обраними темами ще немає публікацій. Спробуйте інші.',
   newest:'За часом публікації',relevant:'За релевантністю',search:'Пошук новин',searchPlaceholder:'Таро, ретроградна Венера, йога…',clearSearch:'Очистити пошук',searchResults:'Результати пошуку',
   saveAccount:'Зберегти інтереси в кабінеті',savedAccount:'Інтереси збережено',
-  guestLocal:'Увійди, щоб синхронізувати інтереси.',
-  saveFailed:'Не вдалося синхронізувати інтереси. Спробуй ще раз.',
+  guestLocal:'Увійдіть, щоб інтереси зберігалися у вашому кабінеті.',
+  saveFailed:'Не вдалося синхронізувати інтереси. Спробуйте ще раз.',
   importGuest:'Додати теми з цього браузера',
-  manage:'Керування рекомендаціями',manageNote:'Обирай, які інтереси й реакції зберігати.',
+  manage:'Керування рекомендаціями',manageNote:'Ви вирішуєте, які інтереси й реакції зберігати.',
   personalizedOn:'Персоналізацію увімкнено',personalizedOff:'Персоналізацію вимкнено',
-  offNote:'Ти бачитимеш світові новини без персональних рекомендацій.',
+  offNote:'Ви бачитимете світові новини без персональних рекомендацій.',
   history:'Історія реакцій',noHistory:'Ще немає оцінених публікацій.',
   undo:'Скасувати',moreHistory:'Показати ще',historyLimit:'Показано останні 1000 реакцій. Повну історію можна експортувати.',
   clearHistory:'Очистити реакції',resetAll:'Скинути новинні налаштування',
   exportData:'Експортувати дані',confirmClear:'Видалити всі реакції?',
   confirmReset:'Очистити інтереси й реакції GalaxiNews? Натальні карти й інші дані залишаться.',
-  confirmYes:'Так, видалити',cancel:'Назад',settingsError:'Не вдалося виконати дію. Спробуй ще раз.',
+  confirmYes:'Так, видалити',cancel:'Назад',settingsError:'Не вдалося виконати дію. Спробуйте ще раз.',
   guestClear:'Очистити локальні реакції'
  },
  en:{
-  kicker:'GALAXIORA · DISCOVER',title:'GalaxiNews',subtitle:'A living world of astrology, Tarot and spiritual traditions.',
-  intro:'Discover new material from around the world. Choose topics, explore original sources, and shape a feed that matters to you.',
-  all:'Highlights',latest:'Latest',mine:'For me',topics:'Your constellation of interests',articles:'articles',
+  kicker:'GalaxiNews',title:'GalaxiNews: my feed',subtitle:'',
+  intro:'Choose the topics you care about, search, and mark what you liked — the “My topics” selection adapts to you.',
+  all:'Highlights',latest:'Latest',mine:'My topics',topics:'Your interests',articles:'articles',
   allTopics:'All topics',
   loading:'Loading stories…',
   world:'Stories around the world',select:'Choose topics above to create your collection.',
@@ -112,6 +114,8 @@ function guestSimilar(story:Story,hint:GuestNewsHint){
  const common=[...a].filter(word=>b.has(word)).length;
  return common>=2&&common/Math.min(a.size,b.size)>=0.6;
 }
+/** Small picture: licensed photo, else the publisher's own preview (thumbnail only). */
+const thumbOf=(story:{imageUrl?:string|null;thumbUrl?:string|null})=>story.thumbUrl||story.imageUrl||null;
 function safeLink(link:string){try{const u=new URL(link);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 /** Prefer images with verified reuse rights; ensure every article has original offline artwork otherwise. */
 function StoryArtwork({storyId,imageUrl,credit,title,topic,locale,sourceUrl,licenseUrl,license}:{storyId:string;imageUrl?:string|null;credit?:string|null;title:string;topic:Topic;locale:PortalLocale;sourceUrl?:string|null;licenseUrl?:string|null;license?:string|null}){
@@ -392,7 +396,7 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  // Never show one Commons photo as though it illustrated several unrelated stories.
  const firstPhotoOwner=useMemo(()=>{
   const owner=new Map<string,string>();
-  for(const story of visible)if(story.imageUrl&&!owner.has(story.imageUrl))owner.set(story.imageUrl,story.id);
+  for(const story of visible){const u=thumbOf(story);if(u&&!owner.has(u))owner.set(u,story.id);}
   return owner;
  },[visible]);
  const canMore=items.length<total&&page<20;
@@ -413,12 +417,9 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
  return <PortalShell locale={locale} active="news">
   <div className={styles.world} data-testid="galaxinews-world" data-release="world-v1.8">
    <header className={styles.hero}>
-    <div className={styles.heroCopy}>
-     <span className={styles.eyebrow}><Sparkles size={13}/>{t.kicker}</span>
-     <h1>{t.title}</h1><h2>{t.subtitle}</h2><p>{t.intro}</p>
-    </div>
-    <div className={styles.cosmos} aria-hidden="true"><div className={styles.orbit1}/><div className={styles.orbit2}/><MoonStar size={84} strokeWidth={0.75}/><i className={styles.star1}/><i className={styles.star2}/></div>
+    <div className={styles.heroCopy}><h1>{t.title}</h1><p>{t.intro}</p></div>
    </header>
+   <NewsTabs locale={locale} active="for-you"/>
    <nav className={styles.views} aria-label={locale==='uk'?'Тип стрічки':'Feed type'}>
     {(['all','latest','mine'] as const).map(v=><button key={v} type="button" className={view===v?styles.active:''}
      aria-pressed={view===v} onClick={()=>{setView(v);setPage(1);setItems([]);}}>{v==='mine'?<Heart size={15}/>:v==='latest'?<Compass size={15}/>:<Orbit size={15}/>} {t[v]}</button>)}
@@ -435,80 +436,6 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
      {articleCount===null?'—':new Intl.NumberFormat(locale==='uk'?'uk-UA':'en-GB').format(articleCount)} {t.articles}
     </span>
    </nav>
-   <section className={styles.tagSection} aria-label={t.topics}>
-    <div className={styles.sectionTitle}><span><Tags size={18}/>{t.topics}</span></div>
-    <div className={styles.tags} data-testid="news-all-interest-tags">
-     {INTEREST_TAGS.map(tag=><button type="button" key={tag} onClick={()=>toggleTag(tag)}
-      className={selected.includes(tag)?styles.tagActive:styles.tag} aria-pressed={selected.includes(tag)}>
-       {selected.includes(tag)&&<Check size={13}/>} {LABELS[tag][locale]}</button>)}
-    </div>
-    {selected.length>0&&<div className={styles.selected}><span>{t.chosen}: {selected.length}</span>
-      <button onClick={()=>setSelected([])} type="button">{t.reset}</button></div>}
-    {accountStatus==='member'&&pendingGuest.length>0&&
-     <div className={styles.accountSync} data-testid="news-import-guest">
-      <button type="button" onClick={()=>{
-       setSelected(old=>[...new Set([...old,...pendingGuest])]);
-       setPendingGuest([]);
-      }}>{t.importGuest} ({pendingGuest.length})</button>
-     </div>}
-    {accountStatus==='member'&&(accountTagsDiffer||selected.length>0)&&
-     <div className={styles.accountSync} data-testid="news-account-sync">
-      {accountTagsDiffer?
-       <button type="button" onClick={()=>void saveAccountInterests()} disabled={syncing}>
-        {syncing?'…':t.saveAccount}</button>:
-       <span><Check size={15}/>{t.savedAccount}</span>}
-      {syncError&&<small role="alert">{t.saveFailed}</small>}
-     </div>}
-    {accountStatus==='guest'&&selected.length>0&&
-     <small className={styles.localHint}>{t.guestLocal}</small>}
-    <div className={styles.privacyControls} data-testid="news-privacy-controls">
-     <button type="button" className={styles.manageToggle}
-      aria-expanded={manageOpen} onClick={()=>setManageOpen(v=>!v)}>
-      <Settings2 size={16}/>{t.manage}<ChevronDown size={15}/>
-     </button>
-     {manageOpen&&<div className={styles.managePanel}>
-      <p className={styles.manageNote}>{t.manageNote}</p>
-      {accountStatus==='member'?<>
-       <button type="button" role="switch" aria-checked={personalEnabled}
-        disabled={privacyBusy} onClick={()=>void savePrivacySwitch()}>
-        <ShieldCheck size={16}/>{personalEnabled?t.personalizedOn:t.personalizedOff}
-       </button>
-       {!personalEnabled&&<p className={styles.manageNote}>{t.offNote}</p>}
-       <div className={styles.manageActions}>
-        <button type="button" onClick={()=>void exportNewsData()} disabled={privacyBusy}>
-         <Download size={15}/>{t.exportData}</button>
-        <button type="button" onClick={()=>setConfirmMode('clear')} disabled={privacyBusy}>
-         <Trash2 size={15}/>{t.clearHistory}</button>
-        <button type="button" onClick={()=>setConfirmMode('reset')} disabled={privacyBusy}>{t.resetAll}</button>
-       </div>
-       <h3>{t.history} ({historyTotal})</h3>
-       {history.length===0?<p className={styles.manageNote}>{t.noHistory}</p>:
-        <ul className={styles.historyList}>
-         {history.slice(0,historyShown).map(row=><li key={row.articleId}>
-          <span>{row.vote==='YES'?<Heart size={14}/>:<HeartOff size={14}/>}
-           {safeLink(row.article.url)?<a href={row.article.url} target="_blank" rel="noopener noreferrer">
-            {(locale==='uk'?row.article.titleUk||row.article.title:row.article.titleEn||row.article.title)}</a>:
-            (locale==='uk'&&row.article.titleUk||row.article.title)}
-           <small>{row.article.source}</small></span>
-          <button type="button" disabled={privacyBusy} onClick={()=>void undoHistory(row.articleId)}>
-           <Undo2 size={14}/>{t.undo}</button>
-         </li>)}
-        </ul>}
-       {historyShown<history.length&&<button type="button"
-        onClick={()=>setHistoryShown(history.length)}>{t.moreHistory} ({history.length-historyShown})</button>}
-       {historyTotal>history.length&&<p className={styles.manageNote}>{t.historyLimit}</p>}
-      </>:<button type="button" disabled={!Object.keys(votes).length}
-       onClick={()=>setConfirmMode('guest')}><Trash2 size={15}/>{t.guestClear}</button>}
-      {confirmMode&&<div className={styles.confirmStrip} role="group" aria-label={t.confirmYes}>
-       <p>{confirmMode==='reset'?t.confirmReset:
-        confirmMode==='guest'?t.guestClear+'?':t.confirmClear}</p>
-       <button type="button" disabled={privacyBusy} onClick={()=>void confirmedDelete()}>{t.confirmYes}</button>
-       <button type="button" disabled={privacyBusy} onClick={()=>setConfirmMode(null)}>{t.cancel}</button>
-      </div>}
-      {privacyError&&<small role="alert" className={styles.manageError}>{t.settingsError}</small>}
-     </div>}
-    </div>
-   </section>
 
    <div className={styles.feedLayout}>
     <section className={styles.feed} aria-label={view==='mine'?t.yourFeed:t.world}>
@@ -527,11 +454,11 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       <div className={styles.cards}>
        {visible.map((story,i)=>{const url=safeLink(story.url),v=votes[story.id];
         return <article className={i===0&&view!=='mine'?styles.lead:styles.card} key={story.id}>
-         <StoryArtwork storyId={story.id} imageUrl={story.imageUrl&&firstPhotoOwner.get(story.imageUrl)===story.id?story.imageUrl:null} credit={story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={titleFor(story)} topic={story.topic} locale={locale}/>
+         <StoryArtwork storyId={story.id} imageUrl={thumbOf(story)&&firstPhotoOwner.get(thumbOf(story)!)===story.id?thumbOf(story):null} credit={story.imageKind==='publisher'?story.source:story.imageCredit} sourceUrl={story.imagePageUrl} licenseUrl={story.imageLicenseUrl} license={story.imageLicense} title={titleFor(story)} topic={story.topic} locale={locale}/>
          <div className={styles.story}>
           <div className={styles.meta}><span>{LABELS[story.topic]?.[locale]||story.topic}</span><span>·</span>
            <time dateTime={story.publishedAt}>{story.publishedAccuracy==='observed'?t.observed+' · ':''}{date(story.publishedAt)}</time></div>
-          <h3><GlossaryText text={titleFor(story)} locale={locale}/></h3>
+          <h3><a href={storyPath(story as never,locale)} className={styles.storyLink}><GlossaryText text={titleFor(story)} locale={locale}/></a></h3>
           {preview(story)&&<p className={styles.summary} data-testid="news-summary"><GlossaryText text={preview(story)!} locale={locale}/></p>}
           <p className={styles.source}>{story.source}</p>
           {view==='mine'&&accountStatus==='member'&&story.personalReason&&
@@ -561,6 +488,80 @@ export default function NewsWorld({locale}:{locale:PortalLocale}){
       </div>}
      {canMore&&!error&&<button className={styles.more} type="button" disabled={busy} onClick={()=>setPage(x=>x+1)}>
        {busy?t.loading:t.more}<ChevronDown size={16}/></button>}
+    </section>
+    <section className={styles.tagSection} aria-label={t.topics}>
+     <div className={styles.sectionTitle}><span><Tags size={18}/>{t.topics}</span></div>
+     <div className={styles.tags} data-testid="news-all-interest-tags">
+      {INTEREST_TAGS.map(tag=><button type="button" key={tag} onClick={()=>toggleTag(tag)}
+       className={selected.includes(tag)?styles.tagActive:styles.tag} aria-pressed={selected.includes(tag)}>
+        {selected.includes(tag)&&<Check size={13}/>} {LABELS[tag][locale]}</button>)}
+     </div>
+     {selected.length>0&&<div className={styles.selected}><span>{t.chosen}: {selected.length}</span>
+       <button onClick={()=>setSelected([])} type="button">{t.reset}</button></div>}
+     {accountStatus==='member'&&pendingGuest.length>0&&
+      <div className={styles.accountSync} data-testid="news-import-guest">
+       <button type="button" onClick={()=>{
+        setSelected(old=>[...new Set([...old,...pendingGuest])]);
+        setPendingGuest([]);
+       }}>{t.importGuest} ({pendingGuest.length})</button>
+      </div>}
+     {accountStatus==='member'&&(accountTagsDiffer||selected.length>0)&&
+      <div className={styles.accountSync} data-testid="news-account-sync">
+       {accountTagsDiffer?
+        <button type="button" onClick={()=>void saveAccountInterests()} disabled={syncing}>
+         {syncing?'…':t.saveAccount}</button>:
+        <span><Check size={15}/>{t.savedAccount}</span>}
+       {syncError&&<small role="alert">{t.saveFailed}</small>}
+      </div>}
+     {accountStatus==='guest'&&selected.length>0&&
+      <small className={styles.localHint}>{t.guestLocal}</small>}
+     <div className={styles.privacyControls} data-testid="news-privacy-controls">
+      <button type="button" className={styles.manageToggle}
+       aria-expanded={manageOpen} onClick={()=>setManageOpen(v=>!v)}>
+       <Settings2 size={16}/>{t.manage}<ChevronDown size={15}/>
+      </button>
+      {manageOpen&&<div className={styles.managePanel}>
+       <p className={styles.manageNote}>{t.manageNote}</p>
+       {accountStatus==='member'?<>
+        <button type="button" role="switch" aria-checked={personalEnabled}
+         disabled={privacyBusy} onClick={()=>void savePrivacySwitch()}>
+         <ShieldCheck size={16}/>{personalEnabled?t.personalizedOn:t.personalizedOff}
+        </button>
+        {!personalEnabled&&<p className={styles.manageNote}>{t.offNote}</p>}
+        <div className={styles.manageActions}>
+         <button type="button" onClick={()=>void exportNewsData()} disabled={privacyBusy}>
+          <Download size={15}/>{t.exportData}</button>
+         <button type="button" onClick={()=>setConfirmMode('clear')} disabled={privacyBusy}>
+          <Trash2 size={15}/>{t.clearHistory}</button>
+         <button type="button" onClick={()=>setConfirmMode('reset')} disabled={privacyBusy}>{t.resetAll}</button>
+        </div>
+        <h3>{t.history} ({historyTotal})</h3>
+        {history.length===0?<p className={styles.manageNote}>{t.noHistory}</p>:
+         <ul className={styles.historyList}>
+          {history.slice(0,historyShown).map(row=><li key={row.articleId}>
+           <span>{row.vote==='YES'?<Heart size={14}/>:<HeartOff size={14}/>}
+            {safeLink(row.article.url)?<a href={row.article.url} target="_blank" rel="noopener noreferrer">
+             {(locale==='uk'?row.article.titleUk||row.article.title:row.article.titleEn||row.article.title)}</a>:
+             (locale==='uk'&&row.article.titleUk||row.article.title)}
+            <small>{row.article.source}</small></span>
+           <button type="button" disabled={privacyBusy} onClick={()=>void undoHistory(row.articleId)}>
+            <Undo2 size={14}/>{t.undo}</button>
+          </li>)}
+         </ul>}
+        {historyShown<history.length&&<button type="button"
+         onClick={()=>setHistoryShown(history.length)}>{t.moreHistory} ({history.length-historyShown})</button>}
+        {historyTotal>history.length&&<p className={styles.manageNote}>{t.historyLimit}</p>}
+       </>:<button type="button" disabled={!Object.keys(votes).length}
+        onClick={()=>setConfirmMode('guest')}><Trash2 size={15}/>{t.guestClear}</button>}
+       {confirmMode&&<div className={styles.confirmStrip} role="group" aria-label={t.confirmYes}>
+        <p>{confirmMode==='reset'?t.confirmReset:
+         confirmMode==='guest'?t.guestClear+'?':t.confirmClear}</p>
+        <button type="button" disabled={privacyBusy} onClick={()=>void confirmedDelete()}>{t.confirmYes}</button>
+        <button type="button" disabled={privacyBusy} onClick={()=>setConfirmMode(null)}>{t.cancel}</button>
+       </div>}
+       {privacyError&&<small role="alert" className={styles.manageError}>{t.settingsError}</small>}
+      </div>}
+     </div>
     </section>
    </div>
    <footer className={styles.footnote}>{t.attribution}</footer>

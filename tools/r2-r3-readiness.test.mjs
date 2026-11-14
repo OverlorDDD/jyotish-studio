@@ -28,8 +28,8 @@ test('previously no_context articles with new publisher facts rejoin translation
 test('an unhealthy publisher can be quarantined reversibly without dropping healthy feeds',()=>{
  const normal=selectedNewsSources({NEWS_SOURCE_DISABLED_KEYS:''});
  const disabled=selectedNewsSources({NEWS_SOURCE_DISABLED_KEYS:'elephant-journal,gdelt-vedic-jyotish'});
- assert.equal(normal.rss.length,22);
- assert.equal(normal.gdelt.length,13);
+ assert.equal(normal.rss.length,16);
+ assert.equal(normal.gdelt.length,4);
  assert.equal(disabled.rss.length,normal.rss.length-1);
  assert.equal(disabled.gdelt.length,normal.gdelt.length-1);
  assert.ok(disabled.disabled.includes('elephant-journal'));

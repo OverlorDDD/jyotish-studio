@@ -42,8 +42,8 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  const search= tabs.getByRole('searchbox',{name:'Пошук новин'});
  await expect(search).toBeVisible();
  const searchBox=await search.boundingBox();
- const forMe=await tabs.getByRole('button',{name:/Для мене/}).boundingBox();
- const tagsArea=await page.getByRole('region',{name:'Хмара твоїх інтересів'}).boundingBox();
+ const forMe=await tabs.getByRole('button',{name:/Мої теми/}).boundingBox();
+ const tagsArea=await page.getByRole('region',{name:'Ваші інтереси'}).boundingBox();
  expect(searchBox&&forMe&&tagsArea).toBeTruthy();
  expect(searchBox.y).toBeLessThan(tagsArea.y);
  if((page.viewportSize()?.width||0)>=1000){
@@ -51,7 +51,7 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
   expect(Math.abs(searchBox.y-forMe.y)).toBeLessThan(35);
  }
  await expect(page.getByTestId('news-article-count')).toContainText(/\d[\d\s]* статей/);
- const interestCloud=page.getByRole('region',{name:'Хмара твоїх інтересів'});
+ const interestCloud=page.getByRole('region',{name:'Ваші інтереси'});
  const allTags=page.getByTestId('news-all-interest-tags');
  await expect(allTags.locator('button')).toHaveCount(12);
  await expect(allTags.getByRole('button',{name:'Астрономія'})).toBeVisible();
@@ -75,15 +75,15 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
 
  await expect(page.locator('[data-release="world-v1.8"]')).toHaveCount(1);
  await expect(page.getByText('Перевірка джерел приблизно кожні 15 хвилин')).toHaveCount(0);
- await expect(page.getByText('Хмара твоїх інтересів',{exact:true})).toHaveCount(1);
+ await expect(page.getByText('Ваші інтереси',{exact:true})).toHaveCount(1);
  await expect(page.locator('header.as-header')).toHaveCount(1);
  await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','false');
  await page.getByRole('button',{name:'Таро',exact:true}).click();
  await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','true');
  await page.reload();
  await expect(page.getByRole('button',{name:'Таро',exact:true})).toHaveAttribute('aria-pressed','true');
- await page.getByRole('button',{name:/Для мене/}).click();
- await expect(page.getByText('Добірка за твоїми інтересами')).toBeVisible();
+ await page.getByRole('button',{name:/Мої теми/}).click();
+ await expect(page.getByText('Добірка за вашими інтересами')).toBeVisible();
  const feed=await page.request.get('/api/v1/news/feed?limit=12');
  expect(feed.status()).toBe(200);
  const data=await feed.json();expect(Array.isArray(data.items)).toBe(true);
@@ -94,7 +94,7 @@ test('GalaxiNews World is a public bilingual editorial feed with tag preferences
  expect(bad.status()).toBe(400);
  await page.goto('/en/news/for-you');
  await expect(page.getByRole('heading',{name:'GalaxiNews'})).toBeVisible();
- await expect(page.getByRole('region',{name:'Your constellation of interests'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Your interests'})).toBeVisible();
 });
 
 test('GalaxiNews World renders an informative paragraph and feedback from database-backed articles',async({page})=>{
