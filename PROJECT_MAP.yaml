@@ -121,6 +121,8 @@ modules:
     persistence: "NewsArticle, NewsScan, NewsSourceScan, NewsIngestionLease, NewsDiscoveredSource; additive migration chain through 20261026124000_galaxinews_discovery_backfill"
     web: "Portal 2026-11: SSR /{locale}/news (apps/web/app/components/news/NewsPortal.tsx), topic hubs /{locale}/news/{topic}, story pages /{locale}/news/{words}-{id8} (NewsStory.tsx; own sky stories composed by apps/web/lib/news-sky.ts from Swiss events), personal feed/search/reactions at /{locale}/news/for-you (legacy NewsWorld.tsx, world-v1.8)"
     seo: "own stories indexable + NewsArticle JSON-LD + 1200x630 OG; world stories noindex,follow; /news-sitemap.xml (own, 48h); /{locale}/news/rss.xml; topic hubs in sitemap.xml"
+    rubrics: "apps/api/src/news-rubrics.ts publishes «Тиждень у небі» (from Saturday) and «Небо місяця» (from the 24th) every 6 h; page data GET /api/v1/news/rubric/{week|month}/{key}; composed by apps/web/lib/news-rubric.ts"
+    most_read: "middleware passes the 8-hex story key with the server-side bot-filtered hit; VisitorAggregate section news_story; GET /api/v1/news/popular (needs ≥3 stories with ≥2 reads)"
     images: "licensed (CC/approved host) may be large; publisher RSS/og:image only as credited thumbnail (thumbUrl); Commons stock only when no picture at all"
     sources: "news-sources.ts kind news|magazine|brand; brand (reading-shop blogs) excluded from the front page via feed scope=portal; 2026-11-14 review: 16 RSS (stale/empty removed, EarthSky + Sky & Telescope added), 4 combined GDELT queries, same-site redirects followed"
     interests: "guest-local + server owner-scoped tags and reversible reactions, suppression of highly similar rejected news, history, export/reset, opt-out; no natal inference"

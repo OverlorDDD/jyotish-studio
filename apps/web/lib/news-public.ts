@@ -3,13 +3,13 @@
  * No cookies are forwarded: every page here is the same for every visitor. */
 export type NewsLocale='uk'|'en';
 export type NewsTopic='jyotish'|'astrology'|'tarot'|'yoga'|'meditation'|'vedic'|'self-development'|'astronomy';
-export type SkyEvent={kind:string;body?:string;atUtc:string;sign?:number;longitude?:number;fromSign?:number;toSign?:number};
+export type SkyEvent={kind:string;body?:string;atUtc:string;sign?:number;longitude?:number;fromSign?:number;toSign?:number;eclipseKind?:string;visibleHere?:boolean};
 export type NewsItem={id:string;url:string;title:string;source:string;language:string;topic:NewsTopic;tags:string[];
  publishedAt:string;publishedAccuracy?:'published'|'observed';summary?:string|null;summaryKind?:string;
  summaryUk?:string|null;summaryEn?:string|null;titleUk?:string|null;titleEn?:string|null;
  imageUrl?:string|null;thumbUrl?:string|null;imageKind?:'licensed'|'publisher'|null;imageCredit?:string|null;
  imageLicense?:string|null;imageLicenseUrl?:string|null;imagePageUrl?:string|null;
- sourceKind?:'own'|'news'|'magazine'|'brand';event?:SkyEvent|null};
+ sourceKind?:'own'|'news'|'magazine'|'brand';event?:SkyEvent|null;rubric?:{kind:'week'|'month';key:string}|null};
 export type NewsFeed={items:NewsItem[];total:number;articleCount?:number;lastScan?:{createdAt:string}|null};
 
 export const NEWS_TOPICS:readonly NewsTopic[]=['astrology','jyotish','astronomy','tarot','yoga','meditation','vedic','self-development'];
@@ -41,6 +41,15 @@ export async function fetchNewsFeed(o:{locale:NewsLocale;topic?:NewsTopic;scope?
 export async function fetchNewsStory(key:string){
  if(!/^[0-9a-f]{8}$/.test(key))return null;
  return getJson<{item:NewsItem;related:NewsItem[]}>('/api/v1/news/story/'+key);
+}
+export async function fetchRubricData(kind:'week'|'month',key:string){
+ if(!/^\d{4}-\d{2}(?:-\d{2})?$/.test(key))return null;
+ return getJson<import('./news-rubric.ts').RubricData>('/api/v1/news/rubric/'+kind+'/'+key,9000);
+}
+/** Anonymous «most read» list (last 7 days); empty until there is enough data. */
+export async function fetchPopular(locale:NewsLocale){
+ const data=await getJson<{items:NewsItem[]}>('/api/v1/news/popular?lang='+locale);
+ return Array.isArray(data?.items)?data!.items:[];
 }
 export async function fetchSkyEvents(startDate:string,days=14):Promise<SkyEvent[]>{
  const data=await getJson<{events?:SkyEvent[]}>('/api/v1/astronomy/events?start='+startDate+'&days='+days+'&zone=Europe/Kyiv');

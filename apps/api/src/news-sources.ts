@@ -5,13 +5,15 @@
  *   empty: Lunar Astro; all items off-topic: Clickastro; duplicate of the main
  *   podcast feed: Astrology Podcast audio feed.
  * fixed — Hinduism Today moved to /rss.xml; AstroSage needs the trailing slash.
- * added — EarthSky, Sky & Telescope (astronomy). */
+ * added — EarthSky (astronomy).
+ * Follow-up the same day: Sky & Telescope answers our server with HTTP 403 and
+ * Yoga Journal redirects bots off-site — both removed; NASA Science and
+ * Universe Today added. */
 import type {Topic} from './news-domain.ts';
 export type SourceKind='news'|'magazine'|'brand';
 export type RssSource={key:string;name:string;url:string;hint:Topic;allowSnippet:boolean;kind:SourceKind};
 const data:[string,string,string,Topic,boolean][]=[
  ['astrology-podcast','The Astrology Podcast','https://theastrologypodcast.com/feed/','astrology',true],
- ['yoga-journal','Yoga Journal','https://www.yogajournal.com/feed/','yoga',false],
  ['astrosage','AstroSage Magazine','https://horoscope.astrosage.com/feed/','jyotish',false],
  ['astroved','AstroVed','https://astroved.com/blogs/feed','jyotish',false],
  ['astrotalk','AstroTalk Blog','https://astrotalk.com/astrology-blog/feed/','jyotish',false],
@@ -26,7 +28,10 @@ const data:[string,string,string,Topic,boolean][]=[
  ['yoga-basics','Yoga Basics','https://www.yogabasics.com/feed/','yoga',false],
  // Sky news for the Astronomy hub (verified 2026-11-14: several stories a week).
  ['earthsky','EarthSky','https://earthsky.org/feed/','astronomy',false],
- ['sky-and-telescope','Sky & Telescope','https://skyandtelescope.org/feed/','astronomy',false]
+ // NASA Science (APOD, missions, planets; NASA media is generally public domain)
+ // and Universe Today — both verified 2026-11-14: 10–20 stories a week with images.
+ ['nasa-science','NASA Science','https://science.nasa.gov/feed/','astronomy',false],
+ ['universe-today','Universe Today','https://www.universetoday.com/rss.xml','astronomy',false],
 ];
 /** Editorial weight of a publisher on the GalaxiNews front page.
  * news: reporting on events; magazine: edited long-form; brand: blogs of
@@ -34,8 +39,8 @@ const data:[string,string,string,Topic,boolean][]=[
  * leading the front page, where they read as advertising. */
 const KIND:Record<string,SourceKind>={
  'hindu-press':'news','hinduism-today':'magazine','tricycle':'magazine','lions-roar':'magazine',
- 'mindful':'magazine','yoga-journal':'magazine','astrology-podcast':'magazine',
- 'earthsky':'news','sky-and-telescope':'magazine'
+ 'mindful':'magazine','astrology-podcast':'magazine',
+ 'earthsky':'news','nasa-science':'news','universe-today':'news'
 };
 export const RSS_SOURCES:readonly RssSource[]=data.map(([key,name,url,hint,allowSnippet])=>({key,name,url,hint,allowSnippet,kind:KIND[key]||'brand'}));
 const hostOf=(raw:string)=>{try{return new URL(raw).hostname.replace(/^www\./,'').toLowerCase();}catch{return '';}};

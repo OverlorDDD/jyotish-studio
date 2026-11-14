@@ -154,8 +154,14 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   await expect(page.getByRole('heading',{name:'Значення символів у розкладах Таро'}).first()).toBeVisible();
   await expect(page.getByText('Орієнтир за заголовком')).toHaveCount(0);
   await expect(page.getByText(/Це орієнтир за назвою матеріалу/)).toHaveCount(0);
-  // An image stored before the rights gate must not bypass publisher approval.
-  await expect(page.locator('img[src="https://images.example.org/news-cover.jpg"]')).toHaveCount(0);
+  // Owner-approved policy (2026-11): an unlicensed publisher preview may appear
+  // only as a small credited thumbnail, never enlarged, and once per photo.
+  const covers=page.locator('img[src="https://images.example.org/news-cover.jpg"]');
+  expect(await covers.count()).toBeLessThanOrEqual(1);
+  if(await covers.count()){
+   const box=await covers.first().boundingBox();
+   expect(box?.width??0).toBeLessThanOrEqual(140);
+  }
   await expect(page.getByTestId('news-feedback').first()).toBeVisible();
   await page.getByTestId('news-feedback').first().getByRole('button',{name:/Так, цікаво/}).click();
   await expect(page.getByTestId('news-feedback').first().getByRole('button',{name:/Так, цікаво/})).toHaveAttribute('aria-pressed','true');

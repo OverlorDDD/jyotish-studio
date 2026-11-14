@@ -6,14 +6,14 @@ import Link from 'next/link';
 import PortalShell from '../PortalShell';
 import NewsArt from './NewsArt';
 import NewsThumb from './NewsThumb';
-import NewsRow from './NewsRow';
+import NewsRow,{OwnThumb} from './NewsRow';
 import NewsFresh from './NewsFresh';
 import NewsMore from './NewsMore';
 import NewsTabs from './NewsTabs';
 import NewsLive from './NewsLive';
 export {NewsTabs};
 import styles from './News.module.css';
-import {NEWS_TOPICS,TOPIC_COPY,fetchNewsFeed,fetchPanchangaToday,fetchSkyEvents,formatKyiv,isOwn,kyivDate,
+import {NEWS_TOPICS,TOPIC_COPY,fetchNewsFeed,fetchPanchangaToday,fetchPopular,fetchSkyEvents,formatKyiv,isOwn,kyivDate,
  kyivTime,newsTeaser,newsTitle,relativeAge,sourceLabel,storyPath,topicPath,
  type NewsItem,type NewsLocale,type NewsTopic,type SkyEvent} from '../../../lib/news-public';
 import {composeSkyArticle,skyEventLabel} from '../../../lib/news-sky';
@@ -41,7 +41,7 @@ function OwnCard({item,locale,big}:{item:NewsItem;locale:NewsLocale;big?:boolean
  const label=(locale==='uk'?'Ілюстрація Galaxiora: ':'Galaxiora illustration: ')+title;
  const meta=<span className={styles.meta}>{'Galaxiora · '+(item.event?formatKyiv(item.event.atUtc,locale,{day:'numeric',month:'long'}):relativeAge(item.publishedAt,locale))}</span>;
  if(big)return <Link href={storyPath(item,locale)} className={styles.leadMain} data-story-id={item.id} data-published={item.publishedAt}>
-  {art?<NewsArt art={art.art} id={'lead-'+item.id.slice(0,8)} label={label}/>:<NewsThumb topic={item.topic} seed={item.id} className={styles.sideArt}/>}
+  {art?<NewsArt art={art.art} id={'lead-'+item.id.slice(0,8)} label={label}/>:<OwnThumb item={item} className={styles.sideThumb}/>}
   <div className={styles.leadBody}>
    <span className={styles.topicDot} style={{color:topic.color}}>{locale==='uk'?'Подія неба':'Sky event'}</span>
    <h2>{title}</h2>{lead&&<p>{lead}</p>}<div style={{marginTop:10}}>{meta}</div>
@@ -68,6 +68,28 @@ function WorldCard({item,locale,now}:{item:NewsItem;locale:NewsLocale;now:number
   <NewsThumb src={item.imageUrl} topic={item.topic} seed={item.id} className={styles.sideThumb} locale={locale}/>{text}</Link>;
  return <Link href={storyPath(item,locale)} className={styles.side+' '+styles.sideCompact} data-story-id={item.id} data-published={item.publishedAt}>
   {text}<NewsThumb src={item.thumbUrl} topic={item.topic} seed={item.id} locale={locale} credit={credit}/></Link>;
+}
+
+/** «Тиждень у небі» and «Небо місяця»: newest of each kind (they publish themselves). */
+function Rubrics({own,locale}:{own:NewsItem[];locale:NewsLocale}){
+ const pick=(kind:'week'|'month')=>own.filter(i=>i.rubric?.kind===kind).sort((a,b)=>a.rubric!.key.localeCompare(b.rubric!.key));
+ const today=kyivDate();
+ const weeks=pick('week'),months=pick('month');
+ // Current period first; the next one appears as soon as it is published.
+ const curWeek=[...weeks].reverse().find(i=>i.rubric!.key<=today)||weeks[0];
+ const nextWeek=weeks.find(i=>i.rubric!.key>today);
+ const curMonth=[...months].reverse().find(i=>i.rubric!.key<=today.slice(0,7))||months[0];
+ const nextMonth=months.find(i=>i.rubric!.key>today.slice(0,7));
+ const list=[curWeek,nextWeek,curMonth,nextMonth].filter((x,i,all):x is NewsItem=>Boolean(x)&&all.findIndex(y=>y?.id===x!.id)===i);
+ if(!list.length)return null;
+ return <section className={styles.rubrics} aria-labelledby="news-rubrics">
+  <div className={styles.sectionHead}><h2 id="news-rubrics">{locale==='uk'?'Рубрики Galaxiora':'Galaxiora rubrics'}</h2></div>
+  <div className={styles.rubricGrid}>{list.map(i=><Link key={i.id} href={storyPath(i,locale)} className={styles.rubricCard} data-story-id={i.id} data-published={i.publishedAt}>
+   <OwnThumb item={i}/>
+   <div><span className={styles.topicDot} style={{color:'#E7BD72'}}>{i.rubric!.kind==='week'?(locale==='uk'?'Тиждень у небі':'Week in the sky'):(locale==='uk'?'Небо місяця':'Sky this month')}</span>
+    <h3>{newsTitle(i,locale)?.replace(/^Тиждень у небі: |^The week in the sky: /,'').replace(/:.*$/,'')}</h3></div>
+  </Link>)}</div>
+ </section>;
 }
 
 export function SkyStrip({events,own,locale,now}:{events:SkyEvent[];own:NewsItem[];locale:NewsLocale;now:number}){
@@ -120,12 +142,13 @@ function AboutPanel({locale}:{locale:NewsLocale}){
 
 export default async function NewsPortal({locale,topic}:{locale:NewsLocale;topic?:NewsTopic}){
  const now=Date.now(),today=kyivDate(new Date(now));
- const [top,latest,own,events,band]=await Promise.all([
+ const [top,latest,own,events,band,popular]=await Promise.all([
   fetchNewsFeed({locale,topic,limit:24,sort:'relevance'}),
   fetchNewsFeed({locale,topic,limit:PAGE,sort:'latest'}),
   !topic||topic==='astronomy'||topic==='astrology'||topic==='jyotish'?fetchNewsFeed({locale,scope:'own',limit:24,sort:'latest'}):Promise.resolve({items:[],total:0}),
   !topic||topic==='astronomy'||topic==='astrology'||topic==='jyotish'?fetchSkyEvents(today,14):Promise.resolve([] as SkyEvent[]),
-  topic?Promise.resolve({items:[],total:0}):fetchNewsFeed({locale,topic:'vedic',limit:6,sort:'latest'})
+  topic?Promise.resolve({items:[],total:0}):fetchNewsFeed({locale,topic:'vedic',limit:6,sort:'latest'}),
+  topic?Promise.resolve([] as NewsItem[]):fetchPopular(locale)
  ]);
  const visibleEvents=events.filter(e=>!(e.kind==='sidereal_ingress'&&e.body==='Moon'));
  const leads=pickLead(own.items,now);
@@ -163,6 +186,7 @@ export default async function NewsPortal({locale,topic}:{locale:NewsLocale;topic
    </section>}
 
    <SkyStrip events={visibleEvents} own={own.items} locale={locale} now={now}/>
+   {(!topic||topic==='astrology'||topic==='jyotish'||topic==='astronomy')&&<Rubrics own={own.items} locale={locale}/>}
 
    <div className={styles.cols}>
     <section className={styles.colMain} aria-labelledby="news-latest">
@@ -173,6 +197,11 @@ export default async function NewsPortal({locale,topic}:{locale:NewsLocale;topic
     </section>
     <aside className={styles.colSide} aria-label={locale==='uk'?'Додатково':'More'}>
      <TodayPanel locale={locale}/>
+     {popular.length>=3&&<section className={styles.panel} aria-labelledby="news-popular">
+      <h2 id="news-popular">{locale==='uk'?'Найчитаніше за тиждень':'Most read this week'}</h2>
+      <ol className={styles.mini+' '+styles.popular}>{popular.map(i=><li key={i.id}><Link href={storyPath(i,locale)}>{(isOwn(i)&&i.event?composeSkyArticle(i.event)?.headline[locale]:null)||newsTitle(i,locale)}</Link>
+       <span>{sourceLabel(i,locale)}</span></li>)}</ol>
+     </section>}
      {!topic&&<section className={styles.panel} aria-labelledby="news-topics">
       <h2 id="news-topics">{locale==='uk'?'Теми':'Topics'}</h2>
       <ul className={styles.mini}>{NEWS_TOPICS.map(t=><li key={t}><Link href={topicPath(t,locale)}>{locale==='uk'?TOPIC_COPY[t].uk:TOPIC_COPY[t].en}</Link>

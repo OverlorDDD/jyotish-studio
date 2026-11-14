@@ -32,7 +32,7 @@ function kyivDate(atUtc:string):[number,number,number]{
   .format(new Date(atUtc)).split('-').map(Number);
  return [p[0],p[1]-1,p[2]];
 }
-export type SkyEvent={kind:string;body?:string;atUtc:string;sign?:number;longitude?:number;fromSign?:number;toSign?:number};
+export type SkyEvent={kind:string;body?:string;atUtc:string;sign?:number;longitude?:number;fromSign?:number;toSign?:number;eclipseKind?:string;visibleHere?:boolean};
 /** Specific, dated headlines: «Венера розвертається в прямий рух 14 листопада 2026». */
 export function skyHeadline(e:SkyEvent):{uk:string;en:string}{
  const [y,m,d]=kyivDate(e.atUtc),dUk=d+' '+MONTH_GEN_UK[m]+' '+y,dEn=d+' '+MONTH_EN[m]+' '+y;
@@ -61,6 +61,8 @@ export function skyTags(e:SkyEvent):string[]{
  if(typeof e.longitude==='number'&&Number.isFinite(e.longitude))out.push('evl:'+e.longitude.toFixed(3));
  if(typeof e.fromSign==='number')out.push('evf:'+e.fromSign);
  if(typeof e.toSign==='number')out.push('evto:'+e.toSign);
+ if(e.eclipseKind&&/^[a-z]{3,12}$/.test(e.eclipseKind))out.push('evk:'+e.eclipseKind);
+ if(typeof e.visibleHere==='boolean')out.push('evv:'+(e.visibleHere?1:0));
  return out;
 }
 export function skyEventFromTags(tags:readonly string[]):SkyEvent|null{
@@ -68,8 +70,8 @@ export function skyEventFromTags(tags:readonly string[]):SkyEvent|null{
  const kind=get('ev'),atUtc=get('evt');
  if(!kind||!/^[a-z_-]{3,30}$/.test(kind)||!atUtc||!Number.isFinite(Date.parse(atUtc)))return null;
  const num=(k:string)=>{const v=get(k);const n=v===undefined?NaN:Number(v);return Number.isFinite(n)?n:undefined;};
- const body=get('evb');
- return {kind,atUtc,...(body&&/^[A-Z][a-z]{2,8}$/.test(body)?{body}:{}),
+ const body=get('evb'),ek=get('evk'),ev=get('evv');
+ return {kind,atUtc,...(ek&&/^[a-z]{3,12}$/.test(ek)?{eclipseKind:ek}:{}),...(ev==='1'||ev==='0'?{visibleHere:ev==='1'}:{}),...(body&&/^[A-Z][a-z]{2,8}$/.test(body)?{body}:{}),
   ...(num('evs')!==undefined?{sign:num('evs')}:{}),...(num('evl')!==undefined?{longitude:num('evl')}:{}),
   ...(num('evf')!==undefined?{fromSign:num('evf')}:{}),...(num('evto')!==undefined?{toSign:num('evto')}:{})};
 }
@@ -101,7 +103,7 @@ export async function publishAstronomicalNews(prisma:PrismaService){
  if(eclipses.status==='fulfilled'){
   for(const x of eclipses.value.events.slice(0,2)){
    const k=x.type+'-eclipse',visual=x.visibleHere?'Видиме з координат Києва за обчисленою моделлю.':'За моделлю не видиме з Києва.';
-   articles.push({key:k+':'+x.maximumUtc,kind:k,atUtc:x.maximumUtc,tags:skyTags({kind:k,atUtc:x.maximumUtc}),
+   articles.push({key:k+':'+x.maximumUtc,kind:k,atUtc:x.maximumUtc,tags:skyTags({kind:k,atUtc:x.maximumUtc,eclipseKind:String(x.eclipseKind||'').toLowerCase()||undefined,visibleHere:Boolean(x.visibleHere)}),
     uk:(({total:'Повне ',annular:'Кільцеподібне ',partial:'Часткове ',penumbral:'Напівтіньове ',hybrid:'Гібридне '} as Record<string,string>)[String(x.eclipseKind).toLowerCase()]||'')+
      (x.type==='solar'?(x.eclipseKind?'сонячне':'Сонячне'):(x.eclipseKind?'місячне':'Місячне'))+' затемнення '+skyHeadline({kind:'x',atUtc:x.maximumUtc}).uk.replace(/^Подія неба /,''),
     en:(x.eclipseKind?String(x.eclipseKind).charAt(0).toUpperCase()+String(x.eclipseKind).slice(1)+' ':'')+(x.type==='solar'?'solar':'lunar')+' eclipse on '+skyHeadline({kind:'x',atUtc:x.maximumUtc}).en.replace(/^Sky event on /,''),

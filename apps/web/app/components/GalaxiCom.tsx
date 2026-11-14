@@ -94,6 +94,22 @@ export default function GalaxiCom({locale,threadId}:{locale:PortalLocale;threadI
  useEffect(()=>{const requested=new URLSearchParams(window.location.search).get('category');
   if(requested&&['jyotish','tarot','practices','vedic','experiences','experts','help'].includes(requested))setCategory(requested);
  },[]);
+ // «Обговорити на форумі» from a GalaxiNews story: prefill (never auto-publish)
+ // a new topic with the story title and its link. Only our own /news paths.
+ const [discussPrefill,setDiscussPrefill]=useState<{title:string;link:string;category:string}|null>(null);
+ useEffect(()=>{const q=new URLSearchParams(window.location.search),path=q.get('discuss')||'',title=(q.get('title')||'').trim();
+  if(!/^\/(?:uk|en)\/news\/[a-z0-9-]+$/.test(path)||!title)return;
+  const cat=q.get('category')||'';
+  setDiscussPrefill({title:title.slice(0,140),link:window.location.origin+path,
+   category:['jyotish','tarot','practices','vedic','experiences'].includes(cat)?cat:'jyotish'});
+ },[]);
+ useEffect(()=>{if(!discussPrefill||!me?.permissions.canCreate)return;
+  setTitle(t=>t||(locale==='uk'?'Обговорення: ':'Discussion: ')+discussPrefill.title);
+  setBody(b=>b||(locale==='uk'?'Обговорюємо статтю GalaxiNews: ':'Discussing this GalaxiNews story: ')+discussPrefill.link+'\n\n');
+  setTopicCategory(discussPrefill.category);
+  setComposer(true);
+  setDiscussPrefill(null);
+ },[discussPrefill,me,locale]);
  useEffect(()=>{if(composer&&!threadId){
   const heading=composerTitleRef.current;
   heading?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
