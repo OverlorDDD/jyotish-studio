@@ -32,7 +32,7 @@ test('Offline Ukrainian tarot prose uses natural accusative event phrases',()=>{
  assert.ok(!code.includes('спочатку може проявитися '));
  assert.ok(!code.includes('У розвитку ситуації може втрутитися '));
 });
-test('Card artwork: the Galaxiora deck ships all 78 cards and a back; the classic scan tooling stays mapped',()=>{
+test('Card artwork: all 78 classic cards re-painted in the site palette (two sizes) and a back; scan map stays pinned',()=>{
  const api=read('apps/api/src/tarot.ts');
  const mapping=read('apps/web/lib/tarot-art.ts');
  const prep=read('tools/tarot-assets-prepare.mjs');
@@ -49,10 +49,12 @@ test('Card artwork: the Galaxiora deck ships all 78 cards and a back; the classi
  assert.equal(pkg.scripts['predev:full'],'node --experimental-strip-types tools/tarot-assets-prepare.mjs');
  assert.ok(card.includes('tarotDeckArt'));
  assert.ok(card.includes('TAROT_DECK_BACK'));
- const deck=readdirSync(new URL('../apps/web/public/tarot/galaxiora/',import.meta.url)).filter(f=>f.endsWith('.svg'));
- assert.equal(deck.length,79);
- for(const f of deck){const svg=read('apps/web/public/tarot/galaxiora/'+f);
-  assert.ok(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 520"'),f);
-  assert.doesNotMatch(svg,/<script|<image|href="http|foreignObject/i,f);}
+ const files=readdirSync(new URL('../apps/web/public/tarot/galaxiora/',import.meta.url));
+ const big=files.filter(f=>/^[a-z]+-[a-z]+\.webp$/.test(f)),small=files.filter(f=>f.endsWith('-sm.webp'));
+ assert.equal(big.length,78);assert.equal(small.length,78);assert.ok(files.includes('back.svg'));
+ for(const f of big){const b=readFileSync(new URL('../apps/web/public/tarot/galaxiora/'+f,import.meta.url));
+  assert.equal(b.subarray(0,4).toString(),'RIFF',f);assert.equal(b.subarray(8,12).toString(),'WEBP',f);}
+ assert.doesNotMatch(read('apps/web/public/tarot/galaxiora/back.svg'),/<script|<image|href="http|foreignObject/i);
+ assert.ok(read('apps/web/lib/tarot-art.ts').includes("-sm.webp 300w"));
  assert.ok(card.includes("data-reversed={reversed?'1':undefined}"));
 });
