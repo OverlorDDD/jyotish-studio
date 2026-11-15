@@ -43,14 +43,8 @@ test('SEO includes finished News and Community while account/admin stay private;
 test('keyboard has visible skip link, navigable main content and focus treatment',async({page})=>{
  // Wait for hydration before focusing: Next may replace server HTML during startup.
  // Verify keyboard Enter activation and focus transfer to main content.
- const open=new Map();
- page.on('request',r=>open.set(r,Date.now()));
- page.on('requestfinished',r=>open.delete(r));
- page.on('requestfailed',r=>{console.log('DIAG failed',r.url(),r.failure()?.errorText);open.delete(r);});
- page.on('console',m=>console.log('DIAG console',m.type(),m.text().slice(0,200)));
  await page.goto('/uk/astrology/jyotish');
- try{await page.waitForLoadState('networkidle',{timeout:20000});}
- catch(e){console.log('DIAG pending',[...open.keys()].map(r=>r.method()+' '+r.url()).join(' | '));throw e;}
+ await page.waitForLoadState('networkidle');
  const skip=page.locator('a.as-skip-link');
  await expect.poll(async()=>{
   await skip.focus();
