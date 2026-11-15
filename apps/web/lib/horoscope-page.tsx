@@ -5,8 +5,8 @@ import SignPage,{pageTitle} from '../app/components/horoscope/SignPage';
 import HoroscopeHome from '../app/components/horoscope/HoroscopeHome';
 import {isPortalLocale} from './brand';
 import {indexRobots} from './site-indexing';
-import {addDays,hubPath,isPeriod,kyivToday,monthSpan,signBySlug,signPath,type HoroLocale,type HoroPeriod,type HoroSystem} from './horoscope-signs';
-import {fetchAll,fetchDay,fetchPeriod} from './horoscope-v3';
+import {HORO_YEAR,addDays,hubPath,periodFromSegment,kyivToday,monthSpan,signBySlug,signPath,type HoroLocale,type HoroPeriod,type HoroSystem} from './horoscope-signs';
+import {fetchAll,fetchDay,fetchPeriod,fetchYear} from './horoscope-v3';
 
 function alternates(path:(l:HoroLocale)=>string,locale:HoroLocale){
  return {canonical:path(locale),languages:{uk:path('uk'),en:path('en'),'x-default':path('en')}};
@@ -29,18 +29,18 @@ export async function renderHub(rawLocale:string,system:HoroSystem){
 }
 function parse(rawLocale:string,slug:string,rawPeriod?:string){
  if(!isPortalLocale(rawLocale))return null;
- const sign=signBySlug(slug),period=(rawPeriod||'today') as HoroPeriod;
- if(!sign||!isPeriod(period))return null;
+ const sign=signBySlug(slug),period=periodFromSegment(rawPeriod);
+ if(!sign||!period)return null;
  return {locale:rawLocale as HoroLocale,sign,period};
 }
 export async function signMetadata(rawLocale:string,system:HoroSystem,slug:string,rawPeriod?:string):Promise<Metadata>{
  const p=parse(rawLocale,slug,rawPeriod);if(!p)return {robots:{index:false,follow:false}};
  const {locale,sign,period}=p,uk=locale==='uk',today=kyivToday(),name=uk?sign.uk:sign.en;
  const title=pageTitle(locale,system,sign,period,today);
- const what:Record<HoroPeriod,string>=uk?{today:'Гороскоп на сьогодні',tomorrow:'Гороскоп на завтра',week:'Гороскоп на тиждень',month:'Гороскоп на місяць з календарем вдалих днів'}:
-  {today:'Today’s horoscope',tomorrow:'Tomorrow’s horoscope',week:'Weekly horoscope',month:'Monthly horoscope with a calendar of good days'};
- const description=uk?what[period]+' для знака '+sign.gen+(system==='vedic'?' (ведична астрологія, знак Місяця)':'')+': кохання, робота, гроші, здоров’я й оцінки дня за реальним положенням планет.':
-  what[period]+' for '+name+(system==='vedic'?' (Vedic, Moon sign)':'')+': love, work, money, health and daily ratings from the real planetary positions.';
+ const what:Record<HoroPeriod,string>=uk?{today:'Гороскоп на сьогодні',tomorrow:'Гороскоп на завтра',week:'Гороскоп на тиждень',month:'Гороскоп на місяць з календарем вдалих днів',year:'Гороскоп на '+HORO_YEAR+' рік з прогнозом по місяцях'}:
+  {today:'Today’s horoscope',tomorrow:'Tomorrow’s horoscope',week:'Weekly horoscope',month:'Monthly horoscope with a calendar of good days',year:'Horoscope for '+HORO_YEAR+' with a month-by-month forecast'};
+ const description=uk?what[period]+' для знака '+sign.gen+(system==='vedic'?' (ведична астрологія, знак Місяця)':'')+(period==='year'?': головна тема року, уроки Сатурна, найкращі місяці для кохання, кар’єри й грошей, затемнення й ретроградні періоди.':': кохання, робота, гроші, здоров’я й оцінки дня за реальним положенням планет.'):
+  what[period]+' for '+name+(system==='vedic'?' (Vedic, Moon sign)':'')+(period==='year'?': the theme of the year, Saturn’s lesson, the best months for love, career and money, eclipses and retrogrades.':': love, work, money, health and daily ratings from the real planetary positions.');
  return {title:title+' | Galaxiora',description,robots:{...indexRobots(),'max-image-preview':'large'},
   alternates:alternates(l=>signPath(l,system,sign.slug,period),locale),
   openGraph:{type:'article',siteName:'Galaxiora',title,description,url:signPath(locale,system,sign.slug,period),locale:uk?'uk_UA':'en_US'}};
@@ -48,9 +48,10 @@ export async function signMetadata(rawLocale:string,system:HoroSystem,slug:strin
 export async function renderSign(rawLocale:string,system:HoroSystem,slug:string,rawPeriod?:string){
  const p=parse(rawLocale,slug,rawPeriod);if(!p)notFound();
  const {locale,sign,period}=p,today=kyivToday();
- let day=null,range=null;
- if(period==='today'||period==='tomorrow')day=await fetchDay(system,sign.n,period==='today'?today:addDays(today,1));
+ let day=null,range=null,year=null;
+ if(period==='year')year=await fetchYear(system,sign.n,HORO_YEAR);
+ else if(period==='today'||period==='tomorrow')day=await fetchDay(system,sign.n,period==='today'?today:addDays(today,1));
  else if(period==='week')range=await fetchPeriod(system,sign.n,today,7);
  else{const m=monthSpan(today);range=await fetchPeriod(system,sign.n,m.start,m.days);}
- return <SignPage locale={locale} system={system} sign={sign} period={period} today={today} day={day} range={range}/>;
+ return <SignPage locale={locale} system={system} sign={sign} period={period} today={today} day={day} range={range} year={year}/>;
 }

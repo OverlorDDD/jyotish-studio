@@ -3,7 +3,9 @@
  * shift by about a day year to year; the «Зоряний паспорт» computes exactly. */
 export type HoroLocale='uk'|'en';
 export type HoroSystem='western'|'vedic';
-export type HoroPeriod='today'|'tomorrow'|'week'|'month';
+export type HoroPeriod='today'|'tomorrow'|'week'|'month'|'year';
+/** The yearly forecast currently published (URL segment /2027). Keep in sync with the API's YEAR_ECLIPSES. */
+export const HORO_YEAR=2027;
 type L={uk:string;en:string};
 export type SignInfo={n:number;slug:string;uk:string;en:string;gen:string;glyph:string;element:L;ruler:L;quality:L;
  western:L;vedic:L;sanskrit:string;traits:L};
@@ -30,8 +32,10 @@ export const signByN=(n:number)=>SIGNS[n-1];
 export const glyph=(s:SignInfo)=>s.glyph+'︎';
 export const PERIODS:HoroPeriod[]=['today','tomorrow','week','month'];
 export const isPeriod=(x:string):x is HoroPeriod=>(PERIODS as string[]).includes(x);
+/** URL segment → period: «week», «month» … or the published year «2027». */
+export const periodFromSegment=(x:string|undefined):HoroPeriod|null=>!x?'today':x===String(HORO_YEAR)?'year':isPeriod(x)?x:null;
 export function signPath(locale:HoroLocale,system:HoroSystem,slug:string,period:HoroPeriod='today'){
- return '/'+locale+'/horoscope/'+(system==='vedic'?'vedic/':'')+slug+(period==='today'?'':'/'+period);
+ return '/'+locale+'/horoscope/'+(system==='vedic'?'vedic/':'')+slug+(period==='today'?'':'/'+(period==='year'?HORO_YEAR:period));
 }
 export const hubPath=(locale:HoroLocale,system:HoroSystem)=>'/'+locale+'/horoscope'+(system==='vedic'?'/vedic':'');
 const MONTH_GEN_UK=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];

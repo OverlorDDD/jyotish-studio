@@ -5,7 +5,7 @@ import PortalShell from '../PortalShell';
 import styles from './Horoscope.module.css';
 import {Dots,elClass} from './parts';
 import {MySignPanel} from './MySign';
-import {SIGNS,dayLabel,glyph,hubPath,signByN,signPath,type HoroLocale,type HoroSystem} from '../../../lib/horoscope-signs';
+import {HORO_YEAR,SIGNS,dayLabel,glyph,hubPath,signByN,signPath,type HoroLocale,type HoroSystem} from '../../../lib/horoscope-signs';
 import type {DayReading} from '../../../lib/horoscope-v3';
 
 const PHASE:Record<string,{uk:string;en:string}>={new:{uk:'молодик',en:'New Moon'},waxing:{uk:'Місяць зростає',en:'waxing Moon'},full:{uk:'повня',en:'Full Moon'},waning:{uk:'Місяць спадає',en:'waning Moon'}};
@@ -70,6 +70,11 @@ export default function HoroscopeHome({locale,system,date,signs}:{locale:HoroLoc
      </Link>;
     })}
    </div>
+   <section className={styles.yearStrip} aria-labelledby="year-strip">
+    <h2 id="year-strip">{uk?'Гороскоп на '+HORO_YEAR+' рік':'Horoscope for '+HORO_YEAR}</h2>
+    <p>{uk?'Головна тема року, уроки Сатурна, найкращі місяці для кохання, кар’єри й грошей і прогноз по місяцях.':'The theme of the year, Saturn’s lesson, the best months for love, career and money, and a month-by-month forecast.'}</p>
+    <ul>{SIGNS.map(s=><li key={s.slug}><Link className={elClass(s)} href={signPath(locale,system,s.slug,'year')}><span aria-hidden="true">{glyph(s)}</span>{uk?s.uk:s.en}</Link></li>)}</ul>
+   </section>
    <div className={styles.tools}>
     <Link href={'/'+locale+'/horoscope/compatibility'} className={styles.tool}>
      <b>{uk?'Сумісність знаків':'Sign compatibility'}</b>

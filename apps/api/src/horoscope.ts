@@ -5,6 +5,7 @@ import {readPublicSign,EDITORIAL_REFERENCE} from './horoscope-editorial.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {tropicalSkyForDay,westernSignReading,WESTERN_HOROSCOPE_SOURCES,TROPICAL_METHOD} from './western-horoscope.ts';
 import {allSigns,dayReading,inRange,matchCouple,passport,periodReading,validSign,validSystem} from './horoscope-v3.ts';
+import {YEARS,validYear,yearData,yearReading} from './horoscope-year.ts';
 /** Moon moves about 11–16 degrees per 24h. Reject reused/corrupted daily snapshots. */
 export function verifyLunarContinuity(days:Awaited<ReturnType<typeof dailyTransit>>[]){
  for(let i=1;i<days.length;i++){
@@ -60,6 +61,8 @@ export class HoroscopeController{
  async v3All(@Query('system')system?:string,@Query('date')date?:string){
   const sys=validSystem(system),d=date||localToday('Europe/Kyiv');
   if(!sys||!inRange(d))throw new BadRequestException('Invalid system or date');
+  // Warm the yearly data in the background so the first /2027 visitor doesn't wait.
+  for(const y of YEARS)void yearData(sys,y).catch(()=>undefined);
   try{return {system:sys,date:d,signs:await allSigns(sys,d)};}
   catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
  }
@@ -68,6 +71,14 @@ export class HoroscopeController{
   const sys=validSystem(system),s=validSign(sign),st=start||localToday('Europe/Kyiv'),n=Number(days||7);
   if(!sys||!s||!inRange(st)||!Number.isInteger(n)||n<1||n>31)throw new BadRequestException('Invalid period');
   try{return await periodReading(sys,s,st,n);}
+  catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
+ }
+ /** Yearly sign horoscope (slow planets, month ratings, eclipses, stations). */
+ @Get('v3/year') @Header('Cache-Control','public,max-age=3600')
+ async v3Year(@Query('system')system?:string,@Query('sign')sign?:string,@Query('year')year?:string){
+  const sys=validSystem(system),s=validSign(sign),y=validYear(year);
+  if(!sys||!s||!y)throw new BadRequestException('Invalid year request');
+  try{return await yearReading(sys,s,y);}
   catch{throw new ServiceUnavailableException('Astronomical data unavailable; no forecast generated');}
  }
  /** «Зоряний паспорт». POST so birth data never lands in URLs or access logs. */
@@ -126,6 +137,7 @@ Reflect.defineMetadata('design:paramtypes',[],HoroscopeController.prototype,'tod
 Reflect.defineMetadata('design:paramtypes',[String,String,String],HoroscopeController.prototype,'v3Day');
 Reflect.defineMetadata('design:paramtypes',[String,String],HoroscopeController.prototype,'v3All');
 Reflect.defineMetadata('design:paramtypes',[String,String,String,String],HoroscopeController.prototype,'v3Period');
+Reflect.defineMetadata('design:paramtypes',[String,String,String],HoroscopeController.prototype,'v3Year');
 Reflect.defineMetadata('design:paramtypes',[Object],HoroscopeController.prototype,'v3Passport');
 Reflect.defineMetadata('design:paramtypes',[Object],HoroscopeController.prototype,'v3Match');
 Reflect.defineMetadata('design:paramtypes',[],HoroscopeController.prototype,'week');
