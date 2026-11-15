@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {BookMarked,UserRound,LogIn,LogOut,Save,Trash2,Eye,LockKeyhole} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
 import type {ReadingReport} from './DetailedReport';
+import {forgetAnonymous} from '../../lib/my-signs';
 type User={id:string;email:string};
 type Birth={date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};
 type SavedSummary={id:string;createdAt:string;place:string;date:string;ascendant:string;hasReport:boolean};
@@ -44,7 +45,7 @@ export default function AccountPortal({birth,report,lang,onOpenSaved}:{
   try{
    const r=await fetch('/api/v1/account/'+mode,{...json,method:'POST',body:JSON.stringify({email,password})});
    const result=await readApiJson<{user:User}>(r);
-   setUser(result.user);setPassword('');
+   setUser(result.user);setPassword('');forgetAnonymous();
    setMessage(uk?'Вітаємо! Тепер ви можете зберігати карти.':'Welcome! You can now save charts.');
   }catch(error){setMessage(safeError(error));}
   finally{setWorking(false);}

@@ -17,6 +17,7 @@ import CitySearch from '../../components/CitySearch';
 import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
 import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
 import {nakshatraSlugByName} from '../../../lib/nakshatra-slugs';
+import {loadMySigns} from '../../../lib/my-signs';
 type Graha={name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 type Period={lord:string;start:string;end:string;antardashas:{lord:string;start:string;end:string}[]};
 type Chart={n4?:N4RcView;n4D60?:N4D60UI;config?:{dashaYearDays:number;dashaYearMode?:string};verification?:{version:string;status:'verified_internal';digest:string;checks:string[];externalReferenceChecked:false};id?:string;input:{date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;ephemeris:string;d1:Graha[];d9:Graha[];d10:Graha[];dasha:Period[]};
@@ -130,7 +131,34 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   setStatus(lang==='uk'?'Розрахунок перевірено.':'Calculation integrity verified.');
  };
 
- useEffect(()=>{if(report)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});},[report]);
+ const quietOpen=useRef(false); // no auto-scroll when the profile chart opens by itself
+ useEffect(()=>{if(report&&!quietOpen.current)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});quietOpen.current=false;},[report]);
+ // A signed-in owner sees their primary (or only/newest) saved natal chart straight away.
+ // ?new opens the empty calculator; anything the visitor starts meanwhile wins.
+ const [profileChart,setProfileChart]=useState<{date:string;place:string}|null>(null);
+ useEffect(()=>{
+  if(new URLSearchParams(window.location.search).has('new'))return;
+  let live=true;
+  void loadMySigns().then(async mine=>{
+   const own=mine?.chart;
+   if(!live||!own||readingRequestId.current!==0)return;
+   try{
+    const r=await fetch('/api/v1/account/charts/'+encodeURIComponent(own.id),{credentials:'same-origin',cache:'no-store'});
+    const data=await readApiJson<{chart:unknown;report:ReadingReport|null}>(r);
+    if(!live||readingRequestId.current!==0)return;
+    quietOpen.current=true;
+    setProfileChart({date:own.date,place:own.place});
+    await loadSaved(data.chart,data.report);
+   }catch{/* the empty calculator stays available */}
+  });
+  return ()=>{live=false;};
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[]);
+ const startNewChart=()=>{
+  readingRequestId.current++;setProfileChart(null);setChart(null);setReport(null);setInterpretation('');setStatus('');setError(false);
+  setForm(EMPTY_FORM);setManualMode(false);setCityReset(c=>c+1);
+  setTimeout(()=>document.getElementById('birth-details')?.scrollIntoView({behavior:'smooth',block:'start'}),50);
+ };
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>{
   const manual=['latitude','longitude','timeZone'].includes(key);
@@ -184,6 +212,10 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   <div className="main">
    <div className="content" id="calculator">
     <div className="jy-portal-toolbar"><span>GalaxiAstro <b>/</b> JYOTISH</span><AccountPortal birth={chart?.input||null} report={report} lang={lang} onOpenSaved={loadSaved}/></div>
+    {profileChart&&chart&&<div className="jy-profile-open" role="status" style={{display:'flex',flexWrap:'wrap',alignItems:'center',justifyContent:'space-between',gap:12,margin:'0 0 16px',padding:'12px 16px',borderRadius:12,border:'1px solid rgba(231,189,114,.35)',background:'rgba(231,189,114,.08)',color:'#E4E8F1',fontSize:14}}>
+     <span>{lang==='uk'?'Відкрито вашу натальну карту з профілю':'Your natal chart from your profile is open'}{profileChart.date?' · '+profileChart.date.split('-').reverse().join('.'):''}{profileChart.place?' · '+profileChart.place:''}</span>
+     <button type="button" className="secondary-btn" style={{margin:0,width:'auto',padding:'9px 14px'}} onClick={startNewChart}>{lang==='uk'?'Розрахувати нову карту':'Calculate a new chart'}</button>
+    </div>}
     {!chart&&<><section className={landing.hero} aria-labelledby="natal-page-title">
      <div className={landing.heroCopy}>
       <div className={landing.eyebrow}>{lang==='uk'?'ВЕДИЧНА НАТАЛЬНА КАРТА · БЕЗКОШТОВНО':'FREE VEDIC BIRTH CHART · JYOTISH'}</div>

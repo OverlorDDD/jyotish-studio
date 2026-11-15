@@ -1,15 +1,18 @@
 'use client';
-/** «36 гун»: classical Ashtakoota matching from two birth dates. Both birth
+/** «36 гун»: classical Ashtakoota matching from two birth dates. Typed birth
  * records go to the server once over POST, are used for the calculation and
- * are never stored; nothing is kept in this browser either. */
-import {useState} from 'react';
+ * are never stored; nothing is kept in this browser either. A signed-in owner
+ * can pick natal charts saved in the profile instead: the server reads them by
+ * id, so their birth details never travel through the browser. */
+import {useEffect,useState} from 'react';
+import {loadMySigns,type MySigns} from '../../../lib/my-signs';
 import Link from 'next/link';
 import styles from './Horoscope.module.css';
 import {ZONES} from './parts';
 import {SIGNS,type HoroLocale} from '../../../lib/horoscope-signs';
 
 type Koota='varna'|'vashya'|'tara'|'yoni'|'grahaMaitri'|'gana'|'bhakoot'|'nadi';
-type Person={sunSign:number;vedicSunSign:number;moonSign:number;nakshatra:{index:number;name:string;pada:number};timeKnown:boolean;exact:boolean};
+type Person={sunSign:number;vedicSunSign:number;moonSign:number;nakshatra:{index:number;name:string;pada:number};timeKnown:boolean;exact:boolean;fromProfile?:boolean};
 type Result={a:Person;b:Person;approximate:boolean;band:'excellent'|'good'|'average'|'low';
  ashtakoota:{total:number;max:number;scores:Partial<Record<Koota,number>>;bhakoot:{pair:string;dosha:boolean;cancelled:boolean};
   nadi:{dosha:boolean;exception:boolean}|null;detail:Record<string,[string,string]>}};
@@ -32,29 +35,53 @@ const KOOTAS:{k:Koota;max:number;uk:string;en:string;dUk:string;dEn:string;detai
 ];
 const BAND={excellent:{uk:'Чудова сумісність',en:'Excellent match'},good:{uk:'Добра сумісність',en:'Good match'},average:{uk:'Прийнятна сумісність',en:'Acceptable match'},low:{uk:'Складна сумісність',en:'Challenging match'}};
 
-type Birth={date:string;time:string;zone:string};
-function BirthFields({id,label,v,set,uk}:{id:string;label:string;v:Birth;set:(b:Birth)=>void;uk:boolean}){
+type Birth={date:string;time:string;zone:string;chartId:string};
+type Saved=MySigns['charts'];
+const fmtDate=(d:string)=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d);return m?m[3]+'.'+m[2]+'.'+m[1]:d;};
+function BirthFields({id,label,v,set,uk,charts,primaryId}:{id:string;label:string;v:Birth;set:(b:Birth)=>void;uk:boolean;charts:Saved;primaryId:string|null}){
  return <fieldset className={styles.person}>
   <legend>{label}</legend>
-  <label>{uk?'Дата народження':'Birth date'}<input type="date" required min="1900-01-01" max="2099-12-31" value={v.date} onChange={e=>set({...v,date:e.target.value})}/></label>
-  <label>{uk?'Час (якщо знаєте)':'Time (if known)'}<input type="time" value={v.time} aria-describedby="match-time-note" onChange={e=>set({...v,time:e.target.value})}/></label>
-  <label>{uk?'Країна народження':'Country of birth'}<select value={v.zone} onChange={e=>set({...v,zone:e.target.value})} id={id+'-zone'}>{ZONES.map(([z,n])=><option key={z} value={z}>{n}</option>)}</select></label>
+  {charts.length>0&&<label>{uk?'Дані':'Details'}<select value={v.chartId} onChange={e=>set({...v,chartId:e.target.value})}>
+   {charts.map(c=><option key={c.id} value={c.id}>{(c.id===primaryId?(uk?'Моя карта':'My chart'):(uk?'Збережена карта':'Saved chart'))+' · '+fmtDate(c.date)+(c.place?', '+c.place:'')}</option>)}
+   <option value="">{uk?'Ввести дату вручну':'Enter a date manually'}</option>
+  </select></label>}
+  {v.chartId&&<p className={styles.fromProfile}>{uk?'Дата, час і місце беруться з цієї натальної карти в профілі — вводити нічого не потрібно.':'Date, time and place come from this natal chart in your profile — nothing to type.'}</p>}
+  {!v.chartId&&<>
+   <label>{uk?'Дата народження':'Birth date'}<input type="date" required min="1900-01-01" max="2099-12-31" value={v.date} onChange={e=>set({...v,date:e.target.value})}/></label>
+   <label>{uk?'Час (якщо знаєте)':'Time (if known)'}<input type="time" value={v.time} aria-describedby="match-time-note" onChange={e=>set({...v,time:e.target.value})}/></label>
+   <label>{uk?'Країна народження':'Country of birth'}<select value={v.zone} onChange={e=>set({...v,zone:e.target.value})} id={id+'-zone'}>{ZONES.map(([z,n])=><option key={z} value={z}>{n}</option>)}</select></label>
+  </>}
  </fieldset>;
 }
 
 export default function CoupleMatch({locale}:{locale:HoroLocale}){
  const uk=locale==='uk';
- const empty={date:'',time:'',zone:'Europe/Kyiv'};
+ const empty={date:'',time:'',zone:'Europe/Kyiv',chartId:''};
  const [a,setA]=useState<Birth>(empty),[b,setB]=useState<Birth>(empty),[roles,setRoles]=useState('none');
+ const [charts,setCharts]=useState<Saved>([]),[primaryId,setPrimaryId]=useState<string|null>(null);
+ useEffect(()=>{
+  let live=true;
+  void loadMySigns().then(mine=>{
+   if(!live||!mine||!mine.charts.length)return;
+   setCharts(mine.charts);
+   const mineId=mine.chart?.id||mine.charts[0].id;
+   setPrimaryId(mineId);
+   setA(x=>x.date?x:{...x,chartId:mineId});
+  });
+  return ()=>{live=false;};
+ },[]);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[res,setRes]=useState<Result|null>(null),[copied,setCopied]=useState(false);
  const num=(x:number)=>uk?String(x).replace('.',','):String(x);
  const submit=async(e:React.FormEvent)=>{
   e.preventDefault();setError('');setRes(null);setCopied(false);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(a.date)||!/^\d{4}-\d{2}-\d{2}$/.test(b.date)){setError(uk?'Вкажіть обидві дати народження.':'Enter both birth dates.');return;}
+  const okDate=(x:Birth)=>Boolean(x.chartId)||/^\d{4}-\d{2}-\d{2}$/.test(x.date);
+  if(!okDate(a)||!okDate(b)){setError(uk?'Вкажіть обидві дати народження.':'Enter both birth dates.');return;}
+  if(a.chartId&&a.chartId===b.chartId){setError(uk?'Оберіть дві різні карти.':'Choose two different charts.');return;}
   setBusy(true);
-  const pack=(x:Birth)=>({date:x.date,...(x.time?{time:x.time}:{}),zone:x.zone});
+  const pack=(x:Birth)=>x.chartId?{chartId:x.chartId}:{date:x.date,...(x.time?{time:x.time}:{}),zone:x.zone};
+  const usesProfile=Boolean(a.chartId||b.chartId);
   try{
-   const r=await fetch('/api/v1/horoscope/v3/match',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',
+   const r=await fetch(usesProfile?'/api/v1/personal/horoscope/match':'/api/v1/horoscope/v3/match',{method:'POST',headers:{'Content-Type':'application/json'},credentials:usesProfile?'same-origin':'omit',
     body:JSON.stringify({a:pack(a),b:pack(b),roles})});
    if(!r.ok)throw Error(String(r.status));
    setRes(await r.json() as Result);
@@ -71,7 +98,7 @@ export default function CoupleMatch({locale}:{locale:HoroLocale}){
   try{if(navigator.share){await navigator.share({text,url});return;}await navigator.clipboard.writeText(text+' '+url);setCopied(true);}catch{/* dismissed */}
  };
  const person=(p:Person,label:string)=><div className={styles.personResult}>
-  <h3>{label}</h3>
+  <h3>{label}{p.fromProfile?(uk?' · з натальної карти':' · from a natal chart'):''}</h3>
   <p>{uk?'Місяць у знаку ':'Moon in '}<b>{sign(p.moonSign)}</b>{', '}{uk?'накшатра ':'nakshatra '}<Link className={styles.link} href={'/'+locale+'/nakshatra/'+NAK_SLUG[p.nakshatra.index]}>{uk?NAK_UK[p.nakshatra.index]:p.nakshatra.name}</Link></p>
   <p>{uk?'Західний знак: ':'Western sign: '}{sign(p.sunSign)}</p>
  </div>;
@@ -80,8 +107,8 @@ export default function CoupleMatch({locale}:{locale:HoroLocale}){
   <h2 id="match-title">{uk?'Сумісність за датами народження: 36 гун':'Compatibility from birth dates: 36 gunas'}</h2>
   <p className={styles.matchLead}>{uk?'Класична ведична перевірка Ашта-кута: вісім «кут» порівнюють положення Місяця при народженні двох людей. Саме так в Індії перевіряють пару перед весіллям.':'The classical Vedic Ashtakoota check: eight kootas compare the Moon at the birth of two people. This is how couples are matched before a wedding in India.'}</p>
   <form className={styles.matchForm} onSubmit={submit}>
-   <BirthFields id="a" label={uk?'Перша людина':'First person'} v={a} set={setA} uk={uk}/>
-   <BirthFields id="b" label={uk?'Друга людина':'Second person'} v={b} set={setB} uk={uk}/>
+   <BirthFields id="a" label={uk?'Перша людина':'First person'} v={a} set={setA} uk={uk} charts={charts} primaryId={primaryId}/>
+   <BirthFields id="b" label={uk?'Друга людина':'Second person'} v={b} set={setB} uk={uk} charts={charts} primaryId={primaryId}/>
    <div className={styles.matchFoot}>
     <label className={styles.rolesLabel}>{uk?'Класичні ролі':'Classical roles'}
      <select value={roles} onChange={e=>setRoles(e.target.value)}>
@@ -92,7 +119,7 @@ export default function CoupleMatch({locale}:{locale:HoroLocale}){
     </label>
     <button type="submit" className={styles.btn} disabled={busy}>{busy?(uk?'Рахуємо…':'Calculating…'):(uk?'Порахувати сумісність':'Calculate compatibility')}</button>
    </div>
-   <p className={styles.formNote} id="match-time-note">{uk?'Без часу народження беремо полудень; якщо того дня Місяць змінив накшатру, результат буде приблизним. Дані нікуди не зберігаються.':'Without a birth time we use noon; if the Moon changed nakshatra that day the result is approximate. Nothing is stored.'}</p>
+   <p className={styles.formNote} id="match-time-note">{uk?'Без часу народження беремо полудень; якщо того дня Місяць змінив накшатру, результат буде приблизним. Введені дати нікуди не зберігаються.':'Without a birth time we use noon; if the Moon changed nakshatra that day the result is approximate. Typed dates are not stored.'}{charts.length===0?(uk?' Збережені в профілі натальні карти можна обирати тут без повторного введення.':' Natal charts saved in your profile can be picked here without retyping.'):''}</p>
   </form>
   {error&&<p className={styles.error} role="alert">{error}</p>}
   {res&&r&&<div aria-live="polite" className={styles.matchResult}>
