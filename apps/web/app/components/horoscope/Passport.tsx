@@ -5,14 +5,11 @@
 import {useState} from 'react';
 import Link from 'next/link';
 import styles from './Horoscope.module.css';
-import {elClass} from './parts';
+import {ZONES,elClass} from './parts';
 import {rememberSigns} from './MySign';
 import {SIGNS,glyph,signPath,type HoroLocale} from '../../../lib/horoscope-signs';
 
 type Result={western:{sunSign:number};vedic:{sunSign:number;moonSigns:number[];nakshatra:{name:string;pada:number}|null};ayanamshaDegrees:number;timeKnown:boolean};
-const ZONES=[['Europe/Kyiv','Україна / Ukraine'],['Europe/Warsaw','Польща / Poland'],['Europe/Berlin','Німеччина / Germany'],['Europe/Prague','Чехія / Czechia'],
- ['Europe/London','Велика Британія / UK'],['Europe/Madrid','Іспанія / Spain'],['Europe/Rome','Італія / Italy'],['America/New_York','США (схід) / US East'],
- ['America/Chicago','США (центр) / US Central'],['America/Los_Angeles','США (захід) / US West'],['America/Toronto','Канада / Canada'],['Asia/Kolkata','Індія / India']];
 const dm=(deg:number)=>{const d=Math.floor(deg),m=Math.round((deg-d)*60);return d+'°'+String(m===60?0:m).padStart(2,'0')+'′';};
 
 export default function Passport({locale}:{locale:HoroLocale}){
@@ -38,9 +35,10 @@ export default function Passport({locale}:{locale:HoroLocale}){
  return <>
   <form className={styles.form} onSubmit={submit}>
    <label>{uk?'Дата народження':'Birth date'}<input type="date" required value={date} min="1900-01-01" max="2099-12-31" onChange={e=>setDate(e.target.value)}/></label>
-   <label>{uk?'Час народження (якщо знаєте)':'Birth time (if known)'}<input type="time" value={time} onChange={e=>setTime(e.target.value)}/><small>{uk?'Потрібен для точного знака Місяця й накшатри.':'Needed for the exact Moon sign and nakshatra.'}</small></label>
+   <label>{uk?'Час народження (якщо знаєте)':'Birth time (if known)'}<input type="time" value={time} aria-describedby="passport-time-note" onChange={e=>setTime(e.target.value)}/></label>
    <label>{uk?'Країна народження':'Country of birth'}<select value={zone} onChange={e=>setZone(e.target.value)}>{ZONES.map(([z,n])=><option key={z} value={z}>{n}</option>)}</select></label>
    <button type="submit" className={styles.btn} disabled={busy}>{busy?(uk?'Рахуємо…':'Calculating…'):(uk?'Показати мої знаки':'Show my signs')}</button>
+   <p className={styles.formNote} id="passport-time-note">{uk?'Час народження потрібен для точного знака Місяця й накшатри. Без нього покажемо можливі варіанти.':'Birth time gives the exact Moon sign and nakshatra. Without it we show the possible options.'}</p>
   </form>
   {error&&<p className={styles.error} role="alert">{error}</p>}
   {res&&W&&VS&&<section aria-live="polite">

@@ -4,7 +4,7 @@ import {calendarDays,dailyTransit,localToday} from './personal-transits.ts';
 import {readPublicSign,EDITORIAL_REFERENCE} from './horoscope-editorial.ts';
 import {dailySkyContext} from './sky-context.ts';
 import {tropicalSkyForDay,westernSignReading,WESTERN_HOROSCOPE_SOURCES,TROPICAL_METHOD} from './western-horoscope.ts';
-import {allSigns,dayReading,inRange,passport,periodReading,validSign,validSystem} from './horoscope-v3.ts';
+import {allSigns,dayReading,inRange,matchCouple,passport,periodReading,validSign,validSystem} from './horoscope-v3.ts';
 /** Moon moves about 11–16 degrees per 24h. Reject reused/corrupted daily snapshots. */
 export function verifyLunarContinuity(days:Awaited<ReturnType<typeof dailyTransit>>[]){
  for(let i=1;i<days.length;i++){
@@ -79,6 +79,23 @@ export class HoroscopeController{
   try{return await passport({date,time,zone});}
   catch(e){throw new BadRequestException(e instanceof Error?e.message:'Invalid birth data');}
  }
+ /** Couple matching (Ashtakoota + Western Sun signs). Birth data only in the body; never stored or logged. */
+ @Post('v3/match') @HttpCode(200) @Header('Cache-Control','no-store')
+ async v3Match(@Body()body:unknown){
+  const b=(body||{}) as {a?:unknown;b?:unknown;roles?:unknown};
+  const birth=(x:unknown)=>{
+   const v=(x||{}) as {date?:unknown;time?:unknown;zone?:unknown};
+   return {date:typeof v.date==='string'?v.date:'',time:typeof v.time==='string'&&v.time?v.time:undefined,
+    zone:typeof v.zone==='string'&&/^[A-Za-z_]+(?:\/[A-Za-z_\-]+){0,2}$/.test(v.zone)?v.zone:undefined};
+  };
+  const roles=b.roles==='aBride'||b.roles==='bBride'?b.roles:'none';
+  try{return await matchCouple({a:birth(b.a),b:birth(b.b),roles});}
+  catch(e){
+   const msg=e instanceof Error?e.message:'';
+   if(/^Invalid birth/.test(msg)||e instanceof RangeError)throw new BadRequestException(msg||'Invalid birth data');
+   throw new ServiceUnavailableException('Swiss Ephemeris is temporarily unavailable');
+  }
+ }
  @Get('western/today') @Header('Cache-Control','public,max-age=300')
  async westernToday(){
   const zone='Europe/Kyiv',date=localToday(zone);
@@ -110,4 +127,5 @@ Reflect.defineMetadata('design:paramtypes',[String,String,String],HoroscopeContr
 Reflect.defineMetadata('design:paramtypes',[String,String],HoroscopeController.prototype,'v3All');
 Reflect.defineMetadata('design:paramtypes',[String,String,String,String],HoroscopeController.prototype,'v3Period');
 Reflect.defineMetadata('design:paramtypes',[Object],HoroscopeController.prototype,'v3Passport');
+Reflect.defineMetadata('design:paramtypes',[Object],HoroscopeController.prototype,'v3Match');
 Reflect.defineMetadata('design:paramtypes',[],HoroscopeController.prototype,'week');

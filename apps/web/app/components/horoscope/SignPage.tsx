@@ -9,6 +9,7 @@ import {SIGNS,addDays,dayLabel,dayList,glyph,hubPath,monthLabel,shortDay,signPat
  type HoroLocale,type HoroPeriod,type HoroSystem,type SignInfo} from '../../../lib/horoscope-signs';
 import {publicIndexingEnabled,publicSiteOrigin} from '../../../lib/site-indexing';
 import {MOON_SIGN_GUIDES} from '../../../lib/moon-sign-guides';
+import {compatPath,pairSlug,westernScores} from '../../../lib/compatibility';
 import type {DayReading,PeriodReading,Ratings} from '../../../lib/horoscope-v3';
 
 type L={uk:string;en:string};
@@ -168,6 +169,15 @@ export default function SignPage({locale,system,sign,period,today,day,range}:{lo
       <p>{uk?'У Джйотиш знак рахують за зірками, і він часто інший. Дізнайтеся обидва свої знаки за датою народження.':'Jyotish measures signs by the stars, so yours may differ. Find both of your signs from your birth date.'}</p>
       <Link className={styles.link} href={'/'+locale+'/horoscope/my-sign'}>{uk?'Зоряний паспорт →':'Star Passport →'}</Link><br/>
       <Link className={styles.link} href={signPath(locale,other,sign.slug,period)}>{other==='vedic'?(uk?'Ведичний гороскоп '+sign.gen:'Vedic '+sign.en+' horoscope'):(uk?'Західний гороскоп '+sign.gen:'Western '+sign.en+' horoscope')}</Link>
+     </section>
+     <section className={styles.panel}>
+      <h2>{uk?'Сумісність '+sign.gen:sign.en+' compatibility'}</h2>
+      <p>{uk?'Найкращі пари за західною астрологією:':'Best Western matches:'}</p>
+      <ul className={styles.pairList}>
+       {SIGNS.filter(o=>o.n!==sign.n).map(o=>({o,pct:westernScores(sign,o).overall})).sort((x,y)=>y.pct-x.pct||x.o.n-y.o.n).slice(0,3).map(({o,pct})=>
+        <li key={o.slug}><Link href={compatPath(locale,pairSlug(sign,o))}><span className={elClass(o)} aria-hidden="true">{glyph(o)}</span>{uk?o.uk:o.en}<b>{pct}%</b></Link></li>)}
+      </ul>
+      <Link className={styles.link} href={compatPath(locale)}>{uk?'Сумісність з усіма знаками і 36 гун →':'All signs and the 36 gunas →'}</Link>
      </section>
      <section className={styles.panel}>
       <h2>{uk?'Інші знаки':'Other signs'}</h2>

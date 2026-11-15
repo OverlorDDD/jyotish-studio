@@ -5,3 +5,7 @@ export const elClass=(s:SignInfo)=>styles[s.element.en as 'fire'|'earth'|'air'|'
 export function Dots({n,label}:{n:number;label:string}){
  return <span className={styles.dots} role="img" aria-label={label+': '+n+'/5'}>{[1,2,3,4,5].map(i=><i key={i} data-on={i<=n?'1':'0'}/>)}</span>;
 }
+/** Birth-country presets for the forms (IANA zone, bilingual label). */
+export const ZONES=[['Europe/Kyiv','Україна / Ukraine'],['Europe/Warsaw','Польща / Poland'],['Europe/Berlin','Німеччина / Germany'],['Europe/Prague','Чехія / Czechia'],
+ ['Europe/London','Велика Британія / UK'],['Europe/Madrid','Іспанія / Spain'],['Europe/Rome','Італія / Italy'],['America/New_York','США (схід) / US East'],
+ ['America/Chicago','США (центр) / US Central'],['America/Los_Angeles','США (захід) / US West'],['America/Toronto','Канада / Canada'],['Asia/Kolkata','Індія / India']];

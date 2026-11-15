@@ -10,6 +10,7 @@ import {astronomicalEventsWindow} from './astronomical-events.ts';
 import {createVerifiedSiderealPlanetAt} from './panchanga.ts';
 import {skyHeadline} from './news-astronomy.ts';
 import {localToUTC,nakshatraOf,signIndex} from '../../../packages/jyotish-core/src/index.ts';
+import {ashtakoota,gunaBand,type Roles} from '../../../packages/jyotish-core/src/ashtakoota.ts';
 import {MOON_HOUSE,LOVE_BY_HOUSE,WORK_BY_HOUSE,MONEY_BY_HOUSE,HEALTH_BY_HOUSE,BAND,PHASE,SUN_HOUSE,WEEKDAY,
  HOUSE_SPHERE,PLANET_NAME,type L} from './horoscope-v3-texts.ts';
 
@@ -160,33 +161,57 @@ export async function periodReading(system:System,sign:number,start:string,days:
    phase:d.moon.phase,chandrashtama:d.chandrashtama,events:d.events}))};
 }
 
-/** «Зоряний паспорт»: Western Sun sign, Vedic Sun and Moon signs, nakshatra and
- * the ayanamsha gap — computed, never stored. Without a birth time the Moon may
- * have changed sign that day; both candidates are then returned. */
-export async function passport(input:{date:string;time?:string;zone?:string}){
+type Birth={date:string;time?:string;zone?:string};
+/** One birth moment: tropical Sun, sidereal Sun and Moon (Lahiri). Without a
+ * time we use local noon and report the Moon sign/nakshatra range of that day. */
+async function birthSky(input:Birth){
  const zone=input.zone||ZONE;
  if(!validLocalDay(input.date)||input.date<'1900-01-01'||input.date>'2099-12-31')throw Error('Invalid birth date');
  if(input.time!==undefined&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.time))throw Error('Invalid birth time');
- const at=(time:string)=>localToUTC(input.date,time,zone);
- const utc=at(input.time||'12:00');
- const msUtc=(s:string)=>Date.parse(s);
+ const ms=(time:string)=>Date.parse(localToUTC(input.date,time,zone));
+ const at=ms(input.time||'12:00');
  const planetAt=await createVerifiedSiderealPlanetAt();
- const iso=(s:string)=>new Date(msUtc(s)).toISOString();
- const tropical=await tropicalSkyAtUtc(iso(utc));
- const sidSun=planetAt(msUtc(utc),'Sun').longitude;
- const moonAt=(s:string)=>planetAt(msUtc(s),'Moon').longitude;
- const moonLon=moonAt(utc);
- let moonSigns=[signIndex(moonLon)+1];
- if(!input.time){
-  const a=signIndex(moonAt(at('00:00')))+1,b=signIndex(moonAt(at('23:59')))+1;
-  moonSigns=a===b?[a]:[a,b];
- }
- const nak=nakshatraOf(moonLon);
- const gap=((tropical.sun.longitude-sidSun)%360+360)%360;
- return {date:input.date,timeKnown:Boolean(input.time),zone,
-  western:{sunSign:tropical.sun.sign,sunLongitude:tropical.sun.longitude},
-  vedic:{sunSign:signIndex(sidSun)+1,sunLongitude:sidSun,moonSigns,
-   nakshatra:input.time?{name:nak.name,pada:nak.pada}:null},
+ const tropical=await tropicalSkyAtUtc(new Date(at).toISOString());
+ const sidSun=planetAt(at,'Sun').longitude;
+ const moonLon=planetAt(at,'Moon').longitude;
+ const dayMoon=input.time?null:[planetAt(ms('00:00'),'Moon').longitude,planetAt(ms('23:59'),'Moon').longitude];
+ return {zone,timeKnown:Boolean(input.time),tropical,sidSun,moonLon,dayMoon};
+}
+const uniq=(xs:number[])=>[...new Set(xs)];
+
+/** «Зоряний паспорт»: Western Sun sign, Vedic Sun and Moon signs, nakshatra and
+ * the ayanamsha gap — computed, never stored. Without a birth time the Moon may
+ * have changed sign that day; both candidates are then returned. */
+export async function passport(input:Birth){
+ const b=await birthSky(input);
+ const moonSigns=b.dayMoon?uniq(b.dayMoon.map(l=>signIndex(l)+1)):[signIndex(b.moonLon)+1];
+ const nak=nakshatraOf(b.moonLon);
+ const gap=((b.tropical.sun.longitude-b.sidSun)%360+360)%360;
+ return {date:input.date,timeKnown:b.timeKnown,zone:b.zone,
+  western:{sunSign:b.tropical.sun.sign,sunLongitude:b.tropical.sun.longitude},
+  vedic:{sunSign:signIndex(b.sidSun)+1,sunLongitude:b.sidSun,moonSigns,
+   nakshatra:b.timeKnown?{name:nak.name,pada:nak.pada}:null},
   ayanamshaDegrees:gap,
   method:'Swiss Ephemeris; tropical vs sidereal Lahiri; nothing is stored'};
+}
+
+/** Couple matching: Western Sun signs plus the classical Ashtakoota (36 gunas)
+ * from both sidereal Moons. Without a birth time the day's Moon may span two
+ * nakshatras; the result is then marked approximate. Nothing is stored. */
+export async function matchCouple(input:{a:Birth;b:Birth;roles?:Roles}){
+ const roles:Roles=input.roles==='aBride'||input.roles==='bBride'?input.roles:'none';
+ const [x,y]=await Promise.all([birthSky(input.a),birthSky(input.b)]);
+ const person=(b:Awaited<ReturnType<typeof birthSky>>)=>{
+  const nak=nakshatraOf(b.moonLon),sign=signIndex(b.moonLon)+1;
+  const range=b.dayMoon?{signs:uniq(b.dayMoon.map(l=>signIndex(l)+1)),nakshatras:uniq(b.dayMoon.map(l=>nakshatraOf(l).index))}:null;
+  return {sunSign:b.tropical.sun.sign,vedicSunSign:signIndex(b.sidSun)+1,moonSign:sign,
+   nakshatra:{index:nak.index,name:nak.name,pada:nak.pada},timeKnown:b.timeKnown,
+   exact:!range||(range.signs.length===1&&range.nakshatras.length===1),range,
+   point:{sign,nakshatra:nak.index,degInSign:((b.moonLon%30)+30)%30}};
+ };
+ const pa=person(x),pb=person(y);
+ const result=ashtakoota(pa.point,pb.point,roles);
+ return {a:{...pa,point:undefined},b:{...pb,point:undefined},approximate:!pa.exact||!pb.exact,
+  ashtakoota:result,band:gunaBand(result.total),
+  method:'Swiss Ephemeris, sidereal Lahiri Moon; Ashtakoota '+result.version+'; nothing is stored'};
 }
