@@ -159,3 +159,89 @@ test('Compatibility: 36-guna matching from real Swiss Moons',{timeout:60000},asy
  assert.equal(typeof loose.approximate,'boolean');
  await assert.rejects(()=>matchCouple({a:{date:'1996-02-30'},b:one}),/Invalid birth date/);
 });
+
+/* ---------- Phase 3: yearly horoscope and share images ---------- */
+import {composeYear,validYear,yearReading,YEARS,YEAR_ECLIPSES} from '../apps/api/src/horoscope-year.ts';
+import {existsSync,statSync} from 'node:fs';
+
+function yearFixture(system){
+ const dates=[];for(let m=1;m<=12;m++)for(const d of [1,8,15,22])dates.push('2027-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0'));dates.push('2027-12-31');
+ const skies=dates.map((d,i)=>sky(system,d,{Sun:(280+i*7.6)%360,Moon:0,Mercury:(270+i*7.6)%360,Venus:(250+i*9)%360,Mars:(150+i*2)%360,Jupiter:128+i*.6,Saturn:345+i*.4}));
+ return {skies,
+  jupiter:[{sign:5,from:'2027-01-01',to:'2027-07-25'},{sign:6,from:'2027-07-26',to:'2027-12-31'}],
+  saturn:[{sign:12,from:'2027-01-01',to:'2027-06-02'},{sign:1,from:'2027-06-03',to:'2027-10-19'},{sign:12,from:'2027-10-20',to:'2027-12-31'}],
+  rahu:system==='vedic'?[{sign:10,from:'2027-01-01',to:'2027-12-31'}]:null,
+  stations:[{date:'2027-02-09',body:'Mercury',kind:'retrograde_station',sign:11},{date:'2027-03-03',body:'Mercury',kind:'direct_station',sign:11}],
+  eclipses:[{date:'2027-02-06',solar:true,kind:{uk:'кільцеподібне сонячне затемнення',en:'annular solar eclipse'},sign:11}]};
+}
+
+test('Year: only catalogued years are served, with the NASA 2027 eclipse list',()=>{
+ assert.deepEqual(YEARS,[2027]);
+ assert.equal(validYear('2027'),2027);
+ for(const bad of ['2026','2100','x',null])assert.equal(validYear(bad),null);
+ assert.deepEqual(YEAR_ECLIPSES[2027].map(e=>e.date),['2027-02-06','2027-02-20','2027-07-18','2027-08-02','2027-08-17']);
+ assert.match(source('apps/web/app/[locale]/eclipses/2027/page.tsx'),/2027-08-02/,'the yearly forecast and the eclipse page share one catalogue');
+});
+
+test('Year: complete bilingual reading for every sign in both systems',()=>{
+ for(const system of ['western','vedic'])for(let sign=1;sign<=12;sign++){
+  const y=composeYear(system,sign,2027,yearFixture(system));
+  assert.equal(y.months.length,12);
+  for(const m of y.months){
+   assert.ok(m.title.uk&&m.text.en,system+sign);
+   for(const c of ['love','work','money','health'])assert.ok(m.ratings[c]>=1&&m.ratings[c]<=5);
+   const dates=m.events.map(e=>e.en);assert.deepEqual(dates,[...dates].sort((a,b)=>Date.parse(a.split(':')[0]+' 2027')-Date.parse(b.split(':')[0]+' 2027')),'events are in date order');
+  }
+  for(const k of ['love','work','money'])assert.equal(y.bestMonths[k].length,3);
+  assert.equal(y.carefulMonths.length,2);
+  assert.equal(y.jupiter.length,2,'Jupiter changes sign once');
+  assert.equal(y.saturn.length,2,'Saturn going back and forth is grouped by house');
+  assert.equal(y.saturn.find(s=>s.periods.length===2)?.periods[1].from,'2027-10-20');
+  assert.equal(system==='vedic',Boolean(y.rahu));
+ }
+});
+
+test('Year: Vedic Saturn phases (Sade Sati, Ashtama, Kantaka) are read from the Moon sign',()=>{
+ const aries=composeYear('vedic',1,2027,yearFixture('vedic'));
+ assert.deepEqual(aries.saturnPhase.map(p=>p.key),['sadeSati1','sadeSati2'],'Saturn in Pisces then Aries');
+ assert.equal(aries.saturnPhase[0].periods.length,2);
+ const pisces=composeYear('vedic',12,2027,yearFixture('vedic'));
+ assert.deepEqual(pisces.saturnPhase.map(p=>p.key),['sadeSati2','sadeSati3']);
+ const virgo=composeYear('vedic',6,2027,yearFixture('vedic'));
+ assert.deepEqual(virgo.saturnPhase.map(p=>p.key),['ashtama'],'Pisces is 7th from Virgo (no phase), Aries is 8th');
+ assert.deepEqual(virgo.saturnPhase[0].periods,[{from:'2027-06-03',to:'2027-10-19'}]);
+ const sagittarius=composeYear('vedic',9,2027,yearFixture('vedic'));
+ assert.deepEqual(sagittarius.saturnPhase.map(p=>p.key),['kantaka'],'Pisces is 4th from Sagittarius');
+ const leo=composeYear('vedic',5,2027,yearFixture('vedic'));
+ assert.deepEqual(leo.saturnPhase.map(p=>p.key),['ashtama'],'Pisces is 8th from Leo');
+ assert.deepEqual(composeYear('western',1,2027,yearFixture('western')).saturnPhase,[],'Sade Sati is a Vedic concept only');
+});
+
+test('Year: routes, sitemap, API and share images are wired',()=>{
+ assert.match(source('apps/api/src/horoscope.ts'),/@Get\('v3\/year'\)/);
+ assert.match(source('apps/web/lib/horoscope-signs.ts'),/export const HORO_YEAR=2027;/);
+ assert.match(source('apps/web/app/sitemap.ts'),/'\/'\+HORO_YEAR\]/);
+ for(const dir of ['[sign]','[sign]/[period]','vedic/[sign]','vedic/[sign]/[period]','compatibility','compatibility/[pair]'])
+  assert.ok(existsSync(new URL('../apps/web/app/[locale]/horoscope/'+dir+'/opengraph-image.tsx',import.meta.url)),dir);
+ for(const f of ['Inter-Bold.otf','Inter-Medium.otf','DejaVuSans-zodiac.ttf','OFL-1.1-Inter.txt','LICENSE-DejaVu.txt']){
+  const u=new URL('../apps/web/assets/og/'+f,import.meta.url);
+  assert.ok(existsSync(u)&&statSync(u).size>1000,f);
+ }
+ const og=source('apps/web/lib/og-cards.tsx');
+ assert.doesNotMatch(og,/fetch\(/,'share images never call the network');
+});
+
+test('Year: 2027 from real Swiss ephemeris',{timeout:240000},async t=>{
+ let west;
+ try{west=await yearReading('western',8,2027);}
+ catch(error){if(/swisseph|ephemeris backend/i.test(String(error))){t.skip('Swiss Ephemeris is not installed here');return;}throw error;}
+ assert.equal(west.jupiter[0].sign,5,'tropical Jupiter starts 2027 in Leo');
+ assert.ok(west.jupiter.some(j=>j.sign===6),'and moves into Virgo');
+ assert.ok(west.saturn.some(s=>s.sign===1),'tropical Saturn in Aries');
+ assert.equal(west.months.length,12);
+ const ved=await yearReading('vedic',1,2027);
+ assert.equal(ved.rahu?.[0].sign,10,'sidereal Rahu in Capricorn');
+ assert.ok(ved.saturn.some(s=>s.sign===12),'sidereal Saturn in Pisces');
+ assert.ok(ved.saturnPhase.some(p=>p.key.startsWith('sadeSati')),'Aries Moon is in Sade Sati');
+ assert.ok(ved.months.some(m=>m.events.length>0),'stations and eclipses are listed');
+});

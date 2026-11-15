@@ -5,23 +5,24 @@ import styles from './Horoscope.module.css';
 import {Dots,elClass} from './parts';
 import {MySignButton} from './MySign';
 import {SystemSwitch} from './HoroscopeHome';
-import {SIGNS,addDays,dayLabel,dayList,glyph,hubPath,monthLabel,shortDay,signPath,weekdayLabel,
+import {HORO_YEAR,SIGNS,addDays,dayLabel,dayList,glyph,hubPath,monthLabel,shortDay,signPath,weekdayLabel,
  type HoroLocale,type HoroPeriod,type HoroSystem,type SignInfo} from '../../../lib/horoscope-signs';
 import {publicIndexingEnabled,publicSiteOrigin} from '../../../lib/site-indexing';
 import {MOON_SIGN_GUIDES} from '../../../lib/moon-sign-guides';
 import {compatPath,pairSlug,westernScores} from '../../../lib/compatibility';
-import type {DayReading,PeriodReading,Ratings} from '../../../lib/horoscope-v3';
+import type {DayReading,PeriodReading,Ratings,YearReading} from '../../../lib/horoscope-v3';
+import ShareTools from '../ShareTools';
 
 type L={uk:string;en:string};
 const CAT:{key:keyof Ratings;uk:string;en:string}[]=[{key:'mood',uk:'Настрій',en:'Mood'},{key:'love',uk:'Кохання',en:'Love'},{key:'work',uk:'Робота',en:'Work'},{key:'money',uk:'Гроші',en:'Money'},{key:'health',uk:'Здоров’я',en:'Health'}];
-const PERIOD_LABEL:Record<HoroPeriod,L>={today:{uk:'Сьогодні',en:'Today'},tomorrow:{uk:'Завтра',en:'Tomorrow'},week:{uk:'Тиждень',en:'Week'},month:{uk:'Місяць',en:'Month'}};
+const PERIOD_LABEL:Record<HoroPeriod,L>={year:{uk:String(HORO_YEAR),en:String(HORO_YEAR)},today:{uk:'Сьогодні',en:'Today'},tomorrow:{uk:'Завтра',en:'Tomorrow'},week:{uk:'Тиждень',en:'Week'},month:{uk:'Місяць',en:'Month'}};
 
 export function pageTitle(locale:HoroLocale,system:HoroSystem,s:SignInfo,period:HoroPeriod,today:string){
  const uk=locale==='uk',name=uk?s.uk:s.en,ved=system==='vedic';
  const when:Record<HoroPeriod,string>=uk?{today:'на сьогодні, '+dayLabel(today,'uk'),tomorrow:'на завтра, '+dayLabel(addDays(today,1),'uk'),
-  week:'на тиждень, '+shortDay(today,'uk')+' – '+shortDay(addDays(today,6),'uk'),month:'на '+monthLabel(today,'uk')}:
+  week:'на тиждень, '+shortDay(today,'uk')+' – '+shortDay(addDays(today,6),'uk'),month:'на '+monthLabel(today,'uk'),year:'на '+HORO_YEAR+' рік'}:
   {today:'for today, '+dayLabel(today,'en'),tomorrow:'for tomorrow, '+dayLabel(addDays(today,1),'en'),
-  week:'for the week, '+shortDay(today,'en')+' – '+shortDay(addDays(today,6),'en'),month:'for '+monthLabel(today,'en')};
+  week:'for the week, '+shortDay(today,'en')+' – '+shortDay(addDays(today,6),'en'),month:'for '+monthLabel(today,'en'),year:'for '+HORO_YEAR};
  return uk?name+' — '+(ved?'ведичний гороскоп ':'гороскоп ')+when[period]:name+' '+(ved?'Vedic horoscope ':'horoscope ')+when[period];
 }
 
@@ -54,6 +55,83 @@ function DayView({d,locale,system}:{d:DayReading;locale:HoroLocale;system:HoroSy
    <ul>{d.why.map((w,i)=><li key={i}>{w[locale]}</li>)}</ul>
    <p>{d.method[locale]+(uk?' Оцінки — за класичною таблицею сприятливих транзитів (Пхаладіпіка, гл. 26).':' Ratings follow the classical table of favourable transits (Phaladeepika, ch. 26).')}</p>
   </details>
+ </>;
+}
+
+const MONTH_NAME:{uk:string[];en:string[]}={uk:['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
+ en:['January','February','March','April','May','June','July','August','September','October','November','December']};
+function YearView({y,locale,system,sign}:{y:YearReading;locale:HoroLocale;system:HoroSystem;sign:SignInfo}){
+ const uk=locale==='uk',mn=(m:number)=>MONTH_NAME[locale][m-1];
+ const span=(from:string,to:string)=>{
+  const start=from.endsWith('-01-01'),end=to.endsWith('-12-31');
+  if(start&&end)return uk?'увесь рік':'all year';
+  return start?(uk?'до '+shortDay(to,'uk'):'until '+shortDay(to,'en')):end?(uk?'з '+shortDay(from,'uk'):'from '+shortDay(from,'en')):shortDay(from,locale)+' – '+shortDay(to,locale);
+ };
+ const spans=(ps:{from:string;to:string}[])=>ps.map(x=>span(x.from,x.to)).join('; ');
+ const months=(xs:number[])=>xs.map(m=>mn(m).toLowerCase()).join(', ');
+ const CATS=[['love',uk?'Кохання':'Love'],['work',uk?'Кар’єра':'Career'],['money',uk?'Гроші':'Money'],['health',uk?'Здоров’я':'Health']] as const;
+ return <>
+  <section className={styles.lead+' '+elClass(sign)} aria-labelledby="year-theme">
+   <span className={styles.kicker}>{uk?'Головна тема '+y.year+' року · Юпітер':'Theme of '+y.year+' · Jupiter'}</span>
+   {y.jupiter.map((j,i)=><div key={j.from} className={i?styles.yearNext:undefined}>
+    {i===0?<h2 id="year-theme">{j.title[locale]}</h2>:<h3>{j.title[locale]}</h3>}
+    {y.jupiter.length>1&&<p className={styles.when}>{spans(j.periods)}{uk?' · Юпітер у вашому '+j.house+'-му домі':' · Jupiter in your house '+j.house}</p>}
+    <p>{j.text[locale]}</p>
+   </div>)}
+  </section>
+
+  <section className={styles.meters} aria-label={uk?'Рік за сферами':'The year by area'}>
+   <h2>{uk?'Рік у цифрах':'The year at a glance'}</h2>
+   {CATS.map(([k,label])=><div key={k} className={styles.meter}><span>{label}</span><span className={styles.bar}><span style={{width:y.ratings[k]*20+'%'}}/></span><b>{y.ratings[k]}/5</b></div>)}
+  </section>
+
+  <section className={styles.bestBox} aria-labelledby="year-best">
+   <h2 id="year-best">{uk?'Найкращі місяці':'The best months'}</h2>
+   <dl>
+    <div><dt>{uk?'Для кохання':'For love'}</dt><dd>{months(y.bestMonths.love)}</dd></div>
+    <div><dt>{uk?'Для кар’єри':'For career'}</dt><dd>{months(y.bestMonths.work)}</dd></div>
+    <div><dt>{uk?'Для грошей':'For money'}</dt><dd>{months(y.bestMonths.money)}</dd></div>
+    <div className={styles.carefulRow}><dt>{uk?'Найвимогливіші':'Most demanding'}</dt><dd>{months(y.carefulMonths)}</dd></div>
+   </dl>
+  </section>
+
+  <div className={styles.spheres}>
+   {y.saturn.map(st=><article key={st.from} className={styles.sphere}>
+    <h3>{uk?'Урок року · Сатурн':'Lesson of the year · Saturn'}</h3>
+    <p className={styles.when}>{st.title[locale]}{y.saturn.length>1?' · '+spans(st.periods):''}</p>
+    <p>{st.text[locale]}</p>
+   </article>)}
+   {system==='vedic'&&y.saturnPhase.map(ph=><article key={ph.key+ph.from} className={styles.sphere+' '+styles.phase}>
+    <h3>{ph.title[locale]}</h3>
+    <p className={styles.when}>{spans(ph.periods)}</p>
+    <p>{ph.text[locale]}</p>
+   </article>)}
+   {system==='vedic'&&y.rahu?.map(r=><article key={r.from} className={styles.sphere}>
+    <h3>{uk?'Раху: куди тягне бажання':'Rahu: where desire pulls'}</h3>
+    {y.rahu!.length>1&&<p className={styles.when}>{spans(r.periods)}</p>}
+    <p>{r.text[locale]}</p>
+   </article>)}
+  </div>
+
+  <section aria-labelledby="year-months">
+   <h2 id="year-months" className={styles.sectionTitle}>{uk?'Прогноз по місяцях':'Month by month'}</h2>
+   <ol className={styles.months}>
+    {y.months.map(m=><li key={m.month} className={y.carefulMonths.includes(m.month)?styles.monthCareful:undefined}>
+     <div className={styles.monthHead}><h3>{mn(m.month)}</h3>
+      <span className={styles.monthDots}>
+       <span title={uk?'Кохання':'Love'}><i aria-hidden="true">♥</i>{m.ratings.love}<span className={styles.srOnly}>{(uk?' кохання з 5':' love out of 5')}</span></span>
+       <span title={uk?'Кар’єра':'Career'}><i aria-hidden="true">★</i>{m.ratings.work}<span className={styles.srOnly}>{(uk?' кар’єра з 5':' career out of 5')}</span></span>
+       <span title={uk?'Гроші':'Money'}><i aria-hidden="true">₴</i>{m.ratings.money}<span className={styles.srOnly}>{(uk?' гроші з 5':' money out of 5')}</span></span>
+      </span>
+     </div>
+     <b className={styles.monthTitle}>{m.title[locale]}</b>
+     <p>{m.text[locale]}</p>
+     {m.events.length>0&&<ul>{m.events.map(e=><li key={e.en}>{e[locale]}</li>)}</ul>}
+    </li>)}
+   </ol>
+   <p className={styles.legendLine}>{uk?'Оцінки місяця з п’яти: ♥ кохання, ★ кар’єра, ₴ гроші.':'Month ratings out of five: ♥ love, ★ career, ₴ money.'}</p>
+  </section>
+  <div className={styles.shareRow}><ShareTools locale={locale} title={(uk?sign.uk+': гороскоп на ':sign.en+': horoscope for ')+y.year} path={signPath(locale,system,sign.slug,'year')}/></div>
  </>;
 }
 
@@ -107,7 +185,7 @@ function MonthView({p,locale,system,today}:{p:PeriodReading;locale:HoroLocale;sy
  </>;
 }
 
-export default function SignPage({locale,system,sign,period,today,day,range}:{locale:HoroLocale;system:HoroSystem;sign:SignInfo;period:HoroPeriod;today:string;day:DayReading|null;range:PeriodReading|null}){
+export default function SignPage({locale,system,sign,period,today,day,range,year=null}:{locale:HoroLocale;system:HoroSystem;sign:SignInfo;period:HoroPeriod;year?:YearReading|null;today:string;day:DayReading|null;range:PeriodReading|null}){
  const uk=locale==='uk',name=uk?sign.uk:sign.en;
  const guide=MOON_SIGN_GUIDES.find(g=>g.slug===sign.slug);
  const other:HoroSystem=system==='western'?'vedic':'western';
@@ -134,11 +212,12 @@ export default function SignPage({locale,system,sign,period,today,day,range}:{lo
     <SystemSwitch locale={locale} system={system} hrefs={{western:signPath(locale,'western',sign.slug,period),vedic:signPath(locale,'vedic',sign.slug,period)}}/>
    </header>
    <nav className={styles.tabs} aria-label={uk?'Період прогнозу':'Forecast period'}>
-    {(['today','tomorrow','week','month'] as HoroPeriod[]).map(p=><Link key={p} className={styles.tab} href={signPath(locale,system,sign.slug,p)} aria-current={p===period?'page':undefined}>{PERIOD_LABEL[p][locale]}</Link>)}
+    {(['today','tomorrow','week','month','year'] as HoroPeriod[]).map(p=><Link key={p} className={styles.tab} href={signPath(locale,system,sign.slug,p)} aria-current={p===period?'page':undefined}>{PERIOD_LABEL[p][locale]}</Link>)}
    </nav>
    <div className={styles.cols}>
     <div className={styles.main}>
      {(period==='today'||period==='tomorrow')&&(day?<DayView d={day} locale={locale} system={system}/>:<p className={styles.error}>{uk?'Розрахунок тимчасово недоступний. Спробуйте оновити сторінку.':'The calculation is temporarily unavailable. Please refresh.'}</p>)}
+     {period==='year'&&(year?<YearView y={year} locale={locale} system={system} sign={sign}/>:<p className={styles.error}>{uk?'Річний прогноз зараз розраховується. Оновіть сторінку за хвилину.':'The yearly forecast is being calculated. Refresh in a minute.'}</p>)}
      {period==='week'&&(range?<WeekView p={range} locale={locale} system={system} today={today}/>:<p className={styles.error}>{uk?'Розрахунок тимчасово недоступний.':'Temporarily unavailable.'}</p>)}
      {period==='month'&&(range?<MonthView p={range} locale={locale} system={system} today={today}/>:<p className={styles.error}>{uk?'Розрахунок тимчасово недоступний.':'Temporarily unavailable.'}</p>)}
      <section className={styles.panel} style={{marginTop:8}}>

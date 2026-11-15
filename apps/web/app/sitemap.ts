@@ -5,6 +5,7 @@ import {ACADEMY_LESSONS} from '../lib/academy-content';
 import {PEDIA_ARTICLES,PEDIA_CATEGORIES} from '../lib/pedia-content';
 import {MOON_SIGN_GUIDES} from '../lib/moon-sign-guides';
 import {ALL_PAIRS} from '../lib/compatibility';
+import {HORO_YEAR} from '../lib/horoscope-signs';
 import {TAROT_LIBRARY} from '../lib/tarot-meanings';
 import {PANCHANGA_CITIES} from '../lib/panchanga-cities';
 import {NAKSHATRA_GUIDES} from '../lib/nakshatra-guides';
@@ -19,7 +20,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
   fetchNewsFeed({locale:'uk',scope:'own',limit:48,sort:'latest'}),fetchNewsFeed({locale:'en',scope:'own',limit:48,sort:'latest'})]);
  // Horoscopes v3: every sign × period in both systems, the hubs, Star Passport and the 78 compatibility pairs.
  const allPages=[...new Set([...SEO_PATHS,'horoscope/vedic','horoscope/my-sign',
-  ...MOON_SIGN_GUIDES.flatMap(s=>['','/tomorrow','/week','/month'].flatMap(p=>['horoscope/'+s.slug+p,'horoscope/vedic/'+s.slug+p])),
+  ...MOON_SIGN_GUIDES.flatMap(s=>['','/tomorrow','/week','/month','/'+HORO_YEAR].flatMap(p=>['horoscope/'+s.slug+p,'horoscope/vedic/'+s.slug+p])),
   'horoscope/compatibility',...ALL_PAIRS.map(p=>'horoscope/compatibility/'+p.slug),
   ...YOGA_PRACTICES.map(p=>'yoga/'+p.slug),...ACADEMY_LESSONS.map(l=>'pedia/'+l.slug),...PEDIA_ARTICLES.map(a=>'pedia/'+a.slug),
   ...PEDIA_CATEGORIES.map(c=>'pedia/topic/'+c.id),

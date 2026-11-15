@@ -165,7 +165,9 @@ modules:
     compatibility: "phase 2: /{locale}/horoscope/compatibility (picker, 12x12 table, 36-guna calculator) and 78 SSR pair pages /{locale}/horoscope/compatibility/{a}-{b} (reverse order 308-redirects); apps/web/lib/compatibility.ts + compatibility-texts.ts; POST /api/v1/horoscope/v3/match (no-store, nothing stored)"
     ashtakoota: "packages/jyotish-core/src/ashtakoota.ts — pure Varna/Vashya/Tara/Yoni/Graha Maitri/Gana/Bhakoot/Nadi tables (version ashtakoota-mc-v1); without roles both orientations are averaged; tests packages/jyotish-core/src/ashtakoota.test.ts"
     tests: "tools/horoscope-v3.test.mjs (run via test:horoscope-basis); packages/jyotish-core/src/ashtakoota.test.ts (npm test); tools/gsc-coverage-recovery.test.mjs"
-    next: "phase 3 yearly 2027 per sign and share images"
+    yearly: "phase 3: /{locale}/horoscope[/vedic]/{sign}/2027 (HORO_YEAR in apps/web/lib/horoscope-signs.ts); engine apps/api/src/horoscope-year.ts (Jupiter/Saturn/Vedic Rahu stays by day bisection, Sade Sati/Ashtama/Kantaka from the Moon sign, monthly Gochara ratings without the Moon, stations from astronomical-events, NASA eclipse list YEAR_ECLIPSES); GET /api/v1/horoscope/v3/year; texts horoscope-year-texts.ts"
+    share_images: "opengraph-image.tsx for sign, period/year, vedic, compatibility hub and pair pages via apps/web/lib/og-cards.tsx; fonts apps/web/assets/og (Inter subset OFL, DejaVu zodiac subset) because next/og default font lacks Cyrillic"
+    next: "add YEAR_ECLIPSES[2028] and bump HORO_YEAR each autumn"
   news_multilingual_nmt:
     status: "candidate: script-aware Hindi/Latin UK/EN translation, strict numbers, bounded Azure reservations and six-attempt quarantine"
     source_plan: "apps/api/src/news-headline-nmt-plan.ts"

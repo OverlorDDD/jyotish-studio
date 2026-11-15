@@ -7,6 +7,7 @@ import {SIGNS,glyph,signPath,type HoroLocale,type SignInfo} from '../../../lib/h
 import {bandLabel,compatPath,pairContent,pairSlug,westernScores,type Pair} from '../../../lib/compatibility';
 import {BHAKOOT_NOTE,LOVE_STYLE} from '../../../lib/compatibility-texts';
 import {publicIndexingEnabled,publicSiteOrigin} from '../../../lib/site-indexing';
+import ShareTools from '../ShareTools';
 
 const PLANET_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн'};
 export function pairTitle(p:Pair,locale:HoroLocale){
@@ -98,6 +99,7 @@ export default function PairPage({locale,pair}:{locale:HoroLocale;pair:Pair}){
      <section className={styles.panel} style={{marginBottom:22}}>
       <h2>{uk?'Порада парі':'Advice for the couple'}</h2>
       <p>{c.aspect.advice[locale]}</p>
+      <div className={styles.shareRow}><ShareTools locale={locale} title={title+' — '+w.overall+'%'} path={compatPath(locale,pair.slug)}/></div>
      </section>
 
      <section className={styles.vedicCard} aria-labelledby="pair-vedic">

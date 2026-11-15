@@ -1,0 +1,80 @@
+/** Original UK/EN texts for the yearly sign horoscope (polite «ви» voice).
+ * Houses are whole-sign houses counted from the reader's sign. */
+type L={uk:string;en:string};
+const l=(uk:string,en:string):L=>({uk,en});
+type T={title:L;text:L};
+const t=(tu:string,te:string,u:string,e:string):T=>({title:l(tu,te),text:l(u,e)});
+
+/** Jupiter's house sets the theme of growth for the year. */
+export const JUPITER_HOUSE:T[]=[
+ t('Рік особистого зростання','A year of personal growth','Юпітер у вашому знаку додає впевненості й відкриває двері: вас помічають, кличуть, пропонують. Беріть ініціативу, але стежте, щоб щедрість до себе не перетворилася на зайву вагу чи надмірні обіцянки.','Jupiter in your sign brings confidence and opens doors: people notice you, invite you, make offers. Take the initiative, but don’t let generosity towards yourself turn into extra weight or too many promises.'),
+ t('Рік грошей і цінностей','A year of money and values','Юпітер проходить ваш дім грошей. Дохід може зрости, а покупки для дому й родини — вдатися. Це гарний рік, щоб відкласти запас і вкластися в те, що справді для вас цінне.','Jupiter crosses your money house. Income can grow and purchases for home and family go well. A good year to build savings and invest in what truly matters to you.'),
+ t('Рік сміливих кроків','A year of bold steps','Юпітер у домі спілкування й ініціативи. Навчання, курси, поїздки, нові знайомства й власні маленькі проєкти — усе вимагає зусиль, але ці зусилля окупаються. Більше пишіть, говоріть і пробуйте.','Jupiter in your house of communication and initiative. Courses, trips, new contacts and small projects of your own all take effort, but the effort pays off. Write, speak and try more.'),
+ t('Рік дому й коріння','A year of home and roots','Юпітер у домі родини. Переїзд, ремонт, купівля житла або просто більше часу з рідними. Класично цей транзит вимагає терпіння: усе, що будуєте зараз, — надовго.','Jupiter in your house of family. A move, renovation, buying a home or simply more time with loved ones. Classically this transit asks for patience: what you build now is built to last.'),
+ t('Рік кохання й творчості','A year of love and creativity','Один із найщасливіших транзитів: Юпітер у домі кохання, дітей і творчості. Романтика, натхнення, хобі, що приносять радість, удача в навчанні. Дозвольте собі грати й радіти.','One of the happiest transits: Jupiter in your house of love, children and creativity. Romance, inspiration, joyful hobbies, luck in studies. Let yourself play and enjoy.'),
+ t('Рік роботи й здоров’я','A year of work and health','Юпітер у домі щоденних справ. Обов’язків побільшає, зате сумлінність помітять. Гарний рік, щоб навести лад у режимі, харчуванні й робочих процесах, — і не позичати без потреби.','Jupiter in your house of daily work. Duties increase, but your diligence gets noticed. A good year to sort out routine, diet and work processes — and to avoid unnecessary borrowing.'),
+ t('Рік партнерства','A year of partnership','Юпітер у домі шлюбу й союзів — класично сприятлива позиція. Стосунки міцніють, з’являються вигідні партнери й договори. Якщо думали про весілля чи спільну справу, зірки на вашому боці.','Jupiter in your house of marriage and alliances — a classically favourable position. Relationships deepen; good partners and contracts appear. If you have been thinking of a wedding or a joint venture, the stars are with you.'),
+ t('Рік глибоких змін','A year of deep change','Юпітер у восьмому домі: спільні гроші, кредити, спадок, психологія. Рік для внутрішньої роботи й переосмислення. Будьте обережні з ризиковими вкладеннями й бережіть сили.','Jupiter in your eighth house: shared money, loans, inheritance, psychology. A year for inner work and rethinking. Be careful with risky investments and save your strength.'),
+ t('Рік удачі й нових горизонтів','A year of luck and new horizons','Юпітер у дев’ятому домі — традиційний дім удачі. Подорожі, навчання, наставники, віра в себе. Плануйте великі цілі: світ стає ширшим, а правильні люди трапляються вчасно.','Jupiter in your ninth house — the traditional house of fortune. Travel, study, mentors, faith in yourself. Aim high: the world widens and the right people appear on time.'),
+ t('Рік кар’єри','A year of career','Юпітер у домі кар’єри робить вас помітним, але класично вимагає праці: нова посада чи статус приходять разом із відповідальністю. Не жертвуйте домом заради роботи.','Jupiter in your career house makes you visible, but classically demands work: a new role or status comes with responsibility. Don’t sacrifice home life for the job.'),
+ t('Рік здійснення бажань','A year of wishes fulfilled','Юпітер в одинадцятому домі — один із найкращих транзитів року. Доходи, підтримка друзів, корисні знайомства й здійснення давніх мрій. Кажіть, чого хочете, — вас почують.','Jupiter in your eleventh house — one of the best transits of all. Income, support from friends, useful connections and long-held wishes coming true. Say what you want — you will be heard.'),
+ t('Рік відпочинку й підсумків','A year of rest and reflection','Юпітер у дванадцятому домі завершує цикл. Більше витрат — на подорожі, добрі справи, близьких. Рік для відпочинку, духовних практик і підготовки до нового старту.','Jupiter in your twelfth house closes a cycle. More spending — on travel, good causes, loved ones. A year for rest, spiritual practice and preparing a fresh start.')
+];
+
+/** Saturn's house names the lesson of the year. */
+export const SATURN_HOUSE:T[]=[
+ t('Випробування витримки','A test of endurance','Сатурн у вашому знаку вимагає дисципліни й відповідальності за себе. Можлива втома, тож режим сну й рух — не розкіш, а опора. Те, що збудуєте зараз, триматиметься роками.','Saturn in your sign asks for discipline and responsibility for yourself. Fatigue is possible, so sleep and movement are not a luxury but a support. What you build now will last for years.'),
+ t('Дисципліна в грошах','Discipline with money','Сатурн у домі фінансів. Бюджет, план витрат і відмова від імпульсивних покупок допоможуть пройти рік спокійно. Обережні слова зберігають стосунки в родині.','Saturn in your money house. A budget, a spending plan and fewer impulse buys will see you through calmly. Careful words keep family relations intact.'),
+ t('Наполегливість окупається','Persistence pays off','Сатурн у третьому домі — класично сприятливий. Регулярні зусилля приносять відчутний результат, сміливість зростає, а навички стають професією.','Saturn in your third house is classically favourable. Regular effort brings tangible results, courage grows and skills become a profession.'),
+ t('Дім потребує уваги','Home needs attention','Сатурн у домі родини: ремонт, турбота про старших, перегляд житлових планів. Можливе відчуття тиску вдома — знайдіть свій тихий куток і не відкладайте важливі розмови.','Saturn in your house of family: renovation, caring for elders, rethinking where you live. Home may feel heavy — find a quiet corner and don’t postpone important talks.'),
+ t('Серйозне ставлення до кохання','Taking love seriously','Сатурн у домі романтики й дітей. Менше легковажних захоплень, більше зрілості. Творчі проєкти вимагають праці, зате стають справжніми.','Saturn in your house of romance and children. Fewer light flings, more maturity. Creative projects take work but become real.'),
+ t('Перемога через порядок','Victory through order','Сатурн у шостому домі — сприятливий транзит. Ви переграєте конкурентів системністю, наведете лад у здоров’ї й робочих справах. Чудовий рік для звичок, що змінюють життя.','Saturn in your sixth house is a favourable transit. You outplay rivals through method and put health and work in order. A great year for life-changing habits.'),
+ t('Перевірка стосунків','Relationships tested','Сатурн у сьомому домі перевіряє партнерства на зрілість. Міцні стосунки стануть ще міцнішими, випадкові — відпадуть. Підписуйте договори уважно.','Saturn in your seventh house tests partnerships for maturity. Strong bonds grow stronger, casual ones fall away. Read contracts carefully.'),
+ t('Обережність і глибина','Caution and depth','Сатурн у восьмому домі закликає до обережності: ризики, борги, здоров’я, спільні фінанси. Це рік глибокої трансформації — рухайтеся повільно й впевнено.','Saturn in your eighth house calls for caution: risks, debts, health, shared money. A year of deep transformation — move slowly and surely.'),
+ t('Перегляд переконань','Rethinking beliefs','Сатурн у дев’ятому домі: навчання вимагає праці, поїздки — переважно у справах, а погляди на життя дорослішають. Шукайте наставника, якому довіряєте.','Saturn in your ninth house: study takes effort, travel is mostly for work and your outlook matures. Look for a mentor you trust.'),
+ t('Кар’єра як марафон','Career as a marathon','Сатурн у домі кар’єри. Робота важка, відповідальність велика, але зростання — справжнє й надовго. Будьте послідовні: результат накопичується.','Saturn in your career house. The work is hard and the responsibility great, but the growth is real and lasting. Be consistent: results accumulate.'),
+ t('Плоди довгої праці','The fruit of long effort','Сатурн в одинадцятому домі — сприятливий. Стабільні доходи, вірні друзі, плоди довгострокових зусиль. Добрий рік для великих цілей, розрахованих на роки.','Saturn in your eleventh house is favourable. Steady income, loyal friends and the fruit of long-term effort. A good year for big goals that take years.'),
+ t('Завершення циклу','Closing a cycle','Сатурн у дванадцятому домі підбиває підсумки: витрати, втома, потреба в тиші. Відпускайте зайве, більше відпочивайте й не беріть нових великих зобов’язань без запасу сил.','Saturn in your twelfth house sums things up: expenses, fatigue, a need for quiet. Let go of what you don’t need, rest more and don’t take on big new commitments without reserves.')
+];
+
+/** Vedic only: Rahu's house — where desire and the unusual pull this year. */
+export const RAHU_HOUSE:L[]=[
+ l('Раху у вашому знаку штовхає до змін іміджу й нових ролей. Бажання бути іншим сильне — головне не загубити себе.','Rahu in your sign pushes for a new image and new roles. The urge to be different is strong — just don’t lose yourself.'),
+ l('Раху в домі грошей: нестандартні джерела доходу, але й спокуса ризикувати. Перевіряйте кожну пропозицію.','Rahu in your money house: unusual income sources but also a temptation to gamble. Check every offer.'),
+ l('Раху в третьому домі — сприятливий: сміливість, медіа, техніка, швидкі успіхи в нових навичках.','Rahu in your third house is favourable: courage, media, technology, quick success with new skills.'),
+ l('Раху в домі родини приносить неспокій: переїзди, зміни вдома. Бережіть внутрішню рівновагу.','Rahu in your house of family brings restlessness: moves, changes at home. Guard your inner balance.'),
+ l('Раху в п’ятому домі: сильні захоплення, ризикові інвестиції й азарт. Насолоджуйтеся, але з холодною головою.','Rahu in your fifth house: strong infatuations, risky investments and thrill-seeking. Enjoy it, with a cool head.'),
+ l('Раху в шостому домі — сприятливий: ви сильніші за конкурентів і перешкоди, роботу знаходите там, де інші не шукають.','Rahu in your sixth house is favourable: you are stronger than rivals and obstacles, and find work where others don’t look.'),
+ l('Раху в сьомому домі приводить незвичних партнерів — з іншої культури чи світу. Захопливо, але домовляйтеся чітко.','Rahu in your seventh house brings unusual partners — from another culture or world. Exciting, but agree on terms clearly.'),
+ l('Раху у восьмому домі: раптові зміни й таємниці. Обережність з фінансовими ризиками й здоров’ям.','Rahu in your eighth house: sudden changes and secrets. Be careful with financial risks and health.'),
+ l('Раху в дев’ятому домі: нестандартні погляди, далекі подорожі, нові вчителі. Перевіряйте гуру на справжність.','Rahu in your ninth house: unconventional views, long journeys, new teachers. Check gurus for authenticity.'),
+ l('Раху в домі кар’єри дає амбіції й шанс на швидкий ривок. Діяти сміливо, але чесно.','Rahu in your career house brings ambition and a chance for a quick leap. Act boldly, but honestly.'),
+ l('Раху в одинадцятому домі — один із найкращих: великі здобутки через знайомства, мережу й технології.','Rahu in your eleventh house is among the best: big gains through contacts, networks and technology.'),
+ l('Раху в дванадцятому домі: закордон, витрати, яскраві сни. Добре для поїздок і духовних практик, гірше — для сну й бюджету.','Rahu in your twelfth house: abroad, expenses, vivid dreams. Good for travel and spiritual practice, harder on sleep and budget.')
+];
+
+/** Vedic Saturn phases from the Moon sign. */
+export const SATURN_PHASE:Record<'sadeSati1'|'sadeSati2'|'sadeSati3'|'ashtama'|'kantaka',T>={
+ sadeSati1:t('Саде Саті: перша фаза','Sade Sati: first phase','Сатурн у дванадцятому домі від вашого знака Місяця — початок семирічного періоду Саде Саті. Традиція радить спрощувати життя, берегти сон і не роздувати витрати.','Saturn in the twelfth house from your Moon sign begins the seven-and-a-half-year Sade Sati. Tradition advises simplifying life, protecting sleep and keeping expenses down.'),
+ sadeSati2:t('Саде Саті: середня фаза','Sade Sati: peak phase','Сатурн над вашим Місяцем — найвідчутніша частина Саде Саті. Емоційна витривалість, відповідальність і повільні впевнені кроки. Це час дорослішання, а не покарання.','Saturn over your Moon — the most intense part of Sade Sati. Emotional stamina, responsibility and slow sure steps. A time of maturing, not punishment.'),
+ sadeSati3:t('Саде Саті: завершення','Sade Sati: final phase','Сатурн у другому домі від Місяця — остання фаза Саде Саті. Тиск слабшає; приділіть увагу фінансам, мові й родині — і збирайте уроки минулих років.','Saturn in the second house from the Moon — the final phase of Sade Sati. Pressure eases; tend to money, speech and family — and gather the lessons of recent years.'),
+ ashtama:t('Аштама Шані','Ashtama Shani','Сатурн у восьмому домі від вашого знака Місяця. Традиція вважає цей період одним із найвимогливіших: бережіть здоров’я, уникайте ризиків і великих позик.','Saturn in the eighth house from your Moon sign. Tradition counts this among the most demanding periods: protect your health and avoid risks and big loans.'),
+ kantaka:t('Кантака Шані','Kantaka Shani','Сатурн у четвертому домі від вашого знака Місяця: тиск удома, у справах із житлом і на емоційний спокій. Допомагають тиша, природа й порядок.','Saturn in the fourth house from your Moon sign: pressure at home, with housing and on emotional peace. Quiet, nature and order help.')
+};
+
+/** Short monthly titles from the Sun's house. */
+export const MONTH_TITLE:L[]=[
+ l('Ваш особистий новий рік','Your personal new year'),l('Гроші й цінності','Money and values'),l('Розмови й поїздки','Talks and trips'),
+ l('Дім і коріння','Home and roots'),l('Кохання й творчість','Love and creativity'),l('Робота й здоров’я','Work and health'),
+ l('Партнерство','Partnership'),l('Глибина й спільні ресурси','Depth and shared resources'),l('Горизонти й навчання','Horizons and learning'),
+ l('Кар’єра на виду','Career in the spotlight'),l('Друзі й мрії','Friends and dreams'),l('Відпочинок і підсумки','Rest and reflection')
+];
+
+/** Retrograde advice by planet. */
+export const RETRO_ADVICE:Record<string,L>={
+ Mercury:l('перевіряйте документи, домовленості й техніку; добре повертатися до старих справ','double-check documents, agreements and devices; good for revisiting old matters'),
+ Venus:l('не поспішайте з новими стосунками, великими покупками й зміною іміджу','don’t rush into new relationships, big purchases or a makeover'),
+ Mars:l('енергія йде всередину: доробляйте почате, а не розпочинайте нове','energy turns inward: finish what you started rather than starting new things'),
+ Jupiter:l('час переглянути плани зростання й навчання','time to review plans for growth and study'),
+ Saturn:l('час переглянути обов’язки й довгострокові цілі','time to review duties and long-term goals')
+};
