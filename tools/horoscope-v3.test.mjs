@@ -268,6 +268,7 @@ test('Profile: private endpoints read only the owner’s charts and never take b
  assert.match(api,/chart\.findFirst\(\{where:\{id,ownerId:uid\}/,'charts are looked up by owner');
  const helper=source('apps/web/lib/my-signs.ts');
  assert.match(helper,/r\.status===401/);
+ assert.match(helper,/await r\.text\(\)/,'non-OK bodies are drained');
  assert.doesNotMatch(helper,/localStorage/);
  const passport=source('apps/web/app/components/horoscope/Passport.tsx');
  assert.match(passport,/loadMySigns\(\)/);

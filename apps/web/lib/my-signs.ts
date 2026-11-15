@@ -13,8 +13,13 @@ export function loadMySigns():Promise<MySigns|null>{
  try{if(Number(sessionStorage.getItem(ANON_KEY)||0)>Date.now())return Promise.resolve(null);}catch{/* storage blocked */}
  pending=fetch('/api/v1/personal/horoscope/signs',{credentials:'same-origin',cache:'no-store'})
   .then(async r=>{
-   if(r.status===401){try{sessionStorage.setItem(ANON_KEY,String(Date.now()+5*60*1000));}catch{/* ignore */}return null;}
-   return r.ok?await r.json() as MySigns:null;
+   // Always drain the body: an unread 401 body keeps the request open in the browser.
+   if(!r.ok){
+    await r.text().catch(()=>'');
+    if(r.status===401){try{sessionStorage.setItem(ANON_KEY,String(Date.now()+5*60*1000));}catch{/* ignore */}}
+    return null;
+   }
+   return await r.json() as MySigns;
   }).catch(()=>null);
  return pending;
 }
