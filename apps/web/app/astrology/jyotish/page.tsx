@@ -219,17 +219,17 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     {!chart&&<><section className={landing.hero} aria-labelledby="natal-page-title">
      <div className={landing.heroCopy}>
       <div className={landing.eyebrow}>{lang==='uk'?'ВЕДИЧНА НАТАЛЬНА КАРТА · БЕЗКОШТОВНО':'FREE VEDIC BIRTH CHART · JYOTISH'}</div>
-      <h1 id="natal-page-title">{lang==='uk'?'16 карт життя. Досліди свої сильні й слабкі сторони.':'16 life charts. Explore your strengths and blind spots.'}</h1>
+      <h1 id="natal-page-title">{lang==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш':'Free Vedic Birth Chart Calculator'}</h1>
       <p className={landing.lead}>{lang==='uk'?
-       'У чому твої природні здібності? Що може тебе стримувати? Як традиція Джйотіш пояснює стосунки, кар’єру та розвиток? Побудуй натальні карти за датою, часом і містом народження й порівняй усі 16 сфер життя.':
-       'What comes naturally to you? Which patterns may hold you back? Explore how Jyotish interprets strengths, relationships, career and personal growth through 16 Vedic birth charts.'}</p>
+       'Побудуй безкоштовну ведичну карту за датою, точним місцевим часом і містом народження. Порівняй D1 (Раші), D9 (Навамша), D10 (кар’єра) та всі 16 карт Шодашаварги. Для D60 враховуй особливу чутливість до часу народження.':
+       'Calculate your free Kundli from your birth date, exact local time and city. Compare D1 (Rashi), D9 (Navamsa), D10 (career) and all 16 Shodashavarga charts. D60 has special birth-time sensitivity limits.'}</p>
       <div className={landing.chips}>
        <span>{lang==='uk'?'Сильні сторони й виклики':'Strengths & challenges'}</span>
        <span>{lang==='uk'?'Стосунки та кар’єра':'Relationships & career'}</span>
        <span>{lang==='uk'?'16 карт · без реєстрації':'16 charts · no signup'}</span>
       </div>
       <div className={landing.heroActions}>
-       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Створити мої 16 карт життя':'Create my 16 life charts'} <ArrowUpRight size={18}/></a>
+       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Розрахувати натальну карту безкоштовно':'Calculate my free birth chart'} <ArrowUpRight size={18}/></a>
        <a className={landing.heroSecondary} href="#varga-explorer">{lang==='uk'?'Дослідити всі карти':'Explore all 16 charts'}</a>
       </div>
       <small className={landing.miniDisclaimer}>{lang==='uk'?'Трактування традиції Джйотіш, а не психологічний діагноз. Астрономічний розрахунок: Swiss Ephemeris.':
