@@ -51,7 +51,7 @@ test('Localized search metadata includes Galaxiora without duplicating default s
  const sections=read('apps/web/app/[locale]/[section]/page.tsx');
  assert.ok(sections.includes('moduleTitle(section)'));
  const vedic=read('apps/web/app/[locale]/astrology/jyotish/page.tsx');
- assert.ok(vedic.includes('Free Vedic Birth Chart (16 Charts) | Galaxiora'));
+ assert.ok(vedic.includes('Free Vedic Birth Chart Calculator (16 Charts) | Galaxiora'));
  assert.ok(vedic.includes('Натальна карта Джйотіш — 16 карт | Galaxiora'));
  assert.ok(!vedic.includes("moduleTitle('jyotish')"),'metadata title must not append a second brand suffix');
 });
