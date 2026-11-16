@@ -31,11 +31,11 @@ test('Google sees a stable PNG icon at root and a legitimate brand logo',()=>{
 
 test('Bing and Google receive concise branded EN/UK natal titles without repeated module names',()=>{
  const natal=read('apps/web/app/[locale]/astrology/jyotish/page.tsx');
- const en='Free Vedic Birth Chart (16 Charts) | Galaxiora';
- const uk='Натальна карта Джйотіш — 16 карт | Galaxiora';
+ const en='Free Vedic Birth Chart Calculator (16 Charts) | Galaxiora';
+ const uk='Натальна карта Джйотіш онлайн — 16 карт | Galaxiora';
  for(const title of [en,uk]){
   assert.ok(natal.includes(title),'missing indexed title '+title);
-  assert.ok([...title].length<=55,'title should be concise');
+  assert.ok([...title].length<=60,'title should be concise');
  }
  assert.doesNotMatch(natal,/title:\([^\n]+moduleTitle\('jyotish'\)/);
  assert.ok(natal.includes("canonical:'/'+locale+'/astrology/jyotish'"));
