@@ -4,6 +4,8 @@ for(const lang of ['en','uk']){
   await page.goto('/'+lang+'/astrology/jyotish');
   await expect(page.getByRole('heading',{level:1})).toHaveCount(1);
   await expect(page.getByRole('heading',{level:1})).toContainText(lang==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш':'Free Vedic Birth Chart Calculator',{ignoreCase:true});
+  // The search promise must be visibly explained, not merely placed in hidden metadata.
+  await expect(page.getByText(lang==='uk'?'Побудуй безкоштовну ведичну карту':'Calculate your free Kundli',{exact:false})).toBeVisible();
   await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href',new RegExp('/'+lang+'/astrology/jyotish$'));
   await expect(page.locator('meta[name=description]')).toHaveAttribute('content',/16|birth chart|натальн/);
   await expect(page.getByRole('link',{name:lang==='uk'?'Розрахувати натальну карту безкоштовно':'Calculate my free birth chart'})).toHaveAttribute('href','#birth-details');
