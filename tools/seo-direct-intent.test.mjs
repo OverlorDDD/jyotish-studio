@@ -13,8 +13,8 @@ test('Intent-specific Tarot and natal pages have distinct UK/EN metadata and can
  assert.match(section,/без реєстрації/);
  assert.match(section,/alternates:\{canonical:'\/'\+locale\+'\/'\+section/);
  assert.match(section,/'x-default':'\/en\/'\+section/);
- assert.ok(natal.includes('Натальна карта Джйотіш — 16 карт | Galaxiora'));
- assert.ok(natal.includes('Free Vedic Birth Chart (16 Charts) | Galaxiora'));
+ assert.ok(natal.includes('Натальна карта Джйотіш онлайн — 16 карт | Galaxiora'));
+ assert.ok(natal.includes('Free Vedic Birth Chart Calculator (16 Charts) | Galaxiora'));
  assert.match(natal,/canonical:'\/'\+locale\+'\/astrology\/jyotish'/);
  assert.match(natal,/'x-default':'\/en\/astrology\/jyotish'/);
 });
