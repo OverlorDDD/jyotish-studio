@@ -8,7 +8,7 @@ import Link from 'next/link';
 import OrganicIntentBridge from '../../../components/OrganicIntentBridge';
 import SiteSectionsHub from '../../../components/SiteSectionsHub';
 import {BRAND,isPortalLocale} from '../../../../lib/brand';
-import {indexRobots,publicSiteOrigin} from '../../../../lib/site-indexing';
+import {indexRobots,publicSiteOrigin,publicIndexingEnabled} from '../../../../lib/site-indexing';
 
 export const dynamicParams=false;
 export function generateStaticParams(){return BRAND.locales.map(locale=>({locale}));}
@@ -29,7 +29,7 @@ export default async function JyotishPage({params}:{params:Promise<{locale:strin
  if(!isPortalLocale(locale))notFound();
  // Public WebApplication markup: factual free-tool features, never invented reviews.
  // It is suppressed automatically for preview or noindex origins.
- const origin=publicSiteOrigin();
+ const origin=publicIndexingEnabled()?publicSiteOrigin():null;
  const schema=origin?{
   '@context':'https://schema.org','@type':'WebApplication',
   name:locale==='uk'?'Калькулятор натальної карти Джйотіш Galaxiora':'Galaxiora Vedic Birth Chart Calculator',
