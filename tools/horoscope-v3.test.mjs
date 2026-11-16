@@ -245,3 +245,46 @@ test('Year: 2027 from real Swiss ephemeris',{timeout:240000},async t=>{
  assert.ok(ved.saturnPhase.some(p=>p.key.startsWith('sadeSati')),'Aries Moon is in Sade Sati');
  assert.ok(ved.months.some(m=>m.events.length>0),'stations and eclipses are listed');
 });
+
+/* ---------- Profile: saved natal chart feeds the public tools ---------- */
+import {composeMatch,personFromChart} from '../apps/api/src/horoscope-v3.ts';
+
+test('Profile: a saved chart becomes an exact match person (no birth details needed)',()=>{
+ // 291° sidereal = 21° Capricorn → Shravana (280°–293°20′).
+ const p=personFromChart({westernSunSign:8,vedicSunSign:7,moonLongitude:291});
+ assert.equal(p.moonSign,10);
+ assert.equal(p.nakshatra.name,'Shravana');
+ assert.equal(p.exact,true);
+ assert.equal(p.fromProfile,true);
+ const r=composeMatch(p,personFromChart({westernSunSign:4,vedicSunSign:3,moonLongitude:291}));
+ assert.equal(r.ashtakoota.total,28,'identical Moons');
+ assert.equal('point' in r.a,false,'internal Moon point is not returned');
+});
+
+test('Profile: private endpoints read only the owner’s charts and never take birth data from storage',()=>{
+ const api=source('apps/api/src/personal.ts');
+ assert.match(api,/@Get\('horoscope\/signs'\) @Header\('Cache-Control','private, no-store'\)/);
+ assert.match(api,/@Post\('horoscope\/match'\)[\s\S]{0,200}const uid=mutation\(req\)/,'same-origin check on the POST');
+ assert.match(api,/chart\.findFirst\(\{where:\{id,ownerId:uid\}/,'charts are looked up by owner');
+ const helper=source('apps/web/lib/my-signs.ts');
+ assert.match(helper,/r\.status===401/);
+ assert.match(helper,/await r\.text\(\)/,'non-OK bodies are drained');
+ assert.doesNotMatch(helper,/localStorage/);
+ const passport=source('apps/web/app/components/horoscope/Passport.tsx');
+ assert.match(passport,/loadMySigns\(\)/);
+ assert.doesNotMatch(passport,/setItem\(LAST,JSON\.stringify\(\{[^}]*\bdate\b/,'only derived signs are remembered');
+ const match=source('apps/web/app/components/horoscope/CoupleMatch.tsx');
+ assert.match(match,/\/api\/v1\/personal\/horoscope\/match/);
+ assert.match(match,/chartId:x\.chartId/);
+ const mySign=source('apps/web/app/components/horoscope/MySign.tsx');
+ assert.match(mySign,/loadMySigns\(\)/);
+});
+
+test('Profile: the Jyotish calculator opens the saved chart unless ?new is asked',()=>{
+ const page=source('apps/web/app/astrology/jyotish/page.tsx');
+ assert.match(page,/loadMySigns\(\)/);
+ assert.match(page,/has\('new'\)/);
+ assert.match(page,/\/api\/v1\/account\/charts\/'\+encodeURIComponent\(own\.id\)/);
+ assert.match(page,/readingRequestId\.current!==0/,'a calculation the visitor started is never replaced');
+ assert.match(page,/startNewChart/);
+});

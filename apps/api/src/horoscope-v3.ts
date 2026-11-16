@@ -10,7 +10,7 @@ import {astronomicalEventsWindow} from './astronomical-events.ts';
 import {createVerifiedSiderealPlanetAt} from './panchanga.ts';
 import {skyHeadline} from './news-astronomy.ts';
 import {localToUTC,nakshatraOf,signIndex} from '../../../packages/jyotish-core/src/index.ts';
-import {ashtakoota,gunaBand,type Roles} from '../../../packages/jyotish-core/src/ashtakoota.ts';
+import {ashtakoota,gunaBand,type MoonPoint,type Roles} from '../../../packages/jyotish-core/src/ashtakoota.ts';
 import {MOON_HOUSE,LOVE_BY_HOUSE,WORK_BY_HOUSE,MONEY_BY_HOUSE,HEALTH_BY_HOUSE,BAND,PHASE,SUN_HOUSE,WEEKDAY,
  HOUSE_SPHERE,PLANET_NAME,type L} from './horoscope-v3-texts.ts';
 
@@ -161,7 +161,7 @@ export async function periodReading(system:System,sign:number,start:string,days:
    phase:d.moon.phase,chandrashtama:d.chandrashtama,events:d.events}))};
 }
 
-type Birth={date:string;time?:string;zone?:string};
+export type Birth={date:string;time?:string;zone?:string};
 /** One birth moment: tropical Sun, sidereal Sun and Moon (Lahiri). Without a
  * time we use local noon and report the Moon sign/nakshatra range of that day. */
 async function birthSky(input:Birth){
@@ -198,20 +198,33 @@ export async function passport(input:Birth){
 /** Couple matching: Western Sun signs plus the classical Ashtakoota (36 gunas)
  * from both sidereal Moons. Without a birth time the day's Moon may span two
  * nakshatras; the result is then marked approximate. Nothing is stored. */
-export async function matchCouple(input:{a:Birth;b:Birth;roles?:Roles}){
- const roles:Roles=input.roles==='aBride'||input.roles==='bBride'?input.roles:'none';
- const [x,y]=await Promise.all([birthSky(input.a),birthSky(input.b)]);
- const person=(b:Awaited<ReturnType<typeof birthSky>>)=>{
-  const nak=nakshatraOf(b.moonLon),sign=signIndex(b.moonLon)+1;
-  const range=b.dayMoon?{signs:uniq(b.dayMoon.map(l=>signIndex(l)+1)),nakshatras:uniq(b.dayMoon.map(l=>nakshatraOf(l).index))}:null;
-  return {sunSign:b.tropical.sun.sign,vedicSunSign:signIndex(b.sidSun)+1,moonSign:sign,
-   nakshatra:{index:nak.index,name:nak.name,pada:nak.pada},timeKnown:b.timeKnown,
-   exact:!range||(range.signs.length===1&&range.nakshatras.length===1),range,
-   point:{sign,nakshatra:nak.index,degInSign:((b.moonLon%30)+30)%30}};
- };
- const pa=person(x),pb=person(y);
+export type MatchPerson={sunSign:number;vedicSunSign:number;moonSign:number;nakshatra:{index:number;name:string;pada:number};
+ timeKnown:boolean;exact:boolean;range:{signs:number[];nakshatras:number[]}|null;fromProfile?:boolean;point:MoonPoint};
+/** A person from a birth date (and optional time) entered in the form. */
+export async function personFromBirth(input:Birth):Promise<MatchPerson>{
+ const b=await birthSky(input);
+ const nak=nakshatraOf(b.moonLon),sign=signIndex(b.moonLon)+1;
+ const range=b.dayMoon?{signs:uniq(b.dayMoon.map(l=>signIndex(l)+1)),nakshatras:uniq(b.dayMoon.map(l=>nakshatraOf(l).index))}:null;
+ return {sunSign:b.tropical.sun.sign,vedicSunSign:signIndex(b.sidSun)+1,moonSign:sign,
+  nakshatra:{index:nak.index,name:nak.name,pada:nak.pada},timeKnown:b.timeKnown,
+  exact:!range||(range.signs.length===1&&range.nakshatras.length===1),range,
+  point:{sign,nakshatra:nak.index,degInSign:((b.moonLon%30)+30)%30}};
+}
+/** A person from a verified saved natal chart (sidereal Moon longitude known exactly). */
+export function personFromChart(c:{westernSunSign:number;vedicSunSign:number;moonLongitude:number}):MatchPerson{
+ const nak=nakshatraOf(c.moonLongitude),sign=signIndex(c.moonLongitude)+1;
+ return {sunSign:c.westernSunSign,vedicSunSign:c.vedicSunSign,moonSign:sign,nakshatra:{index:nak.index,name:nak.name,pada:nak.pada},
+  timeKnown:true,exact:true,range:null,fromProfile:true,point:{sign,nakshatra:nak.index,degInSign:((c.moonLongitude%30)+30)%30}};
+}
+export function composeMatch(pa:MatchPerson,pb:MatchPerson,rolesIn?:unknown){
+ const roles:Roles=rolesIn==='aBride'||rolesIn==='bBride'?rolesIn:'none';
  const result=ashtakoota(pa.point,pb.point,roles);
- return {a:{...pa,point:undefined},b:{...pb,point:undefined},approximate:!pa.exact||!pb.exact,
+ const strip=({point,...rest}:MatchPerson)=>rest;
+ return {a:strip(pa),b:strip(pb),approximate:!pa.exact||!pb.exact,
   ashtakoota:result,band:gunaBand(result.total),
   method:'Swiss Ephemeris, sidereal Lahiri Moon; Ashtakoota '+result.version+'; nothing is stored'};
+}
+export async function matchCouple(input:{a:Birth;b:Birth;roles?:Roles}){
+ const [pa,pb]=await Promise.all([personFromBirth(input.a),personFromBirth(input.b)]);
+ return composeMatch(pa,pb,input.roles);
 }

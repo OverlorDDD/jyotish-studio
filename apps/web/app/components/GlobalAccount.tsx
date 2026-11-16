@@ -6,6 +6,7 @@ import Link from 'next/link';
 import {LogIn,LogOut,UserRound,Eye,EyeOff,Shield,X} from 'lucide-react';
 import {readApiJson} from '../../lib/api-response';
 import {portalPath,type PortalLocale} from '../../lib/brand';
+import {forgetAnonymous} from '../../lib/my-signs';
 
 type User={id:string;email:string;role:'MEMBER'|'EXPERT'|'SUPPORT'|'ADMIN';subscription?:{tier:'FREE'|'PREMIUM';currentPeriodEnd:string|null}};
 type SocialSettings={google:boolean;apple:boolean;linked:string[]};
@@ -51,7 +52,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
   let alive=true;
   fetch('/api/v1/account/me',{credentials:'same-origin',cache:'no-store'})
    .then(r=>readApiJson<{user:User|null}>(r))
-   .then(r=>{if(alive)setUser(r.user)})
+   .then(r=>{if(alive)setUser(r.user);if(r.user)forgetAnonymous();})
    .catch(()=>{if(alive)setError(uk?'Сесію не вдалося перевірити.':'Could not check session.')})
    .finally(()=>{if(alive)setLoaded(true)});
   return()=>{alive=false};
@@ -143,7 +144,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
     return;
    }
    if(!data.user)throw new Error(uk?'Не вдалося завершити вхід':'Could not complete sign in');
-   setUser(data.user);setPassword('');setCode('');setOpen(false);
+   setUser(data.user);setPassword('');setCode('');setOpen(false);forgetAnonymous();
    window.dispatchEvent(new Event('galaxiora:auth-changed'));
   }catch(e){
    setError(e instanceof Error?e.message:String(e));

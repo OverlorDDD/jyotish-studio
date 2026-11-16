@@ -7,6 +7,8 @@ import {cookieUser,sameOrigin} from './auth.ts';
 import {createKeyedHourlyLimiter} from './ai.ts';
 import {calendarDays,dailyTransit,localToday,validLocalDay,validTimeZone} from './personal-transits.ts';
 import {verifyLunarContinuity} from './horoscope.ts';
+import {composeMatch,personFromBirth,personFromChart,type MatchPerson} from './horoscope-v3.ts';
+import {nakshatraOf} from '../../../packages/jyotish-core/src/index.ts';
 import {tropicalSkyAtUtc,tropicalSkyForDay,westernSignReading,TROPICAL_METHOD} from './western-horoscope.ts';
 import {buildAstrologicalSynthesis} from './astrological-synthesis.ts';
 import {tropicalNatalChartAtUtc} from './western-natal.ts';
@@ -67,6 +69,15 @@ async function chartFacts(prisma:PrismaService,row:{id:string;createdAt:Date;inp
   westernSunSign,westernSunLongitude,westernMethod:westernSunSign?'Swiss Ephemeris / tropical-of-date':null,
   moonLongitude:result&&Number.isFinite(moon?.longitude)?moon!.longitude:null,
   dasha:result?.dasha||[],natalPositions:result?.d1.map(x=>({name:x.name,sign:x.sign}))||[]};
+}
+/** Western Sun, Vedic Sun, Moon, Lagna and nakshatra from verified chart facts. */
+function signsFromFacts(f:Awaited<ReturnType<typeof chartFacts>>){
+ if(!f?.verified||!f.moonSign||f.moonLongitude===null||!f.westernSunSign)return null;
+ const sun=f.natalPositions.find(x=>x.name==='Sun');
+ if(!sun)return null;
+ const nak=nakshatraOf(f.moonLongitude);
+ return {westernSun:f.westernSunSign,vedicSun:sun.sign,moon:f.moonSign,lagna:f.lagnaSign,moonLongitude:f.moonLongitude,
+  nakshatra:{index:nak.index,name:nak.name,pada:nak.pada}};
 }
 /** Shared verified natal context for both Personal's main card and the calendar. */
 function verifiedContextAt(chart:Awaited<ReturnType<typeof chartFacts>>,utc:string):VerifiedNatalContext|null{
@@ -285,6 +296,50 @@ export class PersonalController{
    // Fail closed for unsupported Placidus geometry or unverifiable data.
    return {...base,advancedStatus:'calculation_unavailable'};
   }
+ }
+
+ /** Signs for the public horoscope tools (Star Passport, «my sign», 36 gunas),
+  * derived from the owner's primary (or only/newest) saved natal chart. Only
+  * derived signs and the owner's own chart labels are returned; never stored. */
+ @Get('horoscope/signs') @Header('Cache-Control','private, no-store')
+ async horoscopeSigns(@Req()req:IncomingMessage){
+  const uid=owner(req),p=await this.profile(uid);
+  const id=p.profile.primaryChartId||p.suggestedChartId||p.charts[0]?.id||null;
+  const charts=p.charts.map(c=>({id:c.id,date:c.date,place:c.place}));
+  if(!id)return {status:'no_chart',chart:null,signs:null,charts};
+  const facts=p.selected?.id===id?p.selected:await this.ownedChartFacts(uid,id);
+  const signs=signsFromFacts(facts);
+  return {status:signs?'available':'requires_verified_chart',
+   chart:facts?{id:facts.id,date:facts.date,place:facts.place,primary:p.profile.primaryChartId===id}:null,signs,charts};
+ }
+ /** 36-guna matching where either person may be one of the owner's saved charts.
+  * Birth data of saved charts never leaves the server; typed births are used once. */
+ @Post('horoscope/match') @Header('Cache-Control','private, no-store')
+ async horoscopeMatch(@Req()req:IncomingMessage,@Body()body:unknown){
+  const uid=mutation(req);
+  const b=(body||{}) as {a?:unknown;b?:unknown;roles?:unknown};
+  const person=async(x:unknown):Promise<MatchPerson>=>{
+   const v=(x||{}) as {chartId?:unknown;date?:unknown;time?:unknown;zone?:unknown};
+   if(typeof v.chartId==='string'){
+    const facts=await this.ownedChartFacts(uid,v.chartId);
+    const signs=signsFromFacts(facts);
+    if(!signs)throw new BadRequestException('Choose a verified natal chart saved in your account');
+    return personFromChart({westernSunSign:signs.westernSun,vedicSunSign:signs.vedicSun,moonLongitude:signs.moonLongitude});
+   }
+   const birth={date:typeof v.date==='string'?v.date:'',time:typeof v.time==='string'&&v.time?v.time:undefined,
+    zone:typeof v.zone==='string'&&/^[A-Za-z_]+(?:\/[A-Za-z_\-]+){0,2}$/.test(v.zone)?v.zone:undefined};
+   try{return await personFromBirth(birth);}
+   catch(e){const msg=e instanceof Error?e.message:'';
+    if(/^Invalid birth/.test(msg)||e instanceof RangeError)throw new BadRequestException(msg||'Invalid birth data');
+    throw new ServiceUnavailableException('Swiss Ephemeris is temporarily unavailable');}
+  };
+  const [pa,pb]=await Promise.all([person(b.a),person(b.b)]);
+  return composeMatch(pa,pb,b.roles);
+ }
+ private async ownedChartFacts(uid:string,id:string){
+  if(!/^[0-9a-f-]{36}$/i.test(id))return null;
+  const row=await this.prisma.chart.findFirst({where:{id,ownerId:uid},select:{id:true,createdAt:true,input:true,result:true}});
+  return chartFacts(this.prisma,row);
  }
 
  @Get('horoscope/western') @Header('Cache-Control','private, no-store')
@@ -900,5 +955,7 @@ for(const [name,types]of [
  ['getPanchangaLocation',[Object]],
  ['savePanchangaLocation',[Object]],
  ['clearPanchangaLocation',[Object]],
- ['transits',[Object,String]]
+ ['transits',[Object,String]],
+ ['horoscopeSigns',[Object]],
+ ['horoscopeMatch',[Object,Object]]
 ] as const)Reflect.defineMetadata('design:paramtypes',types,PersonalController.prototype,name);
