@@ -36,7 +36,7 @@ test('full read-only runner only GETs allowlisted paths; does not confuse SEO wi
  const fetcher=async(url,options)=>{
   seen.push({url,options});
   const path=new URL(url).pathname;
-  const routes=['/en','/uk','/en/pedia','/uk/pedia'];
+  const routes=['/en/pedia','/uk/pedia'];
   const body=path==='/robots.txt'?'User-agent: *\nDisallow: /account\nSitemap: '+origin+'/sitemap.xml':
    path==='/sitemap.xml'?'<urlset>'+[
     ...routes,'/en/panchanga','/uk/panchanga','/en/tarot','/uk/tarot',
@@ -52,11 +52,24 @@ test('full read-only runner only GETs allowlisted paths; does not confuse SEO wi
    path.includes('/tarot')?
     '<a href="/'+path.split('/')[1]+'/tarot/cards">Cards</a>'+
     '<a href="/'+path.split('/')[1]+'/tarot/cards/moon">Moon</a>':'');
-  return {status:200,headers:new Headers({'content-type':path.endsWith('.xml')?'application/xml':'text/html'}),text:async()=>body};
+  const alias=path==='/en'||path==='/uk';
+  return {status:alias?308:200,headers:new Headers({
+   'content-type':path.endsWith('.xml')?'application/xml':'text/html',
+   ...(alias?{'location':origin+path+'/astrology/jyotish'}:{})
+  }),text:async()=>body};
  };
  const result=await runOrganicHealth({fetcher});
  assert.equal(result.errors.length,0,JSON.stringify(result.errors));
  assert.equal(result.indexingStatus,'unknown_requires_GSC_URL_Inspection');
  assert.ok(seen.every(x=>x.options.redirect==='manual'&&!x.options.body&&x.url.startsWith(origin+'/')));
  assert.equal(seen.length,14);
+ assert.ok(result.checks.some(x=>x.path==='/en'&&x.passed));
+ assert.ok(result.checks.some(x=>x.path==='/uk'&&x.passed));
+ const incorrect=await runOrganicHealth({fetcher:async(url,options)=>{
+  const response=await fetcher(url,options);
+  if(new URL(url).pathname==='/en')return {...response,
+   headers:new Headers({'location':origin+'/uk/astrology/jyotish'})};
+  return response;
+ }});
+ assert.ok(incorrect.errors.some(x=>x.path==='/en'&&x.code==='ALIAS_TARGET_MISMATCH'));
 });
