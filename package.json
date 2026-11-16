@@ -93,7 +93,7 @@
     "test:architecture:a3": "node --experimental-strip-types --test tools/a3-application.test.mjs",
     "test:e2e": "playwright test --config=playwright.config.mjs",
     "test:seo": "node --experimental-strip-types --test tools/a4-seo.test.mjs",
-    "test:r32:seo": "node --experimental-strip-types --test tools/r32-seo.test.mjs tools/gsc-coverage-recovery.test.mjs tools/psi-critical-path.test.mjs tools/ai-search-discovery.test.mjs tools/g4-ai-authority.test.mjs tools/site-sections-hub.test.mjs",
+    "test:r32:seo": "node --experimental-strip-types --test tools/r32-seo.test.mjs tools/gsc-coverage-recovery.test.mjs tools/psi-critical-path.test.mjs tools/ai-search-discovery.test.mjs tools/g4-ai-authority.test.mjs tools/site-sections-hub.test.mjs tools/g5-search-intent.test.mjs",
     "test:g4:authority": "node --experimental-strip-types --test tools/g4-ai-authority.test.mjs",
     "test:r33:authority": "node --experimental-strip-types --test tools/r33-authority.test.mjs",
     "test:r4:growth": "node --test tools/r4-growth.test.mjs",
@@ -188,7 +188,8 @@
     "test:p410": "node --experimental-strip-types --test tools/panchanga-daily-opportunities.test.mjs",
     "test:growth1:seo": "node --experimental-strip-types --test tools/growth1-global-seo.test.mjs",
     "test:g3:funnel": "node --experimental-strip-types --test tools/g3-funnel.test.mjs",
-    "test:seo:direct-intent": "node --test tools/seo-direct-intent.test.mjs"
+    "test:seo:direct-intent": "node --test tools/seo-direct-intent.test.mjs",
+    "test:g5:seo": "node --experimental-strip-types --test tools/g5-search-intent.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
