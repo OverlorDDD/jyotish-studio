@@ -3,10 +3,10 @@ for(const lang of ['en','uk']){
  test(lang+' natal page: user-first heading, SEO canonical, free tool and inline minute accuracy',async({page})=>{
   await page.goto('/'+lang+'/astrology/jyotish');
   await expect(page.getByRole('heading',{level:1})).toHaveCount(1);
-  await expect(page.getByRole('heading',{level:1})).toContainText(lang==='uk'?'16 карт життя':'16 life charts',{ignoreCase:true});
+  await expect(page.getByRole('heading',{level:1})).toContainText(lang==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш':'Free Vedic Birth Chart Calculator',{ignoreCase:true});
   await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href',new RegExp('/'+lang+'/astrology/jyotish$'));
   await expect(page.locator('meta[name=description]')).toHaveAttribute('content',/16|birth chart|натальн/);
-  await expect(page.getByRole('link',{name:lang==='uk'?'Створити мої 16 карт життя':'Create my 16 life charts'})).toHaveAttribute('href','#birth-details');
+  await expect(page.getByRole('link',{name:lang==='uk'?'Розрахувати натальну карту безкоштовно':'Calculate my free birth chart'})).toHaveAttribute('href','#birth-details');
   await expect(page.locator('input[type=date]')).toHaveValue('');
   await expect(page.locator('input[type=time]')).toHaveValue('');
   await expect(page.getByTestId('n4-rc-explorer')).toContainText('16');
