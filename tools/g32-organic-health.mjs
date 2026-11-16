@@ -51,7 +51,10 @@ export function validateOrganicHtml(html,path,origin=G32_LIVE_ORIGIN){
 }
 export async function runOrganicHealth({origin=G32_LIVE_ORIGIN,fetcher=fetch}={}){
  origin=healthOrigin(origin);
- const routes=['/en','/uk',...ORGANIC_INTENTS.flatMap(x=>['en','uk'].map(l=>'/'+l+'/'+x.toolPath)),
+ // Localized home aliases now permanently redirect to the actual canonical natal tools.
+ // Audit aliases as redirects, not as 200/indexable sitemap entries.
+ const aliases=[['/en','/en/astrology/jyotish'],['/uk','/uk/astrology/jyotish']];
+ const routes=[...ORGANIC_INTENTS.flatMap(x=>['en','uk'].map(l=>'/'+l+'/'+x.toolPath)),
  '/en/pedia','/uk/pedia','/en/pedia/what-is-tithi-lunar-day','/uk/pedia/what-is-tithi-lunar-day'];
  const report={stage:'G3.2.1',origin,readOnly:true,checks:[],errors:[],warnings:[],
   indexingStatus:'unknown_requires_GSC_URL_Inspection',
@@ -66,11 +69,17 @@ export async function runOrganicHealth({origin=G32_LIVE_ORIGIN,fetcher=fetch}={}
   if(body.length>2_000_000)throw Error('Oversized HTML response');
   return {status:res.status,headers:res.headers,body};
  }
- for(const path of ['/robots.txt','/sitemap.xml',...routes]){
+ for(const path of ['/robots.txt','/sitemap.xml',...aliases.map(([from])=>from),...routes]){
   try{
    const res=await get(path);
    const errs=[],warns=[];
-   if(res.status!==200)errs.push('HTTP_'+res.status);
+   const aliasTarget=aliases.find(([from])=>from===path)?.[1];
+   if(aliasTarget){
+    if(![301,308].includes(res.status))errs.push('ALIAS_NOT_PERMANENT_REDIRECT');
+    let target=null;
+    try{const location=res.headers.get('location');if(location)target=new URL(location,origin+path).href;}catch{}
+    if(target!==origin+aliasTarget)errs.push('ALIAS_TARGET_MISMATCH');
+   }else if(res.status!==200)errs.push('HTTP_'+res.status);
    if(path==='/robots.txt'){
     if(/User-agent:\s*\*\s*Disallow:\s*\/\s*(?:\r?\n|$)/i.test(res.body))errs.push('ROOT_BLOCKED');
     if(!res.body.includes('Sitemap: '+origin+'/sitemap.xml'))errs.push('ROBOTS_SITEMAP_MISSING');
@@ -78,9 +87,11 @@ export async function runOrganicHealth({origin=G32_LIVE_ORIGIN,fetcher=fetch}={}
     if(!res.body.includes('<urlset'))errs.push('SITEMAP_INVALID');
     for(const route of routes)if(!res.body.includes('<loc>'+origin+route+'</loc>'))
      errs.push('SITEMAP_MISSING:'+route);
+    for(const [alias] of aliases)if(res.body.includes('<loc>'+origin+alias+'</loc>'))
+     errs.push('REDIRECT_ALIAS_IN_SITEMAP:'+alias);
     if(/<loc>https:\/\/galaxiora\.com\/(?:en|uk)\/(?:account|admin|personal|api)(?:\/|<)/.test(res.body))
      errs.push('PRIVATE_SITEMAP_PATH');
-   }else if(res.status===200){
+   }else if(!aliasTarget&&res.status===200){
     if(!res.headers.get('content-type')?.includes('text/html'))errs.push('CONTENT_TYPE_NOT_HTML');
     if(/noindex/i.test(res.headers.get('x-robots-tag')||''))errs.push('HEADER_NOINDEX');
     const evaluated=validateOrganicHtml(res.body,path,origin);
