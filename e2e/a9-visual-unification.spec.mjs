@@ -10,14 +10,14 @@ test('Global shell is single in Jyotish and the local tool preserves saved-chart
  await expect(page.locator('button.account-trigger')).toContainText('Зберегти карту');
  // The old duplicate Jyotish section rail was intentionally removed in the 16-chart redesign.
  await expect(page.locator('.jy-section-nav')).toHaveCount(0);
- await expect(page.getByRole('link',{name:/Створити мої 16 карт життя/u})).toHaveAttribute('href','#birth-details');
+ await expect(page.getByRole('link',{name:/Розрахувати натальну карту безкоштовно/u})).toHaveAttribute('href','#birth-details');
  await expect(page.locator('.jy-portal-toolbar')).toContainText('GalaxiAstro');
 });
 test('Root and localized home open the real chart, with About Me as first navigation item',async({page})=>{
  await page.goto('/');
  await expect(page.locator('.jy-workbench')).toBeVisible();
  await expect(page.locator('header.as-header')).toHaveCount(1);
- await expect(page.getByRole('heading',{level:1,name:'16 life charts. Explore your strengths and blind spots.'})).toBeVisible();
+ await expect(page.getByRole('heading',{level:1,name:'Free Vedic Birth Chart Calculator'})).toBeVisible();
  const first=page.locator('.as-main-nav a').first();
  await expect(first).toHaveText('About Me');
  await expect(first).toHaveAttribute('href','/en/about-me');
@@ -30,7 +30,7 @@ test('Main navigation reaches practical content without splash redirect loops',a
  await page.goto('/uk');
  await page.locator('.as-main-nav').getByRole('link',{name:'Астрологія'}).click();
  await expect(page).toHaveURL(/\/uk\/astrology\/jyotish$/);
- await expect(page.getByRole('heading',{level:1,name:/16 карт життя/u})).toBeVisible();
+ await expect(page.getByRole('heading',{level:1,name:/Безкоштовний калькулятор натальної карти Джйотіш/u})).toBeVisible();
  await page.locator('.as-main-nav').getByRole('link',{name:'Таро'}).click();
  await expect(page.getByRole('button',{name:'Розкласти карти'})).toBeVisible();
  await expect(page.locator('.as-tarot-live-link')).toHaveAttribute('href','#human-readings');
