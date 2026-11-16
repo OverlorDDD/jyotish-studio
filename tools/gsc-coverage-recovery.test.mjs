@@ -66,3 +66,10 @@ test('GSC: legal noindex and absent binary assets in sitemap are intentional',()
  const indexing=read('apps/web/lib/site-indexing.ts');
  assert.doesNotMatch(indexing,/['"]privacy['"]|['"]terms['"]/,'legal policy pages are not public SEO landings');
 });
+
+test('GSC: full production sitemap crawler accepts current 754 URL inventory',()=>{
+ const audit=read('tools/r32-seo-audit.mjs');
+ assert.match(audit,/const MAX_SITEMAP_URLS=2000/);
+ assert.match(audit,/urls\.length>MAX_SITEMAP_URLS/);
+ assert.doesNotMatch(audit,/urls\.length>500\b/,'the old cap prevented any complete 754-URL crawl');
+});

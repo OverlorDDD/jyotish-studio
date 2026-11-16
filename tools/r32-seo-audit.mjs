@@ -85,7 +85,10 @@ for(const locale of ['en','uk']){
  const redirected=origin+'/'+locale;
  if(urls.includes(redirected))issue(errors,'REDIRECT_HOMEPAGE',redirected,'308 alias in sitemap; point to final canonical tool URL');
 }
-if(urls.length>500)throw Error('Audit capped at 500 URLs; split the sitemap into batches before running');
+// The live sitemap contains 754 public URLs as of 2026-11-16. Allow normal growth
+// while retaining a strict safety bound on read-only production crawling.
+const MAX_SITEMAP_URLS=2000;
+if(urls.length>MAX_SITEMAP_URLS)throw Error('Audit capped at '+MAX_SITEMAP_URLS+' URLs; split the sitemap into batches before running');
 for(const url of urls){
  let parsed;
  try{parsed=new URL(url);}catch{issue(errors,'INVALID_URL',url,'Malformed sitemap entry');continue;}
