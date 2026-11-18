@@ -12,11 +12,21 @@ export function eligiblePublicHtmlSection(pathname:string,headers:{
   headers.rsc||headers.fetchDest&&headers.fetchDest!=='document')return null;
  if(pathname==='/' )return 'home'; // Root serves a real public HTML page, not a redirect.
  if(pathname.endsWith('/')||pathname.includes('//'))return null;
+ // Public SSR pages that cannot be represented as a GA4-safe route are still
+ // eligible for first-party counts. Only a coarse category is ever transmitted:
+ // never send a city, article slug, private path, query or user identifier.
+ if(/^\/(?:uk|en)\/about-me$/.test(pathname))return 'about';
+ if(/^\/(?:uk|en)\/panchanga\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname))return 'panchanga';
+ if(/^\/(?:uk|en)\/news\/[a-z0-9-]+-[0-9a-f]{8}$/.test(pathname))return 'news';
  const safe=safeGrowthPath(pathname);
  if(!safe)return null;
  const section=safe.split('/').slice(2).join('/');
  if(!section)return 'home';
  if(section==='astrology/jyotish')return 'jyotish';
+ if(section==='astrology/divisional-charts')return 'astrology';
+ // Public GalaxiPedia articles are normalized by safeGrowthPath to /pedia,
+ // while historical aggregate dashboards use the "learn" category.
+ if(section==='pedia')return 'learn';
  if(section==='tarot/cards')return 'tarot_cards';
  if(section==='eclipses/2027')return 'eclipses';
  return section==='astrology'||section==='tarot'||section==='panchanga'||
