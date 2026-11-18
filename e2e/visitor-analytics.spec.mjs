@@ -84,3 +84,33 @@ test('Rejection emits no real tracking and cannot be bypassed by tool event',asy
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('galaxiora:growth',{detail:{name:'jyotish_chart_completed'}})));
  expect(calls).toHaveLength(0);
 });
+
+test('First-party page-view counters work without GA consent and include soft navigation',async({page,request})=>{
+ const before=await total('rendered_page_view');
+ const browserHits=[];
+ await page.route('**/api/v1/traffic/page-view',async route=>{
+  browserHits.push(JSON.parse(route.request().postData()||'{}'));
+  await route.continue();
+ });
+ await page.goto('/en/astrology/jyotish');
+ await expect.poll(()=>total('rendered_page_view')).toBeGreaterThanOrEqual(before+1);
+ await page.locator('.as-main-nav').getByRole('link',{name:'Tarot'}).click();
+ await expect(page).toHaveURL(/\/en\/tarot$/);
+ await expect.poll(()=>total('rendered_page_view')).toBeGreaterThanOrEqual(before+2);
+ expect(browserHits.some(x=>x.section==='jyotish'&&x.locale==='en')).toBe(true);
+ expect(browserHits.some(x=>x.section==='tarot'&&x.locale==='en')).toBe(true);
+ for(const hit of browserHits)expect(Object.keys(hit).sort()).toEqual(['channel','locale','section']);
+ const current=await total('rendered_page_view');
+ await page.evaluate(()=>window.dispatchEvent(new Event('galaxiora:analytics-choice')));
+ await expect.poll(()=>total('rendered_page_view')).toBe(current);
+ const badOrigin=await request.post('/api/v1/traffic/page-view',{
+  headers:{Origin:'https://evil.example','Content-Type':'application/json'},
+  data:{section:'jyotish',channel:'google',locale:'en'}
+ });
+ expect(badOrigin.status()).toBe(403);
+ const privatePayload=await request.post('/api/v1/traffic/page-view',{
+  headers:{Origin:'http://127.0.0.1:3000','Content-Type':'application/json'},
+  data:{section:'jyotish',channel:'google',locale:'en',birthDate:'private'}
+ });
+ expect(privatePayload.status()).toBe(403);
+});
