@@ -58,7 +58,7 @@ export class PublicPageViewController{
  async record(@Req()req:IncomingMessage,@Body()body:unknown){
   const origin=req.headers.origin;
   const ownOrigin=origin==='https://galaxiora.com'||
-   (process.env.NODE_ENV!=='production'&&
+   ((process.env.NODE_ENV!=='production'||process.env.GALAXIORA_E2E_TEST_AUTH==='1')&&
     (origin==='http://localhost:3000'||origin==='http://127.0.0.1:3000'));
   // Requests from another site, a missing Origin or a non-fetch document
   // cannot increment our page-view counts from a regular browser.
