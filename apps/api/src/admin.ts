@@ -125,10 +125,17 @@ export class AdminController {
    ['google','other_search','social','partner_tag','other_referral','internal','unknown'].map(k=>[k,0])
   ) as Record<string,number>;
   const bySection:Record<string,number>={};
+  const byRenderedSection:Record<string,number>={};
+  const renderedSources=Object.fromEntries(
+   ['google','other_search','social','partner_tag','other_referral','internal','unknown'].map(k=>[k,0])
+  ) as Record<string,number>;
+  const byRenderedLocale={en:0,uk:0};
   const daily=new Map<string,number>();
+  const renderedDaily=new Map<string,number>();
   for(let i=0;i<days;i++){
    const date=new Date(since);date.setUTCDate(since.getUTCDate()+i);
    daily.set(date.toISOString().slice(0,10),0);
+   renderedDaily.set(date.toISOString().slice(0,10),0);
   }
   for(const row of rows){
    if(row.metric in totals)totals[row.metric]+=row.count;
@@ -137,10 +144,21 @@ export class AdminController {
     const key=row.day.toISOString().slice(0,10);
     if(daily.has(key))daily.set(key,(daily.get(key)||0)+row.count);
    }
+   if(row.metric==='rendered_page_view'){
+    byRenderedSection[row.section]=(byRenderedSection[row.section]||0)+row.count;
+    const key=row.day.toISOString().slice(0,10);
+    if(renderedDaily.has(key))renderedDaily.set(key,(renderedDaily.get(key)||0)+row.count);
+   }
    if(row.metric.startsWith('ref_')){
     const channel=row.metric.slice(4);
     if(channel in sources)sources[channel]+=row.count;
    }
+   if(row.metric.startsWith('view_ref_')){
+    const channel=row.metric.slice(9);
+    if(channel in renderedSources)renderedSources[channel]+=row.count;
+   }
+   if(row.metric==='rendered_locale_en')byRenderedLocale.en+=row.count;
+   if(row.metric==='rendered_locale_uk')byRenderedLocale.uk+=row.count;
   }
   // A source row is a separate counter for the same request, NOT more traffic.
   // Old anonymous hits predate attribution and are explicitly unclassified.
@@ -149,9 +167,11 @@ export class AdminController {
   return {status:'ok',source:'server_aggregate',period:'last_'+days+'_utc_dates',
    days,generatedAt:new Date().toISOString(),totals,bySection,
    daily:Array.from(daily,([date,count])=>({date,count})),
+   renderedDaily:Array.from(renderedDaily,([date,count])=>({date,count})),
+   byRenderedSection,byRenderedSource:renderedSources,byRenderedLocale,
    bySource:sources,sourceAttributionCount:attributed,
    unattributedHistoricCount:Math.max(0,requests-attributed),
-   caveat:'Anonymous HTML request candidates, not unique visitors, users or GA4 sessions. Referrer/UTM category is approximate and begins only after this release. Automatic API operations are not verified human conversions. No raw source, IP, URL, user identifiers or birth details retained.'};
+   caveat:'Two independent metrics: anonymous browser-rendered page views and estimated HTML document requests. Never add them. Neither proves unique people or excludes every bot; browser views require JavaScript. Source attribution is approximate. No raw source, IP, URL, user identifiers, cookies or birth details are retained.'};
  }
  @Get('overview') @Header('Cache-Control','private,no-store')
  async overview(@Req()req:IncomingMessage){
