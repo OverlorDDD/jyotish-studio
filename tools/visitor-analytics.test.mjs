@@ -148,6 +148,7 @@ test('Browser page renders count without GA consent, cookies, personal data or c
  assert.match(code,/publicAggregateSectionForPath\(pathname\)/);
  assert.match(code,/fetch\('\/api\/v1\/traffic\/page-view'/);
  assert.match(code,/credentials:'omit'/);
+ assert.match(code,/referrerPolicy:'no-referrer'/);
  assert.match(code,/keepalive:true/);
  assert.match(code,/body:JSON\.stringify\(\{section,channel,locale\}\)/);
  assert.match(code,/classifyReferralBucket\(document\.referrer,window\.location\.search\)/);
