@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {PrismaClient} from '@prisma/client';
 const Chrome='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36';
+test.use({userAgent:Chrome});
 async function total(metric='public_html_request'){
  const prisma=new PrismaClient();
  try{const rows=await prisma.visitorAggregate.findMany({where:{metric}});return rows.reduce((n,r)=>n+r.count,0);}
@@ -109,7 +110,7 @@ test('First-party page-view counters work without GA consent and include soft na
  });
  expect(badOrigin.status()).toBe(403);
  const privatePayload=await request.post('/api/v1/traffic/page-view',{
-  headers:{Origin:'http://127.0.0.1:3000','Content-Type':'application/json'},
+  headers:{Origin:'https://galaxiora.com','Content-Type':'application/json'},
   data:{section:'jyotish',channel:'google',locale:'en',birthDate:'private'}
  });
  expect(privatePayload.status()).toBe(403);
