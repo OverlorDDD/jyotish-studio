@@ -131,7 +131,7 @@ test('Privacy-first browser and HTML counters share a strict public page route a
   assert.equal(eligiblePublicHtmlSection(path,normal),section,path);
  }
  for(const path of ['/en/panchanga/secret/private','/en/panchanga/delhi%2Fsecret',
-  '/en/admin','/en/personal','/en/account','/en/privacy','/en/terms',
+  '/en/admin','/en/personal','/en/horoscope/personal','/en/account','/en/privacy','/en/terms',
   '/api/v1/charts/calculate','/en/pedia/user/private','/uk/news/no-public-id',
   '/en/community/topic/private','/en/astrology/jyotish?birth=PRIVATE']){
   assert.equal(publicAggregateSectionForPath(path),null,path);
