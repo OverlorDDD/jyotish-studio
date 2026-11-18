@@ -14,11 +14,17 @@ const normal={
 test('Human-looking document requests classify only allowlisted coarse public sections',()=>{
  for(const [url,section] of [
   ['/','home'],['/uk','home'],['/en/astrology/jyotish','jyotish'],
-  ['/uk/news','news'],['/en/learn/vedic-moon','learn'],
-  ['/en/panchanga','panchanga'],['/en/tarot/cards/moon','tarot_cards']
+  ['/uk/news','news'],['/en/news/vedic-moon-calendar-a1b2c3d4','news'],
+  ['/en/learn/vedic-moon','learn'],['/en/pedia','learn'],
+  ['/uk/pedia/vimshottari-dasha','learn'],['/en/pedia/topic/nakshatras','learn'],
+  ['/en/panchanga','panchanga'],['/uk/panchanga/new-delhi','panchanga'],
+  ['/en/astrology/divisional-charts','astrology'],['/uk/about-me','about'],
+  ['/en/tarot/cards/moon','tarot_cards']
  ])assert.equal(eligiblePublicHtmlSection(url,normal),section,url);
  for(const path of ['/en/','/en/admin','/uk/account','/uk/personal','/api/v1/health',
-  '/en/news/secret-article','/en/community/topic/private','/uk/astrology/jyotish?birth=private'])
+  '/en/news/secret-article','/en/news/a1b2c3d4','/en/panchanga/some%2Fprivate',
+  '/en/panchanga/private/secret','/en/pedia/private/secret',
+  '/en/community/topic/private','/uk/astrology/jyotish?birth=private'])
   assert.equal(eligiblePublicHtmlSection(path,normal),null,path);
 });
 test('Bots, prefetch, RSC, non-HTML requests and redirects never enter estimated HTML counters',()=>{
