@@ -19,15 +19,16 @@ export default function FirstPartyPageViews(){
   if(!['galaxiora.com','localhost','127.0.0.1'].includes(window.location.hostname))return;
   const section=publicAggregateSectionForPath(pathname);
   if(!section)return;
+  const locale=/^\/uk(?:\/|$)/.test(pathname)?'uk':'en';
   const channel=first
    ?classifyReferralBucket(document.referrer,window.location.search)
    :'internal';
-  // Browser sends only two fixed enums to the same origin. Explicitly omit
+  // Browser sends only three fixed enums to the same origin. Explicitly omit
   // credentials and disable cache. No GA4 consent state is read or changed.
   void fetch('/api/v1/traffic/page-view',{
    method:'POST',mode:'same-origin',credentials:'omit',cache:'no-store',keepalive:true,
    headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({section,channel})
+   body:JSON.stringify({section,channel,locale})
   }).catch(()=>{});
  },[pathname]);
  return null;
