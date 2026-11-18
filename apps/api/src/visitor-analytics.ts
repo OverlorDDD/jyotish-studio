@@ -47,7 +47,7 @@ Reflect.defineMetadata('design:paramtypes',[Object,Object],InternalVisitorAnalyt
 /**
  * Privacy-first browser page-view confirmation.
  * A route render can occur without a document HTTP request in Next.js.
- * Accept only two fixed categories from our own origin. No cookies, IDs, IPs,
+ * Accept only three fixed categories from our own origin. No cookies, IDs, IPs,
  * paths, raw referrers, user agents, geo locations or personal data are stored.
  * This is a client-reported aggregate, NOT verified unique human visitors.
  */
@@ -71,13 +71,15 @@ export class PublicPageViewController{
   if(!ua||/(bot|crawler|spider|headless|lighthouse|curl|wget|python|playwright|selenium|axios|postman|monitor|uptime)/i.test(ua))return;
   if(!body||typeof body!=='object'||Array.isArray(body))throw new ForbiddenException('Invalid aggregate');
   const fields=Object.keys(body);
-  if(fields.length!==2||!fields.includes('section')||!fields.includes('channel'))
+  if(fields.length!==3||!fields.includes('section')||!fields.includes('channel')||!fields.includes('locale'))
    throw new ForbiddenException('Unexpected analytics fields');
   const section=(body as {section:unknown}).section,channel=(body as {channel:unknown}).channel;
-  if(!validSection(section)||!validReferralBucket(channel))
+  const locale=(body as {locale:unknown}).locale;
+  if(!validSection(section)||!validReferralBucket(channel)||(locale!=='en'&&locale!=='uk'))
    throw new ForbiddenException('Invalid analytics category');
   await countVisitorAggregate(this.prisma,'rendered_page_view',section);
   await countVisitorAggregate(this.prisma,viewReferralMetric(channel),section);
+  await countVisitorAggregate(this.prisma,locale==='uk'?'rendered_locale_uk':'rendered_locale_en',section);
  }
 }
 Reflect.defineMetadata('design:paramtypes',[Object,Object],PublicPageViewController.prototype,'record');
