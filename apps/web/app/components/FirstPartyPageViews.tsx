@@ -26,7 +26,7 @@ export default function FirstPartyPageViews(){
   // Browser sends only three fixed enums to the same origin. Explicitly omit
   // credentials and disable cache. No GA4 consent state is read or changed.
   void fetch('/api/v1/traffic/page-view',{
-   method:'POST',mode:'same-origin',credentials:'omit',cache:'no-store',keepalive:true,
+   method:'POST',mode:'same-origin',credentials:'omit',referrerPolicy:'no-referrer',cache:'no-store',keepalive:true,
    headers:{'Content-Type':'application/json'},
    body:JSON.stringify({section,channel,locale})
   }).catch(()=>{});
