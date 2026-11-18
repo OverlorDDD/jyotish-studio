@@ -95,7 +95,12 @@ for(const locale of ['uk','en']){
  test(locale+': ASE-3 automatic source-linked reading uses no cloud calls',async({page})=>{
   let posts=0;
   await routeApi(page);
-  page.on('request',r=>{if(r.method()==='POST')posts++;});
+  // Anonymous same-origin page-view aggregate is not a cloud AI request.
+  page.on('request',r=>{
+   if(r.method()!=='POST')return;
+   if(new URL(r.url()).pathname==='/api/v1/traffic/page-view')return;
+   posts++;
+  });
   await page.goto('/'+locale+'/horoscope/personal');
   await page.getByRole('button',{name:locale==='uk'?'Мій персональний':'My personal reading'}).click();
   await page.getByTestId('synthesis-switch').click();
