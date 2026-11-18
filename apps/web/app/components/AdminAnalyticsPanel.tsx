@@ -10,6 +10,8 @@ export type VisitorTraffic={
  status:'ok';source:'server_aggregate';period:string;generatedAt:string;days?:number;
  totals:Record<string,number>;bySection:Record<string,number>;
  daily?:{date:string;count:number}[];bySource?:Record<string,number>;
+ renderedDaily?:{date:string;count:number}[];byRenderedSection?:Record<string,number>;
+ byRenderedSource?:Record<string,number>;byRenderedLocale?:{en:number;uk:number};
  sourceAttributionCount?:number;unattributedHistoricCount?:number;caveat:string
 };
 type Props={
@@ -40,7 +42,11 @@ export default function AdminAnalyticsPanel({
 }:Props){
  const uk=locale==='uk';
  const total=visitors?.totals.public_html_request??null;
+ const rendered=visitors?.totals.rendered_page_view??null;
+ const useRendered=rendered!==null&&rendered>0;
  const items=[
+  {key:'rendered_page_view',label:uk?'Перегляди сторінок':'Page views',value:rendered,
+   note:uk?'Відкриття в браузері, без cookies':'Rendered in browsers, no cookies'},
   {key:'public_html_request',label:uk?'HTML-звернення':'HTML requests',value:total,
    note:uk?'Не унікальні люди':'Not unique visitors'},
   {key:'jyotish_chart_completed',label:uk?'Джйотіш · API':'Jyotish · API',
@@ -53,12 +59,13 @@ export default function AdminAnalyticsPanel({
    value:visitors?.totals.panchanga_calculation_completed??null,
    note:uk?'Включно з автооновленнями':'Includes automatic loads'}
  ];
- const series=visitors?.days===days?visitors.daily||[]:[];
+ const series=visitors?.days===days?(useRendered?visitors.renderedDaily||[]:visitors.daily||[]):[];
  const maxDaily=Math.max(1,...series.map(day=>day.count));
- const sections=Object.entries(visitors?.bySection||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
- const sourceRows=Object.entries(SOURCES).map(([key,label])=>({key,label:label[uk?0:1],count:visitors?.bySource?.[key]??0}));
+ const sections=Object.entries((useRendered?visitors?.byRenderedSection:visitors?.bySection)||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
+ const sourceRows=Object.entries(SOURCES).map(([key,label])=>({key,label:label[uk?0:1],
+  count:(useRendered?visitors?.byRenderedSource:visitors?.bySource)?.[key]??0}));
  const observedSources=sourceRows.reduce((n,x)=>n+x.count,0);
- const historic=visitors?.unattributedHistoricCount??0;
+ const historic=useRendered?0:visitors?.unattributedHistoricCount??0;
  const sourceTotal=Math.max(1,observedSources+historic);
  const allSources=[...sourceRows,...(historic>0?[{key:'historic',label:uk?'До запуску атрибуції':'Before source tracking',count:historic}]:[])].filter(row=>row.count>0);
  const fmtDate=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString(uk?'uk-UA':'en-GB',{day:'numeric',month:'short',timeZone:'UTC'});
@@ -70,8 +77,8 @@ export default function AdminAnalyticsPanel({
    <div className={styles.headingText}>
     <span className={styles.eyebrow}>{uk?'GALAXIORA · АНАЛІТИКА':'GALAXIORA · ANALYTICS'}</span>
     <h2>{uk?'Активність сайту':'Site activity'}</h2>
-    <p>{uk?'Серверні агрегати без ідентифікації відвідувачів. Події інструментів і GA4 не додаються до переглядів.':
-     'First-party aggregates without identifying visitors. Tool events and GA4 are separate measurements.'}</p>
+    <p>{uk?'Незалежні браузерні перегляди та HTML-звернення без ідентифікації людей. GA4 залишається необов’язковим.':
+     'Anonymous browser page views and HTML requests are separate. Google Analytics remains optional.'}</p>
    </div>
    <div className={styles.period} role="group" aria-label={uk?'Період статистики':'Reporting period'}>
     {([7,30] as const).map(n=><button type="button" key={n}
@@ -91,11 +98,11 @@ export default function AdminAnalyticsPanel({
   <div className={styles.duo}>
    <section className={styles.panel} aria-label={uk?'Активність за днями':'Daily activity'}>
     <div className={styles.panelHeading}>
-     <h3>{uk?'Динаміка звернень':'Request trend'}</h3>
+     <h3>{useRendered?(uk?'Динаміка переглядів':'Page-view trend'):(uk?'Динаміка звернень':'Request trend')}</h3>
      <span>UTC · {days}{uk?' днів':' days'}</span>
     </div>
     {series.length?<div className={styles.chartScroll}>
-     <div className={styles.chart} role="img" aria-label={uk?'Графік HTTP-звернень за днями':'Daily public HTML requests'}>
+     <div className={styles.chart} role="img" aria-label={useRendered?(uk?'Графік переглядів сторінок':'Daily rendered page views'):(uk?'Графік HTTP-звернень за днями':'Daily public HTML requests')}>
       {series.map((d,i)=><div className={styles.barCell} key={d.date} title={fmtDate(d.date)+': '+d.count}>
        <span className={styles.barValue}>{d.count>0?numeric(d.count,locale):''}</span>
        <div className={styles.barTrack}>
@@ -105,13 +112,16 @@ export default function AdminAnalyticsPanel({
       </div>)}
      </div>
     </div>:<p className={styles.empty}>{uk?'Історія ще не завантажена':'Daily history not yet available'}</p>}
-    <p className={styles.caption}>{uk?'Це кількість придатних HTML-запитів, а не люди чи сесії. Кеш і боти впливають на точність.':
-     'Eligible HTML requests, not people or sessions. Cache and bot filtering affect accuracy.'}</p>
+    <p className={styles.caption}>{useRendered
+     ?(uk?'Відкриття публічних сторінок із JavaScript, а не унікальні люди або сесії. Історія починається після релізу.':
+       'Public pages rendered with JavaScript, not unique people or sessions. History starts after deployment.')
+     :(uk?'Придатні HTML-запити, не люди чи сесії. Кеш і боти впливають на точність.':
+       'Eligible HTML requests, not people or sessions. Caching and bots affect accuracy.')}</p>
    </section>
    <section className={styles.panel} aria-label={uk?'Популярні розділи':'Popular sections'}>
     <div className={styles.panelHeading}>
      <h3>{uk?'Популярні розділи':'Popular sections'}</h3>
-     <span>{uk?'HTML-запити':'HTML requests'}</span>
+     <span>{useRendered?(uk?'Перегляди':'Page views'):(uk?'HTML-запити':'HTML requests')}</span>
     </div>
     {sections.length?<div className={styles.ranking}>
      {sections.map(([key,value])=><div className={styles.rank} key={key}>
@@ -134,8 +144,11 @@ export default function AdminAnalyticsPanel({
      </div>)}
     </div>:<p className={styles.empty}>{uk?'Чекаємо перші дані після ввімкнення класифікації':'Awaiting attribution data after release'}</p>}
     <p className={styles.caption}>{uk?
-     'Групування за Referer або дозволеними UTM. Не підтверджує унікальних відвідувачів; історичні джерела невідомі.':
-     'Coarse Referer or allowlisted UTM categories; not verified unique visitors. Historical sources are unknown.'}</p>
+     'Приблизні категорії за джерелом переходу або дозволеними UTM; без повних URL та ідентифікаторів.':
+     'Approximate referral or approved UTM categories; no raw URLs or identifiers.'}</p>
+    {useRendered?<p className={styles.caption}>{uk?'Мови переглядів: ':'Page views by language: '}
+     EN <strong>{numeric(visitors?.byRenderedLocale?.en??0,locale)}</strong>
+     {' · '}UA <strong>{numeric(visitors?.byRenderedLocale?.uk??0,locale)}</strong></p>:null}
    </section>
    <section className={styles.panel} aria-label={uk?'Додаткові дані Google Analytics':'Supplementary Google Analytics'}>
     <div className={styles.panelHeading}>
@@ -152,7 +165,7 @@ export default function AdminAnalyticsPanel({
    </section>
   </div>
   <p className={styles.footerNote}>{uk?
-   'Серверний облік: день UTC × публічний розділ × категорія. Без IP, cookie, особистих даних і повних URL. Джерела починають накопичуватися тільки після відповідного релізу.':
-   'Server counts: UTC day × public section × category. No IP, cookies, birth data or raw URLs. Source categorization starts only after the release.'}</p>
+   'Окремі лічильники: браузерні перегляди (потрібен JavaScript) та HTML-звернення. Не додавайте їх. Без IP, cookies, даних народження та повних URL.':
+   'Separate browser renders (JavaScript required) and HTML requests. Never add them. No IP, cookies, birth data or raw URLs.'}</p>
  </section>;
 }

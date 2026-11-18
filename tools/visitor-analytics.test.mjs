@@ -4,8 +4,8 @@ import {readFileSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {eligiblePublicHtmlSection} from '../apps/web/lib/visitor-analytics-policy.ts';
-import {countVisitorAggregate,toolMetric,validSection} from '../apps/api/src/visitor-aggregate.ts';
+import {eligiblePublicHtmlSection,publicAggregateSectionForPath} from '../apps/web/lib/visitor-analytics-policy.ts';
+import {countVisitorAggregate,toolMetric,validSection,viewReferralMetric,VISITOR_METRICS} from '../apps/api/src/visitor-aggregate.ts';
 const source=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const normal={
  accept:'text/html,application/xhtml+xml',agent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/156.0.0.0 Safari/537.36',
@@ -14,11 +14,17 @@ const normal={
 test('Human-looking document requests classify only allowlisted coarse public sections',()=>{
  for(const [url,section] of [
   ['/','home'],['/uk','home'],['/en/astrology/jyotish','jyotish'],
-  ['/uk/news','news'],['/en/learn/vedic-moon','learn'],
-  ['/en/panchanga','panchanga'],['/en/tarot/cards/moon','tarot_cards']
+  ['/uk/news','news'],['/en/news/vedic-moon-calendar-a1b2c3d4','news'],
+  ['/en/learn/vedic-moon','learn'],['/en/pedia','learn'],
+  ['/uk/pedia/vimshottari-dasha','learn'],['/en/pedia/topic/nakshatras','learn'],
+  ['/en/panchanga','panchanga'],['/uk/panchanga/new-delhi','panchanga'],
+  ['/en/astrology/divisional-charts','astrology'],['/uk/about-me','about'],
+  ['/en/tarot/cards/moon','tarot_cards']
  ])assert.equal(eligiblePublicHtmlSection(url,normal),section,url);
  for(const path of ['/en/','/en/admin','/uk/account','/uk/personal','/api/v1/health',
-  '/en/news/secret-article','/en/community/topic/private','/uk/astrology/jyotish?birth=private'])
+  '/en/news/secret-article','/en/news/a1b2c3d4','/en/panchanga/some%2Fprivate',
+  '/en/panchanga/private/secret','/en/pedia/private/secret',
+  '/en/community/topic/private','/uk/astrology/jyotish?birth=private'])
   assert.equal(eligiblePublicHtmlSection(path,normal),null,path);
 });
 test('Bots, prefetch, RSC, non-HTML requests and redirects never enter estimated HTML counters',()=>{
@@ -110,4 +116,91 @@ test('production release guard: Next.js-generated next-env.d.ts is safely recogn
   assert.notEqual(check(prefix+'import "some-external-package";\n').status,0,'unexpected arbitrary import');
   assert.notEqual(check(prefix+'const unexpected = true;\n').status,0,'unexpected code change');
  }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('Privacy-first browser and HTML counters share a strict public page route allowlist',()=>{
+ for(const [path,section] of [
+  ['/en/about-me','about'],['/uk/panchanga/delhi','panchanga'],
+  ['/en/news/moon-forecast-a1b2c3d4','news'],['/en/pedia/vimshottari-dasha','learn'],
+  ['/uk/pedia/topic/nakshatras','learn'],['/en/astrology/divisional-charts','astrology'],
+  ['/en/astrology/moon-sign-vs-sun-sign','astrology'],
+  ['/uk/nakshatra/ashwini','astrology'],['/en/horoscope/compatibility/aries-taurus','horoscope'],
+  ['/en/horoscope/vedic/aries','horoscope'],['/en/tarot/cards/the-fool','tarot_cards']
+ ]){
+  assert.equal(publicAggregateSectionForPath(path),section,path);
+  assert.equal(eligiblePublicHtmlSection(path,normal),section,path);
+ }
+ for(const path of ['/en/panchanga/secret/private','/en/panchanga/delhi%2Fsecret',
+  '/en/admin','/en/personal','/en/horoscope/personal','/en/account','/en/privacy','/en/terms',
+  '/api/v1/charts/calculate','/en/pedia/user/private','/uk/news/no-public-id',
+  '/en/community/topic/private','/en/astrology/jyotish?birth=PRIVATE']){
+  assert.equal(publicAggregateSectionForPath(path),null,path);
+ }
+});
+
+test('Browser page renders count without GA consent, cookies, personal data or client identifiers',async()=>{
+ const code=source('apps/web/app/components/FirstPartyPageViews.tsx');
+ const layout=source('apps/web/app/layout.tsx');
+ const policy=source('apps/web/lib/visitor-analytics-policy.ts');
+ assert.match(layout,/<FirstPartyPageViews\/>/);
+ assert.match(code,/usePathname\(\)/);
+ assert.match(code,/previous\.current===pathname/);
+ assert.match(code,/publicAggregateSectionForPath\(pathname\)/);
+ assert.match(code,/fetch\('\/api\/v1\/traffic\/page-view'/);
+ assert.match(code,/credentials:'omit'/);
+ assert.match(code,/referrerPolicy:'no-referrer'/);
+ assert.match(code,/keepalive:true/);
+ assert.match(code,/body:JSON\.stringify\(\{section,channel,locale\}\)/);
+ assert.match(code,/classifyReferralBucket\(document\.referrer,window\.location\.search\)/);
+ assert.match(code,/:'internal'/);
+ assert.doesNotMatch(code,/window\.gtag|window\.localStorage|sessionStorage\.|document\.cookie|\bclientId\b/);
+ assert.match(policy,/if\(!safe\)return null/);
+ // GA4 remains consent gated independently of the first-party aggregate.
+ const ga=source('apps/web/app/components/GrowthConsent.tsx');
+ assert.match(ga,/choice!=='accepted'/);
+});
+
+test('API accepts anonymous counts only from same-origin fetch with a fixed three-field schema',()=>{
+ const api=source('apps/api/src/visitor-analytics.ts');
+ const nest=source('apps/api/src/nest.ts');
+ assert.match(nest,/PublicPageViewController/);
+ assert.match(api,/@Controller\('api\/v1\/traffic'\)/);
+ assert.match(api,/@Post\('page-view'\)/);
+ assert.match(api,/origin==='https:\/\/galaxiora\.com'/);
+ assert.match(api,/fetchSite!=='same-origin'/);
+ assert.match(api,/fetchDest!=='empty'/);
+ assert.match(api,/fields\.length!==3/);
+ assert.match(api,/fields\.includes\('locale'\)/);
+ assert.match(api,/validSection\(section\)/);
+ assert.match(api,/validReferralBucket\(channel\)/);
+ assert.match(api,/locale!=='en'&&locale!=='uk'/);
+ assert.match(api,/countVisitorAggregate\(this\.prisma,'rendered_page_view',section\)/);
+ assert.match(api,/viewReferralMetric\(channel\)/);
+ assert.doesNotMatch(api,/this\.prisma\.visitorIdentity|createVisitorIdentity|logVisitorIp/);
+});
+
+test('New browser-view, source and language metrics store ONLY coarse daily aggregates',async()=>{
+ const writes=[];
+ const db={visitorAggregate:{upsert:async x=>{writes.push(x);return x;}}};
+ for(const metric of ['rendered_page_view',viewReferralMetric('google'),'rendered_locale_en']){
+  assert.ok(VISITOR_METRICS.includes(metric),metric);
+  await countVisitorAggregate(db,metric,'jyotish');
+ }
+ assert.equal(writes.length,3);
+ for(const x of writes){
+  assert.deepEqual(Object.keys(x.create).sort(),['count','day','metric','section']);
+  assert.equal(x.create.count,1);
+  assert.equal(x.create.section,'jyotish');
+  assert.equal(JSON.stringify(x).match(/ip_address|cookie|fingerprint|referrer|birthDate|userId|rawUrl/gi),null);
+ }
+ const admin=source('apps/api/src/admin.ts');
+ const panel=source('apps/web/app/components/AdminAnalyticsPanel.tsx');
+ const privacy=source('apps/web/app/[locale]/privacy/page.tsx');
+ assert.match(admin,/byRenderedSection,byRenderedSource:renderedSources,byRenderedLocale/);
+ assert.match(admin,/renderedDaily:Array\.from/);
+ assert.match(panel,/rendered_page_view/);
+ assert.match(panel,/Перегляди сторінок/);
+ assert.match(panel,/byRenderedLocale/);
+ assert.match(panel,/Never add them/);
+ assert.match(privacy,/Анонімна статистика роботи сайту/);
 });
