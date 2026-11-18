@@ -8,6 +8,8 @@ const ROBOT=/(bot|crawler|spider|google-inspection|headless|lighthouse|curl|wget
 export function publicAggregateSectionForPath(pathname:string):string|null{
  if(pathname==='/')return 'home';
  if(pathname.endsWith('/')||pathname.includes('//'))return null;
+ // Personal horoscope pages may expose account-specific material; never count them.
+ if(/^\/(?:uk|en)\/horoscope\/personal(?:\/|$)/.test(pathname))return null;
  if(/^\/(?:uk|en)\/about-me$/.test(pathname))return 'about';
  if(/^\/(?:uk|en)\/panchanga\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname))return 'panchanga';
  if(/^\/(?:uk|en)\/news\/[a-z0-9-]+-[0-9a-f]{8}$/.test(pathname))return 'news';
