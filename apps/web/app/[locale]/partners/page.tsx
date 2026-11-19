@@ -121,7 +121,7 @@ export default async function PartnersPage({params}:Props){
  const {locale}=await params;
  if(!isPortalLocale(locale))notFound();
  const loc=locale as PortalLocale,c=COPY[loc],origin=publicSiteOrigin();
- const publicContact=process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL?.trim()||'';
+ const publicContact=process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL?.trim()||'support@galaxiora.com';
  const jsonLd=publicIndexingEnabled()&&origin?JSON.stringify([
   {'@context':'https://schema.org','@type':'WebPage','@id':origin+'/'+loc+'/partners#webpage',
    name:c.heading,url:origin+'/'+loc+'/partners',description:c.description,inLanguage:loc,
@@ -216,13 +216,7 @@ export default async function PartnersPage({params}:Props){
     <span className={styles.sectionEyebrow}>{c.reachEyebrow}</span>
     <h2 id="partners-contact">{c.reachHeading}</h2>
     <p>{c.reach}</p>
-    {publicContact
-      ?<PartnerContactOptions locale={loc} email={publicContact}/>
-      :<div className={styles.contactActions}>
-        <Link href={'/'+loc+'/about-me'} className={styles.primaryAction}>{c.contactProfile}<ArrowUpRight size={18} aria-hidden="true"/></Link>
-        <p className={styles.contactDetail}>{c.contactFallback}</p>
-       </div>
-    }
+    <PartnerContactOptions locale={loc} email={publicContact}/>
     <div className={styles.contactActions}>
      <Link href={'/'+loc+'/about'} className={styles.secondaryAction}>{c.browse}<ArrowRight size={18} aria-hidden="true"/></Link>
     </div>
