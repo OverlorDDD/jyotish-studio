@@ -43,6 +43,7 @@ export default function PortalShell({locale,children,active='',languagePath}:Pro
     <p className="as-footer-note">{t.disclaimer}</p>
     <Link href={'/'+locale+'/about'}>{locale==='uk'?'Про Galaxiora':'About Galaxiora'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={'/'+locale+'/methodology'}>{locale==='uk'?'Методологія й точність':'Methods and accuracy'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
+    <Link href={'/'+locale+'/partners'}>{locale==='uk'?'Співпраця':'Partnerships'} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={portalPath(locale,'astrology/jyotish')}>{moduleTitle('jyotish')} <ArrowUpRight size={15} aria-hidden="true"/></Link>
     <Link href={'/'+locale+'/panchanga#cities'}>{locale==='uk'?'Панчанга по містах':'Panchanga by city'}</Link>
     <Link href={'/'+locale+'/nakshatra'}>{locale==='uk'?'27 накшатр':'27 nakshatras'}</Link>
