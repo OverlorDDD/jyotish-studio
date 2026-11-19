@@ -53,3 +53,21 @@
 @media(max-width:900px){.hero{grid-template-columns:minmax(0,1fr)}.heroAside{min-height:210px}.resources{grid-template-columns:repeat(2,minmax(0,1fr))}.ideas{grid-template-columns:minmax(0,1fr)}.idea{flex-direction:row;gap:22px}.introPanel{grid-template-columns:1fr}}
 @media(max-width:600px){.page{padding:20px 17px 65px}.hero{gap:16px;margin-bottom:28px}.hero h1{font-size:clamp(33px,9vw,44px)}.heroAside{min-height:190px;padding:25px}.section{margin-top:49px}.resources,.principles{grid-template-columns:1fr}.resourceCard{min-height:0;padding:23px}.actions,.contactActions{flex-direction:column;align-items:stretch}.primaryAction,.secondaryAction{width:100%}.idea{gap:18px}.editorial{margin-top:52px}.pressQuote{grid-template-columns:1fr;gap:10px}.contact{margin-top:56px}}
 @media(prefers-reduced-motion:reduce){.primaryAction,.secondaryAction,.resourceCard{transition:none}.primaryAction:hover,.primaryAction:focus-visible,.resourceCard:hover,.resourceCard:focus-visible{transform:none}}
+
+/* Reliable contact alternatives when the visitor has no mailto: handler. */
+.contactPanel{margin-top:25px;padding:clamp(18px,3vw,28px);border:1px solid #63718a;border-radius:16px;background:#142238}
+.contactInstruction{margin:0 0 20px!important;font-size:14px!important;line-height:1.7!important;color:#c6d2e1!important}
+.contactEmailLabel{display:block;font-weight:700;font-size:12px;color:#ead6ae;margin:0 0 9px}
+.contactEmailRow{display:flex;gap:10px;align-items:stretch}
+.contactEmailField{font:inherit;font-size:15px;color:#f1e7d6;min-width:0;flex:1;height:48px;background:#0f1a2c;border:1px solid #586883;border-radius:10px;padding:12px 14px;cursor:text}
+.contactEmailField:focus-visible{outline:2px solid #dfbe87;outline-offset:2px}
+.copyAction{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 17px;border-radius:10px;background:#283a55;border:1px solid #a68b5f;color:#f2dfbd;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.copyAction:hover,.copyAction:focus-visible{background:#3b4e68;border-color:#e6c48d}
+.copyAction:focus-visible{outline:2px solid #dfbe87;outline-offset:2px}
+.contactCopyFeedback{margin:8px 0 0!important;min-height:20px!important;font-size:12px!important;line-height:1.5!important;color:#e3c991!important}
+.emailProviders{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px}
+.emailProviders .primaryAction,.emailProviders .secondaryAction{min-height:46px}
+.nativeEmailLink{color:#bfcbe0;text-decoration:underline;text-underline-offset:3px;font-size:12px;margin:0 2px}
+.nativeEmailLink:hover,.nativeEmailLink:focus-visible{color:#f2d8a7}
+.contactProviderNote{color:#9eafc6!important;font-size:12px!important;line-height:1.65!important;margin:16px 0 0!important}
+@media(max-width:600px){.contactEmailRow{flex-direction:column}.contactEmailField,.copyAction{width:100%}.emailProviders{flex-direction:column;align-items:stretch}.emailProviders .nativeEmailLink{text-align:center;display:block;padding:10px}}

@@ -6,6 +6,7 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const page=read('apps/web/app/[locale]/partners/page.tsx');
 const styles=read('apps/web/app/[locale]/partners/Partners.module.css');
 const footer=read('apps/web/app/components/PortalShell.tsx');
+const contact=read('apps/web/app/[locale]/partners/PartnerContactOptions.tsx');
 const indexing=read('apps/web/lib/site-indexing.ts');
 
 test('partners is EN/UK and has independent canonical and hreflang metadata',()=>{
@@ -41,11 +42,25 @@ test('editorial guardrails and genuinely useful destinations are present',()=>{
  assert.match(page,/не гарантуємо зворотні посилання/);
  assert.match(page,/spiritual interpretations as experimentally verified predictions/);
  assert.match(page,/publicContact/);
- assert.match(page,/about-me/);
+ assert.match(page,/support@galaxiora\.com/);
 });
 
 test('mobile layout, focus styling and reduced motion are covered',()=>{
  assert.match(styles,/@media\(max-width:600px\)/);
  assert.match(styles, /:focus-visible/);
  assert.match(styles, /prefers-reduced-motion/);
+});
+
+test('partnership contact never depends on mailto-only click',()=>{
+ assert.match(page,/PartnerContactOptions locale=\{loc\} email=\{publicContact\}/);
+ assert.doesNotMatch(page,/href=\{contactHref\}/);
+ assert.match(contact,/navigator\.clipboard/);
+ assert.match(contact,/document\.execCommand\('copy'\)/);
+ assert.match(contact,/mail\.google\.com\/mail/);
+ assert.match(contact,/outlook\.live\.com\/mail\/0\/deeplink\/compose/);
+ assert.match(contact,/aria-live="polite"/);
+ assert.match(contact,/type="email"/);
+ assert.match(contact,/target="_blank" rel="noopener noreferrer"/);
+ assert.match(styles,/\.contactEmailRow/);
+ assert.match(styles,/\.emailProviders/);
 });
