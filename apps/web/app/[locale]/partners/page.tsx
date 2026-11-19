@@ -1,7 +1,8 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import {ArrowRight,ArrowUpRight,BookOpen,Mail,ShieldCheck,Sparkles} from 'lucide-react';
+import {ArrowRight,ArrowUpRight,BookOpen,ShieldCheck,Sparkles} from 'lucide-react';
+import PartnerContactOptions from './PartnerContactOptions';
 import PortalShell from '../../components/PortalShell';
 import {BRAND,isPortalLocale,type PortalLocale} from '../../../lib/brand';
 import {indexRobots,publicIndexingEnabled,publicSiteOrigin} from '../../../lib/site-indexing';
@@ -121,9 +122,6 @@ export default async function PartnersPage({params}:Props){
  if(!isPortalLocale(locale))notFound();
  const loc=locale as PortalLocale,c=COPY[loc],origin=publicSiteOrigin();
  const publicContact=process.env.NEXT_PUBLIC_SITE_CONTACT_EMAIL?.trim()||'';
- const contactHref=publicContact
-  ?'mailto:'+publicContact+'?subject='+encodeURIComponent('Galaxiora editorial collaboration')
-  :'/'+loc+'/about-me';
  const jsonLd=publicIndexingEnabled()&&origin?JSON.stringify([
   {'@context':'https://schema.org','@type':'WebPage','@id':origin+'/'+loc+'/partners#webpage',
    name:c.heading,url:origin+'/'+loc+'/partners',description:c.description,inLanguage:loc,
@@ -218,13 +216,16 @@ export default async function PartnersPage({params}:Props){
     <span className={styles.sectionEyebrow}>{c.reachEyebrow}</span>
     <h2 id="partners-contact">{c.reachHeading}</h2>
     <p>{c.reach}</p>
+    {publicContact
+      ?<PartnerContactOptions locale={loc} email={publicContact}/>
+      :<div className={styles.contactActions}>
+        <Link href={'/'+loc+'/about-me'} className={styles.primaryAction}>{c.contactProfile}<ArrowUpRight size={18} aria-hidden="true"/></Link>
+        <p className={styles.contactDetail}>{c.contactFallback}</p>
+       </div>
+    }
     <div className={styles.contactActions}>
-     <a href={contactHref} className={styles.primaryAction}>
-      <Mail size={18} aria-hidden="true"/>{publicContact?c.contact:c.contactProfile}<ArrowUpRight size={18} aria-hidden="true"/>
-     </a>
      <Link href={'/'+loc+'/about'} className={styles.secondaryAction}>{c.browse}<ArrowRight size={18} aria-hidden="true"/></Link>
     </div>
-    {!publicContact&&<p className={styles.contactDetail}>{c.contactFallback}</p>}
     <p className={styles.contactDetail}>{c.contactDetail}</p>
    </section>
   </article>
