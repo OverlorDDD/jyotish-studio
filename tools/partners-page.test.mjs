@@ -39,7 +39,7 @@ test('editorial guardrails and genuinely useful destinations are present',()=>{
  }
  assert.match(page,/We do not promise backlinks/);
  assert.match(page,/не гарантуємо зворотні посилання/);
- assert.match(page,/not experimentally verified predictions/);
+ assert.match(page,/spiritual interpretations as experimentally verified predictions/);
  assert.match(page,/publicContact/);
  assert.match(page,/about-me/);
 });
