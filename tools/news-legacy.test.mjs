@@ -19,7 +19,7 @@ const mock=async(url,opts)=>{
   'Посібник пояснює положення Місяця в натальних картах Джйотіш і традиційне трактування його положення.';
  return new Response(JSON.stringify({translatedText:output}),{status:200});
 };
-test('legacy news translated oldest-first without a generated teaser for title-only records',async()=>{
+test('legacy news localization prioritizes newest publisher articles without inventing teasers',async()=>{
  const old=process.env.NEWS_TRANSLATION_ENABLED,approved=process.env.NEWS_TRANSLATION_QUALITY_APPROVED,
  scope=process.env.NEWS_TRANSLATION_CONTENT_SCOPE;
  delete process.env.NEWS_TRANSLATION_ENABLED;
@@ -32,7 +32,7 @@ test('legacy news translated oldest-first without a generated teaser for title-o
   const out=await enrichPendingNews(db,mock);
   assert.equal(out.processed,2);
   assert.equal(out.engine,'local_nmt_only');
-  assert.equal(select.orderBy[0].discoveredAt,'asc');
+  assert.equal(select.orderBy[0].discoveredAt,'desc');
   assert.match(writes[0].data.titleUk,/Таро/);
   assert.equal(writes[0].data.summaryKind,'no_context');
   assert.equal(writes[0].data.summaryUk,undefined);
