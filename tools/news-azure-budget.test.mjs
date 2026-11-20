@@ -92,7 +92,10 @@ test('Approved Azure batch reserves the actual headline length, then stores its 
   feedDescription:null,summary:null,summaryKind:'no_context',editorialAttempts:0,language:'en'};
  const meter=mockMeter(),writes=[];
  const db={...meter,newsArticle:{
-  findMany:async()=>[row],
+  findMany:async query=>{
+   assert.deepEqual(query.orderBy,[{discoveredAt:'desc'},{id:'desc'}]);
+   return [row];
+  },
   updateMany:async args=>{writes.push(args);return {count:1}}
  }};
  let calls=0;
