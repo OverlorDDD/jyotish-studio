@@ -155,7 +155,9 @@ async function enrichPendingNewsUnlocked(prisma:PrismaService,fetcher:Translatio
     scope==='headlines'?{}:
      {OR:[{titleUk:null},{titleUk:''},{titleEn:null},{titleEn:''},{summaryUk:null},{summaryUk:''},{summaryEn:null},{summaryEn:''}]}
    ]},
-  orderBy:[{discoveredAt:'asc'},{id:'asc'}],take:scope==='headlines'?10000:1000,
+  // Prioritize newly discovered publisher stories while the Azure budget is scarce.
+  // Older articles remain eligible for future batches; no content is removed.
+  orderBy:[{discoveredAt:'desc'},{id:'desc'}],take:scope==='headlines'?10000:1000,
   select:{id:true,title:true,titleUk:true,titleEn:true,feedDescription:true,summary:true,summaryUk:true,summaryEn:true,summaryKind:true,
    language:true,editorialAttempts:true}
  });
