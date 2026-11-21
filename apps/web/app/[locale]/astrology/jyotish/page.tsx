@@ -20,7 +20,7 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
   description:locale==='uk'?'Розрахуйте безкоштовну натальну карту Джйотіш онлайн. 16 дробових карт D1–D60, зокрема D9 і D10, за часом і місцем народження. Без реєстрації.':'Calculate a free Vedic birth chart (Kundli) using Swiss Ephemeris and Lahiri ayanamsa. Explore D1, D9, D10 and 16 divisional charts. No signup.',
   robots:indexRobots(),
   openGraph:{type:'website',title:locale==='uk'?'Безкоштовна натальна карта Джйотіш | Galaxiora':'Free Vedic Birth Chart Calculator | Galaxiora',
-   description:locale==='uk'?'Безкоштовний розрахунок 16 ведичних карт. D60 має окремі обмеження точності часу народження.':'Free Kundli calculator with D1, D9, D10 and 16 Vedic divisional charts. D60 has birth-time precision limits.',url:'/'+locale+'/astrology/jyotish'},
+   description:locale==='uk'?'Безкоштовний розрахунок 16 ведичних карт. D60 має окремі обмеження точності часу народження.':'Free Kundli calculator with D1, D9, D10 and 16 Vedic divisional charts. D60 has birth-time precision limits.',images:['/opengraph-image'],url:'/'+locale+'/astrology/jyotish'},
   alternates:{canonical:'/'+locale+'/astrology/jyotish',languages:{en:'/en/astrology/jyotish',uk:'/uk/astrology/jyotish','x-default':'/en/astrology/jyotish'}}
  };
 }

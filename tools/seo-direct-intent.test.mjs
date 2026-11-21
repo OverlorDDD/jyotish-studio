@@ -48,3 +48,16 @@ test('SSR streaming Jyotish loading fallback has no duplicate H1 for Bing raw-HT
  assert.match(styles,/\.as-jyotish-loading\s+\.as-jyotish-loading-title\{/);
  assert.match(natal,/JyotishCalculator/,'main natal heading remains in the actual calculator');
 });
+
+test('unlocalized natal route redirects permanently to the English canonical',async()=>{
+ const {default:config}=await import('../apps/web/next.config.mjs');
+ const rules=await config.redirects();
+ assert.deepEqual(rules.find(rule=>rule.source==='/astrology/jyotish'),{
+  source:'/astrology/jyotish',destination:'/en/astrology/jyotish',permanent:true
+ });
+});
+
+test('localized natal previews use the existing branded OG image',()=>{
+ const natal=source('apps/web/app/[locale]/astrology/jyotish/page.tsx');
+ assert.match(natal,/openGraph:[\s\S]*images:\['\/opengraph-image'\]/);
+});
