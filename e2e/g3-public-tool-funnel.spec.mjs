@@ -81,8 +81,15 @@ test('G3 guest Daily Tarot completion is counted once only after a fresh draw',a
  await expect.poll(async()=>(await eventData(page)).some(e=>e.name==='public_tool_viewed'&&e.params.tool==='tarot')).toBe(true);
  const completions=async()=> (await eventData(page)).filter(e=>e.name==='public_tool_completed'&&e.params.tool==='tarot');
  expect(await completions()).toHaveLength(0);
+ await page.clock.install();
+ await page.clock.pauseAt(new Date(Date.now()+1000));
  await page.getByTestId('tarot-daily-draw').click();
- await expect(page.getByTestId('tarot-daily-result')).toBeVisible({timeout:10000});
+ const starts=(await eventData(page)).filter(e=>e.name==='public_tool_started'&&e.params.tool==='tarot');
+ expect(starts).toHaveLength(1);
+ expect(await completions()).toHaveLength(0);
+ await page.clock.runFor(900);
+ await expect(page.getByTestId('tarot-daily-result')).toBeVisible();
+ await page.clock.resume();
  await expect.poll(async()=>(await completions()).length).toBe(1);
  expect(Object.keys((await completions())[0].params).sort()).toEqual(['locale','send_to','tool']);
  await page.reload();

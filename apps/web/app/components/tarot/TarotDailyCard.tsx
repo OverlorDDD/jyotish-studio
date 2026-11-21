@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {Sparkles} from 'lucide-react';
 import {aspectText,TAROT_LIBRARY,tarotCardById} from '../../../lib/tarot-meanings';
@@ -17,6 +17,9 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
  const [today,setToday]=useState('');
  const [phase,setPhase]=useState<'idle'|'flipping'|'done'>('idle');
  const [turned,setTurned]=useState(false);
+ const pendingDraw=useRef(false);
+ const turnTimer=useRef<number|undefined>(undefined);
+ const revealTimer=useRef<number|undefined>(undefined);
  useEffect(()=>{
   const day=localDay(),j=readJourney();
   setToday(day);setJourney(j);
@@ -28,14 +31,18 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
   window.addEventListener(JOURNEY_EVENT,sync);
   window.addEventListener('galaxiora:auth-changed',pull);
   pull();
-  return()=>{window.removeEventListener(JOURNEY_EVENT,sync);window.removeEventListener('galaxiora:auth-changed',pull);};
+  return()=>{
+   window.clearTimeout(turnTimer.current);
+   window.clearTimeout(revealTimer.current);
+   window.removeEventListener(JOURNEY_EVENT,sync);window.removeEventListener('galaxiora:auth-changed',pull);};
  },[]);
  function draw(){
-  if(!journey||phase!=='idle')return;
+  if(!journey||phase!=='idle'||pendingDraw.current)return;
   const pick=pickDaily(IDS);
   const next=markSeen({...journey,daily:{date:today,...pick},days:[...journey.days.filter(d=>d!==today),today]},[pick.id]);
   writeJourney(next);setJourney(next);setPhase('flipping');
-  window.setTimeout(()=>setTurned(true),40);
+  pendingDraw.current=true;
+  turnTimer.current=window.setTimeout(()=>setTurned(true),40);
   reportPublicToolEvent('public_tool_started','tarot');
   // Signed in: keep the card in the profile; if another device already drew today's card, show that one.
   void saveDailyCard({date:today,id:pick.id,reversed:pick.reversed}).then(server=>{
@@ -43,11 +50,16 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
    const merged=mergeJourney(readJourney(),server,today);
    writeJourney(merged);setJourney(merged);
   });
-  window.setTimeout(()=>{setPhase('done');window.dispatchEvent(new Event(JOURNEY_EVENT));reportPublicToolEvent('public_tool_completed','tarot');},900);
+  revealTimer.current=window.setTimeout(()=>{setPhase('done');window.dispatchEvent(new Event(JOURNEY_EVENT));},900);
  }
  const daily=journey?.daily?.date===today?journey.daily:null;
  const card=daily?tarotCardById(daily.id):null;
  const t=card?card[locale]:null;
+ useEffect(()=>{
+  if(phase!=='done'||!t||!pendingDraw.current)return;
+  pendingDraw.current=false;
+  reportPublicToolEvent('public_tool_completed','tarot');
+ },[phase,t]);
  const week=today?weekDays(today):[];
  const done=new Set(journey?.days??[]);
  const run=journey&&today?streak(journey.days,today):0;
