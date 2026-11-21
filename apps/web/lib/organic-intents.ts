@@ -45,11 +45,11 @@ export const ORGANIC_INTENTS:readonly OrganicIntent[]=[
   id:'tarot',toolPath:'tarot',
   keywords:['tarot','tarot reading','tarot spread','tarot cards','rider waite','major arcana','таро','розклад таро','значення карт','аркани'],
   heading:{en:'Understand the cards before drawing a Tarot spread',uk:'Розберися зі значеннями карт перед розкладом Таро'},
-  intro:{en:'A Tarot card is interpreted in the context of its position and the other cards, not as one universal prediction. The GalaxiTarot library can be explored openly; creating and saving a personal reading requires signing in.',uk:'Значення карти Таро залежить від її позиції та сусідніх карт, а не від одного універсального прогнозу. Бібліотека GalaxiTarot відкрита для читання; власний розклад і збереження потребують входу.'},
+  intro:{en:'A Tarot card is interpreted in the context of its position and the other cards, not as one universal prediction. Browse the GalaxiTarot library and try a free spread as a guest. An account saves your reading history across devices.',uk:'Значення карти Таро залежить від її позиції та сусідніх карт, а не від одного універсального прогнозу. Переглядай бібліотеку GalaxiTarot і роби безкоштовні розклади без реєстрації. Увійди, щоб зберігати історію розкладів на різних пристроях.'},
   steps:[
    {en:'Read the upright and reversed symbolism in the card library.',uk:'Прочитай прямі та перевернуті значення в бібліотеці карт.'},
    {en:'Choose a one-, three- or ten-card spread for the level of context you want.',uk:'Обери розклад на одну, три або десять карт залежно від запитання.'},
-   {en:'Sign in before starting a personal draw; keep the question private.',uk:'Увійди перед персональним розкладом; не публікуй особисте запитання.'}
+   {en:'Start as a guest. Sign in if you want to revisit the reading on another device.',uk:'Почни без реєстрації. Увійди, якщо захочеш відкрити розклад на іншому пристрої.'}
   ],
   guides:[
    {path:'tarot/cards',label:{en:'Browse the 78 Tarot cards',uk:'Переглянути 78 карт Таро'}},

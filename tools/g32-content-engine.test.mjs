@@ -43,3 +43,11 @@ test('content engine cannot publish or invent a new indexable page',()=>{
  assert.ok(plan.assets.every(x=>x.validatedGuides.every(g=>g.alreadyExists)));
  assert.equal(plan.requiresEditorialApprovalForNewPages,true);
 });
+
+test('Tarot help offers a guest spread and reserves sign-in for saved history in both locales',()=>{
+ const tarot=ORGANIC_INTENTS.find(x=>x.id==='tarot');
+ assert.match(tarot.intro.en,/free spread as a guest.*account saves.*history/);
+ assert.match(tarot.intro.uk,/розклади без реєстрації.*Увійди, щоб зберігати історію/);
+ assert.match(tarot.steps[2].en,/^Start as a guest/);
+ assert.match(tarot.steps[2].uk,/^Почни без реєстрації/);
+});
