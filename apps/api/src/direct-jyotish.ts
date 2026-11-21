@@ -236,6 +236,8 @@ export async function generateDirectJyotish(
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
      body:JSON.stringify({model,
       ...(provider==='groq'?{max_completion_tokens:maxCompletion,reasoning_effort:'low',include_reasoning:false}:{max_tokens:maxCompletion}),
+      // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
+      ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:concise?0.45:0.6,
       messages:[{role:'system',content:instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+

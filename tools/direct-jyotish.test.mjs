@@ -240,3 +240,26 @@ test('OpenRouter tries one shorter response after truncation, then moves to the 
  assert.equal(calls[1].payload.max_tokens,calls[0].payload.max_tokens);
  assert.equal(result.result?.provider,'groq');
 });
+
+test('OpenRouter disables reasoning for the explicitly configured free Nemotron Lightning endpoint',async()=>{
+ const previous=process.env.OPENROUTER_FREE_MODEL;
+ try{
+  for(const model of ['nvidia/nemotron-3.5-lightning:free','openrouter/free']){
+   process.env.OPENROUTER_FREE_MODEL=model;
+   let payload;
+   const result=await generateDirectJyotish(chart,'uk','2026-10-22',{
+    order:['openrouter'],keys:{openrouter:'test'},limit:()=>true,
+    fetcher:async(_url,request)=>{
+     payload=JSON.parse(request.body);
+     return success();
+    }
+   });
+   assert.equal(result.result?.provider,'openrouter');
+   assert.equal(payload.model,model);
+   assert.deepEqual(payload.reasoning,model==='openrouter/free'?undefined:{enabled:false});
+  }
+ }finally{
+  if(previous===undefined)delete process.env.OPENROUTER_FREE_MODEL;
+  else process.env.OPENROUTER_FREE_MODEL=previous;
+ }
+});
