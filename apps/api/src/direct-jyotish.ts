@@ -182,9 +182,10 @@ export async function generateDirectJyotish(
  };
  // One bounded public request: preserve time for Gemini then the two backups.
  // Each corrective retry has its OWN timeout; do not reuse a stale AbortSignal.
- const deadline=Date.now()+185000;
+ // Leave time for the deterministic report to reach the 180s web proxy.
+ const deadline=Date.now()+150000;
  let reason:FreeFallbackReason='no_provider';
- providerLoop: for(const provider of order){
+ providerLoop: for(const [index,provider] of order.entries()){
   const key=opts.keys?.[provider]??(provider==='gemini'?process.env.GEMINI_API_KEY:provider==='groq'?process.env.GROQ_API_KEY:process.env.OPENROUTER_API_KEY);
   const confirmed=opts.freeConfirmed?.[provider]??(provider==='gemini'?process.env.GEMINI_FREE_TIER_CONFIRMED==='1':
    provider==='groq'?process.env.GROQ_FREE_TIER_CONFIRMED==='1':true);
@@ -202,6 +203,8 @@ export async function generateDirectJyotish(
    // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
    for(let attempt=0;attempt<2;attempt++){
     if(attempt>0){
+     // Keep a usable window for each remaining provider before spending a retry.
+     if(deadline-Date.now()<=10000+30000*(order.length-index-1))break;
      if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
      console.warn('Direct Jyotish: '+provider+' retrying_incomplete_text');
     }
@@ -213,7 +216,8 @@ export async function generateDirectJyotish(
     }
     controller=new AbortController();
     const providerTimeout=provider==='gemini'?65000:42000;
-    const timeout=Math.min(left,opts.timeoutMs??providerTimeout,attempt===1?25000:providerTimeout);
+    const reservedForFallback=30000*(order.length-index-1);
+    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?25000:providerTimeout);
     timer=setTimeout(()=>controller?.abort(),timeout);
     const concise=attempt===1;
     const backup=provider!=='gemini'||concise;
@@ -223,7 +227,10 @@ export async function generateDirectJyotish(
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
-      backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION)+
+      provider==='openrouter'?
+       DIRECT_JYOTISH_BACKUP_INSTRUCTION.replace('280-380 words TOTAL','210-270 words TOTAL')+
+        '\nGive the finished prose immediately. Use short sections and place the two additional divisions near the beginning.':
+       backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION)+
       (hasVerifiedVargas?'\nIn the first two sections, explicitly name two distinct additional divisions supplied in the facts using their D-codes (for example D24 and D27 if supplied). For each, connect a specific verified factor to a D1 theme. D1, D9, D10 and D60 do not count toward these two.':'');
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},

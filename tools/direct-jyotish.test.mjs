@@ -97,7 +97,7 @@ test('N501 truncated finish_reason switches providers without consuming same-pro
     return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:prose}}]}),{status:200});
    }
    assert.equal(body.max_tokens,3400);
-   assert.equal(body.messages[0].content,DIRECT_JYOTISH_BACKUP_INSTRUCTION);
+   assert.match(body.messages[0].content,/210-270 words TOTAL/);
    return success();
   }
  });
@@ -235,6 +235,7 @@ test('OpenRouter tries one shorter response after truncation, then moves to the 
  });
  assert.equal(calls.length,3);
  assert.ok(calls.slice(0,2).every(call=>call.url.includes('openrouter.ai')));
+ assert.match(calls[0].payload.messages[0].content,/210-270 words TOTAL/);
  assert.match(calls[1].payload.messages[0].content,/200-280 words/);
  assert.equal(calls[1].payload.max_tokens,calls[0].payload.max_tokens);
  assert.equal(result.result?.provider,'groq');
