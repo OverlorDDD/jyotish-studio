@@ -185,7 +185,7 @@ export default function GlobalAccount({locale}:{locale:PortalLocale}){
   finally{setBusy(false)}
  }
  return <div className="as-account">
-  {siteKey&&<Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onReady={()=>setChallengeReady(v=>v+1)}/>}
+  {siteKey&&open&&!user&&mode==='register'&&<Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onReady={()=>setChallengeReady(v=>v+1)}/>}
   <button ref={triggerRef} className="as-account-trigger" type="button" aria-expanded={open}
    aria-haspopup="dialog" aria-controls={open?'galaxiora-account-dialog':undefined}
    onClick={()=>setOpen(v=>!v)}>

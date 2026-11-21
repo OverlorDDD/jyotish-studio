@@ -65,3 +65,9 @@ test('existing users remain MEMBER; schema changes are additive and admin promot
  assert.ok(grant.includes("CONFIRM_ADMIN_PROMOTION!=='YES'"));
  assert.ok(grant.includes("user.role==='ADMIN'"));
 });
+
+test('Turnstile loads only while a guest is opening registration',()=>{
+ const account=readFileSync(new URL('../apps/web/app/components/GlobalAccount.tsx',import.meta.url),'utf8');
+ assert.match(account,/{siteKey&&open&&!user&&mode==='register'&&<Script src="https:\/\/challenges\.cloudflare\.com\/turnstile/);
+ assert.match(account,/if\(!open\|\|mode!=='register'\|\|!siteKey\|\|!challengeRef\.current\|\|!challengeReady\)return/);
+});
