@@ -43,7 +43,7 @@ export default function TarotDailyCard({locale}:{locale:'uk'|'en'}){
    const merged=mergeJourney(readJourney(),server,today);
    writeJourney(merged);setJourney(merged);
   });
-  window.setTimeout(()=>{setPhase('done');window.dispatchEvent(new Event(JOURNEY_EVENT));},900);
+  window.setTimeout(()=>{setPhase('done');window.dispatchEvent(new Event(JOURNEY_EVENT));reportPublicToolEvent('public_tool_completed','tarot');},900);
  }
  const daily=journey?.daily?.date===today?journey.daily:null;
  const card=daily?tarotCardById(daily.id):null;
