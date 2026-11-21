@@ -168,7 +168,8 @@ export function validateN4ConsultationReferences(text:string,chart:CalculatedCha
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
- const order=opts.order??productionDirectAiOrder();
+ const order=opts.order??productionDirectAiOrder().filter(provider=>
+  provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
  const priority=planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
  const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority);

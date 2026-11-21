@@ -263,3 +263,31 @@ test('OpenRouter disables reasoning for the explicitly configured free Nemotron 
   else process.env.OPENROUTER_FREE_MODEL=previous;
  }
 });
+
+test('A production operations switch removes OpenRouter from natal fallback',async()=>{
+ const configured=['GALAXIORA_NATAL_OPENROUTER_DISABLED','OPENROUTER_API_KEY','FREE_AI_ORDER'];
+ const previous=configured.map(name=>process.env[name]);
+ try{
+  process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED='1';
+  process.env.OPENROUTER_API_KEY='mock-key';
+  process.env.FREE_AI_ORDER='gemini,groq,openrouter';
+  const calls=[];
+  const result=await generateDirectJyotish(chart,'uk','2026-10-22',{
+   keys:{gemini:'mock',groq:'mock'},freeConfirmed:{gemini:true,groq:true},limit:()=>true,
+   fetcher:async url=>{
+    calls.push(url);
+    return new Response('{}',{status:503});
+   }
+  });
+  assert.equal(result.reason,'provider_unavailable');
+  assert.deepEqual(calls,[
+   'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+   'https://api.groq.com/openai/v1/chat/completions'
+  ]);
+ }finally{
+  configured.forEach((name,index)=>{
+   if(previous[index]===undefined)delete process.env[name];
+   else process.env[name]=previous[index];
+  });
+ }
+});
