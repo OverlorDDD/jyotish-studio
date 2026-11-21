@@ -36,6 +36,8 @@ export function safeGrowthPath(pathname:string):string|null{
  // GalaxiPedia guides and topical hubs are public editorial content. Record
  // only the coarse section, never a free-form slug or URL query.
  if(/^pedia\/(?:[a-z0-9-]+|topic\/[a-z0-9-]+)$/.test(section))return '/'+parts[0]+'/pedia';
+ // Public news rubrics and stories share the feed's coarse analytics path.
+ if(/^news\/(?:astrology|jyotish|astronomy|tarot|yoga|meditation|vedic|self-development|(?:[a-z0-9-]+-)?[0-9a-f]{8})$/.test(section))return '/'+parts[0]+'/news';
  if(/^yoga\/[a-z-]+$/.test(section))return '/'+parts[0]+'/yoga';
  if(/^horoscope\/(?:(?:(?:western|vedic)\/)?[a-z-]+(?:\/(?:tomorrow|week|month))?|compatibility\/[a-z]+-[a-z]+)$/.test(section))return '/'+parts[0]+'/horoscope';
  return null;

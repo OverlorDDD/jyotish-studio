@@ -107,3 +107,15 @@ test('G3 Panchanga counts auto-load separately from confirmed user actions',()=>
  assert.match(p,/reportGrowthEvent\('panchanga_calculation_completed'\)/);
  assert.match(p,/function setDate\(date:string\)\{[\s\S]{0,120}manualDayRequest\.current=true/);
 });
+
+test('GalaxiNews attribution only reports the coarse section for public routes',()=>{
+ for(const path of ['/en/news/tarot','/en/news/story-abcd1234','/en/news/abcd1234']){
+  assert.equal(safeGrowthPath(path),'/en/news');
+ }
+ for(const path of ['/uk/news/for-you','/uk/news/admin','/uk/news/stories/abcd1234',
+  '/uk/news/story-abcd1234?question=private','/uk/news/story%20abcd1234']){
+  assert.equal(safeGrowthPath(path),null);
+ }
+ assert.equal(safeGrowthPath('/uk/news/jyotish'),'/uk/news');
+ assert.equal(safeGrowthToolForPath('/en/news/tarot'),null);
+});

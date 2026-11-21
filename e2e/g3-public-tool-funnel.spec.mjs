@@ -71,3 +71,21 @@ test('G3.2 GalaxiPedia article CTA is attributed without query or reading data',
  expect(JSON.stringify(all)).not.toContain('SECRET_BIRTH_DATE');
  expect(JSON.stringify(all)).not.toContain('/pedia/panchanga-five-limbs-explained');
 });
+
+test('GalaxiNews contextual CTA tracks a coarse section and the canonical tool',async({page})=>{
+ await page.route(/googletagmanager\.com|google-analytics\.com/,route=>
+  route.fulfill({status:200,contentType:'application/javascript',body:''}));
+ await page.goto('/en/privacy');
+ await page.getByRole('button',{name:'Allow analytics'}).click();
+ await page.goto('/en/news/jyotish?question=PRIVATE_NEWS_TEST');
+ await expect.poll(async()=>(await eventData(page)).some(e=>e.name==='page_view')).toBe(true);
+ const link=page.locator('main a[href*="/en/panchanga"]').first();
+ await expect(link).toBeVisible();
+ await link.evaluate(a=>a.addEventListener('click',e=>e.preventDefault(),{once:true}));
+ await link.click();
+ const events=await eventData(page);
+ expect(events.filter(e=>e.name==='article_to_tool_click').map(e=>e.params))
+  .toEqual([{from_section:'news',tool:'panchanga'}]);
+ expect(JSON.stringify(events)).not.toContain('PRIVATE_NEWS_TEST');
+ expect(events.find(e=>e.name==='page_view').params.page_path).toBe('/en/news');
+});
