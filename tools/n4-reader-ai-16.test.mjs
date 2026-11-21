@@ -164,6 +164,28 @@ test('Cloud AI input carries new N4 evidence and accepts only grounded multi-var
  assert.equal(result.result?.provider,'gemini');
  assert.equal(result.result?.text,prose);
 });
+test('Gemini corrects omitted varga references with compact evidence and the same validator',async()=>{
+ const chart=fixture();
+ const prose=Array.from({length:12},(_,i)=>'Practical observation '+(i+1)+': compare a distinct choice in the fields of relationships, learning, work, recovery and boundaries with the verified themes. ').join('');
+ const payloads=[];
+ const diagnostics=[];
+ const result=await generateDirectJyotish(chart,'uk','2026-11-07',{
+  order:['gemini'],keys:{gemini:'test'},freeConfirmed:{gemini:true},limit:()=>true,
+  onDiagnostic:event=>diagnostics.push(event.reason),
+  fetcher:async(_url,request)=>{
+   payloads.push(JSON.parse(request.body));
+   const content=payloads.length===1?prose:'D24 уточнює тему навчання в D1, а D27 показує, як витривалість підтримує ту саму тему. '+prose;
+   return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content}}]}),{status:200});
+  }
+ });
+ assert.deepEqual(diagnostics,['missing_n4_cross_varga_synthesis','complete']);
+ assert.equal(payloads.length,2);
+ assert.match(payloads[0].messages[0].content,/using their D-codes/);
+ assert.match(payloads[1].messages[0].content,/200-280 words/);
+ assert.ok(payloads[1].messages[1].content.length<payloads[0].messages[1].content.length);
+ assert.equal(result.result?.provider,'gemini');
+});
+
 test('Cloud AI refuses a confident D60 claim and retains deterministic Reader fallback',async()=>{
  const chart=fixture();
  const prose='## Claimed prediction\\n\\n'+('D60 guarantees a past-life outcome with certainty. ').repeat(40);

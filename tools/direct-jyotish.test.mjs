@@ -223,16 +223,19 @@ test('N501 backup policy still requires real D1/D9/D10 connections and two addit
  assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/low-risk actions/);
  assert.doesNotMatch(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/guaranteed life outcomes/);
 });
-test('N501 a single provider reporting token_limit is never immediately retried',async()=>{
- let calls=0;
+test('OpenRouter tries one shorter response after truncation, then moves to the next provider',async()=>{
+ const calls=[];
  const result=await generateDirectJyotish(chart,'en','2026-10-22',{
-  order:['openrouter'],keys:{openrouter:'test'},limit:()=>true,
-  fetcher:async()=>{
-   calls++;
+  order:['openrouter','groq'],keys:{openrouter:'test',groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async(url,request)=>{
+   calls.push({url,payload:JSON.parse(request.body)});
+   if(url.includes('groq.com'))return success();
    return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:prose}}]}),{status:200});
   }
  });
- assert.equal(calls,1);
- assert.equal(result.result,null);
- assert.equal(result.reason,'invalid_response');
+ assert.equal(calls.length,3);
+ assert.ok(calls.slice(0,2).every(call=>call.url.includes('openrouter.ai')));
+ assert.match(calls[1].payload.messages[0].content,/200-280 words/);
+ assert.equal(calls[1].payload.max_tokens,calls[0].payload.max_tokens);
+ assert.equal(result.result?.provider,'groq');
 });
