@@ -71,3 +71,22 @@ test('G3.2 GalaxiPedia article CTA is attributed without query or reading data',
  expect(JSON.stringify(all)).not.toContain('SECRET_BIRTH_DATE');
  expect(JSON.stringify(all)).not.toContain('/pedia/panchanga-five-limbs-explained');
 });
+
+test('G3 guest Daily Tarot completion is counted once only after a fresh draw',async({page})=>{
+ await page.route(/googletagmanager|google-analytics/,route=>
+  route.fulfill({status:200,contentType:'application/javascript',body:''}));
+ await page.goto('/en/privacy');
+ await page.getByRole('button',{name:'Allow analytics'}).click();
+ await page.goto('/en/tarot');
+ await expect.poll(async()=>(await eventData(page)).some(e=>e.name==='public_tool_viewed'&&e.params.tool==='tarot')).toBe(true);
+ const completions=async()=> (await eventData(page)).filter(e=>e.name==='public_tool_completed'&&e.params.tool==='tarot');
+ expect(await completions()).toHaveLength(0);
+ await page.getByTestId('tarot-daily-draw').click();
+ await expect(page.getByTestId('tarot-daily-result')).toBeVisible({timeout:10000});
+ await expect.poll(async()=>(await completions()).length).toBe(1);
+ expect(Object.keys((await completions())[0].params).sort()).toEqual(['locale','send_to','tool']);
+ await page.reload();
+ await expect(page.getByTestId('tarot-daily-result')).toBeVisible({timeout:10000});
+ await page.waitForTimeout(1000);
+ expect(await completions()).toHaveLength(0);
+});
