@@ -142,10 +142,10 @@ export default function GrowthConsent(){
    const from=safeGrowthPath(window.location.pathname);
    const to=safeGrowthPath(a.pathname);
    if(!from||!to||from===to)return;
-   const toTool=/^\/(uk|en)\/(tarot|astrology\/jyotish|panchanga)$/.test(to);
-   const fromArticle=/^\/(uk|en)\/(tarot\/cards|pedia(?:\/|$)|learn(?:\/|$)|eclipses\/2027)/.test(from);
+   const toTool=safeGrowthToolForPath(a.pathname);
+   const fromArticle=/^\/(uk|en)\/(tarot\/cards|pedia(?:\/|$)|learn(?:\/|$)|news$|eclipses\/2027)/.test(from);
    if(fromArticle&&toTool&&safeGrowthEvent('article_to_tool_click'))
-    window.gtag?.('event','article_to_tool_click',{from_section:from.split('/')[2],tool:to.split('/').slice(2).join('_')});
+    window.gtag?.('event','article_to_tool_click',{from_section:from.split('/')[2],tool:toTool});
   };
   const onGrowth=(event:Event)=>{
    const detail=(event as CustomEvent<{name?:string;tool?:string}>).detail;
