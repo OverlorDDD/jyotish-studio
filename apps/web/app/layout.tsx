@@ -5,6 +5,7 @@ import {BRAND} from '../lib/brand';
 import './globals.css';
 import {Suspense} from 'react';
 import GrowthConsent from './components/GrowthConsent';
+import FirstPartyPageViews from './components/FirstPartyPageViews';
 
 const siteUrl=publicSiteOrigin();
 export const metadata:Metadata={
@@ -53,6 +54,7 @@ export default async function RootLayout({children}:{children:React.ReactNode}){
  </head><body>
   {structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:structured}}/>}
   {children}
+  <Suspense fallback={null}><FirstPartyPageViews/></Suspense>
   <Suspense fallback={null}><GrowthConsent/></Suspense>
  </body></html>;
 }

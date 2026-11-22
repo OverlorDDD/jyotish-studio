@@ -1,29 +1,44 @@
 /** Coarse server-only HTML request categorization; never derive a visitor identity. */
 import {safeGrowthPath} from './growth-metrics.ts';
 const ROBOT=/(bot|crawler|spider|google-inspection|headless|lighthouse|curl|wget|python|go-http-client|httpclient|playwright|selenium|axios|node-fetch|postman|insomnia|facebookexternalhit|whatsapp|telegrambot|discordbot|slackbot|bytespider|semrush|ahrefs|mj12|uptime|monitor)/i;
-export function eligiblePublicHtmlSection(pathname:string,headers:{
- accept:string|null;agent:string|null;purpose:string|null;routerPrefetch:string|null;
- rsc:string|null;fetchDest:string|null;
-}):string|null {
- // GET + non-redirect/canonical path checks are performed by middleware.
- if(!headers.accept?.toLowerCase().includes('text/html'))return null;
- if(!headers.agent||ROBOT.test(headers.agent))return null;
- if(headers.purpose?.toLowerCase().includes('prefetch')||headers.routerPrefetch||
-  headers.rsc||headers.fetchDest&&headers.fetchDest!=='document')return null;
- if(pathname==='/' )return 'home'; // Root serves a real public HTML page, not a redirect.
+/** The very same allowlist is used by HTML-request and browser-rendered
+ * counters. Never send or persist a full page slug, city, query or user ID.
+ * This is a page/category classifier, not an assertion that a 200 was served.
+ */
+export function publicAggregateSectionForPath(pathname:string):string|null{
+ if(pathname==='/')return 'home';
  if(pathname.endsWith('/')||pathname.includes('//'))return null;
+ // Personal horoscope pages may expose account-specific material; never count them.
+ if(/^\/(?:uk|en)\/horoscope\/personal(?:\/|$)/.test(pathname))return null;
+ if(/^\/(?:uk|en)\/about-me$/.test(pathname))return 'about';
+ if(/^\/(?:uk|en)\/panchanga\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname))return 'panchanga';
+ if(/^\/(?:uk|en)\/news\/[a-z0-9-]+-[0-9a-f]{8}$/.test(pathname))return 'news';
+ if(/^\/(?:uk|en)\/astrology\/(?:moon-sign-vs-sun-sign|divisional-charts)$/.test(pathname))return 'astrology';
+ if(/^\/(?:uk|en)\/nakshatra(?:\/[a-z]+(?:-[a-z]+)*)?$/.test(pathname))return 'astrology';
  const safe=safeGrowthPath(pathname);
  if(!safe)return null;
  const section=safe.split('/').slice(2).join('/');
  if(!section)return 'home';
  if(section==='astrology/jyotish')return 'jyotish';
+ if(section==='astrology/divisional-charts')return 'astrology';
+ // The existing dashboard uses "learn" for the public GalaxiPedia.
+ if(section==='pedia')return 'learn';
  if(section==='tarot/cards')return 'tarot_cards';
  if(section==='eclipses/2027')return 'eclipses';
  return section==='astrology'||section==='tarot'||section==='panchanga'||
   section==='horoscope'||section==='yoga'||section==='learn'||section==='news'||
   section==='community'||section==='methodology'||section==='about'?section:null;
 }
-
+export function eligiblePublicHtmlSection(pathname:string,headers:{
+ accept:string|null;agent:string|null;purpose:string|null;routerPrefetch:string|null;
+ rsc:string|null;fetchDest:string|null;
+}):string|null{
+ if(!headers.accept?.toLowerCase().includes('text/html'))return null;
+ if(!headers.agent||ROBOT.test(headers.agent))return null;
+ if(headers.purpose?.toLowerCase().includes('prefetch')||headers.routerPrefetch||
+  headers.rsc||headers.fetchDest&&headers.fetchDest!=='document')return null;
+ return publicAggregateSectionForPath(pathname);
+}
 
 /** One coarse referral category per eligible public HTML request.
  * Do not persist referrers, query strings, domains, cookies or identities.

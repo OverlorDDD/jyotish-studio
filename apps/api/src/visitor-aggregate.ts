@@ -1,8 +1,11 @@
 /** Anonymous date/category counters; no personal identifiers. */
 import type {PrismaService} from './prisma.ts';
 export const VISITOR_METRICS=[
- 'public_html_request','jyotish_chart_completed','tarot_spread_completed','panchanga_calculation_completed',
- 'ref_google','ref_other_search','ref_social','ref_partner_tag','ref_other_referral','ref_internal','ref_unknown'
+ 'public_html_request','rendered_page_view','jyotish_chart_completed','tarot_spread_completed','panchanga_calculation_completed',
+ 'ref_google','ref_other_search','ref_social','ref_partner_tag','ref_other_referral','ref_internal','ref_unknown',
+ 'view_ref_google','view_ref_other_search','view_ref_social','view_ref_partner_tag',
+ 'view_ref_other_referral','view_ref_internal','view_ref_unknown',
+ 'rendered_locale_en','rendered_locale_uk'
 ] as const;
 export type VisitorMetric=typeof VISITOR_METRICS[number];
 export const REFERRAL_BUCKETS=['google','other_search','social','partner_tag','other_referral','internal','unknown'] as const;
@@ -11,6 +14,7 @@ export function validReferralBucket(input:unknown):input is ReferralBucket{
  return typeof input==='string'&&(REFERRAL_BUCKETS as readonly string[]).includes(input);
 }
 export function referralMetric(input:ReferralBucket):VisitorMetric{return ('ref_'+input) as VisitorMetric;}
+export function viewReferralMetric(input:ReferralBucket):VisitorMetric{return ('view_ref_'+input) as VisitorMetric;}
 export const VISITOR_SECTIONS=[
  'home','about','astrology','jyotish','tarot','tarot_cards','panchanga','eclipses',
  'horoscope','yoga','learn','news','community','methodology','tools'
