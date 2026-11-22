@@ -10,7 +10,7 @@ import {compactReaderV7ForAi} from './reader-v7.ts';
 import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
 
 /**
- * A fixed, versioned instruction: exactly one cloud call per provider.
+ * A fixed, versioned instruction: one cloud call per provider, with a bounded corrective retry for incomplete text.
  * The user message is only a compact, verified chart summary, never free-form user text.
  * No chapter delimiters, multi-step editor, JSON schema or all-or-nothing 8 chapter gate.
  */
@@ -168,8 +168,10 @@ export function validateN4ConsultationReferences(text:string,chart:CalculatedCha
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
- const order=opts.order??productionDirectAiOrder();
+ const order=opts.order??productionDirectAiOrder().filter(provider=>
+  provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
  const priority=planConsultationQuality(chart,asOf);
+ const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
  const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority);
  // The short free backup needs exact D1/D9/D10 and N4 evidence, not the 6.5 KB
  // Reader-8 literary exemplars already included in the deterministic report.
@@ -181,9 +183,10 @@ export async function generateDirectJyotish(
  };
  // One bounded public request: preserve time for Gemini then the two backups.
  // Each corrective retry has its OWN timeout; do not reuse a stale AbortSignal.
- const deadline=Date.now()+185000;
+ // Leave time for the deterministic report to reach the 180s web proxy.
+ const deadline=Date.now()+150000;
  let reason:FreeFallbackReason='no_provider';
- providerLoop: for(const provider of order){
+ providerLoop: for(const [index,provider] of order.entries()){
   const key=opts.keys?.[provider]??(provider==='gemini'?process.env.GEMINI_API_KEY:provider==='groq'?process.env.GROQ_API_KEY:process.env.OPENROUTER_API_KEY);
   const confirmed=opts.freeConfirmed?.[provider]??(provider==='gemini'?process.env.GEMINI_FREE_TIER_CONFIRMED==='1':
    provider==='groq'?process.env.GROQ_FREE_TIER_CONFIRMED==='1':true);
@@ -197,10 +200,12 @@ export async function generateDirectJyotish(
   const model=pickModel(provider);
   try{
    // Free models frequently stop before a long requested consultation is complete.
-   // A single bounded corrective retry is allowed only for truncated/short prose.
+   // Allow one bounded retry for selected incomplete responses.
    // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
    for(let attempt=0;attempt<2;attempt++){
     if(attempt>0){
+     // Keep a usable window for each remaining provider before spending a retry.
+     if(deadline-Date.now()<=10000+30000*(order.length-index-1))break;
      if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
      console.warn('Direct Jyotish: '+provider+' retrying_incomplete_text');
     }
@@ -211,21 +216,29 @@ export async function generateDirectJyotish(
      break providerLoop;
     }
     controller=new AbortController();
-    const timeout=Math.min(left,opts.timeoutMs??(provider==='gemini'?65000:provider==='groq'?42000:42000));
+    const providerTimeout=provider==='gemini'?65000:42000;
+    const reservedForFallback=30000*(order.length-index-1);
+    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?25000:providerTimeout);
     timer=setTimeout(()=>controller?.abort(),timeout);
     const concise=attempt===1;
-    const backup=provider!=='gemini';
+    const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
     const maxCompletion=provider==='groq'?(concise?2800:3600):
-      provider==='openrouter'?(concise?2800:3400):(concise?2400:3400);
-    const instructions=concise?
+      provider==='openrouter'?3400:(concise?2400:3400);
+    const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
-      backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION;
+      provider==='openrouter'?
+       DIRECT_JYOTISH_BACKUP_INSTRUCTION.replace('280-380 words TOTAL','210-270 words TOTAL')+
+        '\nGive the finished prose immediately. Use short sections and place the two additional divisions near the beginning.':
+       backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION)+
+      (hasVerifiedVargas?'\nIn the first two sections, explicitly name two distinct additional divisions supplied in the facts using their D-codes (for example D24 and D27 if supplied). For each, connect a specific verified factor to a D1 theme. D1, D9, D10 and D60 do not count toward these two.':'');
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
      body:JSON.stringify({model,
       ...(provider==='groq'?{max_completion_tokens:maxCompletion,reasoning_effort:'low',include_reasoning:false}:{max_tokens:maxCompletion}),
+      // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
+      ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:concise?0.45:0.6,
       messages:[{role:'system',content:instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
@@ -255,9 +268,10 @@ export async function generateDirectJyotish(
      const code=choice?.finish_reason==='length'?'token_limit':check.reason;
      diagnostic(provider,'validation',code);
      console.warn('Direct Jyotish: '+provider+' rejected='+code);
-     // token_limit means a provider exhausted its output allowance.
-     // Do not immediately repeat a costly request and hit the free-tier 429.
-     if(attempt===0&&(code==='too_short'||code==='unfinished'))continue;
+     const recoverable=code==='too_short'||code==='unfinished'||
+      (provider==='gemini'&&code==='missing_n4_cross_varga_synthesis')||
+      (provider==='openrouter'&&code==='token_limit');
+     if(attempt===0&&recoverable)continue;
      break;
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);

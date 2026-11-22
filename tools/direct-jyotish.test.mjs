@@ -97,7 +97,7 @@ test('N501 truncated finish_reason switches providers without consuming same-pro
     return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:prose}}]}),{status:200});
    }
    assert.equal(body.max_tokens,3400);
-   assert.equal(body.messages[0].content,DIRECT_JYOTISH_BACKUP_INSTRUCTION);
+   assert.match(body.messages[0].content,/210-270 words TOTAL/);
    return success();
   }
  });
@@ -223,16 +223,71 @@ test('N501 backup policy still requires real D1/D9/D10 connections and two addit
  assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/low-risk actions/);
  assert.doesNotMatch(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/guaranteed life outcomes/);
 });
-test('N501 a single provider reporting token_limit is never immediately retried',async()=>{
- let calls=0;
+test('OpenRouter tries one shorter response after truncation, then moves to the next provider',async()=>{
+ const calls=[];
  const result=await generateDirectJyotish(chart,'en','2026-10-22',{
-  order:['openrouter'],keys:{openrouter:'test'},limit:()=>true,
-  fetcher:async()=>{
-   calls++;
+  order:['openrouter','groq'],keys:{openrouter:'test',groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async(url,request)=>{
+   calls.push({url,payload:JSON.parse(request.body)});
+   if(url.includes('groq.com'))return success();
    return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:prose}}]}),{status:200});
   }
  });
- assert.equal(calls,1);
- assert.equal(result.result,null);
- assert.equal(result.reason,'invalid_response');
+ assert.equal(calls.length,3);
+ assert.ok(calls.slice(0,2).every(call=>call.url.includes('openrouter.ai')));
+ assert.match(calls[0].payload.messages[0].content,/210-270 words TOTAL/);
+ assert.match(calls[1].payload.messages[0].content,/200-280 words/);
+ assert.equal(calls[1].payload.max_tokens,calls[0].payload.max_tokens);
+ assert.equal(result.result?.provider,'groq');
+});
+
+test('OpenRouter disables reasoning for the explicitly configured free Nemotron Lightning endpoint',async()=>{
+ const previous=process.env.OPENROUTER_FREE_MODEL;
+ try{
+  for(const model of ['nvidia/nemotron-3.5-lightning:free','openrouter/free']){
+   process.env.OPENROUTER_FREE_MODEL=model;
+   let payload;
+   const result=await generateDirectJyotish(chart,'uk','2026-10-22',{
+    order:['openrouter'],keys:{openrouter:'test'},limit:()=>true,
+    fetcher:async(_url,request)=>{
+     payload=JSON.parse(request.body);
+     return success();
+    }
+   });
+   assert.equal(result.result?.provider,'openrouter');
+   assert.equal(payload.model,model);
+   assert.deepEqual(payload.reasoning,model==='openrouter/free'?undefined:{enabled:false});
+  }
+ }finally{
+  if(previous===undefined)delete process.env.OPENROUTER_FREE_MODEL;
+  else process.env.OPENROUTER_FREE_MODEL=previous;
+ }
+});
+
+test('A production operations switch removes OpenRouter from natal fallback',async()=>{
+ const configured=['GALAXIORA_NATAL_OPENROUTER_DISABLED','OPENROUTER_API_KEY','FREE_AI_ORDER'];
+ const previous=configured.map(name=>process.env[name]);
+ try{
+  process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED='1';
+  process.env.OPENROUTER_API_KEY='mock-key';
+  process.env.FREE_AI_ORDER='gemini,groq,openrouter';
+  const calls=[];
+  const result=await generateDirectJyotish(chart,'uk','2026-10-22',{
+   keys:{gemini:'mock',groq:'mock'},freeConfirmed:{gemini:true,groq:true},limit:()=>true,
+   fetcher:async url=>{
+    calls.push(url);
+    return new Response('{}',{status:503});
+   }
+  });
+  assert.equal(result.reason,'provider_unavailable');
+  assert.deepEqual(calls,[
+   'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+   'https://api.groq.com/openai/v1/chat/completions'
+  ]);
+ }finally{
+  configured.forEach((name,index)=>{
+   if(previous[index]===undefined)delete process.env[name];
+   else process.env[name]=previous[index];
+  });
+ }
 });
