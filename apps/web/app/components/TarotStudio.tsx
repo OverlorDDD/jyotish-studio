@@ -52,7 +52,6 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
   setError('');setLoading(true);
   try{
    const response=await fetch('/api/v1/tarot/readings',{credentials:'same-origin',cache:'no-store'});
-   if(response.status===401)reportPublicToolEvent('public_tool_auth_required','tarot');
    if(response.status===401){setSignedIn(false);setHistory([]);setRemaining(guestLeft(readJourney(),localDay()));return;}
    const r=await readApiJson<HistoryReply>(response);
    setSignedIn(true);setHistory(r.readings);setRemaining(r.remaining);setAiAvailable(r.aiAvailable);
@@ -76,6 +75,7 @@ export default function TarotStudio({locale}:{locale:PortalLocale}){
     body:JSON.stringify(signedIn?{spread,question:question.trim()||undefined,language:locale,aiConsent:aiAvailable&&aiConsent}
      :{spread,question:question.trim()||undefined})
    });
+   if(signedIn&&response.status===401)reportPublicToolEvent('public_tool_auth_required','tarot');
    const r=await readApiJson<DrawReply>(response);
    setReading(r);setRevealed([]);
    const today=localDay();
