@@ -170,3 +170,19 @@ test('GalaxiNews World renders an informative paragraph and feedback from databa
   await db.$disconnect();
  }
 });
+
+test('legacy astrology paths redirect permanently to the same language',async({request})=>{
+ for(const locale of ['en','uk']){
+  const response=await request.get('/'+locale+'/astrology',{maxRedirects:0});
+  expect(response.status()).toBe(308);
+  expect(response.headers().location).toBe('/'+locale+'/astrology/jyotish');
+ }
+});
+
+test('both GalaxiNews hubs advertise the existing social preview',async({page})=>{
+ for(const locale of ['en','uk']){
+  await page.goto('/'+locale+'/news');
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content',/\/opengraph-image$/);
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content',/\/opengraph-image$/);
+ }
+});

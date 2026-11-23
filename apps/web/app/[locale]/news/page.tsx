@@ -15,7 +15,8 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  return {title,description,robots:{...indexRobots(),'max-image-preview':'large'},
   alternates:{canonical:'/'+locale+'/news',languages:{uk:'/uk/news',en:'/en/news','x-default':'/en/news'},
    types:{'application/rss+xml':'/'+locale+'/news/rss.xml'}},
-  openGraph:{type:'website',siteName:'Galaxiora',title,description,url:'/'+locale+'/news',locale:uk?'uk_UA':'en_US'}};
+  openGraph:{type:'website',siteName:'Galaxiora',title,description,url:'/'+locale+'/news',locale:uk?'uk_UA':'en_US',images:['/opengraph-image']},
+  twitter:{card:'summary_large_image',title,description,images:['/opengraph-image']}};
 }
 export default async function NewsPage({params}:Props){
  const {locale}=await params;if(!isPortalLocale(locale))notFound();
