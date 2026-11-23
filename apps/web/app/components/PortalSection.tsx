@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import {redirect} from 'next/navigation';
+import {permanentRedirect} from 'next/navigation';
 import {ArrowUpRight,BookOpen,Flower2,HeartHandshake,Orbit,Sparkles,Newspaper,MessagesSquare} from 'lucide-react';
 import PortalShell from './PortalShell';
 import TarotStudio from './TarotStudio';
@@ -41,7 +41,7 @@ export const SECTION_COPY={
 } as const;
 const iconMap={astrology:Orbit,tarot:Sparkles,experts:HeartHandshake,yoga:Flower2,learn:BookOpen,news:Newspaper,community:MessagesSquare};
 export default function PortalSection({locale,section}:{locale:PortalLocale;section:PortalSectionSlug}){
- if(section==='astrology')redirect('/'+locale+'/astrology/jyotish');
+ if(section==='astrology')permanentRedirect('/'+locale+'/astrology/jyotish');
  if(section==='tarot'){
   const uk=locale==='uk';
   return <PortalShell locale={locale} active="tarot"><div className={tarotStyles.page}>
