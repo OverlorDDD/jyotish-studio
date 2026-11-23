@@ -176,3 +176,21 @@ test('GP-UX-1: guides and lessons have crawlable topic breadcrumbs, existing can
  await expect(page.locator('nav.as-pedia-breadcrumb a[href="/uk/pedia/topic/jyotish"]')).toBeVisible();
  await expect(page.locator('.as-academy-quiz')).toBeVisible();
 });
+
+for(const locale of ['en','uk']){
+ test(locale+' search guides offer one contextual calculator link',async({page})=>{
+  const actions=[
+   ['vimshottari-dasha-start-calculation','astrology/jyotish',/dasha periods|періоди даші/i],
+   ['nakshatra-today-location-guide','panchanga',/today’s nakshatra|сьогоднішню накшатру/i]
+  ];
+  for(const [slug,tool,label] of actions){
+   await page.goto('/'+locale+'/pedia/'+slug);
+   const article=page.locator('main article');
+   const action=article.getByRole('link',{name:label});
+   await expect(action).toHaveAttribute('href','/'+locale+'/'+tool);
+   await expect(article.locator('a[href="/'+locale+'/'+tool+'"]')).toHaveCount(1);
+   await action.click();
+   await expect(page).toHaveURL(new RegExp('/'+locale+'/'+tool+'$'));
+  }
+ });
+}

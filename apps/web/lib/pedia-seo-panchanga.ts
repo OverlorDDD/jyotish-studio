@@ -265,6 +265,10 @@ export const PEDIA_SEO_PANCHANGA:PediaArticle[]=[
           "en": "Why a city search still matters",
           "uk": "Навіщо обирати місто"
         },
+        "toolAction": {
+          "en": "Find today’s nakshatra for my city",
+          "uk": "Знайти сьогоднішню накшатру для мого міста"
+        },
         "paragraphs": [
           {
             "en": "The nakshatra transition itself is a global astronomical instant, but your local clock displays it according to your time zone. A transition that is still 'today' in one place may already be 'tomorrow' elsewhere. City selection also matters for local sunrise, which can change which nakshatra is associated with a sunrise-based festival date.",

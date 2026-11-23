@@ -269,6 +269,10 @@ export const PEDIA_SEO_JYOTISH:PediaArticle[]=[
           "en": "Calculate how much of the first period remains",
           "uk": "Як визначити залишок першого періоду"
         },
+        "toolAction": {
+          "en": "See my dasha periods in my birth chart",
+          "uk": "Побачити свої періоди даші в натальній карті"
+        },
         "paragraphs": [
           {
             "en": "Each nakshatra covers 13°20′, or 800 arcminutes. If the Moon is exactly one quarter of the way through its natal nakshatra, three quarters of that ruler's mahadasha remain at birth. For a hypothetical Venus-ruled nakshatra, the balance would be 0.75 × 20 = 15 dasha years. This is arithmetic, not a prediction of an event.",

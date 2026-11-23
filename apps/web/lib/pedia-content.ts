@@ -7,7 +7,7 @@ export type PediaText={en:string;uk:string};
 export type PediaCategory='jyotish'|'western'|'panchanga'|'tarot'|'astronomy'|'practice';
 export type PediaArticle={
  slug:string;category:PediaCategory;minutes:number;title:PediaText;summary:PediaText;
- sections:{title:PediaText;paragraphs:PediaText[]}[];
+ sections:{title:PediaText;paragraphs:PediaText[];toolAction?:PediaText}[];
  related:string[];tool:'panchanga'|'astrology/jyotish'|'horoscope'|'tarot'|'yoga'|'eclipses/2027';
  references:{label:string;url:string}[];
 };
