@@ -271,12 +271,12 @@ export const PEDIA_SEO_PANCHANGA:PediaArticle[]=[
         },
         "paragraphs": [
           {
-            "en": "The nakshatra transition itself is a global astronomical instant, but your local clock displays it according to your time zone. A transition that is still 'today' in one place may already be 'tomorrow' elsewhere. City selection also matters for local sunrise, which can change which nakshatra is associated with a sunrise-based festival date.",
-            "uk": "Сам перехід накшатри є глобальним астрономічним моментом, але місцевий годинник показує його у своєму часовому поясі. Те, що в одному місті відбувається «сьогодні», в іншому вже може бути «завтра». Місто також потрібне для сходу Сонця, від якого інколи залежить календарне приписування накшатри даті свята."
+            "en": "Choose a city to see the transition on your own clock and to check which nakshatra was active at local sunrise. This matters when a festival is assigned to a sunrise-based day. The Moon sign answers a different question: each sign covers 30°, while a nakshatra covers 13°20′, so the nakshatra can change while the Moon stays in the same sign.",
+            "uk": "Обери місто, щоб побачити свій місцевий час переходу й дізнатися, яка накшатра діяла на сході Сонця. Це важливо, коли свято прив’язане до дня за місцевим сходом. Місячний знак охоплює 30°, а накшатра — 13°20′. Накшатра може змінитися, поки Місяць залишається в тому самому знаку."
           },
           {
-            "en": "Moon sign and nakshatra are not synonyms. A rashi spans 30° and a nakshatra spans 13°20′. One lunar sign can include portions of several nakshatras, so a generic horoscope based on Moon sign does not tell you the precise nakshatra transition time.",
-            "uk": "Місячний знак і накшатра — не синоніми. Раші займає 30°, накшатра — 13°20′. Один місячний знак охоплює частини кількох накшатр, тож загальний гороскоп за знаком Місяця не повідомляє точного часу переходу накшатри."
+            "en": "Take 23 November 2026. Galaxiora’s Panchanga places the change from Bharani to Krittika at 20:32 UTC. You would see it in Kyiv at 22:32 on 23 November and in New Delhi at 02:02 on 24 November. Both clocks mark the same lunar transition. In New Delhi it falls after midnight, before the next sunrise.",
+            "uk": "Візьмімо 23 листопада 2026 року. За розрахунком Панчанги Galaxiora Місяць переходить із Бхарані до Кріттіки о 20:32 UTC. Цей перехід відбувається в Києві о 22:32 23 листопада, а в Нью-Делі о 02:02 24 листопада. У Делі на годиннику вже наступна дата, хоча до наступного сходу Сонця ще кілька годин."
           }
         ]
       },
