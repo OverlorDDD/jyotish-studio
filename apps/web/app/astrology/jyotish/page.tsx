@@ -73,6 +73,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const lang=initialLang; const [minutesUncertain,setMinutesUncertain]=useState(false),[form,setForm]=useState<Form>(EMPTY_FORM),[cityReset,setCityReset]=useState(0),[manualMode,setManualMode]=useState(false),[chart,setChart]=useState<Chart|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
+ const birthDetails=useRef<HTMLDetailsElement>(null);
  const readingRequestId=useRef(0); // ignore stale Reader/AI responses
  const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false}|null>(null);
  useEffect(()=>{
@@ -221,16 +222,16 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       <div className={landing.eyebrow}>{lang==='uk'?'ВЕДИЧНА НАТАЛЬНА КАРТА · БЕЗКОШТОВНО':'FREE VEDIC BIRTH CHART · JYOTISH'}</div>
       <h1 id="natal-page-title">{lang==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш':'Free Vedic Birth Chart Calculator'}</h1>
       <p className={landing.lead}>{lang==='uk'?
-       'Побудуй безкоштовну ведичну карту за датою, точним місцевим часом і містом народження. Порівняй D1 (Раші), D9 (Навамша), D10 (кар’єра) та всі 16 карт Шодашаварги. Для D60 враховуй особливу чутливість до часу народження.':
-       'Calculate your free Kundli from your birth date, exact local time and city. Compare D1 (Rashi), D9 (Navamsa), D10 (career) and all 16 Shodashavarga charts. D60 has special birth-time sensitivity limits.'}</p>
+       'Побудуй безкоштовну ведичну карту за датою, точним місцевим часом і містом народження.':
+       'Calculate your free Kundli from your birth date, exact local time and city.'}</p>
+      <div className={landing.heroActions}>
+       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Розрахувати натальну карту безкоштовно':'Calculate my free birth chart'} <ArrowUpRight size={18}/></a>
+       <a className={landing.heroSecondary} href="#varga-explorer">{lang==='uk'?'Дослідити всі карти':'Explore all 16 charts'}</a>
+      </div>
       <div className={landing.chips}>
        <span>{lang==='uk'?'Сильні сторони й виклики':'Strengths & challenges'}</span>
        <span>{lang==='uk'?'Стосунки та кар’єра':'Relationships & career'}</span>
        <span>{lang==='uk'?'16 карт · без реєстрації':'16 charts · no signup'}</span>
-      </div>
-      <div className={landing.heroActions}>
-       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Розрахувати натальну карту безкоштовно':'Calculate my free birth chart'} <ArrowUpRight size={18}/></a>
-       <a className={landing.heroSecondary} href="#varga-explorer">{lang==='uk'?'Дослідити всі карти':'Explore all 16 charts'}</a>
       </div>
       <small className={landing.miniDisclaimer}>{lang==='uk'?'Трактування традиції Джйотіш, а не психологічний діагноз. Астрономічний розрахунок: Swiss Ephemeris.':
        'Traditional Jyotish interpretation, not a psychological diagnosis. Astronomical calculation: Swiss Ephemeris.'}</small>
@@ -248,7 +249,9 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       <h1 id="natal-page-title">{lang==='uk'?'Твоя натальна карта':'Your birth chart'}</h1>
       <p>{chart.input.date} · {chart.input.time} · {chart.input.place||(lang==='uk'?'ручні координати':'manual coordinates')}</p>
      </div>
-     <a className={landing.heroSecondary} href="#birth-details">{lang==='uk'?'Змінити дані народження':'Edit birth details'}</a>
+     <a className={landing.heroSecondary} href="#natal-birth-date" onClick={()=>{
+      if(birthDetails.current)birthDetails.current.open=true;
+     }}>{lang==='uk'?'Змінити дані народження':'Edit birth details'}</a>
     </header>}
     {chart&&<div className="jy-key-facts">
       <div><span className="jy-fact-icon">Lg</span><small>{lang==='uk'?'Лагна':'Lagna'}</small><strong>{chart?signFull(chart.ascendant.sign,lang)+' · '+degreeLabel(chart.ascendant.degreesInSign):'—'}</strong></div>
@@ -259,10 +262,10 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       <div><span className="jy-fact-icon">◴</span><small>{lang==='uk'?'Поточна даша':'Current dasha'}</small><strong>{activeDasha?(lang==='uk'?GRAHA_UK[activeDasha.lord]||activeDasha.lord:activeDasha.lord):'—'}</strong></div>
      </div>}
 
-    <details id="birth-details" className={"jy-input-panel panel "+landing.birthForm} open={!chart}>
-     <summary><span><BookOpen size={17}/><strong>{lang==='uk'?'Створи безкоштовну натальну карту':'Create your free birth chart'}</strong></span><small>{chart?(lang==='uk'?'Змінити вихідні дані':'Edit source data'):(lang==='uk'?'Заповніть для розрахунку':'Enter details to calculate')}</small></summary>
+    <details ref={birthDetails} id="birth-details" className={"jy-input-panel panel "+landing.birthForm} open={!chart}>
+     <summary><span><BookOpen size={17}/><strong>{chart?i.details:(lang==='uk'?'Створи безкоштовну натальну карту':'Create your free birth chart')}</strong></span><small>{chart?(lang==='uk'?'Змінити вихідні дані':'Edit source data'):(lang==='uk'?'Заповніть для розрахунку':'Enter details to calculate')}</small></summary>
      <form onSubmit={calculate} className="jy-input-grid">
-      <label>{i.date}<input type="date" value={form.date} onChange={e=>edit('date',e.target.value)} required/></label>
+      <label>{i.date}<input id="natal-birth-date" type="date" value={form.date} onChange={e=>edit('date',e.target.value)} required/></label>
       <div className={landing.timeField}>
        <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
        <label className={landing.minuteOption}>
@@ -363,7 +366,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <details><summary>{lang==='uk'?'Що таке натальна карта?':'What is a birth chart?'}</summary><p>{lang==='uk'?'Це астрологічна схема положень планет і домів для заданого моменту та місця народження. Galaxiora використовує сидеричний підхід Джйотіш. Трактування описують ведичну традицію, а не науково підтверджене передбачення майбутнього.':'A birth chart maps planetary positions and houses for a specified birth time and location. Galaxiora uses the sidereal Jyotish tradition. Interpretations reflect this tradition rather than scientifically established predictions.'}</p></details>
      <details><summary>{lang==='uk'?'Чим ведична карта відрізняється від західного гороскопа?':'How is a Vedic chart different from a Western horoscope?'}</summary><p>{lang==='uk'?'У Джйотіш застосовується сидеричний зодіак і аянамша Лахірі. Тому знак Сонця або Місяця може відрізнятися від популярного західного тропічного гороскопа.':'Jyotish uses a sidereal zodiac and Lahiri ayanamsa. Your Sun or Moon sign can therefore differ from a familiar Western tropical horoscope.'}</p></details>
      <details><summary>{lang==='uk'?'Чи потрібен точний час народження?':'Do I need an exact birth time?'}</summary><p>{lang==='uk'?'Дата, час і місце потрібні для розрахунку Лагни та домів. За приблизного часу ці показники можуть змінюватися. Особливо чутлива D60: навіть документально записані хвилини не гарантують стабільності її Лагни.':'Date, time and place are used to calculate the ascendant and houses. Approximate times can change these placements. D60 is especially sensitive: even documented minutes cannot guarantee a stable D60 ascendant.'}</p></details>
-     <details><summary>{lang==='uk'?'Що означають D1, D9, D10 і D60?':'What do D1, D9, D10 and D60 mean?'}</summary><p>{lang==='uk'?'D1 — основна натальна схема. D9 традиційно аналізує партнерство і дхарму, D10 — професійні теми, а D60 — тонкі кармічні значення. У Galaxiora доступні всі 16 карт Шодашаварги.':'D1 is the foundation. D9 traditionally explores partnership and dharma, D10 vocational themes, and D60 subtle karmic themes. Galaxiora includes all 16 Shodashavarga charts.'}</p></details>
+     <details><summary>{lang==='uk'?'Що означають D1, D9, D10 і D60?':'What do D1, D9, D10 and D60 mean?'}</summary><p>{lang==='uk'?'D1 (Раші) показує карту народження в цілому. D9 (Навамша) допомагає дослідити партнерство й дхарму, а D10 — професійну діяльність. Доступні всі 16 карт Шодашаварги. Для D60 навіть невелика похибка в часі народження може змінити результат.':'D1 (Rashi) gives an overview of your birth chart. You can explore D9 (Navamsa), D10 (career) and all 16 Shodashavarga charts. D9 focuses on partnership and dharma. D60 has special birth-time sensitivity limits.'}</p></details>
     </section>
 
 

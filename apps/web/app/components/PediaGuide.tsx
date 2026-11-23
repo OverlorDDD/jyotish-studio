@@ -8,6 +8,10 @@ import {articleStructuredData} from '../../lib/seo-structured';
 
 export default function PediaGuide({article,locale}:{article:PediaArticle;locale:PediaLocale}){
  const uk=locale==='uk';
+ const actionSection=article.sections.find(section=>section.toolAction);
+ const actionLabel=actionSection?.toolAction?.[locale] ?? (uk?'Спробувати інструмент Galaxiora':'Try the Galaxiora tool');
+ const toolLink=<Link className="as-button as-button-primary" href={'/'+locale+'/'+article.tool}>
+  {actionLabel} <ArrowUpRight size={16} aria-hidden="true"/></Link>;
  const category=PEDIA_CATEGORIES.find(x=>x.id===article.category);
  const related=article.related.map(slug=>{
   const entry=PEDIA_ARTICLES.find(x=>x.slug===slug)||ACADEMY_LESSONS.find(x=>x.slug===slug);
@@ -40,12 +44,12 @@ export default function PediaGuide({article,locale}:{article:PediaArticle;locale
       <span className="as-overline">{uk?'РОЗДІЛ':'SECTION'} {i+1}</span>
       <h2><GlossaryText text={section.title[locale]} locale={locale}/></h2>
       {section.paragraphs.map((p,j)=><p key={j}><GlossaryText text={p[locale]} locale={locale}/></p>)}
+      {section===actionSection&&<div className="as-actions">{toolLink}</div>}
      </section>)}
     </div>
     <section className="as-lesson-takeaways" id="pedia-next">
      <h2>{uk?'Продовжити дослідження':'Continue exploring'}</h2>
-     <div className="as-actions"><Link className="as-button as-button-primary" href={'/'+locale+'/'+article.tool}>
-      {uk?'Спробувати інструмент Galaxiora':'Try the Galaxiora tool'} <ArrowUpRight size={16}/></Link>
+     <div className="as-actions">{!actionSection&&toolLink}
       <Link className="as-button as-button-secondary" href={'/'+locale+'/pedia/glossary'}>
        <BookOpen size={17}/>{uk?'Словник термінів':'Glossary of terms'}</Link>
      </div>

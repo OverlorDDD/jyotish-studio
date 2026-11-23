@@ -78,4 +78,12 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  await expect(reading.getByTestId('reader10-love-details')).toContainText('D9 (Navamsha)');
  await expect(reading.getByTestId('reader10-summary').locator(':scope > p').first()).not.toBeEmpty();
  await expect(page.getByTestId('reader-v8')).toHaveCount(0);
+ const birthDate=page.getByLabel('Date of birth',{exact:true});
+ const calculatedDate=await birthDate.inputValue();
+ expect(calculatedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+ await expect(birthDate).toBeHidden();
+ await page.getByRole('link',{name:'Edit birth details'}).click();
+ await expect(birthDate).toBeVisible();
+ await expect(birthDate).toBeFocused();
+ await expect(birthDate).toHaveValue(calculatedDate);
 });

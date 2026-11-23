@@ -59,3 +59,20 @@ test('No destructive changes to news, personal data, GA4, Panchanga calculation 
   assert.match(corpus,new RegExp(x));
  assert.ok(!corpus.includes('Date.now()'),'Publication dates must not be fabricated');
 });
+
+test('the dasha and local nakshatra guides have one bilingual action at the relevant example',async()=>{
+ const {PEDIA_ARTICLES}=await import('../apps/web/lib/pedia-content.ts');
+ const examples=[
+  ['vimshottari-dasha-start-calculation','astrology/jyotish','Calculate how much of the first period remains'],
+  ['nakshatra-today-location-guide','panchanga','Why a city search still matters']
+ ];
+ for(const [slug,tool,heading] of examples){
+  const guide=PEDIA_ARTICLES.find(article=>article.slug===slug);
+  assert.equal(guide.tool,tool);
+  const sections=guide.sections.filter(section=>section.toolAction);
+  assert.equal(sections.length,1,slug);
+  assert.equal(sections[0].title.en,heading);
+  assert.match(sections[0].toolAction.en,/dasha|nakshatra/);
+  assert.match(sections[0].toolAction.uk,/даш|накшатр/);
+ }
+});
