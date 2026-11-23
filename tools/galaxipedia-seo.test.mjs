@@ -76,3 +76,19 @@ test('the dasha and local nakshatra guides have one bilingual action at the rele
   assert.match(sections[0].toolAction.uk,/даш|накшатр/);
  }
 });
+
+test('the Kyiv and New Delhi worked example uses the local date on each side of midnight',async()=>{
+ const {PEDIA_ARTICLES}=await import('../apps/web/lib/pedia-content.ts');
+ const section=PEDIA_ARTICLES.find(a=>a.slug==='nakshatra-today-location-guide').sections.find(s=>s.toolAction);
+ const example=section.paragraphs.find(p=>p.en.includes('20:32 UTC'));
+ assert.ok(example,'the guide has a dated, reproducible transition');
+ // The two public city calendars agreed to the minute on this transition.
+ const instant=new Date('2026-11-23T20:32:00Z');
+ for(const [zone,cityEn,cityUk] of [['Europe/Kyiv','Kyiv','Києві'],['Asia/Kolkata','New Delhi','Нью-Делі']]){
+  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:zone,day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(instant);
+  const part=key=>parts.find(p=>p.type===key).value;
+  const clock=part('hour')+':'+part('minute');
+  assert.ok(example.en.includes(cityEn+' at '+clock+' on '+part('day')+' November'));
+  assert.ok(example.uk.includes(cityUk+' о '+clock+' '+part('day')+' листопада'));
+ }
+});
