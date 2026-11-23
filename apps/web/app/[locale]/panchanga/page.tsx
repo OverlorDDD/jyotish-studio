@@ -18,8 +18,8 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  return {title:current.title+' | Galaxiora',description:current.description,robots:indexRobots(),
   alternates:{canonical,languages:{uk:'/uk/'+path,en:'/en/'+path,'x-default':'/en/'+path}},
   openGraph:{title:current.title,description:current.description,type:'website',locale:locale==='uk'?'uk_UA':'en_US',
-   url:canonical,siteName:'Galaxiora'},
-  twitter:{card:'summary_large_image',title:current.title,description:current.description}};
+   url:canonical,siteName:'Galaxiora',images:['/opengraph-image']},
+  twitter:{card:'summary_large_image',title:current.title,description:current.description,images:['/opengraph-image']}};
 }
 export function generateStaticParams(){return BRAND.locales.map(locale=>({locale}));}
 export default async function PanchangaPage({params}:{params:Promise<{locale:string}>}){

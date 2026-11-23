@@ -61,3 +61,17 @@ test('localized natal previews use the existing branded OG image',()=>{
  const natal=source('apps/web/app/[locale]/astrology/jyotish/page.tsx');
  assert.match(natal,/openGraph:[\s\S]*images:\['\/opengraph-image'\]/);
 });
+
+test('Panchanga and Partners provide a branded Open Graph preview in both locales',()=>{
+ for(const page of ['panchanga','partners']){
+  const code=source('apps/web/app/[locale]/'+page+'/page.tsx');
+  assert.match(code,/openGraph:[\s\S]*?images:\['\/opengraph-image'\]/);
+ }
+});
+
+test('bilingual public privacy disclosure names Oracle Cloud',()=>{
+ const code=source('apps/web/app/[locale]/privacy/page.tsx');
+ assert.match(code,/Хостинг — Oracle Cloud/);
+ assert.match(code,/Hosting uses Oracle Cloud/);
+ assert.doesNotMatch(code,/Хостинг — AWS|Hosting uses AWS/);
+});

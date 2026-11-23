@@ -113,7 +113,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
   title:c.title,description:c.description,robots:indexRobots(),
   alternates:{canonical:path,languages:{en:'/en/partners',uk:'/uk/partners','x-default':'/en/partners'}},
   openGraph:{type:'website',siteName:'Galaxiora',title:c.title,description:c.description,
-   url:path,locale:locale==='uk'?'uk_UA':'en_US'}
+   url:path,locale:locale==='uk'?'uk_UA':'en_US',images:['/opengraph-image']}
  };
 }
 
