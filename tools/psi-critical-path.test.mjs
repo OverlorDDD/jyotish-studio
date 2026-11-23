@@ -4,14 +4,17 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
-test('PSI: critical global CSS does not chain a third-party font @import',()=>{
- const css=read('apps/web/app/globals.css');
+test('the initial render uses local DM Sans and Playfair Display with font swapping',()=>{
  const root=read('apps/web/app/layout.tsx');
- assert.doesNotMatch(css,/@import\s+(?:url\()?['"]?https:\/\/fonts\.googleapis\.com/);
- assert.ok(root.includes('rel="preconnect" href="https://fonts.googleapis.com"'));
- assert.ok(root.includes('rel="preconnect" href="https://fonts.gstatic.com"'));
- assert.ok(root.includes('rel="stylesheet" href="https://fonts.googleapis.com/css2?'));
- assert.ok(root.includes('display=swap'), 'avoid invisible web font text');
+ const css=read('apps/web/app/globals.css');
+ assert.doesNotMatch(root+css,/fonts\.(googleapis|gstatic)\.com/);
+ assert.match(root,/@fontsource\/playfair-display\/600\.css/);
+ const fonts=read('apps/web/app/fonts.css');
+ assert.match(root,/import ['"]\.\/fonts\.css['"]/);
+ assert.match(fonts,/font-family:\s*['"]DM Sans['"]/);
+ assert.match(fonts,/font-display:\s*swap/);
+ assert.match(fonts,/dm-sans-latin-wght-normal\.woff2/);
+ assert.match(fonts,/dm-sans-latin-ext-wght-normal\.woff2/);
 });
 
 test('PSI: route-only CSS is not bundled into all pages',()=>{

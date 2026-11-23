@@ -2,6 +2,8 @@ import type {Metadata} from 'next';
 import {headers} from 'next/headers';
 import {publicSiteOrigin} from '../lib/site-indexing';
 import {BRAND} from '../lib/brand';
+import '@fontsource/playfair-display/600.css';
+import './fonts.css';
 import './globals.css';
 import {Suspense} from 'react';
 import GrowthConsent from './components/GrowthConsent';
@@ -44,13 +46,7 @@ export default async function RootLayout({children}:{children:React.ReactNode}){
     logo:{'@type':'ImageObject',url:siteUrl+'/galaxiora-logo-128.png',width:128,height:128}}
   ]
  }).replace(/</g,'\\u003c'):null;
- return <html lang={locale}><head>
-  {/* Discover the font CSS in parallel with first-party styles rather than
-      through a render-blocking @import nested inside globals.css. */}
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap"/>
- </head><body>
+ return <html lang={locale}><body>
   {structured&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:structured}}/>}
   {children}
   <Suspense fallback={null}><GrowthConsent/></Suspense>

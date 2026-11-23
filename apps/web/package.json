@@ -9,6 +9,8 @@
     "prebuild": "node ../../tools/brand-icons-build.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/dm-sans": "5.3.0",
+    "@fontsource/playfair-display": "5.3.0",
     "next": "^15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
