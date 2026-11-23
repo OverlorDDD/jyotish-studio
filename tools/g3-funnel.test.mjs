@@ -90,7 +90,8 @@ test('G3 Jyotish and Tarot send completion only after verified live responses',(
  assert.ok(chart.indexOf("reportPublicToolEvent('public_tool_completed','jyotish')")>chart.indexOf('if(!verified(data))'));
  assert.match(chart,/reportPublicToolEvent\('public_tool_started','jyotish'\)/);
  assert.match(chart,/reportPublicToolEvent\('public_tool_failed','jyotish'\)/);
- assert.match(tarot,/if\(response\.status===401\)reportPublicToolEvent\('public_tool_auth_required','tarot'\)/);
+ const loadHistory=tarot.slice(tarot.indexOf('async function load()'),tarot.indexOf('async function draw('));
+ assert.doesNotMatch(loadHistory,/public_tool_auth_required/);
  assert.ok(tarot.indexOf("reportPublicToolEvent('public_tool_completed','tarot')")>tarot.indexOf('const r=await readApiJson<DrawReply>'));
  assert.match(tarot,/reportPublicToolEvent\('public_tool_started','tarot'\)/);
  assert.match(tarot,/reportPublicToolEvent\('public_tool_failed','tarot'\)/);
