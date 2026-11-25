@@ -7,9 +7,14 @@ test('Nakshatra hub lists all 27 and shows the verified current Moon nakshatra',
  expect(await raw.text()).toContain('data-testid="nakshatra-live"');
  await page.goto('/uk/nakshatra');
  const hub=page.getByTestId('nakshatra-hub');
- await expect(hub.locator('tbody tr')).toHaveCount(27);
- await expect(hub.locator('tbody tr[aria-current="true"]')).toHaveCount(1);
- await expect(hub.getByRole('link',{name:'Рохіні',exact:true})).toHaveAttribute('href','/uk/nakshatra/rohini');
+ const table=hub.getByRole('table');
+ await expect(table.locator('tbody tr')).toHaveCount(27);
+ const currentRow=table.locator('tbody tr[aria-current="true"]');
+ await expect(currentRow).toHaveCount(1);
+ await expect(table.getByRole('link',{name:'Рохіні',exact:true})).toHaveAttribute('href','/uk/nakshatra/rohini');
+ const liveLink=hub.getByTestId('nakshatra-live').getByRole('link');
+ await expect(liveLink).toHaveAttribute('href',/^\/uk\/nakshatra\/[a-z-]+$/);
+ await expect(currentRow.getByRole('link')).toHaveAttribute('href',await liveLink.getAttribute('href'));
  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href',/\/uk\/nakshatra$/);
 });
 

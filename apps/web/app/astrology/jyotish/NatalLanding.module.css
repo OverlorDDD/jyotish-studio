@@ -57,3 +57,4 @@
 .resultHead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:8px 0 14px;padding:clamp(16px,2.4vw,26px);border:1px solid var(--gx-line);border-radius:18px;background:var(--gx-panel)}
 .resultHead h1{margin:6px 0 4px;font:700 clamp(26px,3.6vw,38px)/1.15 var(--gx-font);color:#fff;letter-spacing:-.02em}
 .resultHead p{margin:0;font-size:15px;color:#c9d3e3}
+.formStep,.stepBack{grid-column:1 / -1}.formStep{color:#ead4b1;font-weight:650;margin:4px 0}.stepBack{justify-self:start;min-height:44px;background:transparent;border:0;text-decoration:underline;color:#efd29f;font:inherit;cursor:pointer}
