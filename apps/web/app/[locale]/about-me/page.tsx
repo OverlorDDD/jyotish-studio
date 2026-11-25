@@ -14,13 +14,13 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  if(!isPortalLocale(locale))return {};
  const localized=profile[locale];
  const description=locale==='uk'?
-  'Денис Авраменко — Full-Stack Software Engineer. Досвід, навички, Galaxiora, OpsPilot Admin, GitHub та резюме PDF/Word.':
-  'Denys Avramenko — Full-Stack Software Engineer. Experience, Galaxiora, OpsPilot Admin, GitHub and a downloadable PDF/Word resume.';
+  'Денис Авраменко — продуктовий інженер Galaxiora. Досвід, навички, Galaxiora, OpsPilot Admin, GitHub та резюме PDF/Word.':
+  'Denys Avramenko, Product Engineer at Galaxiora. Experience, Galaxiora, OpsPilot Admin, GitHub and a downloadable PDF/Word resume.';
  return {title:(locale==='uk'?'Денис Авраменко':'Denys Avramenko')+' | About Me · '+localized.title,
   description,robots:indexRobots(),
   alternates:{canonical:'/'+locale+'/about-me',languages:{en:'/en/about-me',uk:'/uk/about-me','x-default':'/en/about-me'}},
   openGraph:{type:'profile',siteName:'Galaxiora',
-   title:(locale==='uk'?profile.contact.nameUk:profile.contact.nameEn)+' · Full-Stack Software Engineer',
+   title:(locale==='uk'?profile.contact.nameUk:profile.contact.nameEn)+' · '+localized.title,
    description,url:'/'+locale+'/about-me',locale:locale==='uk'?'uk_UA':'en_US'}};
 }
 export default async function AboutMePage({params}:Props){

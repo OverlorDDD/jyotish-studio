@@ -12,11 +12,11 @@
     "opspilotRepository": "https://github.com/OverlorDDD/opspilot-admin"
   },
   "en": {
-    "title": "Full-Stack Software Engineer",
-    "subtitle": "TypeScript · React / Next.js · NestJS · PostgreSQL · AWS",
+    "title": "Product Engineer at Galaxiora · Full-Stack Developer",
+    "subtitle": "TypeScript · React / Next.js · NestJS · PostgreSQL · Oracle Cloud",
     "tagline": "I turn ideas into working products.",
     "intro": "I build and ship full-stack products: multilingual interfaces, reliable APIs, verified computation engines, content pipelines, cloud deployments and automated release checks.",
-    "profile": "Full-stack software engineer with client-facing freelance experience and hands-on delivery of Galaxiora, a bilingual production platform. Work spans architecture, accessible React/Next.js interfaces, NestJS APIs, PostgreSQL/Prisma data models, deterministic astronomical calculations, integrations, security, CI/CD, analytics and AWS operations. I use AI coding tools with reviews, tests and documented acceptance gates rather than treating generated code as verified.",
+    "profile": "Full-stack software engineer with client-facing freelance experience and hands-on delivery of Galaxiora, a bilingual production platform. Work spans architecture, accessible React/Next.js interfaces, NestJS APIs, PostgreSQL/Prisma data models, deterministic astronomical calculations, integrations, security, CI/CD, analytics and Oracle Cloud operations. I use AI coding tools with reviews, tests and documented acceptance gates rather than treating generated code as verified.",
     "ctaWork": "Explore my open works",
     "ctaContact": "Contact me",
     "ctaPdf": "Download CV · PDF",
@@ -53,7 +53,7 @@
       },
       {
         "title": "DevOps & quality",
-        "description": "AWS EC2, Linux, Caddy/HTTPS, GitHub Actions, repeatable releases, Playwright and automated testing."
+        "description": "Oracle Cloud, Linux, Caddy/HTTPS, GitHub Actions, repeatable releases, Playwright and automated testing."
       },
       {
         "title": "AI-first workflows",
@@ -87,7 +87,7 @@
       },
       {
         "label": "Cloud, SEO & analytics",
-        "value": "AWS EC2, Ubuntu/Linux, Caddy/HTTPS, systemd, Docker for development, GA4, Search Console, IndexNow, sitemap.xml, JSON-LD, hreflang"
+        "value": "Oracle Cloud (production), AWS EC2, Ubuntu/Linux, Caddy/HTTPS, systemd, Docker for development, GA4, Search Console, IndexNow, sitemap.xml, JSON-LD, hreflang"
       },
       {
         "label": "Testing & delivery",
@@ -109,7 +109,7 @@
           "Delivered user workflows for accounts, saved natal data, personal dashboards, Tarot, guided Yoga sessions, GalaxiPedia educational content, GalaxiCom discussion and calendar/ICS exports.",
           "Developed authentication and security flows including registration/email verification, authorization boundaries, rate limiting and optional Google/Apple OIDC with PKCE/state/nonce and verified identity binding.",
           "Built AI-assisted private reading workflows with deterministic input evidence, provider fallback, output validation and separation from non-LLM public horoscope/news generation.",
-          "Owned deployment/quality workflow on AWS EC2, Ubuntu, Caddy/TLS and systemd: GitHub Actions, Playwright mobile/desktop checks, regression/reference tests, guarded releases and database backups.",
+          "Owned deployment/quality workflow on Oracle Cloud, Ubuntu, Caddy/TLS and systemd: GitHub Actions, Playwright mobile/desktop checks, regression/reference tests, guarded releases and database backups.",
           "Implemented technical SEO and measurement: bilingual metadata/hreflang, sitemaps/robots, JSON-LD, IndexNow, Google Search Console, GA4 and privacy-aware first-party aggregate analytics."
         ],
         "live": "https://galaxiora.com",
@@ -149,11 +149,11 @@
     "languages": "Ukrainian — native · English — intermediate (B1)"
   },
   "uk": {
-    "title": "Full-Stack Software Engineer",
-    "subtitle": "TypeScript · React / Next.js · NestJS · PostgreSQL · AWS",
+    "title": "Продуктовий інженер Galaxiora · Full-Stack розробник",
+    "subtitle": "TypeScript · React / Next.js · NestJS · PostgreSQL · Oracle Cloud",
     "tagline": "Перетворюю ідеї на працюючі продукти.",
     "intro": "Розробляю та запускаю full-stack продукти: багатомовні інтерфейси, надійні API, точні обчислювальні рушії, системи контенту, хмарну інфраструктуру й автоматизовані перевірки.",
-    "profile": "Full-Stack розробник із клієнтським досвідом фрилансу та практикою запуску Galaxiora — двомовної production-платформи. Проєктую архітектуру, React/Next.js інтерфейси, NestJS API, моделі PostgreSQL/Prisma, детерміновані астрономічні розрахунки, інтеграції, авторизацію, CI/CD, аналітику та AWS-релізи. Використовую AI-асистентів із code review, тестами та чіткими критеріями приймання.",
+    "profile": "Full-Stack розробник із клієнтським досвідом фрилансу та практикою запуску Galaxiora — двомовної production-платформи. Проєктую архітектуру, React/Next.js інтерфейси, NestJS API, моделі PostgreSQL/Prisma, детерміновані астрономічні розрахунки, інтеграції, авторизацію, CI/CD, аналітику та релізи в Oracle Cloud. Використовую AI-асистентів із code review, тестами та чіткими критеріями приймання.",
     "ctaWork": "Мої відкриті роботи",
     "ctaContact": "Написати мені",
     "ctaPdf": "Завантажити CV · PDF",
@@ -190,7 +190,7 @@
       },
       {
         "title": "DevOps та якість",
-        "description": "AWS EC2, Linux, Caddy/HTTPS, GitHub Actions, відтворювані релізи, Playwright і автоматичні тести."
+        "description": "Oracle Cloud, Linux, Caddy/HTTPS, GitHub Actions, відтворювані релізи, Playwright і автоматичні тести."
       },
       {
         "title": "AI-first процеси",
@@ -224,7 +224,7 @@
       },
       {
         "label": "Хмара, SEO та аналітика",
-        "value": "AWS EC2, Ubuntu/Linux, Caddy/HTTPS, systemd, Docker для розробки, GA4, Search Console, IndexNow, sitemap.xml, JSON-LD, hreflang"
+        "value": "Oracle Cloud (продакшен), AWS EC2, Ubuntu/Linux, Caddy/HTTPS, systemd, Docker для розробки, GA4, Search Console, IndexNow, sitemap.xml, JSON-LD, hreflang"
       },
       {
         "label": "Тести й доставка",
@@ -246,7 +246,7 @@
           "Реалізував користувацькі модулі: облікові записи, збережені карти, персональний кабінет, Таро, йога-практики, GalaxiPedia, форум GalaxiCom, календарі та експорт ICS.",
           "Розробив авторизацію й захист: реєстрація/підтвердження email, обмеження доступу, rate limiting, а також опційну Google/Apple OIDC-інтеграцію з PKCE, state/nonce і перевіркою ідентичності.",
           "Створив AI-assisted процеси приватних консультацій із перевіреними вхідними обчисленнями, резервними LLM-провайдерами та валідацією результату; публічні гороскопи й новини залишив без генеративного AI.",
-          "Налаштував AWS EC2, Ubuntu, Caddy/TLS, systemd, GitHub Actions, Playwright desktop/mobile, регресійні й еталонні тести, контрольовані релізи та резервне копіювання БД.",
+          "Налаштував Oracle Cloud, Ubuntu, Caddy/TLS, systemd, GitHub Actions, Playwright desktop/mobile, регресійні й еталонні тести, контрольовані релізи та резервне копіювання БД.",
           "Реалізував SEO й аналітику: двомовні метадані/hreflang, sitemap/robots, JSON-LD, IndexNow, Google Search Console, GA4 та агреговану first-party аналітику."
         ],
         "live": "https://galaxiora.com",
