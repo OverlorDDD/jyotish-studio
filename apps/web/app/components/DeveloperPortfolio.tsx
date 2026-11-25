@@ -16,8 +16,9 @@ export default function DeveloperPortfolio({locale}:{locale:PortalLocale}){
     <h1 id="dp-title">{p.tagline}</h1>
     <p className="dp-role">{p.title}<span aria-hidden="true"> / </span>{p.subtitle}</p>
     <p className="dp-intro">{p.intro}</p>
-    <nav className="dp-hero-actions" aria-label={p.labels.resume}>
-     <a className="dp-button dp-primary" href={pdf} download><Download size={17} aria-hidden="true"/>{p.ctaPdf}</a>
+    <nav className="dp-hero-actions" aria-label={locale==='uk'?'Продукт і резюме':'Product and résumé'}>
+     <Link className="dp-button dp-primary" href={'/'+locale+'/astrology/jyotish'}>{locale==='uk'?'Спробувати натальну карту':'Try the birth chart'}<ArrowUpRight size={17} aria-hidden="true"/></Link>
+     <a className="dp-button dp-secondary" href={pdf} download><Download size={17} aria-hidden="true"/>{p.ctaPdf}</a>
      <a className="dp-button dp-secondary" href={docx} download><Download size={17} aria-hidden="true"/>{p.ctaWord}</a>
      <a className="dp-button dp-link" href="#open-works">{p.ctaWork}<ArrowUpRight size={17} aria-hidden="true"/></a>
     </nav>

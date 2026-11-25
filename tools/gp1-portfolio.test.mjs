@@ -14,17 +14,20 @@ const sitemap=source('apps/web/app/sitemap.ts');
 test('GP1 root is a real natal form; localized home aliases go to canonical chart routes',()=>{
  assert.match(root,/JyotishCalculator initialLang="en"/);
  assert.match(root,/PortalShell locale="en" active="astrology"/);
- assert.match(root,/canonical:'\/'/);
+ assert.match(root,/canonical:'\/en\/astrology\/jyotish'/);
  assert.doesNotMatch(root,/permanentRedirect|PortalHome/);
  assert.match(localized,/permanentRedirect\(portalPath\(locale,'astrology\/jyotish'\)\)/);
  assert.match(shell,/portalPath\(locale,'about-me'\)/);
  assert.match(shell,/t\.aboutMe/);
- assert.match(sitemap,/url:base\+'\/'/);
+ assert.match(sitemap,/allPages\.filter\(suffix=>suffix!==''\)/);
+ assert.doesNotMatch(sitemap,/url:base\+'\/'[,}]/);
 });
 test('GP1 person resume metadata, actual links, localization and official Galaxiora brand remain distinct',()=>{
  for(const lang of ['en','uk']){
   const p=profile[lang];
   assert.ok(p.profile.length>150);
+  assert.match(p.title,lang==='en'?/Product Engineer at Galaxiora/:/інженер Galaxiora/);
+  assert.match(p.subtitle,/Oracle Cloud/);
   assert.ok(p.projects.length===2);
   assert.ok(p.expertise.length===4);
   assert.match(p.startupText,/Galaxiora/);
@@ -33,6 +36,7 @@ test('GP1 person resume metadata, actual links, localization and official Galaxi
  assert.match(page,/ProfilePage/);
  assert.match(page,/Person/);
  assert.match(page,/canonical:'\/'\+locale\+'\/about-me'/);
+ assert.match(component,/dp-button dp-primary[^>]+astrology\/jyotish/);
  assert.match(component,/download/);
  assert.match(component,/open-works/);
  assert.match(component,/support|Support|Підтримати/);
