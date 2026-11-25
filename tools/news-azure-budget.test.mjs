@@ -154,7 +154,10 @@ test('Pacing rejects a whole translation batch before any network or article wri
  const keys=['NEWS_TRANSLATION_ENABLED','NEWS_TRANSLATION_PROVIDER','NEWS_TRANSLATION_HEADLINES_APPROVED',
   'AZURE_TRANSLATOR_KEY','AZURE_TRANSLATOR_REGION','NEWS_AZURE_MONTHLY_CHAR_LIMIT','NEWS_TRANSLATION_CONTENT_SCOPE','NEWS_AZURE_PACING_ENABLED'];
  const previous=keys.map(k=>process.env[k]);
- const db={...mockMeter(),newsArticle:{
+ const meter=mockMeter();
+ const period=utcTranslationPeriod(),filled=utcNewsAccruedCharCeiling(new Date(),10000);
+ meter.rows.set(period,{period,characters:filled});
+ const db={...meter,newsArticle:{
   findMany:async()=>[{id:'new',title:'A verified new astronomy headline',titleUk:null,titleEn:null,
    summaryUk:null,summaryEn:null,feedDescription:null,summary:null,summaryKind:'no_context',
    editorialAttempts:0,language:'en'}],
@@ -166,13 +169,13 @@ test('Pacing rejects a whole translation batch before any network or article wri
    NEWS_TRANSLATION_ENABLED:'1',NEWS_TRANSLATION_PROVIDER:'azure',
    NEWS_TRANSLATION_HEADLINES_APPROVED:'1',NEWS_TRANSLATION_CONTENT_SCOPE:'headlines',
    AZURE_TRANSLATOR_KEY:'test-key',AZURE_TRANSLATOR_REGION:'eastus',
-   NEWS_AZURE_MONTHLY_CHAR_LIMIT:'100',NEWS_AZURE_PACING_ENABLED:'1'
+   NEWS_AZURE_MONTHLY_CHAR_LIMIT:'10000',NEWS_AZURE_PACING_ENABLED:'1'
   });
-  // The tiny budget already accrued at this time cannot cover the first headline.
+  // The accrued allowance is already reserved, so the entire batch is deferred.
   const result=await enrichPendingNews(db,async()=>{calls++;throw Error('unexpected request');});
   assert.equal(result.reason,'azure_budget_paced_until_later_utc');
   assert.equal(calls,0);
-  assert.equal(db.rows.get(utcTranslationPeriod()).characters,0);
+  assert.equal(db.rows.get(period).characters,filled);
  }finally{
   keys.forEach((k,i)=>previous[i]===undefined?delete process.env[k]:process.env[k]=previous[i]);
  }
