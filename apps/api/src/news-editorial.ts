@@ -6,7 +6,7 @@ import {randomUUID} from 'node:crypto';
 import {cleanDescription} from './news-domain.ts';
 import {editorialSourceFacts,hasEditorialEvidence} from './news-editorial-coverage.ts';
 import {checkNewsTranslator,newsScopeApproved,newsTranslationScope,selectedNewsTranslationProvider,translateNewsText,translateLocalizedHeadline,type TranslationFetch} from './news-translation.ts';
-import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded} from './news-translation-budget.ts';
+import {reserveAzureNewsCharacters,NewsTranslationBudgetExceeded,NewsTranslationPaceExceeded} from './news-translation-budget.ts';
 import {isLocalizedNewsTitle} from './news-localization.ts';
 import {headlineNmtBudgetCharacters} from './news-headline-nmt-plan.ts';
 import {headlineNeedsWork,NEWS_HEADLINE_RETRY_LIMIT} from './news-headline-backlog.ts';
@@ -190,6 +190,9 @@ async function enrichPendingNewsUnlocked(prisma:PrismaService,fetcher:Translatio
   },0);
   try{await reserveAzureNewsCharacters(prisma,estimated,now);}
   catch(error){
+   if(error instanceof NewsTranslationPaceExceeded)
+    return {processed:0,reason:'azure_budget_paced_until_later_utc',
+     month:error.period,monthlyLimit:error.limit,availableCeiling:error.availableCeiling};
    if(error instanceof NewsTranslationBudgetExceeded)
     return {processed:0,reason:'azure_monthly_budget_exhausted',
      month:error.period,monthlyLimit:error.limit};

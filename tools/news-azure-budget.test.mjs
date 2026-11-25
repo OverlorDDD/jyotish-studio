@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {azureNewsMonthlyCharLimit,utcTranslationPeriod,reserveAzureNewsCharacters,NewsTranslationBudgetExceeded}
+import {azureNewsMonthlyCharLimit,utcTranslationPeriod,reserveAzureNewsCharacters,NewsTranslationBudgetExceeded,NewsTranslationPaceExceeded,utcNewsAccruedCharCeiling}
  from '../apps/api/src/news-translation-budget.ts';
 import {enrichPendingNews} from '../apps/api/src/news-editorial.ts';
 
@@ -31,7 +31,7 @@ test('F0-safe default, strict operator range and UTC month rollover',()=>{
 
 test('Azure usage reservation persists and atomically blocks before threshold',async()=>{
  const db=mockMeter(),now=new Date('2026-10-30T10:10:00Z');
- const env={NEWS_AZURE_MONTHLY_CHAR_LIMIT:'10'};
+ const env={NEWS_AZURE_MONTHLY_CHAR_LIMIT:'10',NEWS_AZURE_PACING_ENABLED:'0'};
  await reserveAzureNewsCharacters(db,6,now,env);
  await reserveAzureNewsCharacters(db,4,now,env);
  assert.equal(db.rows.get('2026-10').characters,10);
@@ -117,6 +117,65 @@ test('Approved Azure batch reserves the actual headline length, then stores its 
   assert.equal(writes.length,1);
   assert.match(writes[0].data.titleUk,/Скорпіон/);
   assert.equal(meter.rows.get(utcTranslationPeriod()).characters,headline.length);
+ }finally{
+  keys.forEach((k,i)=>previous[i]===undefined?delete process.env[k]:process.env[k]=previous[i]);
+ }
+});
+
+test('UTC pacing never borrows next-day capacity and accumulates unused allowance',async()=>{
+ const env={NEWS_AZURE_MONTHLY_CHAR_LIMIT:'3100'};
+ const db=mockMeter();
+ const start=new Date('2026-12-01T00:00:00.000Z');
+ const noon=new Date('2026-12-01T12:00:00.000Z');
+ assert.equal(utcNewsAccruedCharCeiling(start,3100),0);
+ assert.equal(utcNewsAccruedCharCeiling(noon,3100),50);
+ await assert.rejects(()=>reserveAzureNewsCharacters(db,1,start,env),NewsTranslationPaceExceeded);
+ await reserveAzureNewsCharacters(db,30,noon,env);
+ await reserveAzureNewsCharacters(db,20,noon,env);
+ assert.equal(db.rows.get('2026-12').characters,50);
+ await assert.rejects(()=>reserveAzureNewsCharacters(db,1,noon,env),NewsTranslationPaceExceeded);
+ await reserveAzureNewsCharacters(db,150,new Date('2026-12-03T00:00:00.000Z'),env);
+ assert.equal(db.rows.get('2026-12').characters,200);
+ assert.equal(utcNewsAccruedCharCeiling(new Date('2026-12-31T23:59:59.999Z'),3100),3099);
+ assert.equal(utcNewsAccruedCharCeiling(new Date('2027-01-01T00:00:00.000Z'),3100),0);
+});
+
+test('UTC pacing handles calendar length and operator opt-out while hard monthly cap stays',async()=>{
+ assert.equal(utcNewsAccruedCharCeiling(new Date('2028-02-15T12:00:00Z'),2900),1450);
+ assert.equal(utcNewsAccruedCharCeiling(new Date('2027-02-15T00:00:00Z'),2800),1400);
+ assert.throws(()=>utcNewsAccruedCharCeiling(new Date('invalid'),1000),/Invalid UTC/);
+ const db=mockMeter(),now=new Date('2026-12-01T00:00:00Z');
+ const env={NEWS_AZURE_MONTHLY_CHAR_LIMIT:'10',NEWS_AZURE_PACING_ENABLED:'0'};
+ await reserveAzureNewsCharacters(db,10,now,env);
+ await assert.rejects(()=>reserveAzureNewsCharacters(db,1,now,env),NewsTranslationBudgetExceeded);
+});
+
+test('Pacing rejects a whole translation batch before any network or article writes',async()=>{
+ const keys=['NEWS_TRANSLATION_ENABLED','NEWS_TRANSLATION_PROVIDER','NEWS_TRANSLATION_HEADLINES_APPROVED',
+  'AZURE_TRANSLATOR_KEY','AZURE_TRANSLATOR_REGION','NEWS_AZURE_MONTHLY_CHAR_LIMIT','NEWS_TRANSLATION_CONTENT_SCOPE','NEWS_AZURE_PACING_ENABLED'];
+ const previous=keys.map(k=>process.env[k]);
+ const meter=mockMeter();
+ const period=utcTranslationPeriod(),filled=utcNewsAccruedCharCeiling(new Date(),10000);
+ meter.rows.set(period,{period,characters:filled});
+ const db={...meter,newsArticle:{
+  findMany:async()=>[{id:'new',title:'A verified new astronomy headline',titleUk:null,titleEn:null,
+   summaryUk:null,summaryEn:null,feedDescription:null,summary:null,summaryKind:'no_context',
+   editorialAttempts:0,language:'en'}],
+  updateMany:async()=>{throw Error('unexpected write');}
+ }};
+ let calls=0;
+ try{
+  Object.assign(process.env,{
+   NEWS_TRANSLATION_ENABLED:'1',NEWS_TRANSLATION_PROVIDER:'azure',
+   NEWS_TRANSLATION_HEADLINES_APPROVED:'1',NEWS_TRANSLATION_CONTENT_SCOPE:'headlines',
+   AZURE_TRANSLATOR_KEY:'test-key',AZURE_TRANSLATOR_REGION:'eastus',
+   NEWS_AZURE_MONTHLY_CHAR_LIMIT:'10000',NEWS_AZURE_PACING_ENABLED:'1'
+  });
+  // The accrued allowance is already reserved, so the entire batch is deferred.
+  const result=await enrichPendingNews(db,async()=>{calls++;throw Error('unexpected request');});
+  assert.equal(result.reason,'azure_budget_paced_until_later_utc');
+  assert.equal(calls,0);
+  assert.equal(db.rows.get(period).characters,filled);
  }finally{
   keys.forEach((k,i)=>previous[i]===undefined?delete process.env[k]:process.env[k]=previous[i]);
  }
