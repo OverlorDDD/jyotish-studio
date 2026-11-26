@@ -131,6 +131,7 @@ const redact=(reason:FreeFallbackReason,provider:FreeProvider)=>console.warn('Di
  * Never retry a 429 in the same consultation; suppress repeated attempts
  * across subsequent requests in this API worker for a bounded period. */
 let openRouterCooldownUntil=0;
+const openRouterModelCooldownUntil=new Map<string,number>();
 export function openRouterRetryAfterMs(headers:Pick<Headers,'get'>,now=Date.now()):number{
  const raw=(headers.get('retry-after')||'').trim();
  const seconds=/^\d+(?:\.\d+)?$/.test(raw)?Number(raw):NaN;
@@ -208,7 +209,9 @@ export async function generateDirectJyotish(
    diagnostic(provider,'config',!key?.trim()?'missing_key':'free_tier_unconfirmed');
    continue;
   }
-  if(provider==='openrouter'&&!opts.fetcher&&Date.now()<openRouterCooldownUntil){
+  if(provider==='openrouter'&&!opts.fetcher&&
+   (Date.now()<openRouterCooldownUntil||
+    Date.now()<(openRouterModelCooldownUntil.get(pickModel(provider))||0))){
    reason='rate_limited';diagnostic(provider,'limit','provider_cooldown');continue;
   }
   if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
@@ -283,9 +286,15 @@ export async function generateDirectJyotish(
       }catch{/* Missing/malformed upstream envelope stays unknown. */}
       diagnostic(provider,'limit',openRouterLimitClass(source));
       if(!opts.fetcher){
-       // Shared free-tier limits affect every model; upstream pool exhaustion
-       // is specific to the selected model and should not claim an account cap.
-       openRouterCooldownUntil=Date.now()+openRouterRetryAfterMs(response.headers);
+       const delay=openRouterRetryAfterMs(response.headers);
+       if(source==='upstream_provider_shared_pool'){
+        // Model/provider capacity is not an account-wide limit. A different
+        // explicitly verified free model may still be viable.
+        openRouterModelCooldownUntil.set(model,Date.now()+delay);
+       }else if(source==='openrouter_free_tier_daily'){
+        const now=Date.now(),today=new Date(now);
+        openRouterCooldownUntil=Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()+1)+3000;
+       }else openRouterCooldownUntil=Date.now()+delay;
       }
      }
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
