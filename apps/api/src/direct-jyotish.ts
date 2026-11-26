@@ -199,6 +199,7 @@ export async function generateDirectJyotish(
   let timer:ReturnType<typeof setTimeout>|undefined;
   const model=pickModel(provider);
   try{
+   let correctiveReason='';
    // Free models frequently stop before a long requested consultation is complete.
    // Allow one bounded retry for selected incomplete responses.
    // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
@@ -232,7 +233,11 @@ export async function generateDirectJyotish(
        DIRECT_JYOTISH_BACKUP_INSTRUCTION.replace('280-380 words TOTAL','210-270 words TOTAL')+
         '\nGive the finished prose immediately. Use short sections and place the two additional divisions near the beginning.':
        backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION)+
-      (hasVerifiedVargas?'\nIn the first two sections, explicitly name two distinct additional divisions supplied in the facts using their D-codes (for example D24 and D27 if supplied). For each, connect a specific verified factor to a D1 theme. D1, D9, D10 and D60 do not count toward these two.':'');
+      (hasVerifiedVargas?'\nIn the first two sections, explicitly name two distinct additional divisions supplied in the facts using their D-codes (for example D24 and D27 if supplied). For each, connect a specific verified factor to a D1 theme. D1, D9, D10 and D60 do not count toward these two.':'')+
+      (correctiveReason==='unsupported_divisional_chart'?
+       '\nCORRECTION: Your prior draft referred to an unverified D-chart. Discard that draft. Never mention D60 or any division not explicitly present in the supplied verified facts. Only the supplied verified D-codes are permitted; do not invent other charts.':'')+
+      (correctiveReason==='missing_n4_cross_varga_synthesis'?
+       '\nCORRECTION: The previous draft omitted the required source-bound N4 comparison. Cite exactly two different additional verified D-codes appearing in the provided facts and connect them to D1; do not invent placements.':'');
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
      body:JSON.stringify({model,
@@ -269,9 +274,10 @@ export async function generateDirectJyotish(
      diagnostic(provider,'validation',code);
      console.warn('Direct Jyotish: '+provider+' rejected='+code);
      const recoverable=code==='too_short'||code==='unfinished'||
-      (provider==='gemini'&&code==='missing_n4_cross_varga_synthesis')||
+      ((provider==='gemini'||provider==='groq')&&code==='missing_n4_cross_varga_synthesis')||
+      (provider==='groq'&&code==='unsupported_divisional_chart')||
       (provider==='openrouter'&&code==='token_limit');
-     if(attempt===0&&recoverable)continue;
+     if(attempt===0&&recoverable){correctiveReason=code;continue;}
      break;
     }
     const review=reviewGeneratedConsultation(content,chart,lang,asOf);
