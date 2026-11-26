@@ -5,6 +5,7 @@ import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.
 import {consumeFreeAiRequest,type FreeFallbackReason,type FreeProvider} from './free-ai.ts';
 import type {AiUsageEvent} from './ai.ts';
 import {polishConsultationText,reviewGeneratedConsultation} from './consultation-prose-review.ts';
+import {openRouterLimitSource,openRouterLimitClass} from './openrouter-rate-limit.ts';
 import {compactN4VargaFacts,verifiedVargaSource} from './reader-varga-n4.ts';
 import {compactReaderV7ForAi} from './reader-v7.ts';
 import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
@@ -130,6 +131,7 @@ const redact=(reason:FreeFallbackReason,provider:FreeProvider)=>console.warn('Di
  * Never retry a 429 in the same consultation; suppress repeated attempts
  * across subsequent requests in this API worker for a bounded period. */
 let openRouterCooldownUntil=0;
+const openRouterModelCooldownUntil=new Map<string,number>();
 export function openRouterRetryAfterMs(headers:Pick<Headers,'get'>,now=Date.now()):number{
  const raw=(headers.get('retry-after')||'').trim();
  const seconds=/^\d+(?:\.\d+)?$/.test(raw)?Number(raw):NaN;
@@ -207,7 +209,9 @@ export async function generateDirectJyotish(
    diagnostic(provider,'config',!key?.trim()?'missing_key':'free_tier_unconfirmed');
    continue;
   }
-  if(provider==='openrouter'&&!opts.fetcher&&Date.now()<openRouterCooldownUntil){
+  if(provider==='openrouter'&&!opts.fetcher&&
+   (Date.now()<openRouterCooldownUntil||
+    Date.now()<(openRouterModelCooldownUntil.get(pickModel(provider))||0))){
    reason='rate_limited';diagnostic(provider,'limit','provider_cooldown');continue;
   }
   if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
@@ -272,8 +276,20 @@ export async function generateDirectJyotish(
         '. Here are ONLY verified calculation facts:\n'+(backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
-     if(provider==='openrouter'&&response.status===429&&!opts.fetcher){
-      openRouterCooldownUntil=Date.now()+openRouterRetryAfterMs(response.headers);
+     if(provider==='openrouter'&&response.status===429){
+      let source:ReturnType<typeof openRouterLimitSource>='unknown';
+      try{source=openRouterLimitSource(await response.json());}
+      catch{/* Only documented safe enum; no raw body or credentials logged. */}
+      diagnostic(provider,'limit',openRouterLimitClass(source));
+      if(!opts.fetcher){
+       const delay=openRouterRetryAfterMs(response.headers);
+       if(source==='upstream_provider_shared_pool')
+        openRouterModelCooldownUntil.set(model,Date.now()+delay);
+       else if(source==='openrouter_free_tier_daily'){
+        const now=Date.now(),today=new Date(now);
+        openRouterCooldownUntil=Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()+1)+3000;
+       }else openRouterCooldownUntil=Date.now()+delay;
+      }
      }
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
       response.status>=500?'provider_unavailable':'invalid_response';
