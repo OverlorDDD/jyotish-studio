@@ -175,8 +175,9 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
 
  const scrollToReading=useRef(false);
  useEffect(()=>{
-  if(report&&scrollToReading.current)document.getElementById('full-reading')?.scrollIntoView({block:'start'});
+  if(!report||!scrollToReading.current)return;
   scrollToReading.current=false;
+  document.getElementById('interpretation')?.scrollIntoView({block:'start'});
  },[report]);
  // A signed-in owner sees their primary (or only/newest) saved natal chart straight away.
  // ?new opens the empty calculator; anything the visitor starts meanwhile wins.
@@ -246,7 +247,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   // the result of the user's click.
   if(mode==='auto')setReport(null);
   setAiBusy(true);setInterpretation(mode==='auto'?
-   (lang==='uk'?'Запитуємо Gemini, за потреби Groq або OpenRouter…':'Requesting Gemini, with Groq and OpenRouter fallbacks…'):
+   (lang==='uk'?'Готуємо AI-трактування за даними вашої карти…':'Preparing an AI reading from your chart…'):
    (lang==='uk'?'Створюємо класичний звіт…':'Preparing the classic Reader report…'));
   try{
    const response=await fetch(api+'/api/v1/reports',{
@@ -279,8 +280,11 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
       'AI models did not return a verified consultation; showing Reader. Reason: '+(data.ai?.fallbackReason||'unknown')):
      (lang==='uk'?'Класичний звіт Reader готовий ↓':'Classic Reader report ready ↓'));
   }catch(error){
-   if(requestId===readingRequestId.current)setInterpretation((mode==='auto'?(lang==='uk'?'AI-запит завершився помилкою: ':'AI request failed: '):'')+
-    (error instanceof Error?error.message:String(error)));
+   if(requestId===readingRequestId.current){
+    scrollToReading.current=false;
+    setInterpretation((mode==='auto'?(lang==='uk'?'AI-запит завершився помилкою: ':'AI request failed: '):'')+
+     (error instanceof Error?error.message:String(error)));
+   }
   }finally{if(requestId===readingRequestId.current)setAiBusy(false);}
  }
 
