@@ -97,7 +97,7 @@ test('N501 truncated finish_reason switches providers without consuming same-pro
     return new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:prose}}]}),{status:200});
    }
    assert.equal(body.max_tokens,3400);
-   assert.match(body.messages[0].content,/210-270 words TOTAL/);
+   assert.match(body.messages[0].content,/260-320 words TOTAL/);
    return success();
   }
  });
@@ -219,7 +219,7 @@ test('N501 Gemini full consultation reserves a reasonable token budget',async()=
 
 test('N501 backup policy still requires real D1/D9/D10 connections and two additional verified divisions',()=>{
  assert.ok(DIRECT_JYOTISH_BACKUP_INSTRUCTION.length<2400);
- for(const match of ['D1','D9','D10','TWO','D60','280-380'])assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,new RegExp(match));
+ for(const match of ['D1','D9','D10','TWO','D60','380-520'])assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,new RegExp(match));
  assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/low-risk actions/);
  assert.doesNotMatch(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/guaranteed life outcomes/);
 });
@@ -235,7 +235,7 @@ test('OpenRouter tries one shorter response after truncation, then moves to the 
  });
  assert.equal(calls.length,3);
  assert.ok(calls.slice(0,2).every(call=>call.url.includes('openrouter.ai')));
- assert.match(calls[0].payload.messages[0].content,/210-270 words TOTAL/);
+ assert.match(calls[0].payload.messages[0].content,/260-320 words TOTAL/);
  assert.match(calls[1].payload.messages[0].content,/200-280 words/);
  assert.equal(calls[1].payload.max_tokens,calls[0].payload.max_tokens);
  assert.equal(result.result?.provider,'groq');
@@ -334,4 +334,19 @@ test('all three remote providers exhausted returns null with true 429 reason, ne
  assert.equal(calls.length,3);
  assert.equal(out.result,null);
  assert.equal(out.reason,'rate_limited');
+});
+
+test('full and free-backup instructions cover all 15 verified thematic divisions with D60 excluded',()=>{
+ const verified=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
+ for(const instruction of [DIRECT_JYOTISH_INSTRUCTION,DIRECT_JYOTISH_BACKUP_INSTRUCTION]){
+  for(const division of verified){
+   assert.match(instruction,new RegExp('\\bD'+division+'\\b'),'missing verified D'+division);
+  }
+  assert.match(instruction,/D60/);
+  assert.match(instruction,/do not|Do not|DO NOT/);
+  assert.match(instruction,/domain|life area|life sphere|thematic/);
+ }
+ assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/children and family/);
+ assert.match(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/home and comfort/);
+ assert.doesNotMatch(DIRECT_JYOTISH_BACKUP_INSTRUCTION,/FIVE short Markdown/);
 });
