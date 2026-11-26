@@ -135,7 +135,7 @@ test('N6.2 Groq content repair sends only failed chapters, counts calls, and nev
  const x=output();x.chapters[1].paragraphs[0].text+=' D9. PRIVATE_REJECTED_TEXT.';
  const opts={reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>{permits++;return true;},onDiagnostic:d=>events.push(d),fetcher:async(_url,req)=>{
   calls++;const b=JSON.parse(req.body);
-  if(calls===2){assert.match(b.messages[0].content,/money:plain_digits/);assert.doesNotMatch(JSON.stringify(b),/PRIVATE_REJECTED_TEXT/);assert.equal(JSON.parse(b.messages[1].content.split('facts:\n')[1]).chapters.length,1);}
+  if(calls===2){assert.match(b.messages[0].content,/money:plain_digits/);assert.match(b.messages[1].content,/only the requested replacement chapters/);assert.deepEqual(b.response_format.json_schema.schema.properties.chapters.items.properties.id.enum,['money']);assert.doesNotMatch(JSON.stringify(b),/PRIVATE_REJECTED_TEXT/);assert.equal(JSON.parse(b.messages[1].content.split('facts:\n')[1]).chapters.length,1);}
   return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(calls===1?x:{chapters:[output().chapters[1]]})}}]}));
  }};
  const accepted=await generateDirectJyotish(chart,'en','2026-11-26',opts);

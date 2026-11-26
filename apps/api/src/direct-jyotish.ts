@@ -202,6 +202,11 @@ const GROQ_N6_SCHEMA={
   }
  }}
 } as const;
+function groqN6Schema(repair:N6Repair|null){
+ if(!repair)return GROQ_N6_SCHEMA;
+ const {json_schema:s}=GROQ_N6_SCHEMA,c=s.schema.properties.chapters;
+ return {...GROQ_N6_SCHEMA,json_schema:{...s,name:'galaxiora_n6_repair',schema:{...s.schema,properties:{chapters:{...c,items:{...c.items,properties:{...c.items.properties,id:{type:'string',enum:repair.ids}}}}}}}};
+}
 /** Classify only known upstream errors. Never log provider messages, failed
  * generation, arbitrary error codes, request bodies, keys or chart data. */
 async function groqN6BadRequest(response:Response):Promise<'json_generation_failed'|'structured_format_rejected'|'context_limit'|'model_rejected'|'bad_request_other'>{
@@ -315,9 +320,9 @@ export async function generateDirectJyotish(
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
-      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:GROQ_N6_SCHEMA}:{}),
+      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(repair)}:{}),
       messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT:N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
-       {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
+       {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(repair?.brief??n6,provider==='groq'):backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
