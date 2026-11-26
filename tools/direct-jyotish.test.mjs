@@ -340,7 +340,7 @@ test('full and free-backup instructions cover all 15 verified thematic divisions
  const verified=[1,2,3,4,7,9,10,12,16,20,24,27,30,40,45];
  for(const instruction of [DIRECT_JYOTISH_INSTRUCTION,DIRECT_JYOTISH_BACKUP_INSTRUCTION]){
   for(const division of verified){
-   assert.match(instruction,new RegExp('\\\\bD'+division+'\\\\b'),'missing verified D'+division);
+   assert.match(instruction,new RegExp('\\bD'+division+'\\b'),'missing verified D'+division);
   }
   assert.match(instruction,/D60/);
   assert.match(instruction,/do not|Do not|DO NOT/);
