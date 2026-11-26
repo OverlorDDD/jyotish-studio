@@ -126,7 +126,7 @@ export class JyotishController{
   let chart:CalculatedChart;
   let report:ReturnType<typeof buildDetailedReport>;
   try{
-   const prepared=await this.reports.prepare(birth,birth.lang);
+   const prepared=await this.reports.prepare(birth,birth.lang,birth.minutesUncertain!==false);
    chart=prepared.chart;report=prepared.report as ReturnType<typeof buildDetailedReport>;
   }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
   // User intent is explicit: local Reader always responds without contacting providers.
@@ -171,7 +171,7 @@ export class JyotishController{
   const needsVerifiedRebind=Boolean(birth.expectedChartDigest&&
    birth.expectedChartDigest!==verified.verification.digest);
   const reader10=buildN6Reader(safeChart,birth.lang,report.asOf,!omitD60);
-  const base={...report,reader10,readerV8:safeReaderV8,
+  const base={...report,reader10,readerFormat:N6_VERSION,minutesUncertain:omitD60,readerV8:safeReaderV8,
    sections:skySection?[...report.sections,skySection]:report.sections,
    calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification,
    ...(needsVerifiedRebind?{verifiedChart:safeChart}: {})};

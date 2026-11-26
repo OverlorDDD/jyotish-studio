@@ -45,12 +45,12 @@ type BriefChapter={id:string;lead:string;paragraphs:string[];evidence:Evidence[]
 export type N6Brief={version:typeof N6_VERSION;language:Lang;chapters:BriefChapter[]};
 export function buildN6Brief(reader:Reader10Report):N6Brief{
  return {version:N6_VERSION,language:reader.language,chapters:reader.chapters.map(c=>{
-  const evidence:Evidence[]=(c.details?.paragraphs||[]).map((text,i)=>({id:c.id+'.'+i,text}));
+  const evidence:Evidence[]=(c.details?.paragraphs||[]).map((text,i)=>({id:c.id+'.'+i,text:c.id==='timing'?text.replace(/\b\d{4}-\d{2}-\d{2}\b/g,'[period boundary]'):text}));
   if(!evidence.length)evidence.push({id:c.id+'.reader',text:[c.lead,...c.paragraphs].join(' ')});
   return {id:c.id,lead:c.lead,paragraphs:c.paragraphs,evidence};
  })};
 }
-export const N6_PROMPT='You are a careful Parashari Jyotish editor. Use the supplied Reader 10 interpretation and its local evidence, never calculate or invent placements. Return ONLY JSON {chapters:[{id,lead,paragraphs:[{text,evidenceIds:[string]}]}]}. Every supplied chapter exactly once in order. Lead is one plain sentence; two or three concise paragraphs per chapter, each with evidence IDs from that chapter; collectively reference all supplied chapter evidence. Explicitly synthesize the distinct evidence in work (D10/D24), love (D9/D7), money (D2/D16), home (D4/D12/D40/D45), path (D20/D3/D27/D30) and current periods. All supplied factors should inform the reading, not a list of chart codes. No astrology jargon, chart codes, technical placement claims, raw dates, digits, Markdown, links or HTML in visible text: the server displays exact facts separately. D60 only if supplied, as provisional sign comparison; never claim destiny, karma or past lives. Never turn traditional possibilities into biography, guaranteed outcomes, medical or financial advice. Natural Ukrainian or English as requested. Discuss tensions and distinct implications, no generic motivational filler. Aim for 450–650 words total, concise if needed.';
+export const N6_PROMPT='You are a careful Parashari Jyotish editor. Use the supplied Reader 10 interpretation and its local evidence, never calculate or invent placements. Return ONLY JSON {chapters:[{id,lead,paragraphs:[{text,evidenceIds:[string]}]}]}. Every supplied chapter exactly once in order. Lead is one plain sentence; two or three concise paragraphs per chapter, each with evidence IDs from that chapter; collectively reference all supplied chapter evidence. Explicitly synthesize the distinct evidence in work (D10/D24), love (D9/D7), money (D2/D16), home (D4/D12/D40/D45), path (D20/D3/D27/D30) and current periods. All supplied factors should inform the reading, not a list of chart codes. No astrology jargon, chart codes, technical placement claims, raw dates, digits, Markdown, links or HTML in visible text: the server displays exact facts separately. D60 only if a supplied sign comparison is eligible, always explicitly provisional. A boundary warning is not evidence for any personality inference. Never claim destiny, karma or past lives. Never turn traditional possibilities into biography, guaranteed outcomes, medical or financial advice. If a period is unavailable, state that it is unavailable rather than inferring it. Do not infer facts or themes absent from the supplied local evidence. Natural Ukrainian or English as requested. Discuss tensions and distinct implications, no generic motivational filler. Aim for 450–650 words total, concise if needed.';
 type Draft={id:string;lead:string;paragraphs:{text:string;evidenceIds:string[]}[]};
 const plain=(x:unknown,max:number):x is string=>typeof x==='string'&&x.trim()===x&&x.length>=15&&x.length<=max&&/[.!?…]$/u.test(x)&&!/[<>#\x60\[\]{}\d]|https?:|\b(?:Pluto|Uranus|Neptune|Chiron|Lilith)\b|Плутон|Уран|Нептун|Хірон|Ліліт/iu.test(x);
 export function parseN6Response(raw:string,reader:Reader10Report,brief:N6Brief):Reader10Report|null{
@@ -62,6 +62,7 @@ export function parseN6Response(raw:string,reader:Reader10Report,brief:N6Brief):
  for(let i=0;i<reader.chapters.length;i++){
   const original=reader.chapters[i],c=chapters[i] as Draft|null,allowed=new Set(brief.chapters[i].evidence.map(e=>e.id));
   if(!c||c.id!==original.id||!plain(c.lead,350)||!Array.isArray(c.paragraphs)||c.paragraphs.length<2||c.paragraphs.length>3)return null;
+  const normalizedLead=c.lead.toLowerCase().replace(/\s+/g,' ');if(seen.has(normalizedLead))return null;seen.add(normalizedLead);
   const all=new Set<string>();
   for(const p of c.paragraphs){
    if(!p||!plain(p.text,900)||!Array.isArray(p.evidenceIds)||!p.evidenceIds.length||p.evidenceIds.some(id=>typeof id!=='string'||!allowed.has(id)))return null;
@@ -69,7 +70,7 @@ export function parseN6Response(raw:string,reader:Reader10Report,brief:N6Brief):
    const normalized=p.text.toLowerCase().replace(/\s+/g,' ');if(seen.has(normalized))return null;seen.add(normalized);
   }
   if(all.size!==allowed.size)return null;
-  result.push({...original,lead:c.lead,paragraphs:c.paragraphs.map(p=>p.text)});
+  result.push({...original,lead:c.lead,paragraphs:c.paragraphs.map(p=>p.text),evidenceIds:c.paragraphs.map(p=>p.evidenceIds)});
  }
  return {...reader,chapters:result};
 }

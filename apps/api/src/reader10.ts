@@ -16,7 +16,7 @@ import {ASPECT_ON_LAGNA,ASPECT_ON_MOON,IN_LAGNA,LAGNA_LORD_HOUSE,MOON_NAKSHATRA,
 export const READER10_VERSION='reader10-plain-1';
 export type Reader10Link={label:string;path:string};
 export type Reader10Details={paragraphs:string[];basis:string;links:Reader10Link[]};
-export type Reader10Chapter={id:'self'|AreaId|'summary'|'timing';title:string;lead:string;paragraphs:string[];details:Reader10Details|null};
+export type Reader10Chapter={id:'self'|AreaId|'summary'|'timing';title:string;lead:string;paragraphs:string[];details:Reader10Details|null;evidenceIds?:string[][]};
 export type Reader10Report={version:typeof READER10_VERSION;language:R10Locale;chapters:Reader10Chapter[]};
 
 const HOUSE_IN_UK=['у першому домі','у другому домі','у третьому домі','у четвертому домі','у п’ятому домі','у шостому домі',
@@ -150,10 +150,10 @@ function d60Line(f:Reader10Facts,chart:CalculatedChart,l:R10Locale):Layered|null
    ?': управитель лагни стоїть надто близько до межі частки. Висновок за цією планетою не формуємо через чутливість до межі частки.'
    :': the lagna lord stands too close to a division boundary. No interpretation for this planet because of its proximity to a division boundary.'),
   basis:'D60: '+PLANET_NAME[lord][l]+(uk?' біля межі частки':' near a division boundary')};
- const factor=preview.factors.find(p=>p.planet===lord);
- if(!factor)return null;
- return {plain:'',astro:factor.note+' '+preview.warning,
-  basis:'D60: '+PLANET_NAME[factor.planet as Planet][l]+', '+SIGN_NAME[factor.d60Sign-1][l]};
+ const name=PLANET_NAME[lord][l];
+ return {plain:'',astro:VARGA_NAME[60][l]+': '+name+' '+SIGN_IN[row.d60Sign-1][l]+signDignity(lord,row.d60Sign,l)+
+  (uk?'. Умовне зіставлення знаків із D1; точність часу не підтверджена, доми й асцендент D60 не трактуємо.':'. Conditional sign comparison with D1; birth-time precision is not established, and D60 houses and ascendant are not interpreted.'),
+  basis:'D60: '+name+', '+SIGN_NAME[row.d60Sign-1][l]};
 }
 
 function areaChapter(f:Reader10Facts,rule:AreaRule,vargas:Vargas|null,chart:CalculatedChart,l:R10Locale,

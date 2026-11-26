@@ -189,12 +189,12 @@ export async function generateDirectJyotish(
  const order=opts.order??productionDirectAiOrder().filter(provider=>
   provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
  const n6=opts.reader10?buildN6Brief(opts.reader10):null;
- const priority=planConsultationQuality(chart,asOf);
+ const priority=n6?null:planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
- const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority);
+ const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority!);
  // The short free backup needs exact D1/D9/D10 and N4 evidence, not the 6.5 KB
  // Reader-8 literary exemplars already included in the deterministic report.
- const backupFacts=n6?'':compactJyotishFacts(chart,asOf,false)+'\n\n'+compactQualityBrief(priority,3600);
+ const backupFacts=n6?'':compactJyotishFacts(chart,asOf,false)+'\n\n'+compactQualityBrief(priority!,3600);
  const permit=opts.limit||consumeFreeAiRequest;
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
