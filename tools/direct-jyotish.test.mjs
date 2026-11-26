@@ -335,3 +335,17 @@ test('all three remote providers exhausted returns null with true 429 reason, ne
  assert.equal(out.result,null);
  assert.equal(out.reason,'rate_limited');
 });
+
+test('a real 429 distinguishes an overloaded OpenRouter model from exhausted account quota',async()=>{
+ const details=[];
+ const out=await generateDirectJyotish(chart,'en','2026-11-26',{
+  order:['openrouter'],keys:{openrouter:'test-secret'},limit:()=>true,
+  onDiagnostic:d=>details.push(d),
+  fetcher:async()=>new Response(JSON.stringify({error:{message:'never log private key test-secret',
+   metadata:{limit_source:'upstream_provider_shared_pool',raw:'private prompt'}}}),{status:429})
+ });
+ assert.equal(out.result,null);
+ assert.equal(out.reason,'rate_limited');
+ assert.ok(details.some(x=>x.provider==='openrouter'&&x.stage==='limit'&&x.reason==='provider_pool'));
+ assert.doesNotMatch(JSON.stringify(details),/test-secret|private prompt|never log private key/);
+});
