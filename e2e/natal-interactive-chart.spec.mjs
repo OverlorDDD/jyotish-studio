@@ -105,3 +105,24 @@ test('failed calculation keeps input, accepts a retry, and counts a double submi
  await expect(page.locator('#natal-birth-date')).toHaveValue('');
  await expect(page).not.toHaveURL(/#chart-result/);
 });
+
+test('birth details typed before hydration survive the first interactive edit',async({page})=>{
+ let resume;
+ const scripts=new Promise(resolve=>{resume=resolve;});
+ await page.route('**/_next/static/chunks/**',async route=>{
+  if(route.request().resourceType()==='script')await scripts;
+  await route.continue();
+ });
+ await page.goto('/en/astrology/jyotish',{waitUntil:'commit'});
+ const date=page.locator('#natal-birth-date'),time=page.locator('#birth-details input[type=time]');
+ await date.fill(birth.date);await time.fill(birth.time);
+ const ready=page.waitForRequest('**/api/v1/jyotish/runtime');
+ resume();await ready;
+ const advanced=page.locator('.jy-n4-advanced');
+ await advanced.locator('summary').click();
+ await advanced.locator('input').nth(0).fill('51.5074');
+ await advanced.locator('input').nth(1).fill('-0.1278');
+ await advanced.locator('input').nth(2).fill('Europe/London');
+ await expect(date).toHaveValue(birth.date);await expect(time).toHaveValue(birth.time);
+ await expect(page.locator('.jy-calc-btn')).toBeEnabled();
+});

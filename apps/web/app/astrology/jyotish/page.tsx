@@ -79,6 +79,17 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const [periodIndex,setPeriodIndex]=useState<number|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
  const startedEditing=useRef(false);
+ const dateField=useRef<HTMLInputElement>(null);
+ const timeField=useRef<HTMLInputElement>(null);
+ const [birthRevision,setBirthRevision]=useState(0);
+ useEffect(()=>{
+  // The server renders usable controls before Next.js loads. Adopt any edits already in the DOM.
+  const date=dateField.current?.value||'',time=timeField.current?.value||'';
+  if(date||time){
+   startedEditing.current=true;
+   setForm(old=>({...old,date,time}));
+  }
+ },[]);
  const requestedDivision=useRef(9);
  const calculating=useRef(false);
  const [editing,setEditing]=useState(false);
@@ -123,7 +134,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   const incoming=loaded as Chart;
   if(!incoming?.input||!Array.isArray(incoming.d1))return;
   readingRequestId.current++;setAiBusy(false);
-  setForm({...incoming.input,latitude:String(incoming.input.latitude),longitude:String(incoming.input.longitude)});
+  setBirthRevision(n=>n+1);setForm({...incoming.input,latitude:String(incoming.input.latitude),longitude:String(incoming.input.longitude)});
   setManualMode(!Boolean(incoming.input.place));
   setMinutesUncertain(false); // provenance is never inferred from an old stored HH:MM clock value
   // Legacy records never become visible without a fresh server-side integrity check.
@@ -188,7 +199,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  },[]);
  const startNewChart=()=>{
   readingRequestId.current++;setProfileChart(null);setChart(null);setReport(null);setInterpretation('');setStatus('');setError(false);
-  setForm(EMPTY_FORM);setManualMode(false);setCityReset(c=>c+1);
+  setBirthRevision(n=>n+1);setForm(EMPTY_FORM);setManualMode(false);setCityReset(c=>c+1);
   setMinutesUncertain(false);setAiBusy(false);startedEditing.current=true;
   history.replaceState({...history.state,natalChartResult:false},'',location.pathname+location.search);openForm();
  };
@@ -297,9 +308,9 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
      <section id="birth-details" aria-labelledby="birth-form-title" className={'panel '+landing.birthForm}>
       <h2 id="birth-form-title">{i.details}</h2>
       <form onSubmit={calculate} onChangeCapture={()=>{startedEditing.current=true;}} className="jy-input-grid">
-      <label>{i.date}<input id="natal-birth-date" type="date" value={form.date} onChange={e=>edit('date',e.target.value)} required/></label>
+      <label>{i.date}<input id="natal-birth-date" key={birthRevision} ref={dateField} type="date" defaultValue={form.date} onChange={e=>edit('date',e.target.value)} required/></label>
       <div className={landing.timeField}>
-       <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
+       <label>{i.time}<input key={birthRevision} ref={timeField} type="time" defaultValue={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
        <label className={landing.minuteOption}>
         <input type="checkbox" checked={minutesUncertain} onChange={e=>setMinutesUncertain(e.target.checked)}/>
         {lang==='uk'?'Не знаю точних хвилин':'I don’t know the exact minutes'}
