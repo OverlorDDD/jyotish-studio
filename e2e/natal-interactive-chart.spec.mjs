@@ -126,3 +126,19 @@ test('birth details typed before hydration survive the first interactive edit',a
  await expect(date).toHaveValue(birth.date);await expect(time).toHaveValue(birth.time);
  await expect(page.locator('.jy-calc-btn')).toBeEnabled();
 });
+
+test('keyboard skip navigation preserves the entry form and the calculated result',async({page})=>{
+ await page.goto('/en/astrology/jyotish');
+ const skip=page.locator('a.as-skip-link'),main=page.locator('main#main-content');
+ async function skipNavigation(){
+  await skip.focus();await page.keyboard.press('Enter');
+  await expect(main).toBeFocused();
+ }
+ await skipNavigation();
+ await enterSyntheticBirthFields(page,birth);
+ await page.locator('.jy-calc-btn').click();
+ const result=page.getByTestId('natal-chart-result');
+ await expect(result.getByRole('heading',{level:1})).toBeFocused();
+ await skipNavigation();
+ await expect(result).toBeVisible();await expect(page.locator('#natal-birth-date')).toBeHidden();
+});

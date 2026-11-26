@@ -107,7 +107,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   if(location.hash==='#chart-result')history.replaceState({...history.state,natalChartResult:false},'',location.pathname+location.search);
   const followHistory=()=>{
    if(history.state?.natalChartResult&&location.hash==='#chart-result')setEditing(false);
-   else openForm();
+   else if(history.state?.natalChartEntry===true)openForm();
   };
   window.addEventListener('popstate',followHistory);
   return ()=>window.removeEventListener('popstate',followHistory);
@@ -203,7 +203,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   readingRequestId.current++;setProfileChart(null);setChart(null);setReport(null);setInterpretation('');setStatus('');setError(false);
   setBirthRevision(n=>n+1);setForm(EMPTY_FORM);setManualMode(false);setCityReset(c=>c+1);
   setMinutesUncertain(false);setAiBusy(false);startedEditing.current=true;
-  history.replaceState({...history.state,natalChartResult:false},'',location.pathname+location.search);openForm();
+  history.replaceState({...history.state,natalChartResult:false,natalChartEntry:false},'',location.pathname+location.search);openForm();
  };
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>{
@@ -233,7 +233,9 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
    if(linkDivision)requestedDivision.current=Number(linkDivision[1]);
    setPositions('d1');setPeriodIndex(null);setEditing(false);scrollToReading.current=false;
    if(!history.state?.natalChartResult||location.hash!=='#chart-result'){
-    history.pushState({...history.state,natalChartResult:true},'',location.pathname+location.search+'#chart-result');
+    // Only these two history entries belong to the calculator. Ordinary anchor links keep native focus.
+    history.replaceState({...history.state,natalChartEntry:true,natalChartResult:false},'');
+    history.pushState({...history.state,natalChartResult:true,natalChartEntry:false},'',location.pathname+location.search+'#chart-result');
    }
    void interpret('local',data);}catch(e){reportPublicToolEvent('public_tool_failed','jyotish');setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{calculating.current=false;setBusy(false)}}
  async function interpret(mode:'auto'|'local'='auto',freshChart:Chart|null=chart,uncertain=minutesUncertain){
