@@ -321,8 +321,8 @@ test('all fifteen verified D1-derived charts are supplied to cloud writer by lif
  assert.match(facts,/D10 lagna sign=/);
  for(const n of [2,3,4,7,12,16,20,24,27,30,40,45]){
   assert.match(facts,new RegExp('D'+n+' focus='));
-  assert.match(facts,new RegExp('D'+n+'\\\\.lagna\\\\.sign='));
+  assert.match(facts,new RegExp('D'+n+'\\.lagna\\.sign='));
  }
  assert.match(facts,/D60: METHOD_ONLY/);
- assert.doesNotMatch(facts,/D60\\\\.lagna\\\\.sign=|D60\\\\.[A-Za-z]+\\\\.house=/);
+ assert.doesNotMatch(facts,/D60\.lagna\.sign=|D60\.[A-Za-z]+\.house=/);
 });
