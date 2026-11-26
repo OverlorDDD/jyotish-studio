@@ -58,7 +58,9 @@ jobs:
       - name: Check compiled measurement ID
         run: npm run r42:ga:doctor
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: |
+          sudo apt-get update -o Acquire::Retries=3
+          npx playwright install --with-deps chromium
       - name: Launch isolated website and API
         run: |
           printf 'DATABASE_URL=%s\nAUTH_SECRET=%s\nAI_MODE=local\nSITE_NOINDEX=0\nNEXT_PUBLIC_SITE_URL=https://galaxiora.example\n' "$DATABASE_URL" "$AUTH_SECRET" > .env
