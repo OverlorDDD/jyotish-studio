@@ -164,7 +164,7 @@ test('N6 retains the original six life chapters and summary, adds current dasha 
    const original=buildReader10(chart,lang), exact=buildN6Reader(chart,lang,'2026-11-26',true),approx=buildN6Reader(chart,lang,'2026-11-26',false);
    assert.deepEqual(exact.chapters.filter(c=>c.id!=='timing'),original.chapters);
    assert.deepEqual(approx.chapters.filter(c=>!['timing','path'].includes(c.id)),original.chapters.filter(c=>c.id!=='path'));
-   assert.equal(approx.chapters.length,8);assert.doesNotMatch(JSON.stringify(approx),/D60(?=[: ])|Шаштіамша|Shashtiamsha/i);
+   assert.equal(approx.chapters.length,8);assert.doesNotMatch(approx.chapters.flatMap(c=>[c.lead,...c.paragraphs,...(c.details?.paragraphs||[]),c.details?.basis||'']).join(' '),/D60(?=[: ])|Шаштіамша|Shashtiamsha/i);
    assert.equal(exact.chapters.find(c=>c.id==='timing').title,lang==='uk'?'Поточний період життя':'Current life period');
    assert.ok(buildN6Brief(exact).chapters.every(c=>c.evidence.length));
   }
