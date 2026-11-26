@@ -7,7 +7,7 @@ type Lang='uk'|'en';
 export {timingChapter} from './reader-n6-timing.ts';
 import {timingChapter} from './reader-n6-timing.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
-import {aspectedHouses,signLord} from './reader10-facts.ts';
+import {PLANET_NAME,SIGN_NAME} from './reader10-texts.ts';
 export const N6_QUALITY_VERSION='n6-quality-2' as const;
 export function buildN6Reader(chart:CalculatedChart,lang:Lang,asOf:string,exactTime:boolean):Reader10Report|null{
  const base=buildReader10(exactTime?chart:{...chart,n4D60:undefined} as CalculatedChart,lang);
@@ -19,28 +19,30 @@ type BriefChapter={id:string;lead:string;paragraphs:string[];evidence:Evidence[]
 export type N6Brief={version:typeof N6_VERSION;language:Lang;chapters:BriefChapter[];context:Evidence[]};
 export function buildN6Brief(reader:Reader10Report,chart?:CalculatedChart):N6Brief{
  const context:Evidence[]=[];
+ const uk=reader.language==='uk';
  // Shared chart-specific patterns, only from the same source-bound calculation.
  // Never send birth input, degrees of birth, coordinates, name or place.
  if(chart&&verifiedVargaSource(chart)){
   const f=buildReader10Facts(chart),all=PLANETS.map(n=>f.planets[n]);
-  const description=(p:typeof all[number])=>p.name+' H'+p.house+' sign='+p.sign+' rules='+p.rules.join('/')+' dignity='+p.dignity;
+  const label=(p:typeof all[number])=>PLANET_NAME[p.name][reader.language];
+  const description=(p:typeof all[number])=>label(p)+', '+SIGN_NAME[p.sign-1][reader.language]+', '+(uk?p.house+'-й дім':'house '+p.house)+(p.rules.length?(uk?', управитель домів ':', rules houses ')+p.rules.join('/'):'')+(p.dignity==='exalted'?(uk?', екзальтація':', exalted'):p.dignity==='debilitated'?(uk?', падіння':', debilitated'):p.dignity==='own'?(uk?', власний знак':', own sign'):'');
   const clusters=Array.from({length:12},(_,i)=>all.filter(p=>p.house===i+1)).filter(g=>g.length>=2).sort((a,b)=>b.length-a.length);
   for(const g of clusters.slice(0,3)){
-   context.push({id:'shared.cluster'+g[0].house,text:'D1 concentration (same whole-sign house, not necessarily close): '+g.map(description).join('; ')+'.'});
+   context.push({id:'shared.cluster'+g[0].house,text:(uk?'D1: концентрація в одному цілознаковому домі (не обов’язково тісне з’єднання): ':'D1 concentration (same whole-sign house, not necessarily close): ')+g.map(description).join('; ')+'.'});
    const pairs=g.flatMap((a,i)=>g.slice(i+1).map(b=>({a,b,d:Math.abs(a.degrees-b.degrees)}))).sort((a,b)=>a.d-b.d).filter(p=>p.d<=8).slice(0,3);
-   for(const q of pairs)context.push({id:'shared.pair'+q.a.name+q.b.name,text:'D1 same-sign proximity '+q.a.name+' / '+q.b.name+' '+q.d.toFixed(2)+' degrees; editorial proximity threshold only, not a certified yoga or combustion.'});
+   for(const q of pairs)context.push({id:'shared.pair'+q.a.name+q.b.name,text:(uk?'D1: близькість у знаку ':'D1 same-sign proximity ')+label(q.a)+' / '+label(q.b)+' '+q.d.toFixed(2)+'°'+(uk?'; редакційний поріг близькості, не підтвердження йоги чи спалення.':'; editorial proximity threshold only, not a certified yoga or combustion.')});
   }
-  context.push({id:'shared.lagnaChain',text:'D1 lagna lord dispositor sequence: '+f.lagnaLordChain.map(n=>description(f.planets[n])).join(' -> ')+'.'});
+  context.push({id:'shared.lagnaChain',text:(uk?'D1: ланцюжок диспозиторів управителя лагни: ':'D1 lagna lord dispositor sequence: ')+f.lagnaLordChain.map(n=>description(f.planets[n])).join(' -> ')+'.'});
   const major=all.filter(p=>p.rules.some(h=>[1,2,4,5,7,9,10].includes(h)));
-  context.push({id:'shared.lordships',text:'D1 thematic rulers: '+major.map(description).join('; ')+'.'});
-  if(f.yogakaraka)context.push({id:'shared.yogakaraka',text:'D1 yogakaraka: '+description(f.yogakaraka)+'.'});
-  if(f.aspectsOnMoon.length)context.push({id:'shared.moonAspects',text:'D1 classical whole-sign aspects on Moon: '+f.aspectsOnMoon.map(description).join('; ')+'.'});
+  context.push({id:'shared.lordships',text:(uk?'D1: тематичні управителі: ':'D1 thematic rulers: ')+major.map(description).join('; ')+'.'});
+  if(f.yogakaraka)context.push({id:'shared.yogakaraka',text:(uk?'D1: йога-карака: ':'D1 yogakaraka: ')+description(f.yogakaraka)+'.'});
+  if(f.aspectsOnMoon.length)context.push({id:'shared.moonAspects',text:(uk?'D1: класичні цілознакові аспекти на Місяць: ':'D1 classical whole-sign aspects on Moon: ')+f.aspectsOnMoon.map(description).join('; ')+'.'});
  }
  return {version:N6_VERSION,language:reader.language,context,chapters:reader.chapters.map(c=>{
   const evidence:Evidence[]=(c.details?.paragraphs||[]).flatMap(text=>text.split(/\s+(?=D(?:2|3|4|7|9|10|12|16|20|24|27|30|40|45|60)\s*\()/u)).map((text,i)=>({id:c.id+'.'+i,text:c.id==='timing'?text.replace(/\b\d{4}-\d{2}-\d{2}\b/g,'[period boundary]'):text}));
   if(!evidence.length)evidence.push({id:c.id+'.reader',text:[c.lead,...c.paragraphs].join(' ')});
   const richTiming=c.id==='timing'&&Boolean(c.details)&&evidence.length>=5;
-  const core=evidence.slice(0,richTiming?4:2);
+  const core=evidence.slice(0,richTiming?5:2);
   for(const division of c.id==='work'?[10,24]:c.id==='love'?[9,7]:[]){
    const item=evidence.find(e=>e.text.includes('D'+division+' ('));if(item&&!core.includes(item))core.push(item);
   }
@@ -63,6 +65,7 @@ export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief
  const chapters=(x as {chapters?:unknown}|null)?.chapters;
  if(!Array.isArray(chapters)||chapters.length!==reader.chapters.length)return fail('chapter_count');
  const seen=new Set<string>(),result:Reader10Chapter[]=[];
+ let modified=0;
  const words=(s:string)=>s.trim().split(/\s+/u).length;
  const norm=(s:string)=>s.toLowerCase().replace(/\s+/g,' ').trim();
  for(let i=0;i<reader.chapters.length;i++){
@@ -81,9 +84,14 @@ export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief
   if(spec.required.some(id=>!all.has(id)))return fail('missing_required_evidence');
   if(words([c.lead,...c.paragraphs.map(p=>p.text)].join(' '))<spec.minWords)return fail('thin_chapter');
   // Reject a verbatim classical copy: never label unmodified local prose as an AI enhancement.
-  if(c.lead===original.lead&&c.paragraphs.map(p=>p.text).join('\n')===original.paragraphs.join('\n'))return fail('unchanged_classic');
-  result.push({...original,lead:c.lead,paragraphs:c.paragraphs.map(p=>p.text),evidenceIds:c.paragraphs.map(p=>p.evidenceIds)});
+  const changed=c.lead!==original.lead||c.paragraphs.map(p=>p.text).join('\n')!==original.paragraphs.join('\n');
+  if(changed)modified++;
+  if(!changed&&spec.minParagraphs===3)return fail('unchanged_timing');
+  const shared=brief.context.filter(e=>all.has(e.id)).map(e=>e.text);
+  const details=shared.length?{paragraphs:[...(original.details?.paragraphs||[]),...shared],basis:original.details?.basis||(reader.language==='uk'?'Основа: перевірені спільні закономірності D1.':'Basis: verified shared D1 patterns.'),links:original.details?.links||[]}:original.details;
+  result.push({...original,details,lead:c.lead,paragraphs:c.paragraphs.map(p=>p.text),evidenceIds:c.paragraphs.map(p=>p.evidenceIds)});
  }
+ if(modified<Math.ceil(reader.chapters.length/2))return fail('unchanged_classic');
  return {reader:{...reader,chapters:result},reason:'ok'};
 }
 export function parseN6Response(raw:string,reader:Reader10Report,brief:N6Brief):Reader10Report|null{

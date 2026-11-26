@@ -55,12 +55,17 @@ export function timingChapter(chart:CalculatedChart,lang:Lang,asOf:string):Reade
  const relate=relation==='same_planet'||relation==='same_house'?(uk?'Обидва цикли підкреслюють одну сферу. Замість розпорошувати зусилля, оберіть пріоритет, якому готові приділяти увагу послідовно.':'Both cycles emphasize the same area. Rather than spreading your efforts thinly, choose a priority you can sustain.'):
   (uk?'Ключове завдання — поєднати увагу до '+topic(a.house)+' з увагою до '+topic(b.house)+'. Не варто ставити одну з цих сфер у залежність від миттєвих результатів в іншій.':'The central task is to balance attention to '+topic(a.house)+' with attention to '+topic(b.house)+'. Avoid making either area depend entirely on immediate results in the other.');
  // Use a grammatically stable sentence rather than concatenating nominative fragments after a preposition.
- const balance=relation==='same_planet'||relation==='same_house'?relate:uk?'Ключове завдання — знайти баланс між двома сферами: з одного боку, увага зосереджується на '+topic(a.house)+', з іншого — на '+topic(b.house)+'. Не вимагайте негайного результату в одній сфері за рахунок іншої.':relate;
+ let balance=relation==='same_planet'||relation==='same_house'?relate:uk?'Ключове завдання — знайти баланс між двома сферами: з одного боку, увага зосереджується на '+topic(a.house)+', з іншого — на '+topic(b.house)+'. Не вимагайте негайного результату в одній сфері за рахунок іншої.':relate;
+ if(relation==='aspect')balance+=uk?' За традиційною методикою ці дві сфери безпосередньо пов’язані аспектом: варто враховувати, як зміни в одній позначаються на іншій.':'In this traditional method the two areas are directly linked by an aspect; consider how changes in one affect the other.';
+ if(relation==='dispositor')balance+=uk?' Між управителями є диспозиторний зв’язок, тому ці завдання варто розглядати разом, а не як незалежні.':'The period rulers have a dispositor connection, so consider these tasks together rather than independently.';
+ if(a.name==='Saturn'&&b.name==='Moon')balance+=uk?' Тут особливо важливо не плутати відданість своїм обов’язкам із потребою ігнорувати власні почуття.':'In particular, do not confuse commitment to your responsibilities with ignoring your own feelings.';
  const others=PLANETS.map(n=>f.planets[n]).filter(p=>p.name!==a.name&&p.name!==b.name&&(p.house===b.house||aspectedHouses(p.name,p.house).includes(b.house)));
  const meaningful=others.filter(p=>interactions[p.name]).sort((x,y)=>['Mars','Saturn','Jupiter','Venus','Mercury'].indexOf(x.name)-['Mars','Saturn','Jupiter','Venus','Mercury'].indexOf(y.name)).slice(0,2);
  const interactionText=meaningful.map(p=>interactions[p.name]![l]).join(' ');
  const technical=others.map(p=>name(p.name)+(p.house===b.house?(uk?' у тому самому домі, що й ':' shares a house with '):(uk?' аспектує ':' aspects '))+name(b.name)+'.');
  const co=PLANETS.map(n=>f.planets[n]).filter(p=>p.name!==a.name&&p.house===a.house);
+ const linked=Array.from(new Set(co.flatMap(p=>p.rules))).filter(h=>h!==a.house&&!a.rules.includes(h)&&h!==b.house&&!b.rules.includes(h)).slice(0,3);
+ const cluster=co.length>=2&&linked.length?(uk?' Ця довгострокова тема також об’єднує кілька інших сфер: увага може зосередитися на '+join(linked.map(topic),uk)+'.':'This long-term theme also connects several other areas: attention may turn to '+join(linked.map(topic),uk)+'.'):'';
  const source=verifiedVargaSource(chart);
  const extra:string[]=[];
  for(const div of [9,10]){
@@ -72,9 +77,9 @@ export function timingChapter(chart:CalculatedChart,lang:Lang,asOf:string):Reade
  }
  const relationFact=(uk?'Зв’язок управителів періодів: ':'Relationship between period rulers: ')+
   (relation==='same_planet'?(uk?'та сама планета':'same planet'):relation==='same_house'?(uk?'той самий дім D1':'same D1 house'):relation==='aspect'?(uk?'аспект D1':'D1 aspect'):relation==='dispositor'?(uk?'диспозиторний зв’язок D1':'D1 dispositor link'):(uk?'різні сфери D1; прямого аспекту між ними за цією методикою немає':'distinct D1 sectors; no direct aspect in this method'))+'.';
- return {id:'timing',title,lead:uk?'Нинішній етап поєднує довгострокові завдання й потребу переглянути найближчі пріоритети.':'This stage combines long-term commitments with a reassessment of your immediate priorities.',
+ return {id:'timing',title,lead:uk?'Нинішній етап зосереджує увагу на '+topic(a.house)+'.':'This stage brings particular attention to '+topic(a.house)+'.',
  paragraphs:[
-  (uk?'У тривалому життєвому циклі увага зосереджується на ':'During the longer life cycle, attention centers on ')+topic(a.house)+'.'+roleText(a)+' '+practices[a.name][l],
+  (uk?'У тривалому життєвому циклі увага зосереджується на ':'During the longer life cycle, attention centers on ')+topic(a.house)+'.'+roleText(a)+cluster+' '+practices[a.name][l],
   (uk?'У поточному коротшому циклі особлива увага зосереджується на ':'The current shorter cycle puts particular weight on ')+(uk?topic(b.house)+'.':topic(b.house)+'.')+roleText(b)+' '+practices[b.name][l],
   balance+(interactionText?' '+interactionText:''),
   uk?'Спробуйте визначити одну довгострокову домовленість або справу, якій потрібна послідовність, і один конкретний крок на найближчі тижні. Зіставте їх із власними обставинами, а не сприймайте цикл як обіцянку події.':'Identify one long-term commitment that needs consistent attention and one concrete step for the coming weeks. Compare these themes with your circumstances rather than treating the cycle as a promise of events.'

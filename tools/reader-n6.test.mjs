@@ -38,11 +38,11 @@ test('N6.1 accepts a conventional JSON fence and optional context, but rejects m
  assert.equal(inspectN6Response(JSON.stringify(x),reader,brief).reason,'unknown_evidence');
  const b={...brief,context:[{id:'shared.pattern',text:'Verified shared factor.'}]};
  const y=output();y.chapters[0].paragraphs[0].evidenceIds.push('shared.pattern');
- assert.ok(parseN6Response(JSON.stringify(y),reader,b));
+ const enriched=parseN6Response(JSON.stringify(y),reader,b);assert.ok(enriched);assert.ok(enriched.chapters[0].details.paragraphs.includes('Verified shared factor.'));
 });
 test('N6.1 real timing contract requires three substantial paragraphs and both period rulers',()=>{
  const r={...reader,chapters:reader.chapters.map(c=>c.id==='timing'?{...c,details:{...c.details,paragraphs:['Major date.','Minor date.','Major placement.','Minor placement.','Their relationship.']}}:c)};
  const b=buildN6Brief(r),t=b.chapters.find(c=>c.id==='timing');
- assert.equal(t.minWords,85);assert.equal(t.minParagraphs,3);assert.equal(t.required.length,4);
+ assert.equal(t.minWords,85);assert.equal(t.minParagraphs,3);assert.equal(t.required.length,5);
  assert.equal(inspectN6Response(JSON.stringify(output()),r,b).reason,'chapter_shape');
 });

@@ -313,7 +313,7 @@ export async function generateDirectJyotish(
     if(n6&&opts.reader10){
      const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit'}:inspectN6Response(rawContent,opts.reader10,n6);
      const reader10=checked.reader;
-     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code);if(!opts.fetcher)console.warn('Direct Jyotish: '+provider+' rejected='+code);
+     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code);
       if(attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
       break;
      }
