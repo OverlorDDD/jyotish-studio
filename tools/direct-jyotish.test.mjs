@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
-import {compactJyotishFacts,generateDirectJyotish,acceptDirectJyotishText,DIRECT_JYOTISH_INSTRUCTION,DIRECT_JYOTISH_BACKUP_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
+import {compactJyotishFacts,generateDirectJyotish,acceptDirectJyotishText,DIRECT_JYOTISH_INSTRUCTION,DIRECT_JYOTISH_BACKUP_INSTRUCTION,openRouterRetryAfterMs} from '../apps/api/src/direct-jyotish.ts';
 const input={date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0};
 const positions=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
  .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}));
@@ -290,4 +290,15 @@ test('A production operations switch removes OpenRouter from natal fallback',asy
    else process.env[name]=previous[index];
   });
  }
+});
+
+test('OpenRouter free 429 cooldown honors Retry-After without exposing headers or keys',()=>{
+ const now=Date.UTC(2026,10,26,12,0,0);
+ assert.equal(openRouterRetryAfterMs(new Headers(),now),60000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'120'}),now),120000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'1'}),now),60000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'36000'}),now),1800000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'Thu, 26 Nov 2026 12:03:00 GMT'}),now),180000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'nonsense'}),now),60000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'-12'}),now),60000);
 });
