@@ -30,7 +30,7 @@ async function createInventedBirth(page,lang){
  expect(json.ai?.fallbackReason).toBe('reader_only');
  return json;
 }
-const CHAPTERS=['self','money','work','love','home','path','summary'];
+const CHAPTERS=['self','money','work','love','home','path','timing','summary'];
 for(const lang of ['uk','en']){
  test('Reader 10 '+lang+': plain reading first, astrology one tap away, every divisional chart used, mobile layout',async({page},testInfo)=>{
   const report=await createInventedBirth(page,lang);
@@ -39,7 +39,7 @@ for(const lang of ['uk','en']){
   const reader=page.getByTestId('reader10');
   await expect(reader).toBeVisible();
   await expect(reader.locator(':scope > h2')).toHaveText(lang==='uk'?'Трактування вашої карти':'Your chart reading');
-  await expect(reader.locator(':scope > article')).toHaveCount(7);
+  await expect(reader.locator(':scope > article')).toHaveCount(8);
   // The previous Reader view is no longer rendered next to the complete reading.
   await expect(page.getByTestId('reader-v8')).toHaveCount(0);
   for(const id of CHAPTERS){
@@ -88,8 +88,12 @@ test('Reader 10 approximate birth time shows one note and keeps the full reading
  const reader=page.getByTestId('reader10');
  const details=page.locator('#birth-details');
  if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
+ const refreshed=page.waitForResponse(r=>r.url().includes('/api/v1/reports')&&r.request().method()==='POST'&&r.request().postDataJSON().minutesUncertain===true);
  await details.locator('input[type="checkbox"]').check();
+ const response=await refreshed;expect(response.ok()).toBe(true);
+ const report=await response.json();expect(report.ai.fallbackReason).toBe('reader_only');expect(report.minutesUncertain).toBe(true);
+ expect(report.reader10.chapters.flatMap(c=>[c.lead,...c.paragraphs,...(c.details?.paragraphs||[]),c.details?.basis||'']).join(' ')).not.toMatch(/D60(?=[: ])|Shashtiamsha/i);
  await expect(reader.getByRole('note')).toContainText('Your birth time is marked approximate');
  await expect(reader.getByRole('note')).toHaveCount(1);
- await expect(reader.locator(':scope > article')).toHaveCount(7);
+ await expect(reader.locator(':scope > article')).toHaveCount(8);
 });

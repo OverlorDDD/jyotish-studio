@@ -51,11 +51,14 @@ test('real frontend → NestJS report: runtime v6, calculation, Reader, and offl
  expect(data.ai?.fallbackReason).toBe('reader_only');
  // The product renders the complete Reader 10 reading automatically when the chart is ready.
  expect(data.reader10?.version).toBe('reader10-plain-1');
+ expect(data.reader10.chapters.map(c=>c.id)).toEqual(['self','money','work','love','home','path','timing','summary']);
  const reading=page.getByTestId('reader10');
  await expect(reading).toBeVisible({timeout:30000});
- await expect(reading.locator(':scope > article')).toHaveCount(7);
+ await expect(reading.locator(':scope > article')).toHaveCount(8);
  await expect(reading.getByTestId('reader10-self').locator(':scope > p').first()).toContainText('Головна тема вашого життя');
  await expect(reading.getByTestId('reader10-work-details')).toContainText('D10');
+ await expect(reading.getByTestId('reader10-timing').locator('h3')).toHaveText('Поточний період життя');
+ await expect(reading.getByTestId('reader10-work-details')).not.toHaveAttribute('open','');
  await expect(page.getByTestId('reader-v8')).toHaveCount(0);
  await expect(page.getByTestId('reader-auto-launch-btn')).toHaveAttribute('aria-pressed','true');
  expect(await page.locator('.reading-root').innerText()).not.toContain('Reader v5');
@@ -73,9 +76,10 @@ test('real EN route → full Reader English and matching runtime handshake',asyn
  const reading=page.getByTestId('reader10');
  await expect(reading).toBeVisible({timeout:30000});
  await expect(reading.locator(':scope > h2')).toHaveText('Your chart reading');
- await expect(reading.locator(':scope > article')).toHaveCount(7);
+ await expect(reading.locator(':scope > article')).toHaveCount(8);
  await expect(reading.getByTestId('reader10-self').locator(':scope > p').first()).toContainText('The main theme of your life');
  await expect(reading.getByTestId('reader10-love-details')).toContainText('D9 (Navamsha)');
+ await expect(reading.getByTestId('reader10-timing').locator('h3')).toHaveText('Current life period');
  await expect(reading.getByTestId('reader10-summary').locator(':scope > p').first()).not.toBeEmpty();
  await expect(page.getByTestId('reader-v8')).toHaveCount(0);
  const birthDate=page.getByLabel('Date of birth',{exact:true});

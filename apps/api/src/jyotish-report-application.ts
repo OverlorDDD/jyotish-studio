@@ -10,10 +10,10 @@ export class JyotishReportUseCases{
   this.calculateChart=calculate;this.buildReport=report;this.now=now;
  }
  calculate(input:SaveChartInput){return this.calculateChart(input);}
- async prepare(input:SaveChartInput,lang:'uk'|'en'){
+ async prepare(input:SaveChartInput,lang:'uk'|'en',omitD60=false){
   const chart:CalculatedChart=await this.calculateChart(input);
   const asOf=input.asOf||this.now().toISOString().slice(0,10);
-  const report=this.buildReport(chart,lang,asOf);
+  const report=this.buildReport(omitD60?{...chart,n4D60:undefined} as CalculatedChart:chart,lang,asOf);
   return {chart,report,asOf};
  }
 }

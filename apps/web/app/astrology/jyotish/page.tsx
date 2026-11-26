@@ -155,6 +155,8 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   setChart(ready);
   const compatibleSaved=saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
+    saved?.readerFormat==='n6-reader-v1'&&saved.minutesUncertain===minutesUncertain&&saved?.reader10?.chapters.some(c=>c.id==='timing')&&saved.asOf===new Date().toISOString().slice(0,10)&&
+    (saved.ai?.source!=='llm'||saved.ai.readerFormat==='n6-reader-v1')&&
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
     saved?.readerV7?.version==='reader-v7.0.0-n43'&&
     saved?.readerV8?.version==='reader-v8.0.0-n44'&&
@@ -230,7 +232,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
     }
    }
    void interpret('local',data);}catch(e){reportPublicToolEvent('public_tool_failed','jyotish');setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{calculating.current=false;setBusy(false)}}
- async function interpret(mode:'auto'|'local'='auto',freshChart:Chart|null=chart){
+ async function interpret(mode:'auto'|'local'='auto',freshChart:Chart|null=chart,uncertain=minutesUncertain){
   if(!freshChart)return;
   const requestId=++readingRequestId.current;
   // The default Reader runs automatically. When AI is explicitly requested,
@@ -243,7 +245,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   try{
    const response=await fetch(api+'/api/v1/reports',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...freshChart.input,lang,preferred:mode,minutesUncertain,asOf:new Date().toISOString().slice(0,10),expectedChartDigest:freshChart.verification?.digest})
+    body:JSON.stringify({...freshChart.input,lang,preferred:mode,minutesUncertain:uncertain,asOf:new Date().toISOString().slice(0,10),expectedChartDigest:freshChart.verification?.digest})
    });
    const data=await readApiJson<ReadingReport & {verifiedChart?:Chart}>(response);
    if(requestId!==readingRequestId.current)return;
@@ -264,7 +266,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
     'Сервер помилково повернув локальний Reader на запит AI. Перевірте налаштування API та повторіть запит.':
     'The server unexpectedly returned local Reader for an AI request. Check API configuration and retry.');
    setReport(data);
-   setInterpretation(mode==='auto'&&data.ai?.source==='llm'&&Boolean(data.ai?.text)?
+   setInterpretation(mode==='auto'&&data.ai?.source==='llm'&&data.ai.readerFormat==='n6-reader-v1'&&Boolean(data.ai?.text)?
     (lang==='uk'?'AI-консультація готова · '+data.ai.provider+' ↓':'AI consultation ready · '+data.ai.provider+' ↓'):
     mode==='auto'?
      (lang==='uk'?'AI-моделі не надали перевіреного тексту; показано Reader. Причина: '+(data.ai?.fallbackReason||'невідома'):
@@ -346,7 +348,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
       <div className={landing.timeField}>
        <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
        <label className={landing.minuteOption}>
-        <input type="checkbox" checked={minutesUncertain} onChange={e=>setMinutesUncertain(e.target.checked)}/>
+        <input type="checkbox" checked={minutesUncertain} onChange={e=>{const uncertain=e.target.checked;readingRequestId.current++;setAiBusy(false);setReport(null);setInterpretation('');setMinutesUncertain(uncertain);if(chart)void interpret('local',chart,uncertain);}}/>
         {lang==='uk'?'Не знаю точних хвилин':'I don’t know the exact minutes'}
        </label>
        {(!form.time||minutesUncertain)&&<p className={landing.timeHint} role="status">

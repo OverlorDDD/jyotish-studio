@@ -17,6 +17,7 @@ export type ReadingReport={
  readerV7?:ReaderV7UI;
  readerV8?:ReaderV8UI;
  reader10?:Reader10UI|null;
+ readerFormat?:string;minutesUncertain?:boolean;
  vargaReadings?:{
   version:string;status:'available'|'unavailable';methodology:string;
   readings:readonly {division:number;title:string;topic:string;summary:string;practice:string;scope:string;evidence:readonly string[]}[];
@@ -24,7 +25,7 @@ export type ReadingReport={
  };
  editorial?:{version:string;findings?:{id:string;topic:string;ruleId:string;verifiedEvidence:string[];traditionalMeaning:string;supportingFactors:string[];counterFactors:string[];relativeImportance:number;limitations:string[];sourceIds?:string[]}[];chapters:{id:string;title:string;paragraphs:string[];insights:string[];evidence:string[]}[];elements:{name:string;count:number;percentage:number}[];highlights:string[];method:string};
  asOf?:string;rulesVersion?:string;rulesDigest?:string;ruleFacts?:{id:string;rule:string;subject:string;values:Record<string,string|number|boolean>;evidence:string[]}[];
- ai:{provider:string;model?:string;text:string;fallbackReason?:string;source?:'llm'|'deterministic';cached?:boolean;documentMode?:'unified';chapters?:{id:string;paragraphs:string[];source:'llm'}[]};
+ ai:{provider:string;model?:string;text:string;readerFormat?:string;fallbackReason?:string;source?:'llm'|'deterministic';cached?:boolean;documentMode?:'unified';chapters?:{id:string;paragraphs:string[];source:'llm'}[]};
 };
 const PHOTOS={
  cosmos:{
@@ -180,7 +181,7 @@ function ChapterEvidence({report,chapter,lang}:{report:ReadingReport;chapter:Non
 }
 export default function DetailedReport({report,lang,minutesUncertain=false}:{report:ReadingReport;lang:'uk'|'en';minutesUncertain?:boolean}){
  const uk=lang==='uk',ai=report.ai;
- const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text);
+ const hasLlm=ai.source==='llm'&&['openrouter','gemini','groq'].includes(ai.provider)&&Boolean(ai.text)&&(!isReader10(report.reader10)||ai.readerFormat==='n6-reader-v1');
  const hasV8=report.readerV8?.version==='reader-v8.0.0-n44'&&report.readerV8.editorialVersion==='n48-poetic-evidence-1.0.0'&&report.readerV8.integrated?.version==='n49-unified-evidence-v1'&&report.readerV8.compactCards?.length===15&&report.readerV8.meaningful?.version==='n492-evidence-prioritized-16-varga-v1'&&report.readerV8.meaningful.cards.length===16&&report.readerV8.meaningful.discoveries?.version==='n493-ranked-patterns-1.0.0'&&report.readerV8.status==='available'&&report.readerV8.insights.length===15;
  const hasV7=report.readerV7?.version==='reader-v7.0.0-n43'&&report.readerV7.status==='available'&&report.readerV7.insights.length===15;
  const aiChapters=new Map((hasLlm?ai.chapters:[])?.map(c=>[c.id,c])||[]);
@@ -196,7 +197,7 @@ export default function DetailedReport({report,lang,minutesUncertain=false}:{rep
    (uk?(hasV8?'Jyotish Reader 9 · цілісне традиційне прочитання на основі обчисленої карти.':'Jyotish Reader · цілісне традиційне прочитання на основі обчисленої карти.'):(hasV8?'Jyotish Reader 9 · complete chart-grounded traditional reading.':'Jyotish Reader · complete chart-grounded traditional reading.')):
    hasLlm?
    (unified||(ai.text&&(!ai.chapters||ai.chapters.length===0))?
-    (uk?'Повна AI-консультація · ':'Full AI consultation · '):
+    (uk?'Поглиблене AI-трактування · ':'In-depth AI reading · '):
     (uk?'Класичний Reader із додатковими AI-розділами · ':'Classic Reader with additional AI chapters · '))+
    (ai.provider==='openrouter'?'OpenRouter':ai.provider==='gemini'?'Google Gemini':ai.provider==='groq'?'GroqCloud':'Ollama')+' · '+(ai.model||'—')+
    (ai.cached?(uk?' · повторне використання перевіреної відповіді':' · cached verified response'):'')+
@@ -207,7 +208,7 @@ export default function DetailedReport({report,lang,minutesUncertain=false}:{rep
    'Спочатку — ваш цілісний портрет і головні життєві теми. Точні планетарні положення та методичні пояснення доступні під текстом.' :
    'Begin with your personal narrative. Calculation details and source facts are available beneath each chapter.'}</p>:null}
   {/* An accepted LLM interpretation is the reader's first substantive narrative, not a collapsed appendix. */}
-  {hasLlm&&ai.text&&(!ai.chapters||ai.chapters.length===0)?<article className="jy-direct-document" id="reading-ai" data-testid="jyotish-direct-consultation">
+  {!isReader10(report.reader10)&&hasLlm&&ai.text&&(!ai.chapters||ai.chapters.length===0)?<article className="jy-direct-document" id="reading-ai" data-testid="jyotish-direct-consultation">
    <div className="reading-chapter-kicker">{uk?'✦ ВАШЕ ПЕРСОНАЛЬНЕ AI-ПРОЧИТАННЯ':'✦ YOUR PERSONAL AI CONSULTATION'}</div>
    <h2>{uk?'Ваш життєвий портрет за Джйотіш':'Your Jyotish life portrait'}</h2>
    <p className="jy-direct-source">{uk?'AI пояснює підтверджені розрахунки простою мовою. Це трактування традиції, не підтвердження фактів про ваше життя. D60 не використовується для персональних висновків.':'AI explains verified calculations in everyday language. This is a traditional interpretation, not a confirmed fact about your life. D60 is excluded from personal conclusions.'}</p>
