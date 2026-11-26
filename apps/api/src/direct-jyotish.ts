@@ -101,6 +101,8 @@ export type DirectOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];
  keys?:Partial<Record<FreeProvider,string>>;freeConfirmed?:Partial<Record<FreeProvider,boolean>>;
  timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>void|Promise<void>;
+ /** Opt-in bounded improvement; full API route enables it for Groq only. */
+ qualityRetry?:boolean;
  /** Optional safe, machine-readable diagnostics for local troubleshooting. */
  onDiagnostic?:(diagnostic:DirectDiagnostic)=>void;
 };
@@ -198,8 +200,12 @@ export async function generateDirectJyotish(
   let controller:AbortController|null=null;
   let timer:ReturnType<typeof setTimeout>|undefined;
   const model=pickModel(provider);
+  let bestVerified:{result:Result;missing:number}|null=null;
   try{
    let correctiveReason='';
+   // If a factually valid free response is thin on D9/D10, keep it as a safe
+   // fallback while attempting one richer rewrite. A failed quality retry must
+   // not turn an already accepted response into a local-Reader failure.
    // Free models frequently stop before a long requested consultation is complete.
    // Allow one bounded retry for selected incomplete responses.
    // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
@@ -237,7 +243,9 @@ export async function generateDirectJyotish(
       (correctiveReason==='unsupported_divisional_chart'?
        '\nCORRECTION: Your prior draft referred to an unverified D-chart. Discard that draft. Never mention D60 or any division not explicitly present in the supplied verified facts. Only the supplied verified D-codes are permitted; do not invent other charts.':'')+
       (correctiveReason==='missing_n4_cross_varga_synthesis'?
-       '\nCORRECTION: The previous draft omitted the required source-bound N4 comparison. Cite exactly two different additional verified D-codes appearing in the provided facts and connect them to D1; do not invent placements.':'');
+       '\nCORRECTION: The previous draft omitted the required source-bound N4 comparison. Cite exactly two different additional verified D-codes appearing in the provided facts and connect them to D1; do not invent placements.':'')+
+      (correctiveReason==='missing_d9_d10_analysis'?
+       '\nCORRECTION: The previous version omitted real D9 and/or D10 interpretation. In the relationship section, interpret one VERIFIED D9 graha, its sign and house from the facts. In the career section, interpret one VERIFIED D10 graha, its sign and house. Do not merely list D9 and D10 codes or invent placements. Retain the two additional verified N4 divisions and end in a complete sentence.':'');
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
      body:JSON.stringify({model,
@@ -289,9 +297,18 @@ export async function generateDirectJyotish(
      break;
     }
     if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
-    try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
-    diagnostic(provider,'success','complete');
-    return {result:{provider,model:parsed?.model||model,text:content.trim()}};
+    const candidate:Result={provider,model:parsed?.model||model,text:content.trim()};
+    const missing=['missing_d9_analysis','missing_d10_analysis'].filter(code=>review.codes.includes(code)).length;
+    if(opts.qualityRetry===true&&provider==='groq'&&missing>0&&attempt===0&&deadline-Date.now()>45000){
+     bestVerified={result:candidate,missing};
+     correctiveReason='missing_d9_d10_analysis';
+     diagnostic(provider,'validation','missing_d9_d10_analysis');
+     continue;
+    }
+    const selected=bestVerified&&bestVerified.missing<missing?bestVerified.result:candidate;
+    try{await opts.onUsage?.({provider,model:selected.model,outcome:'returned'});}catch{}
+    diagnostic(provider,'success',selected===candidate?'complete':'complete_quality_fallback');
+    return {result:selected};
    }
   }catch(error){
    reason=controller?.signal.aborted?'timeout':'network';
@@ -299,6 +316,13 @@ export async function generateDirectJyotish(
    redact(reason,provider);
   }
   finally{if(timer!==undefined)clearTimeout(timer);}
+  // A corrective request may fail its validation or hit the free quota.
+  // Retain the strictly source-verified first answer rather than losing AI.
+  if(bestVerified){
+   try{await opts.onUsage?.({provider,model:bestVerified.result.model,outcome:'returned'});}catch{}
+   diagnostic(provider,'success','complete_quality_fallback');
+   return {result:bestVerified.result};
+  }
  }
  return {result:null,reason};
 }
