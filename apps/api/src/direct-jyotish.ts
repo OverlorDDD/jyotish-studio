@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,planN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -263,6 +263,7 @@ export async function generateDirectJyotish(
   try{
    let correctiveReason='';
    let groqPlainJson=false;
+   let repair:N6Repair|null=null;
    // If a factually valid free response is thin on D9/D10, keep it as a safe
    // fallback while attempting one richer rewrite. A failed quality retry must
    // not turn an already accepted response into a local-Reader failure.
@@ -292,7 +293,7 @@ export async function generateDirectJyotish(
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=n6?(provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
+    const maxCompletion=n6?(repair?Math.min(2400,900+450*repair.ids.length):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -315,9 +316,9 @@ export async function generateDirectJyotish(
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
       ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:GROQ_N6_SCHEMA}:{}),
-      messages:[{role:'system',content:n6?(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT:N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':''):instructions},
+      messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT:N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(n6,provider==='groq'):backup?backupFacts:facts)} ]})
+        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(repair?.brief??n6,provider==='groq'):backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
      if(n6&&provider==='groq'&&response.status===400){
@@ -356,15 +357,20 @@ export async function generateDirectJyotish(
     const value=choice?.message?.content;
     const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
     if(n6&&opts.reader10){
-     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit'}:inspectN6Response(rawContent,opts.reader10,n6);
+     const merged=repair?mergeN6Repair(rawContent,repair):rawContent;
+     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6);
      const reader10=checked.reader;
-     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code);
+     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
+      if(provider==='groq'&&attempt===0&&choice?.finish_reason!=='length'&&deadline-Date.now()>30000+reservedForFallback){
+       repair=planN6Repair(rawContent,opts.reader10,n6);
+       if(repair){diagnostic(provider,'validation','n6_repair_'+repair.ids.join('_'));continue;}
+      }
       if(provider!=='groq'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
       break;
      }
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');
      try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
-     diagnostic(provider,'success','n6_complete');
+     diagnostic(provider,'success',repair?'n6_repaired_complete':'n6_complete');
      return {result:{provider,model:parsed?.model||model,text,reader10}};
     }
     const content=polishConsultationText(rawContent,lang);
