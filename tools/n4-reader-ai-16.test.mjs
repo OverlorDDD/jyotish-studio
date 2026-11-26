@@ -228,3 +228,44 @@ test('N501 real N4 fallback prompt stays grounded while omitting redundant 6.5 K
  assert.ok(result.result,'N4 verified synthetic fallback must return an accepted response');
  assert.equal(result.result.provider,'groq');
 });
+
+test('Groq retries a fabricated division once with corrective verified-chart instructions',async()=>{
+ const verified=fixture();
+ const prose=Array.from({length:13},(_,i)=>
+  'The verified chart permits a careful comparison of work, learning and resilience in practice, not an invented prediction about a life event number '+(i+1)+'. ').join('');
+ const requests=[];
+ const events=[];
+ const outcome=await generateDirectJyotish(verified,'en','2026-11-26',{
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},
+  limit:()=>true,onDiagnostic:e=>events.push(e),
+  fetcher:async(_url,init)=>{
+   const payload=JSON.parse(init.body);requests.push(payload);
+   const text=requests.length===1
+    ?'D5 is a governing prediction. D24 connects study and D27 connects resilience. '+prose
+    :'D24 connects learning to D1; D27 connects resilience to verified D1 choices. '+prose;
+   return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:text}}]}),{status:200});
+  }
+ });
+ assert.equal(requests.length,2);
+ assert.equal(events[0].reason,'unsupported_divisional_chart');
+ assert.match(requests[1].messages[0].content,/unverified D-chart/);
+ assert.equal(outcome.result?.provider,'groq');
+ assert.ok(outcome.result?.text?.includes('D24'));
+});
+
+test('Groq never accepts a fabricated division after a corrective retry',async()=>{
+ const verified=fixture();
+ let calls=0;
+ const outcome=await generateDirectJyotish(verified,'en','2026-11-26',{
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  fetcher:async()=>{
+   calls++;
+   const text='D5 predicts the future. D24 and D27 illustrate work and learning. '+
+    Array.from({length:14},(_,i)=>'A grounded symbolic reading can support reflection without an invented fate '+i+'. ').join('');
+   return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:text}}]}),{status:200});
+  }
+ });
+ assert.equal(calls,2);
+ assert.equal(outcome.result,null);
+ assert.equal(outcome.reason,'invalid_response');
+});
