@@ -120,7 +120,7 @@ old="""   if(!Array.isArray(data.sections)||!data.sections.length)throw Error('R
    setReport(data);
    setInterpretation(lang==='uk'?'Звіт готовий ↓ Прокрутіть нижче':'Report ready ↓ Scroll below');"""
 new="""   if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
-   if(mode==='auto'&&data.ai?.fallbackReason==='reader_only')throw Error(lang==='uk'?
+   if(mode==='auto'&&['reader_only','local_only'].includes(data.ai?.fallbackReason||''))throw Error(lang==='uk'?
     'Сервер помилково повернув локальний Reader на запит AI. Перевірте налаштування API та повторіть запит.':
     'Server unexpectedly returned local Reader for an AI request; verify API configuration.');
    setReport(data);
