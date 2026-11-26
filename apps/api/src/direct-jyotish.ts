@@ -101,6 +101,8 @@ export type DirectOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];
  keys?:Partial<Record<FreeProvider,string>>;freeConfirmed?:Partial<Record<FreeProvider,boolean>>;
  timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>void|Promise<void>;
+ /** Opt-in bounded improvement; full API route enables it for Groq only. */
+ qualityRetry?:boolean;
  /** Optional safe, machine-readable diagnostics for local troubleshooting. */
  onDiagnostic?:(diagnostic:DirectDiagnostic)=>void;
 };
@@ -198,12 +200,12 @@ export async function generateDirectJyotish(
   let controller:AbortController|null=null;
   let timer:ReturnType<typeof setTimeout>|undefined;
   const model=pickModel(provider);
+  let bestVerified:{result:Result;missing:number}|null=null;
   try{
    let correctiveReason='';
    // If a factually valid free response is thin on D9/D10, keep it as a safe
    // fallback while attempting one richer rewrite. A failed quality retry must
    // not turn an already accepted response into a local-Reader failure.
-   let bestVerified:{result:Result;missing:number}|null=null;
    // Free models frequently stop before a long requested consultation is complete.
    // Allow one bounded retry for selected incomplete responses.
    // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
@@ -297,7 +299,7 @@ export async function generateDirectJyotish(
     if(review.codes.length)console.warn('Direct Jyotish '+CONSULTATION_QUALITY_VERSION+': review='+review.codes.join(',')+' (non-blocking)');
     const candidate:Result={provider,model:parsed?.model||model,text:content.trim()};
     const missing=['missing_d9_analysis','missing_d10_analysis'].filter(code=>review.codes.includes(code)).length;
-    if(provider==='groq'&&missing>0&&attempt===0&&deadline-Date.now()>45000){
+    if(opts.qualityRetry===true&&provider==='groq'&&missing>0&&attempt===0&&deadline-Date.now()>45000){
      bestVerified={result:candidate,missing};
      correctiveReason='missing_d9_d10_analysis';
      diagnostic(provider,'validation','missing_d9_d10_analysis');
