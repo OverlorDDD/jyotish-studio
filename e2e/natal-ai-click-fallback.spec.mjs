@@ -26,6 +26,7 @@ for(const locale of ['uk','en']){
    const payload=route.request().postDataJSON();
    calls.push(payload.preferred);
    expect(payload.preferred).toBe('auto');
+   expect(payload.expectedChartDigest).toMatch(/^[a-f0-9]{64}$/);
    await gate;
    await route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({
     ...report,ai:{provider:'groq',model:'openai/gpt-oss-120b',text:aiProse,source:'llm',cached:false}
@@ -64,4 +65,22 @@ test('server reader_only on an explicit auto request is an error, never false AI
  await page.locator('.jy-ai-launch-btn').click();
  await expect(page.locator('.jy-ai-status')).toContainText('Сервер помилково повернув локальний Reader');
  await expect(page.getByTestId('reader10')).toHaveCount(0);
+});
+
+test('browser rejects mismatched AI report without its exact verified recomputed source',async({page,request})=>{
+ const local=await request.post('/api/v1/reports',{data:{...sampleBirth,lang:'uk',preferred:'local'}});
+ const source=await local.json();
+ await ready(page,'uk');
+ await page.route('**/api/v1/reports',route=>{
+  const birth=route.request().postDataJSON();
+  expect(birth.preferred).toBe('auto');
+  expect(birth.expectedChartDigest).toMatch(/^[a-f0-9]{64}$/);
+  return route.fulfill({status:201,json:{
+   ...source,verification:{...source.verification,digest:'f'.repeat(64)},
+   ai:{provider:'groq',model:'test',source:'llm',text:aiProse,cached:false}
+  }});
+ });
+ await page.locator('.jy-ai-launch-btn').click();
+ await expect(page.locator('.jy-ai-status')).toContainText('Дані звіту не збігаються з перевіреною картою');
+ await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
 });
