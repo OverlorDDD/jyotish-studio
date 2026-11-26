@@ -25,6 +25,9 @@ function sample(){
  };
 }
 async function load(page,lang='uk',data=sample()){
+ // These geometry fixtures use invented digests. Keep the automatic Reader from replacing
+ // them with real server calculations. Explicit page-level report fixtures take precedence.
+ await page.context().route('**/api/v1/reports',route=>route.fulfill({status:503,json:{message:'No report for synthetic geometry'}}));
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
    readerVersion:'6.0.0',pipeline:'direct-v2',verificationContract:'jyotish-integrity-v3'
