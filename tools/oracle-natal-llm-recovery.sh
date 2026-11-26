@@ -144,7 +144,47 @@ s=s.replace(old,new)
 p.write_text(s)
 print("PASS: ACTIVE_WEB_UI_AI_FALLBACK_PATCHED_WITHOUT_STALE_READER")
 PY
-echo "=== 6. FULL TESTS, TYPESCRIPT, NEWS REGRESSION AND NEXT PRODUCTION BUILD ==="
+echo "=== 6. TEST SPECIFIC FREE OPENROUTER BACKUPS BEFORE ACTIVATING A MODEL ==="
+# The openrouter/free router previously returned two truncated completions.
+# Pin a zero-priced model only after a complete source-validated test succeeds.
+cd "$API_NEW"
+node --experimental-strip-types --input-type=module <<'JS'
+import {readFileSync,writeFileSync} from 'node:fs';
+import {calculateChart} from './packages/jyotish-core/src/index.ts';
+import {makeN4RcPayload} from './apps/api/src/n4-rc-contract.ts';
+import {makeN4D60Candidate} from './apps/api/src/n4-d60-candidate.ts';
+import {generateDirectJyotish} from './apps/api/src/direct-jyotish.ts';
+process.loadEnvFile('.env');
+const input={date:'2000-01-01',time:'12:00',timeZone:'Etc/UTC',latitude:50.45,longitude:30.52};
+const names=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
+const chart=calculateChart(input,{ayanamsa:23.8,ascendant:11.713,julianDay:2451545,backend:'synthetic-test-N4-reader',
+ positions:names.map((name,i)=>({name,longitude:(i*33.17+7)%360,speed:i%3===0?-.1:.3}))});
+const proof={version:'jyotish-integrity-v3',status:'verified_internal',digest:'a'.repeat(64),
+ externalReferenceChecked:false,checks:['synthetic_diagnostic_only']};
+const verified={...chart,verification:proof,n4:makeN4RcPayload(chart,proof),n4D60:makeN4D60Candidate(chart,proof)};
+let chosen='';
+for(const model of ['google/gemma-4-31b-it:free','google/gemma-4-26b-a4b-it:free']){
+ process.env.OPENROUTER_FREE_MODEL=model;
+ const diagnostics=[];
+ try{
+  const out=await generateDirectJyotish(verified,'uk','2026-11-26',{
+   order:['openrouter'],limit:()=>true,timeoutMs:35000,onDiagnostic:d=>diagnostics.push(d)
+  });
+  console.log('OPENROUTER_FREE_CANDIDATE='+JSON.stringify({model,accepted:Boolean(out.result?.text),
+   characters:out.result?.text?.length||0,reason:out.reason||null,diagnostics}));
+  if(out.result?.provider==='openrouter'&&out.result.text.length>=900){chosen=model;break;}
+ }catch(error){console.log('OPENROUTER_FREE_ERROR='+model+' '+(error?.constructor?.name||'Unknown'));}
+}
+if(chosen){
+ const file='.env',src=readFileSync(file,'utf8');
+ const escaped=src.replace(/^OPENROUTER_FREE_MODEL=.*$/m,'OPENROUTER_FREE_MODEL='+chosen);
+ writeFileSync(file,escaped===src&&!src.includes('OPENROUTER_FREE_MODEL=')?src.trimEnd()+'\nOPENROUTER_FREE_MODEL='+chosen+'\n':escaped);
+ console.log('PASS: OPENROUTER_FIXED_FREE_MODEL_VERIFIED '+chosen);
+}else{
+ console.log('WARNING: OPENROUTER_NOT_CONFIRMED; LEAVING_EXISTING_ROUTER_SETTING');
+}
+JS
+echo "=== 7. FULL TESTS, TYPESCRIPT, NEWS REGRESSION AND NEXT PRODUCTION BUILD ==="
 cd "$API_NEW"
 node --experimental-strip-types --test tools/direct-jyotish.test.mjs tools/n4-reader-ai-16.test.mjs tools/news-azure-budget.test.mjs
 ./node_modules/.bin/tsc -p apps/api/tsconfig.json
