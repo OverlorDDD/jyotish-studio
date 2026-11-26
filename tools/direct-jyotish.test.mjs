@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateChart} from '../packages/jyotish-core/src/index.ts';
-import {compactJyotishFacts,generateDirectJyotish,acceptDirectJyotishText,DIRECT_JYOTISH_INSTRUCTION,DIRECT_JYOTISH_BACKUP_INSTRUCTION} from '../apps/api/src/direct-jyotish.ts';
+import {compactJyotishFacts,generateDirectJyotish,acceptDirectJyotishText,DIRECT_JYOTISH_INSTRUCTION,DIRECT_JYOTISH_BACKUP_INSTRUCTION,openRouterRetryAfterMs} from '../apps/api/src/direct-jyotish.ts';
 const input={date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0};
 const positions=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
  .map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}));
@@ -290,4 +290,48 @@ test('A production operations switch removes OpenRouter from natal fallback',asy
    else process.env[name]=previous[index];
   });
  }
+});
+
+test('OpenRouter free 429 cooldown honors Retry-After without exposing headers or keys',()=>{
+ const now=Date.UTC(2026,10,26,12,0,0);
+ assert.equal(openRouterRetryAfterMs(new Headers(),now),60000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'120'}),now),120000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'1'}),now),60000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'36000'}),now),1800000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'Thu, 26 Nov 2026 12:03:00 GMT'}),now),180000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'nonsense'}),now),60000);
+ assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'-12'}),now),60000);
+});
+
+test('real fallback order is Gemini 503 then Groq 429 then verified free OpenRouter',async()=>{
+ const urls=[],stages=[];
+ const out=await generateDirectJyotish(chart,'en','2026-11-26',{
+  order:['gemini','groq','openrouter'],
+  keys:{gemini:'test',groq:'test',openrouter:'test'},
+  freeConfirmed:{gemini:true,groq:true},limit:()=>true,
+  onDiagnostic:d=>stages.push(d),
+  fetcher:async url=>{
+   urls.push(url);
+   if(url.includes('googleapis'))return new Response('{}',{status:503});
+   if(url.includes('groq.com'))return new Response('{}',{status:429});
+   return success();
+  }
+ });
+ assert.equal(urls.length,3);
+ assert.deepEqual(stages.filter(x=>x.stage==='http').map(x=>[x.provider,x.httpStatus]),[['gemini',503],['groq',429]]);
+ assert.equal(out.result?.provider,'openrouter');
+ assert.equal(out.result?.text,prose);
+});
+
+test('all three remote providers exhausted returns null with true 429 reason, never fake AI',async()=>{
+ const calls=[];
+ const out=await generateDirectJyotish(chart,'uk','2026-11-26',{
+  order:['gemini','groq','openrouter'],
+  keys:{gemini:'test',groq:'test',openrouter:'test'},
+  freeConfirmed:{gemini:true,groq:true},limit:()=>true,
+  fetcher:async url=>{calls.push(url);return new Response('{}',{status:429});}
+ });
+ assert.equal(calls.length,3);
+ assert.equal(out.result,null);
+ assert.equal(out.reason,'rate_limited');
 });
