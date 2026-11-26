@@ -172,7 +172,7 @@ export class JyotishController{
   const base={...report,readerV8:safeReaderV8,
    sections:skySection?[...report.sections,skySection]:report.sections,
    calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification,
-   ...(needsVerifiedRebind?{verifiedChart:chart}: {})};
+   ...(needsVerifiedRebind?{verifiedChart:safeChart}: {})};
   if(birth.preferred==='local'||process.env.GALAXIORA_READER_ONLY==='1')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
