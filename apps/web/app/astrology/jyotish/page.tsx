@@ -250,7 +250,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
    if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n48-poetic-evidence-1.0.0'||data.readerV8.integrated?.version!=='n49-unified-evidence-v1'||data.readerV8.compactCards?.length!==15||data.readerV8.meaningful?.version!=='n492-evidence-prioritized-16-varga-v1'||data.readerV8.meaningful?.cards?.length!==16||data.readerV8.meaningful?.discoveries?.version!=='n493-ranked-patterns-1.0.0'||(data.readerV8.d60Preview?.status==='conditional_signs'&&data.readerV8.d60Preview?.allPlanets?.length!==9))throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
    if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==freshChart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
-   if(mode==='auto'&&data.ai?.fallbackReason==='reader_only')throw Error(lang==='uk'?
+   if(mode==='auto'&&['reader_only','local_only'].includes(data.ai?.fallbackReason||''))throw Error(lang==='uk'?
     'Сервер помилково повернув локальний Reader на запит AI. Перевірте налаштування API та повторіть запит.':
     'The server unexpectedly returned local Reader for an AI request. Check API configuration and retry.');
    setReport(data);
