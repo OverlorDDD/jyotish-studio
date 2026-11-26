@@ -34,6 +34,7 @@ for(const locale of ['uk','en']){
   await page.locator('.jy-ai-launch-btn').click();
   await expect(page.getByTestId('reader10')).toHaveCount(0);
   await expect(page.getByTestId('reading-ai-provenance')).toHaveCount(0);
+  await expect.poll(()=>calls.length).toBe(1);
   expect(calls).toEqual(['auto']);
   resolveCall();
   await expect(page.getByTestId('jyotish-direct-consultation')).toBeVisible({timeout:15000});
