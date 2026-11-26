@@ -232,7 +232,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
     }
    }
    void interpret('local',data);}catch(e){reportPublicToolEvent('public_tool_failed','jyotish');setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{calculating.current=false;setBusy(false)}}
- async function interpret(mode:'auto'|'local'='auto',freshChart:Chart|null=chart){
+ async function interpret(mode:'auto'|'local'='auto',freshChart:Chart|null=chart,uncertain=minutesUncertain){
   if(!freshChart)return;
   const requestId=++readingRequestId.current;
   // The default Reader runs automatically. When AI is explicitly requested,
@@ -245,7 +245,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   try{
    const response=await fetch(api+'/api/v1/reports',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...freshChart.input,lang,preferred:mode,minutesUncertain,asOf:new Date().toISOString().slice(0,10),expectedChartDigest:freshChart.verification?.digest})
+    body:JSON.stringify({...freshChart.input,lang,preferred:mode,minutesUncertain:uncertain,asOf:new Date().toISOString().slice(0,10),expectedChartDigest:freshChart.verification?.digest})
    });
    const data=await readApiJson<ReadingReport & {verifiedChart?:Chart}>(response);
    if(requestId!==readingRequestId.current)return;
@@ -348,7 +348,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
       <div className={landing.timeField}>
        <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
        <label className={landing.minuteOption}>
-        <input type="checkbox" checked={minutesUncertain} onChange={e=>{readingRequestId.current++;setAiBusy(false);setReport(null);setInterpretation('');setMinutesUncertain(e.target.checked);}}/>
+        <input type="checkbox" checked={minutesUncertain} onChange={e=>{const uncertain=e.target.checked;readingRequestId.current++;setAiBusy(false);setReport(null);setInterpretation('');setMinutesUncertain(uncertain);if(chart)void interpret('local',chart,uncertain);}}/>
         {lang==='uk'?'Не знаю точних хвилин':'I don’t know the exact minutes'}
        </label>
        {(!form.time||minutesUncertain)&&<p className={landing.timeHint} role="status">

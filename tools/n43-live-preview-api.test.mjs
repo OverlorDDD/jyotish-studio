@@ -29,7 +29,7 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
   assert.equal(chart.n4D60.division,60);
   assert.ok(!JSON.stringify(chart).includes('SYNTHETIC_PREVIEW_TEST_ONLY_UNEXPECTED'));
   for(const lang of ['uk','en']){
-   const r=await send(base+'/api/v1/reports',{...birth,lang,preferred:'local',asOf:'2026-11-07'});
+   const r=await send(base+'/api/v1/reports',{...birth,lang,preferred:'local',minutesUncertain:false,asOf:'2026-11-07'});
    assert.equal(r.status,200);
    const report=await r.json();
    assert.equal(report.verification.status,'verified_internal');
@@ -64,13 +64,17 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
    const fallbackRules=careerRules.filter(id=>id.startsWith('BJ-X-1-NAVAMSA-VOCATION-'));
    assert.ok(fallbackRules.length===0||fallbackRules.length===3,
     'Brihat Jataka X.1 fallback must be either absent or cover all three origins');
+   assert.deepEqual(report.reader10.chapters.map(c=>c.id),['self','money','work','love','home','path','timing','summary']);
    assert.equal(report.ai.source,'deterministic');
    assert.equal(report.ai.fallbackReason,'reader_only');
   }
   const approximate=await send(base+'/api/v1/reports',
    {...birth,lang:'uk',preferred:'local',minutesUncertain:true,asOf:'2026-11-07'});
   assert.equal(approximate.status,200);
-  const approximateReader=(await approximate.json()).readerV8;
+  const approximateReport=await approximate.json(),approximateReader=approximateReport.readerV8;
+  assert.equal(approximateReport.minutesUncertain,true);
+  assert.equal(approximateReport.reader10.chapters.length,8);
+  assert.doesNotMatch(approximateReport.reader10.chapters.flatMap(c=>[c.lead,...c.paragraphs,...(c.details?.paragraphs||[]),c.details?.basis||'']).join(' '),/D60(?=[: ])|Шаштіамша|Shashtiamsha/i);
   assert.equal(approximateReader.status,'available');
   assert.equal(approximateReader.insights.length,15);
   assert.equal(approximateReader.d60Preview.status,'unavailable');
@@ -83,8 +87,8 @@ test('N4.3 isolated HTTP preview uses real native Swiss calc + real Reader 7 wit
  }finally{await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}
 });
 test('N4.3 preview distinguishes real-provider-shaped response from deterministic fallback',async()=>{
- const server=createN43PreviewServer({ai:async()=>({result:{
-  provider:'gemini',model:'synthetic-provider-only',text:'TEST MOCK. Never shown as a real AI certification.'}})});
+ const server=createN43PreviewServer({ai:async(_chart,_lang,_asOf,opts)=>({result:{
+  provider:'gemini',model:'synthetic-provider-only',text:'TEST MOCK. Never shown as a real AI certification.',reader10:opts.reader10}})});
  server.listen(0,'127.0.0.1');await once(server,'listening');
  const base='http://127.0.0.1:'+server.address().port;
  const prior=process.env.AI_MODE;process.env.AI_MODE='free';
@@ -94,6 +98,8 @@ test('N4.3 preview distinguishes real-provider-shaped response from deterministi
   const report=await res.json();
   assert.equal(report.ai.source,'llm');
   assert.equal(report.ai.provider,'gemini');
+  assert.equal(report.ai.readerFormat,'n6-reader-v1');
+  assert.equal(report.reader10.chapters.length,8);
   assert.equal(report.readerV7.insights.length,15);
   assert.equal(report.readerV8.insights.length,15);
  }finally{

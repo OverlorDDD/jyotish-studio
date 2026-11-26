@@ -6,11 +6,14 @@ import {enterSyntheticBirthFields} from './n4-rc-legacy-compat.mjs';
 const sampleBirth={date:'2000-01-01',time:'12:00',timeZone:'Asia/Kolkata',latitude:28.6139,longitude:77.209};
 const aiProse='## Verified consultation\n\n'+('A specific placement can support reflection on work and relationships without guaranteeing an outcome. ').repeat(17)+'\n\nA balanced decision belongs to the reader.';
 async function ready(page,locale){
+ const hydrated=page.waitForResponse(r=>r.url().includes('/api/v1/jyotish/runtime'));
  await page.goto('/'+locale+'/astrology/jyotish');
+ await hydrated;
  await enterSyntheticBirthFields(page);
  await page.locator('.jy-calc-btn').click();
  await expect(page.getByTestId('reader10')).toBeVisible({timeout:30000});
  await expect(page.getByTestId('reading-ai-provenance')).toBeVisible();
+ await expect(page.locator('.jy-ai-launch-btn')).toBeEnabled();
 }
 for(const locale of ['uk','en']){
  test('explicit '+locale+' AI click clears stale Reader and visibly renders returned Groq fallback',async({page,request})=>{
