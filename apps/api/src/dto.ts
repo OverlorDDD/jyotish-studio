@@ -9,6 +9,8 @@ export class BirthDto{
  @IsOptional() @IsString() @MaxLength(120) place?:string;
 }
 export class ReportDto extends BirthDto{
+ /** Only a bound SHA-256 digest; raw client chart contents never trusted. */
+ @IsOptional() @Matches(/^[a-f0-9]{64}$/) expectedChartDigest?:string;
  @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) asOf?:string;
  @ApiProperty({type:String,example:'uk'}) @Matches(/^(uk|en)$/) lang!:'uk'|'en';
  @IsOptional() @Matches(/^(auto|local)$/) preferred?:'auto'|'local';

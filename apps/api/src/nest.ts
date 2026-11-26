@@ -163,9 +163,16 @@ export class JyotishController{
   // explicitly says their birth minutes are unknown. D1/D9/D10 stay intact.
   const safeChart=omitD60?({...chart,n4D60:undefined} as CalculatedChart):chart;
   const safeReaderV8=omitD60?{...report.readerV8,d60Preview:buildD60Preview(safeChart,birth.lang)}:report.readerV8;
+  // Strict source binding: if a client's prior verified chart differs from the
+  // newly recomputed chart, return that exact verified source alongside the
+  // report so the browser can update both atomically. Never trust client facts.
+  // Legacy clients without expectedChartDigest retain their lean response.
+  const needsVerifiedRebind=Boolean(birth.expectedChartDigest&&
+   birth.expectedChartDigest!==verified.verification.digest);
   const base={...report,readerV8:safeReaderV8,
    sections:skySection?[...report.sections,skySection]:report.sections,
-   calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification};
+   calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification,
+   ...(needsVerifiedRebind?{verifiedChart:safeChart}: {})};
   if(birth.preferred==='local'||process.env.GALAXIORA_READER_ONLY==='1')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')

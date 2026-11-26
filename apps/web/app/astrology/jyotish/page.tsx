@@ -3,6 +3,7 @@ import {useState,useEffect,useRef} from 'react';
 import dynamic from 'next/dynamic';
 import {readApiJson} from '../../../lib/api-response';
 import {isJyotishRuntimeCompatible} from '../../../lib/jyotish-runtime-contract';
+import {resolveVerifiedReportChart} from '../../../lib/natal-report-binding';
 import {reportGrowthEvent,reportPublicToolEvent} from '../../../lib/growth-metrics';
 import type {ReadingReport} from '../../components/DetailedReport';
 // A large report editor/render tree is not needed until the user requests a full reading.
@@ -242,13 +243,22 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   try{
    const response=await fetch(api+'/api/v1/reports',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...freshChart.input,lang,preferred:mode,minutesUncertain,asOf:new Date().toISOString().slice(0,10)})
+    body:JSON.stringify({...freshChart.input,lang,preferred:mode,minutesUncertain,asOf:new Date().toISOString().slice(0,10),expectedChartDigest:freshChart.verification?.digest})
    });
-   const data=await readApiJson<ReadingReport>(response);
+   const data=await readApiJson<ReadingReport & {verifiedChart?:Chart}>(response);
    if(requestId!==readingRequestId.current)return;
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
    if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n48-poetic-evidence-1.0.0'||data.readerV8.integrated?.version!=='n49-unified-evidence-v1'||data.readerV8.compactCards?.length!==15||data.readerV8.meaningful?.version!=='n492-evidence-prioritized-16-varga-v1'||data.readerV8.meaningful?.cards?.length!==16||data.readerV8.meaningful?.discoveries?.version!=='n493-ranked-patterns-1.0.0'||(data.readerV8.d60Preview?.status==='conditional_signs'&&data.readerV8.d60Preview?.allPlanets?.length!==9))throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
-   if(!data.verification||data.verification?.status!=='verified_internal'||data.verification.digest!==freshChart.verification?.digest)throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою.':'Report facts differ from the verified natal chart.');
+   let authoritative:{chart:Chart;rebound:boolean};
+   try{authoritative=resolveVerifiedReportChart(freshChart,data,verified);}
+   catch{throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою. Повторіть розрахунок.':'Report facts differ from the verified natal chart. Recalculate the chart.');}
+   if(authoritative.rebound){
+    // Old saved chart or pre-release chart was legitimately superseded by
+    // this exact server-verified calculation. Update BOTH chart and report.
+    assertN4RcView(authoritative.chart);
+    setChart(authoritative.chart);
+    setStatus(lang==='uk'?'Карту оновлено за перевіреним розрахунком API.':'Chart refreshed from the verified API calculation.');
+   }
    if(!Array.isArray(data.sections)||!data.sections.length)throw Error('Report chapters missing');
    if(mode==='auto'&&['reader_only','local_only'].includes(data.ai?.fallbackReason||''))throw Error(lang==='uk'?
     'Сервер помилково повернув локальний Reader на запит AI. Перевірте налаштування API та повторіть запит.':
