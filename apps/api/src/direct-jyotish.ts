@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -255,7 +255,7 @@ export async function generateDirectJyotish(
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=n6?(provider==='groq'?5000:5200):provider==='groq'?(concise?2800:3600):
+    const maxCompletion=n6?(provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -278,9 +278,9 @@ export async function generateDirectJyotish(
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
       ...(n6&&provider==='groq'?{response_format:{type:'json_object'}}:{}),
-      messages:[{role:'system',content:n6?N6_PROMPT+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':''):instructions},
+      messages:[{role:'system',content:n6?N6_PROMPT+(provider==='groq'?'\n'+N6_COMPACT_PROMPT:'')+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':''):instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+(n6?JSON.stringify(n6):backup?backupFacts:facts)} ]})
+        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(n6,provider==='groq'):backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
      if(provider==='openrouter'&&response.status===429){
@@ -314,7 +314,7 @@ export async function generateDirectJyotish(
      const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit'}:inspectN6Response(rawContent,opts.reader10,n6);
      const reader10=checked.reader;
      if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code);
-      if(attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
+      if(provider!=='groq'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
       break;
      }
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');

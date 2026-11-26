@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildN6Brief,parseN6Response,inspectN6Response} from '../apps/api/src/reader-n6.ts';
+import {buildN6Brief,parseN6Response,inspectN6Response,n6ProviderPayload} from '../apps/api/src/reader-n6.ts';
 const reader={version:'reader10-plain-1',language:'en',chapters:['self','money','work','love','home','path','timing','summary'].map(id=>({id,title:id,lead:'Original lead for '+id+'.',paragraphs:['Original paragraph for '+id+'.'],details:{paragraphs:['First source fact.','Second source fact.'],basis:'Local basis.',links:[]}}))};
 const brief=buildN6Brief(reader);
 const output=()=>({chapters:brief.chapters.map(c=>({id:c.id,lead:'A thoughtful interpretation for '+c.id+'.',paragraphs:[{text:'First distinct interpretation for '+c.id+' explains the relevant strengths in ordinary language while keeping the reader’s choices open and acknowledging competing influences.',evidenceIds:[c.evidence[0].id]},{text:'Second distinct interpretation for '+c.id+' develops a separate tension in daily life without inventing events or promising a particular outcome.',evidenceIds:[c.evidence[1].id]}]}))});
@@ -45,4 +45,26 @@ test('N6.1 real timing contract requires three substantial paragraphs and both p
  const b=buildN6Brief(r),t=b.chapters.find(c=>c.id==='timing');
  assert.equal(t.minWords,85);assert.equal(t.minParagraphs,3);assert.equal(t.required.length,5);
  assert.equal(inspectN6Response(JSON.stringify(output()),r,b).reason,'chapter_shape');
+});
+
+test('N6.1 compact backup preserves every evidence and required ID while removing redundant prose',()=>{
+ const compact=JSON.parse(n6ProviderPayload(brief,true));
+ for(let i=0;i<brief.chapters.length;i++){
+  assert.deepEqual(compact.chapters[i].required,brief.chapters[i].required);
+  assert.deepEqual(compact.chapters[i].evidence,brief.chapters[i].evidence);
+  assert.equal(compact.chapters[i].paragraphs,undefined);
+ }
+ assert.ok(n6ProviderPayload(brief,true).length<n6ProviderPayload(brief,false).length);
+});
+test('N6.1 substantive timing output is accepted only with both period facts and their relationship',()=>{
+ const r={...reader,chapters:reader.chapters.map(c=>c.id==='timing'?{...c,details:{...c.details,paragraphs:['Major date.','Minor date.','Major placement.','Minor placement.','Their relationship.']}}:c)};
+ const b=buildN6Brief(r),x=output(),t=x.chapters.find(c=>c.id==='timing');
+ t.paragraphs=[
+  {text:'The longer stage is a chance to examine the responsibilities you have accepted over time and to distinguish sustainable commitments from those that repeatedly pull attention away from your priorities.',evidenceIds:['timing.0','timing.2']},
+  {text:'The shorter stage brings the immediate question of how you respond to changing needs, especially when your normal routine no longer offers enough room to think through your own choices.',evidenceIds:['timing.1','timing.3']},
+  {text:'Rather than treating either theme as a fixed outcome, consider the tension between the two and choose one concrete commitment that leaves sufficient time for reflection and careful communication.',evidenceIds:['timing.4']}
+ ];
+ assert.ok(parseN6Response(JSON.stringify(x),r,b));
+ t.paragraphs[2].evidenceIds=['timing.3'];
+ assert.equal(inspectN6Response(JSON.stringify(x),r,b).reason,'missing_required_evidence');
 });
