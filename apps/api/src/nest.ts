@@ -6,6 +6,7 @@ import {runCalculation,interpretChart} from './logic.ts';
 import {CHART_VERIFICATION_VERSION} from './jyotish-integrity.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
 import {buildDetailedReport} from './report.ts';
+import {buildN6Reader,N6_VERSION,N6_QUALITY_VERSION} from './reader-n6.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts';
 import {N4_VARGA_READER_VERSION} from './reader-varga-n4.ts';
 import {READER_V7_VERSION} from './reader-v7.ts';
@@ -125,7 +126,7 @@ export class JyotishController{
   let chart:CalculatedChart;
   let report:ReturnType<typeof buildDetailedReport>;
   try{
-   const prepared=await this.reports.prepare(birth,birth.lang);
+   const prepared=await this.reports.prepare(birth,birth.lang,birth.minutesUncertain!==false);
    chart=prepared.chart;report=prepared.report as ReturnType<typeof buildDetailedReport>;
   }catch(error){throw new BadRequestException(error instanceof Error?error.message:'Invalid birth input');}
   // User intent is explicit: local Reader always responds without contacting providers.
@@ -158,7 +159,7 @@ export class JyotishController{
    paragraphs:skyParagraphs,
    facts:['Swiss Ephemeris · Lahiri','Reference: Europe/Kyiv / Kyiv','Festival dates are candidates']
   }:null;
-  const omitD60=birth.minutesUncertain===true;
+  const omitD60=birth.minutesUncertain!==false;
   // Never include individual D60 sign notes or AI D60 facts when a user
   // explicitly says their birth minutes are unknown. D1/D9/D10 stay intact.
   const safeChart=omitD60?({...chart,n4D60:undefined} as CalculatedChart):chart;
@@ -169,7 +170,8 @@ export class JyotishController{
   // Legacy clients without expectedChartDigest retain their lean response.
   const needsVerifiedRebind=Boolean(birth.expectedChartDigest&&
    birth.expectedChartDigest!==verified.verification.digest);
-  const base={...report,readerV8:safeReaderV8,
+  const reader10=buildN6Reader(safeChart,birth.lang,report.asOf,!omitD60);
+  const base={...report,reader10,readerFormat:N6_VERSION,readerQuality:N6_QUALITY_VERSION,minutesUncertain:omitD60,readerV8:safeReaderV8,
    sections:skySection?[...report.sections,skySection]:report.sections,
    calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification,
    ...(needsVerifiedRebind?{verifiedChart:safeChart}: {})};
@@ -177,13 +179,16 @@ export class JyotishController{
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'reader_only'}};
   if((process.env.AI_MODE||'free')!=='free')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
-  const key=report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':'+N493_INSIGHTS_VERSION+':minutes-uncertain='+String(omitD60);
+  if(!reader10)return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'invalid_response'}};
+  const key=N6_VERSION+':'+N6_QUALITY_VERSION+':'+verified.verification.digest+':'+report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':'+N493_INSIGHTS_VERSION+':minutes-uncertain='+String(omitD60);
   const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(safeChart,birth.lang,report.asOf,{
-   qualityRetry:true,
+   reader10,qualityRetry:true,
    onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
   }));
-  if(outcome.result)
-   return {...base,ai:{...outcome.result,source:'llm' as const,cached:reused}};
+  if(outcome.result?.reader10){
+   const {reader10:aiReader,...metadata}=outcome.result;
+   return {...base,reader10:aiReader,ai:{...metadata,readerFormat:N6_VERSION,source:'llm' as const,cached:reused}};
+  }
   return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:outcome.reason||'no_provider'}};
 
  }

@@ -16,7 +16,7 @@ import {ASPECT_ON_LAGNA,ASPECT_ON_MOON,IN_LAGNA,LAGNA_LORD_HOUSE,MOON_NAKSHATRA,
 export const READER10_VERSION='reader10-plain-1';
 export type Reader10Link={label:string;path:string};
 export type Reader10Details={paragraphs:string[];basis:string;links:Reader10Link[]};
-export type Reader10Chapter={id:'self'|AreaId|'summary';title:string;lead:string;paragraphs:string[];details:Reader10Details|null};
+export type Reader10Chapter={id:'self'|AreaId|'summary'|'timing';title:string;lead:string;paragraphs:string[];details:Reader10Details|null;evidenceIds?:string[][]};
 export type Reader10Report={version:typeof READER10_VERSION;language:R10Locale;chapters:Reader10Chapter[]};
 
 const HOUSE_IN_UK=['у першому домі','у другому домі','у третьому домі','у четвертому домі','у п’ятому домі','у шостому домі',
@@ -147,17 +147,12 @@ function d60Line(f:Reader10Facts,chart:CalculatedChart,l:R10Locale):Layered|null
  const lord=f.lagnaLord.name,row=preview.allPlanets.find(p=>p.planet===lord);
  if(!row)return null;
  if(row.nearBoundary)return {plain:'',astro:VARGA_NAME[60][l]+(uk
-   ?': управитель лагни стоїть надто близько до межі частки. Ця карта змінюється кожні дві хвилини, тому без часу народження, точного до хвилини, ми її не трактуємо.'
-   :': the lagna lord stands too close to a division boundary. This chart changes every two minutes, so without a birth time exact to the minute we do not read it.'),
+   ?': управитель лагни стоїть надто близько до межі частки. Висновок за цією планетою не формуємо через чутливість до межі частки.'
+   :': the lagna lord stands too close to a division boundary. No interpretation for this planet because of its proximity to a division boundary.'),
   basis:'D60: '+PLANET_NAME[lord][l]+(uk?' біля межі частки':' near a division boundary')};
- const d=dignityOf(lord,row.d60Sign),name=PLANET_NAME[lord][l];
- const plain=d==='exalted'||d==='own'
-  ?(uk?'Якщо час вашого народження точний до хвилини, глибинна основа вашої долі міцна.':'If your birth time is exact to the minute, the deep foundation of your destiny is firm.')
-  :d==='debilitated'
-  ?(uk?'Якщо час вашого народження точний до хвилини, частину давніх боргів ви сплачуєте терпінням і роботою над собою.':'If your birth time is exact to the minute, you repay some old debts with patience and work on yourself.')
-  :'';
- return {plain,astro:VARGA_NAME[60][l]+': '+name+' '+SIGN_IN[row.d60Sign-1][l]+signDignity(lord,row.d60Sign,l)+
-   (uk?'. Найтонша з карт; висновок чинний лише за точного до хвилини часу народження.':'. The finest of the charts; this holds only for a birth time exact to the minute.'),
+ const name=PLANET_NAME[lord][l];
+ return {plain:'',astro:VARGA_NAME[60][l]+': '+name+' '+SIGN_IN[row.d60Sign-1][l]+signDignity(lord,row.d60Sign,l)+
+  (uk?'. Умовне зіставлення знаків із D1; точність часу не підтверджена, доми й асцендент D60 не трактуємо.':'. Conditional sign comparison with D1; birth-time precision is not established, and D60 houses and ascendant are not interpreted.'),
   basis:'D60: '+name+', '+SIGN_NAME[row.d60Sign-1][l]};
 }
 

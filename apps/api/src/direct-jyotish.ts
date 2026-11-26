@@ -1,3 +1,5 @@
+import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload} from './reader-n6.ts';
+import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
 import {planConsultationQuality,compactQualityBrief,CONSULTATION_QUALITY_VERSION} from './consultation-quality-v2.ts';
@@ -15,6 +17,7 @@ import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
  * The user message is only a compact, verified chart summary, never free-form user text.
  * No chapter delimiters, multi-step editor, JSON schema or all-or-nothing 8 chapter gate.
  */
+// Legacy Markdown contract version. The unified Reader is independently keyed by N6_VERSION.
 export const DIRECT_JYOTISH_VERSION='direct-v3';
 export const DIRECT_JYOTISH_INSTRUCTION=`You are an expert practitioner of traditional Parashari Jyotish and a gifted writer of substantial PERSONAL consultations.
 You will receive verified sidereal D1/D9/D10 placements, whole-sign house lords, sign dignity, and Vimshottari periods, followed by a VERIFIED N4 VARGA FACT LIST for 12 additional thematic divisions and a machine-derived PRIORITY BRIEF with evidence IDs. The available 15 source-bound charts are D1, D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30, D40 and D45. D60 is method-only and not a certified individual reading.
@@ -104,10 +107,11 @@ export type DirectOptions={
  timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>void|Promise<void>;
  /** Opt-in bounded improvement; full API route enables it for Groq only. */
  qualityRetry?:boolean;
+ reader10?:Reader10Report;
  /** Optional safe, machine-readable diagnostics for local troubleshooting. */
  onDiagnostic?:(diagnostic:DirectDiagnostic)=>void;
 };
-type Result={provider:FreeProvider;model:string;text:string};
+type Result={provider:FreeProvider;model:string;text:string;reader10?:Reader10Report};
 const PROVIDERS=new Set<FreeProvider>(['gemini','groq','openrouter']);
 /** Production order is intentionally Gemini-first. A stale FREE_AI_ORDER must
  * never accidentally omit another already-configured free fallback; credential
@@ -185,16 +189,18 @@ export async function generateDirectJyotish(
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??productionDirectAiOrder().filter(provider=>
   provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
- const priority=planConsultationQuality(chart,asOf);
+ const n6=opts.reader10?buildN6Brief(opts.reader10,chart):null;
+ const priority=n6?null:planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
- const facts=compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority);
+ const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority!);
  // The short free backup needs exact D1/D9/D10 and N4 evidence, not the 6.5 KB
  // Reader-8 literary exemplars already included in the deterministic report.
- const backupFacts=compactJyotishFacts(chart,asOf,false)+'\n\n'+compactQualityBrief(priority,3600);
+ const backupFacts=n6?'':compactJyotishFacts(chart,asOf,false)+'\n\n'+compactQualityBrief(priority!,3600);
  const permit=opts.limit||consumeFreeAiRequest;
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
   try{opts.onDiagnostic?.({provider,stage,reason:detail,...(httpStatus===undefined?{}:{httpStatus})});}catch{}
+  if(n6&&!opts.fetcher)console.info('N6_AI '+provider+' '+stage+' '+detail+(httpStatus===undefined?'':' status='+httpStatus));
  };
  // One bounded public request: preserve time for Gemini then the two backups.
  // Each corrective retry has its OWN timeout; do not reuse a stale AbortSignal.
@@ -249,7 +255,7 @@ export async function generateDirectJyotish(
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=provider==='groq'?(concise?2800:3600):
+    const maxCompletion=n6?(provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -270,10 +276,11 @@ export async function generateDirectJyotish(
       ...(provider==='groq'?{max_completion_tokens:maxCompletion,reasoning_effort:'low',include_reasoning:false}:{max_tokens:maxCompletion}),
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
-      temperature:concise?0.45:0.6,
-      messages:[{role:'system',content:instructions},
+      temperature:n6?0.35:concise?0.45:0.6,
+      ...(n6&&provider==='groq'?{response_format:{type:'json_object'}}:{}),
+      messages:[{role:'system',content:n6?N6_PROMPT+(provider==='groq'?'\n'+N6_COMPACT_PROMPT:'')+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':''):instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+(backup?backupFacts:facts)} ]})
+        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(n6,provider==='groq'):backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
      if(provider==='openrouter'&&response.status===429){
@@ -303,6 +310,18 @@ export async function generateDirectJyotish(
     const choice=parsed?.choices?.[0];
     const value=choice?.message?.content;
     const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+    if(n6&&opts.reader10){
+     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit'}:inspectN6Response(rawContent,opts.reader10,n6);
+     const reader10=checked.reader;
+     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code);
+      if(provider!=='groq'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
+      break;
+     }
+     const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');
+     try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
+     diagnostic(provider,'success','n6_complete');
+     return {result:{provider,model:parsed?.model||model,text,reader10}};
+    }
     const content=polishConsultationText(rawContent,lang);
     const basic=acceptDirectJyotishText(content);
     const check=basic.ok?validateN4ConsultationReferences(content,chart):basic;

@@ -152,3 +152,42 @@ test('Ukrainian sign names follow the site convention (Близнюки, Коз�
  assert.equal(SIGN_NAME[2].uk,'Близнюки');assert.equal(SIGN_IN[2].uk,'у Близнюках');
  assert.equal(SIGN_NAME[9].uk,'Козоріг');assert.equal(SIGN_IN[9].uk,'у Козорозі');
 });
+
+// N6 exercises the same Reader 10 fixtures without altering its existing chapters.
+test('N6 retains the original six life chapters and summary, adds current dasha and respects D60 precision',async()=>{
+ const {buildN6Reader,buildN6Brief,timingChapter}=await import('../apps/api/src/reader-n6.ts');
+ let count=0;
+ for(let seed=1;seed<=30;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  count++;
+  for(const lang of ['en','uk']){
+   const original=buildReader10(chart,lang), exact=buildN6Reader(chart,lang,'2026-11-26',true),approx=buildN6Reader(chart,lang,'2026-11-26',false);
+   assert.deepEqual(exact.chapters.filter(c=>c.id!=='timing'),original.chapters);
+   assert.deepEqual(approx.chapters.filter(c=>!['timing','path'].includes(c.id)),original.chapters.filter(c=>c.id!=='path'));
+   assert.equal(approx.chapters.length,8);assert.doesNotMatch(approx.chapters.flatMap(c=>[c.lead,...c.paragraphs,...(c.details?.paragraphs||[]),c.details?.basis||'']).join(' '),/D60(?=[: ])|Шаштіамша|Shashtiamsha/i);
+   assert.equal(exact.chapters.find(c=>c.id==='timing').title,lang==='uk'?'Поточний період життя':'Current life period');
+   assert.ok(buildN6Brief(exact).chapters.every(c=>c.evidence.length));
+  }
+ }
+ assert.ok(count>=20);
+ const c=chartOf(7),boundary={...c,dasha:[{lord:'Mars',start:'2020-01-01T00:00:00Z',end:'2030-01-01T00:00:00Z',antardashas:[{lord:'Moon',start:'2020-01-01T00:00:00Z',end:'2026-11-26T12:00:00Z'},{lord:'Rahu',start:'2026-11-26T12:00:00Z',end:'2030-01-01T00:00:00Z'}]}]};
+ const timing=timingChapter(boundary,'en','2026-11-26');
+ assert.match(timing.details.paragraphs[0],/Mars/);assert.match(timing.details.paragraphs[1],/Rahu/);
+ assert.equal(timingChapter(boundary,'en','2031-01-01').details,null);
+});
+
+test('N6.1 timing uses both rulers, their lordships and current chart context without changing baseline chapters',async()=>{
+ const {buildN6Reader,buildN6Brief}=await import('../apps/api/src/reader-n6.ts');
+ const chart=chartOf(7);
+ const c={...chart,dasha:[{lord:'Saturn',start:'2015-07-20T00:00:00Z',end:'2034-07-20T00:00:00Z',antardashas:[{lord:'Moon',start:'2026-06-22T00:00:00Z',end:'2028-01-21T00:00:00Z'}]}]};
+ for(const lang of ['en','uk']){
+  const r=buildN6Reader(c,lang,'2026-11-26',true),t=r.chapters.find(x=>x.id==='timing');
+  assert.equal(t.paragraphs.length,4);assert.ok(t.paragraphs.join(' ').split(/\s+/).length>=85);
+  assert.match(t.details.paragraphs[0],/Saturn|Сатурн/);assert.match(t.details.paragraphs[1],/Moon|Місяць/);
+  assert.equal(r.chapters.filter(x=>x.id!=='timing').length,7);
+  assert.deepEqual(r.chapters.filter(x=>x.id!=='timing'),buildReader10(c,lang).chapters);
+  const b=buildN6Brief(r,c);assert.ok(b.context.some(x=>x.id==='shared.lordships'));
+  assert.ok(b.context.some(x=>x.id==='shared.lagnaChain'));
+  assert.doesNotMatch(JSON.stringify(b),/2000-01-01|latitude|longitude|2026-06-22|2028-01-21/);
+ }
+});

@@ -9,6 +9,7 @@ import {resolve} from 'node:path';
 import {existsSync} from 'node:fs';
 import {runCalculation} from '../apps/api/src/logic.ts';
 import {buildDetailedReport} from '../apps/api/src/report.ts';
+import {buildN6Reader,N6_VERSION,N6_QUALITY_VERSION} from '../apps/api/src/reader-n6.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from '../apps/api/src/direct-jyotish.ts';
 import {CHART_VERIFICATION_VERSION} from '../apps/api/src/jyotish-integrity.ts';
 import {READER_V7_VERSION} from '../apps/api/src/reader-v7.ts';
@@ -99,21 +100,22 @@ export function createN43PreviewServer({calculator=runCalculation,reporter=build
      throw bad(503,'Chart verification failed; no reading generated.');
     if(kind==='chart')return json(res,200,chart);
     const lang=request.lang||'uk',asOf=request.asOf||new Date().toISOString().slice(0,10);
-    const omitD60=request.minutesUncertain===true;
+    const omitD60=request.minutesUncertain!==false;
     const safeChart=omitD60?{...chart,n4D60:undefined}:chart;
-    const report=reporter(chart,lang,asOf);
+    const report=reporter(safeChart,lang,asOf);
     if(report.readerV8?.version!==READER_V8_VERSION||report.readerV8.status!=='available'||report.readerV8.editorialVersion!==N45_EDITORIAL_VERSION||
        report.readerV8.integrated?.version!==N49_UNIFIED_VERSION)
      throw bad(503,'Reader 8 verified data unavailable.');
-    const base={...report,readerVersion:'6.0.0',verification:chart.verification,
+    const reader10=buildN6Reader(safeChart,lang,asOf,!omitD60);
+    const base={...report,reader10,readerFormat:N6_VERSION,readerQuality:N6_QUALITY_VERSION,minutesUncertain:omitD60,readerVersion:'6.0.0',verification:chart.verification,
      readerV8:omitD60?{...report.readerV8,d60Preview:buildD60Preview(safeChart,lang)}:report.readerV8,
      previewOnly:true};
     if(request.preferred==='local'||process.env.AI_MODE==='off')
      return json(res,200,{...base,ai:{provider:'local',source:'deterministic',
       fallbackReason:'reader_only',text:'',cached:false}});
     if(throttled('ai'))throw bad(429,'Local preview AI request limit reached for this hour.');
-    const result=await ai(safeChart,lang,asOf);
-    if(result.result)return json(res,200,{...base,ai:{...result.result,source:'llm',cached:false}});
+    const result=reader10?await ai(safeChart,lang,asOf,{reader10}):{result:null,reason:'invalid_response'};
+    if(result.result?.reader10){const {reader10:aiReader,...metadata}=result.result;return json(res,200,{...base,reader10:aiReader,ai:{...metadata,readerFormat:N6_VERSION,source:'llm',cached:false}});}
     return json(res,200,{...base,ai:{provider:'local',source:'deterministic',
      fallbackReason:result.reason||'no_provider',text:'',cached:false}});
    }

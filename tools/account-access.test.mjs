@@ -45,7 +45,7 @@ test('guest calculation and reports have no Prisma writes; old saved chart reads
  assert.ok(code.includes('return await runCalculation(birth)'));
  assert.ok(!code.includes('prisma.chart.create'));
  assert.ok(code.includes('this.savedCharts.legacy(owner(req),id)'));
- assert.ok(code.includes('this.reports.prepare(birth,birth.lang)'));
+ assert.ok(code.includes('this.reports.prepare(birth,birth.lang,birth.minutesUncertain!==false)'));
  const adapter=source('apps/api/src/chart-prisma.ts');
  assert.ok(adapter.includes('where:{id:chartId,ownerId}'));
  assert.ok(adapter.includes('deleteMany({where:{id:chartId,ownerId}})'));
