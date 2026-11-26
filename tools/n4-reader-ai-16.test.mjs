@@ -276,7 +276,7 @@ test('Groq improves missing D9/D10 interpretation once without losing verified c
   'This evidence-based reading of personal choices and circumstances respects uncertainty and never asserts an observed life event '+(i+1)+'. ').join('');
  const calls=[],diagnostics=[];
  const result=await generateDirectJyotish(chart,'en','2026-11-26',{
-  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,qualityRetry:true,
   onDiagnostic:e=>diagnostics.push(e),
   fetcher:async(_url,request)=>{
    const body=JSON.parse(request.body);calls.push(body);
@@ -300,7 +300,7 @@ test('Groq preserves source-verified original when quality retry returns fabrica
   'A grounded chart describes a practical symbolic possibility, not a guaranteed personal event number '+(i+1)+'. ').join('');
  let calls=0;
  const result=await generateDirectJyotish(chart,'en','2026-11-26',{
-  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,
+  order:['groq'],keys:{groq:'test'},freeConfirmed:{groq:true},limit:()=>true,qualityRetry:true,
   fetcher:async()=>{
    calls++;
    const prefix=calls===1?'D24 and D27 support D1 analysis. ':
