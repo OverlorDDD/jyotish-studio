@@ -249,7 +249,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
    if(requestId!==readingRequestId.current)return;
    if(data.readerVersion!=='6.0.0')throw Error(lang==='uk'?'API повернуло застарілий Reader. Перезапустіть сервер.':'The API returned an outdated Reader. Restart the server.');
    if(data.readerV8?.version!=='reader-v8.0.0-n44'||data.readerV8.status!=='available'||data.readerV8.editorialVersion!=='n48-poetic-evidence-1.0.0'||data.readerV8.integrated?.version!=='n49-unified-evidence-v1'||data.readerV8.compactCards?.length!==15||data.readerV8.meaningful?.version!=='n492-evidence-prioritized-16-varga-v1'||data.readerV8.meaningful?.cards?.length!==16||data.readerV8.meaningful?.discoveries?.version!=='n493-ranked-patterns-1.0.0'||(data.readerV8.d60Preview?.status==='conditional_signs'&&data.readerV8.d60Preview?.allPlanets?.length!==9))throw Error(lang==='uk'?'API ще не підтримує Classical Reader 8. Оновіть локальний сервер API з цієї гілки.':'The API does not support Classical Reader 8 yet. Update the local API to this branch.');
-   let authoritative:ReturnType<typeof resolveVerifiedReportChart<Chart>>;
+   let authoritative:{chart:Chart;rebound:boolean};
    try{authoritative=resolveVerifiedReportChart(freshChart,data,verified);}
    catch{throw Error(lang==='uk'?'Дані звіту не збігаються з перевіреною картою. Повторіть розрахунок.':'Report facts differ from the verified natal chart. Recalculate the chart.');}
    if(authoritative.rebound){
