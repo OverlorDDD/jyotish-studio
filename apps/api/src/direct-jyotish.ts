@@ -5,6 +5,7 @@ import {dignityFor,ruleFindings} from '../../../packages/jyotish-core/src/rules.
 import {consumeFreeAiRequest,type FreeFallbackReason,type FreeProvider} from './free-ai.ts';
 import type {AiUsageEvent} from './ai.ts';
 import {polishConsultationText,reviewGeneratedConsultation} from './consultation-prose-review.ts';
+import {openRouterLimitSource,openRouterLimitClass} from './openrouter-rate-limit.ts';
 import {compactN4VargaFacts,verifiedVargaSource} from './reader-varga-n4.ts';
 import {compactReaderV7ForAi} from './reader-v7.ts';
 import {compactClassicalReaderV8ForAi} from './reader-v8.ts';
@@ -272,8 +273,20 @@ export async function generateDirectJyotish(
         '. Here are ONLY verified calculation facts:\n'+(backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
-     if(provider==='openrouter'&&response.status===429&&!opts.fetcher){
-      openRouterCooldownUntil=Date.now()+openRouterRetryAfterMs(response.headers);
+     if(provider==='openrouter'&&response.status===429){
+      // Only the provider's documented enum is read. Never log body, hints,
+      // account details, actual prompts or keys.
+      let source:ReturnType<typeof openRouterLimitSource>='unknown';
+      try{
+       const data=await response.json();
+       source=openRouterLimitSource(data);
+      }catch{/* Missing/malformed upstream envelope stays unknown. */}
+      diagnostic(provider,'limit',openRouterLimitClass(source));
+      if(!opts.fetcher){
+       // Shared free-tier limits affect every model; upstream pool exhaustion
+       // is specific to the selected model and should not claim an account cap.
+       openRouterCooldownUntil=Date.now()+openRouterRetryAfterMs(response.headers);
+      }
      }
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
       response.status>=500?'provider_unavailable':'invalid_response';
