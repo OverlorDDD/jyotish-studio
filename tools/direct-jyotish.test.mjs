@@ -302,3 +302,36 @@ test('OpenRouter free 429 cooldown honors Retry-After without exposing headers o
  assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'nonsense'}),now),60000);
  assert.equal(openRouterRetryAfterMs(new Headers({'Retry-After':'-12'}),now),60000);
 });
+
+test('real fallback order is Gemini 503 then Groq 429 then verified free OpenRouter',async()=>{
+ const urls=[],stages=[];
+ const out=await generateDirectJyotish(chart,'en','2026-11-26',{
+  order:['gemini','groq','openrouter'],
+  keys:{gemini:'test',groq:'test',openrouter:'test'},
+  freeConfirmed:{gemini:true,groq:true},limit:()=>true,
+  onDiagnostic:d=>stages.push(d),
+  fetcher:async url=>{
+   urls.push(url);
+   if(url.includes('googleapis'))return new Response('{}',{status:503});
+   if(url.includes('groq.com'))return new Response('{}',{status:429});
+   return success();
+  }
+ });
+ assert.equal(urls.length,3);
+ assert.deepEqual(stages.filter(x=>x.stage==='http').map(x=>[x.provider,x.httpStatus]),[['gemini',503],['groq',429]]);
+ assert.equal(out.result?.provider,'openrouter');
+ assert.equal(out.result?.text,prose);
+});
+
+test('all three remote providers exhausted returns null with true 429 reason, never fake AI',async()=>{
+ const calls=[];
+ const out=await generateDirectJyotish(chart,'uk','2026-11-26',{
+  order:['gemini','groq','openrouter'],
+  keys:{gemini:'test',groq:'test',openrouter:'test'},
+  freeConfirmed:{gemini:true,groq:true},limit:()=>true,
+  fetcher:async url=>{calls.push(url);return new Response('{}',{status:429});}
+ });
+ assert.equal(calls.length,3);
+ assert.equal(out.result,null);
+ assert.equal(out.reason,'rate_limited');
+});
