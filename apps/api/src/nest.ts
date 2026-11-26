@@ -6,7 +6,7 @@ import {runCalculation,interpretChart} from './logic.ts';
 import {CHART_VERIFICATION_VERSION} from './jyotish-integrity.ts';
 import {AiProviderError,createHourlyLimiter,explainAiFailure,type AiUsageEvent} from './ai.ts';
 import {buildDetailedReport} from './report.ts';
-import {buildN6Reader,N6_VERSION} from './reader-n6.ts';
+import {buildN6Reader,N6_VERSION,N6_QUALITY_VERSION} from './reader-n6.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from './direct-jyotish.ts';
 import {N4_VARGA_READER_VERSION} from './reader-varga-n4.ts';
 import {READER_V7_VERSION} from './reader-v7.ts';
@@ -171,7 +171,7 @@ export class JyotishController{
   const needsVerifiedRebind=Boolean(birth.expectedChartDigest&&
    birth.expectedChartDigest!==verified.verification.digest);
   const reader10=buildN6Reader(safeChart,birth.lang,report.asOf,!omitD60);
-  const base={...report,reader10,readerFormat:N6_VERSION,minutesUncertain:omitD60,readerV8:safeReaderV8,
+  const base={...report,reader10,readerFormat:N6_VERSION,readerQuality:N6_QUALITY_VERSION,minutesUncertain:omitD60,readerV8:safeReaderV8,
    sections:skySection?[...report.sections,skySection]:report.sections,
    calendarContext:sky,readerVersion:'6.0.0',verification:verified.verification,
    ...(needsVerifiedRebind?{verifiedChart:safeChart}: {})};
@@ -180,7 +180,7 @@ export class JyotishController{
   if((process.env.AI_MODE||'free')!=='free')
    return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'no_provider'}};
   if(!reader10)return {...base,ai:{provider:'local' as const,text:'',source:'deterministic' as const,cached:false,fallbackReason:'invalid_response'}};
-  const key=N6_VERSION+':'+verified.verification.digest+':'+report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':'+N493_INSIGHTS_VERSION+':minutes-uncertain='+String(omitD60);
+  const key=N6_VERSION+':'+N6_QUALITY_VERSION+':'+verified.verification.digest+':'+report.rulesDigest+':'+birth.lang+':'+report.asOf+':'+DIRECT_JYOTISH_VERSION+':'+N4_VARGA_READER_VERSION+':'+READER_V7_VERSION+':'+READER_V8_VERSION+':'+N45_EDITORIAL_VERSION+':'+N49_UNIFIED_VERSION+':'+N493_INSIGHTS_VERSION+':minutes-uncertain='+String(omitD60);
   const {outcome,reused}=await directCache.obtain(key,()=>generateDirectJyotish(safeChart,birth.lang,report.asOf,{
    reader10,qualityRetry:true,
    onUsage:event=>this.recordAiUsage(event,'direct_jyotish')
