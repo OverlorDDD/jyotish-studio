@@ -195,7 +195,9 @@ export default function DetailedReport({report,lang,minutesUncertain=false}:{rep
   {!readerOnly?<p className="reading-provider" role="status" data-testid="reading-ai-provenance">{readerOnly?
    (uk?(hasV8?'Jyotish Reader 9 · цілісне традиційне прочитання на основі обчисленої карти.':'Jyotish Reader · цілісне традиційне прочитання на основі обчисленої карти.'):(hasV8?'Jyotish Reader 9 · complete chart-grounded traditional reading.':'Jyotish Reader · complete chart-grounded traditional reading.')):
    hasLlm?
-   (unified?(uk?'Єдина AI-консультація · ':'Unified AI consultation · '):(uk?'Основне трактування: Reader 9. Додаткова LLM-інтерпретація: ':'Primary reading: Reader 9. Additional LLM interpretation: '))+
+   (unified||(ai.text&&(!ai.chapters||ai.chapters.length===0))?
+    (uk?'Повна AI-консультація · ':'Full AI consultation · '):
+    (uk?'Класичний Reader із додатковими AI-розділами · ':'Classic Reader with additional AI chapters · '))+
    (ai.provider==='openrouter'?'OpenRouter':ai.provider==='gemini'?'Google Gemini':ai.provider==='groq'?'GroqCloud':'Ollama')+' · '+(ai.model||'—')+
    (ai.cached?(uk?' · повторне використання перевіреної відповіді':' · cached verified response'):'')+
    (!unified&&fullConsultation?(uk?' · розділів AI: ':' · AI chapters: ')+aiChapters.size+'/8':''):
