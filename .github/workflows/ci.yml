@@ -225,6 +225,7 @@ jobs:
             e2e/horoscope-synthesis.spec.mjs \
             e2e/jyotish-layout.spec.mjs \
             e2e/jyotish-real-pipeline.spec.mjs \
+            e2e/natal-ai-click-fallback.spec.mjs \
             e2e/natal-ux-pilot.spec.mjs \
             e2e/mobile-header-account.spec.mjs \
             e2e/news-world.spec.mjs \
