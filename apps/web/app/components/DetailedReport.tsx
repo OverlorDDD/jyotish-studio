@@ -17,7 +17,7 @@ export type ReadingReport={
  readerV7?:ReaderV7UI;
  readerV8?:ReaderV8UI;
  reader10?:Reader10UI|null;
- readerFormat?:string;minutesUncertain?:boolean;
+ readerFormat?:string;readerQuality?:string;minutesUncertain?:boolean;
  vargaReadings?:{
   version:string;status:'available'|'unavailable';methodology:string;
   readings:readonly {division:number;title:string;topic:string;summary:string;practice:string;scope:string;evidence:readonly string[]}[];

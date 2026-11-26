@@ -1,4 +1,4 @@
-import {buildN6Brief,parseN6Response,N6_PROMPT} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -189,7 +189,7 @@ export async function generateDirectJyotish(
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??productionDirectAiOrder().filter(provider=>
   provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
- const n6=opts.reader10?buildN6Brief(opts.reader10):null;
+ const n6=opts.reader10?buildN6Brief(opts.reader10,chart):null;
  const priority=n6?null:planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
  const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority!);
@@ -200,6 +200,7 @@ export async function generateDirectJyotish(
  // Diagnostics are opt-in, bounded and never receive credentials or response text.
  const diagnostic=(provider:FreeProvider,stage:DirectDiagnostic['stage'],detail:string,httpStatus?:number)=>{
   try{opts.onDiagnostic?.({provider,stage,reason:detail,...(httpStatus===undefined?{}:{httpStatus})});}catch{}
+  if(n6&&!opts.fetcher)console.info('N6_AI '+provider+' '+stage+' '+detail+(httpStatus===undefined?'':' status='+httpStatus));
  };
  // One bounded public request: preserve time for Gemini then the two backups.
  // Each corrective retry has its OWN timeout; do not reuse a stale AbortSignal.
@@ -254,7 +255,7 @@ export async function generateDirectJyotish(
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=provider==='groq'?(concise?2800:3600):
+    const maxCompletion=n6?(provider==='groq'?5000:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -275,8 +276,9 @@ export async function generateDirectJyotish(
       ...(provider==='groq'?{max_completion_tokens:maxCompletion,reasoning_effort:'low',include_reasoning:false}:{max_tokens:maxCompletion}),
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
-      temperature:concise?0.45:0.6,
-      messages:[{role:'system',content:n6?N6_PROMPT:instructions},
+      temperature:n6?0.35:concise?0.45:0.6,
+      ...(n6&&provider==='groq'?{response_format:{type:'json_object'}}:{}),
+      messages:[{role:'system',content:n6?N6_PROMPT+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':''):instructions},
        {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+(n6?JSON.stringify(n6):backup?backupFacts:facts)} ]})
     });
@@ -309,8 +311,12 @@ export async function generateDirectJyotish(
     const value=choice?.message?.content;
     const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
     if(n6&&opts.reader10){
-     const reader10=choice?.finish_reason==='length'?null:parseN6Response(rawContent,opts.reader10,n6);
-     if(!reader10){reason='invalid_response';diagnostic(provider,'validation','n6_invalid_document');break;}
+     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit'}:inspectN6Response(rawContent,opts.reader10,n6);
+     const reader10=checked.reader;
+     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code);if(!opts.fetcher)console.warn('Direct Jyotish: '+provider+' rejected='+code);
+      if(attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
+      break;
+     }
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');
      try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
      diagnostic(provider,'success','n6_complete');

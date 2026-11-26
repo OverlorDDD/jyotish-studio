@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildN6Brief,parseN6Response} from '../apps/api/src/reader-n6.ts';
+import {buildN6Brief,parseN6Response,inspectN6Response} from '../apps/api/src/reader-n6.ts';
 const reader={version:'reader10-plain-1',language:'en',chapters:['self','money','work','love','home','path','timing','summary'].map(id=>({id,title:id,lead:'Original lead for '+id+'.',paragraphs:['Original paragraph for '+id+'.'],details:{paragraphs:['First source fact.','Second source fact.'],basis:'Local basis.',links:[]}}))};
 const brief=buildN6Brief(reader);
 const output=()=>({chapters:brief.chapters.map(c=>({id:c.id,lead:'A thoughtful interpretation for '+c.id+'.',paragraphs:[{text:'First distinct interpretation for '+c.id+' explains the relevant strengths in ordinary language while keeping the reader’s choices open and acknowledging competing influences.',evidenceIds:[c.evidence[0].id]},{text:'Second distinct interpretation for '+c.id+' develops a separate tension in daily life without inventing events or promising a particular outcome.',evidenceIds:[c.evidence[1].id]}]}))});
@@ -28,5 +28,21 @@ test('N6 provider path uses one structured request and falls back without accept
  const result=await generateDirectJyotish(chart,'en','2026-11-26',opts);
  assert.equal(calls,1);assert.equal(result.result.provider,'gemini');assert.equal(result.result.reader10.chapters.length,8);
  calls=0;const invalid=await generateDirectJyotish(chart,'en','2026-11-26',{...opts,fetcher:async()=>{calls++;return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:'not JSON'}}]}));}});
- assert.equal(calls,2);assert.equal(invalid.result,null);assert.equal(invalid.reason,'invalid_response');
+ assert.ok(calls>=2&&calls<=4);assert.equal(invalid.result,null);assert.equal(invalid.reason,'invalid_response');
+});
+
+test('N6.1 accepts a conventional JSON fence and optional context, but rejects missing required IDs and unchanged Reader prose',()=>{
+ const x=output();
+ assert.ok(parseN6Response('\x60\x60\x60json\n'+JSON.stringify(x)+'\n\x60\x60\x60',reader,brief));
+ x.chapters[0].paragraphs[0].evidenceIds=['unknown'];
+ assert.equal(inspectN6Response(JSON.stringify(x),reader,brief).reason,'unknown_evidence');
+ const b={...brief,context:[{id:'shared.pattern',text:'Verified shared factor.'}]};
+ const y=output();y.chapters[0].paragraphs[0].evidenceIds.push('shared.pattern');
+ assert.ok(parseN6Response(JSON.stringify(y),reader,b));
+});
+test('N6.1 real timing contract requires three substantial paragraphs and both period rulers',()=>{
+ const r={...reader,chapters:reader.chapters.map(c=>c.id==='timing'?{...c,details:{...c.details,paragraphs:['Major date.','Minor date.','Major placement.','Minor placement.','Their relationship.']}}:c)};
+ const b=buildN6Brief(r),t=b.chapters.find(c=>c.id==='timing');
+ assert.equal(t.minWords,85);assert.equal(t.minParagraphs,3);assert.equal(t.required.length,4);
+ assert.equal(inspectN6Response(JSON.stringify(output()),r,b).reason,'chapter_shape');
 });

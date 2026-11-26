@@ -9,7 +9,7 @@ import {resolve} from 'node:path';
 import {existsSync} from 'node:fs';
 import {runCalculation} from '../apps/api/src/logic.ts';
 import {buildDetailedReport} from '../apps/api/src/report.ts';
-import {buildN6Reader,N6_VERSION} from '../apps/api/src/reader-n6.ts';
+import {buildN6Reader,N6_VERSION,N6_QUALITY_VERSION} from '../apps/api/src/reader-n6.ts';
 import {generateDirectJyotish,DIRECT_JYOTISH_VERSION} from '../apps/api/src/direct-jyotish.ts';
 import {CHART_VERIFICATION_VERSION} from '../apps/api/src/jyotish-integrity.ts';
 import {READER_V7_VERSION} from '../apps/api/src/reader-v7.ts';
@@ -107,7 +107,7 @@ export function createN43PreviewServer({calculator=runCalculation,reporter=build
        report.readerV8.integrated?.version!==N49_UNIFIED_VERSION)
      throw bad(503,'Reader 8 verified data unavailable.');
     const reader10=buildN6Reader(safeChart,lang,asOf,!omitD60);
-    const base={...report,reader10,readerFormat:N6_VERSION,minutesUncertain:omitD60,readerVersion:'6.0.0',verification:chart.verification,
+    const base={...report,reader10,readerFormat:N6_VERSION,readerQuality:N6_QUALITY_VERSION,minutesUncertain:omitD60,readerVersion:'6.0.0',verification:chart.verification,
      readerV8:omitD60?{...report.readerV8,d60Preview:buildD60Preview(safeChart,lang)}:report.readerV8,
      previewOnly:true};
     if(request.preferred==='local'||process.env.AI_MODE==='off')

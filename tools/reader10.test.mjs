@@ -175,3 +175,19 @@ test('N6 retains the original six life chapters and summary, adds current dasha 
  assert.match(timing.details.paragraphs[0],/Mars/);assert.match(timing.details.paragraphs[1],/Rahu/);
  assert.equal(timingChapter(boundary,'en','2031-01-01').details,null);
 });
+
+test('N6.1 timing uses both rulers, their lordships and current chart context without changing baseline chapters',async()=>{
+ const {buildN6Reader,buildN6Brief}=await import('../apps/api/src/reader-n6.ts');
+ const chart=chartOf(7);
+ const c={...chart,dasha:[{lord:'Saturn',start:'2015-07-20T00:00:00Z',end:'2034-07-20T00:00:00Z',antardashas:[{lord:'Moon',start:'2026-06-22T00:00:00Z',end:'2028-01-21T00:00:00Z'}]}]};
+ for(const lang of ['en','uk']){
+  const r=buildN6Reader(c,lang,'2026-11-26',true),t=r.chapters.find(x=>x.id==='timing');
+  assert.equal(t.paragraphs.length,4);assert.ok(t.paragraphs.join(' ').split(/\s+/).length>=85);
+  assert.match(t.details.paragraphs[0],/Saturn|Сатурн/);assert.match(t.details.paragraphs[1],/Moon|Місяць/);
+  assert.equal(r.chapters.filter(x=>x.id!=='timing').length,7);
+  assert.deepEqual(r.chapters.filter(x=>x.id!=='timing'),buildReader10(c,lang).chapters);
+  const b=buildN6Brief(r,c);assert.ok(b.context.some(x=>x.id==='shared.lordships'));
+  assert.ok(b.context.some(x=>x.id==='shared.lagnaChain'));
+  assert.doesNotMatch(JSON.stringify(b),/2000-01-01|latitude|longitude|2026-06-22|2028-01-21/);
+ }
+});
