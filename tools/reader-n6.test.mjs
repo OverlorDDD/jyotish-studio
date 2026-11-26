@@ -68,3 +68,38 @@ test('N6.1 substantive timing output is accepted only with both period facts and
  t.paragraphs[2].evidenceIds=['timing.3'];
  assert.equal(inspectN6Response(JSON.stringify(x),r,b).reason,'missing_required_evidence');
 });
+
+test('N6.2 Gemini 503 falls back to Groq strict schema and preserves the full local validator',async()=>{
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const {calculateChart}=await import('../packages/jyotish-core/src/index.ts');
+ const chart=calculateChart({date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},{ayanamsa:23.8,ascendant:100,julianDay:2451545,backend:'synthetic',positions:['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'].map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}))});
+ const calls=[],events=[];
+ const response=(x=output())=>new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(x)}}]}));
+ const opts={reader10:reader,order:['gemini','groq'],keys:{gemini:'fake',groq:'fake'},freeConfirmed:{gemini:true,groq:true},limit:()=>true,onDiagnostic:x=>events.push(x),fetcher:async(url,req)=>{
+  const b=JSON.parse(req.body);calls.push(b);
+  if(String(url).includes('googleapis'))return new Response('{}',{status:503});
+  assert.equal(b.response_format.type,'json_schema');assert.equal(b.response_format.json_schema.strict,true);
+  const s=b.response_format.json_schema.schema;
+  assert.equal(s.additionalProperties,false);assert.deepEqual(s.required,['chapters']);
+  assert.deepEqual(s.properties.chapters.items.required,['id','lead','paragraphs']);
+  assert.doesNotMatch(JSON.stringify(b),/2000-01-01|latitude|longitude/);
+  return response();
+ }};
+ const ok=await generateDirectJyotish(chart,'en','2026-11-26',opts);
+ assert.equal(calls.length,2);assert.equal(ok.result?.provider,'groq');assert.equal(ok.result.reader10.chapters.length,8);
+ assert.ok(events.some(x=>x.provider==='gemini'&&x.httpStatus===503));
+ calls.length=0;events.length=0;
+ let n=0;const recovered=await generateDirectJyotish(chart,'en','2026-11-26',{...opts,order:['groq'],fetcher:async(_url,req)=>{
+  const b=JSON.parse(req.body);calls.push(b);n++;
+  if(n===1)return new Response(JSON.stringify({error:{code:'json_validate_failed',message:'Failed to generate JSON',failed_generation:'PRIVATE_DO_NOT_LOG'}}),{status:400});
+  assert.equal(b.response_format,undefined);assert.match(b.messages[0].content,/groq_json_generation_failed/);return response();
+ }});
+ assert.equal(calls.length,2);assert.equal(recovered.result?.provider,'groq');
+ assert.ok(events.some(x=>x.reason==='groq_json_generation_failed'));assert.doesNotMatch(JSON.stringify(events),/PRIVATE_DO_NOT_LOG|Failed to generate JSON/);
+ for(const status of [400,429,401,503]){
+  n=0;const rejected=await generateDirectJyotish(chart,'en','2026-11-26',{...opts,order:['groq'],fetcher:async()=>{n++;return new Response(JSON.stringify({error:{code:'arbitrary_secret',message:'PRIVATE_DO_NOT_LOG'}}),{status});}});
+  assert.equal(n,1);assert.equal(rejected.result,null);
+ }
+ n=0;const malformed=await generateDirectJyotish(chart,'en','2026-11-26',{...opts,order:['groq'],fetcher:async()=>{n++;const x=output();x.chapters[0].paragraphs[0].evidenceIds=['invented'];return response(x);}});
+ assert.equal(n,1);assert.equal(malformed.result,null);
+});
