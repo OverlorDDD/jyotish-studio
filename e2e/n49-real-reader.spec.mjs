@@ -87,8 +87,9 @@ test('Reader 10 approximate birth time shows one note and keeps the full reading
  await createInventedBirth(page,'en');
  const reader=page.getByTestId('reader10');
  const details=page.locator('#birth-details');
- if(!(await details.evaluate(el=>el.open)))await details.locator(':scope > summary').click();
+ await page.getByRole('link',{name:'Edit birth details'}).click();
  await details.locator('input[type="checkbox"]').check();
+ await details.locator('.jy-calc-btn').click();
  await expect(reader.getByRole('note')).toContainText('Your birth time is marked approximate');
  await expect(reader.getByRole('note')).toHaveCount(1);
  await expect(reader.locator(':scope > article')).toHaveCount(7);

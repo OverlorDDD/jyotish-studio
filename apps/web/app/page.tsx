@@ -20,9 +20,9 @@ export const metadata:Metadata={
 export default function Home(){
  return <PortalShell locale="en" active="astrology" languagePath="astrology/jyotish">
   <JyotishCalculator initialLang="en"/>
-  <SiteSectionsHub locale="en"/>
+  <div data-natal-related><SiteSectionsHub locale="en"/>
   <JyotishSearchGuide locale="en"/>
   <OrganicIntentBridge kind="jyotish" locale="en"/>
-  <GalaxiComModuleLink locale="en" kind="jyotish"/>
+  <GalaxiComModuleLink locale="en" kind="jyotish"/></div>
  </PortalShell>;
 }

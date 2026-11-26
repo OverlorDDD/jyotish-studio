@@ -1,22 +1,41 @@
-.intro,.result{margin:0 0 20px;padding:clamp(18px,3.4vw,44px);border:1px solid #52617c;border-radius:22px;background:radial-gradient(ellipse at 92% 16%,#243958,transparent 62%),#111c2f;color:#f4f1eb}
-.intro,.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(16px,3vw,40px);align-items:center}
-.copy h1,.top h1{font-size:clamp(30px,4.1vw,56px);letter-spacing:-.035em;line-height:1.1;margin:0 0 14px}
-.copy p,.reading p,.sample p{color:#d2ddec;line-height:1.55;margin:8px 0 16px;max-width:47ch}
-.primary,.textButton{font:inherit;cursor:pointer;min-height:44px}
-.primary{display:inline-flex;align-items:center;gap:12px;border:0;border-radius:11px;color:#152235;background:#edcb92;padding:10px 18px;font-weight:700}
-.textButton{border:0;padding:4px 0;background:transparent;color:#efd29f;text-decoration:underline;text-underline-offset:4px}
-.intro :focus-visible,.result :focus-visible{outline:3px solid #fff;outline-offset:3px}
-.sample{width:100%;max-width:340px;margin:0;justify-self:center}
-.sample figcaption{font-size:.85rem;color:#f3d7a8;margin-bottom:6px}
-.sample :global(.jy-south-chart){min-width:0;width:100%;min-height:0;aspect-ratio:1.55;max-height:195px;grid-template-rows:repeat(4,minmax(0,1fr));padding:0}
-.sample :global(.jy-south-sign){min-width:0;min-height:0;padding:2px 4px}
-.sample :global(.jy-south-house),.sample :global(.jy-south-symbol),.sample :global(.jy-south-planet span){display:none}
-.sample :global(.jy-south-name){font-size:10px}.sample :global(.jy-south-center strong){font-size:14px}
-.sample p{margin:5px 0 0;font-size:.85rem}
-.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 16px;margin-bottom:16px}.top h1{font-size:clamp(29px,4vw,45px);margin:0}
-.chart{min-width:0}.chart :global(.jy-south-chart){min-width:0;width:100%}
-.chart[data-highlight=true] :global(.jy-south-lagna){outline:3px solid #f7d49c;outline-offset:-3px}
-.reading h2{font-size:clamp(22px,2.4vw,32px);margin:0 0 14px}.reading h3{font-size:1.1rem;color:#f2d5a4;margin:14px 0 4px}.reading p{margin:6px 0}
-.reading .primary{margin-top:14px}.reading [hidden]{display:none}
-@media(prefers-reduced-motion:no-preference){.chart[data-highlight=true] :global(.jy-south-lagna){animation:lagna-glow .65s ease-out 1}@keyframes lagna-glow{from{box-shadow:inset 0 0 0 7px #edcc9260}to{box-shadow:inset 0 0 0 0 transparent}}}
-@media(max-width:720px){.intro,.layout{grid-template-columns:minmax(0,1fr)}.intro,.result{padding:16px}.sample{max-width:290px}.sample :global(.jy-south-chart){max-height:144px}.chart :global(.jy-south-sign){min-width:0}}
+.sample,.result{margin:0;min-width:0;color:#e4e8f1}
+.sample{align-self:start;padding:clamp(14px,2vw,24px);background:var(--gx-panel);border:1px solid var(--gx-line);border-radius:18px}
+.sample figcaption{margin:0 0 12px;color:#edd3a3;font-size:.92rem;font-weight:600}
+.result{padding:clamp(16px,3vw,32px);border:1px solid var(--gx-line);border-radius:20px;background:var(--gx-panel);margin-bottom:22px}
+.heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px 20px;flex-wrap:wrap}
+.result .heading h1{margin:0;font:600 clamp(28px,4vw,46px)/1.2 'Playfair Display',Georgia,serif;color:#eed6aa;letter-spacing:-.02em}
+.heading a,.result :global(.jy-nak-link){color:#edd3a3;text-underline-offset:4px}
+.heading a{padding:10px 0}
+.instruction{color:#cbd7e6;margin:8px 0 18px;line-height:1.5}
+.layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:center;gap:clamp(18px,3vw,42px)}
+.chart{width:100%;max-width:555px;min-width:0;container-type:inline-size}
+.preview .chart{margin-inline:auto;max-width:370px}
+.chart :global(.jy-south-chart){width:100%;min-height:0;min-width:0;aspect-ratio:1;grid-template-rows:repeat(4,minmax(0,1fr))}
+.chart button{font:inherit;color:inherit;text-align:start;cursor:pointer;border-radius:0;appearance:none}
+.chart button[data-active=true],.chart button:focus-visible{box-shadow:inset 0 0 0 2px #e8c586;background:#283c53}
+.chart button:focus-visible{outline:2px solid #fff;outline-offset:-4px}
+.chart :global(.jy-south-lagna){border-color:#d7b97d}
+.chart :global(.jy-south-name){font-size:clamp(9px,2.6cqw,14px)}
+.chart :global(.jy-south-house){position:static}
+.chart :global(.jy-south-positions){display:flex;flex-wrap:wrap;gap:2px 5px}
+.chart :global(.jy-south-ascendant){position:static;transform:none;align-self:flex-start;border:none;padding:0;background:none;color:#f3d5a1;font-weight:700;line-height:1}
+.chart :global(.jy-south-symbol){display:none}
+.chart :global(.jy-south-planet span:empty){display:none}
+.detail{min-width:0;border-inline-start:2px solid #ba965e;padding:4px 0 4px 16px}
+.detail h3{font:600 clamp(18px,2vw,25px)/1.25 'Playfair Display',Georgia,serif;color:#edd3a3;margin:0 0 8px}
+.detail p{margin:0;line-height:1.55;max-width:48ch}.detail .occupants{font-size:.88rem;color:#c0cedf;margin-top:8px}
+.preview .detail{margin-top:14px}.preview .detail h3{font-size:17px}.preview .detail p{font-size:.9rem}
+@media(prefers-reduced-motion:no-preference){
+ .chart button[data-active=true]{animation:house-light .32s ease-out}
+ @keyframes house-light{from{box-shadow:inset 0 0 0 5px #e4bf824f}to{box-shadow:inset 0 0 0 2px #e8c586}}
+}
+@media(max-width:660px){.layout{grid-template-columns:minmax(0,1fr)}.chart{margin-inline:auto}}
+
+.chart button :global(.jy-south-name){font-size:clamp(10px,2.5cqw,14px)}
+.chart button :global(.jy-south-planet strong){font-size:clamp(15px,4cqw,23px)}
+@media(max-width:720px){
+ .sample{order:-1;padding:12px}.preview{display:grid;grid-template-columns:minmax(176px,1.2fr) minmax(0,.9fr);align-items:center;gap:10px}
+ .preview .detail{margin:0;padding-left:8px}.preview .detail h3{font-size:15px}.preview .detail p{font-size:12px;line-height:1.4}
+ .preview .chart button{padding:2px;gap:0}.preview .chart button :global(.jy-south-house){display:none}
+ .preview .chart button :global(.jy-south-name){font-size:clamp(8px,3.6cqw,10px)}.preview .chart button :global(.jy-south-planet strong){font-size:clamp(9px,5.5cqw,14px)}
+}

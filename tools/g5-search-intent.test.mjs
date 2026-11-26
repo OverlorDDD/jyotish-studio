@@ -12,8 +12,9 @@ test('G5: primary indexable tool matches actual Vedic chart calculator intent in
  assert.match(meta,/'x-default':'\/en\/astrology\/jyotish'/);
  assert.match(hero,/Free Vedic Birth Chart Calculator/);
  assert.match(hero,/Безкоштовний калькулятор натальної карти Джйотіш/);
- assert.match(hero,/Calculate my free birth chart/);
- assert.match(hero,/href="#birth-details"/);
+ assert.match(hero,/Calculate your free Kundli/);
+ assert.match(hero,/<section id="birth-details"/);
+ assert.match(hero,/<form onSubmit=\{calculate\}/);
  assert.match(hero,/D9 \(Navamsa\), D10 \(career\)/);
  assert.match(hero,/D60 has special birth-time sensitivity limits/);
 });

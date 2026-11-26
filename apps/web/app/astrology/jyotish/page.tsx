@@ -10,19 +10,18 @@ import type {ReadingReport} from '../../components/DetailedReport';
 const DetailedReport=dynamic(()=>import('../../components/DetailedReport'),{loading:()=>null});
 const AccountPortal=dynamic(()=>import('../../components/AccountPortal'),{loading:()=>null});
 import N4RcExplorer from '../../components/N4RcExplorer';
-import NatalSkyLayers from '../../components/NatalSkyLayers';
-import {NatalSample,NatalFirstResult,type NatalFormVariant} from '../../components/NatalFirstLook';
+import {natalExactData} from '../../../lib/natal-features';
+import {NatalSample,NatalFirstResult} from '../../components/NatalFirstLook';
 import landing from './NatalLanding.module.css';
 import {assertN4RcView,hasN4RcView,type N4RcView} from '../../../lib/n4-rc-view';
 import {hasD60Provisional,type N4D60UI} from '../../../lib/n4-d60-view';
 import CitySearch from '../../components/CitySearch';
-import {SIGN_GLYPHS,PLANET_GLYPHS} from '../../../lib/north-indian-layout';
-import {Compass,Orbit,Clock3,Sparkles,BookOpen,Activity,ArrowUpRight,ShieldCheck} from 'lucide-react';
+import {Sparkles,ArrowUpRight} from 'lucide-react';
 import {nakshatraSlugByName} from '../../../lib/nakshatra-slugs';
 import {loadMySigns} from '../../../lib/my-signs';
 type Graha={name:string;longitude:number;sign:number;signName:string;degreesInSign:number;house:number;nakshatra:string;pada:number;retrograde:boolean};
 type Period={lord:string;start:string;end:string;antardashas:{lord:string;start:string;end:string}[]};
-type Chart={n4?:N4RcView;n4D60?:N4D60UI;config?:{dashaYearDays:number;dashaYearMode?:string};verification?:{version:string;status:'verified_internal';digest:string;checks:string[];externalReferenceChecked:false};id?:string;input:{date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;ephemeris:string;d1:Graha[];d9:Graha[];d10:Graha[];dasha:Period[]};
+type Chart={n4?:N4RcView;n4D60?:N4D60UI;config?:{houses?:string;nodes?:string;ayanamsa?:string;dashaYearDays:number;dashaYearMode?:string};verification?:{version:string;status:'verified_internal';digest:string;checks:string[];externalReferenceChecked:false};id?:string;input:{date:string;time:string;timeZone:string;latitude:number;longitude:number;place?:string};utc:string;ayanamsa:number;ascendant:Graha;lagnaD9:Graha;lagnaD10:Graha;ephemeris:string;d1:Graha[];d9:Graha[];d10:Graha[];dasha:Period[]};
 type Form={date:string;time:string;latitude:string;longitude:string;timeZone:string;place?:string};
 const EMPTY_FORM:Form={date:'',time:'',latitude:'',longitude:'',timeZone:'',place:undefined};
 const t={en:{title:'Your cosmic blueprint',subtitle:'Precision Vedic calculations. From planetary positions to symbolic interpretations — all in one place.',details:'Birth details',detail:'Enter date, exact local time and geographic coordinates.',date:'Date of birth',time:'Local time of birth',place:'Location preset',calculate:'Calculate birth chart',asc:'RISING SIGN',moon:'MOON SIGN',chart:'Natal chart',grahas:'Planetary positions',dasha:'Life cycles',dashadesc:'Traditional symbolic time cycles, not guaranteed predictions.',ai:'Chart reading',aidesc:'A clear explanation of the main themes in everyday language, followed by a detailed report.',aiButton:'Generate full reading',note:'Jyotish tradition',noteDesc:'A symbolic reading grounded in your calculated birth chart.',waiting:'Calculate a chart to begin.',working:'Calculating Swiss Ephemeris...',completed:'Calculated successfully.'},uk:{title:'Твоя космічна карта',subtitle:'Точні ведичні обчислення: від положень планет до символічних інтерпретацій.',details:'Дані народження',detail:'Введи дату, точний місцевий час і географічні координати.',date:'Дата народження',time:'Місцевий час',place:'Місце народження',calculate:'Розрахувати карту',asc:'ВИСХІДНИЙ ЗНАК',moon:'ЗНАК МІСЯЦЯ',chart:'Натальна карта',grahas:'Положення планет',dasha:'Життєві цикли',dashadesc:'Традиційні символічні періоди часу, а не гарантований прогноз.',ai:'Пояснення карти',aidesc:'Зрозуміле пояснення головних тем звичайною мовою, а нижче — детальний розбір карти.',aiButton:'Створити повне трактування',note:'Традиція Джйотіш',noteDesc:'Символічне трактування на основі розрахованої натальної карти.',waiting:'Спочатку розрахуй карту.',working:'Обчислюємо ефемериди...',completed:'Карту обчислено.'}};
@@ -49,10 +48,12 @@ const FREE_AI_FALLBACK_EN:Record<string,string>={
 const SIGN_EN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SIGN_UK=['Овен','Телець','Близнюки','Рак','Лев','Діва','Терези','Скорпіон','Стрілець','Козоріг','Водолій','Риби'];
 const GRAHA_UK:Record<string,string>={Sun:'Сонце',Moon:'Місяць',Mars:'Марс',Mercury:'Меркурій',Jupiter:'Юпітер',Venus:'Венера',Saturn:'Сатурн',Rahu:'Раху',Ketu:'Кету',Ascendant:'Висхідний знак'};
-const SIGN_SYMBOL=SIGN_GLYPHS;
-const GRAHA_SYMBOL=PLANET_GLYPHS;
 const two=(value:number)=>String(value).padStart(2,'0');
-const degreeLabel=(value:number)=>{const d=Math.floor(value),m=Math.floor((value-d)*60);return d+'°'+two(m)+'′';};
+const positionLabel=(value:number)=>{
+ // Truncate at one arcsecond so a position inside a sign cannot display as 30 degrees.
+ const seconds=Math.floor(value*3600);
+ return Math.floor(seconds/3600)+'°'+two(Math.floor(seconds/60)%60)+'′'+two(seconds%60)+'″';
+};
 const NAKSHATRA_UK:Record<string,string>={
  Ashwini:'Ашвіні',Bharani:'Бхарані',Krittika:'Кріттіка',Rohini:'Рохіні',Mrigashira:'Мрігашіра',Ardra:'Ардра',
  Punarvasu:'Пунарвасу',Pushya:'Пушʼя',Ashlesha:'Ашлеша',Magha:'Магха','Purva Phalguni':'Пурва Пхалгуні',
@@ -71,45 +72,35 @@ const nakshatraGuideLink=(name:string,lang:'en'|'uk',text:string)=>{
 };
 const grahaFull=(name:string,lang:'en'|'uk')=>lang==='uk'?(GRAHA_UK[name]||name):name;
 const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-1];
-export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';variant?:NatalFormVariant}){
+export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const lang=initialLang; const [minutesUncertain,setMinutesUncertain]=useState(false),[form,setForm]=useState<Form>(EMPTY_FORM),[cityReset,setCityReset]=useState(0),[manualMode,setManualMode]=useState(false),[chart,setChart]=useState<Chart|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
+ const [positions,setPositions]=useState<'d1'|'d9'|'d10'>('d1');
+ const [periodIndex,setPeriodIndex]=useState<number|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
- const birthDetails=useRef<HTMLDetailsElement>(null);
+ const startedEditing=useRef(false);
+ const requestedDivision=useRef(9);
  const calculating=useRef(false);
- const [step,setStep]=useState<1|2>(1);
  const [editing,setEditing]=useState(false);
- const twoSteps=variant==='steps';
- const showResult=Boolean(chart)&&(!variant||!editing);
- function focusDate(){
-  requestAnimationFrame(()=>{
-   if(birthDetails.current)birthDetails.current.open=true;
-   document.getElementById('natal-birth-date')?.focus();
-  });
- }
+ const showResult=Boolean(chart)&&!editing;
  function openForm(){
-  setStep(1);setEditing(true);focusDate();
+  setEditing(true);
+  requestAnimationFrame(()=>document.getElementById('natal-birth-date')?.focus());
  }
- function editPilotResult(){
-  if(history.state?.natalPilotResult&&location.hash==='#chart-result')history.back();
+ function editResult(){
+  if(history.state?.natalChartResult&&location.hash==='#chart-result')history.back();
   else openForm();
  }
- function nextStep(){
-  setStep(2);
-  requestAnimationFrame(()=>document.querySelector<HTMLInputElement>('#birth-details .jy-city-search-field input')?.focus());
- }
  useEffect(()=>{
-  if(!variant)return;
-  // A chart exists only in this tab's React state. A reloaded or shared URL starts at the empty form.
-  if(location.hash==='#chart-result')history.replaceState({...history.state,natalPilotResult:false},'',location.pathname+location.search);
+  // Sharing a fragment cannot restore a birth chart: all personal data stays in page state.
+  if(location.hash==='#chart-result')history.replaceState({...history.state,natalChartResult:false},'',location.pathname+location.search);
   const followHistory=()=>{
-   if(history.state?.natalPilotResult&&location.hash==='#chart-result'){
-    setEditing(false);
-   }else openForm();
+   if(history.state?.natalChartResult&&location.hash==='#chart-result')setEditing(false);
+   else openForm();
   };
   window.addEventListener('popstate',followHistory);
   return ()=>window.removeEventListener('popstate',followHistory);
- },[variant]);
+ },[]);
 
  const readingRequestId=useRef(0); // ignore stale Reader/AI responses
  const [jhoraReference,setJhoraReference]=useState<{cases:number;d1SignMatches:number;d1Total:number;d9SignMatches:number;d9Total:number;d10SignMatches:number;d10Total:number;perUserJhoraVerified:false}|null>(null);
@@ -152,7 +143,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   if(!verified(ready)||!hasN4RcView(ready)){
    setError(true);setStatus(lang==='uk'?'Перевірка натальної карти не пройдена.':'Natal chart integrity verification failed.');return;
   }
-  setChart(ready);
+  setPositions('d1');setPeriodIndex(null);setEditing(false);setChart(ready);
   const compatibleSaved=saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
@@ -169,8 +160,11 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   setStatus(lang==='uk'?'Розрахунок перевірено.':'Calculation integrity verified.');
  };
 
- const quietOpen=useRef(false); // no auto-scroll when the profile chart opens by itself
- useEffect(()=>{if(report&&!quietOpen.current)document.getElementById('full-reading')?.scrollIntoView({behavior:'smooth',block:'start'});quietOpen.current=false;},[report]);
+ const scrollToReading=useRef(false);
+ useEffect(()=>{
+  if(report&&scrollToReading.current)document.getElementById('full-reading')?.scrollIntoView({block:'start'});
+  scrollToReading.current=false;
+ },[report]);
  // A signed-in owner sees their primary (or only/newest) saved natal chart straight away.
  // ?new opens the empty calculator; anything the visitor starts meanwhile wins.
  const [profileChart,setProfileChart]=useState<{date:string;place:string}|null>(null);
@@ -179,12 +173,12 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   let live=true;
   void loadMySigns().then(async mine=>{
    const own=mine?.chart;
-   if(!live||!own||readingRequestId.current!==0)return;
+   if(!live||!own||startedEditing.current||readingRequestId.current!==0)return;
    try{
     const r=await fetch('/api/v1/account/charts/'+encodeURIComponent(own.id),{credentials:'same-origin',cache:'no-store'});
     const data=await readApiJson<{chart:unknown;report:ReadingReport|null}>(r);
-    if(!live||readingRequestId.current!==0)return;
-    quietOpen.current=true;
+    if(!live||startedEditing.current||readingRequestId.current!==0)return;
+    scrollToReading.current=false;
     setProfileChart({date:own.date,place:own.place});
     await loadSaved(data.chart,data.report);
    }catch{/* the empty calculator stays available */}
@@ -195,8 +189,8 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
  const startNewChart=()=>{
   readingRequestId.current++;setProfileChart(null);setChart(null);setReport(null);setInterpretation('');setStatus('');setError(false);
   setForm(EMPTY_FORM);setManualMode(false);setCityReset(c=>c+1);
-  if(variant){history.replaceState({...history.state,natalPilotResult:false},'',location.pathname+location.search);openForm();return;}
-  setTimeout(()=>document.getElementById('birth-details')?.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  setMinutesUncertain(false);setAiBusy(false);startedEditing.current=true;
+  history.replaceState({...history.state,natalChartResult:false},'',location.pathname+location.search);openForm();
  };
  const i=t[lang];const api=''; // Same-origin /api proxy protects remote demo visitors
  const edit=(key:keyof Form,value:string)=>{
@@ -208,7 +202,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   if(manual)setCityReset(count=>count+1);
  };
  const chooseCity=(city:{name:string;region:string;country:string;latitude:number;longitude:number;timeZone:string})=>{
-  setManualMode(false);
+  startedEditing.current=true;setManualMode(false);
   // Preserve the user's birth date/time; only location fields change.
   setForm(old=>({...old,latitude:String(city.latitude),longitude:String(city.longitude),
    timeZone:city.timeZone,place:[city.name,city.region,city.country].filter(Boolean).join(', ')}));
@@ -216,18 +210,17 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
  };
  async function calculate(e:React.FormEvent){e.preventDefault();
   if(calculating.current)return;
-  if(twoSteps&&step===1){if(form.date&&form.time)nextStep();return;}
   if(!form.date||!form.time||(!form.place&&!manualMode)||!form.timeZone||!form.latitude||!form.longitude){
    setError(true);setStatus(lang==='uk'?'Заповни дату й час та обери місто зі списку або введи ручні координати.':'Enter date and time, then select a city or enter manual coordinates.');return;
   }
   calculating.current=true;
   reportPublicToolEvent('public_tool_started','jyotish');readingRequestId.current++;setAiBusy(false);setBusy(true);setError(false);setChart(null);setReport(null);setStatus(i.working);try{const response=await fetch(`${api}/api/v1/charts/calculate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,latitude:Number(form.latitude),longitude:Number(form.longitude)})});const data=await readApiJson<Chart>(response);if(!verified(data))throw Error(lang==='uk'?'API повернуло карту без чинного підтвердження цілісності (потрібен jyotish-integrity-v3). Перезапустіть Next.js і NestJS з однієї оновленої гілки, потім повторіть розрахунок.':'API returned a chart without the current jyotish-integrity-v3 proof. Restart Next.js and NestJS from the same updated branch, then retry.');assertN4RcView(data);setChart(data);setReport(null);setInterpretation('');setStatus(`${i.completed} UTC: ${data.utc}`);reportGrowthEvent('jyotish_chart_completed');reportPublicToolEvent('public_tool_completed','jyotish');
    // Run verified local Reader by default; calling AI always requires an explicit click.
-   if(variant){
-    setEditing(false);
-    if(!history.state?.natalPilotResult||location.hash!=='#chart-result'){
-     history.pushState({...history.state,natalPilotResult:true},'',location.pathname+location.search+'#chart-result');
-    }
+   const linkDivision=location.hash.match(/^#varga-d(\d{1,2})$/);
+   if(linkDivision)requestedDivision.current=Number(linkDivision[1]);
+   setPositions('d1');setPeriodIndex(null);setEditing(false);scrollToReading.current=false;
+   if(!history.state?.natalChartResult||location.hash!=='#chart-result'){
+    history.pushState({...history.state,natalChartResult:true},'',location.pathname+location.search+'#chart-result');
    }
    void interpret('local',data);}catch(e){reportPublicToolEvent('public_tool_failed','jyotish');setError(true);setStatus(e instanceof Error?e.message:String(e));}finally{calculating.current=false;setBusy(false)}}
  async function interpret(mode:'auto'|'local'='auto',freshChart:Chart|null=chart){
@@ -279,7 +272,8 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
  const moon=chart?.d1.find(x=>x.name==='Moon');
  const now=Date.now();
  const activeDasha=chart?.dasha.find(d=>Date.parse(d.start)<=now&&Date.parse(d.end)>now);
- const activeAntar=activeDasha?.antardashas.find(a=>Date.parse(a.start)<=now&&Date.parse(a.end)>now);
+ const period=chart?.dasha[periodIndex??Math.max(0,chart.dasha.indexOf(activeDasha!))];
+ const tableLagna=chart&&(positions==='d1'?chart.ascendant:positions==='d9'?chart.lagnaD9:chart.lagnaD10);
  return <div className={'jy-workbench jy-portal-workbench '+landing.canvas}>
   <div className="main">
    <div className="content" id="calculator">
@@ -288,60 +282,21 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
      <span>{lang==='uk'?'Відкрито вашу натальну карту з профілю':'Your natal chart from your profile is open'}{profileChart.date?' · '+profileChart.date.split('-').reverse().join('.'):''}{profileChart.place?' · '+profileChart.place:''}</span>
      <button type="button" className="secondary-btn" style={{margin:0,width:'auto',padding:'9px 14px'}} onClick={startNewChart}>{lang==='uk'?'Розрахувати нову карту':'Calculate a new chart'}</button>
     </div>}
-    {variant&&!showResult&&<NatalSample lang={lang} onStart={openForm}/>}
-    {variant&&showResult&&chart&&<NatalFirstResult lang={lang} chart={chart} rising={signFull(chart.ascendant.sign,lang)} moon={moon?signFull(moon.sign,lang):undefined} onEdit={editPilotResult}/>}
-    {!variant&&!chart&&<><section className={landing.hero} aria-labelledby="natal-page-title">
-     <div className={landing.heroCopy}>
-      <div className={landing.eyebrow}>{lang==='uk'?'ВЕДИЧНА НАТАЛЬНА КАРТА · БЕЗКОШТОВНО':'FREE VEDIC BIRTH CHART · JYOTISH'}</div>
+    {showResult&&chart&&<NatalFirstResult lang={lang} chart={chart} onEdit={editResult} focusHeading={!profileChart}>
+     <div className={landing.moonFacts}>
+      {chart.ascendant.nakshatra&&<span>{lang==='uk'?'Накшатра Лагни':'Lagna nakshatra'} · {nakshatraGuideLink(chart.ascendant.nakshatra,lang,nakshatraName(chart.ascendant.nakshatra,lang))}</span>}
+      {moon&&<span>{lang==='uk'?'Місяць':'Moon'} · {signFull(moon.sign,lang)} · {nakshatraGuideLink(moon.nakshatra,lang,nakshatraName(moon.nakshatra,lang))}</span>}
+     </div>
+    </NatalFirstResult>}
+    <div hidden={showResult}>
+     {!showResult&&<header className={landing.pageHeading}>
       <h1 id="natal-page-title">{lang==='uk'?'Безкоштовний калькулятор натальної карти Джйотіш':'Free Vedic Birth Chart Calculator'}</h1>
-      <p className={landing.lead}>{lang==='uk'?
-       'Побудуй безкоштовну ведичну карту за датою, точним місцевим часом і містом народження.':
-       'Calculate your free Kundli from your birth date, exact local time and city.'}</p>
-      <div className={landing.heroActions}>
-       <a className={landing.heroCta} href="#birth-details">{lang==='uk'?'Розрахувати натальну карту безкоштовно':'Calculate my free birth chart'} <ArrowUpRight size={18}/></a>
-       <a className={landing.heroSecondary} href="#varga-explorer">{lang==='uk'?'Дослідити всі карти':'Explore all 16 charts'}</a>
-      </div>
-      <div className={landing.chips}>
-       <span>{lang==='uk'?'Сильні сторони й виклики':'Strengths & challenges'}</span>
-       <span>{lang==='uk'?'Стосунки та кар’єра':'Relationships & career'}</span>
-       <span>{lang==='uk'?'16 карт · без реєстрації':'16 charts · no signup'}</span>
-      </div>
-      <small className={landing.miniDisclaimer}>{lang==='uk'?'Трактування традиції Джйотіш, а не психологічний діагноз. Астрономічний розрахунок: Swiss Ephemeris.':
-       'Traditional Jyotish interpretation, not a psychological diagnosis. Astronomical calculation: Swiss Ephemeris.'}</small>
-     </div>
-     <div className={landing.heroArt}><NatalSkyLayers lang={lang}/></div>
-    </section>
-    <div className={landing.roadmap} aria-label={lang==='uk'?'Три кроки до натальної карти':'Three steps to your birth chart'}>
-     <div><b>01</b><span>{lang==='uk'?'Введи дані народження':'Enter birth details'}</span></div>
-     <div><b>02</b><span>{lang==='uk'?'Отримай персональні карти':'Get your personal charts'}</span></div>
-     <div><b>03</b><span>{lang==='uk'?'Досліджуй значення':'Explore their meaning'}</span></div>
-    </div></>}
-    {!variant&&chart&&<header className={landing.resultHead} data-testid="natal-result-head">
-     <div>
-      <div className={landing.eyebrow}>{lang==='uk'?'ВЕДИЧНА НАТАЛЬНА КАРТА':'VEDIC BIRTH CHART'}</div>
-      <h1 id="natal-page-title">{lang==='uk'?'Твоя натальна карта':'Your birth chart'}</h1>
-      <p>{chart.input.date} · {chart.input.time} · {chart.input.place||(lang==='uk'?'ручні координати':'manual coordinates')}</p>
-     </div>
-     <a className={landing.heroSecondary} href="#natal-birth-date" onClick={()=>{
-      if(birthDetails.current)birthDetails.current.open=true;
-     }}>{lang==='uk'?'Змінити дані народження':'Edit birth details'}</a>
-    </header>}
-    {!variant&&chart&&<div className="jy-key-facts">
-      <div><span className="jy-fact-icon">Lg</span><small>{lang==='uk'?'Лагна':'Lagna'}</small><strong>{chart?signFull(chart.ascendant.sign,lang)+' · '+degreeLabel(chart.ascendant.degreesInSign):'—'}</strong></div>
-      <div><span className="jy-fact-icon">★</span><small>{lang==='uk'?'Накшатра лагни':'Lagna nakshatra'}</small><strong>{chart?nakshatraGuideLink(chart.ascendant.nakshatra,lang,nakshatraName(chart.ascendant.nakshatra,lang)):'—'}</strong></div>
-      <div><span className="jy-fact-icon">☉</span><small>{lang==='uk'?'Сонце':'Sun'}</small><strong>{chart?signFull(chart.d1.find(g=>g.name==='Sun')?.sign||1,lang):'—'}</strong></div>
-      <div><span className="jy-fact-icon">☽</span><small>{lang==='uk'?'Місяць':'Moon'}</small><strong>{moon?signFull(moon.sign,lang):'—'}</strong></div>
-      <div><span className="jy-fact-icon">✦</span><small>{lang==='uk'?'Накшатра Місяця':'Moon nakshatra'}</small><strong>{moon?nakshatraGuideLink(moon.nakshatra,lang,nakshatraName(moon.nakshatra,lang)):'—'}</strong></div>
-      <div><span className="jy-fact-icon">◴</span><small>{lang==='uk'?'Поточна даша':'Current dasha'}</small><strong>{activeDasha?(lang==='uk'?GRAHA_UK[activeDasha.lord]||activeDasha.lord:activeDasha.lord):'—'}</strong></div>
-     </div>}
-
-    <div hidden={Boolean(variant)&&showResult}><details ref={birthDetails} id="birth-details" className={"jy-input-panel panel "+landing.birthForm} open={!chart||Boolean(variant)}>
-     <summary><span><BookOpen size={17}/><strong>{chart?i.details:(lang==='uk'?'Створи безкоштовну натальну карту':'Create your free birth chart')}</strong></span><small>{chart?(lang==='uk'?'Змінити вихідні дані':'Edit source data'):(lang==='uk'?'Заповніть для розрахунку':'Enter details to calculate')}</small></summary>
-     <form onSubmit={calculate} className="jy-input-grid">
-      {twoSteps&&<p className={landing.formStep} aria-live="polite">{lang==='uk'?
-       (step===1?'Крок 1 із 2 · Дата й час':'Крок 2 із 2 · Місце народження'):
-       (step===1?'Step 1 of 2 · Date and time':'Step 2 of 2 · Birthplace')}</p>}
-      {(!twoSteps||step===1)&&<>
+      <p>{lang==='uk'?'Побудуй безкоштовну ведичну карту за датою, місцевим часом і містом народження.':'Calculate your free Kundli from your birth date, local time and city.'}</p>
+     </header>}
+     <div className={landing.entry}>
+     <section id="birth-details" aria-labelledby="birth-form-title" className={'panel '+landing.birthForm}>
+      <h2 id="birth-form-title">{i.details}</h2>
+      <form onSubmit={calculate} onChangeCapture={()=>{startedEditing.current=true;}} className="jy-input-grid">
       <label>{i.date}<input id="natal-birth-date" type="date" value={form.date} onChange={e=>edit('date',e.target.value)} required/></label>
       <div className={landing.timeField}>
        <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
@@ -349,16 +304,11 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
         <input type="checkbox" checked={minutesUncertain} onChange={e=>setMinutesUncertain(e.target.checked)}/>
         {lang==='uk'?'Не знаю точних хвилин':'I don’t know the exact minutes'}
        </label>
-       {(!form.time||minutesUncertain)&&<p className={landing.timeHint} role="status">
+       {minutesUncertain&&<p className={landing.timeHint} role="status">
         {lang==='uk'?'Без точних хвилин результат може бути неточним, особливо D60. Якщо хвилини невідомі, введи приблизний час (наприклад, 14:00) і познач це вище.':
          'Without exact minutes, some placements may be inaccurate, especially D60. If you only know the hour, enter an approximate time (for example 14:00) and mark it above.'}
        </p>}
       </div>
-      </>}
-      {twoSteps&&step===1&&<button type="submit" className="primary-btn" data-testid="natal-pilot-next" disabled={!form.date||!form.time}>
-       {lang==='uk'?'Далі · Місце народження':'Next · Birthplace'}</button>}
-      {(!twoSteps||step===2)&&<>
-      {twoSteps&&<button type="button" className={landing.stepBack} data-testid="natal-pilot-back" onClick={openForm}>{lang==='uk'?'← До дати й часу':'← Back to date and time'}</button>}
       <div className="jy-city-search-field">
        <CitySearch locale={lang} onChoose={chooseCity} resetToken={cityReset} selectedPlace={form.place||''}
          onClear={()=>setForm(old=>({...old,place:undefined,latitude:'',longitude:'',timeZone:''}))}/>
@@ -378,28 +328,22 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
        </p>}
       <button className="primary-btn jy-calc-btn" disabled={busy||!form.date||!form.time||
         (!form.place&&!manualMode)||!form.latitude||!form.longitude||!form.timeZone}>{busy?i.working:i.calculate}<ArrowUpRight size={16}/></button>
-      </>}
      </form>
      <p className={`status ${error?'error':''}`} role="status">{status}</p>
-    </details></div>
-
-    {!variant&&!chart&&<section className={landing.discovery} aria-labelledby="natal-value">
-     <h2 id="natal-value">{lang==='uk'?'Навіщо досліджувати 16 карт життя?':'What can 16 life charts help you explore?'}</h2>
-     <div className={landing.discoveryGrid}>
-      <article><span>✦</span><h3>{lang==='uk'?'Де твоя сила, а де слабкі місця?':'Where are your strengths and blind spots?'}</h3><p>{lang==='uk'?'Порівняй карти витривалості та життєвих викликів D27 і D30: які риси традиція описує як опору, а які — як зони розвитку.':'Compare the traditional lenses of resilience and challenges (D27, D30): supportive traits and areas for growth.'}</p></article>
-      <article><span>♡</span><h3>{lang==='uk'?'Які закономірності є у стосунках?':'What patterns shape your relationships?'}</h3><p>{lang==='uk'?'Досліди партнерство й цінності через D9, а родинні теми — через D12. Порівнюй кожну з основною D1.':'Explore partnerships and values with D9, family themes with D12, and compare each with the foundational D1 chart.'}</p></article>
-      <article><span>✧</span><h3>{lang==='uk'?'Як розкривається потенціал у роботі?':'How might your potential unfold at work?'}</h3><p>{lang==='uk'?'Подивись на професійну роль у D10 й освіту в D24: кожна карта висвітлює іншу сторону розвитку.':'Explore vocation in D10 and education in D24 — two distinct traditional perspectives on development.'}</p></article>
+     </section>
+     {!showResult&&<NatalSample lang={lang}/>}
      </div>
-    </section>}
-    <div hidden={Boolean(variant)&&!showResult}>
-    <N4RcExplorer chart={chart} lang={lang} minutesUncertain={minutesUncertain}/>
+    </div>
+
+    {showResult&&chart&&<>
+    <N4RcExplorer chart={chart} lang={lang} minutesUncertain={minutesUncertain} initialDivision={requestedDivision.current}/>
 
     {chart&&<section className="jy-ai-launch" id="natal-reading-options" tabIndex={-1}>
-     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('auto')}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'AI пояснює перевірені факти твоєї карти простою мовою.':'AI explains the verified facts of your chart in plain language.'}</small></span><ArrowUpRight size={20}/></button>
+     <button className="jy-ai-launch-btn" disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>{scrollToReading.current=true;void interpret('auto');}}><span className="jy-ai-orbit"><Sparkles size={22}/></span><span><strong>{aiBusy?(lang==='uk'?'Готуємо персональне трактування…':'Preparing your consultation…'):(lang==='uk'?'Створити AI-трактування':'Generate AI consultation')}</strong><small>{lang==='uk'?'AI пояснює перевірені факти твоєї карти простою мовою.':'AI explains the verified facts of your chart in plain language.'}</small></span><ArrowUpRight size={20}/></button>
      <button className="jy-reader-launch-btn" data-testid="reader-auto-launch-btn"
        aria-pressed={report?.ai?.fallbackReason==='reader_only'}
        style={report?.ai?.fallbackReason==='reader_only'?{borderColor:'#dbb77c',boxShadow:'0 0 0 1px rgba(219,183,124,.27)'}:undefined}
-       disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>interpret('local')}>{lang==='uk'?'Читати без AI — класичне трактування':'Read without AI — classic reading'}</button>
+       disabled={!chart||aiBusy||Boolean(runtimeMismatch)} onClick={()=>{scrollToReading.current=true;void interpret('local');}}>{lang==='uk'?'Читати без AI — класичне трактування':'Read without AI — classic reading'}</button>
      {runtimeMismatch&&<p role="alert" className="jy-version-warning">{runtimeMismatch}</p>}
      {interpretation&&<div className="jy-ai-status" aria-live="polite">{interpretation}</div>}
     </section>}
@@ -408,20 +352,43 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
      {report&&report.language===lang?<DetailedReport report={report} lang={lang} minutesUncertain={minutesUncertain}/>:null}
     </div>
 
-    {chart&&<section className="panel jy-data-workspace" id="chart-data">
-     <div className="jy-workspace-head"><div><div className="eyebrow">{lang==='uk'?'ДАНІ КАРТИ':'CHART DATA'}</div><h2>{lang==='uk'?'Планети й періоди життя':'Planets and life periods'}</h2></div></div>
-
-
-     <div className="jy-subhead"><div><span>{lang==='uk'?'ПЛАНЕТИ':'PLANETS'}</span><h3>{lang==='uk'?'Зведена таблиця':'Summary table'}</h3></div><small>{lang==='uk'?'D1 · знаки · доми · накшатри':'D1 · signs · houses · nakshatras'}</small></div>
-     <div className="table-scroll jy-planet-table"><table><thead><tr><th>{lang==='uk'?'Планета':'Planet'}</th><th>{lang==='uk'?'Знак':'Sign'}</th><th>{lang==='uk'?'Градус':'Degree'}</th><th>{lang==='uk'?'Дім':'House'}</th><th>{lang==='uk'?'Накшатра':'Nakshatra'}</th><th>{lang==='uk'?'Рух':'Motion'}</th></tr></thead><tbody>{chart?chart.d1.map(p=><tr key={p.name}><td><span className="jy-table-symbol">{GRAHA_SYMBOL[p.name]||'•'}</span><strong>{grahaFull(p.name,lang)}</strong></td><td><span className="jy-sign-cell">{SIGN_SYMBOL[p.sign-1]}</span>{signFull(p.sign,lang)}</td><td>{degreeLabel(p.degreesInSign)}</td><td><span className="jy-house-badge">{p.house}</span></td><td>{nakshatraName(p.nakshatra,lang)} <small>· {lang==='uk'?'пада':'pada'} {p.pada}</small></td><td>{p.retrograde?<span className="jy-retro">℞ {lang==='uk'?'ретро':'retro'}</span>:<span className="jy-direct">{lang==='uk'?'прямий':'direct'}</span>}</td></tr>):<tr><td colSpan={6} className="empty-table">{i.waiting}</td></tr>}</tbody></table></div>
-
-     <div className="jy-section-rule" id="timeline"/>
-     <div className="jy-subhead"><div><span>{lang==='uk'?'ЧАСОВІ ЦИКЛИ':'TIMING CYCLES'}</span><h3>{lang==='uk'?'Вімшоттарі-даша':'Vimshottari dasha'}</h3></div>{activeDasha&&<small>{lang==='uk'?'Активно зараз':'Active now'}: {grahaFull(activeDasha.lord,lang)}{activeAntar?' / '+grahaFull(activeAntar.lord,lang):''}</small>}</div>
-     <div className="jy-dasha-strip">{chart?chart.dasha.map((d,ix)=>{const active=Date.parse(d.start)<=now&&Date.parse(d.end)>now;return <div className={'jy-dasha-cell '+(active?'current':'')} key={ix}><span>{GRAHA_SYMBOL[d.lord]||'•'}</span><strong>{grahaFull(d.lord,lang)}</strong><small>{d.start.slice(0,4)}–{d.end.slice(0,4)}</small>{active&&<b>{lang==='uk'?'ЗАРАЗ':'NOW'}</b>}</div>}):<div className="jy-dasha-empty">{i.waiting}</div>}</div>
-     {chart&&<details className="jy-reference-details">
-      <summary>{lang==='uk'?'Технічні дані та перевірка розрахунку':'Technical data and calculation verification'}</summary>
+    {chart&&<section className="panel jy-data-workspace" id="chart-data" data-feature={natalExactData.id} data-access={natalExactData.access}>
+     <h2>{lang==='uk'?'Точні дані розрахунку':'Calculation details'}</h2>
+     <label className={landing.choice}>{lang==='uk'?'Положення планет':'Planetary positions'}
+      <select value={positions} onChange={e=>setPositions(e.target.value as typeof positions)}>
+       <option value="d1">{lang==='uk'?'D1 · Раші':'D1 · Rashi'}</option>
+       <option value="d9">{lang==='uk'?'D9 · Навамша':'D9 · Navamsha'}</option>
+       <option value="d10">{lang==='uk'?'D10 · Дашамша':'D10 · Dashamsha'}</option>
+      </select>
+     </label>
+     <div className="table-scroll jy-planet-table" tabIndex={0} role="region" aria-label={lang==='uk'?'Таблиця положень':'Position table'}>
+      <table data-testid="natal-positions">
+       <caption>{positions.toUpperCase()} · {lang==='uk'?'сидеричні положення':'sidereal positions'}</caption>
+       <thead><tr>{(lang==='uk'?['Граха','Знак','Положення у знаку','Довгота','Дім','Накшатра','Рух']:
+        ['Graha','Sign','Position in sign','Longitude','House','Nakshatra','Motion']).map(label=><th scope="col" key={label}>{label}</th>)}</tr></thead>
+       <tbody>{tableLagna&&[tableLagna,...chart[positions]].map(p=><tr key={p.name}>
+        <th scope="row">{p.name==='Ascendant'?(lang==='uk'?'Лагна':'Lagna'):grahaFull(p.name,lang)}</th>
+        <td>{signFull(p.sign,lang)}</td><td>{positionLabel(p.degreesInSign)}</td><td>{positionLabel(p.longitude)}</td>
+        <td>{p.house}</td><td>{nakshatraName(p.nakshatra,lang)} · {lang==='uk'?'пада':'pada'} {p.pada}</td>
+        <td>{p.name==='Ascendant'?'—':p.retrograde?(lang==='uk'?'ретроградний':'retrograde'):(lang==='uk'?'прямий':'direct')}</td>
+       </tr>)}</tbody>
+      </table>
+     </div>
+     {period&&<div id="timeline">
+      <label className={landing.choice}>{lang==='uk'?'Вімшоттарі · великий період':'Vimshottari · major period'}
+       <select value={chart.dasha.indexOf(period)} onChange={e=>setPeriodIndex(Number(e.target.value))}>
+        {chart.dasha.map((d,index)=><option key={d.start} value={index}>{grahaFull(d.lord,lang)} · {d.start.slice(0,10)} – {d.end.slice(0,10)}{d===activeDasha?(lang==='uk'?' · зараз':' · now'):''}</option>)}
+       </select>
+      </label>
+      <table className={landing.periods}>
+       <caption>{lang==='uk'?'Підперіоди · дати UTC':'Subperiods · UTC dates'}</caption>
+       <thead><tr><th scope="col">{lang==='uk'?'Управитель':'Lord'}</th><th scope="col">{lang==='uk'?'Початок':'Start'}</th><th scope="col">{lang==='uk'?'Кінець':'End'}</th></tr></thead>
+       <tbody>{period.antardashas.map(item=><tr key={item.start}><th scope="row">{grahaFull(item.lord,lang)}</th><td>{item.start.slice(0,10)}</td><td>{item.end.slice(0,10)}</td></tr>)}</tbody>
+      </table>
+     </div>}
+     <h3>{lang==='uk'?'Параметри розрахунку':'Calculation settings'}</h3>
       <div className="jy-data-list">
-       <div><span>{lang==='uk'?'Аянамша':'Ayanamsha'}</span><strong>{chart?chart.ayanamsa.toFixed(3)+'° · Lahiri':'—'}</strong></div>
+       <div><span>{lang==='uk'?'Аянамша':'Ayanamsha'}</span><strong>{chart?chart.ayanamsa.toFixed(6)+'° · Lahiri':'—'}</strong></div>
        <div><span>UTC</span><strong>{chart?chart.utc.replace('T',' ').slice(0,19):'—'}</strong></div>
        <div><span>{lang==='uk'?'Часовий пояс':'Time zone'}</span><strong>{chart?.input.timeZone||'—'}</strong></div>
        <div data-testid="n503-birthplace-name"><span>{lang==='uk'?'Місце народження':'Birthplace'}</span><strong>{chart?(chart.input.place||(lang==='uk'?'Ручні координати':'Manual coordinates')):'—'}</strong></div>
@@ -429,8 +396,11 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
         Math.abs(chart.input.latitude).toFixed(5)+'° '+(chart.input.latitude<0?'S':'N')+' · '+
         Math.abs(chart.input.longitude).toFixed(5)+'° '+(chart.input.longitude<0?'W':'E'):'—'}</strong></div>
        <div><span>{lang==='uk'?'Ефемериди':'Ephemeris'}</span><strong>{chart?.ephemeris?.includes('pyswisseph')?'PySwissEph':chart?'Swiss Ephemeris':'—'}</strong></div>
+       {chart.config?.houses&&<div><span>{lang==='uk'?'Система домів':'House system'}</span><strong>{lang==='uk'&&chart.config.houses==='Whole sign'?'Цілознакова':chart.config.houses}</strong></div>}
+       {chart.config?.nodes&&<div><span>{lang==='uk'?'Місячні вузли':'Lunar nodes'}</span><strong>{lang==='uk'&&chart.config.nodes==='Mean Rahu / opposite Ketu'?'Середній Раху, Кету навпроти':chart.config.nodes}</strong></div>}
        <div><span>{lang==='uk'?'Режим років Вімшоттарі':'Vimshottari year mode'}</span><strong>{chart.config?.dashaYearMode||'—'}</strong></div>
       </div>
+      <details className="jy-reference-details"><summary>{lang==='uk'?'Метод і перевірка точності':'Method and verification'}</summary>
       <p>{lang==='uk'?'Дати даш розраховано за вказаним режимом років; це не незалежний сертифікат дат JHora.':'Dasha dates use the year mode shown above; this is not an independent JHora date certificate.'}</p>
       {chart.verification?.status==='verified_internal'&&<>
        <p>{lang==='uk'?'Внутрішні перевірки D1, D9, D10, управителів і даш пройдено.':'Internal D1, D9, D10, house-lord and dasha consistency checks passed.'}</p>
@@ -438,11 +408,10 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
        {jhoraReference&&<p>{lang==='uk'?'Незалежний корпус JHora 8.0:':'Independent JHora 8.0 corpus:'} {jhoraReference.cases} {lang==='uk'?'карт з однаковою методикою':'same-method charts'}. D1 {jhoraReference.d1SignMatches}/{jhoraReference.d1Total}, D9 {jhoraReference.d9SignMatches}/{jhoraReference.d9Total}, D10 {jhoraReference.d10SignMatches}/{jhoraReference.d10Total}. {lang==='uk'?'Збіг знаків підтверджено. Точність довгот до 1″ та календарні дати Vimshottari перевіряються окремо.':'Sign parity is certified. One-arcsecond longitude precision and Vimshottari calendar dates have separate pending checks.'}</p>}
        <p>{lang==='uk'?'Це незалежна звірка еталонних карт за узгодженим профілем, а не індивідуальна перевірка вашої карти в JHora.':'This is an independent same-profile reference check, not direct JHora verification of your individual chart.'}</p>
       </>}
-     </details>}
+     </details>
     </section>}
-
-    </div>
-    <section className={landing.faq} aria-labelledby="natal-faq-title">
+    </>}
+    {!showResult&&<section className={landing.faq} aria-labelledby="natal-faq-title">
      <div className={landing.faqHeader}>
       <div><span className={landing.eyebrow}>{lang==='uk'?'ЗАПИТАННЯ ТА ВІДПОВІДІ':'GOOD TO KNOW'}</span>
       <h2 id="natal-faq-title">{lang==='uk'?'Натальна карта — це просто':'Birth charts, explained simply'}</h2></div>
@@ -452,8 +421,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
      <details><summary>{lang==='uk'?'Чим ведична карта відрізняється від західного гороскопа?':'How is a Vedic chart different from a Western horoscope?'}</summary><p>{lang==='uk'?'У Джйотіш застосовується сидеричний зодіак і аянамша Лахірі. Тому знак Сонця або Місяця може відрізнятися від популярного західного тропічного гороскопа.':'Jyotish uses a sidereal zodiac and Lahiri ayanamsa. Your Sun or Moon sign can therefore differ from a familiar Western tropical horoscope.'}</p></details>
      <details><summary>{lang==='uk'?'Чи потрібен точний час народження?':'Do I need an exact birth time?'}</summary><p>{lang==='uk'?'Дата, час і місце потрібні для розрахунку Лагни та домів. За приблизного часу ці показники можуть змінюватися. Особливо чутлива D60: навіть документально записані хвилини не гарантують стабільності її Лагни.':'Date, time and place are used to calculate the ascendant and houses. Approximate times can change these placements. D60 is especially sensitive: even documented minutes cannot guarantee a stable D60 ascendant.'}</p></details>
      <details><summary>{lang==='uk'?'Що означають D1, D9, D10 і D60?':'What do D1, D9, D10 and D60 mean?'}</summary><p>{lang==='uk'?'D1 (Раші) показує карту народження в цілому. D9 (Навамша) допомагає дослідити партнерство й дхарму, а D10 — професійну діяльність. Доступні всі 16 карт Шодашаварги. Для D60 навіть невелика похибка в часі народження може змінити результат.':'D1 (Rashi) gives an overview of your birth chart. You can explore D9 (Navamsa), D10 (career) and all 16 Shodashavarga charts. D9 focuses on partnership and dharma. D60 has special birth-time sensitivity limits.'}</p></details>
-    </section>
-
+    </section>}
 
    </div>
   </div>

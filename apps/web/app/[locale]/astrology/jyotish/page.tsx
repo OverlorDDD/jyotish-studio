@@ -1,3 +1,4 @@
+import {natalExactData} from '../../../../lib/natal-features';
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 import JyotishCalculator from '../../../astrology/jyotish/page';
@@ -38,11 +39,13 @@ export default async function JyotishPage({params}:{params:Promise<{locale:strin
   description:locale==='uk'?'Безкоштовний розрахунок натальної карти за часом і місцем народження.':'Free Vedic birth chart (Kundli) using Swiss Ephemeris and Lahiri ayanamsa.',
   applicationCategory:'EducationalApplication',operatingSystem:'Web browser',isAccessibleForFree:true,
   offers:{'@type':'Offer',price:'0',priceCurrency:'USD'},
+  hasPart:{'@type':'WebPageElement',name:locale==='uk'?'Точні дані розрахунку':'Calculation details',
+   identifier:natalExactData.id,isAccessibleForFree:natalExactData.access==='public',cssSelector:'#chart-data'},
   featureList:locale==='uk'
    ?['16 дробових карт Шодашаварги','D1, D9 та D10','Попередня D60 з обмеженням точності часу']
    :['16 Shodashavarga divisional charts','D1, D9 and D10','Provisional D60 with birth-time sensitivity limits']
  }:null;
  return <PortalShell locale={locale as 'en'|'uk'} active="astrology" languagePath="astrology/jyotish">
   {schema&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema).replace(/</g,'\\u003c')}}/>}
-  <JyotishCalculator initialLang={locale as 'en'|'uk'}/><SiteSectionsHub locale={locale as 'en'|'uk'}/><JyotishSearchGuide locale={locale as 'en'|'uk'}/><div className="as-wellness" style={{margin:'14px auto',padding:'16px 22px',maxWidth:1050}}><Link href={'/'+locale+'/astrology/divisional-charts'}>{locale==='uk'?'Докладний довідник усіх 16 карт Шодашаварги (D1–D60)':'Explore all 16 Shodashavarga charts (D1–D60) and their methods'}</Link></div><OrganicIntentBridge kind="jyotish" locale={locale as 'en'|'uk'}/><GalaxiComModuleLink locale={locale as 'en'|'uk'} kind="jyotish"/></PortalShell>;
+  <JyotishCalculator initialLang={locale as 'en'|'uk'}/><div data-natal-related><SiteSectionsHub locale={locale as 'en'|'uk'}/><JyotishSearchGuide locale={locale as 'en'|'uk'}/><div className="as-wellness" style={{margin:'14px auto',padding:'16px 22px',maxWidth:1050}}><Link href={'/'+locale+'/astrology/divisional-charts'}>{locale==='uk'?'Докладний довідник усіх 16 карт Шодашаварги (D1–D60)':'Explore all 16 Shodashavarga charts (D1–D60) and their methods'}</Link></div><OrganicIntentBridge kind="jyotish" locale={locale as 'en'|'uk'}/><GalaxiComModuleLink locale={locale as 'en'|'uk'} kind="jyotish"/></div></PortalShell>;
 }
