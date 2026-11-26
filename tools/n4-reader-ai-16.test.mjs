@@ -313,3 +313,16 @@ test('Groq preserves source-verified original when quality retry returns fabrica
  assert.match(result.result.text,/D24 and D27 support D1/);
  assert.doesNotMatch(result.result.text,/D5 invents/);
 });
+
+test('all fifteen verified D1-derived charts are supplied to cloud writer by life domain',()=>{
+ const v=fixture(),facts=compactJyotishFacts(v,'en',false);
+ assert.match(facts,/D1 lagna:/);
+ assert.match(facts,/D9 lagna sign=/);
+ assert.match(facts,/D10 lagna sign=/);
+ for(const n of [2,3,4,7,12,16,20,24,27,30,40,45]){
+  assert.match(facts,new RegExp('D'+n+' focus='));
+  assert.match(facts,new RegExp('D'+n+'\\\\.lagna\\\\.sign='));
+ }
+ assert.match(facts,/D60: METHOD_ONLY/);
+ assert.doesNotMatch(facts,/D60\\\\.lagna\\\\.sign=|D60\\\\.[A-Za-z]+\\\\.house=/);
+});
