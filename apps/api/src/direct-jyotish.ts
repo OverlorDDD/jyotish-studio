@@ -124,6 +124,17 @@ const pickModel=(provider:FreeProvider)=>{
 const urlFor=(p:FreeProvider)=>p==='gemini'?'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions':
  p==='groq'?'https://api.groq.com/openai/v1/chat/completions':'https://openrouter.ai/api/v1/chat/completions';
 const redact=(reason:FreeFallbackReason,provider:FreeProvider)=>console.warn('Direct Jyotish: '+provider+' '+reason);
+/** Provider-side 429s count toward OpenRouter's free usage allowance.
+ * Never retry a 429 in the same consultation; suppress repeated attempts
+ * across subsequent requests in this API worker for a bounded period. */
+let openRouterCooldownUntil=0;
+export function openRouterRetryAfterMs(headers:Pick<Headers,'get'>,now=Date.now()):number{
+ const raw=(headers.get('retry-after')||'').trim();
+ const seconds=/^\d+(?:\.\d+)?$/.test(raw)?Number(raw):NaN;
+ const date=raw&&!Number.isFinite(seconds)?Date.parse(raw):NaN;
+ const requested=Number.isFinite(seconds)?seconds*1000:Number.isFinite(date)?date-now:0;
+ return Math.min(30*60_000,Math.max(60_000,Math.ceil(requested)));
+}
 export function acceptDirectJyotishText(text:string):{ok:boolean;reason:string}{
  const clean=text.trim().replace(/^\`\`\`(?:markdown)?\s*/i,'').replace(/\s*\`\`\`$/,'');
  if(clean.length<900)return {ok:false,reason:'too_short'};
@@ -194,6 +205,9 @@ export async function generateDirectJyotish(
    diagnostic(provider,'config',!key?.trim()?'missing_key':'free_tier_unconfirmed');
    continue;
   }
+  if(provider==='openrouter'&&!opts.fetcher&&Date.now()<openRouterCooldownUntil){
+   reason='rate_limited';diagnostic(provider,'limit','provider_cooldown');continue;
+  }
   if(!permit()){reason='hourly_limit';diagnostic(provider,'limit','hourly_limit');break;}
   let controller:AbortController|null=null;
   let timer:ReturnType<typeof setTimeout>|undefined;
@@ -250,6 +264,9 @@ export async function generateDirectJyotish(
         '. Here are ONLY verified calculation facts:\n'+(backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
+     if(provider==='openrouter'&&response.status===429&&!opts.fetcher){
+      openRouterCooldownUntil=Date.now()+openRouterRetryAfterMs(response.headers);
+     }
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
       response.status>=500?'provider_unavailable':'invalid_response';
      diagnostic(provider,'http',reason,response.status);
