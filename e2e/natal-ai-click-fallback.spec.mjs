@@ -29,7 +29,7 @@ for(const locale of ['uk','en']){
    expect(payload.expectedChartDigest).toMatch(/^[a-f0-9]{64}$/);
    await gate;
    await route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({
-    ...report,ai:{provider:'groq',model:'openai/gpt-oss-120b',text:aiProse,source:'llm',cached:false}
+    ...report,reader10:{...report.reader10,chapters:report.reader10.chapters.map(c=>({...c,lead:'Verified consultation for '+c.id+'.'}))},ai:{provider:'groq',model:'openai/gpt-oss-120b',text:aiProse,readerFormat:'n6-reader-v1',source:'llm',cached:false}
    })});
   });
   await page.locator('.jy-ai-launch-btn').click();
@@ -38,8 +38,11 @@ for(const locale of ['uk','en']){
   await expect.poll(()=>calls.length).toBe(1);
   expect(calls).toEqual(['auto']);
   resolveCall();
-  await expect(page.getByTestId('jyotish-direct-consultation')).toBeVisible({timeout:15000});
-  await expect(page.getByTestId('jyotish-direct-consultation')).toContainText('Verified consultation');
+  await expect(page.getByTestId('reader10')).toBeVisible({timeout:15000});
+  await expect(page.getByTestId('reader10')).toContainText('Verified consultation');
+  await expect(page.getByTestId('reader10-timing')).toBeVisible();
+  await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);
+  await expect(page.getByTestId('reader10-work-details')).not.toHaveAttribute('open','');
   await expect(page.getByTestId('reading-ai-provenance')).toContainText('Groq');
   await expect(page.locator('.jy-ai-status')).toContainText('groq');
   await expect(page.getByTestId('reading-ai-provenance')).not.toContainText('Reader');

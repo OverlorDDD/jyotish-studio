@@ -155,6 +155,8 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
   setChart(ready);
   const compatibleSaved=saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
+    saved?.reader10?.chapters.some(c=>c.id==='timing')&&saved.asOf===new Date().toISOString().slice(0,10)&&
+    (saved.ai?.source!=='llm'||saved.ai.readerFormat==='n6-reader-v1')&&
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
     saved?.readerV7?.version==='reader-v7.0.0-n43'&&
     saved?.readerV8?.version==='reader-v8.0.0-n44'&&
@@ -264,7 +266,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
     'Сервер помилково повернув локальний Reader на запит AI. Перевірте налаштування API та повторіть запит.':
     'The server unexpectedly returned local Reader for an AI request. Check API configuration and retry.');
    setReport(data);
-   setInterpretation(mode==='auto'&&data.ai?.source==='llm'&&Boolean(data.ai?.text)?
+   setInterpretation(mode==='auto'&&data.ai?.source==='llm'&&data.ai.readerFormat==='n6-reader-v1'&&Boolean(data.ai?.text)?
     (lang==='uk'?'AI-консультація готова · '+data.ai.provider+' ↓':'AI consultation ready · '+data.ai.provider+' ↓'):
     mode==='auto'?
      (lang==='uk'?'AI-моделі не надали перевіреного тексту; показано Reader. Причина: '+(data.ai?.fallbackReason||'невідома'):
@@ -346,7 +348,7 @@ export default function Page({initialLang='uk',variant}:{initialLang?:'en'|'uk';
       <div className={landing.timeField}>
        <label>{i.time}<input type="time" value={form.time} onChange={e=>edit('time',e.target.value)} required/></label>
        <label className={landing.minuteOption}>
-        <input type="checkbox" checked={minutesUncertain} onChange={e=>setMinutesUncertain(e.target.checked)}/>
+        <input type="checkbox" checked={minutesUncertain} onChange={e=>{readingRequestId.current++;setAiBusy(false);setReport(null);setInterpretation('');setMinutesUncertain(e.target.checked);}}/>
         {lang==='uk'?'Не знаю точних хвилин':'I don’t know the exact minutes'}
        </label>
        {(!form.time||minutesUncertain)&&<p className={landing.timeHint} role="status">
