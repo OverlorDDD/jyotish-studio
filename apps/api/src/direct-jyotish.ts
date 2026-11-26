@@ -253,7 +253,7 @@ export async function generateDirectJyotish(
        DIRECT_JYOTISH_BACKUP_INSTRUCTION.replace('380-520 words TOTAL','260-320 words TOTAL')+
         '\nGive the finished prose immediately. Use short sections and place the two additional divisions near the beginning.':
        backup?DIRECT_JYOTISH_BACKUP_INSTRUCTION:DIRECT_JYOTISH_INSTRUCTION)+
-      (hasVerifiedVargas?'\nAcross the thematic sections, use the evidence for multiple relevant verified divisions beyond D1/D9/D10 (D2, D3, D4, D7, D12, D16, D20, D24, D27, D30, D40, D45). First explicitly connect at least TWO different supplied new divisions to their actual D1 themes, then synthesize further supplied divisions by life area as token budget allows. Do not use D60 as an individual chart and never invent a Dn placement.':'')+
+      (hasVerifiedVargas?'\nAcross the thematic sections, use the evidence for multiple relevant verified divisions beyond D1/D9/D10 (D2, D3, D4, D7, D12, D16, D20, D24, D27, D30, D40, D45). First explicitly connect at least TWO different supplied new divisions using their D-codes to their actual D1 themes, then synthesize further supplied divisions by life area as token budget allows. Do not use D60 as an individual chart and never invent a Dn placement.':'')+
       (correctiveReason==='unsupported_divisional_chart'?
        '\nCORRECTION: Your prior draft referred to an unverified D-chart. Discard that draft. Never mention D60 or any division not explicitly present in the supplied verified facts. Only the supplied verified D-codes are permitted; do not invent other charts.':'')+
       (correctiveReason==='missing_n4_cross_varga_synthesis'?
