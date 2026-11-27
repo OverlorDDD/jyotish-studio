@@ -80,7 +80,7 @@ test('N6.2 Gemini 503 falls back to Groq strict schema and preserves the full lo
   if(String(url).includes('googleapis'))return new Response('{}',{status:503});
   assert.equal(b.response_format.type,'json_schema');assert.equal(b.response_format.json_schema.strict,true);
   const s=b.response_format.json_schema.schema;
-  assert.equal(s.additionalProperties,false);assert.deepEqual(s.required,['chapters']);
+  assert.equal(s.additionalProperties,false);assert.deepEqual(s.required,['chapters']);assert.deepEqual(s.properties.chapters.items.properties.paragraphs.items.properties.evidenceIds.items.enum,brief.chapters.flatMap(c=>c.evidence.map(e=>e.id)));
   assert.deepEqual(s.properties.chapters.items.required,['id','lead','paragraphs']);
   assert.doesNotMatch(JSON.stringify(b),/2000-01-01|latitude|longitude/);
   return response();
@@ -101,7 +101,7 @@ test('N6.2 Gemini 503 falls back to Groq strict schema and preserves the full lo
   assert.equal(n,1);assert.equal(rejected.result,null);
  }
  n=0;const malformed=await generateDirectJyotish(chart,'en','2026-11-26',{...opts,order:['groq'],fetcher:async()=>{n++;const x=output();x.chapters[0].paragraphs[0].evidenceIds=['invented'];return response(x);}});
- assert.equal(n,1);assert.equal(malformed.result,null);
+ assert.equal(n,2);assert.equal(malformed.result,null);
 });
 
 test('N6.2 normalizes harmless prose typography without dropping technical claims',()=>{
@@ -125,7 +125,8 @@ test('N6.2 repairs only failed chapters and revalidates the complete document',(
  assert.ok(parseN6Response(repaired,reader,brief));
  assert.equal(mergeN6Repair(JSON.stringify({chapters:[output().chapters[0]]}),plan),null);
  x.chapters[2].paragraphs[0].evidenceIds=['invented'];
- assert.equal(planN6Repair(JSON.stringify(x),reader,brief),null);
+ const combined=planN6Repair(JSON.stringify(x),reader,brief);assert.deepEqual(combined.ids,['money','work']);
+ assert.equal(parseN6Response(JSON.stringify(x),reader,brief),null);
 });
 test('N6.2 Groq content repair sends only failed chapters, counts calls, and never accepts a bad repair',async()=>{
  const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
@@ -143,4 +144,22 @@ test('N6.2 Groq content repair sends only failed chapters, counts calls, and nev
  assert.ok(events.some(d=>d.reason==='n6_plain_digits_money'));assert.ok(events.some(d=>d.reason==='n6_repaired_complete'));
  calls=0;const rejected=await generateDirectJyotish(chart,'en','2026-11-26',{...opts,fetcher:async()=>{calls++;return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(calls===1?x:{chapters:[x.chapters[1]]})}}]}));}});
  assert.equal(calls,2);assert.equal(rejected.result,null);
+});
+
+test('N6.2 V3 repairs more than three chapters, mixed format/evidence faults and cross-chapter duplicates without accepting unsafe prose',()=>{
+ const x=output();
+ x.chapters[1].paragraphs[0].text+=' D2.';
+ x.chapters[2].paragraphs[0].evidenceIds=['invented'];
+ x.chapters[3].paragraphs[0].text+=' Neptune.';
+ x.chapters[4].paragraphs[0].text=x.chapters[0].paragraphs[0].text;
+ x.chapters[5].paragraphs[0].text+=' D20.';
+ assert.equal(parseN6Response(JSON.stringify(x),reader,brief),null);
+ const plan=planN6Repair(JSON.stringify(x),reader,brief);
+ assert.deepEqual(plan.ids,['money','work','love','home','path']);
+ const replacement={chapters:output().chapters.filter(c=>plan.ids.includes(c.id))};
+ const merged=mergeN6Repair(JSON.stringify(replacement),plan);
+ assert.deepEqual(JSON.parse(merged),output());
+ assert.ok(parseN6Response(merged,reader,brief));
+ replacement.chapters[1].paragraphs[0].evidenceIds=['invented'];
+ assert.equal(parseN6Response(mergeN6Repair(JSON.stringify(replacement),plan),reader,brief),null);
 });

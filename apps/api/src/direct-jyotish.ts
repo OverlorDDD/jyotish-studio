@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,planN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,type N6Repair} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -202,10 +202,10 @@ const GROQ_N6_SCHEMA={
   }
  }}
 } as const;
-function groqN6Schema(repair:N6Repair|null){
- if(!repair)return GROQ_N6_SCHEMA;
- const {json_schema:s}=GROQ_N6_SCHEMA,c=s.schema.properties.chapters;
- return {...GROQ_N6_SCHEMA,json_schema:{...s,name:'galaxiora_n6_repair',schema:{...s.schema,properties:{chapters:{...c,items:{...c.items,properties:{...c.items.properties,id:{type:'string',enum:repair.ids}}}}}}}};
+function groqN6Schema(brief:ReturnType<typeof buildN6Brief>,repair:N6Repair|null){
+ const {json_schema:s}=GROQ_N6_SCHEMA,c=s.schema.properties.chapters,props=c.items.properties,paragraph=props.paragraphs.items;
+ const ids=[...new Set([...brief.chapters.flatMap(x=>x.evidence),...brief.context].map(x=>x.id))];
+ return {...GROQ_N6_SCHEMA,json_schema:{...s,name:repair?'galaxiora_n6_repair':s.name,schema:{...s.schema,properties:{chapters:{...c,items:{...c.items,properties:{...props,id:{type:'string',enum:brief.chapters.map(x=>x.id)},paragraphs:{...props.paragraphs,items:{...paragraph,properties:{...paragraph.properties,evidenceIds:{type:'array',items:{type:'string',enum:ids}}}}}}}}}}}};
 }
 /** Classify only known upstream errors. Never log provider messages, failed
  * generation, arbitrary error codes, request bodies, keys or chart data. */
@@ -292,13 +292,13 @@ export async function generateDirectJyotish(
     controller=new AbortController();
     const providerTimeout=provider==='gemini'?65000:42000;
     const reservedForFallback=30000*(order.length-index-1);
-    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?25000:providerTimeout);
+    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?(repair&&repair.ids.length>3?42000:25000):providerTimeout);
     timer=setTimeout(()=>controller?.abort(),timeout);
     const concise=attempt===1;
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=n6?(repair?Math.min(2400,900+450*repair.ids.length):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
+    const maxCompletion=n6?(repair?Math.min(3400,1200+450*repair.ids.length):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -320,7 +320,7 @@ export async function generateDirectJyotish(
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
-      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(repair)}:{}),
+      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(repair?.brief??n6,repair)}:{}),
       messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT:N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
        {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(repair?.brief??n6,provider==='groq'):backup?backupFacts:facts)} ]})
@@ -366,9 +366,19 @@ export async function generateDirectJyotish(
      const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6);
      const reader10=checked.reader;
      if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
-      if(provider==='groq'&&attempt===0&&choice?.finish_reason!=='length'&&deadline-Date.now()>30000+reservedForFallback){
-       repair=planN6Repair(rawContent,opts.reader10,n6);
-       if(repair){diagnostic(provider,'validation','n6_repair_'+repair.ids.join('_'));continue;}
+      if(provider==='groq'&&attempt===0){
+       const enoughTime=deadline-Date.now()>30000+reservedForFallback;
+       if(!enoughTime)diagnostic(provider,'validation','n6_repair_no_time');
+       else if(choice?.finish_reason==='length')diagnostic(provider,'validation','n6_repair_truncated');
+       else{
+        const decision=inspectN6Repair(rawContent,opts.reader10,n6);
+        repair=decision.repair;
+        if(repair){diagnostic(provider,'validation','n6_repair_'+repair.ids.join('_'));for(const issue of repair.issues)diagnostic(provider,'validation','n6_repair_issue_'+issue.replace(':','_'));continue;}
+        diagnostic(provider,'validation','n6_repair_'+decision.reason);
+       }
+       if(enoughTime&&['token_limit','json_syntax','chapter_count','chapter_order','unchanged_classic'].includes(checked.reason)){
+        correctiveReason=code;diagnostic(provider,'validation','n6_full_retry_'+checked.reason);continue;
+       }
       }
       if(provider!=='groq'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
       break;

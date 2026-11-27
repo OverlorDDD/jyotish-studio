@@ -49,7 +49,7 @@ export function buildN6Brief(reader:Reader10Report,chart?:CalculatedChart):N6Bri
   return {id:c.id,lead:c.lead,paragraphs:c.paragraphs,evidence,required:core.map(e=>e.id),minWords:richTiming?85:c.id==='summary'||!c.details?20:30,minParagraphs:richTiming?3:2};
  })};
 }
-export const N6_PROMPT='You are an expert Parashari Jyotish interpreter and careful Ukrainian/English editor. Return ONLY JSON {"chapters":[{"id":"self","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["self.0","self.1"]}]}]}. Include all eight supplied chapter IDs exactly once in order. Each chapter uses its listed required evidence IDs across its paragraphs, plus any useful optional local evidence or shared context. Other chapters’ local IDs are not allowed. Shared facts must be used only where they actually explain the topic. Do not calculate or invent facts. The supplied classical prose is a starting point, not text to copy. Explain how several indicators reinforce or constrain each other; identify a distinctive cross-domain pattern in the opening and return to its implications in the summary. Analyze D9/D7 and D10/D24 meaningfully; use D2/D16, D4/D12/D40/D45 and D20/D3/D27/D30 where supported. In timing, distinguish the long cycle from the current shorter cycle, synthesize both rulers’ actual D1 houses and lordships, discuss the specific interaction and aspects or verified D9/D10 evidence when relevant, and end with a realistic low-risk practical focus. For a supplied timing chapter with minimum 85 words write 3–4 paragraphs and aim for 100–140 words. If a period is unavailable, do not infer it. For other chapters write 2–3 paragraphs with a distinctive lead. Aim for 520–700 words total. Plain natural language: spell ordinary numbers as words, put digits only in evidence IDs, and use no raw dates, chart codes, technical jargon, Markdown, links or HTML in the lead or paragraph text; the server renders technical facts separately. D60 only as a supplied provisional sign comparison, never a boundary warning as evidence for personality. No guaranteed outcomes, invented biography, past lives, medical or investment directives. Avoid empty praise, repeated stock phrases and automatic fatalism. Proofread Ukrainian case agreement. Only the JSON object, no commentary.';
+export const N6_PROMPT='You are an expert Parashari Jyotish interpreter and careful Ukrainian/English editor. Return ONLY JSON {"chapters":[{"id":"self","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["self.0","self.1"]}]}]}. Include all eight supplied chapter IDs exactly once in order. Each chapter uses its listed required evidence IDs across its paragraphs, plus any useful optional local evidence or shared context. Other chapters’ local IDs are not allowed. Shared facts must be used only where they actually explain the topic. Do not calculate or invent facts. The supplied classical prose is a starting point, not text to copy. Explain how several indicators reinforce or constrain each other; identify a distinctive cross-domain pattern in the opening and return to its implications in the summary. Analyze D9/D7 and D10/D24 meaningfully; use D2/D16, D4/D12/D40/D45 and D20/D3/D27/D30 where supported. In timing, distinguish the long cycle from the current shorter cycle, synthesize both rulers’ actual D1 houses and lordships, discuss the specific interaction and aspects or verified D9/D10 evidence when relevant, and end with a realistic low-risk practical focus. For a supplied timing chapter with minimum 85 words write 3–4 paragraphs and aim for 100–140 words. If a period is unavailable, do not infer it. For other chapters write 2–3 paragraphs with a distinctive lead. Aim for 520–700 words total. Plain natural language: use no digits in lead or paragraph text. Describe divisional evidence by its life theme, never by its technical label. Put the exact evidence IDs only in evidenceIds arrays, never inline. Do not use raw dates, technical jargon, Markdown, links or HTML in prose; the server renders technical facts separately. D60 only as a supplied provisional sign comparison, never a boundary warning as evidence for personality. No guaranteed outcomes, invented biography, past lives, medical or investment directives. Avoid empty praise, repeated stock phrases and automatic fatalism. Proofread Ukrainian case agreement. Only the JSON object, no commentary.';
 /** The backup gets the same evidence and required IDs, not a second copy of every local paragraph. */
 export function n6ProviderPayload(brief:N6Brief,compact:boolean):string{
  if(!compact)return JSON.stringify(brief);
@@ -132,22 +132,35 @@ export function parseN6Response(raw:string,reader:Reader10Report,brief:N6Brief):
 }
 
 export type N6Repair={brief:N6Brief;original:unknown[];ids:Reader10Chapter['id'][];issues:string[]};
-/** Repair a bounded subset, not a second full consultation. No rejected prose
+export type N6RepairDecision={repair:N6Repair|null;reason:'ready'|'invalid_document'|'chapter_order'|'no_local_failure'|'cross_document_failure'};
+/** Repair the failed chapters in one bounded request. No rejected prose
  * is sent back to any provider. The combined result must pass the full gate. */
-export function planN6Repair(raw:string,reader:Reader10Report,brief:N6Brief):N6Repair|null{
+export function inspectN6Repair(raw:string,reader:Reader10Report,brief:N6Brief):N6RepairDecision{
  const x=decode(raw);
- if(!x||x.chapters.length!==reader.chapters.length)return null;
+ if(!x||x.chapters.length!==reader.chapters.length)return {repair:null,reason:'invalid_document'};
  const ids:Reader10Chapter['id'][]=[],issues:string[]=[];
+ const accepted:unknown[]=[],acceptedOriginal:Reader10Chapter[]=[],acceptedSpecs:BriefChapter[]=[];
  for(let i=0;i<reader.chapters.length;i++){
   const c=reader.chapters[i],draft=x.chapters[i] as Draft|null;
-  if(!draft||draft.id!==c.id)return null;
-  const check=inspectN6Response(JSON.stringify({chapters:[draft]}),{...reader,chapters:[c]},{...brief,chapters:[brief.chapters[i]]},true);
-  if(check.reader)continue;
-  if(!['plain_length','plain_digits','plain_markup','plain_ending','chapter_shape','thin_chapter','missing_required_evidence','unchanged_timing','repeated_text'].includes(check.reason))return null;
+  if(!draft||draft.id!==c.id)return {repair:null,reason:'chapter_order'};
+  const check=inspectN6Response(JSON.stringify({chapters:[...accepted,draft]}),{...reader,chapters:[...acceptedOriginal,c]},{...brief,chapters:[...acceptedSpecs,brief.chapters[i]]},true);
+  if(check.reader){accepted.push(draft);acceptedOriginal.push(c);acceptedSpecs.push(brief.chapters[i]);continue;}
+  // Regenerate the entire invalid chapter from trusted input, including when
+  // the model hallucinated an evidence ID. Never send or accept its bad prose.
+  // Up to all eight chapters may need correction: the retry count, time and
+  // output tokens, not an arbitrary three-chapter cutoff, bound this work.
   ids.push(c.id);issues.push(c.id+':'+check.reason);
  }
- if(!ids.length||ids.length>3)return null;
- return {brief:{...brief,chapters:brief.chapters.filter(c=>ids.includes(c.id as Reader10Chapter['id']))},original:x.chapters,ids,issues};
+ if(!ids.length){
+  const whole=inspectN6Response(raw,reader,brief);
+  if(whole.reader)return {repair:null,reason:'no_local_failure'};
+  // All chapters individually valid but the document is too close to classic.
+  return {repair:null,reason:'cross_document_failure'};
+ }
+ return {repair:{brief:{...brief,chapters:brief.chapters.filter(c=>ids.includes(c.id as Reader10Chapter['id']))},original:x.chapters,ids,issues},reason:'ready'};
+}
+export function planN6Repair(raw:string,reader:Reader10Report,brief:N6Brief):N6Repair|null{
+ return inspectN6Repair(raw,reader,brief).repair;
 }
 export function mergeN6Repair(raw:string,repair:N6Repair):string|null{
  const x=decode(raw);
@@ -155,4 +168,4 @@ export function mergeN6Repair(raw:string,repair:N6Repair):string|null{
  const updated=new Map(repair.ids.map((id,i)=>[id,x.chapters[i]]));
  return JSON.stringify({chapters:repair.original.map(c=>updated.get((c as Draft).id as Reader10Chapter['id'])??c)});
 }
-export const N6_REPAIR_PROMPT='Return ONLY JSON {"chapters":[{"id":"requested chapter id","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["provided evidence id"]}]}]}. Return only the requested chapters in the supplied order. Use their required evidence IDs, minimum words and paragraph counts. Do not invent or recalculate facts. Interpret the supplied verified local and shared evidence in natural language, synthesize competing factors, and retain the distinct long and short current periods if timing is requested. Use three concise paragraphs and 85–110 words for rich timing. Other chapters use two or three paragraphs. Spell numbers as words; no digits, chart codes, dates, links, Markdown, HTML or unsupported planets in the lead and text. Use digits only inside the supplied evidence IDs, exactly as given. End all prose with punctuation. No guaranteed events, fabricated biography, medical or investment directives. Do not return other chapters.';
+export const N6_REPAIR_PROMPT='Return ONLY JSON {"chapters":[{"id":"requested chapter id","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["provided evidence id"]}]}]}. Return only the requested chapters in the supplied order. Use their required evidence IDs, minimum words and paragraph counts. Do not invent or recalculate facts. Interpret the supplied verified local and shared evidence in natural language, synthesize competing factors, and retain the distinct long and short current periods if timing is requested. Use three concise paragraphs and 85–110 words for rich timing. Other chapters use two or three paragraphs. Use ordinary prose: no digits at all in lead or text, no chart labels or evidence citations in prose, no dates, links, Markdown, HTML or unsupported planets. Describe a chart factor by its life theme rather than writing its technical label. Put the exact evidence IDs only in evidenceIds arrays. Never copy their labels or technical notation into prose. End all prose with punctuation. No guaranteed events, fabricated biography, medical or investment directives. Do not return other chapters.';
