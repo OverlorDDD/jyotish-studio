@@ -224,6 +224,62 @@ async function groqN6BadRequest(response:Response):Promise<'json_generation_fail
  }catch{/* no response body or upstream message leaves this function */}
  return 'bad_request_other';
 }
+/** Groq can return valid JSON with a paragraph count outside the local
+ * presentation contract. Only reflow whole sentences/paragraphs, retaining
+ * every original word and evidence ID. No content synthesis or padding.
+ * Full document validation remains mandatory after reflow. */
+export function reflowGroqN6(raw:string,brief:ReturnType<typeof buildN6Brief>):string{
+ if(raw.length>36000)return raw;
+ try{
+  const obj=JSON.parse(raw.trim().replace(/^\uFEFF/,'')) as {chapters?:Array<{id:string;paragraphs:Array<{text:string;evidenceIds:string[]}>}>};
+  if(!Array.isArray(obj?.chapters)||obj.chapters.length!==brief.chapters.length)return raw;
+  let changed=false;
+  for(let i=0;i<obj.chapters.length;i++){
+   const c=obj.chapters[i],spec=brief.chapters[i];
+   if(!c||c.id!==spec.id||!Array.isArray(c.paragraphs))return raw;
+   const rows=c.paragraphs,min=spec.minParagraphs,max=min===3?4:3;
+   if(rows.length>=min&&rows.length<=max)continue;
+   if(!rows.length||rows.length>8||rows.some(p=>!p||typeof p.text!=='string'||!Array.isArray(p.evidenceIds)||!p.evidenceIds.length||p.evidenceIds.some(id=>typeof id!=='string')))continue;
+   // Do not hide malformed content by joining it; the full validator checks
+   // each resulting paragraph, including digits, forbidden terms and IDs.
+   if(rows.length>max){
+    if(rows.some(p=>p.text.trim().length<15||p.text.length>1300||!/[.!?…]["”»’)]?$/u.test(p.text.trim())))continue;
+    const merged=rows.map(p=>({...p}));
+    while(merged.length>max){
+     let index=0;
+     for(let j=1;j<merged.length-1;j++)if(merged[j].text.length+merged[j+1].text.length<merged[index].text.length+merged[index+1].text.length)index=j;
+     const a=merged[index],b=merged[index+1];
+     if(a.text.length+b.text.length+1>1300)break;
+     merged.splice(index,2,{text:a.text.trim()+' '+b.text.trim(),evidenceIds:[...new Set([...a.evidenceIds,...b.evidenceIds])]});
+    }
+    if(merged.length<=max){c.paragraphs=merged;changed=true;}
+   }else{
+    const split=rows.map(p=>({...p}));
+    while(split.length<min){
+     let candidate=-1,parts:string[]=[];
+     for(let j=0;j<split.length;j++){
+      const text=split[j].text.trim();
+      if(text.length>1300)continue;
+      // No split inside abbreviations or punctuation attached to a number.
+      const sentences=text.split(/(?<=[.!?…])\s+(?=\p{Lu})/u);
+      if(sentences.length<2)continue;
+      let best:string[]=[];
+      for(let k=1;k<sentences.length;k++){
+       const a=sentences.slice(0,k).join(' '),b=sentences.slice(k).join(' ');
+       if(a.length>=40&&b.length>=40&&(!best.length||Math.abs(a.length-b.length)<Math.abs(best[0].length-best[1].length)))best=[a,b];
+      }
+      if(best.length&&(candidate<0||text.length>split[candidate].text.length)){candidate=j;parts=best;}
+     }
+     if(candidate<0)break;
+     const ids=split[candidate].evidenceIds;
+     split.splice(candidate,1,...parts.map(text=>({text,evidenceIds:[...ids]})));
+    }
+    if(split.length>=min){c.paragraphs=split;changed=true;}
+   }
+  }
+  return changed?JSON.stringify(obj):raw;
+ }catch{return raw;}
+}
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
@@ -321,7 +377,7 @@ export async function generateDirectJyotish(
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
       ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(repair?.brief??n6,repair)}:{}),
-      messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT:N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
+      messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT+'\nUse exactly two complete paragraphs for each ordinary chapter and exactly three for rich timing. Lead is separate and never counts as a paragraph.':N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
        {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(repair?.brief??n6,provider==='groq'):backup?backupFacts:facts)} ]})
     });
@@ -349,6 +405,10 @@ export async function generateDirectJyotish(
        }else openRouterCooldownUntil=Date.now()+delay;
       }
      }
+     if(n6&&provider==='groq'&&response.status===429){
+      const retry=response.headers.get('retry-after');
+      if(retry&&/^\d{1,6}$/.test(retry))diagnostic(provider,'limit','groq_retry_after_seconds_'+retry);
+     }
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
       response.status>=500?'provider_unavailable':'invalid_response';
      diagnostic(provider,'http',reason,response.status);
@@ -360,7 +420,9 @@ export async function generateDirectJyotish(
     try{parsed=JSON.parse(raw);}catch{reason='invalid_response';diagnostic(provider,'response','not_json');break;}
     const choice=parsed?.choices?.[0];
     const value=choice?.message?.content;
-    const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+    const originalContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+    const rawContent=n6&&provider==='groq'&&choice?.finish_reason!=='length'?reflowGroqN6(originalContent,repair?.brief??n6):originalContent;
+    if(rawContent!==originalContent)diagnostic(provider,'validation','n631_paragraph_reflow');
     if(n6&&opts.reader10){
      const merged=repair?mergeN6Repair(rawContent,repair):rawContent;
      const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6);

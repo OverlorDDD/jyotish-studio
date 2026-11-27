@@ -186,3 +186,23 @@ test('N6.3 removes local copy anchors and keeps all required IDs available in pr
   }
  }
 });
+
+test('N631 Groq reflows paragraph counts without losing words or evidence; full validation remains mandatory',async()=>{
+ const {reflowGroqN6}=await import('../apps/api/src/direct-jyotish.ts');
+ const x=output(),c=x.chapters[0],before=c.paragraphs.map(p=>p.text).join(' ');
+ const ids=c.paragraphs.flatMap(p=>p.evidenceIds);
+ c.paragraphs=[{text:before,evidenceIds:ids}];
+ const raw=JSON.stringify(x),fixed=reflowGroqN6(raw,brief),y=JSON.parse(fixed);
+ assert.equal(y.chapters[0].paragraphs.length,2);
+ assert.equal(y.chapters[0].paragraphs.map(p=>p.text).join(' '),before);
+ assert.deepEqual([...new Set(y.chapters[0].paragraphs.flatMap(p=>p.evidenceIds))],ids);
+ assert.ok(parseN6Response(fixed,reader,brief));
+ const bad=structuredClone(x);bad.chapters[0].paragraphs[0].evidenceIds=['invented'];assert.equal(parseN6Response(reflowGroqN6(JSON.stringify(bad),brief),reader,brief),null);
+ const digit=structuredClone(x);digit.chapters[0].paragraphs[0].text+=' D9.';assert.equal(parseN6Response(reflowGroqN6(JSON.stringify(digit),brief),reader,brief),null);
+ const zero=structuredClone(x);zero.chapters[0].paragraphs=[];assert.equal(reflowGroqN6(JSON.stringify(zero),brief),JSON.stringify(zero));
+ const many=output();many.chapters[0].paragraphs=Array.from({length:4},(_,i)=>({text:['A distinct first sentence explains a useful theme.','Another sentence offers a different practical perspective.','The next sentence connects responsibility with everyday choices.','The final sentence acknowledges competing influences without promising outcomes.'][i],evidenceIds:[ids[i%ids.length]]}));
+ const merged=JSON.parse(reflowGroqN6(JSON.stringify(many),brief));
+ assert.equal(merged.chapters[0].paragraphs.length,3);
+ assert.equal(merged.chapters[0].paragraphs.map(p=>p.text).join(' '),many.chapters[0].paragraphs.map(p=>p.text).join(' '));
+ assert.ok(parseN6Response(JSON.stringify(merged),reader,brief));
+});
