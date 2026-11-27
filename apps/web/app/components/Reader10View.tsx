@@ -1,6 +1,6 @@
 import styles from './Reader10View.module.css';
 
-type Details={paragraphs:string[];basis:string;links:{label:string;path:string}[]};
+type Details={paragraphs:string[];basis:string;compact?:string[];links:{label:string;path:string}[]};
 export type Reader10UI={version:string;language:'uk'|'en';
  chapters:{id:string;title:string;lead:string;paragraphs:string[];details:Details|null}[]};
 export const READER10_UI_VERSION='reader10-plain-1';
@@ -28,8 +28,8 @@ export default function Reader10View({data,lang,minutesUncertain=false}:{data:Re
    {chapter.paragraphs.map((text,index)=><p key={index}>{text}</p>)}
    {chapter.details?<details className={styles.details} data-testid={'reader10-'+chapter.id+'-details'}>
     <summary>{uk?'Як це видно у вашій карті':'How this shows in your chart'}</summary>
-    {chapter.details.paragraphs.map((text,index)=><p key={index}>{text}</p>)}
-    <p className={styles.basis}>{chapter.details.basis}</p>
+    {(chapter.details.compact?.length?chapter.details.compact:chapter.details.paragraphs).map((text,index)=><p key={index}>{text}</p>)}
+    {!chapter.details.compact?.length?<p className={styles.basis}>{chapter.details.basis}</p>:null}
     {chapter.details.links.length?<p className={styles.links}>{uk?'Докладніше: ':'Read more: '}
      {chapter.details.links.filter(link=>SAFE_PATH.test(link.path)).map((link,index)=><span key={link.path}>
       {index?' · ':''}<a href={'/'+lang+'/'+link.path}>{link.label}</a></span>)}</p>:null}

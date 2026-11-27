@@ -166,15 +166,15 @@ export const SUPPORT:Record<number,{planet:Planet|'lagnaLord';topic:T;tier:Recor
   mixed:t('ви зважуєтеся на крок тоді, коли бачите підтримку.','you take the step when you see support.'),
   hard:t('на перший крок ви зважуєтеся важко, і ініціативу вам треба тренувати.','the first step is hard for you, and initiative is something you have to train.')}},
  7:{planet:'Jupiter',topic:t('діти й творчий спадок','children and creative legacy'),tier:{
-  strong:t('те, що ви створюєте й кого виховуєте, приносить вам радість і гордість.','what you create and whom you raise brings you joy and pride.'),
+  strong:t('творчість і, якщо це актуально, виховання можуть бути джерелами радості та гордості.','creative work and, where relevant, raising children can be sources of joy and pride.'),
   mixed:t('творчість і виховання приносять плоди, коли ви вкладаєте в них час.','creativity and upbringing bear fruit when you put time into them.'),
   hard:t('тема дітей і власних творінь вимагає від вас терпіння й довгого дихання.','the theme of children and of your own creations asks patience and long breath of you.')}},
  12:{planet:'Sun',topic:t('батьки','parents'),tier:{
-  strong:t('батьки дали вам міцну основу, і зв’язок із ними вас підтримує.','your parents gave you a firm foundation, and the bond with them supports you.'),
-  mixed:t('від батьків ви взяли й добре, і складне, і розбираєтеся з цим самі.','you took both good and difficult things from your parents and sort them out yourself.'),
-  hard:t('стосунки з батьками непрості, і опору вам довелося шукати поза родиною.','the relationship with your parents is not simple, and you had to look for support outside the family.')}},
+  strong:t('звертайте увагу на форми родинної підтримки, які справді є у вашому житті.','notice the forms of family support actually present in your life.'),
+  mixed:t('можна осмислити, які родинні звички варто зберігати, а які переглядати.','consider which family habits to retain and which to reconsider.'),
+  hard:t('у стосунках з батьками корисно визначати власні межі та доступні джерела підтримки.','in relationships with parents, consider your boundaries and available support.')}},
  16:{planet:'Venus',topic:t('комфорт і зручності','comfort and conveniences'),tier:{
-  strong:t('комфорт, транспорт і гарні речі приходять до вас легко.','comfort, vehicles and fine things come to you easily.'),
+  strong:t('комфорт може бути важливим ресурсом, якщо співвідносити його з наявними можливостями.','comfort can be a useful resource when balanced with available means.'),
   mixed:t('зручності ви маєте, але платите за них працею.','you have your conveniences, but you pay for them with work.'),
   hard:t('комфорт дається дорого, і задоволення від речей швидко минає.','comfort comes at a high price, and the pleasure of things passes quickly.')}},
  20:{planet:'Jupiter',topic:t('духовна практика','spiritual practice'),tier:{
@@ -182,11 +182,11 @@ export const SUPPORT:Record<number,{planet:Planet|'lagnaLord';topic:T;tier:Recor
   mixed:t('практика діє тоді, коли ви робите її регулярно, а не від нагоди до нагоди.','practice works when you do it regularly rather than now and then.'),
   hard:t('до внутрішньої дисципліни ви йдете довго, через сумніви й перерви.','you come to inner discipline slowly, through doubts and interruptions.')}},
  24:{planet:'Mercury',topic:t('навчання й майстерність','learning and mastery'),tier:{
-  strong:t('навчання дається вам легко, і знання швидко стають умінням.','learning comes easily to you, and knowledge quickly becomes skill.'),
+  strong:t('навчання може бути ресурсом, особливо коли знання переходять у практичні вміння.','learning can be a resource, especially when knowledge becomes practical skill.'),
   mixed:t('ви вчитеся найкраще на практиці, а не з книжок.','you learn best in practice rather than from books.'),
-  hard:t('формальна освіта далася вам важко: свою майстерність ви набуваєте самотужки.','formal education was hard for you: you acquire your mastery on your own.')}},
+  hard:t('у навчанні варто перевіряти, чи підходить вам спосіб здобуття знань, і за потреби змінювати його.','in learning, assess whether your method suits you and change it when needed.')}},
  27:{planet:'lagnaLord',topic:t('запас сил','reserves of strength'),tier:{
-  strong:t('запас сил у вас великий: ви витримуєте те, на чому ламаються інші.','your reserves of strength are large: you endure what breaks others.'),
+  strong:t('ресурси витривалості варто використовувати, залишаючи час для відновлення.','resilience is a resource to use while allowing time for recovery.'),
   mixed:t('сил вам вистачає, якщо ви їх не розпорошуєте.','you have enough strength if you do not scatter it.'),
   hard:t('сили у вас закінчуються раніше, ніж плани: відпочинок для вас обов’язковий, а не бажаний.','your strength runs out before your plans do: rest is mandatory for you, not optional.')}},
  30:{planet:'Saturn',topic:t('випробування','trials'),tier:{
@@ -194,13 +194,13 @@ export const SUPPORT:Record<number,{planet:Planet|'lagnaLord';topic:T;tier:Recor
   mixed:t('випробування приходять хвилями, і ви вчитеся на кожній.','trials come in waves, and you learn from each.'),
   hard:t('випробування б’ють у те саме місце кілька разів, доки ви не зміните підхід.','trials strike the same place several times until you change your approach.')}},
  40:{planet:'Moon',topic:t('материнський рід','the maternal line'),tier:{
-  strong:t('материнський рід передав вам добру спадщину: звідти ваша внутрішня підтримка.','the maternal line passed a good legacy to you: your inner support comes from there.'),
-  mixed:t('від материнського роду ви взяли і сильне, і те, що доводиться переглядати.','from the maternal line you took both strength and things you have to reconsider.'),
+  strong:t('теми материнської лінії пропонують осмислити джерела підтримки в родині.','maternal-line themes invite reflection on sources of family support.'),
+  mixed:t('корисно розрізняти родинні звички, які підтримують вас, і ті, які варто переглянути.','consider which family habits support you and which are worth reconsidering.'),
   hard:t('теми материнської лінії можна розглядати як привід осмислити родинні звички й власні межі.','maternal-line themes can invite reflection on family habits and personal boundaries.')}},
  45:{planet:'Sun',topic:t('батьківський рід','the paternal line'),tier:{
-  strong:t('батьківський рід передав вам гідність і характер, на які можна спиратися.','the paternal line passed on dignity and character you can lean on.'),
-  mixed:t('від батьківського роду ви взяли і чесноти, і впертість.','from the paternal line you took both virtues and stubbornness.'),
-  hard:t('батьківський рід залишив вам завдання, які ви розв’язуєте замість попередників.','the paternal line left you tasks that you resolve in place of those before you.')}}
+  strong:t('теми батьківської лінії дають привід осмислити власні цінності й опори.','paternal-line themes invite reflection on your values and sources of support.'),
+  mixed:t('варто свідомо обирати, які родинні звички зберігати.','consider consciously which family habits to retain.'),
+  hard:t('у родинних питаннях варто розрізняти власну відповідальність і чужі очікування.','in family matters, distinguish your own responsibilities from others’ expectations.')}}
 };
 export const VARGA_NAME:Record<number,T>={2:t('D2 (Хора)','D2 (Hora)'),3:t('D3 (Дреккана)','D3 (Drekkana)'),4:t('D4 (Чатуртхамша)','D4 (Chaturthamsha)'),
  7:t('D7 (Саптамша)','D7 (Saptamsha)'),9:t('D9 (Навамша)','D9 (Navamsha)'),10:t('D10 (Дашамша)','D10 (Dashamsha)'),

@@ -278,3 +278,19 @@ test('N631 incident: 400 JSON generation, 3489 tokens, 33.832s reset; admitted f
  const blocked=await generateDirectJyotish(chart,'en','2026-11-26',{reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>true,fetcher:async()=>{count++;return new Response('{}',{status:429,headers});}});
  assert.equal(count,1);assert.equal(blocked.reason,'rate_limited');assert.equal(blocked.result,null);
 });
+
+test('N64 review is advisory, records specific missing contrasts and generic praise without triggering generation',async()=>{
+ const {reviewN64Report}=await import('../apps/api/src/reader-n6.ts');
+ const b={...brief,context:[{id:'shared.lagnaChain',text:'Mercury debilitated.'}],chapters:brief.chapters.map(c=>c.id==='work'?{...c,evidence:[...c.evidence,{id:'work.v24',text:'D24 dignity contrast.'}]}:c)};
+ const x=output();x.chapters[0].paragraphs[0].text+=' You can overcome any challenge.';
+ const r=inspectN6Response(JSON.stringify(x),reader,b);
+ assert.ok(r.reader);
+ const flags=reviewN64Report(r.reader,b);
+ assert.ok(flags.includes('self_dispositor_dignity_unmentioned'));assert.ok(flags.includes('work_contrast_unmentioned'));assert.ok(flags.includes('self_stock_phrase'));
+});
+
+test('N64 named D60 is rejected without eligible evidence in both presentation modes',()=>{
+ const x=output();
+ x.chapters[5].paragraphs[0].text+=' Shashtiamsha shows this.';
+ for(const groq of [false,true])assert.equal(inspectN6Response(JSON.stringify(x),reader,brief,false,groq).reason,'plain_unknown_division');
+});

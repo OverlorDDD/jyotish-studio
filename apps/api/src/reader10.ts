@@ -15,7 +15,7 @@ import {ASPECT_ON_LAGNA,ASPECT_ON_MOON,IN_LAGNA,LAGNA_LORD_HOUSE,MOON_NAKSHATRA,
 
 export const READER10_VERSION='reader10-plain-1';
 export type Reader10Link={label:string;path:string};
-export type Reader10Details={paragraphs:string[];basis:string;links:Reader10Link[]};
+export type Reader10Details={paragraphs:string[];basis:string;links:Reader10Link[];compact?:string[]};
 export type Reader10Chapter={id:'self'|AreaId|'summary'|'timing';title:string;lead:string;paragraphs:string[];details:Reader10Details|null;evidenceIds?:string[][]};
 export type Reader10Report={version:typeof READER10_VERSION;language:R10Locale;chapters:Reader10Chapter[]};
 
@@ -36,7 +36,6 @@ const factOf=(text:string)=>text.slice(0,text.indexOf(': '))+'.';
 const meaningOf=(text:string)=>cap(text.slice(text.indexOf(': ')+2));
 const nakSlug=(n:number)=>NAKSHATRA_NAME[n-1].en.toLowerCase().replace(/\s+/g,'-');
 const GOOD_HOUSES=new Set([1,4,5,7,9,10]),HARD_HOUSES=new Set([6,8,12]);
-const SUN_HORA=new Set<Planet>(['Sun','Mars','Jupiter']),MOON_HORA=new Set<Planet>(['Moon','Venus','Saturn']);
 const DIVISIONAL_LINK=(l:R10Locale):Reader10Link=>({label:l==='uk'?'Що таке дробові карти D2–D60':'What the divisional charts D2–D60 are',path:'astrology/divisional-charts'});
 const GLOSSARY_LINK=(l:R10Locale):Reader10Link=>({label:l==='uk'?'Словник термінів':'Glossary of terms',path:'pedia/glossary'});
 
@@ -46,7 +45,7 @@ function dignityPhrase(p:PlanetFact,l:R10Locale):string{
   :p.dignity==='debilitated'?(uk?', у знаку падіння':', debilitated'):'';
 }
 const weakNote=(p:PlanetFact,l:R10Locale)=>p.dignity!=='debilitated'?'':l==='uk'
- ?' '+P(p,l)+' при цьому у знаку падіння й діє впівсили.':' '+P(p,l)+' is debilitated here and acts at half strength.';
+ ?' '+P(p,l)+' при цьому у знаку падіння; дію цієї планети оцінюють разом з іншими чинниками.':' '+P(p,l)+' is debilitated here; assess it in the context of other factors.';
 
 /** One inner tension chosen by a fixed priority, so the same chart always reads the same. */
 function tension(f:Reader10Facts,l:R10Locale):{plain:string;astro:string}|null{
@@ -129,8 +128,8 @@ const signDignity=(planet:Planet,sign:number,l:R10Locale)=>{
  return d==='exalted'?(uk?', у знаку екзальтації':', exalted'):d==='own'?(uk?', у власному знаку':', in its own sign')
   :d==='debilitated'?(uk?', у знаку падіння':', debilitated'):'';
 };
-const TIER_WORD={strong:{uk:'сильне положення',en:'a strong placement'},mixed:{uk:'середнє положення',en:'a middling placement'},
- hard:{uk:'слабке положення',en:'a weak placement'}} as const;
+const TIER_WORD={strong:{uk:'сприятливий редакційний показник',en:'supportive editorial indicator'},mixed:{uk:'змішаний редакційний показник',en:'mixed editorial indicator'},
+ hard:{uk:'напружений редакційний показник',en:'challenging editorial indicator'}} as const;
 type Layered={plain:string;astro:string;basis:string};
 function supportLine(f:Reader10Facts,vargas:Vargas|null,division:number,l:R10Locale):Layered|null{
  const rule=SUPPORT[division];if(!rule)return null;
@@ -172,7 +171,7 @@ function areaChapter(f:Reader10Facts,rule:AreaRule,vargas:Vargas|null,chart:Calc
  if(scene.length)plain.push(scene.join(' '));
  plain.push(rule.lord[lord.house-1][l]+(lord.dignity==='exalted'||lord.dignity==='own'
   ?(uk?' Це положення підсилює тему в межах традиційного трактування.':' This placement reinforces the theme within the traditional reading.')
-  :lord.dignity==='debilitated'?(uk?' Щоправда, результат приходить через зусилля й пізніше, ніж хотілося б.':' Results do come, though through effort and later than you would like.'):''));
+  :lord.dignity==='debilitated'?(uk?' Ця тема потребує уваги до можливих труднощів і способів їх подолання.':' This theme invites attention to possible difficulties and ways of addressing them.'):''));
 
  astro.push((uk?'Ваш '+ORD_NOM_UK[H-1]+' дім, що відповідає за цю сферу: '+SIGN_NAME[sign-1].uk+'.':'Your '+ORD_EN[H-1]+' house, which governs this area: '+SIGN_NAME[sign-1].en+'.')+
   (occupants.length?' '+occupants.map(p=>factOf(rule.occupants[p.name][l])).join(' '):(uk?' Планет у ньому немає, тому сферу описує управитель дому.':' It holds no planets, so the lord of the house describes this area.'))+
@@ -195,13 +194,11 @@ function areaChapter(f:Reader10Facts,rule:AreaRule,vargas:Vargas|null,chart:Calc
  if(spot){
   const vName=VARGA_NAME[rule.varga][l];
   if(rule.varga===2){
-   const sunHora=spot.sign===5,fits=lord.name==='Mercury'||(sunHora?SUN_HORA.has(lord.name):MOON_HORA.has(lord.name));
-   extraPlain.push((sunHora?(uk?'Заробляєте ви власними силами й авторитетом':'You earn by your own strength and authority')
-    :(uk?'Гроші приходять до вас через людей і родину':'Money comes to you through people and family'))+
-    (fits?'.':(uk?', але заробити вам легше, ніж утримати.':', but earning is easier for you than keeping.')));
-   astro.push(uk?'У карті '+vName+' '+lordName+' стоїть у хорі '+(sunHora?'Сонця':'Місяця')+(fits?', своїй для цієї планети.':', чужій для цієї планети.')
-    :'In '+vName+' '+lordName+' is in the hora of the '+(sunHora?'Sun':'Moon')+(fits?', its own hora.':', the other hora for this planet.'));
-   score+=fits?1:-1;
+   const sunHora=spot.sign===5;
+   // Solar/lunar Hora is a category, not ordinary sign dignity or a sufficient
+   // financial prediction. No unsupported retention claim or tier adjustment.
+   astro.push(uk?'У карті '+vName+' '+lordName+' належить до хори '+(sunHora?'Сонця':'Місяця')+'. Самої категорії недостатньо для висновку про накопичення.'
+    :'In '+vName+' '+lordName+' belongs to the '+(sunHora?'Sun':'Moon')+' Hora. This category alone does not establish a savings outcome.');
   }else{
    const d=dignityOf(lord.name,spot.sign),same=spot.sign===lord.sign;
    let line=uk?'У карті '+vName+', яка уточнює тему «'+rule.vargaTopic.uk+'», '+lordName+' стоїть '+SIGN_IN[spot.sign-1].uk+signDignity(lord.name,spot.sign,l)+', '+houseIn(spot.house,l)+' від її лагни.'
@@ -213,7 +210,7 @@ function areaChapter(f:Reader10Facts,rule:AreaRule,vargas:Vargas|null,chart:Calc
    if(HARD_HOUSES.has(spot.house))score-=1;
    astro.push(line);
   }
-  basis.push('D'+rule.varga+': '+lordName+', '+SIGN_NAME[spot.sign-1][l]+', '+houseShort(spot.house,l));
+  basis.push(rule.varga===2?'D2: '+lordName+' — '+(spot.sign===5?(uk?'хора Сонця':'Sun Hora'):(uk?'хора Місяця':'Moon Hora')):'D'+rule.varga+': '+lordName+', '+SIGN_NAME[spot.sign-1][l]+', '+houseShort(spot.house,l));
  }
  const tier:Tier=score>=2?'strong':score<=-1?'hard':'mixed';
  tiers[rule.id]=tier;
