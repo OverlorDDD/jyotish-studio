@@ -136,7 +136,7 @@ export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief
   if(copiedProse(original,lead.text,paragraphs))return fail('near_copy');
   if(changed)modified++;
   if(!changed&&spec.minParagraphs===3)return fail('unchanged_timing');
-  const shared=brief.context.filter(e=>all.has(e.id)).map(e=>e.text);
+  const shared=[...new Set([...brief.context.filter(e=>all.has(e.id)),...(original.id==='summary'&&!original.details?spec.evidence.filter(e=>all.has(e.id)):[])].map(e=>e.text))];
   const details=shared.length?{paragraphs:[...(original.details?.paragraphs||[]),...shared],basis:original.details?.basis||(reader.language==='uk'?'Основа: перевірені спільні закономірності D1.':'Basis: verified shared D1 patterns.'),links:original.details?.links||[]}:original.details;
   result.push({...original,details,lead:lead.text,paragraphs,evidenceIds:c.paragraphs.map(p=>p.evidenceIds)});
  }

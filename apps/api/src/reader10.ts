@@ -206,7 +206,7 @@ function areaChapter(f:Reader10Facts,rule:AreaRule,vargas:Vargas|null,chart:Calc
    const d=dignityOf(lord.name,spot.sign),same=spot.sign===lord.sign;
    let line=uk?'У карті '+vName+', яка уточнює тему «'+rule.vargaTopic.uk+'», '+lordName+' стоїть '+SIGN_IN[spot.sign-1].uk+signDignity(lord.name,spot.sign,l)+', '+houseIn(spot.house,l)+' від її лагни.'
     :'In '+vName+', which refines the theme of “'+rule.vargaTopic.en+'”, '+lordName+' stands '+SIGN_IN[spot.sign-1].en+signDignity(lord.name,spot.sign,l)+', '+houseIn(spot.house,l)+' from its lagna.';
-   if(same){line+=uk?' Це варготтама: той самий знак, що й в основній карті, що є додатковим показником послідовності, а не гарантією сили.':' This is vargottama: the same sign as in the main chart, an additional consistency indicator rather than a guarantee of strength.';score+=1;}
+   if(same){line+=uk?' Це варготтама: той самий знак, що й в основній карті, що є додатковим показником послідовності; силу оцінюють у контексті інших чинників.':' This is vargottama: the same sign as in the main chart, an additional consistency indicator; strength still depends on context.';score+=1;}
    if(d==='exalted'||d==='own')score+=1;
    if(d==='debilitated')score-=1;
    if(GOOD_HOUSES.has(spot.house))score+=1;

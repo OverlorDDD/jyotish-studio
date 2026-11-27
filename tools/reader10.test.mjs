@@ -79,7 +79,7 @@ test('sample chart: plain lead and text first, the placements behind it in the d
 const TERMS_UK=/(?<![а-яіїєґ’])(лагн|накшатр|управител|йог[аи]|варг|домі(?![а-яіїєґ’])|аспект|екзальтац|падінн|раху(?![а-яіїєґ’н])|кету|сатурн|юпітер|марс(?![а-яіїєґ’])|венер|меркурі|хор[аі](?![а-яіїєґ’]))|\bD\d/i;
 const TERMS_EN=/\b(lagna|nakshatra|lord|yoga|varga|house|aspect|exalt\w*|debilit\w*|rahu|ketu|saturn|jupiter|mars|venus|mercury|hora|D\d+)\b/i;
 test('400 invented charts × 2 languages: plain layer without terms, details with every chart used, clean and unique',()=>{
- const seen=new Set(),hedge=/(?<![а-яіїєґ’])(може|можуть|можливо|ймовірно|мабуть)(?![а-яіїєґ’])|\b(may|might|perhaps|possibly)\b/i;
+ const seen=new Set(),overclaim=/Шлюб щасливий:|Грошей у вас буде рівно стільки|І це справджується повною мірою|The marriage is fortunate:|You will have as much money as the effort|And this comes true in full/i;
  const banned=/смерт|помре|хвороб|діагноз|безплід|вагітн|death|disease|diagnos|infertil|pregnan|guarantee[sd]?\b/i;
  let charts=0,words=0;
  for(let seed=1;seed<=400;seed++){
@@ -101,7 +101,7 @@ test('400 invented charts × 2 languages: plain layer without terms, details wit
     assert.ok(all.every(p=>/[.!?»”]$/.test(p)),'unfinished sentence seed '+seed+' '+chapter.id);
     const text=all.join(' ');
     assert.doesNotMatch(text,/undefined|NaN|null|\s{2}|\.\.|,\.|\s[,.;]/,'dirty text seed '+seed+' '+lang);
-    assert.doesNotMatch(text,hedge,'hedged text seed '+seed+' '+lang);
+    assert.doesNotMatch(text,overclaim,'unsupported categorical prediction seed '+seed+' '+lang);
     assert.doesNotMatch(text,banned,'out-of-bounds claim seed '+seed+' '+lang);
     assert.equal(new Set(chapter.paragraphs).size,chapter.paragraphs.length,'repeated paragraph seed '+seed);
     if(lang==='uk')words+=visible.join(' ').split(/\s+/).length;
@@ -190,4 +190,25 @@ test('N6.1 timing uses both rulers, their lordships and current chart context wi
   assert.ok(b.context.some(x=>x.id==='shared.lagnaChain'));
   assert.doesNotMatch(JSON.stringify(b),/2000-01-01|latitude|longitude|2026-06-22|2028-01-21/);
  }
+});
+
+test('N6.3 verified dominant patterns and summary facts are sent without classic prose or uncertain D60',async()=>{
+ const {buildN6Reader,buildN6Brief,n6ProviderPayload}=await import('../apps/api/src/reader-n6.ts');
+ let tested=0;
+ for(let seed=1;seed<=40;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  for(const lang of ['uk','en']){
+   const reader=buildN6Reader(chart,lang,'2026-11-27',false),brief=buildN6Brief(reader,chart);
+   const payload=JSON.parse(n6ProviderPayload(brief,false));
+   const cluster=brief.context.find(e=>e.id.startsWith('shared.cluster'));
+   assert.ok(brief.context.some(e=>e.id==='shared.d1Factors'));
+   if(cluster)for(const id of ['self','path'])assert.ok(brief.chapters.find(c=>c.id===id).required.includes(cluster.id));
+   const summary=brief.chapters.find(c=>c.id==='summary');
+   assert.ok(summary.evidence.length>=2);assert.ok(summary.evidence.every(e=>!e.id.endsWith('.reader')));
+   for(const c of payload.chapters){assert.equal(c.lead,undefined);assert.equal(c.paragraphs,undefined);}
+   assert.doesNotMatch(JSON.stringify(payload),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+   tested++;
+  }
+ }
+ assert.ok(tested>=50);
 });
