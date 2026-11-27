@@ -56,10 +56,10 @@ export function buildVargaIntelligence(chart:CalculatedChart,lang:Lang,allowD60:
   // ruler. Otherwise retain the natural significator, then contextual relevance.
   const first=candidates.find(p=>p.planet===primary)!;
   const other=candidates.filter(p=>p.planet!==first.planet);
-  const contrast=other.find(p=>contrast&&!p.boundarySensitive);
+  const contrast=other.find(p=>p.contrast&&!p.boundarySensitive);
   const natural=other.find(p=>p.planet===spec.natural);
   const second=contrast||natural||other[0];
-  const selected:Selected[]=[first,second].map(({score,contrast,...p},i)=>({...p,role:i===0?'ruler':p.contrast&&!p.boundarySensitive?'contrast':p.planet===spec.natural?'karaka':'context'}));
+  const selected:Selected[]=[first,second].map(({score,contrast,...p},i)=>({...p,role:i===0?'ruler':contrast&&!p.boundarySensitive?'contrast':p.planet===spec.natural?'karaka':'context'}));
 
   const text='D'+c.division+': '+selected.map(p=>{
    const natal=f.planets[p.planet];
@@ -112,10 +112,23 @@ export function buildVargaIntelligence(chart:CalculatedChart,lang:Lang,allowD60:
   if(preview.status==='conditional_signs'){
    d60Examined=preview.allPlanets.length;
    const order=[f.lagnaLord.name,lord(10),lord(7),'Moon','Sun','Jupiter','Venus','Saturn','Mercury','Mars','Rahu','Ketu'];
-   const eligible=preview.allPlanets.filter(p=>!p.nearBoundary&&p.planet!=='Rahu'&&p.planet!=='Ketu').sort((a,b)=>order.indexOf(a.planet)-order.indexOf(b.planet)).slice(0,3);
+   const eligibleAll=preview.allPlanets.filter(p=>!p.nearBoundary&&p.planet!=='Rahu'&&p.planet!=='Ketu').sort((a,b)=>order.indexOf(a.planet)-order.indexOf(b.planet));
+   // Compare only eligible sign positions; never use D60 houses or lagna.
+   // Prefer one contrast with the same planet's relevant ordinary varga
+   // (not a net-strength calculation, not an independent event indicator).
+   const contrastFor=(n:Planet,d:Dignity)=>[9,10,24].filter(div=>{
+    const q=source.charts.find(v=>v.division===div)?.planets.find(p=>p.name===n);
+    return q&&q.boundaryDistanceArcseconds>1&&(d==='debilitated'&&strong(dignityOf(n,q.sign))||strong(d)&&dignityOf(n,q.sign)==='debilitated');
+   });
+   const contrast=eligibleAll.find(p=>contrastFor(p.planet as Planet,dignityOf(p.planet as Planet,p.d60Sign)).length);
+   const eligible=[...new Set([eligibleAll[0],contrast,...eligibleAll].filter((p):p is typeof eligibleAll[number]=>Boolean(p)))].slice(0,3);
    if(eligible.length)d60={id:'path.v60',text:'D60: '+eligible.map(p=>{
     const n=p.planet as Planet,d=dignityOf(n,p.d60Sign),natal=dignityOf(n,p.d1Sign);
-    return p.label+' '+p.d1SignName+' (D1'+(natal!=='neutral'?', '+DIGNITY[natal][l]:'')+') → '+p.d60SignName+' (D60'+(d!=='neutral'?', '+DIGNITY[d][l]:'')+')';
+    const vs=contrastFor(n,d);
+    return p.label+' '+p.d1SignName+' (D1'+(natal!=='neutral'?', '+DIGNITY[natal][l]:'')+') → '+p.d60SignName+' (D60'+(d!=='neutral'?', '+DIGNITY[d][l]:'')+')'+(p===contrast&&vs.length?(uk?'; умовний контраст з ': '; conditional contrast with ')+vs.map(div=>{
+     const q=source.charts.find(v=>v.division===div)!.planets.find(p=>p.name===n)!;
+     return 'D'+div+' '+sign(q.sign)+' ('+DIGNITY[dignityOf(n,q.sign)][l]+')';
+    }).join('/'):'');
    }).join('; ')+
     (uk?'. Лише умовні знаки, без домів, лагни, кармічних прогнозів чи сертифікації часу.':'. Conditional signs only; no houses, ascendant, karmic predictions or birth-time certification.')};
   }

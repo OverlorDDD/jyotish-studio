@@ -8,16 +8,21 @@ export {timingChapter} from './reader-n6-timing.ts';
 import {timingChapter} from './reader-n6-timing.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {buildVargaIntelligence} from './reader-n63-vargas.ts';
-import {buildN64Presentation,reviewN64Text} from './reader-n64-quality.ts';
+import {buildN64Presentation,renderN64Presentation,reviewN64Text,type N64Presentation} from './reader-n64-quality.ts';
 import {PLANET_NAME,SIGN_NAME} from './reader10-texts.ts';
 export const N6_QUALITY_VERSION='n6-quality-5' as const;
 export function buildN6Reader(chart:CalculatedChart,lang:Lang,asOf:string,exactTime:boolean):Reader10Report|null{
  const base=buildReader10(exactTime?chart:{...chart,n4D60:undefined} as CalculatedChart,lang);
  if(!base)return null;
- return {...base,chapters:[...base.chapters.slice(0,-1),timingChapter(chart,lang,asOf),base.chapters[base.chapters.length-1]]};
+ const chapters=[...base.chapters.slice(0,-1),timingChapter(chart,lang,asOf),base.chapters[base.chapters.length-1]];
+ const analysis=buildVargaIntelligence(chart,lang,exactTime,asOf);
+ return {...base,chapters:chapters.map(c=>{
+  const display=c.details&&analysis?buildN64Presentation(chart,lang,c,analysis,asOf):undefined;
+  return display&&c.details?{...c,details:{...c.details,compact:renderN64Presentation(display)}}:c;
+ })};
 }
 type Evidence={id:string;text:string};
-type BriefChapter={id:string;lead:string;paragraphs:string[];evidence:Evidence[];required:string[];minWords:number;minParagraphs:number;presentation?:string[]};
+type BriefChapter={id:string;lead:string;paragraphs:string[];evidence:Evidence[];required:string[];minWords:number;minParagraphs:number;presentation?:N64Presentation};
 export type N6Brief={version:typeof N6_VERSION;language:Lang;chapters:BriefChapter[];context:Evidence[]};
 export function buildN6Brief(reader:Reader10Report,chart?:CalculatedChart,asOf?:string):N6Brief{
  const context:Evidence[]=[];
@@ -60,7 +65,7 @@ export function buildN6Brief(reader:Reader10Report,chart?:CalculatedChart,asOf?:
   if(c.id==='self'&&chain)core.push(chain);
   if(c.id==='money'&&chart&&analysis){
    const f=buildReader10Facts(chart),rows=[2,11,12].map(h=>PLANETS.map(n=>f.planets[n]).find(p=>p.rules.includes(h))!);
-   const fact={id:'money.resources',text:(uk?'D1: накопичення / надходження / витрати: ':'D1: savings / gains / expenditure: ')+rows.map((p,i)=>[2,11,12][i]+': '+PLANET_NAME[p.name][reader.language]+' → '+p.house+(p.dignity!=='neutral'?', '+p.dignity:'')).join('; ')+'.'};
+   const fact={id:'money.resources',text:(uk?'D1: накопичення / надходження / витрати: ':'D1: savings / gains / expenditure: ')+rows.map((p,i)=>[2,11,12][i]+': '+PLANET_NAME[p.name][reader.language]+' → '+p.house+(p.dignity!=='neutral'?', '+(uk?{own:'власний знак',exalted:'екзальтація',debilitated:'падіння'}[p.dignity]:p.dignity):'')).join('; ')+'.'};
    evidence.push(fact);core.push(fact);
   }
   if(c.id==='summary'&&dominant&&!core.some(e=>e.text===dominant.text))core.push(dominant);
@@ -73,7 +78,7 @@ export function buildN6Brief(reader:Reader10Report,chart?:CalculatedChart,asOf?:
   // Do not make optional D60 or unavailable timing a gate for an otherwise valid report.
   const primary={money:2,work:10,love:9,home:4,path:20} as const;
   if(c.id in primary){const item=thematic.find(e=>e.id===c.id+'.v'+primary[c.id as keyof typeof primary]);if(item)core.push(item);}
-  const presentation=chart&&analysis?buildN64Presentation(chart,reader.language,c,analysis,asOf):undefined;
+  const presentation=chart&&analysis?buildN64Presentation(chart,reader.language,c,analysis,asOf,context,evidence):undefined;
   return {id:c.id,lead:c.lead,paragraphs:c.paragraphs,evidence,required:[...new Set(core.map(e=>e.id))],...(presentation?{presentation}:{}),minWords:richTiming?85:c.id==='summary'||!c.details?20:30,minParagraphs:richTiming?3:2};
  })};
 }
@@ -169,7 +174,7 @@ export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief
   if(!changed&&spec.minParagraphs===3)return fail('unchanged_timing');
   const shared=[...new Set([...brief.context.filter(e=>all.has(e.id)),...spec.evidence.filter(e=>all.has(e.id)&&(original.id==='summary'&&!original.details||/\.v\d+$/.test(e.id)))].map(e=>e.text))];
   const details=shared.length?{paragraphs:[...(original.details?.paragraphs||[]),...shared],basis:original.details?.basis||(reader.language==='uk'?'Основа: перевірені спільні закономірності D1.':'Basis: verified shared D1 patterns.'),links:original.details?.links||[]}:original.details;
-  const compact=spec.presentation&&details?{...details,compact:spec.presentation}:details;
+  const compact=spec.presentation&&details?{...details,compact:renderN64Presentation(spec.presentation,all)}:details;
   result.push({...original,details:compact,lead:lead.text,paragraphs,evidenceIds:c.paragraphs.map(p=>p.evidenceIds)});
  }
  chapter=undefined;

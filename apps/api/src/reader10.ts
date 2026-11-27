@@ -45,7 +45,7 @@ function dignityPhrase(p:PlanetFact,l:R10Locale):string{
   :p.dignity==='debilitated'?(uk?', у знаку падіння':', debilitated'):'';
 }
 const weakNote=(p:PlanetFact,l:R10Locale)=>p.dignity!=='debilitated'?'':l==='uk'
- ?' '+P(p,l)+' при цьому у знаку падіння; її дію оцінюють разом з іншими чинниками.':' '+P(p,l)+' is debilitated here; assess it in the context of other factors.';
+ ?' '+P(p,l)+' при цьому у знаку падіння; дію цієї планети оцінюють разом з іншими чинниками.':' '+P(p,l)+' is debilitated here; assess it in the context of other factors.';
 
 /** One inner tension chosen by a fixed priority, so the same chart always reads the same. */
 function tension(f:Reader10Facts,l:R10Locale):{plain:string;astro:string}|null{

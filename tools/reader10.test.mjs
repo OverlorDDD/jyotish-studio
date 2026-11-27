@@ -8,6 +8,7 @@ import {makeN4RcPayload} from '../apps/api/src/n4-rc-contract.ts';
 import {makeN4D60Candidate} from '../apps/api/src/n4-d60-candidate.ts';
 import {AREAS,SUPPORT,VARGA_NAME} from '../apps/api/src/reader10-areas.ts';
 import {LAGNA,LAGNA_LORD_HOUSE,MOON_SIGN,MOON_NAKSHATRA,NAKSHATRA_NAME,SIGN_NAME,SIGN_IN} from '../apps/api/src/reader10-texts.ts';
+const withoutCompact=c=>c.details?{...c,details:Object.fromEntries(Object.entries(c.details).filter(([k])=>k!=='compact'))}:c;
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const GRAHAS=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'];
 // Invented placements only: this exercises text rules, never astronomy.
@@ -162,8 +163,8 @@ test('N6 retains the original six life chapters and summary, adds current dasha 
   count++;
   for(const lang of ['en','uk']){
    const original=buildReader10(chart,lang), exact=buildN6Reader(chart,lang,'2026-11-26',true),approx=buildN6Reader(chart,lang,'2026-11-26',false);
-   assert.deepEqual(exact.chapters.filter(c=>c.id!=='timing'),original.chapters);
-   assert.deepEqual(approx.chapters.filter(c=>!['timing','path'].includes(c.id)),original.chapters.filter(c=>c.id!=='path'));
+   assert.deepEqual(exact.chapters.filter(c=>c.id!=='timing').map(withoutCompact),original.chapters);
+   assert.deepEqual(approx.chapters.filter(c=>!['timing','path'].includes(c.id)).map(withoutCompact),original.chapters.filter(c=>c.id!=='path'));
    assert.equal(approx.chapters.length,8);assert.doesNotMatch(approx.chapters.flatMap(c=>[c.lead,...c.paragraphs,...(c.details?.paragraphs||[]),c.details?.basis||'']).join(' '),/D60(?=[: ])|Шаштіамша|Shashtiamsha/i);
    assert.equal(exact.chapters.find(c=>c.id==='timing').title,lang==='uk'?'Поточний період життя':'Current life period');
    assert.ok(buildN6Brief(exact).chapters.every(c=>c.evidence.length));
@@ -185,7 +186,7 @@ test('N6.1 timing uses both rulers, their lordships and current chart context wi
   assert.equal(t.paragraphs.length,4);assert.ok(t.paragraphs.join(' ').split(/\s+/).length>=85);
   assert.match(t.details.paragraphs[0],/Saturn|Сатурн/);assert.match(t.details.paragraphs[1],/Moon|Місяць/);
   assert.equal(r.chapters.filter(x=>x.id!=='timing').length,7);
-  assert.deepEqual(r.chapters.filter(x=>x.id!=='timing'),buildReader10(c,lang).chapters);
+  assert.deepEqual(r.chapters.filter(x=>x.id!=='timing').map(withoutCompact),buildReader10(c,lang).chapters);
   const b=buildN6Brief(r,c);assert.ok(b.context.some(x=>x.id==='shared.lordships'));
   assert.ok(b.context.some(x=>x.id==='shared.lagnaChain'));
   assert.doesNotMatch(JSON.stringify(b),/2000-01-01|latitude|longitude|2026-06-22|2028-01-21/);
@@ -352,7 +353,7 @@ test('N64 all vargas retain two distinct role-selected grahas; stable dignity co
    const r=buildN6Reader(chart,lang,'2026-11-27',false),b=buildN6Brief(r,chart,'2026-11-27');
    assert.ok(b.chapters[0].required.includes('shared.lagnaChain'));
    assert.ok(b.chapters[1].required.includes('money.resources'));
-   const work=b.chapters.find(c=>c.id==='work').presentation;
+   const work=b.chapters.find(c=>c.id==='work').presentation.base;
    assert.equal(work.filter(t=>t.startsWith('D10 (')).length,1);assert.equal(work.filter(t=>t.startsWith('D24 (')).length,1);
    const payload=JSON.parse(n6ProviderPayload(b,false));
    assert.ok(payload.chapters.every(c=>!('presentation' in c)));
