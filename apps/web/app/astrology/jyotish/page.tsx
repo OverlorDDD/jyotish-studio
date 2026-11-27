@@ -13,7 +13,7 @@ import N4RcExplorer from '../../components/N4RcExplorer';
 import {natalExactData} from '../../../lib/natal-features';
 import {NatalSample,NatalFirstResult} from '../../components/NatalFirstLook';
 import landing from './NatalLanding.module.css';
-import {assertN4RcView,hasN4RcView,type N4RcView} from '../../../lib/n4-rc-view';
+import {assertN4RcView,hasN4RcView,N4_RC_VIEW_DIVISIONS,type N4RcView} from '../../../lib/n4-rc-view';
 import {hasD60Provisional,type N4D60UI} from '../../../lib/n4-d60-view';
 import CitySearch from '../../components/CitySearch';
 import {Sparkles,ArrowUpRight} from 'lucide-react';
@@ -75,7 +75,7 @@ const signFull=(sign:number,lang:'en'|'uk')=>(lang==='uk'?SIGN_UK:SIGN_EN)[sign-
 export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const lang=initialLang; const [minutesUncertain,setMinutesUncertain]=useState(false),[form,setForm]=useState<Form>(EMPTY_FORM),[cityReset,setCityReset]=useState(0),[manualMode,setManualMode]=useState(false),[chart,setChart]=useState<Chart|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState(false),[interpretation,setInterpretation]=useState(''),[aiBusy,setAiBusy]=useState(false);
  const [report,setReport]=useState<ReadingReport|null>(null);
- const [positions,setPositions]=useState<'d1'|'d9'|'d10'>('d1');
+ const [positions,setPositions]=useState<string>('d1');
  const [periodIndex,setPeriodIndex]=useState<number|null>(null);
  const [runtimeMismatch,setRuntimeMismatch]=useState('');
  const startedEditing=useRef(false);
@@ -157,7 +157,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   setPositions('d1');setPeriodIndex(null);setEditing(false);setChart(ready);
   const compatibleSaved=saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
-    saved?.readerFormat==='n6-reader-v1'&&saved.readerQuality==='n6-quality-2'&&saved.minutesUncertain===minutesUncertain&&saved?.reader10?.chapters.some(c=>c.id==='timing')&&saved.asOf===new Date().toISOString().slice(0,10)&&
+    saved?.readerFormat==='n6-reader-v1'&&saved.readerQuality==='n6-quality-3'&&saved.minutesUncertain===minutesUncertain&&saved?.reader10?.chapters.some(c=>c.id==='timing')&&saved.asOf===new Date().toISOString().slice(0,10)&&
     (saved.ai?.source!=='llm'||saved.ai.readerFormat==='n6-reader-v1')&&
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
     saved?.readerV7?.version==='reader-v7.0.0-n43'&&
@@ -292,7 +292,13 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
  const now=Date.now();
  const activeDasha=chart?.dasha.find(d=>Date.parse(d.start)<=now&&Date.parse(d.end)>now);
  const period=chart?.dasha[periodIndex??Math.max(0,chart.dasha.indexOf(activeDasha!))];
- const tableLagna=chart&&(positions==='d1'?chart.ascendant:positions==='d9'?chart.lagnaD9:chart.lagnaD10);
+ const legacyKey=positions==='d1'||positions==='d9'||positions==='d10'?positions:null;
+ const tableLagna=chart&&legacyKey&&(legacyKey==='d1'?chart.ascendant:legacyKey==='d9'?chart.lagnaD9:chart.lagnaD10);
+ const division=Number(positions.slice(1));
+ const varga=chart&&hasN4RcView(chart)?chart.n4?.charts.find(c=>c.division===division):undefined;
+ const d60=chart&&hasD60Provisional(chart)?chart.n4D60:undefined;
+ const extraRows=division===60&&d60?[d60.lagna,...d60.planets]:varga?[{name:'Ascendant',sign:varga.lagnaSign,house:1,retrograde:false,boundaryDistanceArcseconds:varga.lagnaBoundaryArcseconds},...varga.planets]:[];
+ const divisionNames:Record<number,[string,string]>={1:['Раші','Rashi'],2:['Хора','Hora'],3:['Дреккана','Drekkana'],4:['Чатуртхамша','Chaturthamsa'],7:['Саптамша','Saptamsa'],9:['Навамша','Navamsha'],10:['Дашамша','Dashamsha'],12:['Двадашамша','Dwadasamsa'],16:['Шодашамша','Shodashamsha'],20:['Вімшамша','Vimshamsha'],24:['Чатурвімшамша','Chaturvimshamsha'],27:['Бхамша','Bhamsha'],30:['Трімшамша','Trimshamsha'],40:['Кхаведамша','Khavedamsha'],45:['Акшаведамша','Akshavedamsha'],60:['Шаштіамша','Shashtiamsha']};
  return <div className={'jy-workbench jy-portal-workbench '+landing.canvas}>
   <div className="main">
    <div className="content" id="calculator">
@@ -374,24 +380,30 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
     {chart&&<section className="panel jy-data-workspace" id="chart-data" data-feature={natalExactData.id} data-access={natalExactData.access}>
      <h2>{lang==='uk'?'Точні дані розрахунку':'Calculation details'}</h2>
      <label className={landing.choice}>{lang==='uk'?'Положення планет':'Planetary positions'}
-      <select value={positions} onChange={e=>setPositions(e.target.value as typeof positions)}>
-       <option value="d1">{lang==='uk'?'D1 · Раші':'D1 · Rashi'}</option>
-       <option value="d9">{lang==='uk'?'D9 · Навамша':'D9 · Navamsha'}</option>
-       <option value="d10">{lang==='uk'?'D10 · Дашамша':'D10 · Dashamsha'}</option>
+      <select value={positions} onChange={e=>setPositions(e.target.value)}>
+       {[...N4_RC_VIEW_DIVISIONS,60].map(n=><option key={n} value={'d'+n} disabled={n===60?!d60:!hasN4RcView(chart)}>{'D'+n+' · '+divisionNames[n][lang==='uk'?0:1]+(n===60?(lang==='uk'?' · умовна':' · provisional'):'')}</option>)}
       </select>
      </label>
      <div className="table-scroll jy-planet-table" tabIndex={0} role="region" aria-label={lang==='uk'?'Таблиця положень':'Position table'}>
-      <table data-testid="natal-positions">
+      {legacyKey?<table data-testid="natal-positions">
        <caption>{positions.toUpperCase()} · {lang==='uk'?'сидеричні положення':'sidereal positions'}</caption>
        <thead><tr>{(lang==='uk'?['Граха','Знак','Положення у знаку','Довгота','Дім','Накшатра','Рух']:
         ['Graha','Sign','Position in sign','Longitude','House','Nakshatra','Motion']).map(label=><th scope="col" key={label}>{label}</th>)}</tr></thead>
-       <tbody>{tableLagna&&[tableLagna,...chart[positions]].map(p=><tr key={p.name}>
+       <tbody>{tableLagna&&[tableLagna,...chart[legacyKey]].map(p=><tr key={p.name}>
         <th scope="row">{p.name==='Ascendant'?(lang==='uk'?'Лагна':'Lagna'):grahaFull(p.name,lang)}</th>
         <td>{signFull(p.sign,lang)}</td><td>{positionLabel(p.degreesInSign)}</td><td>{positionLabel(p.longitude)}</td>
         <td>{p.house}</td><td>{nakshatraName(p.nakshatra,lang)} · {lang==='uk'?'пада':'pada'} {p.pada}</td>
         <td>{p.name==='Ascendant'?'—':p.retrograde?(lang==='uk'?'ретроградний':'retrograde'):(lang==='uk'?'прямий':'direct')}</td>
        </tr>)}</tbody>
-      </table>
+      </table>:<>
+       <p data-testid="natal-varga-data-note">{division===60?(lang==='uk'?'D60 — умовні положення; точність часу не підтверджена, доми й лагна не придатні для певних персональних висновків.':'D60 placements are provisional; birth-time accuracy is unconfirmed and houses and ascendant are not eligible for definitive personal interpretation.'):(lang==='uk'?'Показано перевірені знаки й цілознакові доми. Довготи та накшатри цієї варги API не надає; відстань до межі частки обчислена за вихідною довготою D1.':'Verified signs and whole-sign houses. The API does not supply divisional longitudes or nakshatras; distance to a division boundary is based on the source D1 longitude.')}</p>
+       <table data-testid="natal-positions">
+        <caption>{positions.toUpperCase()} · {lang==='uk'?'знаки й доми':'signs and houses'}{division===60?(lang==='uk'?' · умовно':' · provisional'):''}</caption>
+        <thead><tr>{(lang==='uk'?['Граха','Знак','Дім','До межі частки (″)','Рух']:['Graha','Sign','House','Distance to boundary (″)','Motion']).map(label=><th scope="col" key={label}>{label}</th>)}</tr></thead>
+        <tbody>{extraRows.map(p=><tr key={p.name}><th scope="row">{p.name==='Ascendant'?(lang==='uk'?'Лагна':'Lagna'):grahaFull(p.name,lang)}</th><td>{signFull(p.sign,lang)}</td><td>{p.house}</td><td>{p.boundaryDistanceArcseconds.toFixed(3)}</td><td>{p.name==='Ascendant'?'—':p.retrograde?(lang==='uk'?'ретроградний':'retrograde'):(lang==='uk'?'прямий':'direct')}</td></tr>)}</tbody>
+       </table>
+       {!extraRows.length&&<p role="alert">{lang==='uk'?'Перевірені дані цієї карти недоступні.':'Verified data for this chart are unavailable.'}</p>}
+      </>}
      </div>
      {period&&<div id="timeline">
       <label className={landing.choice}>{lang==='uk'?'Вімшоттарі · великий період':'Vimshottari · major period'}

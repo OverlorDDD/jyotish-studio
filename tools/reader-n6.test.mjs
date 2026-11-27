@@ -54,7 +54,8 @@ test('N6.1 compact backup preserves every evidence and required ID while removin
   assert.deepEqual(compact.chapters[i].evidence,brief.chapters[i].evidence);
   assert.equal(compact.chapters[i].paragraphs,undefined);
  }
- assert.ok(n6ProviderPayload(brief,true).length<n6ProviderPayload(brief,false).length);
+ assert.equal(n6ProviderPayload(brief,true),n6ProviderPayload(brief,false));
+ assert.doesNotMatch(n6ProviderPayload(brief,false),/Original lead|Original paragraph|styleExample/);
 });
 test('N6.1 substantive timing output is accepted only with both period facts and their relationship',()=>{
  const r={...reader,chapters:reader.chapters.map(c=>c.id==='timing'?{...c,details:{...c.details,paragraphs:['Major date.','Minor date.','Major placement.','Minor placement.','Their relationship.']}}:c)};
@@ -162,4 +163,14 @@ test('N6.2 V3 repairs more than three chapters, mixed format/evidence faults and
  assert.ok(parseN6Response(merged,reader,brief));
  replacement.chapters[1].paragraphs[0].evidenceIds=['invented'];
  assert.equal(parseN6Response(mergeN6Repair(JSON.stringify(replacement),plan),reader,brief),null);
+});
+
+test('N6.3 rejects a near-verbatim reflow of classic prose even with valid evidence IDs',()=>{
+ const x=output();
+ const r={...reader,chapters:reader.chapters.map(c=>c.id==='money'?{...c,lead:x.chapters[1].lead,paragraphs:x.chapters[1].paragraphs.map(p=>p.text)}:c)};
+ const b=buildN6Brief(r);
+ x.chapters[1].paragraphs[0].text+=' This can be worth considering.';
+ const checked=inspectN6Response(JSON.stringify(x),r,b);
+ assert.equal(checked.reason,'near_copy');assert.equal(checked.chapter,'money');
+ assert.deepEqual(planN6Repair(JSON.stringify(x),r,b).ids,['money']);
 });

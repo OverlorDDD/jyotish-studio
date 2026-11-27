@@ -1,14 +1,14 @@
 /** N6 additive adapter: original Reader 10 rules and presentation remain the baseline. */
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {buildReader10,type Reader10Report,type Reader10Chapter} from './reader10.ts';
-import {buildReader10Facts,PLANETS} from './reader10-facts.ts';
+import {buildReader10Facts,PLANETS,aspectedHouses} from './reader10-facts.ts';
 export const N6_VERSION='n6-reader-v1' as const;
 type Lang='uk'|'en';
 export {timingChapter} from './reader-n6-timing.ts';
 import {timingChapter} from './reader-n6-timing.ts';
 import {verifiedVargaSource} from './reader-varga-n4.ts';
 import {PLANET_NAME,SIGN_NAME} from './reader10-texts.ts';
-export const N6_QUALITY_VERSION='n6-quality-2' as const;
+export const N6_QUALITY_VERSION='n6-quality-3' as const;
 export function buildN6Reader(chart:CalculatedChart,lang:Lang,asOf:string,exactTime:boolean):Reader10Report|null{
  const base=buildReader10(exactTime?chart:{...chart,n4D60:undefined} as CalculatedChart,lang);
  if(!base)return null;
@@ -32,6 +32,7 @@ export function buildN6Brief(reader:Reader10Report,chart?:CalculatedChart):N6Bri
    const pairs=g.flatMap((a,i)=>g.slice(i+1).map(b=>({a,b,d:Math.abs(a.degrees-b.degrees)}))).sort((a,b)=>a.d-b.d).filter(p=>p.d<=8).slice(0,3);
    for(const q of pairs)context.push({id:'shared.pair'+q.a.name+q.b.name,text:(uk?'D1: близькість у знаку ':'D1 same-sign proximity ')+label(q.a)+' / '+label(q.b)+' '+q.d.toFixed(2)+'°'+(uk?'; редакційний поріг близькості, не підтвердження йоги чи спалення.':'; editorial proximity threshold only, not a certified yoga or combustion.')});
   }
+  context.push({id:'shared.d1Factors',text:(uk?'D1: усі грахи, їх управління й класичні аспекти на доми: ':'D1: all grahas, lordships and classical aspects to houses: ')+all.map(p=>description(p)+(uk?', аспекти на доми ':', aspects houses ')+(aspectedHouses(p.name,p.house).join('/')||'—')).join('; ')+'.'});
   context.push({id:'shared.lagnaChain',text:(uk?'D1: ланцюжок диспозиторів управителя лагни: ':'D1 lagna lord dispositor sequence: ')+f.lagnaLordChain.map(n=>description(f.planets[n])).join(' -> ')+'.'});
   const major=all.filter(p=>p.rules.some(h=>[1,2,4,5,7,9,10].includes(h)));
   context.push({id:'shared.lordships',text:(uk?'D1: тематичні управителі: ':'D1 thematic rulers: ')+major.map(description).join('; ')+'.'});
@@ -40,21 +41,26 @@ export function buildN6Brief(reader:Reader10Report,chart?:CalculatedChart):N6Bri
  }
  return {version:N6_VERSION,language:reader.language,context,chapters:reader.chapters.map(c=>{
   const evidence:Evidence[]=(c.details?.paragraphs||[]).flatMap(text=>text.split(/\s+(?=D(?:2|3|4|7|9|10|12|16|20|24|27|30|40|45|60)\s*\()/u)).map((text,i)=>({id:c.id+'.'+i,text:c.id==='timing'?text.replace(/\b\d{4}-\d{2}-\d{2}\b/g,'[period boundary]'):text}));
-  if(!evidence.length)evidence.push({id:c.id+'.reader',text:[c.lead,...c.paragraphs].join(' ')});
+  if(!evidence.length){
+   if(c.id==='summary'&&context.length){
+    for(const item of context.filter(e=>['shared.lagnaChain','shared.lordships','shared.moonAspects','shared.yogakaraka'].includes(e.id)||e.id.startsWith('shared.cluster')))evidence.push({id:'summary.'+evidence.length,text:item.text});
+   }
+   if(!evidence.length)evidence.push({id:c.id+'.reader',text:uk?'Немає окремих підтверджених фактів цього розділу. Не вигадуйте їх.':'No separate verified facts for this chapter. Do not invent them.'});
+  }
   const richTiming=c.id==='timing'&&Boolean(c.details)&&evidence.length>=5;
   const core=evidence.slice(0,richTiming?5:2);
-  for(const division of c.id==='work'?[10,24]:c.id==='love'?[9,7]:[]){
+  const dominant=context.find(e=>e.id.startsWith('shared.cluster'));
+  if(dominant&&['self','path','summary'].includes(c.id))core.push(dominant);
+  for(const division of c.id==='work'?[10,24]:c.id==='love'?[9,7]:c.id==='money'?[2,16]:c.id==='home'?[4,12]:c.id==='path'?[20,3]:[]){
    const item=evidence.find(e=>e.text.includes('D'+division+' ('));if(item&&!core.includes(item))core.push(item);
   }
   return {id:c.id,lead:c.lead,paragraphs:c.paragraphs,evidence,required:core.map(e=>e.id),minWords:richTiming?85:c.id==='summary'||!c.details?20:30,minParagraphs:richTiming?3:2};
  })};
 }
-export const N6_PROMPT='You are an expert Parashari Jyotish interpreter and careful Ukrainian/English editor. Return ONLY JSON {"chapters":[{"id":"self","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["self.0","self.1"]}]}]}. Include all eight supplied chapter IDs exactly once in order. Each chapter uses its listed required evidence IDs across its paragraphs, plus any useful optional local evidence or shared context. Other chapters’ local IDs are not allowed. Shared facts must be used only where they actually explain the topic. Do not calculate or invent facts. The supplied classical prose is a starting point, not text to copy. Explain how several indicators reinforce or constrain each other; identify a distinctive cross-domain pattern in the opening and return to its implications in the summary. Analyze D9/D7 and D10/D24 meaningfully; use D2/D16, D4/D12/D40/D45 and D20/D3/D27/D30 where supported. In timing, distinguish the long cycle from the current shorter cycle, synthesize both rulers’ actual D1 houses and lordships, discuss the specific interaction and aspects or verified D9/D10 evidence when relevant, and end with a realistic low-risk practical focus. For a supplied timing chapter with minimum 85 words write 3–4 paragraphs and aim for 100–140 words. If a period is unavailable, do not infer it. For other chapters write 2–3 paragraphs with a distinctive lead. Aim for 520–700 words total. Plain natural language: use no digits in lead or paragraph text. Describe divisional evidence by its life theme, never by its technical label. Put the exact evidence IDs only in evidenceIds arrays, never inline. Do not use raw dates, technical jargon, Markdown, links or HTML in prose; the server renders technical facts separately. D60 only as a supplied provisional sign comparison, never a boundary warning as evidence for personality. No guaranteed outcomes, invented biography, past lives, medical or investment directives. Avoid empty praise, repeated stock phrases and automatic fatalism. Proofread Ukrainian case agreement. Only the JSON object, no commentary.';
-/** The backup gets the same evidence and required IDs, not a second copy of every local paragraph. */
-export function n6ProviderPayload(brief:N6Brief,compact:boolean):string{
- if(!compact)return JSON.stringify(brief);
- return JSON.stringify({...brief,chapters:brief.chapters.map(({paragraphs,...chapter})=>({...chapter,
-  ...(chapter.id==='self'?{styleExample:paragraphs[0]}:{})}))});
+export const N6_PROMPT='You are an expert Parashari Jyotish interpreter and careful Ukrainian/English editor. Return ONLY JSON {"chapters":[{"id":"self","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["self.0","self.1"]}]}]}. Include all eight supplied chapter IDs exactly once in order. Each chapter uses its listed required evidence IDs across its paragraphs, plus any useful optional local evidence or shared context. Other chapters’ local IDs are not allowed. Shared facts must be used only where they actually explain the topic. Do not calculate or invent facts. Write an original consultation from the supplied evidence, not a placement-by-placement paraphrase. Start each chapter with its most distinctive conclusion. Explain how two or more relevant indicators reinforce or constrain each other and what that interaction could look like in daily life. Use the strongest verified concentration and dispositor links where relevant, without treating a shared whole-sign house as a close conjunction. Assess functional lordships and dignity in context; a favorable aspect does not cancel every challenge. Do not turn a placement into a fixed profession, guaranteed marriage, wealth or family history. In money distinguish earning opportunities from retention and effort; in work connect abilities, work conditions and skills; in love explain needs and reciprocal responsibilities rather than asserting facts about a partner; in home distinguish security from professional ambition. In path reconcile opportunity with sustained effort. The summary must connect the dominant pattern, its main tension and a concrete practical focus, not repeat headings or generic praise. Use divisional evidence as a modifier of the natal theme, not an independent prediction. Analyze partnership and creativity, career and education, resources and comfort, home and family, spiritual practice and resilience through the corresponding supplied chart evidence. Do not treat editorial strength labels as classical guarantees. In timing, distinguish the long cycle from the current shorter cycle, synthesize both rulers’ actual D1 houses and lordships, discuss the specific interaction and aspects or verified D9/D10 evidence when relevant, and end with a realistic low-risk practical focus. For a supplied timing chapter with minimum 85 words write 3–4 paragraphs and aim for 100–140 words. If a period is unavailable, do not infer it. For other chapters write 2–3 paragraphs with a distinctive lead. Aim for 520–700 words total. Plain natural language: use no digits in lead or paragraph text. Describe divisional evidence by its life theme, never by its technical label. Put the exact evidence IDs only in evidenceIds arrays, never inline. Do not use raw dates, technical jargon, Markdown, links or HTML in prose; the server renders technical facts separately. D60 only as a supplied provisional sign comparison, never a boundary warning as evidence for personality. No guaranteed outcomes, invented biography, past lives, medical or investment directives. Avoid empty praise, repeated stock phrases and automatic fatalism. Proofread Ukrainian case agreement. Only the JSON object, no commentary.';
+/** Evidence-only input for both providers. Local prose remains in memory for comparison, never in the prompt. */
+export function n6ProviderPayload(brief:N6Brief,_compact:boolean):string{
+ return JSON.stringify({...brief,chapters:brief.chapters.map(({lead,paragraphs,...chapter})=>chapter)});
 }
 export const N6_COMPACT_PROMPT='Return 400–520 words total. Keep the current life period at 85–110 words when required; use three concise paragraphs there. Prioritize the required IDs and the strongest shared connections over repeating all optional facts. The full JSON object must finish.';
 type Draft={id:string;lead:string;paragraphs:{text:string;evidenceIds:string[]}[]};
@@ -74,6 +80,15 @@ function prose(x:unknown,max:number):{text:string;reason:string}{
   else return {text:'',reason:'plain_ending'};
  }
  return {text,reason:'ok'};
+}
+/** Detect near-verbatim reuse even if the model merges or splits paragraphs. */
+function copiedProse(original:Reader10Chapter,lead:string,paragraphs:string[]):boolean{
+ const tokens=(s:string)=>s.toLowerCase().match(/[\p{L}]+/gu)||[];
+ const old=tokens([original.lead,...original.paragraphs].join(' ')),next=tokens([lead,...paragraphs].join(' '));
+ if(old.length<25||next.length<25)return false;
+ const grams=(w:string[])=>w.slice(0,-4).map((_,i)=>w.slice(i,i+5).join(' '));
+ const known=new Set(grams(old)),candidate=grams(next);
+ return candidate.filter(g=>known.has(g)).length/candidate.length>=0.72;
 }
 type Validation={reader:Reader10Report|null;reason:string;chapter?:Reader10Chapter['id']};
 function decode(raw:string):{chapters:unknown[]}|null{
@@ -117,6 +132,7 @@ export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief
   if(words([lead.text,...paragraphs].join(' '))<spec.minWords)return fail('thin_chapter');
   // Reject a verbatim classical copy: never label unmodified local prose as an AI enhancement.
   const changed=norm(lead.text)!==norm(original.lead)||norm(paragraphs.join('\n'))!==norm(original.paragraphs.join('\n'));
+  if(copiedProse(original,lead.text,paragraphs))return fail('near_copy');
   if(changed)modified++;
   if(!changed&&spec.minParagraphs===3)return fail('unchanged_timing');
   const shared=brief.context.filter(e=>all.has(e.id)).map(e=>e.text);
@@ -168,4 +184,4 @@ export function mergeN6Repair(raw:string,repair:N6Repair):string|null{
  const updated=new Map(repair.ids.map((id,i)=>[id,x.chapters[i]]));
  return JSON.stringify({chapters:repair.original.map(c=>updated.get((c as Draft).id as Reader10Chapter['id'])??c)});
 }
-export const N6_REPAIR_PROMPT='Return ONLY JSON {"chapters":[{"id":"requested chapter id","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["provided evidence id"]}]}]}. Return only the requested chapters in the supplied order. Use their required evidence IDs, minimum words and paragraph counts. Do not invent or recalculate facts. Interpret the supplied verified local and shared evidence in natural language, synthesize competing factors, and retain the distinct long and short current periods if timing is requested. Use three concise paragraphs and 85–110 words for rich timing. Other chapters use two or three paragraphs. Use ordinary prose: no digits at all in lead or text, no chart labels or evidence citations in prose, no dates, links, Markdown, HTML or unsupported planets. Describe a chart factor by its life theme rather than writing its technical label. Put the exact evidence IDs only in evidenceIds arrays. Never copy their labels or technical notation into prose. End all prose with punctuation. No guaranteed events, fabricated biography, medical or investment directives. Do not return other chapters.';
+export const N6_REPAIR_PROMPT='Return ONLY JSON {"chapters":[{"id":"requested chapter id","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["provided evidence id"]}]}]}. Return only the requested chapters in the supplied order. Use their required evidence IDs, minimum words and paragraph counts. Do not invent or recalculate facts. Write original analysis from the verified local and shared evidence, never reuse classical wording or list isolated factors; explain how competing factors interact, and retain the distinct long and short current periods if timing is requested. Use three concise paragraphs and 85–110 words for rich timing. Other chapters use two or three paragraphs. Use ordinary prose: no digits at all in lead or text, no chart labels or evidence citations in prose, no dates, links, Markdown, HTML or unsupported planets. Describe a chart factor by its life theme rather than writing its technical label. Put the exact evidence IDs only in evidenceIds arrays. Never copy their labels or technical notation into prose. End all prose with punctuation. No guaranteed events, fabricated biography, medical or investment directives. Do not return other chapters.';

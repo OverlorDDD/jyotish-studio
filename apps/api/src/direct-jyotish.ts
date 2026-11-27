@@ -366,7 +366,7 @@ export async function generateDirectJyotish(
      const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6);
      const reader10=checked.reader;
      if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
-      if(provider==='groq'&&attempt===0){
+      if((provider==='groq'||provider==='gemini')&&attempt===0){
        const enoughTime=deadline-Date.now()>30000+reservedForFallback;
        if(!enoughTime)diagnostic(provider,'validation','n6_repair_no_time');
        else if(choice?.finish_reason==='length')diagnostic(provider,'validation','n6_repair_truncated');
@@ -380,7 +380,7 @@ export async function generateDirectJyotish(
         correctiveReason=code;diagnostic(provider,'validation','n6_full_retry_'+checked.reason);continue;
        }
       }
-      if(provider!=='groq'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
+      if(provider==='openrouter'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
       break;
      }
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');
