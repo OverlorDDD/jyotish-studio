@@ -235,4 +235,50 @@ export function groqN6Payload(brief:N6Brief):string{
   const ref=shared.get(e.text);return ref?{id:e.id,text:'Same verified fact as '+ref}:e;
  })}))});
 }
-export const N631_GROQ_PROMPT='Return ONLY JSON {"chapters":[{"id":"requested id","lead":"Complete sentence.","paragraphs":[{"text":"Complete paragraph.","evidenceIds":["provided id"]}]}]}. Output in the requested language, not the language of the facts. All requested chapters in order; include every required ID in that chapter, no invented IDs. Shared evidence can be cited where relevant. Write original, specific synthesis, not a list of placements: connect natal factors to thematic vargas, explain support and tension, and give a concrete everyday implication. D1 is primary; repeated signs are correlated, not independent proof. Hora is Sun/Moon categories only. D60 conditional sign comparison only if supplied, never D60 houses, lagna or karma. No invented biography, event guarantees, medical or investment advice. Ordinary numerals and verified D-chart labels are allowed if useful; prefer natural language, no inline evidence IDs, raw dates, degrees, percentages, money amounts, Markdown or HTML. Use exactly two paragraphs per ordinary chapter and three for rich timing, separate from lead. Honor supplied minimum words; rich timing 85–110 words, distinct long and short rulers and their interaction. Full report 400–520 words; for a subset write only those chapters. End every sentence and finish the JSON.';
+export const N631_GROQ_PROMPT='Return ONLY JSON {"chapters":[{"id":"requested id","lead":"Complete sentence.","paragraphs":[{"text":"Complete paragraph.","evidenceIds":["provided id"]}]}]}. Output in the requested language, not the language of the facts. All requested chapters in order. Each chapter has a required array: cite ALL its IDs in evidenceIds across the paragraphs. An ID ending .core is a supplied bundle of related facts; discuss their relationship and cite that bundle. Do not invent IDs or cite a different chapter’s bundle. Shared evidence can be cited where relevant. Write original, specific synthesis, not a list of placements: connect natal factors to thematic vargas, explain support and tension, and give a concrete everyday implication. D1 is primary; repeated signs are correlated, not independent proof. Hora is Sun/Moon categories only. D60 conditional sign comparison only if supplied, never D60 houses, lagna or karma. No invented biography, event guarantees, medical or investment advice. Ordinary numerals and verified D-chart labels are allowed if useful; prefer natural language, no inline evidence IDs, raw dates, degrees, percentages, money amounts, Markdown or HTML. Use exactly two paragraphs per ordinary chapter and three for rich timing, separate from lead. Honor supplied minimum words; rich timing 85–110 words, distinct long and short rulers and their interaction. Full report 400–520 words; for a subset write only those chapters. End every sentence and finish the JSON.';
+
+/** Explicit source packets are citations to a group of actual facts, not
+ * automatic completion of missing model citations. A packet must be cited
+ * by the provider, and expands only to its source-bound constituents. */
+export type GroqEvidencePacket={id:string;chapter:string;ids:string[]};
+export function packGroqN6(input:N6Brief,repair=false):{brief:N6Brief;packets:GroqEvidencePacket[]}{
+ const packets:GroqEvidencePacket[]=[];
+ const context=new Map(input.context.map(e=>[e.id,e]));
+ const keepContext=new Set<string>();
+ const chapters=input.chapters.map(c=>{
+  const required=[...new Set(c.required)],local=new Map(c.evidence.map(e=>[e.id,e]));
+  const resolved=required.map(id=>local.get(id)||context.get(id));
+  if(resolved.some(e=>!e))return c;
+  if(required.length<=2){
+   for(const id of required)if(context.has(id))keepContext.add(id);
+   return repair?{...c,evidence:c.evidence.filter(e=>required.includes(e.id)||/\.v\d+$/.test(e.id))}:c;
+  }
+  const id=c.id+'.core';
+  packets.push({id,chapter:c.id,ids:required});
+  // Include actual text for every constituent, including shared facts.
+  // Do not require model to repeat six or seven separate long identifiers.
+  const packet={id,text:resolved.map(x=>x!.text).join(' | ')};
+  const optional=c.evidence.filter(x=>!required.includes(x.id));
+  return {...c,required:[id],evidence:[packet,...(repair?optional.filter(x=>/\.v\d+$/.test(x.id)).slice(0,2):optional)]};
+ });
+ // Full report retains all shared context and all optional local varga facts.
+ // Repair keeps only required shared facts not already inside packets.
+ return {brief:{...input,chapters,context:repair?input.context.filter(e=>keepContext.has(e.id)):input.context},packets};
+}
+/** No insertion of an uncited packet, no cross-chapter expansion, no removal
+ * of unknown IDs. The original full validator still has the final say. */
+export function expandGroqPackets(raw:string,packets:GroqEvidencePacket[]):string{
+ if(!packets.length)return raw;
+ const x=decode(raw);if(!x)return raw;
+ for(const value of x.chapters){
+  const c=value as Draft|null;if(!c||!Array.isArray(c.paragraphs))continue;
+  for(const p of c.paragraphs){
+   if(!p||!Array.isArray(p.evidenceIds))continue;
+   p.evidenceIds=[...new Set(p.evidenceIds.flatMap(id=>{
+    const packet=packets.find(q=>q.id===id&&q.chapter===c.id);
+    return packet?packet.ids:[id];
+   }))];
+  }
+ }
+ return JSON.stringify(x);
+}

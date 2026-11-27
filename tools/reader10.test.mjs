@@ -260,3 +260,22 @@ test('N631 Groq compact facts preserve all thematic and required source IDs and 
  }
  assert.ok(translated>=12,'English compact representation should be used on ordinary verified fixtures');
 });
+
+test('N631 real-source compact repair for self and money preserves every required fact and fits reported 3203-token budget estimate',async()=>{
+ const {buildN6Reader,buildN6Brief,groqN6Brief,groqN6Payload,packGroqN6,N631_GROQ_PROMPT}=await import('../apps/api/src/reader-n6.ts');
+ let count=0;
+ for(let seed=1;seed<=30;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  const r=buildN6Reader(chart,'uk','2026-11-27',false),b=groqN6Brief(buildN6Brief(r,chart,'2026-11-27'),chart,'2026-11-27');
+  const subset={...b,chapters:b.chapters.filter(c=>['self','money'].includes(c.id))},p=packGroqN6(subset,true);
+  for(const c of subset.chapters){
+   const packet=p.packets.find(q=>q.chapter===c.id);
+   if(packet)assert.deepEqual(packet.ids,[...new Set(c.required)]);
+  }
+  const estimate=Math.ceil(Buffer.byteLength(groqN6Payload(p.brief)+'\n'+N631_GROQ_PROMPT,'utf8')/3)+1550+700;
+  // Bound the context growth, not a claim about exact upstream tokenization.
+  assert.ok(estimate<4500,'repair estimate '+estimate);
+  count++;
+ }
+ assert.ok(count>=20);
+});

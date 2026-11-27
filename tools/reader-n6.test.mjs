@@ -234,3 +234,28 @@ test('N631 Groq avoids a corrective call that cannot fit the upstream token budg
  assert.equal(calls,1);assert.equal(result.reason,'rate_limited');assert.equal(result.result,null);
  assert.ok(events.some(d=>d.reason==='groq_repair_budget_insufficient'));
 });
+
+test('N631 source packets require an actual chapter-local model citation; no fabricated evidence',async()=>{
+ const {packGroqN6,expandGroqPackets}=await import('../apps/api/src/reader-n6.ts');
+ const b={...brief,context:[{id:'shared.cluster9',text:'D1 related concentration.'}],chapters:brief.chapters.map(c=>c.id==='self'?{...c,required:[...c.required,'shared.cluster9']}:c)};
+ const p=packGroqN6(b);
+ assert.deepEqual(p.brief.chapters[0].required,['self.core']);
+ assert.match(p.brief.chapters[0].evidence[0].text,/First source fact.*Second source fact.*D1 related concentration/);
+ const x=output();
+ assert.equal(inspectN6Response(expandGroqPackets(JSON.stringify(x),p.packets),reader,b).reason,'missing_required_evidence');
+ x.chapters[0].paragraphs[0].evidenceIds=['self.core'];
+ assert.ok(inspectN6Response(expandGroqPackets(JSON.stringify(x),p.packets),reader,b).reader);
+ x.chapters[1].paragraphs[0].evidenceIds=['self.core'];
+ assert.equal(inspectN6Response(expandGroqPackets(JSON.stringify(x),p.packets),reader,b).reason,'unknown_evidence');
+ x.chapters[1].paragraphs[0].evidenceIds=['invented'];
+ assert.equal(inspectN6Response(expandGroqPackets(JSON.stringify(x),p.packets),reader,b).reason,'unknown_evidence');
+ const r=packGroqN6({...b,chapters:[b.chapters[0]]},true);
+ assert.equal(r.brief.context.length,0);
+ assert.match(r.brief.chapters[0].evidence[0].text,/D1 related concentration/);
+});
+test('N631 token reset durations are parsed strictly and bounded',async()=>{
+ const {parseGroqTokenReset}=await import('../apps/api/src/direct-jyotish.ts');
+ assert.equal(parseGroqTokenReset('7.66s'),7660);
+ assert.equal(parseGroqTokenReset('1m0.5s'),60500);
+ for(const value of [null,'','nonsense','2m59.56s','-1s','1.0','9999999999m'])assert.equal(parseGroqTokenReset(value),null);
+});
