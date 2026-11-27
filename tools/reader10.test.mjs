@@ -312,3 +312,20 @@ test('N631 incident regression: two missing evidence chapters, 3203 remaining to
  assert.ok(events.some(x=>x.reason==='n6_repair_self_money'));
  assert.ok(result.result.reader10.chapters.find(c=>c.id==='money').evidenceIds.flat().includes('money.v2'));
 });
+
+test('N631 verified full Ukrainian report uses simple JSON mode and recovers from provider JSON 400 after token reset',async()=>{
+ const {buildN6Reader}=await import('../apps/api/src/reader-n6.ts');
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const chart=chartOf(7),asOf='2026-11-27',reader=buildN6Reader(chart,'uk',asOf,false);
+ const calls=[],waits=[];
+ const result=await generateDirectJyotish(chart,'uk',asOf,{reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>true,groqTestWait:async ms=>{waits.push(ms);},fetcher:async(_url,req)=>{
+  const body=JSON.parse(req.body);calls.push(body);
+  if(calls.length===1){assert.deepEqual(body.response_format,{type:'json_object'});return new Response(JSON.stringify({error:{code:'json_validate_failed',message:'Failed to generate JSON'}}),{status:400,headers:{'x-ratelimit-limit-tokens':'8000','x-ratelimit-remaining-tokens':'3489','x-ratelimit-reset-tokens':'33.832s'}});}
+  assert.equal(body.response_format,undefined);assert.equal(body.messages[1].content,calls[0].messages[1].content);
+  const b=JSON.parse(body.messages[1].content.split('facts:\n')[1]);
+  const chapters=b.chapters.map(c=>({id:c.id,lead:'A distinct practical theme for '+c.id+' asks for thoughtful attention.',paragraphs:Array.from({length:c.minParagraphs},(_,k)=>({text:(['The first useful perspective on ','Another distinct practical perspective on ','The final interaction of '][k])+c.id+' connects competing responsibilities with a deliberate daily choice rather than an assured outcome. Consider the relationship between your goals, your decisions and the resources available to you before making commitments.',evidenceIds:c.required}))}));
+  return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify({chapters})}}]}));
+ }});
+ assert.equal(calls.length,2);assert.equal(waits.length,1);assert.ok(waits[0]>=33000&&waits[0]<=35332);
+ assert.ok(result.result?.reader10);assert.equal(result.result.reader10.chapters.length,8);
+});

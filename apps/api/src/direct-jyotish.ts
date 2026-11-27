@@ -104,6 +104,8 @@ export type DirectDiagnostic={
 export type DirectOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];
  keys?:Partial<Record<FreeProvider,string>>;freeConfirmed?:Partial<Record<FreeProvider,boolean>>;
+ /** Mock-only sleep seam; production always waits real elapsed time. */
+ groqTestWait?:(ms:number)=>Promise<void>;
  timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>void|Promise<void>;
  /** Opt-in bounded improvement; full API route enables it for Groq only. */
  qualityRetry?:boolean;
@@ -183,29 +185,6 @@ export function validateN4ConsultationReferences(text:string,chart:CalculatedCha
   if(n>=3)return {ok:false,reason:'repetitive_ai_filler'};
  }
  return {ok:true,reason:'ok'};
-}
-/** Both allowlisted GPT-OSS models support constrained JSON Schema on Groq.
- * Keep the schema structural; the local reader validator still owns evidence,
- * chapter ordering, length, privacy and content constraints. */
-const GROQ_N6_SCHEMA={
- type:'json_schema',json_schema:{name:'galaxiora_n6_reader',strict:true,schema:{
-  type:'object',additionalProperties:false,required:['chapters'],properties:{
-   chapters:{type:'array',items:{type:'object',additionalProperties:false,
-    required:['id','lead','paragraphs'],properties:{
-     id:{type:'string',enum:['self','money','work','love','home','path','timing','summary']},
-     lead:{type:'string'},paragraphs:{type:'array',items:{
-      type:'object',additionalProperties:false,required:['text','evidenceIds'],
-      properties:{text:{type:'string'},evidenceIds:{type:'array',items:{type:'string'}}}
-     }}
-    }
-   }}
-  }
- }}
-} as const;
-function groqN6Schema(brief:ReturnType<typeof buildN6Brief>,repair:N6Repair|null){
- const {json_schema:s}=GROQ_N6_SCHEMA,c=s.schema.properties.chapters,props=c.items.properties,paragraph=props.paragraphs.items;
- const ids=[...new Set([...brief.chapters.flatMap(x=>x.evidence),...brief.context].map(x=>x.id))];
- return {...GROQ_N6_SCHEMA,json_schema:{...s,name:repair?'galaxiora_n6_repair':s.name,schema:{...s.schema,properties:{chapters:{...c,items:{...c.items,properties:{...props,id:{type:'string',enum:brief.chapters.map(x=>x.id)},paragraphs:{...props.paragraphs,items:{...paragraph,properties:{...paragraph.properties,evidenceIds:{type:'array',items:{type:'string',enum:ids}}}}}}}}}}}};
 }
 /** Classify only known upstream errors. Never log provider messages, failed
  * generation, arbitrary error codes, request bodies, keys or chart data. */
@@ -331,6 +310,7 @@ export async function generateDirectJyotish(
   const groqBrief=n6&&provider==='groq'?groqN6Brief(n6,chart,asOf):null;
   let groqRemainingTokens:number|null=null;
   let groqTokenLimit:number|null=null,groqResetMs:number|null=null,groqObservedAt=0;
+  let admittedFullPayload:string|null=null;
   let bestVerified:{result:Result;missing:number}|null=null;
   try{
    let correctiveReason='';
@@ -342,7 +322,7 @@ export async function generateDirectJyotish(
    // Free models frequently stop before a long requested consultation is complete.
    // Allow one bounded retry for selected incomplete responses.
    // Never retry arbitrary HTTP errors or accept fabricated chart facts.
-   // N6 Groq may recover once from a recognized structured-format HTTP 400.
+   // N6 Groq starts in simple JSON object mode and can recover once from a recognized JSON-format HTTP 400.
    for(let attempt=0;attempt<2;attempt++){
     if(attempt>0){
      // Keep a usable window for each remaining provider before spending a retry.
@@ -359,7 +339,7 @@ export async function generateDirectJyotish(
     controller=new AbortController();
     const providerTimeout=provider==='gemini'?65000:42000;
     const reservedForFallback=30000*(order.length-index-1);
-    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?(repair&&repair.ids.length>3?42000:25000):providerTimeout);
+    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?(provider==='groq'&&!repair||repair&&repair.ids.length>3?42000:25000):providerTimeout);
     const concise=attempt===1;
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
@@ -390,9 +370,14 @@ export async function generateDirectJyotish(
       // Only a real reported reset can justify waiting; no extra request is
       // sent to probe quota. Retain the accepted draft in memory.
       const wait=groqResetMs===null?Infinity:Math.max(0,groqObservedAt+groqResetMs-Date.now())+1500;
-      if(groqTokenLimit!==null&&estimated<=groqTokenLimit&&wait<=65000&&deadline-Date.now()>wait+timeout+reservedForFallback+1500){
+      // A previously admitted identical full payload with the same completion
+      // ceiling can be retried in plain JSON after reset, even when a crude
+      // byte-based estimate exceeds TPM. Provider remains the final limiter.
+      const sameAdmittedFull=!repair&&admittedFullPayload===providerPayload;
+      if(groqTokenLimit!==null&&(estimated<=groqTokenLimit||sameAdmittedFull)&&wait<=65000&&deadline-Date.now()>wait+timeout+reservedForFallback+1500){
        diagnostic(provider,'limit','groq_wait_token_reset_seconds_'+Math.ceil(wait/1000));
-       await new Promise<void>(resolve=>setTimeout(resolve,wait));
+       if(opts.fetcher&&opts.groqTestWait)await opts.groqTestWait(wait);
+       else await new Promise<void>(resolve=>setTimeout(resolve,wait));
       }else{reason='rate_limited';diagnostic(provider,'limit','groq_repair_budget_insufficient');break;}
      }
     }
@@ -404,7 +389,8 @@ export async function generateDirectJyotish(
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
-      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(packed!.brief,repair)}:{}),
+      // JSON syntax mode avoids dynamic schema generation failures. Local validation remains authoritative.
+      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:{type:'json_object'}}:{}),
       messages:[{role:'system',content:n6?(provider==='groq'?N631_GROQ_PROMPT+(repair?'\nReturn only replacement chapters. Correct: '+repair.issues.join(', '):correctiveReason?'\nCorrect: '+correctiveReason:''):repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':N6_PROMPT+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
        {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+providerPayload} ]})
@@ -426,6 +412,7 @@ export async function generateDirectJyotish(
       const code=await groqN6BadRequest(response);
       reason='invalid_response';diagnostic(provider,'http','groq_'+code,400);
       if(attempt===0&&['json_generation_failed','structured_format_rejected'].includes(code)&&deadline-Date.now()>30000+reservedForFallback){
+       if(!repair)admittedFullPayload=providerPayload;
        groqPlainJson=true;correctiveReason='groq_'+code;continue;
       }
       break;
@@ -454,6 +441,7 @@ export async function generateDirectJyotish(
      diagnostic(provider,'http',reason,response.status);
      redact(reason,provider);break;
     }
+    if(n6&&provider==='groq'&&!repair)admittedFullPayload=providerPayload;
     const raw=await response.text();
     if(raw.length>160000){reason='invalid_response';diagnostic(provider,'response','oversized_body');break;}
     let parsed:{model?:string;usage?:{prompt_tokens?:number;completion_tokens?:number};choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>}|undefined;
