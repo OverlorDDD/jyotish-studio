@@ -171,7 +171,7 @@ function areaChapter(f:Reader10Facts,rule:AreaRule,vargas:Vargas|null,chart:Calc
    .map(p=>(p.name===lord.name?ASPECT_PLAIN.own:ASPECT_PLAIN[p.name as 'Mars'|'Jupiter'|'Saturn'])[l])];
  if(scene.length)plain.push(scene.join(' '));
  plain.push(rule.lord[lord.house-1][l]+(lord.dignity==='exalted'||lord.dignity==='own'
-  ?(uk?' І це справджується повною мірою.':' And this comes true in full.')
+  ?(uk?' Це положення підсилює тему в межах традиційного трактування.':' This placement reinforces the theme within the traditional reading.')
   :lord.dignity==='debilitated'?(uk?' Щоправда, результат приходить через зусилля й пізніше, ніж хотілося б.':' Results do come, though through effort and later than you would like.'):''));
 
  astro.push((uk?'Ваш '+ORD_NOM_UK[H-1]+' дім, що відповідає за цю сферу: '+SIGN_NAME[sign-1].uk+'.':'Your '+ORD_EN[H-1]+' house, which governs this area: '+SIGN_NAME[sign-1].en+'.')+
@@ -206,7 +206,7 @@ function areaChapter(f:Reader10Facts,rule:AreaRule,vargas:Vargas|null,chart:Calc
    const d=dignityOf(lord.name,spot.sign),same=spot.sign===lord.sign;
    let line=uk?'У карті '+vName+', яка уточнює тему «'+rule.vargaTopic.uk+'», '+lordName+' стоїть '+SIGN_IN[spot.sign-1].uk+signDignity(lord.name,spot.sign,l)+', '+houseIn(spot.house,l)+' від її лагни.'
     :'In '+vName+', which refines the theme of “'+rule.vargaTopic.en+'”, '+lordName+' stands '+SIGN_IN[spot.sign-1].en+signDignity(lord.name,spot.sign,l)+', '+houseIn(spot.house,l)+' from its lagna.';
-   if(same){line+=uk?' Це варготтама: той самий знак, що й в основній карті, тому планета діє стабільно й сильно.':' This is vargottama: the same sign as in the main chart, so the planet acts steadily and strongly.';score+=1;}
+   if(same){line+=uk?' Це варготтама: той самий знак, що й в основній карті, що є додатковим показником послідовності; силу оцінюють у контексті інших чинників.':' This is vargottama: the same sign as in the main chart, an additional consistency indicator; strength still depends on context.';score+=1;}
    if(d==='exalted'||d==='own')score+=1;
    if(d==='debilitated')score-=1;
    if(GOOD_HOUSES.has(spot.house))score+=1;

@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,type N6Repair} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,packGroqN6,expandGroqPackets,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -104,6 +104,8 @@ export type DirectDiagnostic={
 export type DirectOptions={
  fetcher?:typeof fetch;limit?:()=>boolean;order?:FreeProvider[];
  keys?:Partial<Record<FreeProvider,string>>;freeConfirmed?:Partial<Record<FreeProvider,boolean>>;
+ /** Mock-only sleep seam; production always waits real elapsed time. */
+ groqTestWait?:(ms:number)=>Promise<void>;
  timeoutMs?:number;onUsage?:(event:AiUsageEvent)=>void|Promise<void>;
  /** Opt-in bounded improvement; full API route enables it for Groq only. */
  qualityRetry?:boolean;
@@ -184,29 +186,6 @@ export function validateN4ConsultationReferences(text:string,chart:CalculatedCha
  }
  return {ok:true,reason:'ok'};
 }
-/** Both allowlisted GPT-OSS models support constrained JSON Schema on Groq.
- * Keep the schema structural; the local reader validator still owns evidence,
- * chapter ordering, length, privacy and content constraints. */
-const GROQ_N6_SCHEMA={
- type:'json_schema',json_schema:{name:'galaxiora_n6_reader',strict:true,schema:{
-  type:'object',additionalProperties:false,required:['chapters'],properties:{
-   chapters:{type:'array',items:{type:'object',additionalProperties:false,
-    required:['id','lead','paragraphs'],properties:{
-     id:{type:'string',enum:['self','money','work','love','home','path','timing','summary']},
-     lead:{type:'string'},paragraphs:{type:'array',items:{
-      type:'object',additionalProperties:false,required:['text','evidenceIds'],
-      properties:{text:{type:'string'},evidenceIds:{type:'array',items:{type:'string'}}}
-     }}
-    }
-   }}
-  }
- }}
-} as const;
-function groqN6Schema(brief:ReturnType<typeof buildN6Brief>,repair:N6Repair|null){
- const {json_schema:s}=GROQ_N6_SCHEMA,c=s.schema.properties.chapters,props=c.items.properties,paragraph=props.paragraphs.items;
- const ids=[...new Set([...brief.chapters.flatMap(x=>x.evidence),...brief.context].map(x=>x.id))];
- return {...GROQ_N6_SCHEMA,json_schema:{...s,name:repair?'galaxiora_n6_repair':s.name,schema:{...s.schema,properties:{chapters:{...c,items:{...c.items,properties:{...props,id:{type:'string',enum:brief.chapters.map(x=>x.id)},paragraphs:{...props.paragraphs,items:{...paragraph,properties:{...paragraph.properties,evidenceIds:{type:'array',items:{type:'string',enum:ids}}}}}}}}}}}};
-}
 /** Classify only known upstream errors. Never log provider messages, failed
  * generation, arbitrary error codes, request bodies, keys or chart data. */
 async function groqN6BadRequest(response:Response):Promise<'json_generation_failed'|'structured_format_rejected'|'context_limit'|'model_rejected'|'bad_request_other'>{
@@ -224,12 +203,76 @@ async function groqN6BadRequest(response:Response):Promise<'json_generation_fail
  }catch{/* no response body or upstream message leaves this function */}
  return 'bad_request_other';
 }
+/** Groq can return valid JSON with a paragraph count outside the local
+ * presentation contract. Only reflow whole sentences/paragraphs, retaining
+ * every original word and evidence ID. No content synthesis or padding.
+ * Full document validation remains mandatory after reflow. */
+export function reflowGroqN6(raw:string,brief:ReturnType<typeof buildN6Brief>):string{
+ if(raw.length>36000)return raw;
+ try{
+  const obj=JSON.parse(raw.trim().replace(/^\uFEFF/,'')) as {chapters?:Array<{id:string;paragraphs:Array<{text:string;evidenceIds:string[]}>}>};
+  if(!Array.isArray(obj?.chapters)||obj.chapters.length!==brief.chapters.length)return raw;
+  let changed=false;
+  for(let i=0;i<obj.chapters.length;i++){
+   const c=obj.chapters[i],spec=brief.chapters[i];
+   if(!c||c.id!==spec.id||!Array.isArray(c.paragraphs))return raw;
+   const rows=c.paragraphs,min=spec.minParagraphs,max=min===3?4:3;
+   if(rows.length>=min&&rows.length<=max)continue;
+   if(!rows.length||rows.length>8||rows.some(p=>!p||typeof p.text!=='string'||!Array.isArray(p.evidenceIds)||!p.evidenceIds.length||p.evidenceIds.some(id=>typeof id!=='string')))continue;
+   // Do not hide malformed content by joining it; the full validator checks
+   // each resulting paragraph, including digits, forbidden terms and IDs.
+   if(rows.length>max){
+    if(rows.some(p=>p.text.trim().length<15||p.text.length>1300||!/[.!?…]["”»’)]?$/u.test(p.text.trim())))continue;
+    const merged=rows.map(p=>({...p}));
+    while(merged.length>max){
+     let index=0;
+     for(let j=1;j<merged.length-1;j++)if(merged[j].text.length+merged[j+1].text.length<merged[index].text.length+merged[index+1].text.length)index=j;
+     const a=merged[index],b=merged[index+1];
+     if(a.text.length+b.text.length+1>1300)break;
+     merged.splice(index,2,{text:a.text.trim()+' '+b.text.trim(),evidenceIds:[...new Set([...a.evidenceIds,...b.evidenceIds])]});
+    }
+    if(merged.length<=max){c.paragraphs=merged;changed=true;}
+   }else{
+    const split=rows.map(p=>({...p}));
+    while(split.length<min){
+     let candidate=-1,parts:string[]=[];
+     for(let j=0;j<split.length;j++){
+      const text=split[j].text.trim();
+      if(text.length>1300)continue;
+      // No split inside abbreviations or punctuation attached to a number.
+      const sentences=text.split(/(?<=[.!?…])\s+(?=\p{Lu})/u);
+      if(sentences.length<2)continue;
+      let best:string[]=[];
+      for(let k=1;k<sentences.length;k++){
+       const a=sentences.slice(0,k).join(' '),b=sentences.slice(k).join(' ');
+       if(a.length>=40&&b.length>=40&&(!best.length||Math.abs(a.length-b.length)<Math.abs(best[0].length-best[1].length)))best=[a,b];
+      }
+      if(best.length&&(candidate<0||text.length>split[candidate].text.length)){candidate=j;parts=best;}
+     }
+     if(candidate<0)break;
+     const ids=split[candidate].evidenceIds;
+     split.splice(candidate,1,...parts.map(text=>({text,evidenceIds:[...ids]})));
+    }
+    if(split.length>=min){c.paragraphs=split;changed=true;}
+   }
+  }
+  return changed?JSON.stringify(obj):raw;
+ }catch{return raw;}
+}
+/** Groq documents reset durations like 7.66s or 2m59.56s. */
+export function parseGroqTokenReset(value:string|null):number|null{
+ if(!value)return null;
+ const m=/^(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?$/.exec(value);
+ if(!m||(!m[1]&&!m[2]))return null;
+ const ms=Math.ceil((Number(m[1]||0)*60+Number(m[2]||0))*1000);
+ return Number.isSafeInteger(ms)&&ms>=0&&ms<=120000?ms:null;
+}
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??productionDirectAiOrder().filter(provider=>
   provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
- const n6=opts.reader10?buildN6Brief(opts.reader10,chart):null;
+ const n6=opts.reader10?buildN6Brief(opts.reader10,chart,asOf):null;
  const priority=n6?null:planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
  const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority!);
@@ -264,6 +307,10 @@ export async function generateDirectJyotish(
   let controller:AbortController|null=null;
   let timer:ReturnType<typeof setTimeout>|undefined;
   const model=pickModel(provider);
+  const groqBrief=n6&&provider==='groq'?groqN6Brief(n6,chart,asOf):null;
+  let groqRemainingTokens:number|null=null;
+  let groqTokenLimit:number|null=null,groqResetMs:number|null=null,groqObservedAt=0;
+  let admittedFullPayload:string|null=null;
   let bestVerified:{result:Result;missing:number}|null=null;
   try{
    let correctiveReason='';
@@ -275,7 +322,7 @@ export async function generateDirectJyotish(
    // Free models frequently stop before a long requested consultation is complete.
    // Allow one bounded retry for selected incomplete responses.
    // Never retry arbitrary HTTP errors or accept fabricated chart facts.
-   // N6 Groq may recover once from a recognized structured-format HTTP 400.
+   // N6 Groq starts in simple JSON object mode and can recover once from a recognized JSON-format HTTP 400.
    for(let attempt=0;attempt<2;attempt++){
     if(attempt>0){
      // Keep a usable window for each remaining provider before spending a retry.
@@ -292,13 +339,12 @@ export async function generateDirectJyotish(
     controller=new AbortController();
     const providerTimeout=provider==='gemini'?65000:42000;
     const reservedForFallback=30000*(order.length-index-1);
-    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?(repair&&repair.ids.length>3?42000:25000):providerTimeout);
-    timer=setTimeout(()=>controller?.abort(),timeout);
+    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?(provider==='groq'&&!repair||repair&&repair.ids.length>3?42000:25000):providerTimeout);
     const concise=attempt===1;
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=n6?(repair?Math.min(3400,1200+450*repair.ids.length):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
+    const maxCompletion=n6?(repair?(provider==='groq'?Math.min(3400,650+450*repair.ids.length):Math.min(3400,1200+450*repair.ids.length)):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -313,6 +359,29 @@ export async function generateDirectJyotish(
        '\nCORRECTION: The previous draft omitted the required source-bound N4 comparison. Cite exactly two different additional verified D-codes appearing in the provided facts and connect them to D1; do not invent placements.':'')+
       (correctiveReason==='missing_d9_d10_analysis'?
        '\nCORRECTION: The previous version omitted real D9 and/or D10 interpretation. In the relationship section, interpret one VERIFIED D9 graha, its sign and house from the facts. In the career section, interpret one VERIFIED D10 graha, its sign and house. Do not merely list D9 and D10 codes or invent placements. Retain the two additional verified N4 divisions and end in a complete sentence.':'');
+    const providerBrief=n6&&provider==='groq'&&groqBrief?(repair?{...groqBrief,chapters:groqBrief.chapters.filter(c=>repair!.ids.some(id=>id===c.id))}:groqBrief):repair?.brief??n6;
+    const packed=n6&&provider==='groq'?packGroqN6(providerBrief??n6,Boolean(repair)):null;
+    const providerPayload=n6?(provider==='groq'?groqN6Payload(packed!.brief):n6ProviderPayload(repair?.brief??n6,false)):backup?backupFacts:facts;
+    if(n6&&provider==='groq'&&attempt>0&&groqRemainingTokens!==null){
+     // Conservative admission estimate, not an exact tokenizer. Avoid a
+     // knowingly oversized corrective call against the last upstream budget.
+     const estimated=Math.ceil(Buffer.byteLength(providerPayload+'\n'+N631_GROQ_PROMPT,'utf8')/3)+maxCompletion+700;
+     if(groqRemainingTokens<estimated){
+      // Only a real reported reset can justify waiting; no extra request is
+      // sent to probe quota. Retain the accepted draft in memory.
+      const wait=groqResetMs===null?Infinity:Math.max(0,groqObservedAt+groqResetMs-Date.now())+1500;
+      // A previously admitted identical full payload with the same completion
+      // ceiling can be retried in plain JSON after reset, even when a crude
+      // byte-based estimate exceeds TPM. Provider remains the final limiter.
+      const sameAdmittedFull=!repair&&admittedFullPayload===providerPayload;
+      if(groqTokenLimit!==null&&(estimated<=groqTokenLimit||sameAdmittedFull)&&wait<=65000&&deadline-Date.now()>wait+timeout+reservedForFallback+1500){
+       diagnostic(provider,'limit','groq_wait_token_reset_seconds_'+Math.ceil(wait/1000));
+       if(opts.fetcher&&opts.groqTestWait)await opts.groqTestWait(wait);
+       else await new Promise<void>(resolve=>setTimeout(resolve,wait));
+      }else{reason='rate_limited';diagnostic(provider,'limit','groq_repair_budget_insufficient');break;}
+     }
+    }
+    timer=setTimeout(()=>controller?.abort(),Math.min(timeout,Math.max(1500,deadline-Date.now()-reservedForFallback)));
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
      body:JSON.stringify({model,
@@ -320,16 +389,30 @@ export async function generateDirectJyotish(
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
-      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(repair?.brief??n6,repair)}:{}),
-      messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT:N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
+      // JSON syntax mode avoids dynamic schema generation failures. Local validation remains authoritative.
+      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:{type:'json_object'}}:{}),
+      messages:[{role:'system',content:n6?(provider==='groq'?N631_GROQ_PROMPT+(repair?'\nReturn only replacement chapters. Correct: '+repair.issues.join(', '):correctiveReason?'\nCorrect: '+correctiveReason:''):repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':N6_PROMPT+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
        {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(repair?.brief??n6,provider==='groq'):backup?backupFacts:facts)} ]})
+        '. Here are ONLY verified calculation facts:\n'+providerPayload} ]})
     });
+    if(n6&&provider==='groq'){
+     const remaining=response.headers.get('x-ratelimit-remaining-tokens');
+     if(remaining&&/^\d{1,9}$/.test(remaining))groqRemainingTokens=Number(remaining);
+     const tokenLimit=response.headers.get('x-ratelimit-limit-tokens');
+     groqTokenLimit=tokenLimit&&/^\d{1,9}$/.test(tokenLimit)?Number(tokenLimit):null;
+     groqResetMs=parseGroqTokenReset(response.headers.get('x-ratelimit-reset-tokens'));
+     groqObservedAt=Date.now();
+     if(groqResetMs!==null)diagnostic(provider,'limit','groq_token_reset_ms_'+groqResetMs);
+     for(const key of ['x-ratelimit-limit-tokens','x-ratelimit-remaining-tokens','x-ratelimit-remaining-requests']){
+      const v=response.headers.get(key);if(v&&/^\d{1,9}$/.test(v))diagnostic(provider,'limit',key.replaceAll('-','_')+'_'+v);
+     }
+    }
     if(!response.ok){
      if(n6&&provider==='groq'&&response.status===400){
       const code=await groqN6BadRequest(response);
       reason='invalid_response';diagnostic(provider,'http','groq_'+code,400);
       if(attempt===0&&['json_generation_failed','structured_format_rejected'].includes(code)&&deadline-Date.now()>30000+reservedForFallback){
+       if(!repair)admittedFullPayload=providerPayload;
        groqPlainJson=true;correctiveReason='groq_'+code;continue;
       }
       break;
@@ -349,29 +432,40 @@ export async function generateDirectJyotish(
        }else openRouterCooldownUntil=Date.now()+delay;
       }
      }
+     if(n6&&provider==='groq'&&response.status===429){
+      const retry=response.headers.get('retry-after');
+      if(retry&&/^\d{1,6}$/.test(retry))diagnostic(provider,'limit','groq_retry_after_seconds_'+retry);
+     }
      reason=response.status===429?'rate_limited':response.status===401||response.status===403?'provider_rejected':
       response.status>=500?'provider_unavailable':'invalid_response';
      diagnostic(provider,'http',reason,response.status);
      redact(reason,provider);break;
     }
+    if(n6&&provider==='groq'&&!repair)admittedFullPayload=providerPayload;
     const raw=await response.text();
     if(raw.length>160000){reason='invalid_response';diagnostic(provider,'response','oversized_body');break;}
-    let parsed:{model?:string;choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>}|undefined;
+    let parsed:{model?:string;usage?:{prompt_tokens?:number;completion_tokens?:number};choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>}|undefined;
     try{parsed=JSON.parse(raw);}catch{reason='invalid_response';diagnostic(provider,'response','not_json');break;}
+    if(n6&&provider==='groq')for(const [key,value] of Object.entries(parsed?.usage||{})){
+     if(['prompt_tokens','completion_tokens'].includes(key)&&Number.isSafeInteger(value)&&value>=0)diagnostic(provider,'limit','groq_usage_'+key+'_'+value);
+    }
     const choice=parsed?.choices?.[0];
     const value=choice?.message?.content;
-    const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+    const originalContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
+    const reflowed=n6&&provider==='groq'&&choice?.finish_reason!=='length'?reflowGroqN6(originalContent,repair?.brief??n6):originalContent;
+    if(reflowed!==originalContent)diagnostic(provider,'validation','n631_paragraph_reflow');
+    const rawContent=packed&&choice?.finish_reason!=='length'?expandGroqPackets(reflowed,packed.packets):reflowed;
     if(n6&&opts.reader10){
      const merged=repair?mergeN6Repair(rawContent,repair):rawContent;
-     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6);
+     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6,false,provider==='groq');
      const reader10=checked.reader;
      if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
-      if(provider==='groq'&&attempt===0){
-       const enoughTime=deadline-Date.now()>30000+reservedForFallback;
+      if((provider==='groq'||provider==='gemini')&&attempt===0){
+       const enoughTime=deadline-Date.now()>(provider==='gemini'?45000:30000)+reservedForFallback;
        if(!enoughTime)diagnostic(provider,'validation','n6_repair_no_time');
        else if(choice?.finish_reason==='length')diagnostic(provider,'validation','n6_repair_truncated');
        else{
-        const decision=inspectN6Repair(rawContent,opts.reader10,n6);
+        const decision=inspectN6Repair(rawContent,opts.reader10,n6,provider==='groq');
         repair=decision.repair;
         if(repair){diagnostic(provider,'validation','n6_repair_'+repair.ids.join('_'));for(const issue of repair.issues)diagnostic(provider,'validation','n6_repair_issue_'+issue.replace(':','_'));continue;}
         diagnostic(provider,'validation','n6_repair_'+decision.reason);
@@ -380,7 +474,7 @@ export async function generateDirectJyotish(
         correctiveReason=code;diagnostic(provider,'validation','n6_full_retry_'+checked.reason);continue;
        }
       }
-      if(provider!=='groq'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
+      if(provider==='openrouter'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
       break;
      }
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');

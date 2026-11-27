@@ -79,7 +79,7 @@ test('sample chart: plain lead and text first, the placements behind it in the d
 const TERMS_UK=/(?<![а-яіїєґ’])(лагн|накшатр|управител|йог[аи]|варг|домі(?![а-яіїєґ’])|аспект|екзальтац|падінн|раху(?![а-яіїєґ’н])|кету|сатурн|юпітер|марс(?![а-яіїєґ’])|венер|меркурі|хор[аі](?![а-яіїєґ’]))|\bD\d/i;
 const TERMS_EN=/\b(lagna|nakshatra|lord|yoga|varga|house|aspect|exalt\w*|debilit\w*|rahu|ketu|saturn|jupiter|mars|venus|mercury|hora|D\d+)\b/i;
 test('400 invented charts × 2 languages: plain layer without terms, details with every chart used, clean and unique',()=>{
- const seen=new Set(),hedge=/(?<![а-яіїєґ’])(може|можуть|можливо|ймовірно|мабуть)(?![а-яіїєґ’])|\b(may|might|perhaps|possibly)\b/i;
+ const seen=new Set(),overclaim=/Шлюб щасливий:|Грошей у вас буде рівно стільки|І це справджується повною мірою|The marriage is fortunate:|You will have as much money as the effort|And this comes true in full/i;
  const banned=/смерт|помре|хвороб|діагноз|безплід|вагітн|death|disease|diagnos|infertil|pregnan|guarantee[sd]?\b/i;
  let charts=0,words=0;
  for(let seed=1;seed<=400;seed++){
@@ -101,7 +101,7 @@ test('400 invented charts × 2 languages: plain layer without terms, details wit
     assert.ok(all.every(p=>/[.!?»”]$/.test(p)),'unfinished sentence seed '+seed+' '+chapter.id);
     const text=all.join(' ');
     assert.doesNotMatch(text,/undefined|NaN|null|\s{2}|\.\.|,\.|\s[,.;]/,'dirty text seed '+seed+' '+lang);
-    assert.doesNotMatch(text,hedge,'hedged text seed '+seed+' '+lang);
+    assert.doesNotMatch(text,overclaim,'unsupported categorical prediction seed '+seed+' '+lang);
     assert.doesNotMatch(text,banned,'out-of-bounds claim seed '+seed+' '+lang);
     assert.equal(new Set(chapter.paragraphs).size,chapter.paragraphs.length,'repeated paragraph seed '+seed);
     if(lang==='uk')words+=visible.join(' ').split(/\s+/).length;
@@ -190,4 +190,142 @@ test('N6.1 timing uses both rulers, their lordships and current chart context wi
   assert.ok(b.context.some(x=>x.id==='shared.lagnaChain'));
   assert.doesNotMatch(JSON.stringify(b),/2000-01-01|latitude|longitude|2026-06-22|2028-01-21/);
  }
+});
+
+test('N6.3 verified dominant patterns and summary facts are sent without classic prose or uncertain D60',async()=>{
+ const {buildN6Reader,buildN6Brief,n6ProviderPayload}=await import('../apps/api/src/reader-n6.ts');
+ let tested=0;
+ for(let seed=1;seed<=40;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  for(const lang of ['uk','en']){
+   const reader=buildN6Reader(chart,lang,'2026-11-27',false),brief=buildN6Brief(reader,chart);
+   const payload=JSON.parse(n6ProviderPayload(brief,false));
+   const cluster=brief.context.find(e=>e.id.startsWith('shared.cluster'));
+   assert.ok(brief.context.some(e=>e.id==='shared.d1Factors'));
+   if(cluster)for(const id of ['self','path'])assert.ok(brief.chapters.find(c=>c.id===id).required.includes(cluster.id));
+   const summary=brief.chapters.find(c=>c.id==='summary');
+   assert.ok(summary.evidence.length>=2);assert.ok(summary.evidence.every(e=>!e.id.endsWith('.reader')));
+   for(const c of payload.chapters){assert.equal(c.lead,undefined);assert.equal(c.paragraphs,undefined);}
+   assert.doesNotMatch(JSON.stringify(payload),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+   tested++;
+  }
+ }
+ assert.ok(tested>=50);
+});
+
+test('N6.3.1 selects thematic factors from every verified varga, bounds provider evidence and never leaks D60 houses',async()=>{
+ const {buildVargaIntelligence}=await import('../apps/api/src/reader-n63-vargas.ts');
+ const {buildN6Reader,buildN6Brief,n6ProviderPayload}=await import('../apps/api/src/reader-n6.ts');
+ let count=0,conditional=0;
+ for(let seed=1;seed<=60;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  for(const lang of ['uk','en']){
+   const a=buildVargaIntelligence(chart,lang,true,'2026-11-27'),b=buildVargaIntelligence(chart,lang,false,'2026-11-27');
+   assert.deepEqual(a.findings.map(x=>x.division),[2,3,4,7,9,10,12,16,20,24,27,30,40,45]);
+   assert.ok(a.findings.every(x=>x.examined===9&&x.selected.length===2&&x.selected[0].planet!==x.selected[1].planet));
+   for(const x of a.findings)for(const p of x.selected){
+    const real=chart.n4.charts.find(c=>c.division===x.division).planets.find(q=>q.name===p.planet);
+    assert.equal(p.sign,real.sign);assert.equal(p.house,real.house);
+   }
+   assert.equal(a.d60Examined,9);assert.equal(b.d60,null);assert.equal(b.d60Examined,0);
+   if(a.d60){conditional++;assert.doesNotMatch(a.d60.text,/\bH\d+|дім \d+|house \d+/i);}
+   const reader=buildN6Reader(chart,lang,'2026-11-27',false);
+   const payload=JSON.parse(n6ProviderPayload(buildN6Brief(reader,chart,'2026-11-27'),true));
+   assert.doesNotMatch(JSON.stringify(payload),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+   for(const n of [2,3,4,7,9,10,12,16,20,24,27,30,40,45])assert.ok(payload.chapters.some(c=>c.evidence.some(e=>e.id.endsWith('.v'+n))));
+   assert.ok(JSON.stringify(payload).length<26000,'bounded context');
+   assert.equal(buildVargaIntelligence({...chart,n4:{...chart.n4,sourceDigest:'bad'}},lang,true),null);
+   count++;
+  }
+ }
+ assert.ok(count>=80);assert.ok(conditional>=40);
+});
+
+test('N631 Groq compact facts preserve all thematic and required source IDs and do not reintroduce D60',async()=>{
+ const {buildN6Reader,buildN6Brief,groqN6Brief,groqN6Payload}=await import('../apps/api/src/reader-n6.ts');
+ let translated=0;
+ for(let seed=1;seed<=24;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  const reader=buildN6Reader(chart,'uk','2026-11-27',false),brief=buildN6Brief(reader,chart,'2026-11-27');
+  const alternate=groqN6Brief(brief,chart,'2026-11-27'),payload=JSON.parse(groqN6Payload(alternate));
+  assert.equal(payload.language,'uk');
+  assert.deepEqual(payload.context.map(e=>e.id),brief.context.map(e=>e.id));
+  for(let i=0;i<brief.chapters.length;i++){
+   assert.deepEqual(payload.chapters[i].evidence.map(e=>e.id),brief.chapters[i].evidence.map(e=>e.id));
+   assert.deepEqual(payload.chapters[i].required,brief.chapters[i].required);
+   assert.equal(payload.chapters[i].lead,undefined);
+  }
+  assert.doesNotMatch(JSON.stringify(payload),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+  if(alternate!==brief)translated++;
+ }
+ assert.ok(translated>=12,'English compact representation should be used on ordinary verified fixtures');
+});
+
+test('N631 real-source compact repair for self and money preserves every required fact and bounds the request estimate',async()=>{
+ const {buildN6Reader,buildN6Brief,groqN6Brief,groqN6Payload,packGroqN6,N631_GROQ_PROMPT}=await import('../apps/api/src/reader-n6.ts');
+ let count=0;
+ for(let seed=1;seed<=30;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  const r=buildN6Reader(chart,'uk','2026-11-27',false),b=groqN6Brief(buildN6Brief(r,chart,'2026-11-27'),chart,'2026-11-27');
+  const subset={...b,chapters:b.chapters.filter(c=>['self','money'].includes(c.id))},p=packGroqN6(subset,true);
+  for(const c of subset.chapters){
+   const packet=p.packets.find(q=>q.chapter===c.id);
+   if(packet)assert.deepEqual(packet.ids,[...new Set(c.required)]);
+  }
+  const estimate=Math.ceil(Buffer.byteLength(groqN6Payload(p.brief)+'\n'+N631_GROQ_PROMPT,'utf8')/3)+1550+700;
+  // Bound the context growth, not a claim about exact upstream tokenization.
+  assert.ok(estimate<4500,'repair estimate '+estimate);
+  count++;
+ }
+ assert.ok(count>=20);
+});
+
+test('N631 incident regression: two missing evidence chapters, 3203 remaining tokens, only the failed chapters regenerated',async()=>{
+ const {buildN6Reader}=await import('../apps/api/src/reader-n6.ts');
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const chart=chartOf(7),asOf='2026-11-27',reader=buildN6Reader(chart,'uk',asOf,false);
+ let calls=0;const events=[],permits=[];
+ const result=await generateDirectJyotish(chart,'uk',asOf,{reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>{permits.push(1);return true;},onDiagnostic:d=>events.push(d),fetcher:async(_url,req)=>{
+  calls++;
+  const body=JSON.parse(req.body),brief=JSON.parse(body.messages[1].content.split('facts:\n')[1]);
+  assert.ok(calls<=2);
+  if(calls===2){
+   assert.deepEqual(brief.chapters.map(c=>c.id),['self','money']);
+   assert.ok(body.max_completion_tokens<=1550);
+   assert.equal(brief.context.length,0);
+  }
+  const chapters=brief.chapters.map((c,i)=>{
+   const missing=calls===1&&['self','money'].includes(c.id);
+   const evidenceIds=missing?[c.evidence.find(e=>!c.required.includes(e.id)).id]:c.required;
+   const lead='A distinct practical theme for '+c.id+' asks for thoughtful attention.';
+   const paragraphs=Array.from({length:c.minParagraphs},(_,k)=>({
+    text:(['The first useful perspective on ','Another distinct practical perspective on ','The final interaction of '][k])+c.id+' connects competing responsibilities with a deliberate daily choice rather than an assured outcome. Consider the relationship between your goals, your decisions and the resources available to you before making commitments.',
+    evidenceIds
+   }));
+   return {id:c.id,lead,paragraphs};
+  });
+  return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify({chapters})}}]}),{headers:{'x-ratelimit-limit-tokens':'8000','x-ratelimit-remaining-tokens':'3203','x-ratelimit-reset-tokens':'0s'}});
+ }});
+ assert.equal(calls,2);assert.equal(permits.length,2);
+ assert.ok(result.result?.reader10);
+ assert.ok(events.some(x=>x.reason==='n6_repaired_complete'));
+ assert.ok(events.some(x=>x.reason==='n6_repair_self_money'));
+ assert.ok(result.result.reader10.chapters.find(c=>c.id==='money').evidenceIds.flat().includes('money.v2'));
+});
+
+test('N631 verified full Ukrainian report uses simple JSON mode and recovers from provider JSON 400 after token reset',async()=>{
+ const {buildN6Reader}=await import('../apps/api/src/reader-n6.ts');
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const chart=chartOf(7),asOf='2026-11-27',reader=buildN6Reader(chart,'uk',asOf,false);
+ const calls=[],waits=[];
+ const result=await generateDirectJyotish(chart,'uk',asOf,{reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>true,groqTestWait:async ms=>{waits.push(ms);},fetcher:async(_url,req)=>{
+  const body=JSON.parse(req.body);calls.push(body);
+  if(calls.length===1){assert.deepEqual(body.response_format,{type:'json_object'});return new Response(JSON.stringify({error:{code:'json_validate_failed',message:'Failed to generate JSON'}}),{status:400,headers:{'x-ratelimit-limit-tokens':'8000','x-ratelimit-remaining-tokens':'3489','x-ratelimit-reset-tokens':'33.832s'}});}
+  assert.equal(body.response_format,undefined);assert.equal(body.messages[1].content,calls[0].messages[1].content);
+  const b=JSON.parse(body.messages[1].content.split('facts:\n')[1]);
+  const chapters=b.chapters.map(c=>({id:c.id,lead:'A distinct practical theme for '+c.id+' asks for thoughtful attention.',paragraphs:Array.from({length:c.minParagraphs},(_,k)=>({text:(['The first useful perspective on ','Another distinct practical perspective on ','The final interaction of '][k])+c.id+' connects competing responsibilities with a deliberate daily choice rather than an assured outcome. Consider the relationship between your goals, your decisions and the resources available to you before making commitments.',evidenceIds:c.required}))}));
+  return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify({chapters})}}]}));
+ }});
+ assert.equal(calls.length,2);assert.equal(waits.length,1);assert.ok(waits[0]>=33000&&waits[0]<=35332);
+ assert.ok(result.result?.reader10);assert.equal(result.result.reader10.chapters.length,8);
 });

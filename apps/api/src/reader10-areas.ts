@@ -33,7 +33,7 @@ export const AREAS:readonly AreaRule[]=[
    t('Гроші даються щоденною працею й службою. Позики й борги — ваша слабка точка: беріть їх обережно.','Money is won by daily work and service. Loans and debts are your weak point: take them with care.'),
    t('Дохід залежить від партнера: шлюб, спільна справа, угоди з клієнтами приносять вам гроші.','Income depends on a partner: marriage, a joint business and deals with clients bring you money.'),
    t('Гроші приходять нерівно й часто через чужі ресурси: спільні кошти, спадок, страхування, дослідження. Запас на чорний день вам потрібен більше, ніж іншим.','Money arrives unevenly and often through other people’s resources: shared funds, inheritance, insurance, research. You need a reserve more than most.'),
-   t('Вам щастить у грошах: достаток приходить через учителів, батька, знання й далекі зв’язки.','You are lucky with money: wealth comes through teachers, a father, knowledge and distant connections.'),
+   t('Знання, наставництво й далекі зв’язки можуть відкривати фінансові можливості.','Knowledge, mentorship and distant connections may open financial opportunities.'),
    t('Гроші дає професія: що вищі становище й відповідальність, то більший дохід.','Your profession gives the money: the higher the standing and responsibility, the larger the income.'),
    t('Прибуток зростає з роками, а знайомства приносять гроші.','Gains grow with the years and your connections bring money.'),
    t('Гроші у вас не затримуються: витрати, поїздки й допомога іншим забирають зароблене. Найкраще ви заробляєте далеко від місця народження.','Money does not stay with you: expenses, travel and helping others take what you earn. You earn best far from your place of birth.')],
@@ -62,7 +62,7 @@ export const AREAS:readonly AreaRule[]=[
    t('Ваше місце — служба й змагання: медицина, право, армія, сервіс, усе, де розв’язують чужі проблеми.','Your place is service and contest: medicine, law, the forces, service work, anything that solves other people’s problems.'),
    t('Ви розкриваєтесь у бізнесі й роботі з клієнтами; партнер помітно впливає на вашу кар’єру.','You unfold in business and work with clients; a partner noticeably shapes your career.'),
    t('Кар’єра йде з поворотами: професію ви змінюєте докорінно, а сильні в дослідженнях і роботі з чужими ресурсами.','Your career runs through turns: you change profession at the root and are strong in research and work with other people’s resources.'),
-   t('Кар’єрі сприяє удача. Ваші сфери: викладання, право, наука, робота за кордоном.','Fortune favours your career. Your fields are teaching, law, science and work abroad.'),
+   t('Професійні можливості можуть розширюватися через знання, наставництво, дослідження чи міжнародну взаємодію.','Career opportunities may expand through knowledge, mentoring, research or international collaboration.'),
    t('Ви на своєму місці й тримаєте його міцно.','You are in your right place and hold it firmly.'),
    t('Кар’єра приносить прибуток і впливових друзів; що далі, то вищий дохід.','Your career brings gains and influential friends; the further you go, the higher the income.'),
    t('Ви працюєте далеко від дому або за лаштунками: за кордоном, в установах, у дослідженнях, без оплесків.','You work far from home or behind the scenes: abroad, in institutions, in research, without applause.')],
@@ -91,7 +91,7 @@ export const AREAS:readonly AreaRule[]=[
    t('Стосунки даються через працю й тертя: ви притираєтесь довго, а партнер часто приходить через роботу.','Relationships are won through work and friction: you take long to fit together, and a partner often comes through work.'),
    t('Шлюб у вас міцний, а партнер вірний.','Your marriage is firm and your partner loyal.'),
    t('Зв’язок глибокий і непростий: шлюб змінює вас докорінно, а спільні гроші стають окремою темою.','The bond is deep and not simple: marriage changes you at the root, and shared money becomes a subject of its own.'),
-   t('Шлюб щасливий: партнер приносить удачу, часто він з іншого міста, країни чи культури.','The marriage is fortunate: a partner brings luck and is often from another city, country or culture.'),
+   t('У партнерстві можуть особливо важити спільні переконання, навчання та відкритість до іншого досвіду.','Shared beliefs, learning and openness to different experiences may be especially important in partnership.'),
    t('Партнер пов’язаний із вашою роботою, і шлюб підносить ваше становище.','Your partner is tied to your work, and marriage raises your standing.'),
    t('Партнер приносить прибуток, друзів і здійснення бажань.','A partner brings gains, friends and the fulfilment of wishes.'),
    t('Партнер здалеку або з-за кордону; шлюб вимагає від вас поступок і вміння бути на відстані.','A partner from far away or from abroad; marriage asks concessions of you and the ability to live with distance.')],
@@ -196,7 +196,7 @@ export const SUPPORT:Record<number,{planet:Planet|'lagnaLord';topic:T;tier:Recor
  40:{planet:'Moon',topic:t('материнський рід','the maternal line'),tier:{
   strong:t('материнський рід передав вам добру спадщину: звідти ваша внутрішня підтримка.','the maternal line passed a good legacy to you: your inner support comes from there.'),
   mixed:t('від материнського роду ви взяли і сильне, і те, що доводиться переглядати.','from the maternal line you took both strength and things you have to reconsider.'),
-  hard:t('материнський рід залишив вам незавершені історії, які ви розв’язуєте у власному житті.','the maternal line left you unfinished stories that you resolve in your own life.')}},
+  hard:t('теми материнської лінії можна розглядати як привід осмислити родинні звички й власні межі.','maternal-line themes can invite reflection on family habits and personal boundaries.')}},
  45:{planet:'Sun',topic:t('батьківський рід','the paternal line'),tier:{
   strong:t('батьківський рід передав вам гідність і характер, на які можна спиратися.','the paternal line passed on dignity and character you can lean on.'),
   mixed:t('від батьківського роду ви взяли і чесноти, і впертість.','from the paternal line you took both virtues and stubbornness.'),
@@ -217,7 +217,7 @@ export const YOGA_NOTE:Partial<Record<AreaId,Partial<Record<number,T>>>>={
 /** Plain opening line of each life area, by its weighed strength. */
 export const AREA_LEAD:Record<AreaId,Record<Tier,T>>={
  money:{strong:t('З грошима у вас усе складається: дохід тримається й з роками росте.','Money works out for you: income holds and grows with the years.'),
-  mixed:t('Грошей у вас буде рівно стільки, скільки сил ви вкладете.','You will have as much money as the effort you put in.'),
+  mixed:t('Ваші можливості заробляти варто поєднувати з умінням зберігати ресурси.','Your earning opportunities are worth pairing with the ability to retain resources.'),
   hard:t('Гроші даються вам нелегко, тому звичку рахувати варто мати змолоду.','Money does not come easily to you, so the habit of counting it is worth having early.')},
  work:{strong:t('У роботі ви здатні піднятися високо.','In work you are able to rise high.'),
   mixed:t('Кар’єра у вас росте поступово, разом із досвідом.','Your career grows gradually, together with experience.'),
@@ -230,5 +230,5 @@ export const AREA_LEAD:Record<AreaId,Record<Tier,T>>={
   hard:t('Душевний спокій ви будуєте самі, часто далеко від місця, де виросли.','You build your own peace of mind, often far from where you grew up.')},
  path:{strong:t('У вирішальні моменти обставини складаються на вашу користь.','At decisive moments circumstances turn in your favour.'),
   mixed:t('Удача приходить до вас тоді, коли свою частину роботи ви вже зробили.','Luck comes to you once you have already done your part.'),
-  hard:t('На везіння ви не розраховуєте: усе в житті берете працею й досвідом.','You do not count on luck: you take everything in life by work and experience.')}
+  hard:t('Можливості найкраще розкриваються через послідовну працю й досвід.','Opportunities are best developed through sustained work and experience.')}
 };

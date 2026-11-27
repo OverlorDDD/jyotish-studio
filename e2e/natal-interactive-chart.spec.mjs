@@ -59,6 +59,18 @@ for(const locale of ['uk','en']){
   await expect(page.locator('#chart-data')).toHaveAttribute('data-access','public');
   await page.locator('#chart-data select').first().selectOption('d9');
   await expect(table.locator('caption')).toContainText('D9');
+  const select=page.locator('#chart-data select').first();
+  await expect(select.locator('option')).toHaveCount(16);
+  for(const n of [1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]){
+   await select.selectOption('d'+n);
+   await expect(table.locator('caption')).toContainText('D'+n);
+   await expect(table.getByRole('row')).toHaveCount(11);
+   if(![1,9,10].includes(n)){
+    await expect(page.getByTestId('natal-varga-data-note')).toBeVisible();
+    await expect(table.getByRole('columnheader')).toHaveCount(5);
+   }else await expect(table.getByRole('columnheader')).toHaveCount(7);
+  }
+  await expect(page.getByTestId('natal-varga-data-note')).toContainText(uk?'умовні':'provisional');
   await expect(page.locator('#timeline tbody tr')).toHaveCount(9);
   await expect(page.locator('[data-natal-related]')).toBeHidden();
   await expect(page.locator('#reading-details')).toHaveCount(0);
