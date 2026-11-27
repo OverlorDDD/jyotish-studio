@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,packGroqN6,expandGroqPackets,reviewN64Report,type N6Repair} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,n6ProviderPayload,inspectN6Repair,inspectN6RepairResponse,n6OutputContract,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,packGroqN6,expandGroqPackets,reviewN64Report,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -344,7 +344,8 @@ export async function generateDirectJyotish(
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=n6?(repair?(provider==='groq'?Math.min(3400,650+450*repair.ids.length):Math.min(3400,1200+450*repair.ids.length)):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
+    const repairAll=Boolean(repair&&n6&&repair.ids.length===n6.chapters.length);
+    const maxCompletion=n6?(repair?(provider==='groq'?Math.min(3400,650+450*repair.ids.length):Math.min(5200,1200+450*repair.ids.length)):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -360,12 +361,19 @@ export async function generateDirectJyotish(
       (correctiveReason==='missing_d9_d10_analysis'?
        '\nCORRECTION: The previous version omitted real D9 and/or D10 interpretation. In the relationship section, interpret one VERIFIED D9 graha, its sign and house from the facts. In the career section, interpret one VERIFIED D10 graha, its sign and house. Do not merely list D9 and D10 codes or invent placements. Retain the two additional verified N4 divisions and end in a complete sentence.':'');
     const providerBrief=n6&&provider==='groq'&&groqBrief?(repair?{...groqBrief,chapters:groqBrief.chapters.filter(c=>repair!.ids.some(id=>id===c.id))}:groqBrief):repair?.brief??n6;
-    const packed=n6&&provider==='groq'?packGroqN6(providerBrief??n6,Boolean(repair)):null;
-    const providerPayload=n6?(provider==='groq'?groqN6Payload(packed!.brief):n6ProviderPayload(repair?.brief??n6,false)):backup?backupFacts:facts;
+    // Reuse explicit source-bound citation packets to reduce missed IDs in Gemini.
+    // Only Groq's repair path prunes optional facts for its smaller token budget.
+    const packed=n6&&(provider==='groq'||provider==='gemini')?packGroqN6(providerBrief??n6,provider==='groq'&&Boolean(repair)):null;
+    const supplied=packed?.brief??providerBrief;
+    const providerPayload=n6?(provider==='groq'?groqN6Payload(supplied!):n6ProviderPayload(supplied!,false)):backup?backupFacts:facts;
+    const contract=supplied?n6OutputContract(supplied):'';
+    const n6Instruction=n6?(provider==='groq'?N631_GROQ_PROMPT:repair&&!repairAll?N6_REPAIR_PROMPT:N6_PROMPT)
+      +(repair?'\n'+(repairAll?'Regenerate the complete consultation.':'Return only replacement chapters.')+' Correct: '+repair.issues.join(', ')+'. Use ordinary words without digits in prose; keep all IDs in evidenceIds.':correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON.':'')
+      +'\n'+contract:'';
     if(n6&&provider==='groq'&&attempt>0&&groqRemainingTokens!==null){
      // Conservative admission estimate, not an exact tokenizer. Avoid a
      // knowingly oversized corrective call against the last upstream budget.
-     const estimated=Math.ceil(Buffer.byteLength(providerPayload+'\n'+N631_GROQ_PROMPT,'utf8')/3)+maxCompletion+700;
+     const estimated=Math.ceil(Buffer.byteLength(providerPayload+'\n'+n6Instruction,'utf8')/3)+maxCompletion+700;
      if(groqRemainingTokens<estimated){
       // Only a real reported reset can justify waiting; no extra request is
       // sent to probe quota. Retain the accepted draft in memory.
@@ -388,11 +396,11 @@ export async function generateDirectJyotish(
       ...(provider==='groq'?{max_completion_tokens:maxCompletion,reasoning_effort:'low',include_reasoning:false}:{max_tokens:maxCompletion}),
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
-      temperature:n6?0.35:concise?0.45:0.6,
+      temperature:n6?(repair||correctiveReason?0.15:0.35):concise?0.45:0.6,
       // JSON syntax mode avoids dynamic schema generation failures. Local validation remains authoritative.
       ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:{type:'json_object'}}:{}),
-      messages:[{role:'system',content:n6?(provider==='groq'?N631_GROQ_PROMPT+(repair?'\nReturn only replacement chapters. Correct: '+repair.issues.join(', '):correctiveReason?'\nCorrect: '+correctiveReason:''):repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':N6_PROMPT+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
-       {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
+      messages:[{role:'system',content:n6?n6Instruction:instructions},
+       {role:'user',content:(repair&&!repairAll?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
         '. Here are ONLY verified calculation facts:\n'+providerPayload} ]})
     });
     if(n6&&provider==='groq'){
@@ -456,7 +464,9 @@ export async function generateDirectJyotish(
     if(reflowed!==originalContent)diagnostic(provider,'validation','n631_paragraph_reflow');
     const rawContent=packed&&choice?.finish_reason!=='length'?expandGroqPackets(reflowed,packed.packets):reflowed;
     if(n6&&opts.reader10){
-     const merged=repair?mergeN6Repair(rawContent,repair):rawContent;
+     const repaired=repair?inspectN6RepairResponse(rawContent,repair):null;
+      if(repaired&&repaired.merged===null)diagnostic(provider,'validation','n6_repair_shape_'+repaired.reason);
+      const merged=repaired?repaired.merged:rawContent;
      const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6,false,provider==='groq');
      const reader10=checked.reader;
      if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
