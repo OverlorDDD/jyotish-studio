@@ -288,3 +288,9 @@ test('N64 review is advisory, records specific missing contrasts and generic pra
  const flags=reviewN64Report(r.reader,b);
  assert.ok(flags.includes('self_dispositor_dignity_unmentioned'));assert.ok(flags.includes('work_contrast_unmentioned'));assert.ok(flags.includes('self_stock_phrase'));
 });
+
+test('N64 named D60 is rejected without eligible evidence in both presentation modes',()=>{
+ const x=output();
+ x.chapters[5].paragraphs[0].text+=' Shashtiamsha shows this.';
+ for(const groq of [false,true])assert.equal(inspectN6Response(JSON.stringify(x),reader,brief,false,groq).reason,'plain_unknown_division');
+});

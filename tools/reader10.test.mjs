@@ -357,6 +357,7 @@ test('N64 all vargas retain two distinct role-selected grahas; stable dignity co
    assert.equal(work.filter(t=>t.startsWith('D10 (')).length,1);assert.equal(work.filter(t=>t.startsWith('D24 (')).length,1);
    const payload=JSON.parse(n6ProviderPayload(b,false));
    assert.ok(payload.chapters.every(c=>!('presentation' in c)));
+   assert.ok(JSON.parse(JSON.stringify(b)).chapters.every(c=>!('presentation' in c)));
    const compact=JSON.parse(groqN6Payload(packGroqN6(groqN6Brief(b,chart,'2026-11-27')).brief));
    assert.ok(compact.chapters.every(c=>!('presentation' in c)));
    assert.doesNotMatch(JSON.stringify(compact),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);

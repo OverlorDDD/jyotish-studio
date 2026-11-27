@@ -480,7 +480,7 @@ export async function generateDirectJyotish(
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');
      try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
      // Advisory only: no extra provider calls, no rejection or personal text in logs.
-     for(const flag of reviewN64Report(reader10,n6))diagnostic(provider,'validation','n64_review_'+flag);
+     try{for(const flag of reviewN64Report(reader10,n6))diagnostic(provider,'validation','n64_review_'+flag);}catch{/* Editorial advice must never affect an accepted response. */}
      diagnostic(provider,'success',repair?'n6_repaired_complete':'n6_complete');
      return {result:{provider,model:parsed?.model||model,text,reader10}};
     }
