@@ -27,7 +27,7 @@ export function buildN64Presentation(chart:CalculatedChart,lang:Lang,c:Reader10C
  const area=AREAS.find(x=>x.id===c.id);
  if(c.id==='self'||c.id==='summary'){
   const moon=f.planets.Moon;
-  rows.push((uk?'Лагна: ':'Lagna: ')+sign(f.lagna.sign)+' '+dm(f.lagna.degrees)+', '+NAKSHATRA_NAME[f.lagna.nakshatraNumber-1][lang]+'.');
+  rows.push((uk?'Лагна, тобто знак, що сходив на сході в мить народження: ':'The lagna, the sign rising in the east at the moment of birth: ')+sign(f.lagna.sign)+' '+dm(f.lagna.degrees)+', '+(uk?'накшатра ':'nakshatra ')+NAKSHATRA_NAME[f.lagna.nakshatraNumber-1][lang]+'.');
   rows.push(chain);
   rows.push((uk?'Накшатра Місяця: ':'Moon nakshatra: ')+NAKSHATRA_NAME[moon.nakshatraNumber-1][lang]+', '+(uk?'пада ':'pada ')+moon.pada+'.');
   if(yoga)rows.push(yoga);

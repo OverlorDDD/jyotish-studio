@@ -58,6 +58,23 @@ for(const lang of ['uk','en']){
   await details.locator(':scope > summary').click();
   await expect(details).toContainText(lang==='uk'?'Лагна, тобто знак':'The lagna, the sign');
   await expect(details.locator('a[href^="/'+lang+'/nakshatra/"]')).toHaveCount(1);
+  // N6.4 compact proof is the actual visible contract, not just the retained
+  // legacy details. Verify every chapter against the real API, in both locales.
+  for(const c of report.reader10.chapters.filter(c=>c.details)){
+   expect(c.details.compact,'compact proof for '+c.id).toBeDefined();
+   const compact=c.details.compact;
+   expect(compact.length).toBeGreaterThan(0);
+   expect(new Set(compact).size).toBe(compact.length);
+   const block=reader.getByTestId('reader10-'+c.id+'-details');
+   const rendered=await block.locator(':scope > p').allTextContents();
+   // Links occupy their own trailing paragraph; no repeated basis paragraph.
+   expect(rendered.slice(0,compact.length)).toEqual(compact);
+   expect(rendered.length).toBe(compact.length+(c.details.links.length?1:0));
+  }
+  const money=report.reader10.chapters.find(c=>c.id==='money').details.compact;
+  const hora=money.filter(row=>row.startsWith('D2 ('));
+  expect(hora).toHaveLength(1);
+  expect(hora[0]).not.toMatch(/чужій|своїй|own hora|other hora|\d+-й дім|\bH\d+\b/iu);
   // Every supporting divisional chart is named somewhere in the single reading block.
   const text=await reader.evaluate(el=>el.textContent||'');
   for(const div of [2,3,4,7,9,10,12,16,20,24,27,30,40,45])expect(text,'D'+div+' is used').toContain('D'+div+' (');
@@ -92,10 +109,11 @@ test('Reader 10 approximate birth time shows one note and keeps the full reading
  await details.locator('input[type="checkbox"]').check();
  const response=await refreshed;expect(response.ok()).toBe(true);
  const report=await response.json();expect(report.ai.fallbackReason).toBe('reader_only');expect(report.minutesUncertain).toBe(true);
- expect(report.reader10.chapters.flatMap(c=>[c.lead,...c.paragraphs,...(c.details?.paragraphs||[]),c.details?.basis||'']).join(' ')).not.toMatch(/D60(?=[: ])|Shashtiamsha/i);
+ expect(report.reader10.chapters.flatMap(c=>[c.lead,...c.paragraphs,...(c.details?.paragraphs||[]),...(c.details?.compact||[]),c.details?.basis||'']).join(' ')).not.toMatch(/D60(?=[: ])|Shashtiamsha/i);
  // Returning to the result uses the refreshed reading for this same chart.
  await page.goForward();
  await expect(reader.getByRole('note')).toContainText('Your birth time is marked approximate');
  await expect(reader.getByRole('note')).toHaveCount(1);
+ expect(await reader.textContent()).not.toMatch(/D60(?=[: (])|Shashtiamsha/i);
  await expect(reader.locator(':scope > article')).toHaveCount(8);
 });

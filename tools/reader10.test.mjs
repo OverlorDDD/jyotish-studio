@@ -367,3 +367,33 @@ test('N64 all vargas retain two distinct role-selected grahas; stable dignity co
  }
  assert.ok(count>=80&&contrasts>0);
 });
+
+test('N64 compact presentation preserves beginner lagna definition, exact proof and all thematic vargas in both locales',async()=>{
+ const {buildN6Reader,buildN6Brief,inspectN6Response}=await import('../apps/api/src/reader-n6.ts');
+ const chart=chartOf(7),asOf='2026-11-27';
+ for(const lang of ['uk','en'])for(const exact of [false,true]){
+  const r=buildN6Reader(chart,lang,asOf,exact),b=buildN6Brief(r,chart,asOf);
+  const expected=lang==='uk'?'Лагна, тобто знак':'The lagna, the sign';
+  const self=r.chapters[0].details.compact;
+  assert.ok(self[0].startsWith(expected));
+  assert.match(self[0],/14°18′/);
+  assert.ok(self[0].includes(SIGN_NAME[3][lang]));
+  for(const c of r.chapters.filter(c=>c.details)){
+   assert.ok(c.details.compact?.length,c.id);
+   assert.equal(new Set(c.details.compact).size,c.details.compact.length,c.id);
+  }
+  const all=r.chapters.flatMap(c=>c.details?.compact||[]);
+  for(const d of [2,3,4,7,9,10,12,16,20,24,27,30,40,45])assert.ok(all.some(t=>t.startsWith('D'+d+' (')),lang+' D'+d);
+  const hora=all.filter(t=>t.startsWith('D2 ('));
+  assert.equal(hora.length,1);
+  assert.doesNotMatch(hora[0],/чужій|своїй|own hora|other hora|\d+-й дім|\bH\d+\b/iu);
+  if(!exact)assert.doesNotMatch(all.join(' '),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+  // Exercise the accepted LLM presentation too, with synthetic prose and
+  // authentic evidence IDs. The same definition must survive both paths.
+  const draft={chapters:b.chapters.map(c=>({id:c.id,lead:'A distinctive focus for '+c.id+' is worth considering.',paragraphs:Array.from({length:c.minParagraphs},(_,i)=>({text:['First consider ','Next consider ','Finally consider '][i]+c.id+' in the context of everyday choices and the relationship between responsibilities and personal priorities. Look for a specific situation where you can compare your assumptions with your actual circumstances before making a decision.',evidenceIds:c.required}))}))};
+  const accepted=inspectN6Response(JSON.stringify(draft),r,b).reader;
+  assert.ok(accepted);
+  assert.ok(accepted.chapters[0].details.compact[0].startsWith(expected));
+  if(!exact)assert.doesNotMatch(accepted.chapters.flatMap(c=>c.details?.compact||[]).join(' '),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+ }
+});
