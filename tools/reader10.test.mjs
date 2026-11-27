@@ -261,7 +261,7 @@ test('N631 Groq compact facts preserve all thematic and required source IDs and 
  assert.ok(translated>=12,'English compact representation should be used on ordinary verified fixtures');
 });
 
-test('N631 real-source compact repair for self and money preserves every required fact and fits reported 3203-token budget estimate',async()=>{
+test('N631 real-source compact repair for self and money preserves every required fact and bounds the request estimate',async()=>{
  const {buildN6Reader,buildN6Brief,groqN6Brief,groqN6Payload,packGroqN6,N631_GROQ_PROMPT}=await import('../apps/api/src/reader-n6.ts');
  let count=0;
  for(let seed=1;seed<=30;seed++){
@@ -278,4 +278,37 @@ test('N631 real-source compact repair for self and money preserves every require
   count++;
  }
  assert.ok(count>=20);
+});
+
+test('N631 incident regression: two missing evidence chapters, 3203 remaining tokens, only the failed chapters regenerated',async()=>{
+ const {buildN6Reader}=await import('../apps/api/src/reader-n6.ts');
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const chart=chartOf(7),asOf='2026-11-27',reader=buildN6Reader(chart,'uk',asOf,false);
+ let calls=0;const events=[],permits=[];
+ const result=await generateDirectJyotish(chart,'uk',asOf,{reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>{permits.push(1);return true;},onDiagnostic:d=>events.push(d),fetcher:async(_url,req)=>{
+  calls++;
+  const body=JSON.parse(req.body),brief=JSON.parse(body.messages[1].content.split('facts:\n')[1]);
+  assert.ok(calls<=2);
+  if(calls===2){
+   assert.deepEqual(brief.chapters.map(c=>c.id),['self','money']);
+   assert.ok(body.max_completion_tokens<=1550);
+   assert.equal(brief.context.length,0);
+  }
+  const chapters=brief.chapters.map((c,i)=>{
+   const missing=calls===1&&['self','money'].includes(c.id);
+   const evidenceIds=missing?[c.evidence.find(e=>!c.required.includes(e.id)).id]:c.required;
+   const lead='A distinct practical theme for '+c.id+' asks for thoughtful attention.';
+   const paragraphs=Array.from({length:c.minParagraphs},(_,k)=>({
+    text:(['The first useful perspective on ','Another distinct practical perspective on ','The final interaction of '][k])+c.id+' connects competing responsibilities with a deliberate daily choice rather than an assured outcome. Consider the relationship between your goals, your decisions and the resources available to you before making commitments.',
+    evidenceIds
+   }));
+   return {id:c.id,lead,paragraphs};
+  });
+  return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify({chapters})}}]}),{headers:{'x-ratelimit-limit-tokens':'8000','x-ratelimit-remaining-tokens':'3203','x-ratelimit-reset-tokens':'0s'}});
+ }});
+ assert.equal(calls,2);assert.equal(permits.length,2);
+ assert.ok(result.result?.reader10);
+ assert.ok(events.some(x=>x.reason==='n6_repaired_complete'));
+ assert.ok(events.some(x=>x.reason==='n6_repair_self_money'));
+ assert.ok(result.result.reader10.chapters.find(c=>c.id==='money').evidenceIds.flat().includes('money.v2'));
 });

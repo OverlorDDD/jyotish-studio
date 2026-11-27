@@ -456,8 +456,11 @@ export async function generateDirectJyotish(
     }
     const raw=await response.text();
     if(raw.length>160000){reason='invalid_response';diagnostic(provider,'response','oversized_body');break;}
-    let parsed:{model?:string;choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>}|undefined;
+    let parsed:{model?:string;usage?:{prompt_tokens?:number;completion_tokens?:number};choices?:Array<{finish_reason?:string;message?:{content?:string|Array<{text?:string}>}}>}|undefined;
     try{parsed=JSON.parse(raw);}catch{reason='invalid_response';diagnostic(provider,'response','not_json');break;}
+    if(n6&&provider==='groq')for(const [key,value] of Object.entries(parsed?.usage||{})){
+     if(['prompt_tokens','completion_tokens'].includes(key)&&Number.isSafeInteger(value)&&value>=0)diagnostic(provider,'limit','groq_usage_'+key+'_'+value);
+    }
     const choice=parsed?.choices?.[0];
     const value=choice?.message?.content;
     const originalContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
