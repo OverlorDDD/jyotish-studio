@@ -77,7 +77,7 @@ test('both web interfaces wrap the Ukrainian brand tag and constrain chart text'
   assert.ok(css.includes('.logo small{white-space:normal;'),'Brand tag may overflow');
   assert.ok(css.includes('.chart-svg{overflow:hidden}'),'SVG overflow must be clipped as a safety net');
  }
- assert.match(appPage,/<N4RcExplorer\s+chart=\{chart\}\s+lang=\{lang\}\s+minutesUncertain=\{minutesUncertain\}\s*\/>/);
+ assert.match(appPage,/<N4RcExplorer\s+chart=\{chart\}\s+lang=\{lang\}\s+minutesUncertain=\{minutesUncertain\}\s+initialDivision=\{requestedDivision.current\}\s*\/>/);
  assert.match(n4Explorer,/NorthIndianChart division="d1"/);
  assert.match(n4Explorer,/selected===1\?<article className=\{styles\.comparePrompt\}/); // D1 stays left; empty comparison only for selected D1.
  assert.ok(n4Explorer.includes("NorthIndianChart division={'d'+selected}"));

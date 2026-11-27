@@ -41,8 +41,8 @@ function onN4Only(v:N4RcView,n:number):{planets:PlanetPosition[];lagna:{sign:num
   name:p.name,sign:p.sign,house:p.house,retrograde:p.retrograde,degreesInSign:0
  }))};
 }
-export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:Natal|null;lang:'uk'|'en';minutesUncertain?:boolean}){
- const [selected,setSelected]=useState(9);
+export default function N4RcExplorer({chart,lang,minutesUncertain=false,initialDivision=9}:{chart:Natal|null;lang:'uk'|'en';minutesUncertain?:boolean;initialDivision?:number}){
+ const [selected,setSelected]=useState(INFO.some(entry=>entry.n===initialDivision)?initialDivision:9);
  // Public G4 guide deep-links identify a division by a URL fragment, never
  // query parameters; no personal data is serialized into the address.
  useEffect(()=>{
@@ -83,13 +83,9 @@ export default function N4RcExplorer({chart,lang,minutesUncertain=false}:{chart:
   <strong>D{item.n}</strong><span>{uk?item.uk:item.en}</span></button>;
  return <section id="varga-explorer" className={styles.panel} aria-labelledby="n4-rc-title" data-testid="n4-rc-explorer">
   <div className={styles.intro}>
-   <div><small className={styles.eyebrow}>{uk?'ГАЛАКСІОРА · НАТАЛЬНІ КАРТИ':'GALAXIORA · BIRTH CHARTS'}</small>
-    <h2 id="n4-rc-title">{uk?'16 карт життя — порівняй кожну з D1':'16 life charts — compare each with D1'}</h2>
-    <p>{uk?'Основна карта D1 завжди поруч. Обери сферу життя, щоб побачити додаткову варгу, її планети й доми.':
-     'Your D1 chart stays in view. Select a life area to explore its divisional chart, planets and houses.'}</p></div>
-   <strong className={styles.counter}>16 <small>{uk?'карт':'charts'}</small></strong>
+   <div><h2 id="n4-rc-title">{uk?'Порівняння з основною картою':'Compare with your birth chart'}</h2>
+    <p>{uk?'Оберіть одну з 16 карт. D9 висвітлює партнерство, D10 — професію.':'Choose one of the 16 charts. D9 explores partnerships and D10 explores career.'}</p></div>
   </div>
-  <h3 className={styles.navTitle}>{uk?'Обери сферу життя — D1 залишиться поруч':'Choose a life area — D1 stays beside it'}</h3>
   <div className={styles.mainTabs} role="group" aria-label={uk?'Усі 16 карт життя':'All 16 life charts'} data-testid="n41-all-charts">
    {INFO.map(pick)}
   </div>

@@ -37,6 +37,9 @@ function fixture(){
  };
 }
 async function ready(page,lang,data=fixture()){
+ // These geometry fixtures use invented digests. Keep the automatic Reader from replacing
+ // them with real server calculations. Explicit page-level report fixtures take precedence.
+ await page.context().route('**/api/v1/reports',route=>route.fulfill({status:503,json:{message:'No report for synthetic geometry'}}));
  await page.route('**/api/v1/jyotish/runtime',r=>r.fulfill({
   status:200,contentType:'application/json',body:JSON.stringify({
    readerVersion:'6.0.0',pipeline:'direct-v2',readerEdition:'reader-v8.0.0-n44',editorialEdition:'n48-poetic-evidence-1.0.0',interpretationEdition:'n49-unified-evidence-v1',presentationEdition:'n493-ranked-patterns-1.0.0',verificationContract:'jyotish-integrity-v3'
@@ -88,9 +91,11 @@ test('Unknown minutes adds a form-time warning and changes D60 caveat without bl
  const explorer=page.getByTestId('n4-rc-explorer');
  await explorer.getByRole('button',{name:/^D60\b/}).click();
  await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
- await page.locator('#birth-details > summary').click(); // Form is intentionally closed after calculation.
+ await page.getByRole('link',{name:'Edit birth details'}).click();
  await page.getByLabel('I don’t know the exact minutes').check();
  await expect(page.getByText('Without exact minutes',{exact:false})).toBeVisible();
+ await page.locator('.jy-calc-btn').click();
+ await explorer.getByRole('button',{name:/^D60\b/}).click();
  await expect(explorer.getByTestId('n4-d60-precision-warning')).toContainText('may be inaccurate');
  await expect(explorer.locator('.jy-south-chart')).toHaveCount(2);
 });

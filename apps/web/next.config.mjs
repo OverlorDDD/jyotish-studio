@@ -13,6 +13,7 @@ export default {
   async redirects(){return [
     {source:'/astrology/jyotish',destination:'/en/astrology/jyotish',permanent:true},
     ...['en','uk'].flatMap(locale=>[
+    ...['short','steps'].map(form=>({source:'/'+locale+'/astrology/jyotish/try/'+form,destination:'/'+locale+'/astrology/jyotish',permanent:true})),
     {source:'/'+locale+'/learn',destination:'/'+locale+'/pedia',permanent:true},
     {source:'/'+locale+'/learn/:slug',destination:'/'+locale+'/pedia/:slug',permanent:true}
     ])

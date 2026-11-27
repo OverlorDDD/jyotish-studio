@@ -21,7 +21,16 @@ for(const locale of ['uk','en']){
   expect(local.status()).toBe(201);
   const report=await local.json();
   expect(report.ai.fallbackReason).toBe('reader_only');
+  await page.addInitScript(()=>{
+   const scroll=Element.prototype.scrollIntoView;
+   window.readingScrolls=0;
+   Element.prototype.scrollIntoView=function(options){
+    if(this.id==='interpretation'||this.id==='full-reading')window.readingScrolls++;
+    return scroll.call(this,options);
+   };
+  });
   await ready(page,locale);
+  expect(await page.evaluate(()=>window.readingScrolls)).toBe(0);
   let resolveCall;
   const gate=new Promise(resolve=>{resolveCall=resolve;});
   const calls=[];
@@ -42,6 +51,7 @@ for(const locale of ['uk','en']){
   expect(calls).toEqual(['auto']);
   resolveCall();
   await expect(page.getByTestId('reader10')).toBeVisible({timeout:15000});
+  await expect.poll(()=>page.evaluate(()=>window.readingScrolls)).toBe(1);
   await expect(page.getByTestId('reader10')).toContainText('Verified consultation');
   await expect(page.getByTestId('reader10-timing')).toBeVisible();
   await expect(page.getByTestId('jyotish-direct-consultation')).toHaveCount(0);

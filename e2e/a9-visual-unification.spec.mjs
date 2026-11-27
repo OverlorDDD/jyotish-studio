@@ -10,7 +10,7 @@ test('Global shell is single in Jyotish and the local tool preserves saved-chart
  await expect(page.locator('button.account-trigger')).toContainText('Зберегти карту');
  // The old duplicate Jyotish section rail was intentionally removed in the 16-chart redesign.
  await expect(page.locator('.jy-section-nav')).toHaveCount(0);
- await expect(page.getByRole('link',{name:/Розрахувати натальну карту безкоштовно/u})).toHaveAttribute('href','#birth-details');
+ await expect(page.locator('#birth-details .jy-calc-btn')).toBeVisible();
  await expect(page.locator('.jy-portal-toolbar')).toContainText('GalaxiAstro');
 });
 test('Root and localized home open the real chart, with About Me as first navigation item',async({page})=>{

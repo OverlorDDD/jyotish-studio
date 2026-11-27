@@ -33,6 +33,7 @@ modules:
     shared_saved_charts: "apps/api/src/chart-application.ts; apps/api/src/chart-prisma.ts"
     http: "apps/api/src/nest.ts"
     web: "apps/web/app/[locale]/astrology/jyotish/page.tsx; apps/web/app/components/NorthIndianChart.tsx (now South Indian fixed-sign Rashi layout); apps/web/app/components/DetailedReport.tsx"
+    natal_explorer: "apps/web/app/components/NatalFirstLook.tsx; apps/web/lib/natal-features.ts (guest calculation details)"
     notes: "Swiss Ephemeris, Lahiri, D1/D9/D10, Vimshottari; deterministic facts; new ascendantConvention versioned after mean Lahiri correction; old saved charts unchanged"
     interpretation_v3: "apps/api/src/interpretation-v3.ts v6.0.0; authored chart-based eight-chapter narrative in reader-narrative-v6.ts; evidence kept in calculation layer"
     reader_preview: "GALAXIORA_READER_ONLY=1; deterministic report response without cloud inference; validation of user-facing prose"
