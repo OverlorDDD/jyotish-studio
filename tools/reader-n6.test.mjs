@@ -222,3 +222,15 @@ test('N631 Groq accepts evidence-backed chart labels and ordinary numbers, rejec
  p.text=original+' D2 refines the 2nd house theme.';p.evidenceIds=['invented'];
  assert.equal(inspectN6Response(JSON.stringify(x),reader,b,false,true).reason,'unknown_evidence');
 });
+
+test('N631 Groq avoids a corrective call that cannot fit the upstream token budget',async()=>{
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const {calculateChart}=await import('../packages/jyotish-core/src/index.ts');
+ const chart=calculateChart({date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},{ayanamsa:23.8,ascendant:100,julianDay:2451545,backend:'synthetic',positions:['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'].map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}))});
+ let calls=0;const events=[],x=output();x.chapters[1].paragraphs[0].text+=' D99.';
+ const result=await generateDirectJyotish(chart,'en','2026-11-26',{reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>true,onDiagnostic:d=>events.push(d),fetcher:async()=>{
+  calls++;return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(x)}}]}),{headers:{'x-ratelimit-remaining-tokens':'50'}});
+ }});
+ assert.equal(calls,1);assert.equal(result.reason,'rate_limited');assert.equal(result.result,null);
+ assert.ok(events.some(d=>d.reason==='groq_repair_budget_insufficient'));
+});

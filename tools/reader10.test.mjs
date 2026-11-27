@@ -240,3 +240,23 @@ test('N6.3.1 selects thematic factors from every verified varga, bounds provider
  }
  assert.ok(count>=80);assert.ok(conditional>=40);
 });
+
+test('N631 Groq compact facts preserve all thematic and required source IDs and do not reintroduce D60',async()=>{
+ const {buildN6Reader,buildN6Brief,groqN6Brief,groqN6Payload}=await import('../apps/api/src/reader-n6.ts');
+ let translated=0;
+ for(let seed=1;seed<=24;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  const reader=buildN6Reader(chart,'uk','2026-11-27',false),brief=buildN6Brief(reader,chart,'2026-11-27');
+  const alternate=groqN6Brief(brief,chart,'2026-11-27'),payload=JSON.parse(groqN6Payload(alternate));
+  assert.equal(payload.language,'uk');
+  assert.deepEqual(payload.context.map(e=>e.id),brief.context.map(e=>e.id));
+  for(let i=0;i<brief.chapters.length;i++){
+   assert.deepEqual(payload.chapters[i].evidence.map(e=>e.id),brief.chapters[i].evidence.map(e=>e.id));
+   assert.deepEqual(payload.chapters[i].required,brief.chapters[i].required);
+   assert.equal(payload.chapters[i].lead,undefined);
+  }
+  assert.doesNotMatch(JSON.stringify(payload),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+  if(alternate!==brief)translated++;
+ }
+ assert.ok(translated>=12,'English compact representation should be used on ordinary verified fixtures');
+});

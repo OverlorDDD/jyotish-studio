@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,type N6Repair} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -286,7 +286,6 @@ export async function generateDirectJyotish(
  const order=opts.order??productionDirectAiOrder().filter(provider=>
   provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
  const n6=opts.reader10?buildN6Brief(opts.reader10,chart,asOf):null;
- const groqBrief=n6?groqN6Brief(n6,chart,asOf):null;
  const priority=n6?null:planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
  const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority!);
@@ -321,6 +320,8 @@ export async function generateDirectJyotish(
   let controller:AbortController|null=null;
   let timer:ReturnType<typeof setTimeout>|undefined;
   const model=pickModel(provider);
+  const groqBrief=n6&&provider==='groq'?groqN6Brief(n6,chart,asOf):null;
+  let groqRemainingTokens:number|null=null;
   let bestVerified:{result:Result;missing:number}|null=null;
   try{
    let correctiveReason='';
@@ -371,6 +372,13 @@ export async function generateDirectJyotish(
       (correctiveReason==='missing_d9_d10_analysis'?
        '\nCORRECTION: The previous version omitted real D9 and/or D10 interpretation. In the relationship section, interpret one VERIFIED D9 graha, its sign and house from the facts. In the career section, interpret one VERIFIED D10 graha, its sign and house. Do not merely list D9 and D10 codes or invent placements. Retain the two additional verified N4 divisions and end in a complete sentence.':'');
     const providerBrief=n6&&provider==='groq'&&groqBrief?(repair?{...groqBrief,chapters:groqBrief.chapters.filter(c=>repair!.ids.some(id=>id===c.id))}:groqBrief):repair?.brief??n6;
+    const providerPayload=n6?(provider==='groq'?groqN6Payload(providerBrief??n6):n6ProviderPayload(repair?.brief??n6,false)):backup?backupFacts:facts;
+    if(n6&&provider==='groq'&&attempt>0&&groqRemainingTokens!==null){
+     // Conservative admission estimate, not an exact tokenizer. Avoid a
+     // knowingly oversized corrective call against the last upstream budget.
+     const estimated=Math.ceil(Buffer.byteLength(providerPayload+'\n'+N631_GROQ_PROMPT,'utf8')/3)+maxCompletion+700;
+     if(groqRemainingTokens<estimated){reason='rate_limited';diagnostic(provider,'limit','groq_repair_budget_insufficient');break;}
+    }
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
      body:JSON.stringify({model,
@@ -381,9 +389,11 @@ export async function generateDirectJyotish(
       ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(providerBrief??n6,repair)}:{}),
       messages:[{role:'system',content:n6?(provider==='groq'?N631_GROQ_PROMPT+(repair?'\nReturn only replacement chapters. Correct: '+repair.issues.join(', '):correctiveReason?'\nCorrect: '+correctiveReason:''):repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':N6_PROMPT+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
        {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+(n6?(provider==='groq'?groqN6Payload(providerBrief??n6):n6ProviderPayload(repair?.brief??n6,false)):backup?backupFacts:facts)} ]})
+        '. Here are ONLY verified calculation facts:\n'+providerPayload} ]})
     });
-    if(n6&&provider==='groq'&&!opts.fetcher){
+    if(n6&&provider==='groq'){
+     const remaining=response.headers.get('x-ratelimit-remaining-tokens');
+     if(remaining&&/^\d{1,9}$/.test(remaining))groqRemainingTokens=Number(remaining);
      for(const key of ['x-ratelimit-limit-tokens','x-ratelimit-remaining-tokens','x-ratelimit-remaining-requests']){
       const v=response.headers.get(key);if(v&&/^\d{1,9}$/.test(v))diagnostic(provider,'limit',key.replaceAll('-','_')+'_'+v);
      }
