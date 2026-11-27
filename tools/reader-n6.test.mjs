@@ -294,3 +294,88 @@ test('N64 named D60 is rejected without eligible evidence in both presentation m
  x.chapters[5].paragraphs[0].text+=' Shashtiamsha shows this.';
  for(const groq of [false,true])assert.equal(inspectN6Response(JSON.stringify(x),reader,brief,false,groq).reason,'plain_unknown_division');
 });
+
+test('N641 repair requires exact unique requested IDs and preserves final validation',async()=>{
+ const {inspectN6RepairResponse,n6OutputContract}=await import('../apps/api/src/reader-n6.ts');
+ const x=output();
+ x.chapters[1].paragraphs[0].text+=' D99.';
+ x.chapters[4].paragraphs[0].evidenceIds=['invented'];
+ const plan=planN6Repair(JSON.stringify(x),reader,brief);
+ assert.deepEqual(plan.ids,['money','home']);
+ const replacement=output().chapters.filter(c=>plan.ids.includes(c.id)).reverse();
+ const repaired=inspectN6RepairResponse(JSON.stringify({chapters:replacement}),plan);
+ assert.equal(repaired.reason,'ok');
+ assert.deepEqual(JSON.parse(repaired.merged),output());
+ assert.ok(parseN6Response(repaired.merged,reader,brief));
+ assert.equal(inspectN6RepairResponse('{',plan).reason,'json_syntax');
+ assert.equal(inspectN6RepairResponse(JSON.stringify(output()),plan).reason,'chapter_count');
+ assert.equal(inspectN6RepairResponse(JSON.stringify({chapters:[replacement[0],replacement[0]]}),plan).reason,'chapter_ids');
+ assert.equal(inspectN6RepairResponse(JSON.stringify({chapters:[replacement[0],output().chapters[0]]}),plan).reason,'chapter_ids');
+ replacement[0].paragraphs[0].evidenceIds=['invented'];
+ assert.equal(parseN6Response(mergeN6Repair(JSON.stringify({chapters:replacement}),plan),reader,brief),null);
+ const prompt=n6OutputContract(plan.brief);
+ assert.match(prompt,/exactly 2 chapter objects in this order: money, home/);
+ assert.match(prompt,/Do not mention D60/);
+ const withD60={...brief,chapters:brief.chapters.map(c=>c.id==='path'?{...c,evidence:[...c.evidence,{id:'path.v60',text:'D60 conditional sign comparison.'}]}:c)};
+ assert.match(n6OutputContract(withD60),/Only path may discuss/);
+});
+
+async function n641SyntheticChart(){
+ const {calculateChart}=await import('../packages/jyotish-core/src/index.ts');
+ return calculateChart({date:'2000-01-01',time:'12:00',timeZone:'UTC',latitude:0,longitude:0},{ayanamsa:23.8,ascendant:100,julianDay:2451545,backend:'synthetic',positions:['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu'].map((name,i)=>({name,longitude:[335,72,345,350,255,15,332,120,300][i],speed:1}))});
+}
+test('N641 Gemini missing mandatory timing evidence recovers using an explicit cited packet',async()=>{
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const chart=await n641SyntheticChart();
+ const r={...reader,chapters:reader.chapters.map(c=>c.id==='timing'?{...c,details:{...c.details,paragraphs:['Major period.','Minor period.','Major placement.','Minor placement.','Their relationship.']}}:c)};
+ const x=output(),t=x.chapters.find(c=>c.id==='timing');
+ t.paragraphs=[
+  {text:'The longer stage is a chance to examine the responsibilities you have accepted over time and to distinguish sustainable commitments from those that repeatedly pull attention away from your priorities.',evidenceIds:['timing.0','timing.2']},
+  {text:'The shorter stage brings the immediate question of how you respond to changing needs, especially when your normal routine no longer offers enough room to think through your own choices.',evidenceIds:['timing.1','timing.3']},
+  {text:'Rather than treating either theme as a fixed outcome, consider the tension between the two and choose one concrete commitment that leaves sufficient time for reflection and careful communication.',evidenceIds:['timing.3']}
+ ];
+ let calls=0;const events=[];
+ const result=await generateDirectJyotish(chart,'en','2026-11-26',{reader10:r,order:['gemini'],keys:{gemini:'fake'},freeConfirmed:{gemini:true},limit:()=>true,onDiagnostic:d=>events.push(d),fetcher:async(_url,req)=>{
+  calls++;const body=JSON.parse(req.body),p=JSON.parse(body.messages[1].content.split('facts:\n')[1]);
+  const timing=p.chapters.find(c=>c.id==='timing');
+  assert.deepEqual(timing.required,['timing.core']);
+  assert.match(timing.evidence.find(e=>e.id==='timing.core').text,/Major period.*Minor period.*Their relationship/);
+  if(calls===2){
+   assert.equal(p.chapters.length,1);
+   assert.match(body.messages[0].content,/exactly 1 chapter objects in this order: timing/);
+  }
+  const fixed=structuredClone(t);
+  fixed.paragraphs.forEach(row=>{row.evidenceIds=['timing.core'];});
+  return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(calls===1?x:{chapters:[fixed]})}}]}));
+ }});
+ assert.equal(calls,2);
+ assert.equal(result.result?.provider,'gemini');
+ assert.ok(events.some(d=>d.reason==='n6_missing_required_evidence_timing'));
+ assert.ok(events.some(d=>d.reason==='n6_repaired_complete'));
+ assert.ok(result.result.reader10.chapters.find(c=>c.id==='timing').evidenceIds.flat().includes('timing.4'));
+});
+test('N641 Groq all-chapter numeric rejection uses one full regeneration and still rejects unsafe prose',async()=>{
+ const {generateDirectJyotish}=await import('../apps/api/src/direct-jyotish.ts');
+ const chart=await n641SyntheticChart();
+ const bad=output();for(const c of bad.chapters)c.paragraphs[0].text+=' '+c.id+'.0.';
+ for(const unsafe of [false,true]){
+  let calls=0,permits=0;const events=[];
+  const result=await generateDirectJyotish(chart,'en','2026-11-26',{reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>{permits++;return true;},onDiagnostic:d=>events.push(d),fetcher:async(_url,req)=>{
+   calls++;const body=JSON.parse(req.body);
+   if(calls===2){
+    assert.match(body.messages[0].content,/Regenerate the complete consultation/);
+    assert.doesNotMatch(body.messages[0].content,/Return only replacement chapters/);
+    assert.match(body.messages[1].content,/requested full consultation/);
+    assert.equal(body.max_completion_tokens,3400);
+    assert.equal(JSON.parse(body.messages[1].content.split('facts:\n')[1]).chapters.length,8);
+   }
+   const replacement=output();replacement.chapters.reverse();
+   if(unsafe)replacement.chapters[0].paragraphs[0].text+=' 50%.';
+   return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(calls===1?bad:replacement)}}]}));
+  }});
+  assert.equal(calls,2);assert.equal(permits,2);
+  assert.ok(events.some(d=>d.reason==='n6_repair_self_money_work_love_home_path_timing_summary'));
+  if(unsafe)assert.equal(result.result,null);
+  else assert.equal(result.result?.provider,'groq');
+ }
+});
