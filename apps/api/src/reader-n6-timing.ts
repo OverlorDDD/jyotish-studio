@@ -48,7 +48,7 @@ export function timingChapter(chart:CalculatedChart,lang:Lang,asOf:string):Reade
  if(!major||!minor||!a||!b)return {id:'timing',title,lead:uk?'Для цієї дати немає підтвердженої пари періодів.':'No verified pair of periods is available for this date.',paragraphs:[uk?'Не робимо висновків про поточний період без обох розрахованих управителів.':'No current-period inference without both calculated rulers.'],details:null};
  const topic=(h:number)=>topics[h-1][l],name=(n:Planet)=>PLANET_NAME[n][lang],period=(p:{start:string;end:string},n:Planet)=>name(n)+' '+p.start.slice(0,10)+' — '+p.end.slice(0,10);
  const dignity=(p:PlanetFact)=>p.dignity==='own'?(uk?'власний знак':'own sign'):p.dignity==='exalted'?(uk?'екзальтація':'exaltation'):p.dignity==='debilitated'?(uk?'знак падіння':'debilitation'):(uk?'без екзальтації, падіння чи власного знака':'neither own sign, exaltation nor debilitation');
- const role=(p:PlanetFact)=>p.rules.length?(uk?' З ним пов’язані й інші теми: '+join(p.rules.filter(h=>h!==p.house).map(topic),uk)+'.':' This cycle also brings attention to '+join(p.rules.filter(h=>h!==p.house).map(topic),uk)+'.'):'';
+ const role=(p:PlanetFact)=>p.rules.length?(uk?' Його інші завдання можуть проявлятися у '+join(p.rules.filter(h=>h!==p.house).map(topic),uk)+'.':' This cycle also brings attention to '+join(p.rules.filter(h=>h!==p.house).map(topic),uk)+'.'):'';
  const roleText=(p:PlanetFact)=>p.rules.some(h=>h!==p.house)?role(p):'';
  const detail=(p:PlanetFact)=>name(p.name)+' — '+SIGN_NAME[p.sign-1][lang]+', '+(uk?p.house+'-й дім':'house '+p.house)+'; '+dignity(p)+(p.rules.length?(uk?'; управитель домів ':'; rules houses ')+p.rules.join(', '):'')+'.';
  const relation=a.name===b.name?'same_planet':a.house===b.house?'same_house':aspectedHouses(a.name,a.house).includes(b.house)||aspectedHouses(b.name,b.house).includes(a.house)?'aspect':signLord(a.sign)===b.name||signLord(b.sign)===a.name?'dispositor':'distinct';
@@ -65,7 +65,7 @@ export function timingChapter(chart:CalculatedChart,lang:Lang,asOf:string):Reade
  const technical=others.map(p=>name(p.name)+(p.house===b.house?(uk?' у тому самому домі, що й ':' shares a house with '):(uk?' аспектує ':' aspects '))+name(b.name)+'.');
  const co=PLANETS.map(n=>f.planets[n]).filter(p=>p.name!==a.name&&p.house===a.house);
  const linked=Array.from(new Set(co.flatMap(p=>p.rules))).filter(h=>h!==a.house&&!a.rules.includes(h)&&h!==b.house&&!b.rules.includes(h)).slice(0,3);
- const cluster=co.length>=2&&linked.length?(uk?' Через інші управителі в цьому домі до довгого циклу можуть долучатися '+join(linked.map(topic),uk)+'.':'This long-term theme also connects several other areas: attention may turn to '+join(linked.map(topic),uk)+'.'):'';
+ const cluster=co.length>=2&&linked.length?(uk?' Через інші управителі в цьому домі цей цикл може відбиватися також на '+join(linked.map(topic),uk)+'.':'This long-term theme also connects several other areas: attention may turn to '+join(linked.map(topic),uk)+'.'):'';
  const source=verifiedVargaSource(chart);
  const extra:string[]=[];
  for(const div of [9,10]){
@@ -77,10 +77,10 @@ export function timingChapter(chart:CalculatedChart,lang:Lang,asOf:string):Reade
  }
  const relationFact=(uk?'Зв’язок управителів періодів: ':'Relationship between period rulers: ')+
   (relation==='same_planet'?(uk?'та сама планета':'same planet'):relation==='same_house'?(uk?'той самий дім D1':'same D1 house'):relation==='aspect'?(uk?'аспект D1':'D1 aspect'):relation==='dispositor'?(uk?'диспозиторний зв’язок D1':'D1 dispositor link'):(uk?'різні сфери D1; прямого аспекту між ними за цією методикою немає':'distinct D1 sectors; no direct aspect in this method'))+'.';
- return {id:'timing',title,lead:uk?'У нинішньому періоді особливо важливі '+topic(a.house)+'.':'This stage brings particular attention to '+topic(a.house)+'.',
+ return {id:'timing',title,lead:uk?'Нинішній період пропонує зосередитися на '+topic(a.house)+'.':'This stage brings particular attention to '+topic(a.house)+'.',
  paragraphs:[
-  (uk?'Довгий життєвий цикл висуває на перший план ':'During the longer life cycle, attention centers on ')+topic(a.house)+'.'+roleText(a)+cluster+' '+practices[a.name][l],
-  (uk?'Поточний підперіод додає інший акцент: ':'The current shorter cycle puts particular weight on ')+(uk?topic(b.house)+'.':topic(b.house)+'.')+roleText(b)+' '+practices[b.name][l],
+  (uk?'Довгий життєвий цикл робить наголос на ':'During the longer life cycle, attention centers on ')+topic(a.house)+'.'+roleText(a)+cluster+' '+practices[a.name][l],
+  (uk?'Поточний підперіод робить особливо важливим питання, як знайти опору у ':'The current shorter cycle puts particular weight on ')+(uk?topic(b.house)+'.':topic(b.house)+'.')+roleText(b)+' '+practices[b.name][l],
   balance+(interactionText?' '+interactionText:''),
   uk?'Спробуйте визначити одну довгострокову домовленість або справу, якій потрібна послідовність, і один конкретний крок на найближчі тижні. Зіставте їх із власними обставинами, а не сприймайте цикл як обіцянку події.':'Identify one long-term commitment that needs consistent attention and one concrete step for the coming weeks. Compare these themes with your circumstances rather than treating the cycle as a promise of events.'
  ],

@@ -367,7 +367,7 @@ export async function generateDirectJyotish(
      const reader10=checked.reader;
      if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
       if((provider==='groq'||provider==='gemini')&&attempt===0){
-       const enoughTime=deadline-Date.now()>30000+reservedForFallback;
+       const enoughTime=deadline-Date.now()>(provider==='gemini'?45000:30000)+reservedForFallback;
        if(!enoughTime)diagnostic(provider,'validation','n6_repair_no_time');
        else if(choice?.finish_reason==='length')diagnostic(provider,'validation','n6_repair_truncated');
        else{

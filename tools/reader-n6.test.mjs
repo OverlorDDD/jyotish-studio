@@ -174,3 +174,15 @@ test('N6.3 rejects a near-verbatim reflow of classic prose even with valid evide
  assert.equal(checked.reason,'near_copy');assert.equal(checked.chapter,'money');
  assert.deepEqual(planN6Repair(JSON.stringify(x),r,b).ids,['money']);
 });
+
+test('N6.3 removes local copy anchors and keeps all required IDs available in provider input',()=>{
+ const b=buildN6Brief(reader);
+ for(const compact of [true,false]){
+  const payload=JSON.parse(n6ProviderPayload(b,compact));
+  for(const chapter of payload.chapters){
+   assert.equal(chapter.lead,undefined);assert.equal(chapter.paragraphs,undefined);assert.equal(chapter.styleExample,undefined);
+   const allowed=new Set([...chapter.evidence,...payload.context].map(e=>e.id));
+   assert.ok(chapter.required.every(id=>allowed.has(id)));
+  }
+ }
+});
