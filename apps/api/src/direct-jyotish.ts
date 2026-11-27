@@ -229,7 +229,7 @@ export async function generateDirectJyotish(
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
  const order=opts.order??productionDirectAiOrder().filter(provider=>
   provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
- const n6=opts.reader10?buildN6Brief(opts.reader10,chart):null;
+ const n6=opts.reader10?buildN6Brief(opts.reader10,chart,asOf):null;
  const priority=n6?null:planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
  const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority!);

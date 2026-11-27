@@ -212,3 +212,31 @@ test('N6.3 verified dominant patterns and summary facts are sent without classic
  }
  assert.ok(tested>=50);
 });
+
+test('N6.3.1 selects thematic factors from every verified varga, bounds provider evidence and never leaks D60 houses',async()=>{
+ const {buildVargaIntelligence}=await import('../apps/api/src/reader-n63-vargas.ts');
+ const {buildN6Reader,buildN6Brief,n6ProviderPayload}=await import('../apps/api/src/reader-n6.ts');
+ let count=0,conditional=0;
+ for(let seed=1;seed<=60;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  for(const lang of ['uk','en']){
+   const a=buildVargaIntelligence(chart,lang,true,'2026-11-27'),b=buildVargaIntelligence(chart,lang,false,'2026-11-27');
+   assert.deepEqual(a.findings.map(x=>x.division),[2,3,4,7,9,10,12,16,20,24,27,30,40,45]);
+   assert.ok(a.findings.every(x=>x.examined===9&&x.selected.length===2&&x.selected[0].planet!==x.selected[1].planet));
+   for(const x of a.findings)for(const p of x.selected){
+    const real=chart.n4.charts.find(c=>c.division===x.division).planets.find(q=>q.name===p.planet);
+    assert.equal(p.sign,real.sign);assert.equal(p.house,real.house);
+   }
+   assert.equal(a.d60Examined,9);assert.equal(b.d60,null);assert.equal(b.d60Examined,0);
+   if(a.d60){conditional++;assert.doesNotMatch(a.d60.text,/\bH\d+|дім \d+|house \d+/i);}
+   const reader=buildN6Reader(chart,lang,'2026-11-27',false);
+   const payload=JSON.parse(n6ProviderPayload(buildN6Brief(reader,chart,'2026-11-27'),true));
+   assert.doesNotMatch(JSON.stringify(payload),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+   for(const n of [2,3,4,7,9,10,12,16,20,24,27,30,40,45])assert.ok(payload.chapters.some(c=>c.evidence.some(e=>e.id.endsWith('.v'+n))));
+   assert.ok(JSON.stringify(payload).length<26000,'bounded context');
+   assert.equal(buildVargaIntelligence({...chart,n4:{...chart.n4,sourceDigest:'bad'}},lang,true),null);
+   count++;
+  }
+ }
+ assert.ok(count>=80);assert.ok(conditional>=40);
+});

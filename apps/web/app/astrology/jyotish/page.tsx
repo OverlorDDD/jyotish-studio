@@ -157,7 +157,7 @@ export default function Page({initialLang='uk'}:{initialLang?:'en'|'uk'}){
   setPositions('d1');setPeriodIndex(null);setEditing(false);setChart(ready);
   const compatibleSaved=saved?.language===lang&&saved?.readerVersion==='6.0.0'&&
    saved?.verification?.digest===ready.verification?.digest&&
-    saved?.readerFormat==='n6-reader-v1'&&saved.readerQuality==='n6-quality-3'&&saved.minutesUncertain===minutesUncertain&&saved?.reader10?.chapters.some(c=>c.id==='timing')&&saved.asOf===new Date().toISOString().slice(0,10)&&
+    saved?.readerFormat==='n6-reader-v1'&&saved.readerQuality==='n6-quality-4'&&saved.minutesUncertain===minutesUncertain&&saved?.reader10?.chapters.some(c=>c.id==='timing')&&saved.asOf===new Date().toISOString().slice(0,10)&&
     (saved.ai?.source!=='llm'||saved.ai.readerFormat==='n6-reader-v1')&&
     saved?.vargaReadings?.version==='n4-varga-reader-1.0.0'&&
     saved?.readerV7?.version==='reader-v7.0.0-n43'&&
