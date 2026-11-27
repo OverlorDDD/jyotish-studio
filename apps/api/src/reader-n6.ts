@@ -77,11 +77,21 @@ export const N6_COMPACT_PROMPT='Return 400–520 words total. Keep the current l
 type Draft={id:string;lead:string;paragraphs:{text:string;evidenceIds:string[]}[]};
 /** Only harmless typography is normalized. Technical claims, digits, markup,
  * unsupported planets and evidence violations are never normalized away. */
-function prose(x:unknown,max:number):{text:string;reason:string}{
+function prose(x:unknown,max:number,technical?:ReadonlySet<number>):{text:string;reason:string}{
  if(typeof x!=='string')return {text:'',reason:'plain_type'};
  let text=x.trim().replace(/\s+/gu,' ');
  if(text.length<15||text.length>max)return {text:'',reason:'plain_length'};
- if(/[\p{N}]/u.test(text))return {text:'',reason:'plain_digits'};
+ if(technical){
+  // Numerical typography is not a factual error. Allow ordinary numerals and
+  // chart references present in this chapter's verified evidence. Do not allow
+  // an unavailable divisional chart, inline source IDs, exact dates or invented
+  // numerical precision. This is not a semantic fact checker.
+  for(const m of text.matchAll(/(?<![\p{L}\p{N}])(?:D|Д)[ -]?(\d{1,3})(?![\p{L}\p{N}])/giu)){
+   if(!technical.has(Number(m[1])))return {text:'',reason:'plain_unknown_division'};
+  }
+  if(!technical.has(60)&&/Shashtia?msha|Shashtiamsa|Шаштіамш|Шаштьямш/iu.test(text))return {text:'',reason:'plain_unknown_division'};
+  if(/\b(?:19|20)\d{2}\b|\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b|\d\s*[%°′″]|(?:[$€₴]\s*\d)|\b(?:self|money|work|love|home|path|timing|summary|shared)\.(?:v?\d+|[a-z][a-z0-9]*)\b/iu.test(text))return {text:'',reason:'plain_numeric_claim'};
+ }else if(/[\p{N}]/u.test(text))return {text:'',reason:'plain_digits'};
  if(/[<>#\x60\[\]{}*]|https?:/iu.test(text))return {text:'',reason:'plain_markup'};
  if(/\b(?:Pluto|Uranus|Neptune|Chiron|Lilith)\b|Плутон|Уран|Нептун|Хірон|Ліліт/iu.test(text))return {text:'',reason:'plain_unsupported_planet'};
  if(!/[.!?…]["”»’)]?$/u.test(text)){
@@ -111,7 +121,7 @@ function decode(raw:string):{chapters:unknown[]}|null{
   return Array.isArray(x?.chapters)?{chapters:x.chapters}:null;
  }catch{return null;}
 }
-export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief,repairProbe=false):Validation{
+export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief,repairProbe=false,groqPresentation=false):Validation{
  let chapter:Reader10Chapter['id']|undefined;
  const fail=(reason:string):Validation=>({reader:null,reason,...(chapter?{chapter}:{})});
  if(raw.length>36000)return fail('oversized');
@@ -127,13 +137,15 @@ export function inspectN6Response(raw:string,reader:Reader10Report,brief:N6Brief
   const original=reader.chapters[i],c=chapters[i] as Draft|null,spec=brief.chapters[i];
   chapter=original.id;
   const allowed=new Set([...spec.evidence,...brief.context].map(e=>e.id));
+  const technical=groqPresentation?new Set([...spec.evidence,...brief.context].flatMap(e=>[...e.text.matchAll(/\bD(\d{1,3})\b/g)].map(m=>Number(m[1])))):undefined;
+  if(technical&&!spec.evidence.some(e=>e.id==='path.v60'))technical.delete(60);
   if(!c||c.id!==original.id)return fail('chapter_order');
-  const lead=prose(c.lead,350);if(lead.reason!=='ok')return fail(lead.reason);
+  const lead=prose(c.lead,350,technical);if(lead.reason!=='ok')return fail(lead.reason);
   if(!Array.isArray(c.paragraphs)||c.paragraphs.length<spec.minParagraphs||c.paragraphs.length>(spec.minParagraphs===3?4:3))return fail('chapter_shape');
   const normalizedLead=norm(lead.text);if(seen.has(normalizedLead))return fail('repeated_text');seen.add(normalizedLead);
   const all=new Set<string>(),paragraphs:string[]=[];
   for(const p of c.paragraphs){
-   const checked=prose(p?.text,1300);if(checked.reason!=='ok')return fail(checked.reason);
+   const checked=prose(p?.text,1300,technical);if(checked.reason!=='ok')return fail(checked.reason);
    paragraphs.push(checked.text);
    if(!Array.isArray(p.evidenceIds)||!p.evidenceIds.length||p.evidenceIds.some(id=>typeof id!=='string'||!allowed.has(id)))return fail('unknown_evidence');
    for(const id of p.evidenceIds)all.add(id);
@@ -162,7 +174,7 @@ export type N6Repair={brief:N6Brief;original:unknown[];ids:Reader10Chapter['id']
 export type N6RepairDecision={repair:N6Repair|null;reason:'ready'|'invalid_document'|'chapter_order'|'no_local_failure'|'cross_document_failure'};
 /** Repair the failed chapters in one bounded request. No rejected prose
  * is sent back to any provider. The combined result must pass the full gate. */
-export function inspectN6Repair(raw:string,reader:Reader10Report,brief:N6Brief):N6RepairDecision{
+export function inspectN6Repair(raw:string,reader:Reader10Report,brief:N6Brief,groqPresentation=false):N6RepairDecision{
  const x=decode(raw);
  if(!x||x.chapters.length!==reader.chapters.length)return {repair:null,reason:'invalid_document'};
  const ids:Reader10Chapter['id'][]=[],issues:string[]=[];
@@ -170,7 +182,7 @@ export function inspectN6Repair(raw:string,reader:Reader10Report,brief:N6Brief):
  for(let i=0;i<reader.chapters.length;i++){
   const c=reader.chapters[i],draft=x.chapters[i] as Draft|null;
   if(!draft||draft.id!==c.id)return {repair:null,reason:'chapter_order'};
-  const check=inspectN6Response(JSON.stringify({chapters:[...accepted,draft]}),{...reader,chapters:[...acceptedOriginal,c]},{...brief,chapters:[...acceptedSpecs,brief.chapters[i]]},true);
+  const check=inspectN6Response(JSON.stringify({chapters:[...accepted,draft]}),{...reader,chapters:[...acceptedOriginal,c]},{...brief,chapters:[...acceptedSpecs,brief.chapters[i]]},true,groqPresentation);
   if(check.reader){accepted.push(draft);acceptedOriginal.push(c);acceptedSpecs.push(brief.chapters[i]);continue;}
   // Regenerate the entire invalid chapter from trusted input, including when
   // the model hallucinated an evidence ID. Never send or accept its bad prose.
@@ -179,7 +191,7 @@ export function inspectN6Repair(raw:string,reader:Reader10Report,brief:N6Brief):
   ids.push(c.id);issues.push(c.id+':'+check.reason);
  }
  if(!ids.length){
-  const whole=inspectN6Response(raw,reader,brief);
+  const whole=inspectN6Response(raw,reader,brief,false,groqPresentation);
   if(whole.reader)return {repair:null,reason:'no_local_failure'};
   // All chapters individually valid but the document is too close to classic.
   return {repair:null,reason:'cross_document_failure'};
@@ -196,3 +208,31 @@ export function mergeN6Repair(raw:string,repair:N6Repair):string|null{
  return JSON.stringify({chapters:repair.original.map(c=>updated.get((c as Draft).id as Reader10Chapter['id'])??c)});
 }
 export const N6_REPAIR_PROMPT='Return ONLY JSON {"chapters":[{"id":"requested chapter id","lead":"A complete sentence.","paragraphs":[{"text":"A complete paragraph.","evidenceIds":["provided evidence id"]}]}]}. Return only the requested chapters in the supplied order. Use their required evidence IDs, minimum words and paragraph counts. Do not invent or recalculate facts. Write original analysis from the verified local and shared evidence, never reuse classical wording or list isolated factors; explain how competing factors interact, describe an everyday implication, and do not promise wealth, marriage, career success or other outcomes, and retain the distinct long and short current periods if timing is requested. Use three concise paragraphs and 85–110 words for rich timing. Other chapters use two or three paragraphs. Use ordinary prose: no digits at all in lead or text, no chart labels or evidence citations in prose, no dates, links, Markdown, HTML or unsupported planets. Describe a chart factor by its life theme rather than writing its technical label. Put the exact evidence IDs only in evidenceIds arrays. Never copy their labels or technical notation into prose. End all prose with punctuation. No guaranteed events, fabricated biography, medical or investment directives. Do not return other chapters.';
+
+/** Use an English fact representation for Groq's smaller token budget when
+ * source IDs and required sets match exactly. Output language is unchanged.
+ * The local original-language brief remains the validation/proof authority. */
+export function groqN6Brief(brief:N6Brief,chart:CalculatedChart,asOf:string):N6Brief{
+ if(brief.language==='en')return brief;
+ const exact=brief.chapters.some(c=>c.evidence.some(e=>e.id==='path.v60'));
+ const english=buildN6Reader(chart,'en',asOf,exact);
+ if(!english)return brief;
+ const alternate=buildN6Brief(english,chart,asOf);
+ const same=(a:string[],b:string[])=>a.length===b.length&&a.every((x,i)=>x===b[i]);
+ if(!same(brief.context.map(e=>e.id),alternate.context.map(e=>e.id))||
+  !same(brief.chapters.map(c=>c.id),alternate.chapters.map(c=>c.id)))return brief;
+ for(let i=0;i<brief.chapters.length;i++){
+  const a=brief.chapters[i],b=alternate.chapters[i];
+  if(!same(a.evidence.map(e=>e.id),b.evidence.map(e=>e.id))||!same(a.required,b.required)||a.minWords!==b.minWords||a.minParagraphs!==b.minParagraphs)return brief;
+ }
+ return {...alternate,language:brief.language};
+}
+/** Retain every thematic and required evidence ID, but remove duplicate text
+ * where the same exact fact already appears in the shared context. */
+export function groqN6Payload(brief:N6Brief):string{
+ const shared=new Map(brief.context.map(e=>[e.text,e.id]));
+ return JSON.stringify({...brief,chapters:brief.chapters.map(({lead,paragraphs,...c})=>({...c,evidence:c.evidence.map(e=>{
+  const ref=shared.get(e.text);return ref?{id:e.id,text:'Same verified fact as '+ref}:e;
+ })}))});
+}
+export const N631_GROQ_PROMPT='Return only JSON {"chapters":[{"id":"requested id","lead":"Complete sentence.","paragraphs":[{"text":"Complete paragraph.","evidenceIds":["provided id"]}]}]}. Output in the requested language, not the language of the facts. All requested chapters in order; include every required ID in that chapter, no invented IDs. Shared evidence can be cited where relevant. Write original, specific synthesis, not a list of placements: connect natal factors to thematic vargas, explain support and tension, and give a concrete everyday implication. D1 is primary; repeated signs are correlated, not independent proof. Hora is Sun/Moon categories only. D60 conditional sign comparison only if supplied, never D60 houses, lagna or karma. No invented biography, event guarantees, medical or investment advice. Ordinary numerals and verified D-chart labels are allowed if useful; prefer natural language, no inline evidence IDs, raw dates, degrees, percentages, money amounts, Markdown or HTML. Use exactly two paragraphs per ordinary chapter and three for rich timing, separate from lead. Honor supplied minimum words; rich timing 85–110 words, distinct long and short rulers and their interaction. Full report 400–520 words; for a subset write only those chapters. End every sentence and finish the JSON.';

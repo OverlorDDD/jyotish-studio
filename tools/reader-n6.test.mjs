@@ -137,12 +137,12 @@ test('N6.2 Groq content repair sends only failed chapters, counts calls, and nev
  const x=output();x.chapters[1].paragraphs[0].text+=' D9. PRIVATE_REJECTED_TEXT.';
  const opts={reader10:reader,order:['groq'],keys:{groq:'fake'},freeConfirmed:{groq:true},limit:()=>{permits++;return true;},onDiagnostic:d=>events.push(d),fetcher:async(_url,req)=>{
   calls++;const b=JSON.parse(req.body);
-  if(calls===2){assert.match(b.messages[0].content,/money:plain_digits/);assert.match(b.messages[1].content,/only the requested replacement chapters/);assert.deepEqual(b.response_format.json_schema.schema.properties.chapters.items.properties.id.enum,['money']);assert.doesNotMatch(JSON.stringify(b),/PRIVATE_REJECTED_TEXT/);assert.equal(JSON.parse(b.messages[1].content.split('facts:\n')[1]).chapters.length,1);}
+  if(calls===2){assert.match(b.messages[0].content,/money:plain_unknown_division/);assert.match(b.messages[1].content,/only the requested replacement chapters/);assert.deepEqual(b.response_format.json_schema.schema.properties.chapters.items.properties.id.enum,['money']);assert.doesNotMatch(JSON.stringify(b),/PRIVATE_REJECTED_TEXT/);assert.equal(JSON.parse(b.messages[1].content.split('facts:\n')[1]).chapters.length,1);}
   return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(calls===1?x:{chapters:[output().chapters[1]]})}}]}));
  }};
  const accepted=await generateDirectJyotish(chart,'en','2026-11-26',opts);
  assert.equal(calls,2);assert.equal(permits,2);assert.equal(accepted.result?.provider,'groq');
- assert.ok(events.some(d=>d.reason==='n6_plain_digits_money'));assert.ok(events.some(d=>d.reason==='n6_repaired_complete'));
+ assert.ok(events.some(d=>d.reason==='n6_plain_unknown_division_money'));assert.ok(events.some(d=>d.reason==='n6_repaired_complete'));
  calls=0;const rejected=await generateDirectJyotish(chart,'en','2026-11-26',{...opts,fetcher:async()=>{calls++;return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(calls===1?x:{chapters:[x.chapters[1]]})}}]}));}});
  assert.equal(calls,2);assert.equal(rejected.result,null);
 });
@@ -205,4 +205,20 @@ test('N631 Groq reflows paragraph counts without losing words or evidence; full 
  assert.equal(merged.chapters[0].paragraphs.length,3);
  assert.equal(merged.chapters[0].paragraphs.map(p=>p.text).join(' '),many.chapters[0].paragraphs.map(p=>p.text).join(' '));
  assert.ok(parseN6Response(JSON.stringify(merged),reader,brief));
+});
+
+test('N631 Groq accepts evidence-backed chart labels and ordinary numbers, rejects unknown divisions, D60 and precision claims',()=>{
+ const x=output(),b={...brief,chapters:brief.chapters.map(c=>c.id==='money'?{...c,evidence:[{...c.evidence[0],text:'D1 house 2 and D2 Hora.'},c.evidence[1]]}:c)};
+ const p=x.chapters[1].paragraphs[0],original=p.text;
+ p.text=original+' D2 refines the 2nd house theme.';
+ assert.ok(inspectN6Response(JSON.stringify(x),reader,b,false,true).reader);
+ assert.equal(inspectN6Response(JSON.stringify(x),reader,b).reason,'plain_digits');
+ for(const suffix of [' D99.',' D60.',' Шаштіамша.']){
+  p.text=original+suffix;assert.equal(inspectN6Response(JSON.stringify(x),reader,b,false,true).reason,'plain_unknown_division');
+ }
+ for(const suffix of [' 2026-11-27.',' 50%.',' 20°.', ' $500.']){
+  p.text=original+suffix;assert.equal(inspectN6Response(JSON.stringify(x),reader,b,false,true).reason,'plain_numeric_claim');
+ }
+ p.text=original+' D2 refines the 2nd house theme.';p.evidenceIds=['invented'];
+ assert.equal(inspectN6Response(JSON.stringify(x),reader,b,false,true).reason,'unknown_evidence');
 });

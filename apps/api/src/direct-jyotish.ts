@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,type N6Repair} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -286,6 +286,7 @@ export async function generateDirectJyotish(
  const order=opts.order??productionDirectAiOrder().filter(provider=>
   provider!=='openrouter'||process.env.GALAXIORA_NATAL_OPENROUTER_DISABLED!=='1');
  const n6=opts.reader10?buildN6Brief(opts.reader10,chart,asOf):null;
+ const groqBrief=n6?groqN6Brief(n6,chart,asOf):null;
  const priority=n6?null:planConsultationQuality(chart,asOf);
  const hasVerifiedVargas=Boolean(verifiedVargaSource(chart));
  const facts=n6?'':compactJyotishFacts(chart,asOf)+'\n\n'+compactQualityBrief(priority!);
@@ -369,6 +370,7 @@ export async function generateDirectJyotish(
        '\nCORRECTION: The previous draft omitted the required source-bound N4 comparison. Cite exactly two different additional verified D-codes appearing in the provided facts and connect them to D1; do not invent placements.':'')+
       (correctiveReason==='missing_d9_d10_analysis'?
        '\nCORRECTION: The previous version omitted real D9 and/or D10 interpretation. In the relationship section, interpret one VERIFIED D9 graha, its sign and house from the facts. In the career section, interpret one VERIFIED D10 graha, its sign and house. Do not merely list D9 and D10 codes or invent placements. Retain the two additional verified N4 divisions and end in a complete sentence.':'');
+    const providerBrief=n6&&provider==='groq'&&groqBrief?(repair?{...groqBrief,chapters:groqBrief.chapters.filter(c=>repair!.ids.some(id=>id===c.id))}:groqBrief):repair?.brief??n6;
     const response=await (opts.fetcher||fetch)(urlFor(provider),{
      method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+key.trim()},
      body:JSON.stringify({model,
@@ -376,11 +378,16 @@ export async function generateDirectJyotish(
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
-      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(repair?.brief??n6,repair)}:{}),
-      messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT+'\nUse exactly two complete paragraphs for each ordinary chapter and exactly three for rich timing. Lead is separate and never counts as a paragraph.':N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
+      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(providerBrief??n6,repair)}:{}),
+      messages:[{role:'system',content:n6?(provider==='groq'?N631_GROQ_PROMPT+(repair?'\nReturn only replacement chapters. Correct: '+repair.issues.join(', '):correctiveReason?'\nCorrect: '+correctiveReason:''):repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':N6_PROMPT+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
        {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(repair?.brief??n6,provider==='groq'):backup?backupFacts:facts)} ]})
+        '. Here are ONLY verified calculation facts:\n'+(n6?(provider==='groq'?groqN6Payload(providerBrief??n6):n6ProviderPayload(repair?.brief??n6,false)):backup?backupFacts:facts)} ]})
     });
+    if(n6&&provider==='groq'&&!opts.fetcher){
+     for(const key of ['x-ratelimit-limit-tokens','x-ratelimit-remaining-tokens','x-ratelimit-remaining-requests']){
+      const v=response.headers.get(key);if(v&&/^\d{1,9}$/.test(v))diagnostic(provider,'limit',key.replaceAll('-','_')+'_'+v);
+     }
+    }
     if(!response.ok){
      if(n6&&provider==='groq'&&response.status===400){
       const code=await groqN6BadRequest(response);
@@ -425,7 +432,7 @@ export async function generateDirectJyotish(
     if(rawContent!==originalContent)diagnostic(provider,'validation','n631_paragraph_reflow');
     if(n6&&opts.reader10){
      const merged=repair?mergeN6Repair(rawContent,repair):rawContent;
-     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6);
+     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6,false,provider==='groq');
      const reader10=checked.reader;
      if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
       if((provider==='groq'||provider==='gemini')&&attempt===0){
@@ -433,7 +440,7 @@ export async function generateDirectJyotish(
        if(!enoughTime)diagnostic(provider,'validation','n6_repair_no_time');
        else if(choice?.finish_reason==='length')diagnostic(provider,'validation','n6_repair_truncated');
        else{
-        const decision=inspectN6Repair(rawContent,opts.reader10,n6);
+        const decision=inspectN6Repair(rawContent,opts.reader10,n6,provider==='groq');
         repair=decision.repair;
         if(repair){diagnostic(provider,'validation','n6_repair_'+repair.ids.join('_'));for(const issue of repair.issues)diagnostic(provider,'validation','n6_repair_issue_'+issue.replace(':','_'));continue;}
         diagnostic(provider,'validation','n6_repair_'+decision.reason);
