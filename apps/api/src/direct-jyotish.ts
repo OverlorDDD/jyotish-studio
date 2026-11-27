@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,N6_COMPACT_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -184,6 +184,46 @@ export function validateN4ConsultationReferences(text:string,chart:CalculatedCha
  }
  return {ok:true,reason:'ok'};
 }
+/** Both allowlisted GPT-OSS models support constrained JSON Schema on Groq.
+ * Keep the schema structural; the local reader validator still owns evidence,
+ * chapter ordering, length, privacy and content constraints. */
+const GROQ_N6_SCHEMA={
+ type:'json_schema',json_schema:{name:'galaxiora_n6_reader',strict:true,schema:{
+  type:'object',additionalProperties:false,required:['chapters'],properties:{
+   chapters:{type:'array',items:{type:'object',additionalProperties:false,
+    required:['id','lead','paragraphs'],properties:{
+     id:{type:'string',enum:['self','money','work','love','home','path','timing','summary']},
+     lead:{type:'string'},paragraphs:{type:'array',items:{
+      type:'object',additionalProperties:false,required:['text','evidenceIds'],
+      properties:{text:{type:'string'},evidenceIds:{type:'array',items:{type:'string'}}}
+     }}
+    }
+   }}
+  }
+ }}
+} as const;
+function groqN6Schema(brief:ReturnType<typeof buildN6Brief>,repair:N6Repair|null){
+ const {json_schema:s}=GROQ_N6_SCHEMA,c=s.schema.properties.chapters,props=c.items.properties,paragraph=props.paragraphs.items;
+ const ids=[...new Set([...brief.chapters.flatMap(x=>x.evidence),...brief.context].map(x=>x.id))];
+ return {...GROQ_N6_SCHEMA,json_schema:{...s,name:repair?'galaxiora_n6_repair':s.name,schema:{...s.schema,properties:{chapters:{...c,items:{...c.items,properties:{...props,id:{type:'string',enum:brief.chapters.map(x=>x.id)},paragraphs:{...props.paragraphs,items:{...paragraph,properties:{...paragraph.properties,evidenceIds:{type:'array',items:{type:'string',enum:ids}}}}}}}}}}}};
+}
+/** Classify only known upstream errors. Never log provider messages, failed
+ * generation, arbitrary error codes, request bodies, keys or chart data. */
+async function groqN6BadRequest(response:Response):Promise<'json_generation_failed'|'structured_format_rejected'|'context_limit'|'model_rejected'|'bad_request_other'>{
+ try{
+  const raw=await response.text();
+  if(raw.length>64000)return 'bad_request_other';
+  const e=(JSON.parse(raw) as {error?:{code?:unknown;message?:unknown}})?.error;
+  const code=typeof e?.code==='string'?e.code:'';
+  const message=typeof e?.message==='string'?e.message.slice(0,2000):'';
+  if(['json_validate_failed','json_validation_failed','json_schema_validation_failed'].includes(code)||
+   /failed to generate (?:valid )?json|generated json does not match|json (?:generation|validation) failed/i.test(message))return 'json_generation_failed';
+  if(code==='context_length_exceeded'||/maximum context length|context length exceeded/i.test(message))return 'context_limit';
+  if(['model_not_found','model_decommissioned'].includes(code))return 'model_rejected';
+  if(/response_format|json_schema|structured outputs?|json mode/i.test(message)&&/unsupported|not supported|invalid schema|not allowed|not available/i.test(message))return 'structured_format_rejected';
+ }catch{/* no response body or upstream message leaves this function */}
+ return 'bad_request_other';
+}
 export async function generateDirectJyotish(
  chart:CalculatedChart,lang:'uk'|'en',asOf:string,opts:DirectOptions={}
 ):Promise<{result:Result|null;reason?:FreeFallbackReason}>{
@@ -227,12 +267,15 @@ export async function generateDirectJyotish(
   let bestVerified:{result:Result;missing:number}|null=null;
   try{
    let correctiveReason='';
+   let groqPlainJson=false;
+   let repair:N6Repair|null=null;
    // If a factually valid free response is thin on D9/D10, keep it as a safe
    // fallback while attempting one richer rewrite. A failed quality retry must
    // not turn an already accepted response into a local-Reader failure.
    // Free models frequently stop before a long requested consultation is complete.
    // Allow one bounded retry for selected incomplete responses.
-   // Never retry HTTP failures or accept fabricated chart facts to manufacture success.
+   // Never retry arbitrary HTTP errors or accept fabricated chart facts.
+   // N6 Groq may recover once from a recognized structured-format HTTP 400.
    for(let attempt=0;attempt<2;attempt++){
     if(attempt>0){
      // Keep a usable window for each remaining provider before spending a retry.
@@ -249,13 +292,13 @@ export async function generateDirectJyotish(
     controller=new AbortController();
     const providerTimeout=provider==='gemini'?65000:42000;
     const reservedForFallback=30000*(order.length-index-1);
-    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?25000:providerTimeout);
+    const timeout=Math.min(Math.max(1500,left-reservedForFallback),opts.timeoutMs??providerTimeout,attempt===1?(repair&&repair.ids.length>3?42000:25000):providerTimeout);
     timer=setTimeout(()=>controller?.abort(),timeout);
     const concise=attempt===1;
     const backup=provider!=='gemini'||concise;
     // Groq's reasoning budget is included in the completion token allocation.
     // Keep reserve tokens for an actual response instead of ordering 650 words.
-    const maxCompletion=n6?(provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
+    const maxCompletion=n6?(repair?Math.min(3400,1200+450*repair.ids.length):provider==='groq'?3400:5200):provider==='groq'?(concise?2800:3600):
       provider==='openrouter'?3400:(concise?2400:3400);
     const instructions=(concise?
       DIRECT_JYOTISH_BACKUP_INSTRUCTION+'\nFor this corrective attempt: only 200-280 words, but finish all five sections and keep two verified additional varga references when provided. End with a complete last sentence.':
@@ -277,12 +320,20 @@ export async function generateDirectJyotish(
       // This opt-in free endpoint can otherwise spend the completion budget on reasoning.
       ...(provider==='openrouter'&&model==='nvidia/nemotron-3.5-lightning:free'?{reasoning:{enabled:false}}:{}),
       temperature:n6?0.35:concise?0.45:0.6,
-      ...(n6&&provider==='groq'?{response_format:{type:'json_object'}}:{}),
-      messages:[{role:'system',content:n6?N6_PROMPT+(provider==='groq'?'\n'+N6_COMPACT_PROMPT:'')+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':''):instructions},
-       {role:'user',content:'Write the requested full consultation in '+(lang==='uk'?'natural Ukrainian':'natural English')+
-        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(n6,provider==='groq'):backup?backupFacts:facts)} ]})
+      ...(n6&&provider==='groq'&&!groqPlainJson?{response_format:groqN6Schema(repair?.brief??n6,repair)}:{}),
+      messages:[{role:'system',content:n6?(repair?N6_REPAIR_PROMPT+'\nCorrect these issues: '+repair.issues.join(', ')+'.':(provider==='groq'?N6_PROMPT.replace('Aim for 520–700 words total.','')+'\n'+N6_COMPACT_PROMPT:N6_PROMPT)+(correctiveReason?'\nPrevious response failed '+correctiveReason+'. Produce the complete valid JSON with every required ID and no extra text.':'')):instructions},
+       {role:'user',content:(repair?'Write only the requested replacement chapters in ':'Write the requested full consultation in ')+(lang==='uk'?'natural Ukrainian':'natural English')+
+        '. Here are ONLY verified calculation facts:\n'+(n6?n6ProviderPayload(repair?.brief??n6,provider==='groq'):backup?backupFacts:facts)} ]})
     });
     if(!response.ok){
+     if(n6&&provider==='groq'&&response.status===400){
+      const code=await groqN6BadRequest(response);
+      reason='invalid_response';diagnostic(provider,'http','groq_'+code,400);
+      if(attempt===0&&['json_generation_failed','structured_format_rejected'].includes(code)&&deadline-Date.now()>30000+reservedForFallback){
+       groqPlainJson=true;correctiveReason='groq_'+code;continue;
+      }
+      break;
+     }
      if(provider==='openrouter'&&response.status===429){
       let source:ReturnType<typeof openRouterLimitSource>='unknown';
       try{source=openRouterLimitSource(await response.json());}
@@ -311,15 +362,30 @@ export async function generateDirectJyotish(
     const value=choice?.message?.content;
     const rawContent=typeof value==='string'?value:Array.isArray(value)?value.map(v=>v.text||'').join(''):'';
     if(n6&&opts.reader10){
-     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit'}:inspectN6Response(rawContent,opts.reader10,n6);
+     const merged=repair?mergeN6Repair(rawContent,repair):rawContent;
+     const checked=choice?.finish_reason==='length'?{reader:null,reason:'token_limit',chapter:undefined}:merged===null?{reader:null,reason:'repair_shape',chapter:undefined}:inspectN6Response(merged,opts.reader10,n6);
      const reader10=checked.reader;
-     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code);
+     if(!reader10){reason='invalid_response';const code='n6_'+checked.reason;diagnostic(provider,'validation',code+(checked.chapter?'_'+checked.chapter:''));
+      if(provider==='groq'&&attempt===0){
+       const enoughTime=deadline-Date.now()>30000+reservedForFallback;
+       if(!enoughTime)diagnostic(provider,'validation','n6_repair_no_time');
+       else if(choice?.finish_reason==='length')diagnostic(provider,'validation','n6_repair_truncated');
+       else{
+        const decision=inspectN6Repair(rawContent,opts.reader10,n6);
+        repair=decision.repair;
+        if(repair){diagnostic(provider,'validation','n6_repair_'+repair.ids.join('_'));for(const issue of repair.issues)diagnostic(provider,'validation','n6_repair_issue_'+issue.replace(':','_'));continue;}
+        diagnostic(provider,'validation','n6_repair_'+decision.reason);
+       }
+       if(enoughTime&&['token_limit','json_syntax','chapter_count','chapter_order','unchanged_classic'].includes(checked.reason)){
+        correctiveReason=code;diagnostic(provider,'validation','n6_full_retry_'+checked.reason);continue;
+       }
+      }
       if(provider!=='groq'&&attempt===0&&['json_syntax','token_limit','chapter_count','chapter_shape'].includes(checked.reason)&&deadline-Date.now()>45000+reservedForFallback){correctiveReason=code;continue;}
       break;
      }
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');
      try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
-     diagnostic(provider,'success','n6_complete');
+     diagnostic(provider,'success',repair?'n6_repaired_complete':'n6_complete');
      return {result:{provider,model:parsed?.model||model,text,reader10}};
     }
     const content=polishConsultationText(rawContent,lang);
