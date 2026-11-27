@@ -114,6 +114,9 @@ test('Reader 10 approximate birth time shows one note and keeps the full reading
  await page.goForward();
  await expect(reader.getByRole('note')).toContainText('Your birth time is marked approximate');
  await expect(reader.getByRole('note')).toHaveCount(1);
- expect(await reader.textContent()).not.toMatch(/D60(?=[: (])|Shashtiamsha/i);
+ // Generic educational links can name the full D2–D60 range; only
+ // personalized prose and proof must omit D60 when time is approximate.
+ const personalText=await reader.locator(':scope > article > p, :scope > article > details > p:not(:has(a))').allTextContents();
+ expect(personalText.join(' ')).not.toMatch(/D60(?=[: (])|Shashtiamsha/i);
  await expect(reader.locator(':scope > article')).toHaveCount(8);
 });
