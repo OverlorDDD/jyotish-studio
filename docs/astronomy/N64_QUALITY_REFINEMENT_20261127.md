@@ -1,0 +1,7 @@
+# N6.4 quality refinement (bounded)
+Base d3ed85ee08efb385d8ea9db7c8e4c71b345e9b58. No new chapters, astronomical calculations, provider, transport, retry, quota or D60 eligibility changes.
+- Correct Hora category and remove unsupported retention inference / score; distinguish editorial tier from actual strength. Remove targeted deterministic claims of family biography or invulnerability.
+- Select natal topic ruler plus a stable contrast if available, else karaka or context; keep two slots, all nine considered. Explicit D1 dignity and conditional D60 sign dignity, never D60 houses/lagna.
+- Make lagna dispositor chain and money resource context explicit required facts. Add actual indirect dasha bridges; keep proof requirements and packet logic. Review lexical coverage and clichés only as advisory codes, not semantic certification, no extra LLM calls.
+- Compact proof from bound chart, group varga by division and graha; preserve original evidence/links/basis internally, do not send display text to provider. Display in same existing details block. Cache n6-quality-5, same wire version.
+- Regression: existing suite, role selection, contrast presence, Hora, display grouping, no D60 leak, advisory not blocking. Preserve all sixteen chart tables. Verify actual prompt/completion tokens and both real providers on isolated preview before production. Editorial acceptance on different charts separate from mechanical success. No new classical yoga or strength certification.

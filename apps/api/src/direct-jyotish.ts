@@ -1,4 +1,4 @@
-import {buildN6Brief,inspectN6Response,N6_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,packGroqN6,expandGroqPackets,type N6Repair} from './reader-n6.ts';
+import {buildN6Brief,inspectN6Response,N6_PROMPT,n6ProviderPayload,inspectN6Repair,mergeN6Repair,N6_REPAIR_PROMPT,groqN6Brief,groqN6Payload,N631_GROQ_PROMPT,packGroqN6,expandGroqPackets,reviewN64Report,type N6Repair} from './reader-n6.ts';
 import type {Reader10Report} from './reader10.ts';
 import type {CalculatedChart} from '../../../packages/jyotish-core/src/index.ts';
 import {classicalLordshipTable,yogakarakasForLagna} from './reader-classical.ts';
@@ -479,6 +479,8 @@ export async function generateDirectJyotish(
      }
      const text=reader10.chapters.map(c=>[c.lead,...c.paragraphs].join('\n')).join('\n\n');
      try{await opts.onUsage?.({provider,model:parsed?.model||model,outcome:'returned'});}catch{}
+     // Advisory only: no extra provider calls, no rejection or personal text in logs.
+     for(const flag of reviewN64Report(reader10,n6))diagnostic(provider,'validation','n64_review_'+flag);
      diagnostic(provider,'success',repair?'n6_repaired_complete':'n6_complete');
      return {result:{provider,model:parsed?.model||model,text,reader10}};
     }

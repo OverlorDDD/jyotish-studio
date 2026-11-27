@@ -27,7 +27,7 @@ const SPECS:Readonly<Record<number,Spec>>={
  45:{area:'home',house:9,natural:'Sun',focus:9}
 };
 const DIGNITY:Record<Dignity,[string,string]>={own:['власний знак','own sign'],exalted:['екзальтація','exalted'],debilitated:['падіння','debilitated'],neutral:['без особливої знакової гідності','no special sign dignity']};
-type Selected={planet:Planet;sign:number;house:number;dignity:Dignity;sameSign:boolean;boundarySensitive:boolean};
+type Selected={planet:Planet;sign:number;house:number;dignity:Dignity;sameSign:boolean;boundarySensitive:boolean;role:'ruler'|'karaka'|'contrast'|'context'};
 export type VargaFinding={division:number;area:Area;examined:number;selected:Selected[];text:string};
 export type VargaIntelligence={findings:VargaFinding[];byArea:Partial<Record<Area,Evidence[]>>;patterns:Evidence[];timing:Evidence[];d60:Evidence|null;d60Examined:number};
 export function buildVargaIntelligence(chart:CalculatedChart,lang:Lang,allowD60:boolean,asOf?:string):VargaIntelligence|null{
@@ -49,14 +49,23 @@ export function buildVargaIntelligence(chart:CalculatedChart,lang:Lang,allowD60:
    const score=(planet===primary?12:0)+(planet===spec.natural?7:0)+(c.division!==2&&planet===vLord?5:0)
     +(c.division!==2&&p.house===spec.focus?4:0)+(contrast?3:0)+(sameSign?2:0)
     +(c.division!==2&&strong(dignity)?1:0);
-   return {planet,sign:p.sign,house:p.house,dignity,sameSign,boundarySensitive:p.boundaryDistanceArcseconds<=1,score};
+   return {planet,sign:p.sign,house:p.house,dignity,sameSign,boundarySensitive:p.boundaryDistanceArcseconds<=1,score,contrast};
   }).sort((a,b)=>b.score-a.score||PLANETS.indexOf(a.planet)-PLANETS.indexOf(b.planet));
-  const selected=candidates.slice(0,2).map(({score,...p})=>p);
+  // Keep the two-slot budget. Reserve the first slot for the natal topic
+  // ruler; prefer a real, stable dignity contrast over a redundant second
+  // ruler. Otherwise retain the natural significator, then contextual relevance.
+  const first=candidates.find(p=>p.planet===primary)!;
+  const other=candidates.filter(p=>p.planet!==first.planet);
+  const contrast=other.find(p=>contrast&&!p.boundarySensitive);
+  const natural=other.find(p=>p.planet===spec.natural);
+  const second=contrast||natural||other[0];
+  const selected:Selected[]=[first,second].map(({score,contrast,...p},i)=>({...p,role:i===0?'ruler':p.contrast&&!p.boundarySensitive?'contrast':p.planet===spec.natural?'karaka':'context'}));
+
   const text='D'+c.division+': '+selected.map(p=>{
    const natal=f.planets[p.planet];
-   const role=p.planet===primary?(uk?' (натальний управитель тематичного дому)':' (natal topic ruler)'):'';
+   const role=p.role==='ruler'?(uk?' (управитель теми D1)':' (D1 topic ruler)'):p.role==='contrast'?(uk?' (контраст)':' (contrast)'):'';
    if(c.division===2)return name(p.planet)+role+' — '+(p.sign===5?(uk?'хора Сонця':'Sun Hora'):(uk?'хора Місяця':'Moon Hora'));
-   return name(p.planet)+role+' — D1 '+sign(natal.sign)+'/'+(uk?'дім ':'H')+natal.house+'; D'+c.division+' '+sign(p.sign)+'/'+(uk?'дім ':'H')+p.house+
+   return name(p.planet)+role+' — D1 '+sign(natal.sign)+'/'+natal.house+(natal.dignity!=='neutral'?', '+DIGNITY[natal.dignity][l]:'')+'; D'+c.division+' '+sign(p.sign)+'/'+p.house+
     (p.dignity!=='neutral'?', '+DIGNITY[p.dignity][l]:'')+
     (p.sameSign?(uk?', збіг знака з D1':', same sign as D1'):'')+
     (strong(natal.dignity)&&p.dignity==='debilitated'||natal.dignity==='debilitated'&&strong(p.dignity)?(uk?', контраст знакової гідності з D1':', dignity contrast with D1'):'')+
@@ -103,8 +112,11 @@ export function buildVargaIntelligence(chart:CalculatedChart,lang:Lang,allowD60:
   if(preview.status==='conditional_signs'){
    d60Examined=preview.allPlanets.length;
    const order=[f.lagnaLord.name,lord(10),lord(7),'Moon','Sun','Jupiter','Venus','Saturn','Mercury','Mars','Rahu','Ketu'];
-   const eligible=preview.allPlanets.filter(p=>!p.nearBoundary).sort((a,b)=>order.indexOf(a.planet)-order.indexOf(b.planet)).slice(0,3);
-   if(eligible.length)d60={id:'path.v60',text:'D60: '+eligible.map(p=>p.label+' '+p.d1SignName+' (D1) → '+p.d60SignName+' (D60)').join('; ')+
+   const eligible=preview.allPlanets.filter(p=>!p.nearBoundary&&p.planet!=='Rahu'&&p.planet!=='Ketu').sort((a,b)=>order.indexOf(a.planet)-order.indexOf(b.planet)).slice(0,3);
+   if(eligible.length)d60={id:'path.v60',text:'D60: '+eligible.map(p=>{
+    const n=p.planet as Planet,d=dignityOf(n,p.d60Sign),natal=dignityOf(n,p.d1Sign);
+    return p.label+' '+p.d1SignName+' (D1'+(natal!=='neutral'?', '+DIGNITY[natal][l]:'')+') → '+p.d60SignName+' (D60'+(d!=='neutral'?', '+DIGNITY[d][l]:'')+')';
+   }).join('; ')+
     (uk?'. Лише умовні знаки, без домів, лагни, кармічних прогнозів чи сертифікації часу.':'. Conditional signs only; no houses, ascendant, karmic predictions or birth-time certification.')};
   }
  }

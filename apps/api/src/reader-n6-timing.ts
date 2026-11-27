@@ -75,8 +75,10 @@ export function timingChapter(chart:CalculatedChart,lang:Lang,asOf:string):Reade
    extra.push('D'+div+': '+name(n)+', '+SIGN_NAME[p.sign-1][lang]+', '+(uk?p.house+'-й дім':'house '+p.house)+', '+dignity({ ...f.planets[n],dignity:dignityOf(n,p.sign) })+'.');
   }
  }
+ const indirect=others.filter(p=>p.house===a.house||p.name===signLord(a.sign));
+ const bridge=indirect.map(p=>name(p.name)+(p.house===a.house?(uk?' у домі управителя махадаші':' shares the major ruler’s house'):(uk?' — диспозитор управителя махадаші':' disposits the major ruler'))+(p.house===b.house?(uk?' та в домі управителя антардаші':' and shares the minor ruler’s house'):(uk?' та аспектує управителя антардаші':' and aspects the minor ruler'))).join('; ');
  const relationFact=(uk?'Зв’язок управителів періодів: ':'Relationship between period rulers: ')+
-  (relation==='same_planet'?(uk?'та сама планета':'same planet'):relation==='same_house'?(uk?'той самий дім D1':'same D1 house'):relation==='aspect'?(uk?'аспект D1':'D1 aspect'):relation==='dispositor'?(uk?'диспозиторний зв’язок D1':'D1 dispositor link'):(uk?'різні сфери D1; прямого аспекту між ними за цією методикою немає':'distinct D1 sectors; no direct aspect in this method'))+'.';
+  (relation==='same_planet'?(uk?'та сама планета':'same planet'):relation==='same_house'?(uk?'той самий дім D1':'same D1 house'):relation==='aspect'?(uk?'аспект D1':'D1 aspect'):relation==='dispositor'?(uk?'диспозиторний зв’язок D1':'D1 dispositor link'):(uk?'різні сфери D1; прямого аспекту між ними за цією методикою немає':'distinct D1 sectors; no direct aspect in this method'))+'.'+(bridge?(uk?' Опосередковані зв’язки: ':' Indirect links: ')+bridge+'.':'');
  return {id:'timing',title,lead:uk?'Нинішній період пропонує зосередитися на '+topic(a.house)+'.':'This stage brings particular attention to '+topic(a.house)+'.',
  paragraphs:[
   (uk?'Довгий життєвий цикл робить наголос на ':'During the longer life cycle, attention centers on ')+topic(a.house)+'.'+roleText(a)+cluster+' '+practices[a.name][l],

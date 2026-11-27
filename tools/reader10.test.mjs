@@ -329,3 +329,39 @@ test('N631 verified full Ukrainian report uses simple JSON mode and recovers fro
  assert.equal(calls.length,2);assert.equal(waits.length,1);assert.ok(waits[0]>=33000&&waits[0]<=35332);
  assert.ok(result.result?.reader10);assert.equal(result.result.reader10.chapters.length,8);
 });
+
+test('N64 Hora category is factual, not a savings verdict, and never describes ordinary D2 houses',()=>{
+ for(const lang of ['uk','en']){
+  const c=chartOf(7),r=buildReader10(c,lang),m=r.chapters.find(x=>x.id==='money');
+  const d=m.details.paragraphs.find(x=>x.includes('D2 ('));
+  assert.ok(d);assert.doesNotMatch(d,/чужій|своїй|its own hora|other hora/iu);
+  assert.doesNotMatch(m.details.basis.split('D2:')[1].split(';')[0],/дім|house/iu);
+  assert.doesNotMatch(m.paragraphs.join(' '),/заробити вам легше, ніж утримати|earning is easier for you than keeping/iu);
+ }
+});
+test('N64 all vargas retain two distinct role-selected grahas; stable dignity contrasts take precedence',async()=>{
+ const {buildVargaIntelligence}=await import('../apps/api/src/reader-n63-vargas.ts');
+ const {buildN6Reader,buildN6Brief,n6ProviderPayload,groqN6Brief,groqN6Payload,packGroqN6}=await import('../apps/api/src/reader-n6.ts');
+ let count=0,contrasts=0;
+ for(let seed=1;seed<=60;seed++){
+  let chart;try{chart=chartOf(seed);}catch(error){if(/N4_RC_SOURCE_OR_METHOD_MISMATCH/.test(String(error)))continue;throw error;}
+  for(const lang of ['uk','en']){
+   const a=buildVargaIntelligence(chart,lang,true,'2026-11-27');
+   assert.equal(a.findings.length,14);
+   for(const v of a.findings){assert.equal(v.examined,9);assert.equal(v.selected[0].role,'ruler');assert.notEqual(v.selected[0].planet,v.selected[1].planet);if(v.selected[1].role==='contrast'){assert.equal(v.selected[1].boundarySensitive,false);contrasts++;}}
+   const r=buildN6Reader(chart,lang,'2026-11-27',false),b=buildN6Brief(r,chart,'2026-11-27');
+   assert.ok(b.chapters[0].required.includes('shared.lagnaChain'));
+   assert.ok(b.chapters[1].required.includes('money.resources'));
+   const work=b.chapters.find(c=>c.id==='work').presentation;
+   assert.equal(work.filter(t=>t.startsWith('D10 (')).length,1);assert.equal(work.filter(t=>t.startsWith('D24 (')).length,1);
+   const payload=JSON.parse(n6ProviderPayload(b,false));
+   assert.ok(payload.chapters.every(c=>!('presentation' in c)));
+   const compact=JSON.parse(groqN6Payload(packGroqN6(groqN6Brief(b,chart,'2026-11-27')).brief));
+   assert.ok(compact.chapters.every(c=>!('presentation' in c)));
+   assert.doesNotMatch(JSON.stringify(compact),/D60(?=[: (])|Шаштіамша|Shashtiamsha/i);
+   assert.ok(JSON.stringify(payload).length<26000);
+   count++;
+  }
+ }
+ assert.ok(count>=80&&contrasts>0);
+});
